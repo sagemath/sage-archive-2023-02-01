@@ -33,7 +33,8 @@ EXAMPLES::
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    85.1885681951527
+    83.8179442684285  # 32-bit
+    84.1818153922297  # 64-bit
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -177,6 +178,7 @@ from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
+from sage.misc.superseded import deprecated_function_alias
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -1332,22 +1334,24 @@ cdef class PariInstance(PariInstance_auto):
         pari_catch_sig_on()
         return self.new_gen(pollegendre(n, self.get_var(v)))
 
-    def poltchebi(self, long n, v=-1):
+    def polchebyshev(self, long n, v=-1):
         """
-        poltchebi(n, v=x): Chebyshev polynomial of the first kind of degree
+        polchebyshev(n, v=x): Chebyshev polynomial of the first kind of degree
         n, in variable v.
 
         EXAMPLES::
 
-            sage: pari.poltchebi(7)
+            sage: pari.polchebyshev(7)
             64*x^7 - 112*x^5 + 56*x^3 - 7*x
-            sage: pari.poltchebi(7, 'z')
+            sage: pari.polchebyshev(7, 'z')
             64*z^7 - 112*z^5 + 56*z^3 - 7*z
-            sage: pari.poltchebi(0)
+            sage: pari.polchebyshev(0)
             1
         """
         pari_catch_sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
+
+    poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):
         """

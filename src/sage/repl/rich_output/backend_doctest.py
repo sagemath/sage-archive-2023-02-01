@@ -146,8 +146,8 @@ class BackendDoctest(BackendBase):
             Graphics object consisting of 1 graphics primitive
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        if any(isinstance(rich_output, cls)
+               for cls in [OutputPlainText, OutputAsciiArt, OutputLatex]):
             rich_output.print_to_stdout()
         else:
             plain_text.print_to_stdout()
@@ -179,8 +179,9 @@ class BackendDoctest(BackendBase):
             sage: dm.display_immediately(plt)   # indirect doctest
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        if isinstance(rich_output, OutputLatex):
+            print(rich_output.mathjax(display=False))
+        elif any(isinstance(rich_output, cls) for cls in [OutputPlainText, OutputAsciiArt]):
             rich_output.print_to_stdout()
 
     def validate(self, rich_output):

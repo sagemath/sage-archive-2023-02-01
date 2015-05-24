@@ -827,11 +827,32 @@ class AdditiveMagmas(Category_singleton):
                     sage: a - b
                     B['a'] - B['b']
                 """
-                if have_same_parent(left, right) and hasattr(left, "_sub_"):
+                if have_same_parent(left, right):
                     return left._sub_(right)
                 from sage.structure.element import get_coercion_model
                 import operator
                 return get_coercion_model().bin_op(left, right, operator.sub)
+
+            def _sub_(left, right):
+                r"""
+                Default implementation of difference.
+
+                EXAMPLES::
+
+                    sage: F = CombinatorialFreeModule(QQ, ['a','b'])
+                    sage: a,b = F.basis()
+                    sage: a - b
+                    B['a'] - B['b']
+
+                TESTS:
+
+                Check that :trac:`18275` is fixed::
+
+                    sage: C = GF(5).cartesian_product(GF(5))
+                    sage: C.one() - C.one()
+                    (0, 0)
+                """
+                return left._add_(-right)
 
             def __neg__(self):
                 """
@@ -855,6 +876,15 @@ class AdditiveMagmas(Category_singleton):
                     'sage.categories.additive_magmas'
                     sage: b._neg_.__module__
                     'sage.combinat.free_module'
+                    sage: F = CombinatorialFreeModule(ZZ, ['a','b'])
+                    sage: a,b = F.gens()
+                    sage: FF = cartesian_product((F,F))
+                    sage: x = cartesian_product([a,2*a-3*b]) ; x
+                    B[(0, 'a')] + 2*B[(1, 'a')] - 3*B[(1, 'b')]
+                    sage: x.parent() is FF
+                    True
+                    sage: -x
+                    -B[(0, 'a')] - 2*B[(1, 'a')] + 3*B[(1, 'b')]
                 """
                 return self._neg_()
 
@@ -916,6 +946,26 @@ class AdditiveMagmas(Category_singleton):
                     """
                     return [AdditiveMagmas().AdditiveUnital().AdditiveInverse()]
 
+                class ElementMethods:
+                    def __neg__(self):
+                        """
+                        Return the negation of ``self``.
+
+                        EXAMPLES::
+
+                           sage: x = cartesian_product((GF(7)(2),17)) ; x
+                           (2, 17)
+                           sage: -x
+                           (5, -17)
+
+                        TESTS::
+
+                           sage: x.parent() in AdditiveMagmas().AdditiveUnital().AdditiveInverse().CartesianProducts()
+                           True
+                        """
+                        return self.parent()._cartesian_product_of_elements(
+                            [-x for x in self.cartesian_factors()])
+
         class CartesianProducts(CartesianProductsCategory):
             def extra_super_categories(self):
                 """
@@ -944,60 +994,6 @@ class AdditiveMagmas(Category_singleton):
                     """
                     return self._cartesian_product_of_elements(
                         _.zero() for _ in self.cartesian_factors())
-
-            class ElementMethods:
-                def __neg__(self):
-                    r"""
-                    Return the negation of ``self``, if it exists.
-
-                    The inverse is computed by negating each cartesian
-                    factor and attempting to convert the result back
-                    to the original parent.
-
-                    For example, if one of the cartesian factor is an
-                    element ``x`` of `\NN`, the result of ``-x`` is in
-                    `\ZZ`. So we need to convert it back to `\NN`. As
-                    a side effect, this checks that ``x`` indeed has a
-                    negation in `\NN`.
-
-                    If needed an optimized version without this
-                    conversion could be implemented in
-                    :class:`AdditiveMagmas.AdditiveUnital.AdditiveInverse.ElementMethods`.
-
-                    EXAMPLES::
-
-                        sage: G=GF(5); GG = G.cartesian_product(G)
-                        sage: oneone = GG([GF(5)(1),GF(5)(1)])
-                        sage: -oneone
-                        (4, 4)
-
-                        sage: NNSemiring = NonNegativeIntegers(category=Semirings() & InfiniteEnumeratedSets())
-                        sage: C = cartesian_product([ZZ,NNSemiring,RR])
-                        sage: -C([2,0,.4])
-                        (-2, 0, -0.400000000000000)
-
-                        sage: c = C.an_element(); c
-                        (1, 42, 1.00000000000000)
-                        sage: -c
-                        Traceback (most recent call last):
-                        ...
-                        ValueError: Value -42 in not in Non negative integers.
-
-                    .. TODO::
-
-                        Use plain ``NN`` above once it is a semiring.
-                        See :trac:`16406`. There is a further issue
-                        with ``NN`` being lazy imported which breaks
-                        the assertion that the inputs are parents in
-                        ``cartesian_product``::
-
-                            sage: cartesian_product([ZZ, NN, RR])
-                            Traceback (most recent call last):
-                            ...
-                            AssertionError
-                    """
-                    return self.parent()(
-                        -x for x in self.cartesian_factors())
 
         class Algebras(AlgebrasCategory):
 

@@ -162,13 +162,12 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
                 self._entries[i] = 0
 
     def __dealloc__(self):
-        cdef Py_ssize_t i
-        if self._entries:
-            sage_free(self._entries)
+        sage_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: v = vector(GF(5), [0,0,0,0])
             sage: v == 0
             True
@@ -176,11 +175,6 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             False
             sage: v == v
             True
-            sage: w = vector(GF(11), [1,0,0,0])
-            sage: w < v
-            True
-            sage: w > v
-            False
         """
         cdef Py_ssize_t i
         cdef mod_int l, r
@@ -192,7 +186,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
             elif l > r:
                 return 1
         return 0
-    # see sage/structure/element.pyx
+
     def __richcmp__(left, right, int op):
         """
         TEST::

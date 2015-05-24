@@ -616,7 +616,7 @@ class Triangulation(Element):
 
         TESTS::
 
-            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1): ((0, 1, 3),),
              (0, 2): ((0, 2, 3),),
@@ -624,7 +624,7 @@ class Triangulation(Element):
              (1, 3): ((0, 1, 3),),
              (2, 3): ((0, 2, 3),)}
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation._boundary_simplex_dictionary()
             {(0, 1, 2): ((0, 1, 2, 7),),
              (0, 1, 4): ((0, 1, 4, 7),),
@@ -666,7 +666,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
             (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: triangulation.boundary()
@@ -702,7 +702,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(3).triangulate(engine='internal')
+            sage: triangulation = polytopes.cube().triangulate(engine='internal')
             sage: triangulation
             (<0,1,2,7>, <0,1,4,7>, <0,2,4,7>, <1,2,3,7>, <1,4,5,7>, <2,4,6,7>)
             sage: triangulation.boundary()
@@ -750,7 +750,7 @@ class Triangulation(Element):
 
         EXAMPLES::
 
-            sage: triangulation = polytopes.n_cube(2).triangulate(engine='internal')
+            sage: triangulation = polytopes.hypercube(2).triangulate(engine='internal')
             sage: triangulation
             (<0,1,3>, <0,2,3>)
             sage: N = triangulation.normal_cone();  N
@@ -772,7 +772,7 @@ class Triangulation(Element):
 
         TESTS::
 
-            sage: polytopes.n_simplex(2).triangulate().normal_cone()
+            sage: polytopes.simplex(2).triangulate().normal_cone()
             3-d cone in 3-d lattice
             sage: _.dual().is_trivial()
             True

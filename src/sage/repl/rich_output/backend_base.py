@@ -250,7 +250,7 @@ class BackendBase(SageObject):
         printer.flush()
         return stream.getvalue()
 
-    def plain_text_formatter(self, obj):
+    def plain_text_formatter(self, obj, **kwds):
         r"""
         Hook to override how plain text is being formatted.
 
@@ -262,6 +262,14 @@ class BackendBase(SageObject):
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -283,19 +291,35 @@ class BackendBase(SageObject):
             10,\n 11,\n 12,\n 13,\n 14,\n 15,\n 16,\n 17,\n 18,\n 
             19,\n 20,\n 21,\n 22,\n 23,\n 24,\n 25,\n 26,\n 27,\n 
             28,\n 29]'
-        """
+
+            sage: out = backend.plain_text_formatter(range(20), concatenate=True)
+            sage: out.text.get()
+            '0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19'
+       """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        plain_text = self._apply_pretty_printer(SagePrettyPrinter, obj)
+        if kwds.get('concatenate', False):
+            plain_text = ' '.join(
+                self._apply_pretty_printer(SagePrettyPrinter, o) for o in obj)
+        else:
+            plain_text = self._apply_pretty_printer(SagePrettyPrinter, obj)
         from sage.repl.rich_output.output_basic import OutputPlainText
         return OutputPlainText(plain_text)
 
-    def ascii_art_formatter(self, obj):
-        """
+    def ascii_art_formatter(self, obj, **kwds):
+        r"""
         Hook to override how ascii art is being formatted.
 
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -318,19 +342,39 @@ class BackendBase(SageObject):
             <BLANKLINE>
                                             ]
              22, 23, 24, 25, 26, 27, 28, 29 ]
-        """
-        from sage.repl.display.pretty_print import AsciiArtPrettyPrinter
-        ascii_art = self._apply_pretty_printer(AsciiArtPrettyPrinter, obj)
-        from sage.repl.rich_output.output_basic import OutputAsciiArt
-        return OutputAsciiArt(ascii_art)
 
-    def latex_formatter(self, obj):
+            sage: backend.ascii_art_formatter([1,2,3], concatenate=False).ascii_art.get()
+            '[         ]\n[ 1, 2, 3 ]'
+            sage: backend.ascii_art_formatter([1,2,3], concatenate=True ).ascii_art.get()
+            '1 2 3'
+        """
+        from sage.misc.ascii_art import ascii_art, empty_ascii_art
+        if kwds.get('concatenate', False):
+            result = empty_ascii_art
+            for o in obj:
+                if result is not empty_ascii_art:
+                    result += ascii_art(' ')
+                result += ascii_art(o)
+        else:
+            result = ascii_art(obj)
+        from sage.repl.rich_output.output_basic import OutputAsciiArt
+        return OutputAsciiArt(str(result))
+
+    def latex_formatter(self, obj, **kwds):
         r"""
         Hook to override how Latex is being formatted.
 
         INPUT:
 
         - ``obj`` -- anything.
+
+        - ``**kwds`` -- optional keyword arguments to control the
+          formatting. Supported are:
+
+            * ``concatenate`` -- boolean (default: ``False``). If
+              ``True``, the argument ``obj`` must be iterable and its
+              entries will be concatenated. There is a single
+              whitespace between entries.
 
         OUTPUT:
 
@@ -351,9 +395,28 @@ class BackendBase(SageObject):
             '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}'
             sage: out.mathjax()
             '<html><script type="math/tex; mode=display">\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}</script></html>'
+
+            sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
+            sage: out.latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]'
+            sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=True)
+            sage: out.latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}'
+
+        TESTS::
+
+            sage: backend.latex_formatter([], concatenate=False).latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]'
+            sage: backend.latex_formatter([], concatenate=True).latex.get()
+            '\\newcommand{\\Bold}[1]{\\mathbf{#1}}'
         """
+        concatenate = kwds.get('concatenate', False)
         from sage.misc.latex import MathJax
-        mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
+        if concatenate:
+            obj = tuple(obj)    # MathJax treats tuples special
+            mathjax = MathJax().eval(obj, mode='plain', combine_all=True)
+        else:
+            mathjax = MathJax().eval(obj, mode='plain', combine_all=False)
         from sage.repl.rich_output.output_basic import OutputLatex
         return OutputLatex(str(mathjax))
 

@@ -169,7 +169,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element right_r) except -2:
+    cpdef int _cmp_(self, Element right_r) except -2:
         """
         Compare self to right, where right is guaranteed to have the same
         parent as self.

@@ -27,6 +27,9 @@ or if both are exact and equal::
 
     sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
     sage: CBF = ComplexBallField() # optional - arb
+    doctest:...: FutureWarning: This class/method/function is marked as experimental.
+    It, its functionality or its interface might change without a formal deprecation.
+    See http://trac.sagemath.org/17218 for details.
     sage: a = CBF(1, 2) # optional - arb
     sage: b = CBF(1, 2) # optional - arb
     sage: a is b # optional - arb
@@ -75,6 +78,7 @@ include "sage/ext/stdsage.pxi"
 import sage.categories.fields
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.misc.superseded import experimental
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
@@ -169,6 +173,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return super(ComplexBallField, cls).__classcall__(cls, precision)
 
+    @experimental(17218)
     def __init__(self, precision):
         r"""
         Initialize the complex ball field.
@@ -393,7 +398,7 @@ cdef class ComplexBall(Element):
             sage: ComplexBallField(106)(1/3, 1/6) # optional - arb
             [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
         """
-        super(ComplexBall, self).__init__(parent)
+        Element.__init__(self, parent)
 
         if x is None:
             return
@@ -605,7 +610,7 @@ cdef class ComplexBall(Element):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -701,11 +706,7 @@ cdef class ComplexBall(Element):
                 and acb_equal(lt.value, rt.value))
 
         if op == Py_NE:
-            acb_init(difference)
-            acb_sub(difference, lt.value, rt.value, prec(lt))
-            result = acb_is_nonzero(difference)
-            acb_clear(difference)
+            return not acb_overlaps(lt.value, rt.value)
+
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
-
-        return result

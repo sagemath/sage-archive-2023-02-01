@@ -13,6 +13,8 @@ Poset-related classes:
 
 - :ref:`sage.combinat.posets.linear_extensions`
 
+- :ref:`sage.combinat.posets.incidence_algebras`
+
 - :ref:`sage.combinat.tamari_lattices`
 - :ref:`sage.combinat.interval_posets`
 

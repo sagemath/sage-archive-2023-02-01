@@ -1019,7 +1019,7 @@ class SkewPartition(CombinatorialObject, Element):
         """
         return map(list, list(self))
 
-    def to_dag(self):
+    def to_dag(self, format="string"):
         """
         Return a directed acyclic graph corresponding to the skew
         partition ``self``.
@@ -1029,39 +1029,56 @@ class SkewPartition(CombinatorialObject, Element):
         whose edges go from each cell to its lower and right
         neighbors (in English notation).
 
+        INPUT:
+
+        - ``format`` -- either ``'string'`` or ``'tuple'`` (default:
+          ``'string'``); determines whether the vertices of the
+          resulting dag will be strings or 2-tuples of coordinates
+
         EXAMPLES::
 
-            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag()
+            sage: dag = SkewPartition([[3, 3, 1], [1, 1]]).to_dag()
             sage: dag.edges()
-            [('0,1', '0,2', None), ('0,1', '1,1', None)]
+            [('0,1', '0,2', None),
+            ('0,1', '1,1', None),
+            ('0,2', '1,2', None),
+            ('1,1', '1,2', None)]
             sage: dag.vertices()
-            ['0,1', '0,2', '1,1', '2,0']
+            ['0,1', '0,2', '1,1', '1,2', '2,0']
+            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag(format="tuple")
+            sage: dag.edges()
+            [((0, 1), (0, 2), None), ((0, 1), (1, 1), None)]
+            sage: dag.vertices()
+            [(0, 1), (0, 2), (1, 1), (2, 0)]
         """
-        i = 0
-
-        #Make the skew tableau from the shape
-        skew = [[1]*row_length for row_length in self.outer()]
-        inner = self.inner()
-        for i in range(len(inner)):
-            for j in range(inner[i]):
-                skew[i][j] = None
+        outer = list(self.outer())
+        inner = list(self.inner())
+        inner += [0] * (len(outer) - len(inner))
 
         G = DiGraph()
-        for row in range(len(skew)):
-            for column in range(len(skew[row])):
-                if skew[row][column] is not None:
-                    string = "%d,%d" % (row, column)
-                    G.add_vertex(string)
-                    #Check to see if there is a node to the right
-                    if column != len(skew[row]) - 1:
-                        newstring = "%d,%d" % (row, column+1)
-                        G.add_edge(string, newstring)
+        for i, outer_i in enumerate(outer):
+            for j in xrange(inner[i], outer_i):
+                if format == "string":
+                    string = "%d,%d" % (i, j)
+                else:
+                    string = (i, j)
+                G.add_vertex(string)
+                #Check to see if there is a node to the right
+                if j != outer_i - 1:
+                    if format == "string":
+                        newstring = "%d,%d" % (i, j + 1)
+                    else:
+                        newstring = (i, j + 1)
+                    G.add_edge(string, newstring)
 
-                    #Check to see if there is anything below
-                    if row != len(skew) - 1:
-                        if len(skew[row+1]) > column:
-                            newstring = "%d,%d" % (row+1, column)
-                            G.add_edge(string, newstring)
+                #Check to see if there is anything below
+                if i != len(outer) - 1:
+                    if outer[i+1] > j:
+                        if format == "string":
+                            newstring = "%d,%d" % (i + 1, j)
+                        else:
+                            newstring = (i + 1, j)
+                        G.add_edge(string, newstring)
         return G
 
     def quotient(self, k):

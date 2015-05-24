@@ -17,5 +17,6 @@ Standard Commutative Rings
    sage/rings/finite_rings/element_base
 
    sage/rings/universal_cyclotomic_field/universal_cyclotomic_field
+   sage/rings/universal_cyclotomic_field/universal_cyclotomic_field_c
 
 .. include:: ../footer.txt

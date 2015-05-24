@@ -305,9 +305,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: S.ambient()
             Integer vectors
         """
-        # TODO: Fix me once 'IntegerVectors(length=bla)' will return
-        # the integer vectors of length bla
-        return IntegerVectors(length=self.n)
+        ## TODO: Fix me once 'IntegerVectors(length=bla)' will return
+        ## the integer vectors of length bla
+        #return IntegerVectors(length=self.n)
+
+        # (#17927) The previous line was replaced by the following, as
+        # IntegerVectors(length=k) is invalid at the moment.
+        return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -338,15 +342,15 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
         EXAMPLES::
 
-            sage: [0,0,0,0] in IntegerVectors(length=4)
+            sage: [0,0,0,0] in IntegerVectors(0,4)
             True
-            sage: [1,0,0,0] in IntegerVectors(length=4)
+            sage: [1,0,0,0] in IntegerVectors(1,4)
             True
-            sage: [0,1,0,0] in IntegerVectors(length=4)
+            sage: [0,1,0,0] in IntegerVectors(1,4)
             True
-            sage: [1,0,1,0] in IntegerVectors(length=4)
+            sage: [1,0,1,0] in IntegerVectors(2,4)
             True
-            sage: [0,1,0,1] in IntegerVectors(length=4)
+            sage: [0,1,0,1] in IntegerVectors(2,4)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
             sage: S.retract([0,0,0,0])
@@ -814,9 +818,13 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             else:
                 return IntegerVectors(n=self._sum, max_part=self._max_part)
         else:
-            # Fix me once max_part should be accepted as a single
-            # argument for integer vectors
-            return IntegerVectors(max_part=self._max_part)
+            ## Fix me once max_part should be accepted as a single
+            ## argument for integer vectors
+            #return IntegerVectors(max_part=self._max_part)
+
+            # (#17927) The previous line was replaced by the following, as
+            # IntegerVectors(max_part=k) is invalid at the moment.
+            return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -827,7 +835,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), max_part=1)
             sage: v = S.lift([1,0,1,0]); v
             [1, 0, 1, 0]
-            sage: v in IntegerVectors(max_part=1)
+            sage: v in IntegerVectors(2,4,max_part=1)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=6)
             sage: v = S.lift(S.list()[5]); v

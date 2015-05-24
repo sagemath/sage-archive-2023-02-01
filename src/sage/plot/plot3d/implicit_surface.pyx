@@ -179,11 +179,13 @@ cdef class MarchingCubes:
     Protocol:
 
     1. Create the class.
-    2. Call process_slice once for each X slice, from self.nx > x >= 0.
-    3. Call finish(), which returns a list of strings.
+    2. Call ``process_slice`` once for each X slice, from self.nx > x >= 0.
+    3. Call ``finish()``, which returns a list of strings.
 
-    Note: Actually, only 4 slices ever exist; the caller will re-use old
-    storage.
+    .. NOTE::
+
+        Actually, only 4 slices ever exist; the caller will re-use old
+        storage.
     """
 
     cdef readonly object xrange
@@ -335,7 +337,8 @@ cdef class MarchingCubesTriangles(MarchingCubes):
 
     def process_slice(self, unsigned int x, np.ndarray slice):
         """
-        Process a single slice of function evaluations at the specified x coordinate.
+        Process a single slice of function evaluations at the specified `x`
+        coordinate.
 
         EXAMPLES::
 
@@ -1060,7 +1063,7 @@ cdef class ImplicitSurface(IndexFaceSet):
         """
         Return a representation of this object in the .obj format.
 
-        TESTS::
+        TESTS:
 
         We graph a simple plane::
 
@@ -1151,7 +1154,7 @@ cdef class ImplicitSurface(IndexFaceSet):
 
         Note that if you call this method more than once, subsequent
         invocations will have no effect (this is an optimization to
-        avoid repeated work) unless you specify force=True in the
+        avoid repeated work) unless you specify ``force=True`` in the
         keywords.
 
         EXAMPLES::

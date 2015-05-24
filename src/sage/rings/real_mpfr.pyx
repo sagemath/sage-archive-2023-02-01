@@ -3810,7 +3810,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return (<RingElement>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
         if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``

@@ -525,7 +525,7 @@ cdef class NumberFieldElement(FieldElement):
 
         EXAMPLES::
 
-            sage: C,zeta12=CyclotomicField(12).objgen()
+            sage: C.<zeta12> = CyclotomicField(12)
             sage: latex(zeta12^4-zeta12) # indirect doctest
             \zeta_{12}^{2} - \zeta_{12} - 1
         """
@@ -777,7 +777,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 
@@ -2588,41 +2588,32 @@ cdef class NumberFieldElement(FieldElement):
             True
 
         """
-        if self.__multiplicative_order is not None:
-            return self.__multiplicative_order
-
-        one = self.number_field().one()
-        infinity = sage.rings.infinity.infinity
-
-        if self == one:
-            self.__multiplicative_order = ZZ(1)
-            return self.__multiplicative_order
-        if self == -one:
-            self.__multiplicative_order = ZZ(2)
-            return self.__multiplicative_order
-
-        if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
-            t = self.number_field()._multiplicative_order_table()
-            f = self.polynomial()
-            if f in t:
-                self.__multiplicative_order = t[f]
-                return self.__multiplicative_order
-            else:
+        if self.__multiplicative_order is None:
+            if self.is_rational():
+                if self.is_one():
+                    self.__multiplicative_order = ZZ(1)
+                elif (-self).is_one():
+                    self.__multiplicative_order = ZZ(2)
+                else:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+            elif not (self.is_integral() and self.norm().is_one()):
                 self.__multiplicative_order = sage.rings.infinity.infinity
-                return self.__multiplicative_order
+            elif isinstance(self.number_field(), number_field.NumberField_cyclotomic):
+                t = self.number_field()._multiplicative_order_table()
+                f = self.polynomial()
+                if f in t:
+                    self.__multiplicative_order = t[f]
+                else:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+            else:
+                # Now we have a unit of norm 1, and check if it is a root of unity
+                n = self.number_field().zeta_order()
+                if not self**n ==1:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+                else:
+                    from sage.groups.generic import order_from_multiple
+                    self.__multiplicative_order = order_from_multiple(self,n,operation='*')
 
-        if self.is_rational_c() or not self.is_integral() or not self.norm() ==1:
-            self.__multiplicative_order = infinity
-            return self.__multiplicative_order
-
-        # Now we have a unit of norm 1, and check if it is a root of unity
-
-        n = self.number_field().zeta_order()
-        if not self**n ==1:
-            self.__multiplicative_order = infinity
-            return self.__multiplicative_order
-        from sage.groups.generic import order_from_multiple
-        self.__multiplicative_order = order_from_multiple(self,n,operation='*')
         return self.__multiplicative_order
 
     def additive_order(self):
@@ -2640,11 +2631,79 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.ring_of_integers().characteristic() # implicit doctest
             0
         """
-        if self == 0: return 1
+        if not self: return ZZ.one()
         else: return sage.rings.infinity.infinity
 
-    cdef bint is_rational_c(self):
-        return ZZX_deg(self.__numerator) == 0
+    cpdef bint is_one(self):
+        r"""
+        Test whether this number field element is `1`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 3)
+            sage: K(1).is_one()
+            True
+            sage: K(0).is_one()
+            False
+            sage: K(-1).is_one()
+            False
+            sage: K(1/2).is_one()
+            False
+            sage: a.is_one()
+            False
+        """
+        return ZZX_IsOne(self.__numerator) == 1 and \
+               ZZ_IsOne(self.__denominator) == 1
+
+    cpdef bint is_rational(self):
+        r"""
+        Test whether this number field element is a rational number
+
+        .. SEEALSO:
+
+            - :meth:`is_integer` to test if this element is an integer
+            - :meth:`is_integral` to test if this element is an algebraic integer
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_rational()
+            False
+            sage: (cbrt3**2 - cbrt3 + 1/2).is_rational()
+            False
+            sage: K(-12).is_rational()
+            True
+            sage: K(0).is_rational()
+            True
+            sage: K(1/2).is_rational()
+            True
+        """
+        return ZZX_deg(self.__numerator) <= 0
+
+    def is_integer(self):
+        r"""
+        Test whether this number field element is an integer
+
+        .. SEEALSO:
+
+            - :meth:`is_rational` to test if this element is a rational number
+            - :meth:`is_integral` to test if this element is an algebraic integer
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_integer()
+            False
+            sage: (cbrt3**2 - cbrt3 + 2).is_integer()
+            False
+            sage: K(-12).is_integer()
+            True
+            sage: K(0).is_integer()
+            True
+            sage: K(1/2).is_integer()
+            False
+        """
+        return ZZX_deg(self.__numerator) <= 0 and ZZ_IsOne(self.__denominator) == 1
 
     def trace(self, K=None):
         """

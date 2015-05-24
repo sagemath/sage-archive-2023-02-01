@@ -241,6 +241,9 @@ ext_modules = [
     Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
               sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
 
+    Extension('sage.combinat.designs.evenly_distributed_sets',
+              sources=['sage/combinat/designs/evenly_distributed_sets.pyx']),
+
     ################################
     ##
     ## sage.crypto
@@ -304,40 +307,40 @@ ext_modules = [
         libraries = ['pari', 'gmp'],
         extra_compile_args = ['-std=c99']),
 
-     ################################
-     ##
-     ## sage.games
-     ##
-     ################################
+    ################################
+    ##
+    ## sage.games
+    ##
+    ################################
 
-     Extension('sage.games.sudoku_backtrack',
-               sources = ['sage/games/sudoku_backtrack.pyx']),
+    Extension('sage.games.sudoku_backtrack',
+              sources = ['sage/games/sudoku_backtrack.pyx']),
 
-     ################################
-     ##
-     ## sage.geometry
-     ##
-     ################################
+    ################################
+    ##
+    ## sage.geometry
+    ##
+    ################################
 
-     Extension('sage.geometry.point_collection',
-               sources = ['sage/geometry/point_collection.pyx']),
+    Extension('sage.geometry.point_collection',
+              sources = ['sage/geometry/point_collection.pyx']),
 
-     Extension('sage.geometry.toric_lattice_element',
-               sources = ['sage/geometry/toric_lattice_element.pyx'],
-               libraries=['gmp']),
+    Extension('sage.geometry.toric_lattice_element',
+              sources = ['sage/geometry/toric_lattice_element.pyx'],
+              libraries=['gmp']),
 
-     Extension('sage.geometry.integral_points',
-               sources = ['sage/geometry/integral_points.pyx']),
+    Extension('sage.geometry.integral_points',
+              sources = ['sage/geometry/integral_points.pyx']),
 
-     Extension('sage.geometry.triangulation.base',
-               sources = ['sage/geometry/triangulation/base.pyx',
-                          'sage/geometry/triangulation/functions.cc',
-                          'sage/geometry/triangulation/data.cc',
-                          'sage/geometry/triangulation/triangulations.cc'],
-               depends = ['sage/geometry/triangulation/functions.h',
-                          'sage/geometry/triangulation/data.h',
-                          'sage/geometry/triangulation/triangulations.h'],
-               language="c++"),
+    Extension('sage.geometry.triangulation.base',
+              sources = ['sage/geometry/triangulation/base.pyx',
+                         'sage/geometry/triangulation/functions.cc',
+                         'sage/geometry/triangulation/data.cc',
+                         'sage/geometry/triangulation/triangulations.cc'],
+              depends = ['sage/geometry/triangulation/functions.h',
+                         'sage/geometry/triangulation/data.h',
+                         'sage/geometry/triangulation/triangulations.h'],
+              language="c++"),
 
     ################################
     ##
@@ -387,6 +390,9 @@ ext_modules = [
               sources = ['sage/graphs/distances_all_pairs.pyx'],
               libraries = ['gmp']),
 
+    Extension('sage.graphs.base.graph_backends',
+              sources = ['sage/graphs/base/graph_backends.pyx']),
+
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx'],
               libraries = ['gmp']),
@@ -411,6 +417,12 @@ ext_modules = [
               ["sage/graphs/mcqd.pyx"],
               language = "c++",
               package = 'mcqd'),
+
+    OptionalExtension("sage.graphs.bliss",
+              ["sage/graphs/bliss.pyx"],
+              language = "c++",
+              libraries = ['bliss'],
+              package = 'bliss'),
 
     OptionalExtension('sage.graphs.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition.pyx'],
@@ -486,11 +498,11 @@ ext_modules = [
               sources = ['sage/graphs/hyperbolicity.pyx'],
               libraries = ['gmp']),
 
-        ################################
-        ##
-        ## sage.graphs.base
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.graphs.base
+    ##
+    ################################
 
     Extension('sage.graphs.base.c_graph',
               sources = ['sage/graphs/base/c_graph.pyx'],
@@ -525,11 +537,11 @@ ext_modules = [
     Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
               sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
 
-        ###################################
-        ##
-        ## sage.groups.perm_gps.partn_ref
-        ##
-        ###################################
+    ###################################
+    ##
+    ## sage.groups.perm_gps.partn_ref
+    ##
+    ###################################
 
     Extension('sage.groups.perm_gps.partn_ref.automorphism_group_canonical_label',
               sources = ['sage/groups/perm_gps/partn_ref/automorphism_group_canonical_label.pyx'],
@@ -585,11 +597,11 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
 
-        ###################################
-        ##
-        ## sage.groups.perm_gps.partn_ref2
-        ##
-        ###################################
+    ###################################
+    ##
+    ## sage.groups.perm_gps.partn_ref2
+    ##
+    ###################################
 
     Extension('sage.groups.perm_gps.partn_ref2.refinement_generic',
               sources = ['sage/groups/perm_gps/partn_ref2/refinement_generic.pyx'],
@@ -850,11 +862,11 @@ ext_modules = [
               sources = ["sage/libs/mpmath/ext_libmp.pyx"],
               libraries = ['gmp']),
 
-        ################################
-        ##
-        ## sage.libs.gap
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.libs.gap
+    ##
+    ################################
 
     Extension('sage.libs.gap.util',
               sources = ["sage/libs/gap/util.pyx"],
@@ -868,11 +880,11 @@ ext_modules = [
               sources = ["sage/libs/gap/libgap.pyx"],
               libraries = ['gmp', 'gap', 'm']),
 
-        ###################################
-        ##
-        ## sage.libs.cremona
-        ##
-        ###################################
+    ###################################
+    ##
+    ## sage.libs.cremona
+    ##
+    ###################################
 
     Extension('sage.libs.cremona.homspace',
               sources = ["sage/libs/cremona/homspace.pyx"],
@@ -908,11 +920,11 @@ ext_modules = [
                            "oldforms.h","homspace.h","cperiods.h","newforms.h"]
                         ]),
 
-        ###################################
-        ##
-        ## sage.libs.ntl
-        ##
-        ###################################
+    ###################################
+    ##
+    ## sage.libs.ntl
+    ##
+    ###################################
 
     Extension('sage.libs.ntl.error',
               sources = ["sage/libs/ntl/error.pyx"],
@@ -1541,12 +1553,12 @@ ext_modules = [
               sources = ['sage/rings/real_interval_absolute.pyx'],
               libraries = ['gmp']),
 
-   OptionalExtension("sage.rings.real_arb",
-             ["sage/rings/real_arb.pyx"],
-             libraries = ['arb', 'mpfi', 'mpfr'],
-             include_dirs = [SAGE_INC + '/flint'],
-             depends = flint_depends,
-             package = 'arb'),
+    OptionalExtension("sage.rings.real_arb",
+                      ["sage/rings/real_arb.pyx"],
+                      libraries = ['arb', 'mpfi', 'mpfr'],
+                      include_dirs = [SAGE_INC + '/flint'],
+                      depends = flint_depends,
+                      package = 'arb'),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),
@@ -1569,11 +1581,11 @@ ext_modules = [
               sources = ['sage/rings/universal_cyclotomic_field/universal_cyclotomic_field_c.pyx'],
               libraries = ['gmp']),
 
-        ################################
-        ##
-        ## sage.rings.finite_rings
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.finite_rings
+    ##
+    ################################
 
     Extension('sage.rings.finite_rings.finite_field_base',
               sources = ['sage/rings/finite_rings/finite_field_base.pyx']),
@@ -1614,20 +1626,20 @@ ext_modules = [
               language='c++',
               extra_compile_args = givaro_extra_compile_args),
 
-        ################################
-        ##
-        ## sage.rings.function_field
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.function_field
+    ##
+    ################################
 
     Extension('sage.rings.function_field.function_field_element',
               sources = ['sage/rings/function_field/function_field_element.pyx']),
 
-        ################################
-        ##
-        ## sage.rings.number_field
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.number_field
+    ##
+    ################################
 
     Extension('sage.rings.number_field.number_field_base',
               sources = ['sage/rings/number_field/number_field_base.pyx']),
@@ -1653,11 +1665,11 @@ ext_modules = [
               sources = ['sage/rings/number_field/totallyreal_data.pyx'],
               libraries = ['gmp']),
 
-        ################################
-        ##
-        ## sage.rings.padics
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.padics
+    ##
+    ################################
 
     Extension('sage.rings.padics.morphism',
               sources = ['sage/rings/padics/morphism.pyx']),
@@ -1725,11 +1737,11 @@ ext_modules = [
               libraries = ["ntl", "gmp", "gmpxx", "m"],
               language='c++'),
 
-        ################################
-        ##
-        ## sage.rings.polynomial
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.polynomial
+    ##
+    ################################
 
     Extension('sage.rings.polynomial.cyclotomic',
               sources = ['sage/rings/polynomial/cyclotomic.pyx']),
@@ -1845,11 +1857,11 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
-        ################################
-        ##
-        ## sage.rings.semirings
-        ##
-        ################################
+    ################################
+    ##
+    ## sage.rings.semirings
+    ##
+    ################################
 
     Extension('sage.rings.semirings.tropical_semiring',
               sources = ['sage/rings/semirings/tropical_semiring.pyx']),
@@ -2012,6 +2024,7 @@ ext_modules = [
     ## sage.tests
     ##
     ################################
+
     Extension('sage.tests.interrupt',
               sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
 

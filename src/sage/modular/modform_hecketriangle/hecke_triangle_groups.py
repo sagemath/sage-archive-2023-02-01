@@ -933,23 +933,24 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [((4, 1), (3, 1)), ((2, 2),), ((3, 2),), ((3, 1), (1, 1)), ((4, 1), (1, 1)), ((4, 1), (2, 1)), ((3, 1), (2, 1)), ((2, 1), (1, 1))]
 
             sage: [key for key in G._conj_prim]
-            [0, 15*lam + 6, 33*lam + 21, 9*lam + 5, 7*lam + 6, lam - 3, -4, 4*lam]
+            [0, lam - 3, 15*lam + 6, 7*lam + 6, 4*lam, 9*lam + 5, 33*lam + 21, -4]
             sage: for key in G._conj_prim: print G._conj_prim[key]
             [[V(4)]]
-            [[V(1)*V(3)], [V(2)*V(4)]]
-            [[V(2)*V(3)]]
-            [[V(3)*V(4)], [V(1)*V(2)]]
-            [[V(1)*V(4)]]
             [[U], [U]]
-            [[S], [S]]
+            [[V(1)*V(3)], [V(2)*V(4)]]
+            [[V(1)*V(4)]]
             [[V(3)], [V(2)]]
+            [[V(3)*V(4)], [V(1)*V(2)]]
+            [[V(2)*V(3)]]
+            [[S], [S]]
             sage: [key for key in G._conj_nonprim]
-            [32*lam + 16, lam - 3, -lam - 2]
+            [lam - 3, 32*lam + 16, -lam - 2]
 
             sage: for key in G._conj_nonprim: print G._conj_nonprim[key]
-            [[V(2)^2], [V(3)^2]]
             [[U^(-1)], [U^(-1)]]
+            [[V(2)^2], [V(3)^2]]
             [[U^(-2)], [U^2], [U^(-2)], [U^2]]
+
 
             sage: G.element_repr_method("default")
         """

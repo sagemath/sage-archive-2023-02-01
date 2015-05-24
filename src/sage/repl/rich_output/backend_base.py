@@ -336,16 +336,13 @@ class BackendBase(SageObject):
             sage: out
             OutputAsciiArt container
             sage: out.ascii_art
-            buffer containing 228 bytes
+            buffer containing 114 bytes
             sage: print(out.ascii_art.get())
-            [
             [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
             <BLANKLINE>
-                                            ]
              22, 23, 24, 25, 26, 27, 28, 29 ]
-
             sage: backend.ascii_art_formatter([1,2,3], concatenate=False).ascii_art.get()
-            '[         ]\n[ 1, 2, 3 ]'
+            '[ 1, 2, 3 ]'
             sage: backend.ascii_art_formatter([1,2,3], concatenate=True ).ascii_art.get()
             '1 2 3'
         """
@@ -387,16 +384,14 @@ class BackendBase(SageObject):
             sage: out
             OutputUnicodeArt container
             sage: out.unicode_art
-            buffer containing 236 bytes
+            buffer containing 114 bytes
             sage: print(out.unicode_art.get())
-            ⎡
-            ⎣ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+            [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
             <BLANKLINE>
-                                           ⎤
-            22, 23, 24, 25, 26, 27, 28, 29 ⎦
+            22, 23, 24, 25, 26, 27, 28, 29 ]
 
             sage: backend.unicode_art_formatter([1,2,3], concatenate=False).unicode_art.get()
-            '\xe2\x8e\xa1         \xe2\x8e\xa4\n\xe2\x8e\xa3 1, 2, 3 \xe2\x8e\xa6'
+            '[ 1, 2, 3 ]'
             sage: backend.unicode_art_formatter([1,2,3], concatenate=True ).unicode_art.get()
             '1 2 3'
         """

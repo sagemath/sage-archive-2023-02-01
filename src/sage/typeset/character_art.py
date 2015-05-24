@@ -201,7 +201,7 @@ class CharacterArt(SageObject):
             sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
             sage: aa = ascii_art([p3, p5])
             sage: aa.get_breakpoints()
-            [2, 5, 6, 7, 12]
+            [6]
         """
         return self._breakpoints
 
@@ -261,14 +261,14 @@ class CharacterArt(SageObject):
             sage: p3 = AsciiArt([" * ", "***"])
             sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
             sage: aa = ascii_art([p3, p5])
-            sage: print aa._split_repr_(6)
+            sage: print aa._split_repr_(10)
             [
             [  *
-            [ ***
+            [ ***,
             <BLANKLINE>
                 *   ]
                * *  ]
-            , ***** ]
+              ***** ]
         """
         f_split = self._breakpoints[0]; i = 1
         while i < len(self._breakpoints) and self._breakpoints[i] < size:

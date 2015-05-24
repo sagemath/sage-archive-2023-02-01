@@ -4008,7 +4008,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: k.factor()
             ((s^2 + 2/3)) * (x + (s)*y)^2 * (x + (-s)*y)^5 * (x^2 + (s)*x*y + (s^2)*y^2)^5
 
-        This shows that ticket \#2780 is fixed, i.e. that the unit
+        This shows that ticket :trac:`2780` is fixed, i.e. that the unit
         part of the factorization is set correctly::
 
             sage: x = var('x')
@@ -4045,7 +4045,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             2^3 * 7
 
         Factorization for finite prime fields with characteristic
-        `> 2^{29}` is not supported either. ::
+        `> 2^{29}` is not supported ::
 
             sage: q = 1073741789
             sage: T.<aa, bb> = PolynomialRing(GF(q))
@@ -4055,14 +4055,26 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             ...
             NotImplementedError: Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.
 
-        Finally, factorization over the integers is not supported. ::
+        Factorization over the integers is now supported, see :trac:`17840`::
 
             sage: P.<x,y> = PolynomialRing(ZZ)
-            sage: f = (3*x + 4)*(5*x - 2)
+            sage: f = 12 * (3*x*y + 4) * (5*x - 2) * (2*y + 7)^2
+            sage: f.factor()
+            2^2 * 3 * (2*y + 7)^2 * (5*x - 2) * (3*x*y + 4)
+            sage: g = -12 * (x^2 - y^2)
+            sage: g.factor()
+            (-1) * 2^2 * 3 * (x - y) * (x + y)
+            sage: factor(-4*x*y - 2*x + 2*y + 1)
+            (-1) * (2*y + 1) * (2*x - 1)
+
+        Factorization over non-integral domains is not supported ::
+
+            sage: R.<x,y> = PolynomialRing(Zmod(4))
+            sage: f = (2*x + 1) * (x^2 + x + 1)
             sage: f.factor()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Factorization of multivariate polynomials over non-fields is not implemented.
+            NotImplementedError: Factorization of multivariate polynomials over Ring of integers modulo 4 is not implemented.
 
         TESTS:
 
@@ -4188,7 +4200,14 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             return self.constant_coefficient().factor()
 
         if not self._parent._base.is_field():
-            raise NotImplementedError, "Factorization of multivariate polynomials over non-fields is not implemented."
+            try:
+                frac_field = self._parent._base.fraction_field()
+                F = self.change_ring(frac_field).factor()
+                FF = [(f[0].change_ring(self._parent), f[1]) for f in F]
+                U = self._parent._base(F.unit()).factor()
+                return Factorization(list(U) + FF, unit=U.unit())
+            except Exception:
+                raise NotImplementedError("Factorization of multivariate polynomials over %s is not implemented."%self._parent._base)
 
         if self._parent._base.is_finite():
             if self._parent._base.characteristic() > 1<<29:

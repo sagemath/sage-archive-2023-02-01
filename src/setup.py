@@ -1,19 +1,8 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import os, sys, time, errno, platform, subprocess, glob, six
+import os, sys, time, errno, platform, subprocess, glob
 from distutils.core import setup
-
-# Make sure stdout doesn't buffer output, otherwise output
-# like "Cythonizing foo.pyx" appears in the wrong order.
-if six.PY2:
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-else:
-    original_print = print
-    def print(*args, **kwds):
-        kwds['flush'] = True
-        return original_print(*args, **kwds)
-    six.moves.builtins.print = print
 
 #########################################################
 ### List of Extensions

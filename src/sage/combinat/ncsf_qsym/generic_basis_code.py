@@ -196,12 +196,13 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def alternating_sum_of_compositions(self, n):
             r"""
-            Alternating sum over compositions of ``n``
+            Alternating sum over compositions of ``n``.
 
             Note that this differs from the method
-            :meth:`alternating_sum_of_finer_compositions` because the coefficient of
-            the composition `1^n` is positive.  This method is used in the expansion
-            of the elementary generators into the complete generators and vice versa.
+            :meth:`alternating_sum_of_finer_compositions` because the
+            coefficient of the composition `1^n` is positive.  This
+            method is used in the expansion of the elementary generators
+            into the complete generators and vice versa.
 
             INPUT:
 
@@ -209,8 +210,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - The expansion of the complete generator indexed by ``n`` into the
-              elementary basis.
+            - The expansion of the complete generator indexed by ``n``
+              into the elementary basis.
 
             EXAMPLES::
 
@@ -1162,11 +1163,13 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
         @lazy_attribute
         def internal_product(self):
             r"""
-            The bilinear product inherited from the isomorphism with the descent algebra
+            The bilinear product inherited from the isomorphism with
+            the descent algebra.
 
             This is constructed by extending the method
             :meth:`internal_product_on_basis` bilinearly, if available,
-            or using the method :meth:`~GradedModulesWithInternalProduct.Realizations.ParentMethods.internal_product_by_coercion`.
+            or using the method
+            :meth:`~GradedModulesWithInternalProduct.Realizations.ParentMethods.internal_product_by_coercion`.
 
             OUTPUT:
 

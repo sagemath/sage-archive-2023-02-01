@@ -301,16 +301,16 @@ examples are covered here.
 
    ::
 
-       sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0),
-       ....:             (1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),
-       ....:             (0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0),
-       ....:             (0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),
-       ....:             (0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1),
-       ....:             (0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),
-       ....:             (0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0),
-       ....:             (0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),
-       ....:             (0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0),
-       ....:             (0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
+       sage: M = Matrix([(-1, 0, 0, 0, 1, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0),
+       ....:             ( 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0),
+       ....:             ( 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0),
+       ....:             ( 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0),
+       ....:             ( 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1),
+       ....:             ( 0, 0, 0, 0, 0,-1, 0, 0, 0, 1, 1, 0, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 1, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 1, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 1, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 1)])
        sage: M
        [-1  0  0  0  1  0  0  0  0  0 -1  0  0  0  0]
        [ 1 -1  0  0  0  0  0  0  0  0  0 -1  0  0  0]
@@ -890,7 +890,7 @@ class Graph(GenericGraph):
             ...
             ValueError: Non-symmetric or non-square matrix assumed to be an
             incidence matrix: There must be one or two nonzero entries per
-            column.Got entries [1, 1, 1] in column 0
+            column. Got entries [1, 1, 1] in column 0
             sage: Graph(Matrix([[1],[1],[0]]))
             Graph on 3 vertices
 
@@ -910,7 +910,7 @@ class Graph(GenericGraph):
             ...
             ValueError: Non-symmetric or non-square matrix assumed to be an
             incidence matrix: There must be one or two nonzero entries per
-            column.Got entries [1, 1] in column 2
+            column. Got entries [1, 1] in column 2
 
         Check that :trac:`9714` is fixed::
 
@@ -1312,27 +1312,29 @@ class Graph(GenericGraph):
         elif format == 'incidence_matrix':
             assert is_Matrix(data)
 
-            oriented = any(data[pos] == -1 for pos in data.nonzero_positions())
+            oriented = any(data[pos] == -1 for pos in data.nonzero_positions(copy=False))
 
             positions = []
             for i in range(data.ncols()):
                 NZ = data.nonzero_positions_in_column(i)
                 if len(NZ) == 1:
                     if oriented:
-                        raise ValueError("the incidence matrix is wrong")
+                        raise ValueError("Column {} of the (oriented) incidence "
+                                         "matrix contains only one nonzero value".format(i))
                     elif data[NZ[0],i] != 2:
-                        raise ValueError("the sum of each column must be 2 in a non-oriented incidence matrix")
+                        raise ValueError("Each column of a non-oriented incidence "
+                                         "matrix must sum to 2, but column {} does not".format(i))
                     if loops is None:
                         loops = True
                     elif not loops:
-                        raise ValueError("the graph constructor was called with "
-                        "loops=False but the incidence matrix contains a loop")
+                        raise ValueError("the graph constructor was called with loops=False but "
+                                         "column {} of the matrix indicates a loop".format(i))
                     positions.append((NZ[0],NZ[0]))
                 elif len(NZ) != 2 or \
                      (oriented and not ((data[NZ[0],i] == +1 and data[NZ[1],i] == -1) or \
                                         (data[NZ[0],i] == -1 and data[NZ[1],i] == +1))) or \
                      (not oriented and (data[NZ[0],i] != 1 or data[NZ[1],i] != 1)):
-                    msg += "There must be one or two nonzero entries per column."
+                    msg += "There must be one or two nonzero entries per column. "
                     msg += "Got entries {} in column {}".format([data[j,i] for j in NZ], i)
                     raise ValueError(msg)
                 else:

@@ -1508,28 +1508,33 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, oriented=True, sparse=True):
+    def incidence_matrix(self, oriented=None, sparse=True):
         """
-        Returns the incidence matrix of the (di)graph.
+        Return the incidence matrix of the (di)graph.
 
         Each row is a vertex, and each column is an edge. The vertices as
         ordered as obtained by the method :meth:`vertices` and the edges as
         obtained by the method :meth:`edge_iterator`.
 
-        By default return the oriented incidence matrix where each column is
-        either zero if the corresponding edge is a loop, or has an entry `-1`
-        and an entry `+1` at respectively the source and the target of the edge.
+        If the graph is not directed, then return a matrix with entries in
+        `\{0,1,2\}`. Each column will either contain two `1` (at the position of
+        the endpoint of the edge), or one `2` (if the corresponding edge is a
+        loop).
 
-        If ``oriented`` is set to ``False`` then returns a matrix with entries
-        in `{0,1,2}`. Loops are identified with the number `2`.
+        If the graph is directed return a matrix in `{-1,0,1\}` where `-1` and
+        `+1` correspond respectively to the source and the target of the edge. A
+        loop will correspond to a zero column. In particular, it is not possible
+        to reconstruct an oriented graph from its incidence matrix.
 
-        See :wikipedia:`Incidence_Matrix`.
+        See :wikipedia:`Incidence_Matrix` for more informations.
 
         INPUT:
 
-        - ``oriented`` -- default to ``True``, whether to force the incidence
-          matrix to be oriented (entries will be in `-1`, `0`, `1`) or oriented
-          (entries will be in `0`, `1`, `2`).
+        - ``oriented`` -- whether to force the incidence matrix to be oriented
+          (entries will be in `-1`, `0`, `1`) or not oriented (entries will be
+          in `0`, `1`, `2`). If the graph is not directed and setting
+          ``oriented=True`` will result in an arbitrary orientation of the
+          edges.
 
         - ``sparse`` -- default to ``True``, whether to use a sparse or a dense
           matrix.
@@ -1538,6 +1543,15 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.CubeGraph(3)
             sage: G.incidence_matrix()
+            [0 1 0 0 0 1 0 1 0 0 0 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0]
+            [1 1 1 0 0 0 0 0 0 0 0 0]
+            [1 0 0 1 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 1 0 0 1 1]
+            [0 0 0 0 0 0 1 0 0 1 0 1]
+            [0 0 1 0 0 0 0 0 1 0 1 0]
+            [0 0 0 0 1 0 0 0 1 1 0 0]
+            sage: G.incidence_matrix(oriented=True)
             [ 0 -1  0  0  0 -1  0 -1  0  0  0  0]
             [ 0  0  0 -1  0  1 -1  0  0  0  0  0]
             [-1  1 -1  0  0  0  0  0  0  0  0  0]
@@ -1554,39 +1568,7 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  0  0  1 -1 -1  0  1]
             [ 0  1  0  0  0  1 -1 -1]
 
-        A well known result states that the product of the (oriented) incidence
-        matrix with its transpose of a (non-oriented graph) is in fact the
-        Kirchhoff matrix::
-
-            sage: G = graphs.PetersenGraph()
-            sage: m = G.incidence_matrix()
-            sage: m * m.transpose() == G.kirchhoff_matrix()
-            True
-
-            sage: K = graphs.CompleteGraph(3)
-            sage: m = K.incidence_matrix()
-            sage: m * m.transpose() == K.kirchhoff_matrix()
-            True
-
-            sage: H = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
-            sage: m = H.incidence_matrix()
-            sage: m * m.transpose() == H.kirchhoff_matrix()
-            True
-
-        ::
-
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.incidence_matrix()
-            [-1 -1 -1  1  0  0  0  1  0  0]
-            [ 1  0  0 -1 -1  0  0  0  0  1]
-            [ 0  1  0  0  1 -1  0  0  0  0]
-            [ 0  0  1  0  0  1 -1  0  0  0]
-            [ 0  0  0  0  0  0  1 -1 -1  0]
-            [ 0  0  0  0  0  0  0  0  1 -1]
-
-        Test the option ``oriented=False``::
-
-            sage: graphs.CompleteGraph(3).incidence_matrix(oriented=False)
+            sage: graphs.CompleteGraph(3).incidence_matrix()
             [1 1 0]
             [1 0 1]
             [0 1 1]
@@ -1594,7 +1576,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.incidence_matrix(oriented=False)
             [2 1 1]
             [0 1 1]
+
+        A well known result states that the product of the (oriented) incidence
+        matrix with its transpose of a (non-oriented graph) is in fact the
+        Kirchhoff matrix::
+
+            sage: G = graphs.PetersenGraph()
+            sage: m = G.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == G.kirchhoff_matrix()
+            True
+
+            sage: K = graphs.CompleteGraph(3)
+            sage: m = K.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == K.kirchhoff_matrix()
+            True
+
+            sage: H = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
+            sage: m = H.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == H.kirchhoff_matrix()
+            True
         """
+        if oriented is None:
+            oriented = self.is_directed()
         from sage.matrix.constructor import matrix
         from sage.rings.integer_ring import ZZ
         m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)

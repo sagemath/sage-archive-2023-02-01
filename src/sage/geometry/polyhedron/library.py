@@ -36,6 +36,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.simplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 
 REFERENCES:
@@ -270,6 +271,10 @@ class Polytopes():
           This operation turns the coordinates into floating point
           approximations and corresponds to the projection given by the matrix
           from :func:`zero_sum_projection`.
+
+        .. SEEALSO::
+
+            :meth:`tetrahedron`
 
         EXAMPLES::
 
@@ -605,13 +610,48 @@ class Polytopes():
               [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
+    def tetrahedron(self):
+        """
+        Return the tetrahedron.
+
+        The tetrahedron is a Platonic solid with 4 vertices and 4 faces
+        dual to itself. It can be defined as the convex hull
+        of the 4 vertices `(0, 0, 0)`, `(1, 1, 0)`, `(1, 0, 1)` and
+        `(0, 1, 1)`. For more information, see the
+        :wikipedia:`Tetrahedron`.
+
+        .. SEEALSO::
+
+            :meth:`simplex`
+
+        EXAMPLES::
+
+            sage: co = polytopes.tetrahedron()
+            sage: co.f_vector()
+            (1, 4, 6, 4, 1)
+
+        Its faces are 4 triangles::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            4
+
+        Some more computation::
+
+            sage: co.volume()
+            1/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            1/3*t^3 + t^2 + 5/3*t + 1
+        """
+        v = [[0, 0, 0], [1, 0, 1], [1, 1, 0], [0, 1, 1]]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
     def octahedron(self):
         """
         Return the octahedron.
 
         The octahedron is a Platonic solid with 6 vertices and 8 faces
         dual to the cube. It can be defined as the convex hull
-        of the twelve vertices `(0, 0, \pm 1)`, `(\pm 1, 0, 0)` and
+        of the six vertices `(0, 0, \pm 1)`, `(\pm 1, 0, 0)` and
         `(0, \pm 1, 0)`. For more information, see the
         :wikipedia:`Octahedron`.
 

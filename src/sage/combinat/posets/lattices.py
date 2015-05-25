@@ -29,7 +29,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
     :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
-    :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given elemnt is modular in the lattice.
+    :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.

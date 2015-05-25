@@ -44,6 +44,10 @@ You can also run it from the command line of sage::
 
     sage: notebook() # not tested
 
+Where can I find more information about using SageMathCloud™?
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Visit the Frequently Asked Questions page for SageMathCloud™ at https://github.com/sagemath/cloud/wiki/FAQ .
 
 What are Sage's prerequisites?
 """"""""""""""""""""""""""""""

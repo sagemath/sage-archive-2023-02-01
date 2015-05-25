@@ -173,7 +173,8 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -192,6 +193,27 @@ class Octave(Expect):
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=100)
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        http://maxima.sourceforge.net/docs/manual/maxima_10.html
+        make_random_state (n) returns a new random state object created from an
+        integer seed value equal to n modulo 2^32. n may be negative.
+
+        EXAMPLES::
+
+            sage: o = Octave()
+            sage: o.set_seed(1)
+            1
+            sage: [o.rand() for i in range(5)]
+            [ 0.134364,  0.847434,  0.763775,  0.255069,  0.495435]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("rand('state',%d)" % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -285,6 +307,8 @@ class Octave(Expect):
         Expect._start(self)
         self.eval("page_screen_output=0;")
         self.eval("format none;")
+        # set random seed
+        self.set_seed(self._seed)
 
     def set(self, var, value):
         """

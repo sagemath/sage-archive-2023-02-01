@@ -235,7 +235,8 @@ class R(Expect):
                  server_tmpdir = None,
                  logfile=None,
                  server=None,
-                 init_list_length=1024):
+                 init_list_length=1024,
+                 seed=None):
         """
         An interface to the R interpreter.
 
@@ -299,6 +300,25 @@ class R(Expect):
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
         self._prompt_wait = [self._prompt]
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for R interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            r = R()
+            r.set_seed(1)
+            r.sample("1:10", 5)
+            [1] 3 4 5 7 2
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('set.seed(%d)' % seed)
+        self._seed = seed
+        return seed
 
     def _start(self):
         """
@@ -325,6 +345,9 @@ class R(Expect):
         # don't abort on errors, just raise them!
         # necessary for non-interactive execution
         self.eval('options(error = expression(NULL))')
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def png(self, *args, **kwds):
         """

@@ -1,5 +1,41 @@
 r"""
 Finite semilattices and lattices
+
+This module implements finite (semi)lattices. It defines:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
+    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
+    :class:`FiniteLatticePoset` | A class for finite lattices.
+    :meth:`JoinSemilattice` | Construct a join semi-lattice.
+    :meth:`LatticePoset` | Construct a lattice.
+    :meth:`MeetSemilattice` | Construct a meet semi-lattice.
+
+List of (semi)lattice methods
+-----------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
+    :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given elemnt is modular in the lattice.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,

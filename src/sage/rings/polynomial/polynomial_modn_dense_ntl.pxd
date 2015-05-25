@@ -18,8 +18,6 @@ from sage.libs.ntl.ntl_lzz_pX_decl cimport *
 cdef class Polynomial_dense_mod_n(Polynomial):
     cdef object __poly
     cdef object __singular
-    cpdef ModuleElement _rmul_(self, RingElement c)  # ??!?
-    cpdef ModuleElement _lmul_(self, RingElement c)  # ??!?
 
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     cdef zz_pX_c x

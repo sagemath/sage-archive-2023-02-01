@@ -667,7 +667,7 @@ def process_generators_cubical(gen_string, dim):
                     left, right = x
                     left = [int(a) for a in left.strip('()').split(',')]
                     right = [int(a) for a in right.strip('()').split(',')]
-                    if sum([x-y for (x,y) in zip(right, left)]) == dim:
+                    if sum([xx - yy for (xx, yy) in zip(right, left)]) == dim:
                         newlines.append(l)
                 else:  # line like "generator 2"
                     newlines.append(l)

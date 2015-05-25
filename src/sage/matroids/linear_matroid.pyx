@@ -3418,7 +3418,10 @@ cdef class BinaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas, keep_initial_representation=False)
+        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                             groundset=[self._E[c] for c in C],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     # graphicness test
     cpdef is_graphic(self):
@@ -4291,7 +4294,10 @@ cdef class TernaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas, keep_initial_representation=False)
+        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                              groundset=[self._E[c] for c in C],
+                              basis=bas,
+                              keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -4978,7 +4984,10 @@ cdef class QuaternaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas, keep_initial_representation=False)
+        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                                 groundset=[self._E[c] for c in C],
+                                 basis=bas,
+                                 keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""

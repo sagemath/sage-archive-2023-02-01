@@ -1425,6 +1425,15 @@ ext_modules = [
     Extension('sage.quadratic_forms.ternary',
               sources = ['sage/quadratic_forms/ternary.pyx']),
 
+    ###############################
+    ##
+    ## sage.quivers
+    ##
+    ###############################
+
+    Extension('sage.quivers.paths',
+              sources = ['sage/quivers/paths.pyx']),
+
     ################################
     ##
     ## sage.repl

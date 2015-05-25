@@ -256,7 +256,7 @@ def signature(self):
 
 def hasse_invariant(self, p):
     """
-    Computes the Hasse invariant at a prime `p`, as given on p55 of
+    Computes the Hasse invariant at a prime `p` or at infinity, as given on p55 of
     Cassels's book.  If Q is diagonal with coefficients `a_i`, then the
     (Cassels) Hasse invariant is given by
 
@@ -277,7 +277,7 @@ def hasse_invariant(self, p):
 
 
     INPUT:
-        `p` -- a prime number > 0
+        `p` -- a prime number > 0 or `-1` for the infinite place.
 
     OUTPUT:
         1 or -1
@@ -361,7 +361,7 @@ def hasse_invariant__OMeara(self, p):
 
 
     INPUT:
-        `p` -- a prime number > 0
+        `p` -- a prime number > 0 or `-1` for the infinite place. 
 
     OUTPUT:
         1 or -1
@@ -431,7 +431,7 @@ def hasse_invariant__OMeara(self, p):
 def is_hyperbolic(self, p):
     """
     Checks if the quadratic form is a sum of hyperbolic planes over
-    the p-adic numbers Q_p.
+    the p-adic numbers Q_p or over the real numbers.
 
     REFERENCES:
         This criteria follows from Cassels's "Rational Quadratic Forms":
@@ -439,7 +439,7 @@ def is_hyperbolic(self, p):
             - direct sum formulas (Lemma 2.3 on p58)
 
     INPUT:
-        `p` -- a prime number > 0
+        `p` -- a prime number > 0 or "infinity" for the real place.
 
     OUTPUT:
         boolean
@@ -477,7 +477,7 @@ def is_hyperbolic(self, p):
         return (self.signature() == 0)
 
     elif p == 2:
-        return QQ(self.det() * (-1)**m).is_padic_square(p) and (self.hasse_invariant(p) == (-1)**m)    ## Actually, this -1 is the Hilbert symbol (-1,-1)_p
+        return QQ(self.det() * (-1)**m).is_padic_square(p) and (self.hasse_invariant(p) == (-1)**(m*(m-1)/2))    ## Actually, this -1 is the Hilbert symbol (-1,-1)_p
 
     else:
         return QQ(self.det() * (-1)**m).is_padic_square(p) and (self.hasse_invariant(p) == 1)
@@ -486,10 +486,10 @@ def is_hyperbolic(self, p):
 
 def is_anisotropic(self, p):
     """
-    Checks if the quadratic form is anisotropic over the p-adic numbers `Q_p`.
+    Checks if the quadratic form is anisotropic over the p-adic numbers `Q_p` or `RR`.
 
     INPUT:
-        `p` -- a prime number > 0
+        `p` -- a prime number > 0 or "infinity"
 
     OUTPUT:
         boolean
@@ -529,31 +529,34 @@ def is_anisotropic(self, p):
     D = self.det()
 
     ## TO DO: Should check that p is prime
+    if p == "infinity":
+        return self.is_definite()
 
-    if (n >= 5):
-        return False;
+    else:
+        if (n >= 5):
+            return False;
 
-    if (n == 4):
-        return ( QQ(D).is_padic_square(p) and (self.hasse_invariant(p) == - hilbert_symbol(-1,-1,p)) )
+        if (n == 4):
+            return ( QQ(D).is_padic_square(p) and (self.hasse_invariant(p) == - hilbert_symbol(-1,-1,p)) )
 
-    if (n == 3):
-        return (self.hasse_invariant(p) != hilbert_symbol(-1, -D, p))
+        if (n == 3):
+            return (self.hasse_invariant(p) != hilbert_symbol(-1, -D, p))
 
-    if (n == 2):
-        return (not QQ(-D).is_padic_square(p))
+        if (n == 2):
+            return (not QQ(-D).is_padic_square(p))
 
-    if (n == 1):
-        return (self[0,0] != 0)
+        if (n == 1):
+            return (self[0,0] != 0)
 
     raise NotImplementedError("Oops!  We haven't established a convention for 0-dim'l quadratic forms... =(")
 
 
 def is_isotropic(self, p):
     """
-    Checks if Q is isotropic over the p-adic numbers `Q_p`.
+    Checks if Q is isotropic over the p-adic numbers `Q_p` or `RR`.
 
     INPUT:
-        `p` -- a prime number > 0
+        `p` -- a prime number > 0 or "infinity"
 
     OUTPUT:
         boolean
@@ -624,7 +627,7 @@ def anisotropic_primes(self):
     """
 
     ## Look at all prime divisors of 2 * Det(Q) to find the anisotropic primes...
-    possible_primes = prime_divisors(2 * self.det())
+    possible_primes = prime_divisors(2 * self.det()) + ["infinity"]
     AnisoPrimes = []
 
     ## DIAGNSOTIC

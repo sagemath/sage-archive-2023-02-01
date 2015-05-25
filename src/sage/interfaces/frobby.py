@@ -21,7 +21,7 @@ The official source for Frobby is <http://www.broune.com/frobby>,
 which also has documentation and papers describing the algorithms used.
 """
 
-from subprocess import *
+from subprocess import Popen, PIPE
 from sage.misc.misc_c import prod
 
 class Frobby:

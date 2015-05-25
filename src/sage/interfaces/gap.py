@@ -175,7 +175,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
@@ -413,9 +412,8 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             # GAP died or hangs indefinitely
-            # print 'GAP interrupt:', msg
             success = False
 
         if not success and quit_on_fail:
@@ -1042,7 +1040,6 @@ class GapElement_generic(ExpectElement):
             [  a a^2]
             [a^3   a]
         """
-        P = self.parent()
         v = self.DimensionsMat()
         n = int(v[1])
         m = int(v[2])
@@ -1297,8 +1294,8 @@ class Gap(Gap_generic):
             sage: gap.get('x')
             '2'
         """
-        cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
-        out = self._eval_line(cmd, allow_use_file=True)
+        cmd = ('%s:=%s;;' % (var, value)).replace('\n','')
+        self._eval_line(cmd, allow_use_file=True)
 
     def get(self, var, use_file=False):
         """
@@ -1350,9 +1347,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError as msg:
-                #if not ("Function call: <func> must return a value" in msg):
-                #    raise RuntimeError, msg
+            except RuntimeError:
                 return ''
         return Expect._eval_line_using_file(self, line)
 

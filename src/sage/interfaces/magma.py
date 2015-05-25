@@ -450,26 +450,6 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
-    def chdir(self, dir):
-        """
-        Change the Magma interpreters current working directory.
-
-        INPUT:
-
-
-        -  ``dir`` - a string
-
-
-        EXAMPLES::
-
-            sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/src/sage'
-            sage: magma.chdir('..')             # optional - magma
-            sage: magma.eval('System("pwd")')   # random, optional - magma
-            '/Users/was/s/src'
-        """
-        self.eval('ChangeDirectory("%s")'%dir, strip=False)
-
     def eval(self, x, strip=True, **kwds):
         """
         Evaluate the given block x of code in Magma and return the output
@@ -758,7 +738,7 @@ class Magma(Expect):
         else:
             try:  # use try/except here, because if x is cdef'd we won't be able to set this.
                 x._magma_cache = {self:A}
-            except AttributeError as msg:
+            except AttributeError:
                 # Unfortunately, we *have* do have this __cache
                 # attribute, which can lead to "leaks" in the working
                 # Magma session.  This is because it is critical that
@@ -909,13 +889,11 @@ class Magma(Expect):
 
     def chdir(self, dir):
         """
-        Change to the given directory.
+        Change the Magma interpreter's current working directory.
 
         INPUT:
 
-
-        -  ``dir`` - string; name of a directory
-
+        -  ``dir`` -- a string
 
         EXAMPLES::
 
@@ -923,7 +901,7 @@ class Magma(Expect):
             sage: magma.eval('System("pwd")')      # optional - magma
             '/'
         """
-        magma.eval('ChangeDirectory("%s")'%dir)
+        self.eval('ChangeDirectory("%s")' % dir, strip=False)
 
     def attach(self, filename):
         r"""

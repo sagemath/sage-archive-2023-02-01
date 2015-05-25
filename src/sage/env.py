@@ -17,7 +17,7 @@ AUTHORS:
 ########################################################################
 from __future__ import absolute_import
 
-import os, socket, site, six
+import os, socket, site
 from . import version
 
 opj = os.path.join
@@ -66,6 +66,7 @@ def _add_variable_or_fallback(key, fallback, force=False):
         '---foo---'
     """
     global SAGE_ENV
+    import six
     try:
         import os
         value = os.environ[key]
@@ -134,4 +135,4 @@ _add_variable_or_fallback('PYTHON_EGG_CACHE',   opj('$DOT_SAGE', '.python-eggs')
 _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
-del opj, os, socket, version, site, six
+del opj, os, socket, version, site

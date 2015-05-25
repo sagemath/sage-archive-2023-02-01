@@ -264,7 +264,7 @@ We can easily create a finite state machine by
 
     sage: fsm = FiniteStateMachine()
     sage: fsm
-    Finite state machine with 0 states
+    Empty finite state machine
 
 By default this is the empty finite state machine, so not very
 interesting. Let's create and add some states and transitions::
@@ -2921,7 +2921,7 @@ class FiniteStateMachine(SageObject):
         TEST::
 
             sage: FiniteStateMachine()
-            Finite state machine with 0 states
+            Empty finite state machine
         """
         self._states_ = []  # List of states in the finite state
                             # machine.  Each state stores a list of
@@ -3106,7 +3106,7 @@ class FiniteStateMachine(SageObject):
             ....:                        output_alphabet=[2, 3],
             ....:                        on_duplicate_transition=duplicate_transition_raise_error)
             sage: FE = F.empty_copy(); FE
-            Finite state machine with 0 states
+            Empty finite state machine
             sage: FE.input_alphabet
             [0, 1]
             sage: FE.output_alphabet
@@ -3937,13 +3937,13 @@ class FiniteStateMachine(SageObject):
         EXAMPLES::
 
             sage: FiniteStateMachine()._repr_()
-            'Finite state machine with 0 states'
+            'Empty finite state machine'
 
         TESTS::
 
             sage: F = FiniteStateMachine()
             sage: F
-            Finite state machine with 0 states
+            Empty finite state machine
             sage: F.add_state(42)
             42
             sage: F
@@ -3954,6 +3954,8 @@ class FiniteStateMachine(SageObject):
             Finite state machine with 2 states
 
         """
+        if len(self._states_)==0:
+            return "Empty finite state machine"
         if len(self._states_)==1:
             return "Finite state machine with 1 state"
         else:
@@ -9216,7 +9218,7 @@ class Automaton(FiniteStateMachine):
     TESTS::
 
         sage: Automaton()
-        Automaton with 0 states
+        Empty automaton
     """
 
     def __init__(self, *args, **kwargs):
@@ -9252,14 +9254,14 @@ class Automaton(FiniteStateMachine):
         EXAMPLES::
 
             sage: Automaton()._repr_()
-            'Automaton with 0 states'
+            'Empty automaton'
 
 
         TESTS::
 
             sage: A = Automaton()
             sage: A
-            Automaton with 0 states
+            Empty automaton
             sage: A.add_state(42)
             42
             sage: A
@@ -9270,6 +9272,8 @@ class Automaton(FiniteStateMachine):
             Automaton with 2 states
 
         """
+        if len(self._states_)==0:
+            return "Empty automaton"
         if len(self._states_)==1:
             return "Automaton with 1 state"
         else:
@@ -10131,7 +10135,7 @@ class Transducer(FiniteStateMachine):
     TESTS::
 
         sage: Transducer()
-        Transducer with 0 states
+        Empty transducer
     """
 
     def _repr_(self):
@@ -10150,13 +10154,13 @@ class Transducer(FiniteStateMachine):
         EXAMPLES::
 
             sage: Transducer()._repr_()
-            'Transducer with 0 states'
+            'Empty transducer'
 
         TESTS::
 
             sage: T = Transducer()
             sage: T
-            Transducer with 0 states
+            Empty transducer
             sage: T.add_state(42)
             42
             sage: T
@@ -10167,6 +10171,8 @@ class Transducer(FiniteStateMachine):
             Transducer with 2 states
 
         """
+        if len(self._states_)==0:
+            return "Empty transducer"
         if len(self._states_)==1:
             return "Transducer with 1 state"
         else:

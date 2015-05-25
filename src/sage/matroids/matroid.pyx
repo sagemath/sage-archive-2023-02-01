@@ -5042,7 +5042,7 @@ cdef class Matroid(SageObject):
             sage: Y = M.intersection(N, w)
             sage: sorted(Y)
             ['a', 'd', 'e', 'g', 'i', 'k']
-            sage: U = M._intersection_augmentation(N, w, Y)[0]
+            sage: M._intersection_augmentation(N, w, Y)[0]
             False
         """
         X = self.groundset() - Y

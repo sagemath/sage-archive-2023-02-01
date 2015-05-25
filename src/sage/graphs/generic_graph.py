@@ -1508,69 +1508,114 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, sparse=True):
+    def incidence_matrix(self, oriented=None, sparse=True):
         """
-        Returns the incidence matrix of the (di)graph.
+        Return the incidence matrix of the (di)graph.
 
-        Each row is a vertex, and each column is an edge. Note that in the case
-        of graphs, there is a choice of orientation for each edge.
+        Each row is a vertex, and each column is an edge. The vertices as
+        ordered as obtained by the method :meth:`vertices` and the edges as
+        obtained by the method :meth:`edge_iterator`.
+
+        If the graph is not directed, then return a matrix with entries in
+        `\{0,1,2\}`. Each column will either contain two `1` (at the position of
+        the endpoint of the edge), or one `2` (if the corresponding edge is a
+        loop).
+
+        If the graph is directed return a matrix in `\{-1,0,1\}` where `-1` and
+        `+1` correspond respectively to the source and the target of the edge. A
+        loop will correspond to a zero column. In particular, it is not possible
+        to recover the loops of an oriented graph from its incidence matrix.
+
+        See :wikipedia:`Incidence_Matrix` for more informations.
+
+        INPUT:
+
+        - ``oriented`` -- an optional boolean. If set to ``True``, the matrix
+          will be oriented (i.e. with entries in `-1`, `0`, `1`) and if set to
+          ``False`` the matrix will be not oriented (i.e. with entries in `0`,
+          `1`, `2`). By default, this argument is inferred from the graph type.
+          Note that in the case the graph is not directed and with the option
+          ``directed=True``, a somewhat random direction is chosen for each
+          edge.
+
+        - ``sparse`` -- default to ``True``, whether to use a sparse or a dense
+          matrix.
 
         EXAMPLES::
 
             sage: G = graphs.CubeGraph(3)
             sage: G.incidence_matrix()
-            [-1 -1 -1  0  0  0  0  0  0  0  0  0]
-            [ 0  0  1 -1 -1  0  0  0  0  0  0  0]
-            [ 0  1  0  0  0 -1 -1  0  0  0  0  0]
-            [ 0  0  0  0  1  0  1 -1  0  0  0  0]
-            [ 1  0  0  0  0  0  0  0 -1 -1  0  0]
-            [ 0  0  0  1  0  0  0  0  0  1 -1  0]
-            [ 0  0  0  0  0  1  0  0  1  0  0 -1]
-            [ 0  0  0  0  0  0  0  1  0  0  1  1]
+            [0 1 0 0 0 1 0 1 0 0 0 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0]
+            [1 1 1 0 0 0 0 0 0 0 0 0]
+            [1 0 0 1 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 1 0 0 1 1]
+            [0 0 0 0 0 0 1 0 0 1 0 1]
+            [0 0 1 0 0 0 0 0 1 0 1 0]
+            [0 0 0 0 1 0 0 0 1 1 0 0]
+            sage: G.incidence_matrix(oriented=True)
+            [ 0 -1  0  0  0 -1  0 -1  0  0  0  0]
+            [ 0  0  0 -1  0  1 -1  0  0  0  0  0]
+            [-1  1 -1  0  0  0  0  0  0  0  0  0]
+            [ 1  0  0  1 -1  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  1  0  0 -1 -1]
+            [ 0  0  0  0  0  0  1  0  0 -1  0  1]
+            [ 0  0  1  0  0  0  0  0 -1  0  1  0]
+            [ 0  0  0  0  1  0  0  0  1  1  0  0]
 
+            sage: G = digraphs.Circulant(4, [1,3])
+            sage: G.incidence_matrix()
+            [-1 -1  1  0  0  0  1  0]
+            [ 1  0 -1 -1  1  0  0  0]
+            [ 0  0  0  1 -1 -1  0  1]
+            [ 0  1  0  0  0  1 -1 -1]
 
-        A well known result states that the product of the incidence matrix
-        with its transpose is in fact the Kirchhoff matrix::
+            sage: graphs.CompleteGraph(3).incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+            sage: G = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
+            sage: G.incidence_matrix(oriented=False)
+            [2 1 1]
+            [0 1 1]
+
+        A well known result states that the product of the (oriented) incidence
+        matrix with its transpose of a (non-oriented graph) is in fact the
+        Kirchhoff matrix::
 
             sage: G = graphs.PetersenGraph()
-            sage: G.incidence_matrix()*G.incidence_matrix().transpose() == G.kirchhoff_matrix()
+            sage: m = G.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == G.kirchhoff_matrix()
             True
 
-        ::
+            sage: K = graphs.CompleteGraph(3)
+            sage: m = K.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == K.kirchhoff_matrix()
+            True
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.incidence_matrix()
-            [-1 -1 -1  0  0  0  0  0  1  1]
-            [ 0  0  1 -1  0  0  0  1 -1  0]
-            [ 0  1  0  1 -1  0  0  0  0  0]
-            [ 1  0  0  0  1 -1  0  0  0  0]
-            [ 0  0  0  0  0  1 -1  0  0 -1]
-            [ 0  0  0  0  0  0  1 -1  0  0]
+            sage: H = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
+            sage: m = H.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == H.kirchhoff_matrix()
+            True
         """
+        if oriented is None:
+            oriented = self.is_directed()
         from sage.matrix.constructor import matrix
-        n = self.order()
-        verts = self.vertices()
-        d = [0]*n
-        cols = []
-        if self._directed:
-            for i, j, l in self.edge_iterator():
-                col = copy(d)
-                i = verts.index(i)
-                j = verts.index(j)
-                col[i] = -1
-                col[j] = 1
-                cols.append(col)
+        from sage.rings.integer_ring import ZZ
+        m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
+        verts = {v:i for i,v in enumerate(self.vertices())}
+
+        if oriented:
+            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
+                if i != j:
+                    m[verts[i],e] = -1
+                    m[verts[j],e] = +1
         else:
-            for i, j, l in self.edge_iterator():
-                col = copy(d)
-                i,j = (i,j) if i <= j else (j,i)
-                i = verts.index(i)
-                j = verts.index(j)
-                col[i] = -1
-                col[j] = 1
-                cols.append(col)
-        cols.sort()
-        return matrix(cols, sparse=sparse).transpose()
+            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
+                m[verts[i],e] += 1
+                m[verts[j],e] += 1
+
+        return m
 
     def distance_matrix(self):
         """

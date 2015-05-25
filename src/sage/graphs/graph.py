@@ -301,12 +301,16 @@ examples are covered here.
 
    ::
 
-       sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0), \
-       (1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0), \
-       (0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1), \
-       (0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0), \
-       (0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0), \
-       (0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
+       sage: M = Matrix([(-1, 0, 0, 0, 1, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0),
+       ....:             ( 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0),
+       ....:             ( 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0),
+       ....:             ( 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0),
+       ....:             ( 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1),
+       ....:             ( 0, 0, 0, 0, 0,-1, 0, 0, 0, 1, 1, 0, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 1, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 1, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 1, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 1)])
        sage: M
        [-1  0  0  0  1  0  0  0  0  0 -1  0  0  0  0]
        [ 1 -1  0  0  0  0  0  0  0  0  0 -1  0  0  0]
@@ -884,11 +888,11 @@ class Graph(GenericGraph):
             sage: Graph(Matrix([[1],[1],[1]]))
             Traceback (most recent call last):
             ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: There must be two nonzero entries (-1 & 1) per column.
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1, 1] in column 0
             sage: Graph(Matrix([[1],[1],[0]]))
-            Traceback (most recent call last):
-            ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+            Graph on 3 vertices
 
             sage: M = Matrix([[0,1,-1],[1,0,-1],[-1,-1,0]]); M
             [ 0  1 -1]
@@ -904,15 +908,19 @@ class Graph(GenericGraph):
             sage: Graph(M)
             Traceback (most recent call last):
             ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1] in column 2
 
-        ::
+        Check that :trac:`9714` is fixed::
 
-            sage: MA = Matrix([[1,2,0], [0,2,0], [0,0,1]])      # trac 9714
-            sage: MI = Graph(MA, format='adjacency_matrix').incidence_matrix(); MI
-            [-1 -1  0  0  0  1]
-            [ 1  1  0  1  1  0]
-            [ 0  0  1  0  0  0]
+            sage: MA = Matrix([[1,2,0], [0,2,0], [0,0,1]])
+            sage: GA = Graph(MA, format='adjacency_matrix')
+            sage: MI = GA.incidence_matrix(oriented=False)
+            sage: MI
+            [2 1 1 0 0 0]
+            [0 1 1 2 2 0]
+            [0 0 0 0 0 2]
             sage: Graph(MI).edges(labels=None)
             [(0, 0), (0, 1), (0, 1), (1, 1), (1, 1), (2, 2)]
 
@@ -1077,6 +1085,26 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check error messages for graphs built from incidence matrices (see
+        :trac:`18440`)::
+
+            sage: Graph(matrix([[-1, 1, 0],[1, 0, 0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Column 1 of the (oriented) incidence matrix contains
+            only one nonzero value
+            sage: Graph(matrix([[1,1],[1,1],[1,0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1, 1] in column 0
+            sage: Graph(matrix([[3,1,1],[0,1,1]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Each column of a non-oriented incidence matrix must sum
+            to 2, but column 0 does not
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1303,36 +1331,37 @@ class Graph(GenericGraph):
             self.add_edges(e)
         elif format == 'incidence_matrix':
             assert is_Matrix(data)
+
+            oriented = any(data[pos] < 0 for pos in data.nonzero_positions(copy=False))
+
             positions = []
-            for c in data.columns():
-                NZ = c.nonzero_positions()
+            for i in range(data.ncols()):
+                NZ = data.nonzero_positions_in_column(i)
                 if len(NZ) == 1:
+                    if oriented:
+                        raise ValueError("Column {} of the (oriented) incidence "
+                                         "matrix contains only one nonzero value".format(i))
+                    elif data[NZ[0],i] != 2:
+                        raise ValueError("Each column of a non-oriented incidence "
+                                         "matrix must sum to 2, but column {} does not".format(i))
                     if loops is None:
                         loops = True
-                    elif not loops:
-                        msg += "There must be two nonzero entries (-1 & 1) per column."
-                        raise ValueError(msg)
-                    positions.append((NZ[0], NZ[0]))
-                elif len(NZ) != 2:
-                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    positions.append((NZ[0],NZ[0]))
+                elif len(NZ) != 2 or \
+                     (oriented and not ((data[NZ[0],i] == +1 and data[NZ[1],i] == -1) or \
+                                        (data[NZ[0],i] == -1 and data[NZ[1],i] == +1))) or \
+                     (not oriented and (data[NZ[0],i] != 1 or data[NZ[1],i] != 1)):
+                    msg += "There must be one or two nonzero entries per column. "
+                    msg += "Got entries {} in column {}".format([data[j,i] for j in NZ], i)
                     raise ValueError(msg)
                 else:
                     positions.append(tuple(NZ))
-                L = sorted(set(c.list()))
 
-                if data.nrows() != (2 if len(NZ) == 2 else 1):
-                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                else:
-                    desirable = [-1, 1] if len(NZ) == 2 else [1]
-
-                if L != desirable:
-                    msg += "Each column represents an edge: -1 goes to 1."
-                    raise ValueError(msg)
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
-                multiedges = (  len(set(positions)) < total  )
-            self.allow_loops(loops if loops else False, check=False)
+                multiedges = (len(set(positions)) < total  )
+            self.allow_loops(False if loops is None else loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
@@ -6797,4 +6826,5 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
+
 

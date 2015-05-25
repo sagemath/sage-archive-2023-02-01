@@ -13,7 +13,8 @@ You can try out Sage without downloading anything:
 * **SageMathCloud™:** Go to http://cloud.sagemath.org and set up a free
   account.
 
-  If you log in, you will gain access to the latest version of Sage and to many other programs.
+  If you log in, you will gain access to the latest version of Sage and to 
+  many other programs.
 
 * **Sage cell:** A "one-off" version of Sage, available for doing one
   computation at a time. http://sagecell.sagemath.org/
@@ -21,8 +22,8 @@ You can try out Sage without downloading anything:
 * **Sagenb:** Some public Sage notebook servers allow you to create a free
   account.
 
-  If you log in, you will be working on a free, browser-based Sage notebook server that will
-  work identically to the one you get within Sage. 
+  If you log in, you will be working on a free, browser-based Sage notebook 
+  server that will work identically to the one you get within Sage. 
 
 To download a **pre-built binary** Sage distribution, visit
 http://sagemath.org/download.html and click on the link for the binary for your
@@ -42,8 +43,8 @@ You can also run it from the command line of sage::
     sage: notebook() # not tested
 
 
-What are Sage's prerequisites?
-""""""""""""""""""""""""""""""
+What are the prerequisites for installing a copy of Sage on my computer?
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Most of the dependencies of Sage are shipped with Sage itself. In most
 cases, you can download a pre-built binary and use that without

@@ -78,7 +78,7 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
         # sol_number = int(output_list[solution_line+2].split(' ')[0])
     except IndexError:
         var_number = int(output_list[solution_line+1].split(' ')[1])
-        # sol_number = int(output_list[solution_line+1].split(' ')[0])
+        # sol_number = int(output_list[solution_line+1].split(' ')[0])
     for i in range(solution_line + 1,len(output_list)):
         if output_list[i].count('the solution for t') == 1:
             if output_list[i-3].count('success') > 0 or get_failures == True:

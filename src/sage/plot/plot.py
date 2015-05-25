@@ -286,19 +286,25 @@ NUMERICAL PLOTTING:
 
 Sage includes Matplotlib, which provides 2D plotting with an interface
 that is a likely very familiar to people doing numerical
-computation. For example,
+computation.
+You can use `plt.clf()` to clear the current image frame
+and `plt.close()` to close it.
+For example,
 
 ::
 
-    sage: from pylab import *
-    sage: t = arange(0.0, 2.0, 0.01)
+    sage: import pylab as plt
+    sage: t = plt.arange(0.0, 2.0, 0.01)
     sage: s = sin(2*pi*t)
-    sage: P = plot(t, s, linewidth=1.0)
-    sage: xl = xlabel('time (s)')
-    sage: yl = ylabel('voltage (mV)')
-    sage: t = title('About as simple as it gets, folks')
-    sage: grid(True)
-    sage: savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: P = plt.plot(t, s, linewidth=1.0)
+    sage: xl = plt.xlabel('time (s)')
+    sage: yl = plt.ylabel('voltage (mV)')
+    sage: t = plt.title('About as simple as it gets, folks')
+    sage: plt.grid(True)
+    sage: plt.clf()
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: plt.close()
+    sage: plt.imshow([[1,2],[0,1]])
 
 We test that ``imshow`` works as well, verifying that
 :trac:`2900` is fixed (in Matplotlib).

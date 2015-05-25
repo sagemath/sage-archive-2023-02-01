@@ -4622,12 +4622,12 @@ cdef class Matroid(SageObject):
             A BinaryMatroid
 
         EXAMPLES::
-            sage: N = self.named_matroids.Fano()
-            sage: M = N.local_binary_matroid()
+            sage: N = matroids.named_matroids.Fano()
+            sage: M = N._local_binary_matroid()
             sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
             True
-            sage: N = self.named_matroids.NonFano()
-            sage: M = N.local_binary_matroid()
+            sage: N = matroids.named_matroids.NonFano()
+            sage: M = N._local_binary_matroid()
             sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
             False
         """        
@@ -4658,10 +4658,10 @@ cdef class Matroid(SageObject):
             A Boolean.
 
         EXAMPLES::
-            sage: N = self.named_matroids.Fano()
+            sage: N = matroids.named_matroids.Fano()
             sage: N.is_binary()
             True
-            sage: N = self.named_matroids.NonFano()
+            sage: N = matroids.named_matroids.NonFano()
             sage: N.is_binary()
             False
         """

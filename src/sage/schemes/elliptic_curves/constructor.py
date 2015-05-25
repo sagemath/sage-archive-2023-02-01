@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+import six
 import sage.rings.all as rings
 
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -403,7 +403,7 @@ class EllipticCurveFactory(UniqueFactory):
             else:
                 x = coefficients_from_cubic(x, y, morphism=False)
 
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             # Interpret x as a Cremona or LMFDB label.
             from sage.databases.cremona import CremonaDatabase
             x, data = CremonaDatabase().coefficients_and_data(x)

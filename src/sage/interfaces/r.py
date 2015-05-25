@@ -214,6 +214,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.env import DOT_SAGE
 import re
+import six
 import sage.rings.integer
 from sage.structure.element import parent
 
@@ -1307,7 +1308,7 @@ class RElement(ExpectElement):
             [1] 1 3
         """
         P = self._check_valid()
-        if isinstance(n, basestring):
+        if isinstance(n, six.string_types):
             n = n.replace('self', self._name)
             return P.new('%s[%s]'%(self._name, n))
         elif parent(n) is P:  # the key is RElement itself

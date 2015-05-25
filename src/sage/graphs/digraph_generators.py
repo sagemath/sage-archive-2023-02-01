@@ -925,11 +925,24 @@ class DiGraphGenerators():
 
         OUTPUT:
 
-        a directed graph with `3 (3^{n-1}-1)/2` vertices and `3^n` edges.
+        a directed graph `S_n`with `3 (3^{n-1}-1)/2` vertices and
+        `3^n` edges, closely related to the famous Sierpinski triangle
+        fractal.
 
-        This is a point when `n` is `0` and an oriented triangle when `n` is `1`.
+        All these graphs have a triangular shape, and three special
+        vertices at top, bottom left and bottom right.
 
-        This is closely related to the famous Sierpinski triangle fractal.
+        The graph `S_1` (generation `1`) is an oriented triangle.
+
+        The graph `S_{n+1}` is obtained from the disjoint union of
+        three copies A,B,C of `S_n` by identifying pairs of vertices:
+        the top vertex of A with the bottom left vertex of B, 
+        the bottom right vertex of B with the top vertex of C,
+        and the bottom left vertex of C with the bottom right vertex of A.
+
+        Another familly of graphs can be defined by joined the same
+        pairs of vertices by new edges instead of identifying them.
+        These graphs are also sometimes called Sierpinski graphs.
 
         EXAMPLES::
 
@@ -942,14 +955,16 @@ class DiGraphGenerators():
             sage: g4 = s4.to_undirected()
             sage: g4.is_hamiltonian()
             True
+
+        REFERENCES:
+
+        .. todo
         """
         from sage.modules.free_module_element import vector
         from sage.rings.rational_field import QQ
 
-        if n == 0:
-            dg = DiGraph()
-            dg.add_vertex((0, 0))
-            return dg
+        if n <= 0:
+            raise ValueError('n should be at least 1')
 
         def next_step(triangle_list):
             # compute the next subdivision

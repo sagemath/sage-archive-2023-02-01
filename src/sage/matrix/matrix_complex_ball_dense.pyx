@@ -364,4 +364,15 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         return z
 
     def __richcmp__(Matrix self, right, int op):  # always needed for mysterious reasons.
+        """
+        EXAMPLE::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
+            sage: CBF = ComplexBallField() # optional - arb
+            sage: a = CBF(1) # optional - arb
+            sage: m1 = MatrixSpace(CBF, 1)([a]) # optional - arb
+            sage: m2 = MatrixSpace(CBF, 1)([a]) # optional - arb
+            sage: m1 == m2 # indirect doctest; optional - arb
+            True
+        """
         return self._richcmp(right, op)

@@ -2193,7 +2193,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def minimal_elements(self):
         """
-        Returns a list of the minimal elements of the poset.
+        Return the list of the minimal elements of the poset.
 
         EXAMPLES::
 
@@ -2204,24 +2204,28 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
             sage: P(2) in P.minimal_elements()
             True
+
+        .. SEEALSO:: :meth:`maximal_elements`.
         """
         return map(self._vertex_to_element, self._hasse_diagram.minimal_elements())
 
     def maximal_elements(self):
         """
-        Returns a list of the maximal elements of the poset.
+        Return the list of the maximal elements of the poset.
 
         EXAMPLES::
 
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P.maximal_elements()
             [4]
+
+        .. SEEALSO:: :meth:`minimal_elements`.
         """
         return map(self._vertex_to_element, self._hasse_diagram.maximal_elements())
 
     def bottom(self):
         """
-        Returns the bottom element of the poset, if it exists.
+        Return the unique minimal element of the poset, if it exists.
 
         EXAMPLES::
 
@@ -2231,6 +2235,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.bottom()
             0
+
+        .. SEEALSO:: :meth:`has_bottom`, :meth:`top`.
         """
         hasse_bot = self._hasse_diagram.bottom()
         if hasse_bot is None:
@@ -2240,7 +2246,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_bottom(self):
         """
-        Returns True if the poset has a unique minimal element.
+        Return ``True`` if the poset has a unique minimal element, and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2250,12 +2257,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.has_bottom()
             True
+
+        .. SEEALSO:: :meth:`bottom`, :meth:`has_top`.
         """
         return self._hasse_diagram.has_bottom()
 
     def top(self):
         """
-        Returns the top element of the poset, if it exists.
+        Return the unique maximal element of the poset, if it exists.
 
         EXAMPLES::
 
@@ -2266,6 +2275,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.top()
             1
 
+        .. SEEALSO:: :meth:`has_top`, :meth:`bottom`.
+
         TESTS::
 
             sage: R = Poset([[0],[]])
@@ -2273,7 +2284,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0]
             sage: R.top() #Trac #10776
             0
-
         """
         hasse_top = self._hasse_diagram.top()
         if hasse_top is None:
@@ -2283,8 +2293,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_top(self):
         """
-        Returns True if the poset contains a unique maximal element, and
-        False otherwise.
+        Return ``True`` if the poset has a unique maximal element, and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2294,6 +2304,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.has_top()
             True
+
+        .. SEEALSO:: :meth:`top`, :meth:`has_bottom`.
         """
         return self._hasse_diagram.has_top()
 
@@ -3157,7 +3169,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_join_semilattice(self):
         """
-        Returns True is the poset has a join operation, and False
+        Returns True if the poset has a join operation, and False
         otherwise.
 
         EXAMPLES::

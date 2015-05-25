@@ -925,12 +925,13 @@ class DiGraphGenerators():
 
         OUTPUT:
 
-        a directed graph `S_n`with `3 (3^{n-1}-1)/2` vertices and
+        a directed graph `S_n` with `3 (3^{n-1}-1)/2` vertices and
         `3^n` edges, closely related to the famous Sierpinski triangle
         fractal.
 
         All these graphs have a triangular shape, and three special
-        vertices at top, bottom left and bottom right.
+        vertices at top, bottom left and bottom right. These are the only
+        vertices of valence 2, all the other ones having valence 4.
 
         The graph `S_1` (generation `1`) is an oriented triangle.
 

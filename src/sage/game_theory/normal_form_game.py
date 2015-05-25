@@ -1334,7 +1334,7 @@ class NormalFormGame(SageObject, MutableMapping):
             g[strategy_profile][1] = int(scalar *
                                             self.utilities[strategy_profile][1])
         output = ExternalLCPSolver().solve(g)
-        nasheq = Parser(output).format_LCP(g)
+        nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
     def _solve_enumeration(self, maximization=True):

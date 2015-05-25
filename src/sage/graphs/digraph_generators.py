@@ -33,7 +33,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
-    :meth:`~DiGraphGenerators.Sierpinsky`    | Returns a Sierpinsky graph of order n.
+    :meth:`~DiGraphGenerators.Sierpinski`    | Returns a Sierpinski graph.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
 
@@ -915,13 +915,13 @@ class DiGraphGenerators():
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
 
-    def Sierpinsky(self, n):
+    def Sierpinski(self, n):
         """
-        Return the Sierpinsky triangle graph of order `n`.
+        Return the Sierpinski triangle graph of generation `n`.
 
         INPUT:
 
-        - `n` -- an integer, the order of the graph
+        - `n` -- an integer
 
         OUTPUT:
 
@@ -929,9 +929,11 @@ class DiGraphGenerators():
 
         This is a point when `n` is `0` and an oriented triangle when `n` is `1`.
 
+        This is closely related to the famous Sierpinski triangle fractal.
+
         EXAMPLES::
 
-            sage: s4 = digraphs.Sierpinsky(4); s4
+            sage: s4 = digraphs.Sierpinski(4); s4
             Digraph on 42 vertices
             sage: s4.adjacency_matrix().charpoly()
             x^42 - 36*x^39 + 552*x^36 - 4695*x^33 + 24074*x^30 - 74898*x^27 +

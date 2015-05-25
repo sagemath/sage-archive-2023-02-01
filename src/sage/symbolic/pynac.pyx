@@ -249,6 +249,31 @@ def get_ginac_serial():
     """
     return py_get_ginac_serial()
 
+cdef get_fn_serial_c():
+    """
+    Return overall size of Pynac function registry.
+    """
+    return g_registered_functions().size()
+
+def get_fn_serial():
+    """
+    Return the overall size of the Pynac function registry which
+    corresponds to the last serial value plus one.
+
+    EXAMPLE::
+
+        sage: from sage.symbolic.pynac import get_fn_serial
+        sage: from sage.symbolic.function import get_sfunction_from_serial
+        sage: from sage.symbolic.pynac import get_fn_serial
+        sage: get_fn_serial() > 125
+        True
+        sage: print get_sfunction_from_serial(get_fn_serial())
+        None
+        sage: get_sfunction_from_serial(get_fn_serial() - 1) is not None
+        True
+    """
+    return get_fn_serial_c()
+
 cdef public object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& seq):
     """
     Convert arguments from ``GiNaC::subs()`` to a PyTuple. 
@@ -412,12 +437,12 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_function_pystring, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_print_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -428,7 +453,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
         '(foo)(x, y)'
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -474,12 +499,12 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_function_pystring, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_latex_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -494,7 +519,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
     Test latex_name::
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -506,7 +531,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -579,13 +604,12 @@ def py_print_fderivative_for_doctests(id, params, args):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial
-
+        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial, get_fn_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -597,7 +621,7 @@ def py_print_fderivative_for_doctests(id, params, args):
 
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -630,13 +654,13 @@ def py_latex_fderivative_for_doctests(id, params, args):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial, get_fn_serial
 
         sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -647,7 +671,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
     Test latex_name::
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -659,7 +683,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
 
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo

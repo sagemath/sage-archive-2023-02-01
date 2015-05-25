@@ -33,6 +33,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.Sierpinsky`    | Returns a Sierpinsky graph of order n.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
 
@@ -914,6 +915,59 @@ class DiGraphGenerators():
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
 
+    def Sierpinsky(self, n):
+        """
+        Return the Sierpinsky triangle graph of order `n`.
+
+        INPUT:
+
+        - `n` -- an integer, the order of the graph
+
+        OUTPUT:
+
+        a directed graph with `3 (3^{n-1}-1)/2` vertices and `3^n` edges.
+
+        This is a point when `n` is `0` and an oriented triangle when `n` is `1`.
+
+        EXAMPLES::
+
+            sage: s4 = digraphs.Sierpinsky(4); s4
+            Digraph on 42 vertices
+            sage: s4.adjacency_matrix().charpoly()
+            x^42 - 36*x^39 + 552*x^36 - 4695*x^33 + 24074*x^30 - 74898*x^27 +
+            130069*x^24 - 79941*x^21 - 99231*x^18 + 162871*x^15 - 6780*x^12 -
+            56213*x^9 - 9790*x^6 + 548*x^3 + 1
+            sage: g4 = s4.to_undirected()
+            sage: g4.is_hamiltonian()
+            True
+        """
+        from sage.modules.free_module_element import vector
+        from sage.rings.rational_field import QQ
+
+        if n == 0:
+            dg = DiGraph()
+            dg.add_vertex((0, 0))
+            return dg
+
+        def next_step(triangle_list):
+            # compute the next subdivision
+            resu = []
+            for a, b, c in triangle_list:
+                ab = (a + b) / 2
+                bc = (b + c) / 2
+                ac = (a + c) / 2
+                resu += [(a, ab, ac), (ab, b, bc), (ac, bc, c)]
+            return resu
+
+        tri_list = [list(vector(QQ, u) for u in [(0, 0), (0, 1), (1, 0)])]
+        for k in range(n - 1):
+            tri_list = next_step(tri_list)
+        dg = DiGraph()
+        dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
+        dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
+        dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
+        dg.set_pos({xy: (xy[0], xy[1]) for xy in dg.vertices()})
+        return dg
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """

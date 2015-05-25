@@ -309,9 +309,10 @@ class R(Expect):
 
         EXAMPLES::
 
-            r = R()
-            r.set_seed(1)
-            r.sample("1:10", 5)
+            sage: r = R()
+            sage: r.set_seed(1)
+            1
+            sage: r.sample("1:10", 5)
             [1] 3 4 5 7 2
         """
         if seed is None:

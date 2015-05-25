@@ -1910,7 +1910,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def shape(self):
         """
-        Returns the unlabelled tree associated to ``self``
+        Return the unlabelled tree associated to ``self``.
 
         EXAMPLES::
 
@@ -1919,6 +1919,11 @@ class AbstractLabelledTree(AbstractTree):
 
             sage: LabelledBinaryTree([[],[[],[]]], label = 25).shape()
             [[., .], [[., .], [., .]]]
+
+            sage: LRT = LabelledRootedTree
+            sage: tb = LRT([],label='b')
+            sage: LRT([tb, tb], label='a').shape()
+            [[], []]
 
         TESTS::
 

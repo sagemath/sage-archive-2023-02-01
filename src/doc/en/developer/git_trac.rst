@@ -15,7 +15,9 @@ public setting on `the Sage Trac server <http://trac.sagemath.org>`_
 
 One can use ``git`` :ref:`the hard way <chapter-manual-git>` for this,
 but this section explains how to use the helper ``git trac`` command, which
-simplifies many of the most common actions in collaboration on Sage.
+simplifies many of the most common actions in collaboration on Sage. Some
+of the :ref:`tutorials <section-git-tutorials>` we suggest may be helpful
+in navigating what they are for.
 
 Most of the commands in the following section will not work unless
 you have an account on Trac. If you want to contribute to Sage, it

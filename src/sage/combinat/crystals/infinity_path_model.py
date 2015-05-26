@@ -27,7 +27,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 
 class InfinityPathModel(TensorProductOfCrystals):
     r"""
-    The path model for `B(\infty).
+    The path model for `B(\infty)`.
 
     .. NOTE::
 

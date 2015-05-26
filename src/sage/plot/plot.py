@@ -301,19 +301,21 @@ For example,
     sage: yl = plt.ylabel('voltage (mV)')
     sage: t = plt.title('About as simple as it gets, folks')
     sage: plt.grid(True)
-    sage: plt.clf()
     sage: plt.savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: plt.clf()
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'blank.png'))
     sage: plt.close()
     sage: plt.imshow([[1,2],[0,1]])
+    <matplotlib.image.AxesImage object at ...>
 
 We test that ``imshow`` works as well, verifying that
 :trac:`2900` is fixed (in Matplotlib).
 
 ::
 
-    sage: imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0,0,0)]])
     <matplotlib.image.AxesImage object at ...>
-    sage: savefig(os.path.join(SAGE_TMP, 'foo.png'))
+    sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!

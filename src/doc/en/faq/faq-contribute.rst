@@ -82,14 +82,14 @@ programming concepts are explained more thoroughly in Python-centered
 resources than in Sage-centered resources; in the latter, 
 mathematics is usually the priority.
 
-Can I contribute to Sage using `SageMathCloud<https://cloud.sagemath.com/>`?
+Can I contribute to Sage using SageMathCloud?
 """""""""""""""""""""""""""""""""""""""""""""
 
 Absolutely! If you want to write code for Sage or update the 
 official documentation, 
-you will need your own installation of Sage on SageMathCloud. 
+you will need your own installation of Sage on `SageMathCloud <https://cloud.sagemath.com/>`_. 
 You can find more information about the details of installation in 
-`the SageMathCloud FAQ<https://github.com/sagemath/cloud/wiki/FAQ>`.
+`the SageMathCloud FAQ <https://github.com/sagemath/cloud/wiki/FAQ>`_.
 
 I'm not a programmer. Is there another way I can help out?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""

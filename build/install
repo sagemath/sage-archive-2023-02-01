@@ -311,9 +311,12 @@ filtered_packages_list() {
     for DIR in $SAGE_ROOT/build/pkgs/*; do
 
         PKG_TYPE_FILE="$DIR/type"
-        PKG_TYPE=`cat $PKG_TYPE_FILE`
-        if [ $? -ne 0 ]; then
-            continue
+        if [ -f "$PKG_TYPE_FILE" ]; then
+            PKG_TYPE=`cat $PKG_TYPE_FILE`
+        else
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
+            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
+            return 1
         fi
 
         # Check consistency of 'DIR/type' file
@@ -331,6 +334,12 @@ filtered_packages_list() {
         fi
     done
 }
+
+# Check that all packages define a (valid) 'type' file
+filtered_packages_list all > /dev/null
+if [ $? -ne 0 ]; then
+    exit 1
+fi
 
 echo >&5 "# All Sage packages"
 

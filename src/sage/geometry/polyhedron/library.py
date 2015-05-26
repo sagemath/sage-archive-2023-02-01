@@ -645,6 +645,42 @@ class Polytopes():
         v = [[0, 0, 0], [1, 0, 1], [1, 1, 0], [0, 1, 1]]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
+    def truncated_tetrahedron(self):
+        """
+        Return the truncated tetrahedron.
+
+        The truncated tetrahedron is an Archimedean solid with 12
+        vertices and 8 faces. It can be defined as the convex hull off
+        all the permutations of `(\pm 1, \pm 1, \pm 3)` with an even
+        number of minus signs. For more information, see the
+        :wikipedia:`Truncated_tetrahedron`.
+
+        EXAMPLES::
+
+            sage: co = polytopes.truncated_tetrahedron()
+            sage: co.f_vector()
+            (1, 12, 18, 8, 1)
+
+        Its faces are 4 triangles and 4 hexagons::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            4
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 6)
+            4
+
+        Some more computation::
+
+            sage: co.volume()
+            184/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            184/3*t^3 + 28*t^2 + 26/3*t + 1
+        """
+        v = [(3,1,1), (1,3,1), (1,1,3),
+             (-3,-1,1), (-1,-3,1), (-1,-1,3),
+             (-3,1,-1), (-1,3,-1), (-1,1,-3),
+             (3,-1,-1), (1,-3,-1), (1,-1,-3)]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
     def octahedron(self):
         """
         Return the octahedron.

@@ -3991,9 +3991,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_isomorphic(P)
             True
         """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if isinstance(self, FiniteLatticePoset):
+            constructor = FiniteLatticePoset
+        elif isinstance(self, FiniteMeetSemilattice):
+            constructor = FiniteMeetSemilattice
+        elif isinstance(self, FiniteJoinSemilattice):
+            constructor = FiniteJoinSemilattice
+        else:
+            constructor = FinitePoset
         P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._with_linear_extension,
                   category=self.category(), facade=self._is_facade)
-        return P.relabel(range(len(self._elements)))
+        return constructor(P.relabel(range(len(self._elements))))
 
     def with_linear_extension(self, linear_extension):
         """

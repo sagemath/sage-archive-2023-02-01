@@ -63,13 +63,19 @@ TESTS::
     sage: loads(dumps(std)) == std
     True
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Michael Brickenstein <brickenstein@mfo.de>
 #       Copyright (C) 2009,2010 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from libc.string cimport memcpy
 
 include "sage/ext/interrupt.pxi"
 

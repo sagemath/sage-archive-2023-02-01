@@ -719,9 +719,9 @@ cdef class randstate:
              sage: set_random_seed(0)
              sage: current_randstate().set_seed_singular()
              sage: singular.random(1, 100)
-             90
+             25
              sage: singular.random(1, 100)
-             21
+             95
          """
          global _singular_seed_randstate
          if _singular_seed_randstate is not self:

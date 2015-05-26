@@ -335,11 +335,8 @@ filtered_packages_list() {
     done
 }
 
-# Check that all packages define a (valid) 'type' file
-filtered_packages_list all > /dev/null
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+# Check that all packages define a (valid) 'type' file, or exit
+filtered_packages_list none || exit $?
 
 echo >&5 "# All Sage packages"
 

@@ -3726,6 +3726,18 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x==1,3).truncate().expand()
             -2*x^2*cos(1) + 5/2*x^2*sin(1) + 5*x*cos(1) - 7*x*sin(1) - 3*cos(1) + 11/2*sin(1)
 
+        Expressions formed by combining series can be expanded
+        by applying series again::
+
+            sage: (1/(1-x)).series(x, 3)+(1/(1+x)).series(x,3)
+            (1 + (-1)*x + 1*x^2 + Order(x^3)) + (1 + 1*x + 1*x^2 + Order(x^3))
+            sage: _.series(x,3)
+            2 + 2*x^2 + Order(x^3)
+            sage: (1/(1-x)).series(x, 3)*(1/(1+x)).series(x,3)
+            (1 + (-1)*x + 1*x^2 + Order(x^3))*(1 + 1*x + 1*x^2 + Order(x^3))
+            sage: _.series(x,3)
+            1 + 1*x^2 + Order(x^3)
+
         Following the GiNaC tutorial, we use John Machin's amazing
         formula `\pi = 16 \tan^{-1}(1/5) - 4 \tan^{-1}(1/239)` to compute
         digits of `\pi`. We expand the arc tangent around 0 and insert

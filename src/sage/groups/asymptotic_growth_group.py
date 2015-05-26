@@ -612,7 +612,7 @@ class GrowthElementPower(GenericGrowthElement):
             sage: P1.gen() == P2.gen()
             True
         """
-        from sage.structure.sage_object import have_same_parent
+        from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
             return self._eq_(other)
 
@@ -677,7 +677,7 @@ class GrowthElementPower(GenericGrowthElement):
             sage: P1.gen() <= P2.gen()^2
             True
         """
-        from sage.structure.sage_object import have_same_parent
+        from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
             return self._le_(other)
 

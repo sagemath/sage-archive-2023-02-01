@@ -86,6 +86,41 @@ cdef class SatSolver:
         """
         raise NotImplementedError
 
+    def read(self, filename):
+        """
+        Reads in a DIMAC file and adds clauses
+        to this instance.
+        """
+        return self.load(open(filename,"r"))
+
+    def load(self, file_object):
+        """
+        Loads in DIMAC formatted lines (lazily) from a
+        python file object and adds the corresponding
+        clauses into this instance.
+
+        See http://trac.sagemath.org/ticket/16924
+
+        EXAMPLE::
+
+            sage: from six import StringIO # for python 2/3 support
+            sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
+            sage: from sage.sat.solvers.dimacs import DIMACS
+            sage: solver = DIMACS()
+            sage: solver.load(file_object)
+            sage: solver
+            DIMACS Solver: ''
+        """
+        for line in file_object:
+            if line.startswith("c"):
+                continue # comment
+            if line.startswith("p"):
+                continue # header
+            line = line.split(" ")
+            clause = map(int,[e for e in line if e])
+            clause = clause[:-1] # strip trailing zero
+            self.add_clause(clause)
+
     def __call__(self, assumptions=None):
         """
         Solve this instance.

@@ -45,6 +45,8 @@ cdef extern from "<math.h>":
     double c_acos "acos"(double)
     double c_sqrt "sqrt"(double)
 
+cdef NCPUS
+
 cdef class LFunctionZeroSum_abstract(SageObject):
     r"""
     Abstract class for computing certain sums over zeros of a motivic L-function
@@ -57,6 +59,51 @@ cdef class LFunctionZeroSum_abstract(SageObject):
     cdef _k             # The weight of the form attached to self
     cdef _C1            # = log(N)/2 - log(2*pi)
     cdef _C0            # = C1 - euler_gamma
+    cdef _ncpus         # The number of CPUs to use for parallel computations
+
+    def ncpus(self, n=None):
+        r"""
+        Set or return the number of CPUs to be used in parallel computations.
+        If called with no input, the number of CPUs currently set is returned;
+        else this value is set to n. If n is 0 then the number of CPUs is set
+        to the max available.
+
+        INPUT:
+
+        ``n`` -- (default: None) If not None, a nonnegative integer
+
+        OUTPUT:
+
+        If n is not None, returns a positive integer
+
+        EXAMPLES::
+
+            sage: Z = LFunctionZeroSum(EllipticCurve("389a"))
+            sage: Z.ncpus()
+            1
+            sage: Z.ncpus(2)
+            sage: Z.ncpus()
+            2
+
+        The following output will depend on the system that Sage is running on.
+
+        ::
+
+            sage: Z.ncpus(0)
+            sage: Z.ncpus()            # random
+            4
+
+        """
+        if n is None:
+            return self._ncpus
+        elif n<0:
+            raise ValueError("Input must be positive integer")
+        elif n==0:
+            self._ncpus = num_cpus()
+            NCPUS = self._ncpus
+        else:
+            self._ncpus = n
+            NCPUS = self._ncpus
 
     def level(self):
         r"""
@@ -861,10 +908,10 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
     without having to determine the zeros themselves.
 
     """
-    cdef _E    # The Elliptic curve attached to self
-    cdef _e    # PARI ellcurve object used to compute a_p values
+    cdef _E     # The Elliptic curve attached to self
+    cdef _e     # PARI ellcurve object used to compute a_p values
 
-    def __init__(self, E, N=None):
+    def __init__(self, E, N=None, ncpus=1):
         r"""
         Initializes self.
 
@@ -875,6 +922,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         - ``N`` -- (default: None) If not None, a positive integer equal to
           the conductor of E. This is passable so that rank estimation
           can be done for curves whose (large) conductor has been precomputed.
+
+        - ``ncpus`` -- (default: 1) The number of CPUs to use for computations.
+          If set to None, the max available amount will be used.
 
         EXAMPLES::
 
@@ -903,6 +953,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # These constants feature in most (all?) sums over the L-function's zeros
         self._C1 = log(RDF(self._N))/2 - log(self._pi*2)
         self._C0 = self._C1 - self._euler_gamma
+
+        # Number of CPUs to use for computations
+        if ncpus is None:
+            self._ncpus = num_cpus()
+            NCPUS = self._ncpus
+        else:
+            self._ncpus = ncpus
+            NCPUS = self._ncpus
 
     def __repr__(self):
         r"""
@@ -1003,9 +1061,11 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             logp = log(RDF(p))
             if p.divides(self._N):
                 return - ap**e*logp/n_float
-            c = CDF(ap,(4*p-ap**2).sqrt())/2
-            aq = (2*(c**e).real()).round()
-            return -aq*logp/n_float
+            a,b = ap,2
+            # Coefficients for higher powers obey recursion relation
+            for n in range(2,e+1):
+                a,b = ap*a-p*b, a
+            return -a*logp/n_float
 
     cdef double _sincsquared_summand_1(self,
                                        unsigned long n,
@@ -1281,15 +1341,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         return small_primes, modulus, residue_chunks
 
-#    @parallel(ncpus=2)
-#    def _sum_over_residues_2(self,
-#                             modulus,
-#                             residues,
-#                             double log_sum_bound,
-#                             double sum_bound,
-#                             double power_sum_bound):
-    @parallel(ncpus=2)
-    def _sum_over_residues_2(self, residue_sum_data):
+    @parallel(ncpus=NCPUS)
+    def _sum_over_residues(self, residue_sum_data):
         r"""
         Return the p-power sum over residues in a residue chunk
 
@@ -1298,9 +1351,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         cdef double y = 0
         cdef unsigned long n = residues[0]
-        #cdef double t = log_sum_bound
-        #cdef double expt = sum_bound
-        #cdef double bound1 = power_sum_bound
         cdef double t = residue_sum_data[2]
         cdef double expt = residue_sum_data[3]
         cdef double bound1 = residue_sum_data[4]
@@ -1461,8 +1511,10 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         # Good prime case. Bad primes are treated as good primes, but their
         # contribution here is cancelled out above; this way we don't
         # have to check if each prime divides the level or not.
-        if ncpus is None:
-            ncpus = num_cpus()
+        if ncpus is not None:
+            self._ncpus = ncpus
+        else:
+            ncpus = self._ncpus
         small_primes, modulus, residue_chunks = self._get_residue_data(ncpus)
 
         # We must deal with small primes separately
@@ -1473,49 +1525,13 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                                                  thetap, sqrtp, logq,
                                                  thetaq, sqrtq, z)
 
-        @parallel(ncpus=ncpus)
-        def _sum_over_residues(residue_data):
-            r"""
-            Return the p-power sum over residues in a residue chunk
-
-            """
-            cdef double y = 0
-            cdef unsigned long n
-
-            modulus, residues = residue_data[0], residue_data[1:]
-
-            len_increment_list = len(residues)
-            increments = [residues[i+1]-residues[i] for i in range(len_increment_list-1)]
-            increments.append(modulus+residues[0]-residues[-1])
-
-            n = residues[0]
-            i = 0
-            while n<bound1:
-                if n_is_prime(n):
-                        y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-                                                         logq,thetaq,sqrtq,z)
-                n += increments[i]
-                i += 1
-                if i >= len_increment_list:
-                    i = 0
-
-            while n<expt:
-                if n_is_prime(n):
-                        y += self._sincsquared_summand_2(n,t,ap,p,logp)
-                n += increments[i]
-                i += 1
-                if i >= len_increment_list:
-                    i = 0
-
-            return y
-
         # Now the rest of the sum via _sum_over_residues(), which is parallelized
         residue_sum_data = []
         for residues in residue_chunks:
             residue_sum_data.append([modulus, residues, t, expt, bound1])
         # residue_data = [[modulus]+residue_chunks[i] for i in range(len(residue_chunks))]
         #for summand in _sum_over_residues(residue_data):
-        for summand in self._sum_over_residues_2(residue_sum_data):
+        for summand in self._sum_over_residues(residue_sum_data):
             y += summand[1]
 
         return RDF(2*(u+w+y)/(t**2))
@@ -1691,8 +1707,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             2
             sage: E.analytic_rank_upper_bound(max_Delta=2,adaptive=False)
             2
-            sage: E.analytic_rank_upper_bound(max_Delta=2.815,adaptive=False) # long time
-            0
 
         This method is can be called on curves with large conductor.
 

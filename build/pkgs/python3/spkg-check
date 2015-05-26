@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
-###########################################
-## Python
-###########################################
 
-echo "Testing the Python package"
 cd src
-make test
+$MAKE test
 
 if [ $? -ne 0 ]; then
     echo "An error occurred while testing Python"

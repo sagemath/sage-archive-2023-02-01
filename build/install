@@ -317,7 +317,7 @@ filtered_packages_list() {
         fi
 
         # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ] && [ "$PKG_TYPE" != "python2standard" ] && [ "$PKG_TYPE" != "python3standard" ]; then
+        if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ]; then
             echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
             return 1
         fi
@@ -330,16 +330,6 @@ filtered_packages_list() {
             echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
         fi
     done
-    if [ "$1" = all ]; then
-        PKG_VAR=PYTHON
-        if [ "$SAGE_PYTHON3" = yes ]; then
-            PKG_NAME=python3
-        else
-            PKG_NAME=python2
-        fi
-        PKG_VERSION=$(newest_version $PKG_NAME)
-        echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
-    fi
 }
 
 echo >&5 "# All Sage packages"
@@ -354,7 +344,16 @@ cat >&5 <<EOF
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
+# Aliases for optional packages selected at build time
 EOF
+
+
+# Python version
+if [ "$SAGE_PYTHON3" = yes ]; then
+    echo >&5 'PYTHON = $(PYTHON3)'
+else
+    echo >&5 'PYTHON = $(PYTHON2)'
+fi
 
 # Sage MP library
 echo >&5 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
@@ -378,15 +377,6 @@ echo >&5 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
 done
-if [ "$SAGE_PYTHON3" = yes ]; then
-    filtered_packages_list python3standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
-        echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
-    done
-else
-    filtered_packages_list python2standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
-        echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
-    done
-fi
 echo >&5
 echo >&5
 

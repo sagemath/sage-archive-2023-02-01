@@ -301,7 +301,7 @@ class GenericTerm(MonoidElement):
             The absorption of `L` terms is implemented at a later
             point.
         """
-        from sage.structure.sage_object import have_same_parent
+        from sage.structure.element import have_same_parent
         if not self.can_absorb(other):
             raise ArithmeticError("%s cannot absorb %s" % (self, other))
 
@@ -418,7 +418,7 @@ class GenericTerm(MonoidElement):
             sage: t1 <= ET1(x^2, 3)
             False
         """
-        from sage.structure.sage_object import have_same_parent
+        from sage.structure.element import have_same_parent
 
         if have_same_parent(self, other):
             return self._le_(other)

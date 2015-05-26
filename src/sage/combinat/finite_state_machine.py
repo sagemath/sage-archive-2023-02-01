@@ -1252,6 +1252,7 @@ class FSMState(SageObject):
 
     EXAMPLES::
 
+        sage: from sage.combinat.finite_state_machine import FSMState
         sage: S = FSMState('state', initial_probability=1/3)
         sage: S.initial_probability
         1/3
@@ -3860,7 +3861,7 @@ class FiniteStateMachine(SageObject):
         :attr:`on_duplicate_transition` must be
         :func:`duplicate_transition_add_input`, the sum of the input weights
         of the transitions leaving a state must add up to 1 and the sum of
-        initial probabilities must add up to 1 (or all are ``None``).
+        initial probabilities must add up to 1 (or all be ``None``).
 
         EXAMPLES::
 
@@ -3888,7 +3889,7 @@ class FiniteStateMachine(SageObject):
             False
 
         The initial probabilities of all states must be ``None`` or they must
-        sum up to 1. The initial probabilities of all states have to be set::
+        sum up to 1. The initial probabilities of all states have to be set in the latter case::
 
             sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
             ....:                 [1, 0, 1, 0]],
@@ -3944,17 +3945,17 @@ class FiniteStateMachine(SageObject):
         if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
-        if any(s.initial_probability is not None for s in self.states()) and \
-               any(s.initial_probability is None for s in self.states()):
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               any(s.initial_probability is None for s in self.iter_states()):
             return False
 
-        if any(s.initial_probability is not None for s in self.states()) and \
-               not is_zero_function(sum(list(s.initial_probability for s
-                                     in self.states())) - 1):
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               not is_zero_function(sum(s.initial_probability for s
+                                        in self.iter_states()) - 1):
             return False
 
         return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)
-                   for state in self.states())
+                   for state in self.iter_states())
 
 
     #*************************************************************************

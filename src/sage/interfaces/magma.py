@@ -336,8 +336,16 @@ class Magma(Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for R interpeter.
+        Sets the seed for the Magma interpeter.
         The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: m = Magma()
+            sage: m.set_seed(1)
+            1
+            sage: [m.Random(100) for i in range(5)]
+            [95, 20, 61, 59, 24]
         """
         if seed is None:
             seed = self.rand_seed()

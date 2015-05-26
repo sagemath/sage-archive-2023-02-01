@@ -10,8 +10,6 @@ Implemented functions:
 
     :meth:`automorphism_group` | Returns the automorphism group of the given (di)graph
     :meth:`canonical_form` | Computes a canonical certificate for the given (di) graph.
-    :meth:`is_isomorphic` | Tests whether the passed (di) graphs are isomorphic.
-
 
 AUTHORS:
 

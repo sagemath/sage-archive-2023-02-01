@@ -1426,13 +1426,12 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError
 
-        Asking for ``list(MyIntegers)`` below will never finish without
-        pressing Ctrl-C.  We let it run for 1 second and then interrupt::
+        Asking for ``list(MyIntegers)`` will also raise an exception::
 
-            sage: alarm(1.0); list(MyIntegers)
+            sage: list(MyIntegers)
             Traceback (most recent call last):
             ...
-            AlarmInterrupt
+            NotImplementedError
 
         """
         try:

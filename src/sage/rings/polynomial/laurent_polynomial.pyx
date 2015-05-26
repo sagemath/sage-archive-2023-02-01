@@ -1463,6 +1463,36 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         self._prod = PolyDict(self._dict(), force_etuples = False)
 
+    def is_unit(self):
+        """
+        Return ``True`` if ``self`` is a unit.
+
+        The ground ring is assumed to be an integral domain.
+
+        This means that the Laurent polynomial is a monomial
+        with unit coefficient.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ)
+            sage: (x*y/2).is_unit()
+            True
+            sage: (x + y).is_unit()
+            False
+            sage: (L.zero()).is_unit()
+            False
+            sage: (L.one()).is_unit()
+            True
+
+            sage: L.<x,y> = LaurentPolynomialRing(ZZ)
+            sage: (2*x*y).is_unit()
+            False
+        """
+        coeffs = self.coefficients()
+        if len(coeffs) != 1:
+            return False
+        return coeffs[0].is_unit()
+        
     def _repr_(self):
         """
         EXAMPLES::
@@ -1920,6 +1950,38 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         else:
             ans._poly -= right._poly
         return ans
+
+    cpdef RingElement _div_(self, RingElement rhs):
+        """
+        Return the division of ``self`` by ``rhs``.
+
+        If the denominator is not a unit,
+        the result will be given in the fraction field.
+
+        EXAMPLES::
+
+            sage: R.<s,q,t> = LaurentPolynomialRing(QQ)
+            sage: 1/s
+            s^-1
+            sage: 1/(s*q)
+            s^-1*q^-1
+            sage: 1/(s+q)
+            1/(s + q)
+            sage: (1/(s+q)).parent()
+            Fraction Field of Multivariate Polynomial Ring in s, q, t over Rational Field
+            sage: (1/(s*q)).parent()
+            Multivariate Laurent Polynomial Ring in s, q, t over Rational Field
+            sage: (s+q)/(q^2*t^(-2))
+            s*q^-2*t^2 + q^-1*t^2
+        """
+        cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair> rhs
+        if right.is_zero():
+            raise ZeroDivisionError
+        cdef dict d = right.dict()
+        if len(d) == 1:
+            return self * ~right
+        else:
+            return RingElement._div_(self, rhs)
 
     def is_monomial(self):
         """

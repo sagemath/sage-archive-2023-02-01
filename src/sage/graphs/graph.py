@@ -1547,6 +1547,13 @@ class Graph(GenericGraph):
         Only valid for simple (no loops, multiple edges) graphs on 0 to
         262143 vertices.
 
+        .. NOTE::
+
+            As the graph6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
+
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
@@ -1562,10 +1569,17 @@ class Graph(GenericGraph):
             return generic_graph_pyx.small_integer_to_graph6(n) + generic_graph_pyx.binary_string_to_graph6(self._bit_vector())
 
     def sparse6_string(self):
-        """
+        r"""
         Returns the sparse6 representation of the graph as an ASCII string.
         Only valid for undirected graphs on 0 to 262143 vertices, but loops
         and multiple edges are permitted.
+
+        .. NOTE::
+
+            As the sparse6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
 
         EXAMPLES::
 
@@ -1584,6 +1598,14 @@ class Graph(GenericGraph):
             sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
             sage: Graph(':?',data_structure="sparse") == G
             True
+
+        TEST:
+
+        Check that :trac:`18445` is fixed::
+
+            sage: Graph(graphs.KneserGraph(5,2).sparse6_string()).size()
+            15
+
         """
         n = self.order()
         if n == 0:
@@ -1591,14 +1613,9 @@ class Graph(GenericGraph):
         if n > 262143:
             raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
         else:
-            vertices = self.vertices()
-            n = len(vertices)
-            edges = self.edges(labels=False)
-            for i in xrange(len(edges)): # replace edge labels with natural numbers (by index in vertices)
-                edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
-            # order edges 'reverse lexicographically', that is, for
-            # edge (a,b) and edge (c,d) first compare b and d, then a and c;
-            edges.sort(key=lambda e: (e[1],e[0]))
+            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            edges = [sorted((v_to_int[u],v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
+            edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
             # encode bit vector
             from math import ceil
@@ -6312,7 +6329,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices=None, method="FF"):
+    def _gomory_hu_tree(self, vertices, method="FF"):
         r"""
         Returns a Gomory-Hu tree associated to self.
 
@@ -6345,101 +6362,65 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree()
+            sage: t = g._gomory_hu_tree(frozenset(g.vertices()))
         """
         self._scream_if_not_simple()
-        from sage.sets.set import Set
-
-        # The default capacity of an arc is 1
-        from sage.rings.real_mpfr import RR
-        capacity = lambda label: label if label in RR else 1
-
-        # Keeping the graph's embedding
-        pos = False
 
         # Small case, not really a problem ;-)
-        if self.order() == 1:
-            return self.copy()
-
-        # This is a sign that this is the first call
-        # to this recursive function
-        if vertices is None:
-            # Now is the time to care about positions
-            pos = self.get_pos()
-
-            # if the graph is not connected, returns the union
-            # of the Gomory-Hu tree of each component
-            if not self.is_connected():
-                g = Graph()
-                for cc in self.connected_components_subgraphs():
-                    g = g.union(cc._gomory_hu_tree(method=method))
-                g.set_pos(self.get_pos())
-                return g
-            # All the vertices is this graph are the "real ones"
-            vertices = Set(self.vertices())
-
-        # There may be many vertices, though only one which is "real"
         if len(vertices) == 1:
             g = Graph()
-            g.add_vertex(vertices[0])
+            g.add_vertices(vertices)
             return g
 
-        # Take any two vertices
-        u,v = vertices[0:2]
+        # Take any two vertices (u,v)
+        it = vertices.__iter__()
+        u,v = it.next(),it.next()
 
-        # Recovers the following values
-        # flow is the connectivity between u and v
-        # edges of a min cut
-        # sets1, sets2 are the two sides of the edge cut
-        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
+        # Compute a uv min-edge-cut.
+        #
+        # The graph is split into U,V with u \in U and v\in V.
+        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
-        g1,g2 = self.subgraph(set1), self.subgraph(set2)
+        gU,gV = self.subgraph(U), self.subgraph(V)
 
-        # Adding the fake vertex to each part
-        g1_v = Set(set2)
-        g2_v = Set(set1)
-        g1.add_vertex(g1_v)
-        g1.add_vertex(g2_v)
+        # A fake vertex fU (resp. fV) to represent U (resp. V)
+        fU = frozenset(U)
+        fV = frozenset(V)
 
-        # Each part of the graph had many edges going to the other part
-        # Now that we have a new fake vertex in each part
-        # we just say that the edges which were in the cut and going
-        # to the other side are now going to this fake vertex
+        # Each edge (uu,vv) with uu \in U and vv\in V yields:
+        # - an edge (uu,fV) in gU
+        # - an edge (vv,fU) in gV
+        #
+        # If the same edge is added several times their capacities add up.
 
-        # We must preserve the labels. They sum.
+        from sage.rings.real_mpfr import RR
+        for uu,vv,capacity in edges:
+            capacity = capacity if capacity in RR else 1
 
-        for e in edges:
-            x,y = e[0],e[1]
-            # Assumes x is in g1
-            if x in g2:
-                x,y = y,x
-            # If the edge x-g1_v exists, adds to its label the capacity of arc xy
-            if g1.has_edge(x, g1_v):
-                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + capacity(self.edge_label(x, y)))
-            else:
-                # Otherwise, creates it with the good label
-                g1.add_edge(x, g1_v, capacity(self.edge_label(x, y)))
-            # Same thing for g2
-            if g2.has_edge(y, g2_v):
-                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + capacity(self.edge_label(x, y)))
-            else:
-                g2.add_edge(y, g2_v, capacity(self.edge_label(x, y)))
+            # Assume uu is in gU
+            if uu in V:
+                uu,vv = vv,uu
 
-        # Recursion for the two new graphs... The new "real" vertices are the intersection with
-        # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())), method=method)
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())), method=method)
+            # Create the new edges if necessary
+            if not gU.has_edge(uu, fV):
+                gU.add_edge(uu, fV, 0)
+            if not gV.has_edge(vv, fU):
+                gV.add_edge(vv, fU, 0)
 
-        # Union of the two partial trees ( it is disjoint, but
-        # disjoint_union does not preserve the name of the vertices )
-        g = g1_tree.union(g2_tree)
+            # update the capacities
+            gU.set_edge_label(uu, fV, gU.edge_label(uu, fV) + capacity)
+            gV.set_edge_label(vv, fU, gV.edge_label(vv, fU) + capacity)
+
+        # Recursion on each side
+        gU_tree = gU._gomory_hu_tree(vertices & frozenset(gU), method=method)
+        gV_tree = gV._gomory_hu_tree(vertices & frozenset(gV), method=method)
+
+        # Union of the two partial trees
+        g = gU_tree.union(gV_tree)
 
         # An edge to connect them, with the appropriate label
-        g.add_edge(next(g1_tree.vertex_iterator()), next(g2_tree.vertex_iterator()), flow)
-
-        if pos:
-            g.set_pos(pos)
+        g.add_edge(u, v, flow)
 
         return g
 
@@ -6448,14 +6429,16 @@ class Graph(GenericGraph):
         Returns a Gomory-Hu tree of self.
 
         Given a tree `T` with labeled edges representing capacities, it is very
-        easy to determine the maximal flow between any pair of vertices :
+        easy to determine the maximum flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
         Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
-        with the same set of vertices, and such that the maximal flow
+        with the same set of vertices, and such that the maximum flow
         between any two vertices is the same in `G` as in `T`. See the
         `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
         Note that, in general, a graph admits more than one Gomory-Hu tree.
+
+        See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
 
         INPUT:
 
@@ -6511,8 +6494,29 @@ class Graph(GenericGraph):
 
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
+
+        TESTS:
+
+        :trac:`16475`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
+            ....:     G.set_edge_label(u, v, 2)
+            sage: T = G.gomory_hu_tree()
+            sage: from itertools import combinations
+            sage: for u,v in combinations(G,2):
+            ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
         """
-        return self._gomory_hu_tree(method=method)
+        if not self.is_connected():
+            g = Graph()
+            for cc in self.connected_components_subgraphs():
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()),method=method))
+        else:
+            g = self._gomory_hu_tree(frozenset(self.vertices()),method=method)
+
+        if self.get_pos() is not None:
+            g.set_pos(dict(self.get_pos()))
+        return g
 
     def two_factor_petersen(self):
         r"""

@@ -880,7 +880,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 if not m in elms:
                     elms.append(m)
                     n=True
-        return self.subposet(elms)
+        return LatticePoset(self.subposet(elms))
 
 ############################################################################
 

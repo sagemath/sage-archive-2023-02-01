@@ -5190,11 +5190,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_slender(self):
         r"""
-        Return whether the poset ``self`` is slender or not.
+        Return ``True`` if the poset is slender, and ``False`` otherwise.
 
-        It is assumed for this method that ``self`` is a finite graded poset.
-        A finite poset `P` is called slender if every rank 2 interval contains
-        three or four elements. See [Stan2009]_.
+        A finite graded poset is called slender if every rank 2
+        interval contains three or four elements, as defined in
+        [Stan2009]_). Here we extend definition to all posets: If the
+        Hasse diagram of the poset does not contain subgraph
+        isomorphic to 5-element lattice `M_3`, this function returns
+        ``True``, regardless of the poset being graded or not.
 
         EXAMPLES::
 

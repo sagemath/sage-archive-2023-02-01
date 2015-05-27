@@ -69,7 +69,7 @@ cdef class Matroid(SageObject):
     cpdef is_basis(self, X)
     cpdef is_circuit(self, X)
     cpdef is_closed(self, X)
-    cpdef is_subset_k_closed(self, X, k)
+    cpdef is_subset_k_closed(self, X, int k)
 
     cpdef coloops(self)
     cpdef is_coindependent(self, X)
@@ -140,7 +140,7 @@ cdef class Matroid(SageObject):
     cpdef is_3connected(self, separation=*)
 
     # matroid k-closed
-    cpdef is_k_closed(self, k)
+    cpdef is_k_closed(self, int k)
 
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)

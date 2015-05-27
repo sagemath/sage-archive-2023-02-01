@@ -312,8 +312,6 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
-from sage.combinat.subset import Subsets
-from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -1495,6 +1493,8 @@ cdef class Matroid(SageObject):
             sage: sorted(M.k_closure({0,1}, 4))
             [0, 1, 4]
         """
+        if not self.groundset().issuperset(X):
+            raise ValueError("input X is not a subset of the groundset.")
         cdef int cur
         cdef frozenset S, cl
         cur = 0
@@ -1502,8 +1502,8 @@ cdef class Matroid(SageObject):
         while cur != len(S):
             cur = len(S)
             cl = frozenset([])
-            for T in Subsets(S, min(k,cur)):
-                cl = cl.union(self.closure(T))
+            for T in combinations(S, min(k,cur)):
+                cl = cl.union(self._closure(set(T)))
             S = cl
         return S
 
@@ -1946,7 +1946,7 @@ cdef class Matroid(SageObject):
             raise ValueError("input X is not a subset of the groundset.")
         return self._is_closed(frozenset(X))
 
-    cpdef is_subset_k_closed(self, X, k):
+    cpdef is_subset_k_closed(self, X, int k):
         r"""
         Test if ``X`` is a ``k``-closed set of the matroid.
 
@@ -1998,7 +1998,7 @@ cdef class Matroid(SageObject):
             return self.is_closed(X)
 
         cdef frozenset cl
-        for T in Subsets(X, k):
+        for T in combinations(X, k):
             cl = self.closure(T)
             if not cl.issubset(T):
                 return False
@@ -4736,7 +4736,7 @@ cdef class Matroid(SageObject):
 
     # matroid k-closed
 
-    cpdef is_k_closed(self, k):
+    cpdef is_k_closed(self, int k):
         r"""
         Return if ``self`` is a ``k``-closed matroid.
 
@@ -4761,9 +4761,12 @@ cdef class Matroid(SageObject):
             sage: M.is_k_closed(4)
             True
         """
-        for S in subsets(self.groundset()):
-            if self.is_subset_k_closed(S, k) and not self.is_closed(S):
-                return False
+        G = self.groundset()
+        cdef int m
+        for m in range(len(G)+1):
+            for S in combinations(G, m):
+                if self.is_subset_k_closed(S, k) and not self._is_closed(frozenset(S)):
+                    return False
         return True
 
     # optimization

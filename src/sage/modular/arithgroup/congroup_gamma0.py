@@ -556,5 +556,101 @@ class Gamma0_class(GammaH_class):
         """
         return prod([p**e + p**(e-1) for (p,e) in self.level().factor()])
 
+    def dimension_new_cusp_forms(self, k=2, p=0):
+        r"""
+        Return the dimension of the space of new (or `p`-new)
+        weight `k` cusp forms for this congruence subgroup.
 
+        INPUT:
 
+        -  ``k`` - an integer (default: 2), the weight. Not fully implemented for k = 1.
+        -  ``p`` - integer (default: 0); if nonzero, compute the `p`-new subspace.
+
+        OUTPUT: Integer
+
+        EXAMPLES::
+            sage: Gamma0(11000).dimension_new_cusp_forms()
+            240
+            sage: Gamma0(11000).dimension_new_cusp_forms(k=1)
+            0
+            sage: Gamma0(22).dimension_new_cusp_forms(k=4)
+            3
+            sage: Gamma0(389).dimension_new_cusp_forms(k=2,p=17)
+            32
+        """
+        N = self.level()
+        k = ZZ(k)
+        if p==0 or N % p != 0:
+            if k < 2 or k % 2 == 1:
+                return 0
+
+            from sage.rings.arith import moebius
+            from sage.functions.other import floor
+            from sage.rings.integer import Integer
+
+            factors = list(N.factor())
+
+            def s0(p, a):
+                if a == 1:
+                    return 1 - 1/p
+                elif a == 2:
+                    return 1 - 1/p - 1/p**2
+                else:
+                    return (1 - 1/p) * (1 - 1/p**2)
+
+            def vinf(p, a):
+                if a % 2 == 1:
+                    return 0
+                elif a == 2:
+                    return  p - 2
+                else:
+                    return p**(a/2 - 2) * (p - 1)**2
+
+            def v2(p, a):
+                if p % 4 == 1:
+                    if a == 2:
+                        return -1
+                    else:
+                        return 0
+                elif p % 4 == 3:
+                    if a == 1:
+                        return -2
+                    elif a == 2:
+                        return 1
+                    else:
+                        return 0
+                elif a in (1, 2):
+                    return -1
+                elif a == 3:
+                    return 1
+                else:
+                    return 0
+
+            def v3(p, a):
+                if p % 3 == 1:
+                    if a == 2:
+                        return -1
+                    else:
+                        return 0
+                elif p % 3 == 2:
+                    if a == 1:
+                        return -2
+                    elif a == 2:
+                        return 1
+                    else:
+                        return 0
+                elif a in (1, 2):
+                    return -1
+                elif a == 3:
+                    return 1
+                else:
+                    return 0
+
+            return (k-1)/12 * N * prod([s0(p, a) for p, a in factors]) \
+                - prod([vinf(p, a) for p, a in factors]) / Integer(2) \
+                + ((1-k)/4 + floor(k/4)) * prod([v2(p, a) for p, a in factors]) \
+                + ((1-k)/3 + floor(k/3)) * prod([v3(p, a) for p, a in factors]) \
+                + (1 if k/2 == 1 else 0) * moebius(N)
+        else:
+            return self.dimension_cusp_forms(k) - \
+                   2*self.restrict(N//p).dimension_new_cusp_forms(k)

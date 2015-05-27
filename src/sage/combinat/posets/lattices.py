@@ -344,7 +344,7 @@ class FiniteJoinSemilattice(FinitePoset):
         for i in L:
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
-        
+
 
 ####################################################################################
 
@@ -471,7 +471,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
         """
         if self.cardinality() == 0: return True
-        return (self.is_graded() and 
+        return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
 
@@ -859,6 +859,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.sublattice([14, 13, 22]).list()
             [1, 2, 8, 7, 14, 17, 13, 22, 10, 33]
 
+            sage: L = Posets.BooleanLattice(3)
+            sage: L.sublattice([3,5,6,7])
+            Finite lattice containing 8 elements
+
         .. NOTE::
 
             This is very unoptimal algorithm. Better one is described on
@@ -867,19 +871,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         from sage.combinat.subset import Subsets
         from copy import copy
-        elms=copy(elms)
-        foundmore=True
+        elms = copy(elms)
+        foundmore = True
         while foundmore:
-            foundmore=False
+            foundmore = False
             for a,b in Subsets(elms, 2):
-                j=self.join(a, b)
-                m=self.meet(a, b)
+                j = self.join(a, b)
+                m = self.meet(a, b)
                 if not j in elms:
                     elms.append(j)
-                    foundmore=True
+                    foundmore = True
                 if not m in elms:
                     elms.append(m)
-                    n=True
+                    foundmore = True
         return LatticePoset(self.subposet(elms))
 
 ############################################################################

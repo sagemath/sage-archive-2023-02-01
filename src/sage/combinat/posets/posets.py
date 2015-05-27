@@ -5194,10 +5194,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         A finite graded poset is called slender if every rank 2
         interval contains three or four elements, as defined in
-        [Stan2009]_). Here we extend definition to all posets: If the
-        Hasse diagram of the poset does not contain subgraph
-        isomorphic to 5-element lattice `M_3`, this function returns
-        ``True``, regardless of the poset being graded or not.
+        [Stan2009]_.
+
+        This function *does not* check if the poset is graded or not.
+        Instead it just returns ``True`` if the poset does not contain
+        5 elements `x`, `y`, `a`, `b` and `c` such that
+        `x \lessdot a,b,c \lessdot y` where `\lessdot` is covering relation.
 
         EXAMPLES::
 

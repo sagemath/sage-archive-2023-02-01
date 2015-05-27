@@ -3958,7 +3958,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: Q.list() # random
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3971,7 +3971,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: Q.list() # random
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3980,31 +3980,30 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(digraphs.Path(10), linear_extension = True)
             sage: Q = P.canonical_label()
-            sage: Q.linear_extension()
+            sage: Q.linear_extension() # random
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: Q.cover_relations()
+            sage: Q.cover_relations() # random
             [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
             sage: P = Poset(digraphs.Path(10))
             sage: Q = P.canonical_label()
-            sage: Q.linear_extension()
+            sage: Q.linear_extension() # random
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: Q.is_isomorphic(P)
             True
+
+        :trac:`18516` is fixed::
+
+            sage: p=posets.BooleanLattice(3); p
+            Finite lattice containing 8 elements
+            sage: p=p.relabel(lambda x:"abcdefghi"[x]); p
+            Finite lattice containing 8 elements
+            sage: sorted(p)
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+
         """
-        from sage.combinat.posets.lattices import LatticePoset, \
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
-             FiniteMeetSemilattice, FiniteJoinSemilattice
-        if isinstance(self, FiniteLatticePoset):
-            constructor = FiniteLatticePoset
-        elif isinstance(self, FiniteMeetSemilattice):
-            constructor = FiniteMeetSemilattice
-        elif isinstance(self, FiniteJoinSemilattice):
-            constructor = FiniteJoinSemilattice
-        else:
-            constructor = FinitePoset
-        P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._with_linear_extension,
-                  category=self.category(), facade=self._is_facade)
-        return constructor(P.relabel(range(len(self._elements))))
+        canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
+        canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
+        return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):
         """

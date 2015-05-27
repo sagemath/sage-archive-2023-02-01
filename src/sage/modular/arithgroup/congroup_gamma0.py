@@ -561,6 +561,9 @@ class Gamma0_class(GammaH_class):
         Return the dimension of the space of new (or `p`-new)
         weight `k` cusp forms for this congruence subgroup.
 
+        ALGORITHM:
+            http://www.math.ubc.ca/~gerg/papers/downloads/DSCFN.pdf
+
         INPUT:
 
         -  ``k`` - an integer (default: 2), the weight. Not fully implemented for k = 1.
@@ -580,39 +583,38 @@ class Gamma0_class(GammaH_class):
         """
         N = self.level()
         k = ZZ(k)
-        if p==0 or N % p != 0:
+        if p == 0 or N % p != 0:
             if k < 2 or k % 2 == 1:
                 return 0
 
             from sage.rings.arith import moebius
             from sage.functions.other import floor
-            from sage.rings.integer import Integer
 
             factors = list(N.factor())
 
-            def s0(p, a):
+            def s0(q, a):
                 if a == 1:
-                    return 1 - 1/p
+                    return 1 - 1/q
                 elif a == 2:
-                    return 1 - 1/p - 1/p**2
+                    return 1 - 1/q - 1/q**2
                 else:
-                    return (1 - 1/p) * (1 - 1/p**2)
+                    return (1 - 1/q) * (1 - 1/q**2)
 
-            def vinf(p, a):
+            def vinf(q, a):
                 if a % 2 == 1:
                     return 0
                 elif a == 2:
-                    return  p - 2
+                    return q - 2
                 else:
-                    return p**(a/2 - 2) * (p - 1)**2
+                    return q**(a/2 - 2) * (q - 1)**2
 
-            def v2(p, a):
-                if p % 4 == 1:
+            def v2(q, a):
+                if q % 4 == 1:
                     if a == 2:
                         return -1
                     else:
                         return 0
-                elif p % 4 == 3:
+                elif q % 4 == 3:
                     if a == 1:
                         return -2
                     elif a == 2:
@@ -626,13 +628,13 @@ class Gamma0_class(GammaH_class):
                 else:
                     return 0
 
-            def v3(p, a):
-                if p % 3 == 1:
+            def v3(q, a):
+                if q % 3 == 1:
                     if a == 2:
                         return -1
                     else:
                         return 0
-                elif p % 3 == 2:
+                elif q % 3 == 2:
                     if a == 1:
                         return -2
                     elif a == 2:
@@ -646,10 +648,10 @@ class Gamma0_class(GammaH_class):
                 else:
                     return 0
 
-            return (k-1)/12 * N * prod([s0(p, a) for p, a in factors]) \
-                - prod([vinf(p, a) for p, a in factors]) / Integer(2) \
-                + ((1-k)/4 + floor(k/4)) * prod([v2(p, a) for p, a in factors]) \
-                + ((1-k)/3 + floor(k/3)) * prod([v3(p, a) for p, a in factors]) \
+            return (k-1)/12 * N * prod([s0(q, a) for q, a in factors]) \
+                - prod([vinf(q, a) for q, a in factors]) / ZZ(2) \
+                + ((1-k)/4 + floor(k/4)) * prod([v2(q, a) for q, a in factors]) \
+                + ((1-k)/3 + floor(k/3)) * prod([v3(q, a) for q, a in factors]) \
                 + (1 if k/2 == 1 else 0) * moebius(N)
         else:
             return self.dimension_cusp_forms(k) - \

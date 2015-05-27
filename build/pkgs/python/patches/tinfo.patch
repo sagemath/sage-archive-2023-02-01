@@ -81,7 +81,7 @@ diff -druN src.orig/Lib/distutils/unixccompiler.py src/Lib/distutils/unixccompil
 diff -druN src.orig/setup.py src/setup.py
 --- src/setup.py.orig	2014-06-04 10:49:00.403972978 +0100
 +++ src/setup.py	2014-06-04 10:52:42.131927994 +0100
-@@ -701,8 +701,12 @@
+@@ -703,8 +703,12 @@
          do_readline = self.compiler.find_library_file(lib_dirs, 'readline')
          readline_termcap_library = ""
          curses_library = ""
@@ -95,7 +95,7 @@ diff -druN src.orig/setup.py src/setup.py
              fp = os.popen("ldd %s" % do_readline)
              ldd_output = fp.readlines()
              ret = fp.close()
-@@ -751,7 +755,10 @@
+@@ -755,7 +759,10 @@
  
              readline_libs = ['readline']
              if readline_termcap_library:
@@ -107,7 +107,7 @@ diff -druN src.orig/setup.py src/setup.py
              elif curses_library:
                  readline_libs.append(curses_library)
              elif self.compiler.find_library_file(lib_dirs +
-@@ -1340,6 +1347,8 @@
+@@ -1344,6 +1351,8 @@
                  # _curses_panel.so must link with panelw.
                  panel_library = 'panelw'
              curses_libs = [curses_library]

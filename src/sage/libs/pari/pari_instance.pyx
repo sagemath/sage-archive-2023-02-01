@@ -164,6 +164,8 @@ Sage (:trac:`9636`)::
 
 include 'pari_err.pxi'
 include 'sage/ext/interrupt.pxi'
+cdef extern from *:
+    int sig_on_count "_signals.sig_on_count"
 
 import sys
 
@@ -614,7 +616,7 @@ cdef class PariInstance(PariInstance_auto):
 
         """
         global avma
-        if _signals.sig_on_count <= 1:
+        if sig_on_count <= 1:
             avma = pari_mainstack.top
         pari_catch_sig_off()
 

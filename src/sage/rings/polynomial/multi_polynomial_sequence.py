@@ -311,11 +311,14 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     try:
         e = next(iter(gens))
-
-        try:
-            parts = tuple(map(ring, gens)),
-        except TypeError:
+        # fast path for known collection types
+        if isinstance(e, (tuple, list, Sequence_generic, PolynomialSequence_generic)):
             parts = tuple(tuple(ring(f) for f in part) for part in gens)
+        else:
+            try:
+                parts = tuple(map(ring, gens)),
+            except TypeError:
+                parts = tuple(tuple(ring(f) for f in part) for part in gens)
     except StopIteration:
         parts = ((),)
 

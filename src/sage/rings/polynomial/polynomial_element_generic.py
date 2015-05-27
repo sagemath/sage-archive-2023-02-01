@@ -727,37 +727,6 @@ class Polynomial_generic_field(Polynomial_singular_repr,
         return (Q, R)
 
     @coerce_binop
-    def gcd(self, other):
-        """
-        Return the greatest common divisor of this polynomial and ``other``, as
-        a monic polynomial.
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        EXAMPLES::
-
-            sage: R.<x> = QQbar[]
-            sage: (2*x).gcd(2*x^2)
-            x
-
-            sage: zero = R.zero()
-            sage: zero.gcd(2*x)
-            x
-            sage: (2*x).gcd(zero)
-            x
-            sage: zero.gcd(zero)
-            0
-        """
-        from sage.categories.euclidean_domains import EuclideanDomains
-        g = EuclideanDomains().ElementMethods().gcd(self, other)
-        c = g.leading_coefficient()
-        if c.is_unit():
-            return (1/c)*g
-        return g
-
-    @coerce_binop
     def xgcd(self, other):
         r"""
         Extended gcd of ``self`` and polynomial ``other``.

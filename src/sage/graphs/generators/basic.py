@@ -493,7 +493,23 @@ def CompleteBipartiteGraph(n1, n2):
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
+
+    TESTS:
+
+    Trac ticket #18530::
+
+        sage: graphs.CompleteBipartiteGraph(-1,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input parameters must be positive integers.
+        sage: graphs.CompleteBipartiteGraph(1,-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input parameters must be positive integers.
     """
+    if n1<0 or n2<0:
+        raise ValueError('The input parameters must be positive integers.')
+
     pos_dict = {}
     c1 = 1 # scaling factor for top row
     c2 = 1 # scaling factor for bottom row
@@ -517,9 +533,11 @@ def CompleteBipartiteGraph(n1, n2):
         x = c2*(i-n1) + c4
         y = 0
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_bipartite_graph(n1,n2)
-    return Graph(G, pos=pos_dict, name="Complete bipartite graph")
+
+    if n1==0 or n2==0:
+        return Graph(dict( (i,[]) for i in range(n1+n2) ), pos=pos_dict, name="Complete bipartite graph")
+    V2 = range(n1,n1+n2)
+    return Graph(dict( (i,V2) for i in range(n1) ), pos=pos_dict, name="Complete bipartite graph")
 
 def CompleteMultipartiteGraph(l):
     r"""

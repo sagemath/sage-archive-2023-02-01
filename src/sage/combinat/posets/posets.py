@@ -3959,7 +3959,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: sorted(Q.list())
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3972,7 +3972,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: sorted(Q.list())
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True

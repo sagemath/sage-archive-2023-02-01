@@ -1130,7 +1130,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         INPUT:
 
-        - ``names` -- string, name of the variable.
+        - ``names`` -- string, name of the variable.
 
         OUTPUT:
 

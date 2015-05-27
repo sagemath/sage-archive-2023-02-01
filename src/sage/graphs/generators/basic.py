@@ -391,14 +391,15 @@ def CompleteGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
+    if n<1:
+        return graph.Graph(name="Complete graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Complete graph")
+    return graph.Graph( dict( (i,range(i+1,n)) for i in range(n-1) ),
+                        pos=pos_dict, name="Complete graph")
 
 def CompleteBipartiteGraph(n1, n2):
     """

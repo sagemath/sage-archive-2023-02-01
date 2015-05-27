@@ -14,7 +14,7 @@ sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules, aliases
+from module_list import ext_modules, library_order, aliases
 from sage.env import *
 
 #########################################################
@@ -159,11 +159,8 @@ for m in ext_modules:
         if lib in m.libraries:
             m.depends += lib_headers[lib]
 
-    # Add csage as first library for all Cython extensions.
-    # The order is important, in particular for Cygwin.
+    # Add csage for all Cython extensions
     m.libraries = ['csage'] + m.libraries
-    if m.language == 'c++':
-        m.libraries.append('stdc++')
 
     m.extra_compile_args = m.extra_compile_args + extra_compile_args
     m.extra_link_args = m.extra_link_args + extra_link_args
@@ -423,6 +420,15 @@ class sage_build_ext(build_ext):
         else:
             log.info("building '%s' extension", ext.name)
             need_to_compile = True
+
+        # If we need to compile, adjust the given extension
+        if need_to_compile:
+            libs = ext.libraries
+            if ext.language == 'c++' and 'stdc++' not in libs:
+                libs = libs + ['stdc++']
+
+            # Sort libraries according to library_order
+            ext.libraries = sorted(libs, key=lambda x: library_order.get(x, 0))
 
         return need_to_compile, (sources, ext, ext_filename)
 

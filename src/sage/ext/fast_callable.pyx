@@ -300,7 +300,6 @@ from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
 from sage.structure.element cimport Element
 from sage.rings.all import RDF, CDF
-from sage.libs.mpfr cimport mpfr_t, mpfr_ptr, mpfr_init2, mpfr_set, GMP_RNDN
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import parent

@@ -1,4 +1,3 @@
-# distutils: libraries = gmp
 # distutils: extra_compile_args = -std=c99
 
 from sage.ext.mod_int cimport *

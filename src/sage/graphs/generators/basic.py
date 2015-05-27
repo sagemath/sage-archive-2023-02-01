@@ -229,10 +229,9 @@ def ClawGraph():
         sage: G
         Claw graph: Graph on 4 vertices
     """
+    edge_list = [(0, 1), (0, 2), (0, 3)]
     pos_dict = {0:(0,1),1:(-1,0),2:(0,0),3:(1,0)}
-    import networkx
-    G = networkx.complete_bipartite_graph(1,3)
-    return graph.Graph(G, pos=pos_dict, name="Claw graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Claw graph")
 
 def CycleGraph(n):
     r"""

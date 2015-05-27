@@ -36,35 +36,36 @@ class InfinityPathModel(TensorProductOfCrystals):
 
     Consider a Kac--Moody algebra `\mathfrak{g}` of Cartan type `X` with
     index set `I`, and we want to model the `U_q(\mathfrak{g})`-crystal
-    `B(\infty)`. We consider a finite sequence `J = (J_1, J_2, \ldots, J_m)`
+    `B(\infty)`. We consider a finite sequence `J = (j_1, j_2, \ldots, j_m)`
     whose support equals `I`.  We extend this to an infinite sequence
     by taking `\bar{J} = J \cdot J \cdot J \cdots`, where `\cdot` denotes
     concatenation of sequences. Let
 
     .. MATH::
 
-        B_J = \bigotimes_{k=1}^m B_{J_k},
+        B_J = B_{j_m} \otimes \cdots \otimes B_{j_2} \otimes B_{j_1},
 
     where `B_i` is an
     :class:`~sage.combinat.crystals.elementary_crystals.ElementaryCrystal`.
 
-    Next we consider the crystal isomorphism `\Phi_i : B(\infty) \to B_i
-    \otimes B(\infty)` defined by `u_{\infty} \mapsto b_i(0) \otimes
+    Next we consider the strict crystal embedding `\Phi_i \colon B(\infty) \to
+    B_i \otimes B(\infty)` defined by `u_{\infty} \mapsto b_i(0) \otimes
     u_{\infty}`, where `b_i(0) \in B_i` and `u_{\infty}` is the (unique)
-    highest weight element in `B(\infty)`. Iterating this by taking
-    `\Phi_J = \Phi_{J_n} \circ \Phi_{J_{n-1}} \circ \cdots \circ \Phi_{J_1}`,
-    we obtain the following isomorphism:
+    highest weight element in `B(\infty)`. This is sometimes known as the
+    *Kashiwara embedding* [NZ97]_. By iterating this embedding by taking
+    `\Phi_J = \Phi_{j_n} \circ \Phi_{j_{n-1}} \circ \cdots \circ \Phi_{j_1}`,
+    we obtain the following strict crystal embedding:
 
     .. MATH::
 
-        \Phi_J^n : B(\infty) \to B_J^{\otimes n} \otimes B(\infty).
+        \Phi_J^n \colon B(\infty) \to B_J^{\otimes n} \otimes B(\infty).
 
     We note there is a natural analog of Lemma 10.6.2 in [HK02]_ that
-    for any `b \in B(\infty)`, there exists a finite `N` such that
+    for any `b \in B(\infty)`, there exists a positive integer `N` such that
 
     .. MATH::
 
-        \Phi^n(b) = \left( \bigotimes_{k=1}^n b^{(k)} \right)
+        \Phi^N_J(b) = \left( \bigotimes_{k=1}^N b^{(k)} \right)
         \otimes u_{\infty}.
 
     Therefore we can model elements `b \in B(\infty)` by considering
@@ -74,41 +75,41 @@ class InfinityPathModel(TensorProductOfCrystals):
     .. MATH::
 
         \begin{aligned}
-        \mathrm{wt}(b) & = \sum_{k=1}^n \mathrm{wt}(b^{(k)})
-        \\ e_i(b) & = e_i\left( \left( \bigotimes_{k=1}^n b^{(k)} \right)
+        \mathrm{wt}(b) & = \sum_{k=1}^N \mathrm{wt}(b^{(k)})
+        \\ e_i(b) & = e_i\left( \left( \bigotimes_{k=1}^N b^{(k)} \right)
         \right) \otimes u_{\infty},
-        \\ f_i(b) & = f_i\left( \left( \bigotimes_{k=1}^n b^{(k)} \right)
+        \\ f_i(b) & = f_i\left( \left( \bigotimes_{k=1}^N b^{(k)} \right)
         \right) \otimes u_{\infty},
-        \\ \varepsilon_i(b) & = \max_k \{ e_i^k(b) \neq 0 \},
+        \\ \varepsilon_i(b) & = \max_{ e_i^k(b) \neq 0 } k,
         \\ \varphi_i(b) & = \varepsilon_i(b) - \langle \mathrm{wt}(b),
         h_i^{\vee} \rangle.
         \end{aligned}
 
     To translate this into a finite list, we consider a finite sequence
-    `b_1 \otimes \cdots \otimes b_n` and if
+    `b_1 \otimes \cdots \otimes b_N` and if
 
     .. MATH::
 
-        f_i\left( b^{(1)} \otimes \cdots b^{(n-1)} \otimes b^{(n)} \right)
-        = b^{(1)} \otimes \cdots \otimes b^{(n-1)} \otimes
-        f_i\left( b^{(n)} \right),
+        f_i\left( b^{(1)} \otimes \cdots b^{(N-1)} \otimes b^{(N)} \right)
+        = b^{(1)} \otimes \cdots \otimes b^{(N-1)} \otimes
+        f_i\left( b^{(N)} \right),
 
     then we take the image as `b^{(1)} \otimes \cdots \otimes f_i\left(
-    b^{(n)} \right) \otimes b^{(n+1)}`. Similarly we remove `b^{(n)}` if
-    we have `b^{(n)} = \bigotimes_{k=1}^m b_{J_k}(0)`. Additionally if
+    b^{(N)} \right) \otimes b^{(N+1)}`. Similarly we remove `b^{(N)}` if
+    we have `b^{(N)} = \bigotimes_{k=1}^m b_{j_k}(0)`. Additionally if
 
     .. MATH::
 
-        e_i\left( b^{(1)} \otimes \cdots \otimes b^{(n-1)} \otimes
-        b^{(n)} \right) = b^{(1)} \otimes \cdots \otimes b^{(n-1)}
-        \otimes e_i\left( b^{(n)} \right),
+        e_i\left( b^{(1)} \otimes \cdots \otimes b^{(N-1)} \otimes
+        b^{(N)} \right) = b^{(1)} \otimes \cdots \otimes b^{(N-1)}
+        \otimes e_i\left( b^{(N)} \right),
 
     then we consider this to be `0`.
 
     REFERENCES:
 
-    .. [K03] *The crystal base and Littelmann's refined Demazure
-       character formula*. M. Kashiwara. Duke Math. J. 71. 1993.
+    .. [K93] M. Kashiwara. *The crystal base and Littelmann's refined Demazure
+       character formula*. Duke Math. J. **71**. 1993.
 
     INPUT:
 
@@ -175,7 +176,7 @@ class InfinityPathModel(TensorProductOfCrystals):
         Parent.__init__(self, category=cat)
         self._cartan_type = cartan_type
         self._seq = seq
-        # This is the additional factors we add as necessary
+        # These are the additional factors we add as necessary
         self._factors = tuple([ElementaryCrystal(cartan_type, i) for i in seq])
         # public for TensorProductOfCrystals
         self.crystals = self._factors
@@ -196,7 +197,7 @@ class InfinityPathModel(TensorProductOfCrystals):
     def finite_tensor_product(self, k):
         """
         Return the finite tensor product of crystals of length ``k``
-        from truncating ``self``.
+        by truncating ``self``.
 
         EXAMPLES::
 
@@ -338,9 +339,9 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             INPUT:
 
-            - ``k`` -- (optional) the length to truncate to; if not specified,
-              then returns one more than the current non-ground-state elements
-              (i.e. the current list in ``self``)
+            - ``k`` -- (optional) the length of the truncation; if not
+              specified, then returns one more than the current non-ground-state
+              elements (i.e. the current list in ``self``)
 
             EXAMPLES::
 

@@ -497,7 +497,7 @@ def CompleteBipartiteGraph(n1, n2):
 
     TESTS:
 
-    Trac ticket #18530::
+    Prevent negative dimensions (:trac:`18530`)::
 
         sage: graphs.CompleteBipartiteGraph(-1,1)
         Traceback (most recent call last):

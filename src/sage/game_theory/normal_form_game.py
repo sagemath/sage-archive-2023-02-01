@@ -536,11 +536,17 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
 from sage.misc.package import is_package_installed
 from sage.misc.temporary_file import tmp_filename
+from sage.numerical.mip import MixedIntegerLinearProgram
+import numpy as np
+from decimal import Decimal
 
 try:
     from gambit import Game
+    from gambit.nash import ExternalLPSolver, ExternalLCPSolver
 except ImportError:
     Game = None
+    ExternalLPSolver = None
+    ExternalLCPSolver = None
 
 class NormalFormGame(SageObject, MutableMapping):
     r"""
@@ -870,6 +876,25 @@ class NormalFormGame(SageObject, MutableMapping):
         for strategy_profile in self.utilities:
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
+
+    def _as_gambit_game(self, as_integer=False):
+        strategy_sizes = [p.num_strategies for p in self.players]
+        g = Game.new_table(strategy_sizes)
+        for strategy_profile in self.utilities:
+            if as_integer:
+                g[strategy_profile][0] = int(self.utilities[strategy_profile][0])
+                g[strategy_profile][1] = int(self.utilities[strategy_profile][1])
+            else:
+                g[strategy_profile][0] = Decimal(float(self.utilities[strategy_profile][0]))
+                g[strategy_profile][1] = Decimal(float(self.utilities[strategy_profile][1]))
+        return g
+
+    def is_constant_sum(self):
+        if len(self.players) > 2:
+            return False
+        m1, m2 = self.payoff_matrices()
+        c = m1 + m2
+        return c.numpy().max() == c.numpy().min()
 
     def payoff_matrices(self):
         r"""
@@ -1246,6 +1271,9 @@ class NormalFormGame(SageObject, MutableMapping):
                                      Please scale your payoff matrices.""")
             return self._solve_LCP(maximization)
 
+        if algorithm.startswith('lp-'):
+            return self._solve_LP(solver=algorithm[3:])
+
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
 
@@ -1322,20 +1350,43 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_LCP(maximization=True) # optional - gambit
             [[(0.0, 1.0), (0.0, 1.0)]]
         """
-        from gambit.nash import ExternalLCPSolver
-        strategy_sizes = [p.num_strategies for p in self.players]
-        g = Game.new_table(strategy_sizes)
-        scalar = 1
-        if maximization is False:
-            scalar *= -1
-        for strategy_profile in self.utilities:
-            g[strategy_profile][0] = int(scalar *
-                                            self.utilities[strategy_profile][0])
-            g[strategy_profile][1] = int(scalar *
-                                            self.utilities[strategy_profile][1])
+        g = self._as_gambit_game()
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
+
+    def _solve_gambit_LP(self, maximization=True):
+        g = self._as_gambit_game()
+        output = ExternalLPSolver().solve(g)
+        nasheq = Parser(output).format_gambit(g)
+        return sorted(nasheq)
+
+    def _solve_LP(self, solver='glpk'):
+        if not self.is_constant_sum():
+            raise ValueError("Input game needs to be a two player constant sum game")
+        if solver == 'gambit':
+            return self._solve_gambit_LP()
+
+        strategy_sizes = [p.num_strategies for p in self.players]
+
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
+        y = p.new_variable(nonnegative=True)
+        v = p.new_variable(nonnegative=False)
+        p.add_constraint(self.payoff_matrices()[0] * y - v[0] <= 0)
+        p.add_constraint(matrix([[1] * strategy_sizes[0]]) * y == 1)
+        p.set_objective(v[0])
+        p.solve()
+        y = tuple(p.get_values(y).values())
+
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
+        x = p.new_variable(nonnegative=True)
+        u = p.new_variable(nonnegative=False)
+        p.add_constraint(-self.payoff_matrices()[0].T * x - u[0] <= 0)
+        p.add_constraint(matrix([[1] * strategy_sizes[1]]) * x == 1)
+        p.set_objective(u[0])
+        p.solve()
+        x = tuple(p.get_values(x).values())
+        return [[x, y]]
 
     def _solve_enumeration(self, maximization=True):
         r"""

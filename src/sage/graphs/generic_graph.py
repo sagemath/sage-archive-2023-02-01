@@ -344,6 +344,31 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._latex_opts = None
 
+    def __setstate__(self,state):
+        r"""
+        Set the state from a pickle dict
+
+        Also converts old NetworkX backends into a more recent one.
+
+        EXAMPLE::
+
+            sage: sage.structure.sage_object.unpickle_all() # indirect random
+        """
+        for k,v in state.iteritems():
+            self.__dict__[k] = v
+        from sage.graphs.base.graph_backends import NetworkXGraphBackend
+        if isinstance(self._backend, NetworkXGraphBackend):
+            from sage.misc.superseded import deprecation
+            deprecation(1000,"You unpickled an object which relies on an old "
+                        "data structure. Save it again to update it, for it "
+                        "may break in the future.")
+            g = self._backend._nxg
+            if g.is_directed():
+                from sage.graphs.digraph import DiGraph as constructor
+            else:
+                from sage.graphs.graph   import Graph   as constructor
+            self._backend = constructor(g)._backend
+
     def __add__(self, other_graph):
         """
         Returns the disjoint union of self and other.
@@ -784,9 +809,6 @@ class GenericGraph(GenericGraph_pyx):
          - ``weighted`` boolean (default: ``None``) -- weightedness for
            the copy. Might change the equality class if not ``None``.
 
-         - ``implementation`` - string (default: 'c_graph') the implementation
-           goes here.  Current options are only 'networkx' or 'c_graph'.
-
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
            ``data_structure="dense"``. Only used when
@@ -962,8 +984,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.copy(immutable=False, sparse=True)._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
             sage: G.copy(immutable=False, sparse=False)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
-            sage: Graph(implementation="networkx").copy(implementation='c_graph')._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
 
         Fake immutable graphs::
@@ -1166,22 +1186,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: N = G.networkx_graph()
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
-
-        ::
-
-            sage: G = graphs.TetrahedralGraph()
-            sage: G = Graph(G, implementation='networkx')
-            sage: N = G.networkx_graph()
-            sage: G._backend._nxg is N
-            False
-
-        ::
-
-            sage: G = Graph(graphs.TetrahedralGraph(), implementation='networkx')
-            sage: N = G.networkx_graph(copy=False)
-            sage: G._backend._nxg is N
-            True
         """
+
         try:
             if copy:
                 return self._backend._nxg.copy()
@@ -9512,26 +9518,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.size()
             167
 
-        Note that NetworkX accidentally deletes these edges, even though the
-        labels do not match up::
-
-            sage: N = graphs.CompleteGraph(19).copy(implementation='networkx')
-            sage: N.size()
-            171
-            sage: N.delete_edge( 1, 2 )
-            sage: N.delete_edge( (3, 4) )
-            sage: N.delete_edges( [ (5, 6), (7, 8) ] )
-            sage: N.size()
-            167
-            sage: N.delete_edge( 9, 10, 'label' )
-            sage: N.delete_edge( (11, 12, 'label') )
-            sage: N.delete_edges( [ (13, 14, 'label') ] )
-            sage: N.size()
-            167
-            sage: N.has_edge( (11, 12) )
-            True
-
-        However, CGraph backends handle things properly::
+        ::
 
             sage: G.delete_edge( 9, 10, 'label' )
             sage: G.delete_edge( (11, 12, 'label') )
@@ -9547,20 +9534,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.delete_edge( 1, 2 )
             sage: C.delete_edge( (3, 4) )
             sage: C.delete_edges( [ (5, 6), (7, 8) ] )
-
-            sage: D = graphs.CompleteGraph(19).to_directed(sparse=True, implementation='networkx')
-            sage: D.size()
-            342
-            sage: D.delete_edge( 1, 2 )
-            sage: D.delete_edge( (3, 4) )
-            sage: D.delete_edges( [ (5, 6), (7, 8) ] )
-            sage: D.delete_edge( 9, 10, 'label' )
-            sage: D.delete_edge( (11, 12, 'label') )
-            sage: D.delete_edges( [ (13, 14, 'label') ] )
-            sage: D.size()
-            338
-            sage: D.has_edge( (11, 12) )
-            True
 
         ::
 
@@ -10250,16 +10223,6 @@ class GenericGraph(GenericGraph_pyx):
             ''
             sage: H.get_vertex(0)
             sage: H = G.copy(implementation='c_graph', sparse=False)
-            sage: H.clear()
-            sage: H.order(); H.size()
-            0
-            0
-            sage: len(H._pos)
-            0
-            sage: H.name()
-            ''
-            sage: H.get_vertex(0)
-            sage: H = G.copy(implementation='networkx')
             sage: H.clear()
             sage: H.order(); H.size()
             0

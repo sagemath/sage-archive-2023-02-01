@@ -685,10 +685,6 @@ class Graph(GenericGraph):
     -  ``boundary`` - a list of boundary vertices, if
        empty, graph is considered as a 'graph without boundary'
 
-    -  ``implementation`` - what to use as a backend for
-       the graph. Currently, the options are either 'networkx' or
-       'c_graph'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
@@ -707,15 +703,11 @@ class Graph(GenericGraph):
          than the sparse backend and smaller in memory, and it is immutable, so
          that the resulting graphs can be used as dictionary keys).
 
-       *Only available when* ``implementation == 'c_graph'``
-
     - ``immutable`` (boolean) -- whether to create a immutable graph. Note that
       ``immutable=True`` is actually a shortcut for
-      ``data_structure='static_sparse'``. Set to ``False`` by default, only
-      available when ``implementation='c_graph'``
+      ``data_structure='static_sparse'``. Set to ``False`` by default.
 
-    -  ``vertex_labels`` - only for implementation == 'c_graph'.
-       Whether to allow any object as a vertex (slower), or
+    - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
        only the integers 0, ..., n-1, where n is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
@@ -951,35 +943,23 @@ class Graph(GenericGraph):
            sage: DiGraph(g)
            Digraph on 5 vertices
 
-    Note that in all cases, we copy the NetworkX structure.
-
-       ::
-
-          sage: import networkx
-          sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
-          sage: G = Graph(g, implementation='networkx')
-          sage: H = Graph(g, implementation='networkx')
-          sage: G._backend._nxg is H._backend._nxg
-          False
-
-    All these graphs are mutable and can thus not be used as a dictionary
+    By default, graphs are mutable and can thus not be used as a dictionary
     key::
 
-          sage: {G:1}[H]
+          sage: G = graphs.PetersenGraph()
+          sage: {G:1}[G]
           Traceback (most recent call last):
           ...
           TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
 
     When providing the optional arguments ``data_structure="static_sparse"``
     or ``immutable=True`` (both mean the same), then an immutable graph
-    results. Note that this does not use the NetworkX data structure::
+    results.
 
-          sage: G_imm = Graph(g, immutable=True)
-          sage: H_imm = Graph(g, data_structure='static_sparse')
-          sage: G_imm == H_imm == G == H
+          sage: G_imm = Graph(G, immutable=True)
+          sage: H_imm = Graph(G, data_structure='static_sparse')
+          sage: G_imm == H_imm == G
           True
-          sage: hasattr(G_imm._backend, "_nxg")
-          False
           sage: {G_imm:1}[H_imm]
           1
 
@@ -1090,32 +1070,29 @@ class Graph(GenericGraph):
 
         # Choice of the backend
 
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend()
-        elif implementation == 'c_graph':
-            if multiedges or weighted:
-                if data_structure == "dense":
-                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
-            if immutable:
-                data_structure = 'static_sparse'
+        if implementation != 'c_graph':
+            deprecation(18375,"The 'implementation' keyword is deprecated, "
+                        "and the graphs has been stored as a 'c_graph'")
 
-            # If the data structure is static_sparse, we first build a graph
-            # using the sparse data structure, then reencode the resulting graph
-            # as a static sparse graph.
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if data_structure in ["sparse", "static_sparse"]:
-                CGB = SparseGraphBackend
-            elif data_structure == "dense":
-                 CGB = DenseGraphBackend
-            else:
-                raise ValueError("data_structure must be equal to 'sparse', "
-                                 "'static_sparse' or 'dense'")
-            self._backend = CGB(0, directed=False)
+        if multiedges or weighted:
+            if data_structure == "dense":
+                raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+        if immutable:
+            data_structure = 'static_sparse'
+
+        # If the data structure is static_sparse, we first build a graph
+        # using the sparse data structure, then reencode the resulting graph
+        # as a static sparse graph.
+        from sage.graphs.base.sparse_graph import SparseGraphBackend
+        from sage.graphs.base.dense_graph import DenseGraphBackend
+        if data_structure in ["sparse", "static_sparse"]:
+            CGB = SparseGraphBackend
+        elif data_structure == "dense":
+             CGB = DenseGraphBackend
         else:
-            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+            raise ValueError("data_structure must be equal to 'sparse', "
+                             "'static_sparse' or 'dense'")
+        self._backend = CGB(0, directed=False)
 
         if format is None and isinstance(data, str):
             if data.startswith(">>graph6<<"):
@@ -4687,10 +4664,6 @@ class Graph(GenericGraph):
 
         INPUT:
 
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
-
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
            :class:`DiGraph`.
@@ -5834,7 +5807,7 @@ class Graph(GenericGraph):
            - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
 
            - ``networkx`` - This function is based on NetworkX's implementation
-                of the Bron and Kerbosch Algorithm [BroKer1973]_.
+             of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
         -  ``vertices`` - the vertices to inspect (default is entire graph).
            Ignored unless ``algorithm=='networkx'``.

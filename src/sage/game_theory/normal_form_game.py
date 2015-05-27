@@ -876,21 +876,44 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: g = NormalFormGame([A])
             sage: gg = g._as_gambit_game(g)
-
+            sage: gg
             NFG 1 R "" { "1" "2" }
-
+            <BLANKLINE>
             { { "1" "2" }
             { "1" "2" }
             }
             ""
-
+            <BLANKLINE>
             {
             { "" 2, -2 }
             { "" 1, -1 }
             { "" 1, -1 }
-            { "" 2.5, -2.5 }
+            { "" 2, -2 }
             }
-            1 2 3 4 
+            1 2 3 4
+            <BLANKLINE>
+
+
+            sage: A = matrix([[2, 1], [1, 2.5]])
+            sage: B = matrix([[3, 2], [5.1, 4]])
+            sage: g = NormalFormGame([A, B])
+            sage: gg = g._as_gambit_game(g)
+            sage: gg
+            NFG 1 R "" { "1" "2" }
+            <BLANKLINE>
+            { { "1" "2" }
+            { "1" "2" }
+            }
+            ""
+            <BLANKLINE>
+            {
+            { "" 2, 3 }
+            { "" 1, 5 }
+            { "" 1, 2 }
+            { "" 2, 4 }
+            }
+            1 2 3 4
+            <BLANKLINE>
 
         """
         strategy_sizes = [p.num_strategies for p in self.players]
@@ -909,7 +932,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Checks if the game is constant sum.
 
         EXAMPLES::
-            
+
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: g = NormalFormGame([A])
             sage: g.is_constant_sum()
@@ -921,6 +944,16 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A, A])
             sage: g.is_constant_sum()
             True
+            sage: A = matrix([[1, 1, 2], [1, 1, -1], [1, -1, 1]])
+            sage: B = matrix([[2, 2, 1], [2, 2, 4], [2, 4, 2]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.is_constant_sum()
+            True
+            sage: A = matrix([[1, 1, 2], [1, 1, -1], [1, -1, 1]])
+            sage: B = matrix([[2, 2, 1], [2, 2.1, 4], [2, 4, 2]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.is_constant_sum()
+            False
         """
         if len(self.players) > 2:
             return False
@@ -1242,18 +1275,18 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: A = matrix.identity(2)
             sage: cg = NormalFormGame([A])
-            sage: cg.obtain_nash(algorithm='lp-glpk') 
+            sage: cg.obtain_nash(algorithm='lp-glpk')
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: A = matrix([[2, 1], [1, 3]])
             sage: cg = NormalFormGame([A])
-            sage: cg.obtain_nash(algorithm='lp-glpk') 
-            [[(0.6666666666666666, 0.33333333333333337),
-              (0.6666666666666666, 0.33333333333333337)]]
-            sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
-            [[(0.6666666667, 0.3333333333), (0.6666666667, 0.3333333333)]]
-
+            sage: ne = cg.obtain_nash(algorithm='lp-glpk')
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
 
         Here is an example of a 3 by 2 game with 3 Nash equilibrium::
 
@@ -1442,7 +1475,7 @@ class NormalFormGame(SageObject, MutableMapping):
         INPUT:
 
         - ``solver`` - the solver to be used to solve the LP.
-        
+
           * ``'gambit'`` - This uses the solver included within the gambit library to
             create and solve the LP.
           * For further possible values see :class:`MixedIntegerLinearProgram`
@@ -1451,13 +1484,23 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: A = matrix.identity(2)
             sage: g = NormalFormGame([A])
-            sage: g._solve_LP() 
+            sage: g._solve_LP()
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: A = matrix([[2, 1], [1, 3]])
             sage: g = NormalFormGame([A])
-            sage: g._solve_LP() 
-            [[(0.6666666666666666, 0.33333333333333337),
-              (0.6666666666666666, 0.33333333333333337)]]
+            sage: ne = g._solve_LP()
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+
+        An exception is raised if the input game is not constant sum::
+
+            sage: A = matrix.identity(2)
+            sage: B = A.transpose()
+            sage: g = NormalFormGame([A, B])
+            sage: g._solve_LP()
+            Traceback (most recent call last):
+            ...
+            ValueError: Input game needs to be a two player constant sum game
         """
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")

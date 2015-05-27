@@ -882,9 +882,8 @@ def HouseXGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(-1,0),1:(1,0),2:(-1,1),3:(1,1),4:(0,2)}
-    import networkx
-    G = networkx.house_x_graph()
-    return graph.Graph(G, pos=pos_dict, name="House Graph")
+    edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
 def LadderGraph(n):
     """

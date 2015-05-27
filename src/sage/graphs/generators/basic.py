@@ -202,9 +202,10 @@ def CircularLadderGraph(n):
         x = float(2*(cos((pi/2) + ((2*pi)/n)*(i-n))))
         y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.circular_ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Circular Ladder graph")
+
+    two_n = 2*n
+    return graph.Graph(dict( (i, [(i+1)%two_n, (i+n)%two_n]) for i in range(two_n) ),
+                       pos=pos_dict, name="Circular Ladder graph")
 
 def ClawGraph():
     """

@@ -312,15 +312,6 @@ GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
-if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://www.sagemath.org/"
-    export SAGE_SERVER
-fi
-
-if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
-    export SAGE_UPSTREAM
-fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS

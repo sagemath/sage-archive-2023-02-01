@@ -3032,6 +3032,78 @@ cdef class Matroid(SageObject):
             return True
         return (self.full_rank() == other.full_rank() and self.nonbases()._isomorphism(other.nonbases()) is not None)
 
+    cpdef isomorphism(self, other):
+        r"""
+        Return a matroid isomorphism.
+
+        Two matroids `M` and `N` are *isomorphic* if there is a bijection `f`
+        from the groundset of `M` to the groundset of `N` such that a subset
+        `X` is independent in `M` if and only if `f(X)` is independent in `N`.
+        This method returns one isomorphism `f` from self to other, if such an isomorphism exists.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``.
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: G3 = graphs.CompleteGraph(4)
+            sage: M1.isomorphism(G3)
+            Traceback (most recent call last):
+            ...
+            TypeError: can only give isomorphism between matroids.
+
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if not isinstance(other, Matroid):
+            raise TypeError("can only give isomorphism between matroids.")
+        return self._isomorphism(other)
+
+    cpdef _isomorphism(self, other):
+        """
+        Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
+
+        Internal version that performs no checks on input.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if self.full_rank() == other.full_rank():
+            return self.nonbases()._isomorphism(other.nonbases())
+        else:
+            return None
+    
     cpdef equals(self, other):
         """
         Test for matroid equality.

@@ -2949,42 +2949,74 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def layout_acyclic(self, **options):
+    def layout_acyclic(self, rankdir="up", **options):
         """
-        Computes a ranked layout so that all edges point upward.
+        Return a ranked layout so that all edges point upward.
 
         To this end, the heights of the vertices are set according to the level
         set decomposition of the graph (see :meth:`.level_sets`).
 
-        This is achieved by calling ``graphviz`` and ``dot2tex`` if available
-        (see :meth:`.layout_graphviz`), and using a random horizontal
-        placement of the vertices otherwise (see :meth:`.layout_acyclic_dummy`).
+        This is achieved by calling ``graphviz`` and ``dot2tex`` if
+        available (see :meth:`.layout_graphviz`), and using a spring
+        layout with fixed vertical placement of the vertices otherwise
+        (see :meth:`.layout_acyclic_dummy` and
+        :meth:`~GenericGraph.ranked_layout`).
 
         Non acyclic graphs are partially supported by ``graphviz``, which then
         chooses some edges to point down.
+
+        INPUT:
+
+        - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
+          which direction the edges should point toward
+        - ``**options`` -- passed down to :meth:`layout_ranked` or
+          :meth:`layout_graphviz`
 
         EXAMPLES::
 
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
 
-        The actual layout computed will depend on whether dot2tex and
-        graphviz are installed, so we don't test it.
+        The actual layout computed depends on whether dot2tex and
+        graphviz are installed, so we don't test its relative values::
 
             sage: H.layout_acyclic()
             {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
 
+            sage: H = DiGraph({0:[1]})
+            sage: pos = H.layout_acyclic(rankdir='up')
+            sage: pos[1][1] > pos[0][1] + .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='down')
+            sage: pos[1][1] < pos[0][1] - .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='right')
+            sage: pos[1][0] > pos[0][0] + .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='left')
+            sage: pos[1][0] < pos[0][0] - .5
+            True
         """
         if have_dot2tex():
-            return self.layout_graphviz(**options)
+            return self.layout_graphviz(rankdir=rankdir, **options)
         else:
-            return self.layout_acyclic_dummy(**options)
+            return self.layout_acyclic_dummy(rankdir=rankdir, **options)
 
-    def layout_acyclic_dummy(self, heights = None, **options):
+    def layout_acyclic_dummy(self, heights=None, rankdir='up', **options):
         """
-        Computes a (dummy) ranked layout of an acyclic graph so that
-        all edges point upward. To this end, the heights of the
-        vertices are set according to the level set decomposition of
-        the graph (see :meth:`.level_sets`).
+        Return a ranked layout so that all edges point upward.
+
+        To this end, the heights of the vertices are set according to
+        the level set decomposition of the graph (see
+        :meth:`.level_sets`). This is achieved by a spring layout with
+        fixed vertical placement of the vertices otherwise (see
+        :meth:`.layout_acyclic_dummy` and
+        :meth:`~GenericGraph.ranked_layout`).
+
+        INPUT:
+
+        - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
+          which direction the edges should point toward
+        - ``**options`` -- passed down to :meth:`layout_ranked`
 
         EXAMPLES::
 
@@ -2992,6 +3024,15 @@ class DiGraph(GenericGraph):
             sage: H.layout_acyclic_dummy()
             {0: [1.00..., 0], 1: [1.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3], 5: [2.01..., 0], 6: [2.00..., 1]}
 
+            sage: H = DiGraph({0:[1]})
+            sage: H.layout_acyclic_dummy(rankdir='up')
+            {0: [0.5..., 0], 1: [0.5..., 1]}
+            sage: H.layout_acyclic_dummy(rankdir='down')
+            {0: [0.5..., 1], 1: [0.5..., 0]}
+            sage: H.layout_acyclic_dummy(rankdir='left')
+            {0: [1, 0.5...], 1: [0, 0.5...]}
+            sage: H.layout_acyclic_dummy(rankdir='right')
+            {0: [0, 0.5...], 1: [1, 0.5...]}
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[1],5:[1,6],6:[2,3]})
             sage: H.layout_acyclic_dummy()
             Traceback (most recent call last):
@@ -3003,8 +3044,14 @@ class DiGraph(GenericGraph):
                 raise ValueError("`self` should be an acyclic graph")
             levels = self.level_sets()
             levels = [sorted(z) for z in levels]
+            if rankdir=='down' or rankdir=='left':
+                levels.reverse()
             heights = dict([[i, levels[i]] for i in range(len(levels))])
-        return self.layout_ranked(heights = heights, **options)
+        positions = self.layout_ranked(heights = heights, **options)
+        if rankdir == 'left' or rankdir == 'right':
+            for coordinates in positions.values():
+                coordinates.reverse()
+        return positions
 
     def level_sets(self):
         """

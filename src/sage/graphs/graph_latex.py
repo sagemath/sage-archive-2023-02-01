@@ -523,6 +523,7 @@ class GraphLatex(SageObject):
             'loop_placement': (3.0, 'NO'),
             'loop_placements': {},
             'color_by_label' : False,
+            'rankdir': 'down'
             }
 
     def __init__(self, graph, **options):

@@ -14,7 +14,7 @@ sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 ### the same directory as this file
 #########################################################
 
-from module_list import ext_modules
+from module_list import ext_modules, aliases
 from sage.env import *
 
 #########################################################
@@ -552,6 +552,7 @@ def run_cythonize():
         nthreads=int(os.environ.get('SAGE_NUM_THREADS', 0)),
         build_dir='build/cythonized',
         force=force,
+        aliases=aliases,
         compiler_directives={
             'embedsignature': True,
             'profile': profile,

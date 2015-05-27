@@ -2,9 +2,10 @@
 GenericGraph Cython functions
 
 AUTHORS:
-    -- Robert L. Miller   (2007-02-13): initial version
-    -- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
-    -- Nathann Cohen                  : exhaustive search
+
+- Robert L. Miller   (2007-02-13): initial version
+- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
+- Nathann Cohen                  : exhaustive search
 """
 
 #*****************************************************************************
@@ -38,12 +39,13 @@ def spring_layout_fast_split(G, **options):
     other without bound, resulting in very tight clumps for each
     component.
 
-    NOTE:
+    .. NOTE::
+
         If the axis are scaled to fit the plot in a square, the
         horizontal distance may end up being "squished" due to
         the several adjacent components.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
@@ -52,7 +54,8 @@ def spring_layout_fast_split(G, **options):
         {0: [0.452..., 0.247...], ..., 502: [25.7..., 0.505...]}
 
     AUTHOR:
-        Robert Bradshaw
+
+    Robert Bradshaw
     """
     Gs = G.connected_components_subgraphs()
     pos = {}
@@ -83,7 +86,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
 
     INPUT:
 
-     - ``by_component`` - a boolean
+    - ``by_component`` -- a boolean
 
     EXAMPLES::
 
@@ -99,11 +102,9 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
     and further from each other without bound, resulting in very tight
     clumps for each component.
 
-    NOTE:
-
-        If the axis are scaled to fit the plot in a square, the
-        horizontal distance may end up being "squished" due to
-        the several adjacent components.
+    If the axis are scaled to fit the plot in a square, the
+    horizontal distance may end up being "squished" due to
+    the several adjacent components. ::
 
         sage: G = graphs.DodecahedralGraph()
         sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
@@ -216,6 +217,7 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
     TODO: Are the hard-coded constants here optimal?
 
     INPUT:
+
         iterations -- number of steps to take
         dim        -- number of dimensions of freedom
         pos        -- already initialized initial positions
@@ -230,12 +232,13 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n, bint he
         height     -- if True, do not update the last coordinate ever
 
     OUTPUT:
-        Modifies contents of pos.
+
+    Modifies contents of pos.
 
     AUTHOR:
-        Robert Bradshaw
-    """
 
+    Robert Bradshaw
+    """
     cdef int cur_iter, cur_edge
     cdef int i, j, x
 
@@ -315,7 +318,8 @@ def int_to_binary_string(n):
 
     - ``n`` (integer)
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: sage.graphs.generic_graph_pyx.int_to_binary_string(389)
         '110000101'
         sage: Integer(389).binary()
@@ -342,12 +346,13 @@ def binary_string_to_graph6(x):
 
     - ``x`` -- a binary string.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_to_graph6
         sage: binary_string_to_graph6('110111010110110010111000001100000001000000001')
         'vUqwK@?G'
 
-    REFERENCES::
+    REFERENCES:
 
     .. [McK] McKay, Brendan. 'Description of graph6 and sparse6 encodings.'
        http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
@@ -463,7 +468,8 @@ def binary_string_from_dig6(s, n):
 
     - ``n`` -- the length of the binary string encoded by ``s``.
 
-    EXAMPLE:
+    EXAMPLE::
+
         sage: from sage.graphs.generic_graph_pyx import binary_string_from_dig6
         sage: binary_string_from_dig6('?????_@?CG??B??@OG?C?G???GO??W@a???CO???OACC?OA?P@G??O??????G??C????c?G?CC?_?@???C_??_?C????PO?C_??AA?OOAHCA___?CC?A?CAOGO??????A??G?GR?C?_o`???g???A_C?OG??O?G_IA????_QO@EG???O??C?_?C@?G???@?_??AC?AO?a???O?????A?_Dw?H???__O@AAOAACd?_C??G?G@??GO?_???O@?_O??W??@P???AG??B?????G??GG???A??@?aC_G@A??O??_?A?????O@Z?_@M????GQ@_G@?C?', 63)
         '0000000000000000000000000000001000000000010000000001000010000000000000000000110000000000000000010100000010000000000001000000000010000000000...10000000000000000000000000000000010000000001011011000000100000000001001110000000000000000000000000001000010010000001100000001000000001000000000100000000'
@@ -486,7 +492,7 @@ def binary_string_from_dig6(s, n):
 
 cdef class SubgraphSearch:
     r"""
-    This class implements methods to exhaustively search for labelled
+    This class implements methods to exhaustively search for
     copies of a graph `H` in a larger graph `G`.
 
     It is possible to look for induced subgraphs instead, and to
@@ -503,6 +509,11 @@ cdef class SubgraphSearch:
     This way, most of the time we need to test far less than `k!
     \binom{|V(G)|}{k}` subsets, and hope this brute-force technique
     can sometimes be useful.
+
+    .. NOTE::
+
+        This algorithm does not take vertex/edge labels into account.
+
     """
     def __init__(self, G, H, induced = False):
         r"""

@@ -1672,7 +1672,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         EXAMPLES::
 
-            sage: R.<x> = QQ[]
+            sage: x = polygen(QQ['u']['v'])
             sage: f = x - 1
             sage: f._pow(3)
             x^3 - 3*x^2 + 3*x - 1
@@ -1687,6 +1687,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS::
 
+            sage: x = polygen(QQ['u']['v'])
             sage: x^(1/2)
             Traceback (most recent call last):
             ...

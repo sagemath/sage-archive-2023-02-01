@@ -42,6 +42,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.misc.long cimport pyobject_to_long
 
 cdef class CGraph:
     """
@@ -1206,16 +1207,16 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict vertex_ints   = self.vertex_ints
         cdef dict vertex_labels = self.vertex_labels
         cdef CGraph G = self._cg
-        cdef int u_int
+        cdef long u_long
         if u in vertex_ints:
             return vertex_ints[u]
         try:
-            u_int = u
+            u_long = pyobject_to_long(u)
         except Exception:
             return -1
-        if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
+        if u_long < 0 or u_long >= G.active_vertices.size or u_long in vertex_labels:
             return -1
-        return u_int
+        return u_long
 
     cdef vertex_label(self, int u_int):
         """

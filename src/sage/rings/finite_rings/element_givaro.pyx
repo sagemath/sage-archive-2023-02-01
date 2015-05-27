@@ -1675,7 +1675,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             if self.is_zero():
                 raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = (self._cache).order_c() - 1
-            order = 1
+            order = Integer(1)
             for p, e in sage.rings.arith.factor(n):
                 # Determine the power of p that divides the order.
                 a = self**(n/(p**e))

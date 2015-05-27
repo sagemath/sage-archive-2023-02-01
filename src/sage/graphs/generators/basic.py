@@ -1164,7 +1164,5 @@ def StarGraph(n):
         x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
         y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.star_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Star graph")
+    return graph.Graph({0:range(1,n+1)}, pos=pos_dict, name="Star graph")
 

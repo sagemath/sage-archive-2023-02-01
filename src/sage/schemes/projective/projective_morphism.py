@@ -41,6 +41,7 @@ AUTHORS:
 
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom, End
+from sage.combinat.sf.sf           import SymmetricFunctions
 from sage.functions.all            import sqrt
 from sage.libs.pari.all            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
@@ -2556,11 +2557,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         Computes the formal ``n`` multiplier spectra of ``self``, which is the set of multipliers of the periodic
         points of formal period ``n`` of ``self``. User can also specify to compute the ``n`` multiplier spectra
         instead which includes the multipliers of all periodic points of period ``n`` of ``self``. ``self`` must
-        be defined over projective space of dimension 1 over a numberfield.
+        be defined over projective space of dimension 1 over a number field.
 
         INPUT:
 
-        - ``n`` - a positive integer period
+        - ``n`` - a positive integer, the period
 
         - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra of ``self``. False
             specifies to find the ``n`` multiplier spectra of ``self``. Default: True
@@ -2577,10 +2578,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             - 44439736715486*x^5*y^5 + 2317935971590902*x^4*y^6 - 15344764859590852*x^3*y^7 + 2561851642765275*x^2*y^8\
             + 113578270285012470*x*y^9 - 150049940203963800*y^10, 4608*y^10])
             sage: f.multiplier_spectra(1)
-            [-119820502365680843999, -7198147681176255644585/256, -3086380435599991/9,
-            -3323781962860268721722583135/35184372088832, -4290991994944936653/2097152,
-            0, 529278480109921/256, 1061953534167447403/19683, 848446157556848459363/19683,
-            82911372672808161930567/8192, 3553497751559301575157261317/8192]
+            [0, -7198147681176255644585/256, 848446157556848459363/19683, -3323781962860268721722583135/35184372088832,
+            529278480109921/256, -4290991994944936653/2097152, 1061953534167447403/19683, -3086380435599991/9,
+            82911372672808161930567/8192, -119820502365680843999, 3553497751559301575157261317/8192]
 
         ::
 
@@ -2591,11 +2591,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = End(P)
             sage: f = H([x^2 - 5/4*y^2,y^2])
             sage: f.multiplier_spectra(2,False)
-            [-1, 0, 2.101020514433644?, 11.89897948556636?]
+            [0, -1, 2.101020514433644?, 11.89897948556636?]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 -3/4*y^2,y^2])
+            sage: f.multiplier_spectra(2)
+            [0, 1, 1]
         """
         PS = self.domain().ambient_space()
 
-        if (n < 1):
+        if (Integer(n) < 1):
             raise ValueError("Period must be a positive integer")
         if (PS.dimension_relative() > 1):
             raise NonImplementedError("Only implemented for dimension 1")
@@ -2613,38 +2621,39 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         PS = f.domain().ambient_space()
 
         if not formal:
-            points = f.periodic_points(n,False)
+            K = f._number_field_from_algebraics()
+            G = f.nth_iterate_map(n)
+            F = G._polys[0]*PS.gens()[1] - G._polys[1]*PS.gens()[0]
         else:
             # periodic points of formal period n are the roots of the nth dynatomic polynomial
-            points = []
-            if (f(PS([1,0])) == PS([1,0])): # test if point at infinity is a fixed point
-                points.append(PS([1,0]))
-
             K = f._number_field_from_algebraics()
             F = K.dynatomic_polynomial(n)
-            other_roots = F([(K.domain().ambient_space().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
 
-            for R in other_roots:
-                points.append(PS([R[0],1]))
+        other_roots = F([(K.domain().ambient_space().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
 
-        # take one representative point per cycle
+        points = []
+
+        if (f(PS([1,0])) == PS([1,0])): # test if point at infinity is a fixed point
+            points.append(PS([1,0]))
+
+        for R in other_roots:
+            for i in range(0,R[1]):
+                points.append(PS([R[0],1])) # include copies of higher multiplicity roots
+
         newpoints = []
 
-        cyclepoints = []
-        for P in points:
-            if (P not in cyclepoints):
-                newpoints.append(P)
-                cyclepoints.append(P)
-                Q = P
-                for i in range(1,n):
-                    Z = f(Q)
-                    if (Z == P):
-                        break
-                    cyclepoints.append(Z)
-                    Q = Z
+        while(points != []):
+            P = points[0]
+            newpoints.append(P)
+            points.pop(0)
+            Q = P
+            for i in range(1,n):
+                if (f(Q) == P):
+                      break
+                points.remove(f(Q))
+                Q = f(Q)
 
-        multipliers = [f.multiplier(P,n)[0][0] for P in newpoints]
-        multipliers.sort()
+        multipliers = [f.multiplier(P,n)[0,0] for P in newpoints]
 
         return multipliers
 
@@ -2652,16 +2661,17 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         r"""
         Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra of
         ``self``. Can specify to instead compute the values corresponding to the elementary symmetric polynomials
-        of the ``n`` multiplier spectra of ``self``. `self`` must be defined over projective space of dimension 1 over
-        a numberfield.
+        of the ``n`` multiplier spectra of ``self``, which include the multipliers of all periodic points of
+        period ``n`` of ``self``. `self`` must be defined over projective space of dimension 1 over a number field.
 
         INPUT:
 
-        - ``n`` - a positive integer period.
+        - ``n`` - a positive integer, the period.
 
         - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
             corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find the values
-            corresponding to the ``n`` multiplier spectra of ``self``. Default: True
+            corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers of all periodic points
+            of period ``n`` of ``self``. Default: True
 
         OUTPUT:
 
@@ -2694,11 +2704,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         multipliers = self.multiplier_spectra(n, formal)
 
-        from sage.combinat.sf.sf import SymmetricFunctions
         e = SymmetricFunctions(QQbar).e()
 
-        for i in range(0,len(multipliers)):
-            polys.append(e([i+1]).expand(len(multipliers))(multipliers))
+        N = len(multipliers)
+        for i in range(0,N):
+            polys.append(e([i+1]).expand(N)(multipliers))
         return polys
 
 

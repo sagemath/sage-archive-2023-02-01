@@ -875,8 +875,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: from gambit import Game
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: g = NormalFormGame([A])
-            sage: gg = g._as_gambit_game(g)
-            sage: gg
+            sage: gg = g._as_gambit_game() # optional - gambit
+            sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
             { { "1" "2" }
@@ -888,17 +888,17 @@ class NormalFormGame(SageObject, MutableMapping):
             { "" 2, -2 }
             { "" 1, -1 }
             { "" 1, -1 }
-            { "" 2, -2 }
+            { "" 2.5, -2.5 }
             }
             1 2 3 4
             <BLANKLINE>
 
 
             sage: A = matrix([[2, 1], [1, 2.5]])
-            sage: B = matrix([[3, 2], [5.1, 4]])
+            sage: B = matrix([[3, 2], [5.5, 4]])
             sage: g = NormalFormGame([A, B])
-            sage: gg = g._as_gambit_game(g)
-            sage: gg
+            sage: gg = g._as_gambit_game() # optional - gambit
+            sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
             { { "1" "2" }
@@ -908,9 +908,9 @@ class NormalFormGame(SageObject, MutableMapping):
             <BLANKLINE>
             {
             { "" 2, 3 }
-            { "" 1, 5 }
+            { "" 1, 5.5 }
             { "" 1, 2 }
-            { "" 2, 4 }
+            { "" 2.5, 4 }
             }
             1 2 3 4
             <BLANKLINE>

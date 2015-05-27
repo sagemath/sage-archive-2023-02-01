@@ -299,14 +299,16 @@ def CycleGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
+    if n<1:
+        return graph.Graph(name="Cycle graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.cycle_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Cycle graph")
+    E = list( (i, i+1) for i in range(n-1) )
+    E.append( (0, n-1) )
+    return graph.Graph(E, pos=pos_dict, name="Cycle graph")
 
 def CompleteGraph(n):
     """

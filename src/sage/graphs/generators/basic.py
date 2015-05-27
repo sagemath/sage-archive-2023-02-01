@@ -88,10 +88,9 @@ def BullGraph():
         sage: bool(expand(x * (x^2 - x - 3) * (x^2 + x - 1)) == charpoly)
         True
     """
+    edge_list = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)]
     pos_dict = {0:(0,0), 1:(-1,1), 2:(1,1), 3:(-2,2), 4:(2,2)}
-    import networkx
-    G = networkx.bull_graph()
-    return graph.Graph(G, pos=pos_dict, name="Bull graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Bull graph")
 
 def ButterflyGraph():
     r"""

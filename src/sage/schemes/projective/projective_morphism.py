@@ -2899,10 +2899,11 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def multiplier_spectra(self,n,formal = True):
         r"""
-        Computes the formal ``n`` multiplier spectra of ``self``, which is the set of multipliers of the periodic
-        points of formal period ``n`` of ``self``. User can also specify to compute the ``n`` multiplier spectra
-        instead which includes the multipliers of all periodic points of period ``n`` of ``self``. ``self`` must
-        be defined over projective space of dimension 1 over a number field.
+        Computes the formal ``n`` multiplier spectra of ``self``, which is the set of multipliers of the
+        periodic points of formal period ``n`` of ``self`` included with the appropriate multiplicity.
+        User can also specify to compute the ``n`` multiplier spectra instead which includes the
+        multipliers of all periodic points of period ``n`` of ``self``. ``self`` must be defined over
+        projective space of dimension 1 over a number field.
 
         INPUT:
 
@@ -2957,11 +2958,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
             raise NotImplementedError("self must be a map over a number field")
 
-        if not PS.base_ring() is QQbar:
-            emb = PS.base_ring().embeddings(QQbar)[0]
-            f = self.change_ring(QQbar,embedding=emb) # to be able to find all periodic points
-        else:
-            f = self
+        f = self.change_ring(QQbar)
 
         PS = f.domain().ambient_space()
 
@@ -2985,7 +2982,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             for i in range(0,R[1]):
                 points.append(PS([R[0],1])) # include copies of higher multiplicity roots
 
-        newpoints = []
+        newpoints = [] # should include one representative point per cycle, included with the right multiplicity
 
         while(points != []):
             P = points[0]
@@ -3004,19 +3001,20 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def sigma_invariants(self,n,formal = True):
         r"""
-        Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra of
-        ``self``. Can specify to instead compute the values corresponding to the elementary symmetric polynomials
-        of the ``n`` multiplier spectra of ``self``, which include the multipliers of all periodic points of
-        period ``n`` of ``self``. `self`` must be defined over projective space of dimension 1 over a number field.
+        Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra
+        of ``self``. Can specify to instead compute the values corresponding to the elementary symmetric
+        polynomials of the ``n`` multiplier spectra of ``self``, which include the multipliers of all periodic
+        points of period ``n`` of ``self``. `self`` must be defined over projective space of dimension 1 over
+        a number field.
 
         INPUT:
 
         - ``n`` - a positive integer, the period.
 
         - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
-            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find the values
-            corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers of all periodic points
-            of period ``n`` of ``self``. Default: True
+            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find 
+            the values corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers
+            of all periodic points of period ``n`` of ``self``. Default: True
 
         OUTPUT:
 

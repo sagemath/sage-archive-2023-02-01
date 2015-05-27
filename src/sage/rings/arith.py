@@ -5184,10 +5184,10 @@ def squarefree_divisors(x):
 
     Depends on the output of the prime_divisors function.
 
-    INPUT::
+    INPUT:
 
-        x -- an element of any ring for which the prime_divisors
-             function works.
+    - x -- an element of any ring for which the prime_divisors
+      function works.
 
     EXAMPLES::
 

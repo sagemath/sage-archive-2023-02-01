@@ -1180,7 +1180,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
             """
             Return ``self`` to the `n`-th power.
 
-            INPUT::
+            INPUT:
 
             - ``n`` -- a positive integer
 

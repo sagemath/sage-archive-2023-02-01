@@ -36,7 +36,7 @@ from sage.matrix.all import matrix
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
-from sage.libs.ntl.ntl_ZZ_decl cimport mpz_to_ZZ, ZZ_to_mpz
+from sage.libs.ntl.convert cimport mpz_to_ZZ, ZZ_to_mpz
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.ntl_interface cimport *

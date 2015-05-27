@@ -22,7 +22,7 @@ include 'decl.pxi'
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
-from sage.libs.gmp.pylong cimport mpz_set_pylong
+from sage.libs.ntl.convert cimport PyLong_to_ZZ
 
 ZZ_sage = IntegerRing()
 
@@ -485,14 +485,3 @@ def randomBits(long n):
     ZZ_RandomBits(ans.x, n)
     sig_off()
     return ans
-
-
-cdef void PyLong_to_ZZ(ZZ_c* z, value):
-    """
-    Convert ``value`` (which must be a Python ``long``) to NTL.
-    """
-    cdef mpz_t t
-    mpz_init(t)
-    mpz_set_pylong(t, value)
-    mpz_to_ZZ(z, t)
-    mpz_clear(t)

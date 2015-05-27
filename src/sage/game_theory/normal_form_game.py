@@ -1288,6 +1288,15 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
 
+        Running the constant-sum solver on a game which isn't a constant sum game
+        generates a ``ValueError``::
+
+            sage: cg = NormalFormGame([A, A])
+            sage: cg.obtain_nash(algorithm='lp-glpk')
+            Traceback (most recent call last):
+            ...
+            ValueError: Input game needs to be a two player constant sum game
+
         Here is an example of a 3 by 2 game with 3 Nash equilibrium::
 
             sage: A = matrix([[3,3],

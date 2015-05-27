@@ -23,7 +23,6 @@
 #ifndef __GINAC_PRINT_H__
 #define __GINAC_PRINT_H__
 
-#include "compiler.h"
 #include <iosfwd>
 #include <string>
 #include <memory>

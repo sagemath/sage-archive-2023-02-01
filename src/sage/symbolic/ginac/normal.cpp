@@ -1362,7 +1362,6 @@ static ex heur_gcd(const ex &a, const ex &b, ex *ca, ex *cb, sym_desc_vec::const
  *  @return the GCD as a new expression */
 ex gcd(const ex &a, const ex &b, ex *ca, ex *cb, bool check_args)
 {
-        std::cerr << "gcd\n";
 #if STATISTICS
 	gcd_called++;
 #endif

@@ -27,7 +27,6 @@
 #include "print.h"
 #include "archive.h"
 #include "assertion.h"
-#include "compiler.h"
 
 #include <iterator>
 #include <stdexcept>

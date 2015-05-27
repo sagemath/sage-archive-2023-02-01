@@ -785,9 +785,11 @@ def Grid2dGraph(n1, n2):
         for j in range(n2):
             x = j
             pos_dict[i, j] = (x, y)
-    import networkx
-    G = networkx.grid_2d_graph(n1, n2)
-    return graph.Graph(G, pos=pos_dict, name="2D Grid Graph for "+str([n1, n2]))
+    G = graph.Graph( dict( ((i,j), [(i,j+1),(i+1,j)]) for i in range(n1-1) for j in range(n2-1) ),
+                     pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
+    G.add_path([(i,n2-1) for i in range(n1)])
+    G.add_path([(n1-1,j) for j in range(n2)])
+    return G
 
 def GridGraph(dim_list):
     """

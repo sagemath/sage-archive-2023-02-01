@@ -1083,9 +1083,7 @@ def PathGraph(n, pos=None):
             pos_dict[counter] = (x,y)
             counter += 1
 
-    import networkx
-    G = networkx.path_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Path Graph")
+    return graph.Graph(dict( (i,[i+1]) for i in range(n-1) ), pos=pos_dict, name="Path Graph")
 
 def StarGraph(n):
     """

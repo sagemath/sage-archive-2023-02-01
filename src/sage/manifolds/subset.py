@@ -1004,56 +1004,68 @@ class TopManifoldOpenSubset(TopManifoldSubset):
             return self.element_class(self)
         # Attempt to construct a point in the domain of the default chart
         chart = self._def_chart
-        coords = []
-        for coord_range in chart._bounds:
-            xmin = coord_range[0][0]
-            xmax = coord_range[1][0]
-            if xmin == -Infinity:
-                if xmax == Infinity:
-                    x = 0
+        if self._manifold.base_field() == 'real':
+            coords = []
+            for coord_range in chart._bounds:
+                xmin = coord_range[0][0]
+                xmax = coord_range[1][0]
+                if xmin == -Infinity:
+                    if xmax == Infinity:
+                        x = 0
+                    else:
+                        x = xmax - 1
                 else:
-                    x = xmax - 1
-            else:
-                if xmax == Infinity:
-                    x = xmin + 1
-                else:
-                    x = (xmin + xmax)/2
-            coords.append(x)
+                    if xmax == Infinity:
+                        x = xmin + 1
+                    else:
+                        x = (xmin + xmax)/2
+                coords.append(x)
+        else:
+            coords = self._manifold.dim()*[0]
         if not chart.valid_coordinates(*coords):
             # Attempt to construct a point in the domain of other charts
-            for ch in self._atlas:
-                if ch is self._def_chart:
-                    continue # since this case has already been attempted
-                coords = []
-                for coord_range in ch._bounds:
-                    xmin = coord_range[0][0]
-                    xmax = coord_range[1][0]
-                    if xmin == -Infinity:
-                        if xmax == Infinity:
-                            x = 0
+            if self._manifold.base_field() == 'real':
+                for ch in self._atlas:
+                    if ch is self._def_chart:
+                        continue # since this case has already been attempted
+                    coords = []
+                    for coord_range in ch._bounds:
+                        xmin = coord_range[0][0]
+                        xmax = coord_range[1][0]
+                        if xmin == -Infinity:
+                            if xmax == Infinity:
+                                x = 0
+                            else:
+                                x = xmax - 1
                         else:
-                            x = xmax - 1
-                    else:
-                        if xmax == Infinity:
-                            x = xmin + 1
-                        else:
-                            x = (xmin + xmax)/2
-                    coords.append(x)
-                if ch.valid_coordinates(*coords):
-                    chart = ch
-                    break
+                            if xmax == Infinity:
+                                x = xmin + 1
+                            else:
+                                x = (xmin + xmax)/2
+                        coords.append(x)
+                    if ch.valid_coordinates(*coords):
+                        chart = ch
+                        break
+                else:
+                    # A generic element with specific coordinates could not be
+                    # automatically generated, due to too complex cooordinate
+                    # conditions. An element without any coordinate set is
+                    # returned instead:
+                    return self.element_class(self)
             else:
-                # A generic element with specific coordinates could not be
-                # automatically generated, due to too complex cooordinate
-                # conditions. An element without any coordinate set is
-                # returned instead:
-                return self.element_class(self)
+                # Case of manifolds over a field different from R
+                for ch in self._atlas:
+                    if ch is self._def_chart:
+                        continue # since this case has already been attempted
+                    if ch.valid_coordinates(*coords):
+                        chart = ch
+                        break
+                else:
+                    return self.element_class(self)
         # The point is constructed with check_coords=False since the check
         # has just been performed above:
         return self.element_class(self, coords=coords, chart=chart,
                                   check_coords=False)
-
-
 
 
     def _repr_(self):

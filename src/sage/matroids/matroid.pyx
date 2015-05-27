@@ -312,8 +312,6 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
-from sage.combinat.subset import Subsets
-from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ

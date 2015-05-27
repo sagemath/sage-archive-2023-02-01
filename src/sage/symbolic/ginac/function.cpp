@@ -528,8 +528,8 @@ function::function(unsigned ser, const exvector & v, bool discardable)
 	tinfo_key = &function::tinfo_static;
 }
 
-function::function(unsigned ser, std::auto_ptr<exvector> vp) 
-  : exprseq(vp), serial(ser)
+function::function(unsigned ser, std::unique_ptr<exvector> vp) 
+  : exprseq(std::move(vp)), serial(ser)
 {
 	tinfo_key = &function::tinfo_static;
 }
@@ -908,9 +908,9 @@ ex function::thiscontainer(const exvector & v) const
 	return function(serial, v);
 }
 
-ex function::thiscontainer(std::auto_ptr<exvector> vp) const
+ex function::thiscontainer(std::unique_ptr<exvector> vp) const
 {
-	return function(serial, vp);
+	return function(serial, std::move(vp));
 }
 
 /** Implementation of ex::series for functions.

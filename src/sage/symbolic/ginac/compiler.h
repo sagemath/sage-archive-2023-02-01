@@ -9,4 +9,15 @@
 #define likely(cond) (cond)
 #endif
 
+#ifndef HAVE_CXX11
+#define nullptr NULL
+#define unique_ptr auto_ptr
+namespace std {
+
+template <class T>
+T& move(T &x) { return x; }
+
+}
+#endif
+
 #endif /* GINAC_COMPILER_DEP_HH */

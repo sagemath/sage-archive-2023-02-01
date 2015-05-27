@@ -332,7 +332,7 @@ public:
 	// end of generated lines
 	function(unsigned ser, const exprseq & es);
 	function(unsigned ser, const exvector & v, bool discardable = false);
-	function(unsigned ser, std::auto_ptr<exvector> vp);
+	function(unsigned ser, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 public:
@@ -345,7 +345,7 @@ public:
 	ex series(const relational & r, int order, unsigned options = 0) const;
         ex subs(const exmap & m, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::auto_ptr<exvector> vp) const;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const;
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;

@@ -96,7 +96,7 @@ color::color(unsigned char rl, const exvector & v, bool discardable) : inherited
 	tinfo_key = &color::tinfo_static;
 }
 
-color::color(unsigned char rl, std::auto_ptr<exvector> vp) : inherited(not_symmetric(), vp), representation_label(rl)
+color::color(unsigned char rl, std::unique_ptr<exvector> vp) : inherited(not_symmetric(), std::move(vp)), representation_label(rl)
 {
 	tinfo_key = &color::tinfo_static;
 }
@@ -185,9 +185,9 @@ ex color::thiscontainer(const exvector & v) const
 	return color(representation_label, v);
 }
 
-ex color::thiscontainer(std::auto_ptr<exvector> vp) const
+ex color::thiscontainer(std::unique_ptr<exvector> vp) const
 {
-	return color(representation_label, vp);
+	return color(representation_label, std::move(vp));
 }
 
 /** Given a vector iv3 of three indices and a vector iv2 of two indices that

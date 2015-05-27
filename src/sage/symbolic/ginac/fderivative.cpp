@@ -59,7 +59,7 @@ fderivative::fderivative(unsigned ser, const paramset & params, const exvector &
 	tinfo_key = &fderivative::tinfo_static;
 }
 
-fderivative::fderivative(unsigned ser, const paramset & params, std::auto_ptr<exvector> vp) : function(ser, vp), parameter_set(params)
+fderivative::fderivative(unsigned ser, const paramset & params, std::unique_ptr<exvector> vp) : function(ser, std::move(vp)), parameter_set(params)
 {
 	tinfo_key = &fderivative::tinfo_static;
 }
@@ -202,9 +202,9 @@ ex fderivative::thiscontainer(const exvector & v) const
 	return fderivative(serial, parameter_set, v);
 }
 
-ex fderivative::thiscontainer(std::auto_ptr<exvector> vp) const
+ex fderivative::thiscontainer(std::unique_ptr<exvector> vp) const
 {
-	return fderivative(serial, parameter_set, vp);
+	return fderivative(serial, parameter_set, std::move(vp));
 }
 
 /** Implementation of ex::diff() for derivatives. It applies the chain rule.

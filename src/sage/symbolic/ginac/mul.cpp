@@ -103,7 +103,7 @@ mul::mul(const epvector & v, const ex & oc, bool do_index_renaming)
 	GINAC_ASSERT(is_canonical());
 }
 
-mul::mul(std::auto_ptr<epvector> vp, const ex & oc, bool do_index_renaming)
+mul::mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming)
 {
 	tinfo_key = &mul::tinfo_static;
 	GINAC_ASSERT(vp.get()!=0);
@@ -667,10 +667,10 @@ ex mul::coeff(const ex & s, int n) const
  *  @param level cut-off in recursive evaluation */
 ex mul::eval(int level) const
 {
-	std::auto_ptr<epvector> evaled_seqp = evalchildren(level);
+	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
 	if (evaled_seqp.get()) {
 		// do more evaluation later
-		return (new mul(evaled_seqp, overall_coeff))->
+		return (new mul(std::move(evaled_seqp), overall_coeff))->
 		           setflag(status_flags::dynallocated);
 	}
 	
@@ -734,14 +734,14 @@ ex mul::eval(int level) const
 	           ex_to<numeric>((*seq.begin()).coeff).is_equal(*_num1_p)) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
 		const add & addref = ex_to<add>((*seq.begin()).rest);
-		std::auto_ptr<epvector> distrseq(new epvector);
+		std::unique_ptr<epvector> distrseq(new epvector);
 		distrseq->reserve(addref.seq.size());
 		epvector::const_iterator i = addref.seq.begin(), end = addref.seq.end();
 		while (i != end) {
 			distrseq->push_back(addref.combine_pair_with_coeff_to_pair(*i, overall_coeff));
 			++i;
 		}
-		return (new add(distrseq,
+		return (new add(std::move(distrseq),
 		                ex_to<numeric>(addref.overall_coeff).
 		                mul_dyn(ex_to<numeric>(overall_coeff)))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
@@ -752,7 +752,7 @@ ex mul::eval(int level) const
 		epvector::const_iterator last = seq.end();
 		epvector::const_iterator i = seq.begin();
 		epvector::const_iterator j = seq.begin();
-		std::auto_ptr<epvector> s(new epvector);
+		std::unique_ptr<epvector> s(new epvector);
 		numeric oc = *_num1_p;
 		bool something_changed = false;
 		while (i!=last) {
@@ -826,7 +826,7 @@ ex mul::eval(int level) const
 			if (s->empty()) {
 				return ex_to<numeric>(overall_coeff).mul_dyn(oc);
 			}
-			return (new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc))
+			return (new mul(std::move(s), ex_to<numeric>(overall_coeff).mul_dyn(oc))
 			       )->setflag(status_flags::dynallocated);
 		}
 	}
@@ -840,7 +840,7 @@ ex mul::eval_exponentials() const
 {
 	ex exp_arg = _ex0;
 	numeric oc = *_num1_p;
-	std::auto_ptr<epvector> s(new epvector);
+	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 
 	for (epvector::const_iterator i = seq.begin(); i != seq.end(); i++) {
@@ -858,7 +858,7 @@ ex mul::eval_exponentials() const
 	else
 		s->push_back(expair(new_exp, _ex1));
 
-	mul * result = new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc));
+	mul * result = new mul(std::move(s), ex_to<numeric>(overall_coeff).mul_dyn(oc));
 	return result->setflag(status_flags::dynallocated);
 }
 
@@ -886,7 +886,7 @@ ex mul::evalf(int level, PyObject* parent) const
 	if (level==-max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 	
-	std::auto_ptr<epvector> s(new epvector);
+	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 
 	--level;
@@ -896,7 +896,7 @@ ex mul::evalf(int level, PyObject* parent) const
 					i->rest.evalf(level, parent), i->coeff));
 		++i;
 	}
-	return mul(s, overall_coeff.evalf(level, parent));
+	return mul(std::move(s), overall_coeff.evalf(level, parent));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const
@@ -944,7 +944,7 @@ ex mul::evalm() const
 	// Evaluate children first, look whether there are any matrices at all
 	// (there can be either no matrices or one matrix; if there were more
 	// than one matrix, it would be a non-commutative product)
-	std::auto_ptr<epvector> s(new epvector);
+	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 
 	bool have_matrix = false;
@@ -967,11 +967,11 @@ ex mul::evalm() const
 		// into that matrix.
 		matrix m = ex_to<matrix>(the_matrix->rest);
 		s->erase(the_matrix);
-		ex scalar = (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
+		ex scalar = (new mul(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
 		return m.mul_scalar(scalar);
 
 	} else
-		return (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
+		return (new mul(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex mul::eval_ncmul(const exvector & v) const
@@ -1280,9 +1280,9 @@ ex mul::thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming)
 	return (new mul(v, oc, do_index_renaming))->setflag(status_flags::dynallocated);
 }
 
-ex mul::thisexpairseq(std::auto_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
+ex mul::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
 {
-	return (new mul(vp, oc, do_index_renaming))->setflag(status_flags::dynallocated);
+	return (new mul(std::move(vp), oc, do_index_renaming))->setflag(status_flags::dynallocated);
 }
 
 expair mul::split_ex_to_pair(const ex & e) const
@@ -1416,7 +1416,7 @@ ex mul::expand(unsigned options) const
 	const bool skip_idx_rename = !(options & expand_options::expand_rename_idx);
 
 	// First, expand the children
-	std::auto_ptr<epvector> expanded_seqp = expandchildren(options);
+	std::unique_ptr<epvector> expanded_seqp = expandchildren(options);
 	const epvector & expanded_seq = (expanded_seqp.get() ? *expanded_seqp : seq);
 
 	// Now, look for all the factors that are sums and multiply each one out
@@ -1594,7 +1594,7 @@ const epvector & mul::get_sorted_seq() const
  *  @see mul::expand()
  *  @return pointer to epvector containing expanded representation or zero
  *  pointer, if sequence is unchanged. */
-std::auto_ptr<epvector> mul::expandchildren(unsigned options) const
+std::unique_ptr<epvector> mul::expandchildren(unsigned options) const
 {
 	const epvector::const_iterator last = seq.end();
 	epvector::const_iterator cit = seq.begin();
@@ -1604,7 +1604,7 @@ std::auto_ptr<epvector> mul::expandchildren(unsigned options) const
 		if (!are_ex_trivially_equal(factor,expanded_factor)) {
 			
 			// something changed, copy seq, eval and return it
-			std::auto_ptr<epvector> s(new epvector);
+			std::unique_ptr<epvector> s(new epvector);
 			s->reserve(seq.size());
 			
 			// copy parts of seq which are known not to have changed
@@ -1623,12 +1623,12 @@ std::auto_ptr<epvector> mul::expandchildren(unsigned options) const
 				s->push_back(split_ex_to_pair(recombine_pair_to_ex(*cit2).expand(options)));
 				++cit2;
 			}
-			return s;
+			return std::move(s);
 		}
 		++cit;
 	}
 	
-	return std::auto_ptr<epvector>(0); // nothing has changed
+	return std::unique_ptr<epvector>(nullptr); // nothing has changed
 }
 
 } // namespace GiNaC

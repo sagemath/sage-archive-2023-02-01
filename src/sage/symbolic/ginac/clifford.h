@@ -51,7 +51,7 @@ public:
 
 	// internal constructors
 	clifford(unsigned char rl, const ex & metr, int comm_sign, const exvector & v, bool discardable = false);
-	clifford(unsigned char rl, const ex & metr, int comm_sign, std::auto_ptr<exvector> vp);
+	clifford(unsigned char rl, const ex & metr, int comm_sign, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 public:
@@ -60,7 +60,7 @@ protected:
 	ex eval_ncmul(const exvector & v) const;
 	bool match_same_type(const basic & other) const;
 	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::auto_ptr<exvector> vp) const;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const;
 	unsigned return_type() const { return return_types::noncommutative; }
 	tinfo_t return_type_tinfo() const { return clifford::return_type_tinfo_static+representation_label; }
 

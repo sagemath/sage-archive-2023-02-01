@@ -51,14 +51,14 @@ public:
 
 	// internal constructors
 	color(unsigned char rl, const exvector & v, bool discardable = false);
-	color(unsigned char rl, std::auto_ptr<exvector> vp);
+	color(unsigned char rl, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 protected:
 	ex eval_ncmul(const exvector & v) const;
 	bool match_same_type(const basic & other) const;
 	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::auto_ptr<exvector> vp) const;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const;
 	unsigned return_type() const { return return_types::noncommutative; }
 	tinfo_t return_type_tinfo() const { return color::return_type_tinfo_static+representation_label; }
 

@@ -397,9 +397,9 @@ public:
 
 	// This should return an ex*, but that would be a pointer to a
 	// temporary value
-	std::auto_ptr<ex> operator->() const
+	std::unique_ptr<ex> operator->() const
 	{
-		return std::auto_ptr<ex>(new ex(operator*()));
+		return std::unique_ptr<ex>(new ex(operator*()));
 	}
 
 	ex operator[](difference_type n) const

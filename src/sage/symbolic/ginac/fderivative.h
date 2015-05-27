@@ -58,7 +58,7 @@ public:
 	fderivative(unsigned ser, const paramset & params, const exvector & args);
 
 	// internal constructors
-	fderivative(unsigned ser, const paramset & params, std::auto_ptr<exvector> vp);
+	fderivative(unsigned ser, const paramset & params, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 public:
@@ -67,7 +67,7 @@ public:
 	ex evalf(int level = 0, PyObject* parent=NULL) const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;
-	ex thiscontainer(std::auto_ptr<exvector> vp) const;
+	ex thiscontainer(std::unique_ptr<exvector> vp) const;
 	paramset get_parameter_set() const { return parameter_set; };
 	unsigned calchash() const;
 

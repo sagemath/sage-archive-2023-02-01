@@ -95,7 +95,7 @@ add::add(const epvector & v, const ex & oc)
 	GINAC_ASSERT(is_canonical());
 }
 
-add::add(std::auto_ptr<epvector> vp, const ex & oc)
+add::add(std::unique_ptr<epvector> vp, const ex & oc)
 {
 	tinfo_key = &add::tinfo_static;
 	GINAC_ASSERT(vp.get()!=0);
@@ -339,8 +339,8 @@ int add::ldegree(const ex & s) const
 
 ex add::coeff(const ex & s, int n) const
 {
-	std::auto_ptr<epvector> coeffseq(new epvector);
-	std::auto_ptr<epvector> coeffseq_cliff(new epvector);
+	std::unique_ptr<epvector> coeffseq(new epvector);
+	std::unique_ptr<epvector> coeffseq_cliff(new epvector);
 	int rl = clifford_max_label(s);
 	bool do_clifford = (rl != -1);
 	bool nonscalar = false;
@@ -363,7 +363,7 @@ ex add::coeff(const ex & s, int n) const
 		++i;
 	}
 
-	return (new add(nonscalar ? coeffseq_cliff : coeffseq,
+	return (new add(std::move(nonscalar ? coeffseq_cliff : coeffseq),
 	                n==0 ? overall_coeff : _ex0))->setflag(status_flags::dynallocated);
 }
 
@@ -376,10 +376,10 @@ ex add::coeff(const ex & s, int n) const
  *  @param level cut-off in recursive evaluation */
 ex add::eval(int level) const
 {
-	std::auto_ptr<epvector> evaled_seqp = evalchildren(level);
+	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
 	if (evaled_seqp.get()) {
 		// do more evaluation later
-		return (new add(evaled_seqp, overall_coeff))->
+		return (new add(std::move(evaled_seqp), overall_coeff))->
 		       setflag(status_flags::dynallocated);
 	}
 	
@@ -424,7 +424,7 @@ ex add::eval(int level) const
 		if (unlikely(is_a<numeric>(j->rest)))
 			++terms_to_collect;
 	if (terms_to_collect) {
-		std::auto_ptr<epvector> s(new epvector);
+		std::unique_ptr<epvector> s(new epvector);
 		s->reserve(seq_size - terms_to_collect);
 		numeric oc = *_num0_p;
 		for (epvector::const_iterator j = seq.begin(); j != seq.end(); j++)
@@ -432,7 +432,7 @@ ex add::eval(int level) const
 				oc = oc.add((ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff)));
 			else
 				s->push_back(*j);
-		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))
+		return (new add(std::move(s), ex_to<numeric>(overall_coeff).add_dyn(oc)))
 		        ->setflag(status_flags::dynallocated);
 	}
 
@@ -472,7 +472,7 @@ ex add::evalm() const
 {
 	// Evaluate children first and add up all matrices. Stop if there's one
 	// term that is not a matrix.
-	std::auto_ptr<epvector> s(new epvector);
+	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 
 	bool all_matrices = true;
@@ -497,7 +497,7 @@ ex add::evalm() const
 	if (all_matrices)
 		return sum + overall_coeff;
 	else
-		return (new add(s, overall_coeff))->setflag(status_flags::dynallocated);
+		return (new add(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex add::conjugate() const
@@ -576,7 +576,7 @@ ex add::eval_ncmul(const exvector & v) const
  *  @see ex::diff */
 ex add::derivative(const symbol & y) const
 {
-	std::auto_ptr<epvector> s(new epvector);
+	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 	
 	// Only differentiate the "rest" parts of the expairs. This is faster
@@ -587,7 +587,7 @@ ex add::derivative(const symbol & y) const
 		s->push_back(combine_ex_with_coeff_to_pair(i->rest.diff(y), i->coeff));
 		++i;
 	}
-	return (new add(s, _ex0))->setflag(status_flags::dynallocated);
+	return (new add(std::move(s), _ex0))->setflag(status_flags::dynallocated);
 }
 
 int add::compare_same_type(const basic & other) const
@@ -618,9 +618,9 @@ ex add::thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming)
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(std::auto_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
+ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
 {
-	return (new add(vp,oc))->setflag(status_flags::dynallocated);
+	return (new add(std::move(vp),oc))->setflag(status_flags::dynallocated);
 }
 
 expair add::split_ex_to_pair(const ex & e) const
@@ -688,13 +688,13 @@ ex add::recombine_pair_to_ex(const expair & p) const
 
 ex add::expand(unsigned options) const
 {
-	std::auto_ptr<epvector> vp = expandchildren(options);
+	std::unique_ptr<epvector> vp = expandchildren(options);
 	if (vp.get() == 0) {
 		// the terms have not changed, so it is safe to declare this expanded
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
 	}
 
-	return (new add(vp, overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
+	return (new add(std::move(vp), overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
 }
 
 const epvector & add::get_sorted_seq() const

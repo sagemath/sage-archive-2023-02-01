@@ -575,9 +575,8 @@ def DiamondGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1)}
-    import networkx
-    G = networkx.diamond_graph()
-    return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
+    edges = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)]
+    return graph.Graph(edges, pos=pos_dict, name="Diamond Graph")
 
 def EmptyGraph():
     """

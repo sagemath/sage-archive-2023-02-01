@@ -2435,7 +2435,7 @@ class CDFInterpreter(StackInterpreter):
         A test of integer powers::
 
             sage: f(x) = sum(x^k for k in [-20..20])
-            sage: f(CDF(1+2j))
+            sage: f(CDF(1+2j))  # rel tol 4e-16
             -10391778.999999996 + 3349659.499999962*I
             sage: ff = fast_callable(f, CDF)
             sage: ff(1 + 2j)  # rel tol 1e-14

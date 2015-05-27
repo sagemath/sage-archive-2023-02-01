@@ -3320,12 +3320,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Vector space of degree 3 and dimension 1 over Finite Field of size 7
             Basis matrix:
             [0 1 0]
-            sage: v = V((1, pi, e)); v
-            (1.0, 3.141592653589793, 2.718281828459045)
+            sage: v = V((1, pi, log(2))); v
+            (1.0, 3.141592653589793, 0.6931471805599453)
             sage: W.span([v], base_ring=GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: Argument gens (= [(1.0, 3.141592653589793, 2.718281828459045)]) is not compatible with base_ring (= Finite Field of size 7).
+            ValueError: Argument gens (= [(1.0, 3.141592653589793, 0.6931471805599453)]) is not compatible with base_ring (= Finite Field of size 7).
             sage: W = V.submodule([v])
             sage: W.span([V.gen(2)], base_ring=GF(7))
             Vector space of degree 3 and dimension 1 over Finite Field of size 7

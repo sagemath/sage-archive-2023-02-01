@@ -58,6 +58,7 @@ from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.constructor import FiniteField
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
+from sage.matrix.matrix_space import MatrixSpace
 
 BlockDesign = IncidenceStructure
 
@@ -305,6 +306,157 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     blcks.append(range(n2,n2+n+1))
 
     return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, check=check)
+
+def random_q3_minus_one_matrix(K):
+    r"""
+    Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
+
+    EXAMPLES::
+
+        sage: m = random_q3_minus_one_matrix(GF(3))
+        sage: m.multiplicative_order() == 3**3 - 1
+        True
+
+        sage: m = random_q3_minus_one_matrix(GF(4,'a'))
+        sage: m.multiplicative_order() == 4**3 - 1
+        True
+
+        sage: m = random_q3_minus_one_matrix(GF(5))
+        sage: m.multiplicative_order() == 5**3 - 1
+        True
+
+        sage: m = random_q3_minus_one_matrix(GF(9,'a'))
+        sage: m.multiplicative_order() == 9**3 - 1
+        True
+    """
+    q = K.cardinality()
+    M = MatrixSpace(K, 3)
+
+    if q.is_prime():
+        from sage.rings.finite_rings.conway_polynomials import conway_polynomial
+        try:
+            a,b,c,_ = conway_polynomial(q, 3)
+        except RuntimeError:  # the polynomial is not in the database
+            pass
+        else:
+            return M([0,0,-a,1,0,-b,0,1,-c])
+
+    while True:
+        a = K._random_nonzero_element()
+        b = K.random_element()
+        c = K.random_element()
+        m = M([0,0,-a,1,0,-b,0,1,-c])
+        if m.multiplicative_order() == q**3 - 1:
+            return m
+
+def normalize_hughes_plane_point(p,K,q):
+    r"""
+    Return the normalized form of point (x,y,z).
+
+    For all integer k non-zero, (x,y,z)k refers to the same point.
+
+    For the normalized form, the last non-zero coordinate must be 1.
+
+    INPUT:
+    
+    - ``p`` - point with the coordinates (x,y,z) (a list, a vector, a tuple...)
+
+    - ``K```- a finite field (coordinates x,y,z are elements of K)
+
+    - ``q`` - cardinality of K
+
+    OUTPUT:
+    List of the coordinates from the normalized form of p
+
+    EXAMPLE::
+
+        sage: K=FiniteField(9,'x')
+        sage: p=(K('x'),K('x+1'),K('x'))
+        sage: normalize_hughes_plane_point(p,K,9)
+        [1, x, 1]
+        sage: q=vector((K('x'),K('x'),K('x')))
+        sage: normalize_hughes_plane_point(q,K,9)
+        [1, 1, 1]
+        sage: s=(K('2*x+2'), K(0), K(0))
+        sage: normalize_hughes_plane_point(s,K,9)
+        [1, 0, 0]
+        sage: t=[K('2*x'),K(1),K(0)]
+        sage: normalize_hughes_plane_point(t,K,9)
+        [2*x, 1, 0]
+
+    """        
+    for i in [2,1,0]:
+        if p[i].is_one():
+            return tuple(p)
+        elif not p[i].is_zero():
+            k=~p[i]
+            if k.is_square():
+                return (p[0] * k,p[1] * k,p[2] * k)
+            else:
+                return ((p[0] * k)**q,(p[1]*k)**q,(p[2]*k)**q)
+        
+def HughesPlane(n2):
+    r"""
+    Return Hughes projective plane of order `n2`.
+
+    For p an odd prime.
+    If kernel K of order p^n coincides with the center of a nearfiekd N.
+    The construction of a Hughes plane is based on N of order p^2n.
+    For more information, look at :wikipedia:`Hughes_plane`.
+    
+    INPUT:
+
+    - ``n2`` -- an integer which must be an odd square
+
+    EXAMPLES::
+    
+        sage: HughesPlane(9)
+        Incidence structure with 91 points and 91 blocks
+        sage: HughesPlane(9).is_projective_plane()
+        True
+
+        sage: HughesPlane(5)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Hughes plane of non-square order exists.
+
+        sage: HughesPlane(16)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: No Hughes plane of even order exists.
+
+    """
+    if not n2.is_square():
+        raise EmptySetError("No Hughes plane of non-square order exists.")
+    if n2%2 == 0:
+        raise EmptySetError("No Hughes plane of even order exists.")
+    n = n2.sqrt()
+    K = FiniteField(n2, 'x')
+    F = FiniteField(n, 'y')
+    A = random_q3_minus_one_matrix(F)
+    A = A.change_ring(K)
+    m = K.list()
+    V = VectorSpace(K, 3)
+    # Construct the points (x,y,z) of the projective plane, (x,y,z)=(xk,yk,zk)
+    points=[[x,y,K(1)] for x in m for y in m]+[[x,K(1),K(0)] for x in m]+[[K(1),K(0),K(0)]]
+    relabel={tuple(p):i for i,p in enumerate(points)}
+    blcks = []
+    # Find the first line satisfying x+ay+z=0
+    for a in m:
+        if a not in F or a == 1:
+            l=[]
+            l.append(V((-a,K(1),K(0))))
+            for x in m:
+                if ((~a)*(-x-K(1))).is_square():
+                    l.append(V((x,(~a)*(-x-K(1)),K(1))))
+                else:
+                    l.append(V((x,(~a) **n * (-x-K(1)),K(1))))
+            # We can now deduce the other lines from these ones
+            blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
+            for i in range(n2 + n):
+                l = [A*j for j in l]
+                blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
+    return IncidenceStructure(n2**2+n2+1, blcks, name="Hughes projective plane of order %d"%n2)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""

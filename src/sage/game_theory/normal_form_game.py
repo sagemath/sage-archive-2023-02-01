@@ -361,27 +361,16 @@ There are however a variety of such algorithms available in gambit,
 further compatibility between Sage and gambit is actively being developed:
 https://github.com/tturocy/gambit/tree/sage_integration.
 
-Note that the Gambit implementation of ``LCP`` can only handle integer
-payoffs. If a non integer payoff is used an error will be raised::
+It can be shown that linear scaling of the payoff matrices conserves the
+equilibrium values::
 
     sage: A = matrix([[2, 1], [1, 2.5]])
     sage: B = matrix([[-1, 3], [2, 1]])
     sage: g = NormalFormGame([A, B])
-    sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
-    Traceback (most recent call last):
-    ...
-    ValueError: The Gambit implementation of LCP only allows for integer valued payoffs. Please scale your payoff matrices.
-
-Other algorithms can handle these payoffs::
-
     sage: g.obtain_nash(algorithm='enumeration')
     [[(1/5, 4/5), (3/5, 2/5)]]
     sage: g.obtain_nash(algorithm='lrs') # optional - lrs
     [[(1/5, 4/5), (3/5, 2/5)]]
-
-It can be shown that linear scaling of the payoff matrices conserves the
-equilibrium values::
-
     sage: A = 2 * A
     sage: g = NormalFormGame([A, B])
     sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
@@ -878,6 +867,32 @@ class NormalFormGame(SageObject, MutableMapping):
             self.utilities[strategy_profile] = utility_vector
 
     def _as_gambit_game(self, as_integer=False):
+        r"""
+        Creates a Gambit game from a ``NormalFormGame`` object
+
+        TESTS::
+
+            sage: from gambit import Game
+            sage: A = matrix([[2, 1], [1, 2.5]])
+            sage: g = NormalFormGame([A])
+            sage: gg = g._as_gambit_game(g)
+
+            NFG 1 R "" { "1" "2" }
+
+            { { "1" "2" }
+            { "1" "2" }
+            }
+            ""
+
+            {
+            { "" 2, -2 }
+            { "" 1, -1 }
+            { "" 1, -1 }
+            { "" 2.5, -2.5 }
+            }
+            1 2 3 4 
+
+        """
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
         for strategy_profile in self.utilities:
@@ -890,6 +905,23 @@ class NormalFormGame(SageObject, MutableMapping):
         return g
 
     def is_constant_sum(self):
+        r"""
+        Checks if the game is constant sum.
+
+        EXAMPLES::
+            
+            sage: A = matrix([[2, 1], [1, 2.5]])
+            sage: g = NormalFormGame([A])
+            sage: g.is_constant_sum()
+            True
+            sage: g = NormalFormGame([A, A])
+            sage: g.is_constant_sum()
+            False
+            sage: A = matrix([[1, 1], [1, 1]])
+            sage: g = NormalFormGame([A, A])
+            sage: g.is_constant_sum()
+            True
+        """
         if len(self.players) > 2:
             return False
         m1, m2 = self.payoff_matrices()
@@ -1082,6 +1114,13 @@ class NormalFormGame(SageObject, MutableMapping):
             that the output differs from the other algorithms: floats are
             returned.
 
+          * ``'lp-*'`` - This algorithm is only suited for 2 player constant sum games.
+            This input starts of with 'lp-' followed by the LP solver to be used to solve
+            the game. For example, to make use of the GLPK solver, one would use the string
+            ``'lp-glpk'``. This pattern applies for all solvers within Sage (see
+            :class:`MixedIntegerLinearProgram`). In order to use the gambit's implementation the
+            string ``'lp-gambit'`` should be used.
+
           * ``'enumeration'`` - This is a very inefficient
             algorithm (in essence a brute force approach).
 
@@ -1199,6 +1238,23 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: fivegame.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0, 0.0)]]
 
+        Here are some examples of constant-sum games::
+
+            sage: A = matrix.identity(2)
+            sage: cg = NormalFormGame([A])
+            sage: cg.obtain_nash(algorithm='lp-glpk') 
+            [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: A = matrix([[2, 1], [1, 3]])
+            sage: cg = NormalFormGame([A])
+            sage: cg.obtain_nash(algorithm='lp-glpk') 
+            [[(0.6666666666666666, 0.33333333333333337),
+              (0.6666666666666666, 0.33333333333333337)]]
+            sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            [[(0.6666666667, 0.3333333333), (0.6666666667, 0.3333333333)]]
+
+
         Here is an example of a 3 by 2 game with 3 Nash equilibrium::
 
             sage: A = matrix([[3,3],
@@ -1249,7 +1305,9 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError("utilities have not been populated")
 
         if not algorithm:
-            if is_package_installed('lrs'):
+            if self.is_constant_sum():
+                algorithm = "lp-glpk"
+            elif is_package_installed('lrs'):
                 algorithm = "lrs"
             else:
                 algorithm = "enumeration"
@@ -1355,13 +1413,52 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_gambit_LP(self, maximization=True):
+    def _solve_gambit_LP(self):
+        r"""
+        Solves a constant sum NormalFormGame using Gambit's LP implementation
+
+        EXAMPLES::
+
+            sage: A = matrix([[2, 1], [1, 2.5]])
+            sage: g = NormalFormGame([A])
+            sage: g._solve_gambit_LP() # optional - gambit
+            [[(0.6, 0.4), (0.6, 0.4)]]
+            sage: A = matrix.identity(2)
+            sage: g = NormalFormGame([A])
+            sage: g._solve_gambit_LP() # optional - gambit
+            [[(0.5, 0.5), (0.5, 0.5)]]
+        """
+        if not self.is_constant_sum():
+            raise ValueError("Input game needs to be a two player constant sum game")
         g = self._as_gambit_game()
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
     def _solve_LP(self, solver='glpk'):
+        r"""
+        Solves a constant sum NormalFormGame using the specified LP solver.
+
+        INPUT:
+
+        - ``solver`` - the solver to be used to solve the LP.
+        
+          * ``'gambit'`` - This uses the solver included within the gambit library to
+            create and solve the LP.
+          * For further possible values see :class:`MixedIntegerLinearProgram`
+
+        EXAMPLES::
+
+            sage: A = matrix.identity(2)
+            sage: g = NormalFormGame([A])
+            sage: g._solve_LP() 
+            [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: A = matrix([[2, 1], [1, 3]])
+            sage: g = NormalFormGame([A])
+            sage: g._solve_LP() 
+            [[(0.6666666666666666, 0.33333333333333337),
+              (0.6666666666666666, 0.33333333333333337)]]
+        """
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")
         if solver == 'gambit':

@@ -67,17 +67,16 @@ def atlas():
     else:
         return 'atlas'
 
-include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
-                os.path.join(SAGE_LOCAL,'include'), \
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
-                os.path.join(SAGE_SRC,'sage','ext'), \
-                os.path.join(SAGE_SRC), \
+include_dirs = [os.path.join(SAGE_LOCAL,'include'),
+                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]),
+                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'),
+                os.path.join(SAGE_SRC,'sage','ext'),
+                os.path.join(SAGE_SRC),
                 os.path.join(SAGE_SRC,'sage','gsl')]
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
-                 'ec', 'gsl', cblas(), atlas(), 'ntl', 'csage']
+                 'ec', 'gsl', cblas(), atlas(), 'ntl']
 
 offset = 0
 
@@ -207,10 +206,8 @@ def pyx_preparse(s):
         'gsl',
         '...blas',
         ...,
-        'ntl',
-        'csage'],
-        ['.../include/csage',
-        '.../include',
+        'ntl'],
+        ['.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
         '.../sage/ext',
@@ -230,14 +227,12 @@ def pyx_preparse(s):
         'm',
         'ec',
         'gsl', '...blas', ...,
-        'ntl',
-        'csage']
+        'ntl']
         sage: libs[1:] == sage.misc.cython.standard_libs
         True
 
         sage: inc
         ['bar',
-        '.../include/csage',
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
@@ -399,8 +394,8 @@ def cython(filename, verbose=False, compile_message=False,
     # We will use this only to make some convenient symbolic links.
     abs_base = os.path.split(os.path.abspath(filename))[0]
 
-    # bad things happen if the current directory is SAGE_ROOT/src
-    if not os.path.exists("%s/sage" % abs_base) and not os.path.exists("%s/c_lib" % abs_base):
+    # bad things happen if the current directory is SAGE_SRC
+    if not os.path.exists("%s/sage" % abs_base):
         cmd = 'cd "%s"; ln -sf "%s"/* .'%(build_dir, abs_base)
         os.system(cmd)
         if os.path.exists("%s/setup.py" % build_dir):

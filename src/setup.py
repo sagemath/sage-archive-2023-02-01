@@ -39,7 +39,6 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 import numpy
 include_dirs = [SAGE_INC,
                 SAGE_SRC,
-                os.path.join(SAGE_SRC, 'c_lib', 'include'),
                 os.path.join(SAGE_SRC, 'sage', 'ext'),
                 os.path.join(numpy.get_include())]
 
@@ -158,9 +157,6 @@ for m in ext_modules:
     for lib in lib_headers:
         if lib in m.libraries:
             m.depends += lib_headers[lib]
-
-    # Add csage for all Cython extensions
-    m.libraries = ['csage'] + m.libraries
 
     m.extra_compile_args = m.extra_compile_args + extra_compile_args
     m.extra_link_args = m.extra_link_args + extra_link_args
@@ -545,10 +541,10 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
-        'embedsignature: True'
+        'embedsignature: True',
         'debug: ' + str(debug),
         'profile: ' + str(profile),
-    ])
+    ""])
     if os.path.exists(version_file) and open(version_file).read() == version_stamp:
         force = False
 

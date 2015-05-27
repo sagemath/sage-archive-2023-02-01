@@ -3948,7 +3948,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+            - Canonical labeling of directed graphs:
+              :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
 
         EXAMPLES::
 
@@ -3958,7 +3959,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list() # random
+            sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3971,10 +3972,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list() # random
+            sage: Q.list()
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
+
+        Canonical labeling of (semi)lattice returns (semi)lattice::
+
+            sage: D=DiGraph({'a':['b','c']})
+            sage: P=Poset(D)
+            sage: ML=MeetSemilattice(D)
+            sage: P.canonical_label()
+            Finite poset containing 3 elements
+            sage: ML.canonical_label()
+            Finite meet-semilattice containing 3 elements
 
         TESTS::
 
@@ -3990,13 +4001,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: Q.is_isomorphic(P)
             True
-
-        :trac:`18516` is fixed::
-
-            sage: p=posets.BooleanLattice(3); p
-            Finite lattice containing 8 elements
-            sage: p=p.canonical_label(); p
-            Finite lattice containing 8 elements
         """
         canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
         canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}

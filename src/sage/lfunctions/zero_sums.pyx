@@ -45,6 +45,7 @@ cdef extern from "<math.h>":
     double c_acos "acos"(double)
     double c_sqrt "sqrt"(double)
 
+# Global variable determining the number of CPUs to use for parallel computations
 cdef NCPUS
 
 cdef class LFunctionZeroSum_abstract(SageObject):
@@ -216,7 +217,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         else:
             return [float(self.cn(i)) for i in xrange(n+1)]
 
-    def digamma(self,s,include_constant_term=True):
+    def digamma(self, s, include_constant_term=True):
         r"""
         Return the digamma function `\digamma(s)` on the complex input s, given by
         `\digamma(s) = -\eta + \sum_{k=1}^{\infty} \frac{s-1}{k(k+s-1)}`,
@@ -684,7 +685,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
             cos_tau_t = (tau*t).cos()
             sin_tau_t = (tau*t).sin()
             w = RDF(0)
-            for k in range(1,1001):
+            for k in range(1, 1001):
                 a1 = tau**2/(k*(k**2+tau**2))
                 a2 = (k**2-tau**2)/(k**2+tau**2)**2
                 a3 = (2*k*tau)/(k**2+tau**2)**2
@@ -761,8 +762,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         u = self.C0()
 
         w = RDF(0)
-        for k in range(1,1001):
-            w += RDF(1)/k-erfcx(Delta*k)*Deltasqrtpi
+        for k in range(1, 1001):
+            w += RDF(1)/k - erfcx(Delta*k)*Deltasqrtpi
 
         y = RDF(0)
         n = int(1)
@@ -893,11 +894,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         if tau==0:
             one = RDF(1)
             s = one/Del+one
-            u,err = self.completed_logarithmic_derivative(s,num_terms)
+            u,err = self.completed_logarithmic_derivative(s, num_terms)
         else:
             one = CDF(1)
             s = CDF(one/Del+one, tau)
-            u,err = self.completed_logarithmic_derivative(s,num_terms)
+            u,err = self.completed_logarithmic_derivative(s, num_terms)
             u = u.real()
 
         return (u+err)/Del
@@ -1063,7 +1064,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
                 return - ap**e*logp/n_float
             a,b = ap,2
             # Coefficients for higher powers obey recursion relation
-            for n in range(2,e+1):
+            for n in range(2, e+1):
                 a,b = ap*a-p*b, a
             return -a*logp/n_float
 
@@ -1176,9 +1177,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef double twopi = npi*2
         cdef double eg = self._euler_gamma
 
-        cdef double t,u,w,y,z,expt,bound1,logp,logq
-        cdef double thetap,thetaq,sqrtp,sqrtq,p,q
-        cdef int ap,aq
+        cdef double t, u, w, y, z, expt, bound1, logp, logq
+        cdef double thetap, thetaq, sqrtp, sqrtq, p, q
+        cdef int ap, aq
 
         cdef unsigned long n
         cdef double N_double = self._N
@@ -1230,40 +1231,40 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         for m in [2,3,5]:
             n = m
             if n<expt:
-                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-                                                     logq,thetaq,sqrtq,z)
+                y += self._sincsquared_summand_1(n, t, ap, p, logp, thetap,
+                                                 sqrtp, logq, thetaq, sqrtq, z)
         # Now iterate only only over those n that are 1 or 5 mod 6
         n = 11
         # First: those n that are <= sqrt(bound)
         bound1 = c_exp(t/2)
         while n <= bound1:
             if n_is_prime(n-4):
-                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
+                y += self._sincsquared_summand_1(n-4, t, ap, p, logp, thetap,
+                                                 sqrtp, logq, thetaq, sqrtq, z)
             if n_is_prime(n):
-                y += self._sincsquared_summand_1(n,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
+                y += self._sincsquared_summand_1(n, t, ap, p, logp, thetap,
+                                                 sqrtp, logq, thetaq, sqrtq, z)
             n += 6
         # Unlucky split case where n-4 <= sqrt(bound) but n isn't
         if n-4 <= bound1 and n > bound1:
             if n_is_prime(n-4):
-                y += self._sincsquared_summand_1(n-4,t,ap,p,logp,thetap,sqrtp,
-                                                 logq,thetaq,sqrtq,z)
+                y += self._sincsquared_summand_1(n-4, t, ap, p, logp, thetap,
+                                                 sqrtp, logq, thetaq, sqrtq, z)
             if n <= expt and n_is_prime(n):
-                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+                y += self._sincsquared_summand_2(n, t, ap, p, logp)
             n += 6
         # Now sqrt(bound)< n < bound, so we don't need to consider higher
         # prime power logarithmic derivative coefficients
         while n <= expt:
             if n_is_prime(n-4):
-                y += self._sincsquared_summand_2(n-4,t,ap,p,logp)
+                y += self._sincsquared_summand_2(n-4, t, ap, p, logp)
             if n_is_prime(n):
-                y += self._sincsquared_summand_2(n,t,ap,p,logp)
+                y += self._sincsquared_summand_2(n, t, ap, p, logp)
             n += 6
         # Case where n-4 <= t but n isn't
         n = n-4
         if n <= expt and n_is_prime(n):
-            y += self._sincsquared_summand_2(n,t,ap,p,logp)
+            y += self._sincsquared_summand_2(n, t, ap, p, logp)
 
         return RDF(2*(u+w+y)/(t**2))
 
@@ -1308,7 +1309,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         """
         # If n <=48, primes are sieved for modulo 210
         if n <= 48:
-            small_primes = [2,3,5,7]
+            small_primes = [2, 3, 5, 7]
             modulus = 210
             residue_list = [1, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
                             53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
@@ -1328,7 +1329,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             while num_residues<n:
                 p = next_prime(p)
                 small_primes.append(p)
-                g,h = (mod(p,modulus)**(-1)).lift(),(mod(modulus,p)**(-1)).lift()
+                g, h = (mod(p,modulus)**(-1)).lift(), (mod(modulus,p)**(-1)).lift()
                 residue_list = [(a*p*g + b*modulus*h)%(modulus*p) for a in residue_list
                                 for b in range(1,p)]
                 num_residues = num_residues*(p-1)
@@ -1462,9 +1463,9 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         cdef double eg = self._euler_gamma
         cdef double N_double = self._N
 
-        cdef double t,u,w,y,z,expt,bound1,logp,logq
-        cdef double thetap,thetaq,sqrtp,sqrtq,p,q
-        cdef int ap,aq
+        cdef double t, u, w, y, z, expt, bound1, logp, logq
+        cdef double thetap, thetaq, sqrtp, sqrtq, p, q
+        cdef int ap, aq
         cdef unsigned long n
 
         # Compute bounds and smooth part of sum
@@ -1870,6 +1871,6 @@ def LFunctionZeroSum(X, *args, **kwds):
     from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
 
     if isinstance(X,EllipticCurve_rational_field):
-        return LFunctionZeroSum_EllipticCurve(X,*args,**kwds)
+        return LFunctionZeroSum_EllipticCurve(X, *args, **kwds)
 
     raise NotImplementedError("Currently only implemented for elliptic curves over QQ")

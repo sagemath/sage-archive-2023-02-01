@@ -1636,16 +1636,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             2
             sage: E.analytic_rank_upper_bound(max_Delta=2,adaptive=False)
             2
-            sage: E.analytic_rank_upper_bound(max_Delta=2.815,adaptive=False) # long time
-            0
 
         This method is can be called on curves with large conductor.
 
         ::
 
             sage: E = EllipticCurve([-2934,19238])
-            sage: Z = LFunctionZeroSum(E)
-            sage: Z.analytic_rank_upper_bound()
+            sage: E.analytic_rank_upper_bound()
             1
 
         And it can bound rank on curves with *very* large conductor, so long as
@@ -1661,9 +1658,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve([1,-1,1,a4,a6])
             sage: bad_primes = [2,3,5,7,11,13,17,19,48463]
             sage: N = 3455601108357547341532253864901605231198511505793733138900595189472144724781456635380154149870961231592352897621963802238155192936274322687070
-            sage: Z = LFunctionZeroSum(E,N)
-            sage: Z.analytic_rank_upper_bound(max_Delta=2.37,adaptive=False, # long time
-            ....: root_number=1,bad_primes=bad_primes,ncpus=2)               # long time
+            sage: E.analytic_rank_upper_bound(max_Delta=2.37,adaptive=False, # long time
+            ....: N=N,root_number=1,bad_primes=bad_primes,ncpus=2)           # long time
             32
 
         REFERENCES:

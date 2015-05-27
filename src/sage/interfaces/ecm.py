@@ -782,7 +782,7 @@ class ECM(SageObject):
         """
         Verify that n is positive and has at most 4095 digits.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- integer.
 

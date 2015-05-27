@@ -1285,7 +1285,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in AC: break
                     orbit.append( A )
                     AC.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def rowmotion_orbits(self, element_constructor = set):
@@ -1379,7 +1379,7 @@ class FinitePosets(CategoryWithAxiom):
                     if A not in OI: break
                     orbit.append( A )
                     OI.remove( A )
-                orbits.append(map(element_constructor, orbit))
+                orbits.append([element_constructor(_) for _ in orbit])
             return orbits
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):

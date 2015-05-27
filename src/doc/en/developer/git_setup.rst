@@ -40,7 +40,7 @@ Windows
 
 OS X
     Use the `git OSX installer
-    <https://sourceforge.net/projects/git-osx-installer/files/>`_  If you
+    <https://sourceforge.net/projects/git-osx-installer/files/>`_.  If you
     have an older Mac, be sure to get the correct version. (Alternately you
     may get it from the Command Line Tools or even simply by attempting to
     use ``git`` and then following instructions.)

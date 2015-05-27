@@ -3995,11 +3995,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: p=posets.BooleanLattice(3); p
             Finite lattice containing 8 elements
-            sage: p=p.relabel(lambda x:"abcdefghi"[x]); p
+            sage: p=p.canonical_label(); p
             Finite lattice containing 8 elements
-            sage: sorted(p)
-            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-
         """
         canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
         canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}

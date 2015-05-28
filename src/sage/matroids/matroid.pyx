@@ -4849,37 +4849,6 @@ cdef class Matroid(SageObject):
             if not M.is_3connected_beta(M).simplify():
                 return False
         return True
-    # matroid k-closed
-
-    cpdef is_k_closed(self, k):
-        r"""
-        Return if ``self`` is a ``k``-closed matroid.
-
-        We say a matroid is `k`-closed if all `k`-closed subsets
-        are closed in ``M``.
-
-        EXAMPLES::
-
-            sage: PR = RootSystem(['A',4]).root_lattice().positive_roots()
-            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
-            sage: M = Matroid(m)
-            sage: M.is_k_closed(3)
-            True
-            sage: M.is_k_closed(4)
-            True
-
-            sage: PR = RootSystem(['D',4]).root_lattice().positive_roots()
-            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
-            sage: M = Matroid(m)
-            sage: M.is_k_closed(3)
-            False
-            sage: M.is_k_closed(4)
-            True
-        """
-        for S in subsets(self.groundset()):
-            if self.is_subset_k_closed(S, k) and not self.is_closed(S):
-                return False
-        return True
 
     # matroid k-closed
 

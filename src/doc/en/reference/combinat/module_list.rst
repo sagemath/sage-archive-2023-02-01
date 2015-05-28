@@ -231,6 +231,7 @@ Comprehensive Module list
     sage/combinat/root_system/type_I
     sage/combinat/root_system/type_affine
     sage/combinat/root_system/type_dual
+    sage/combinat/root_system/extended_affine_weyl_group
     sage/combinat/root_system/type_folded
     sage/combinat/root_system/type_marked
     sage/combinat/root_system/type_reducible

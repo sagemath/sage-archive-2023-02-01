@@ -81,8 +81,8 @@ void remember_table_list::add_entry(function const & f, ex const & result)
 		}
 		case remember_strategies::delete_lru: {
 			// delete least recently used entry
-			iterator it = begin();
-			iterator lowest_access_it = it;
+			auto it = begin();
+			auto lowest_access_it = it;
 			unsigned long lowest_access = (*it).get_last_access();
 			++it;
 			while (it!=end()) {
@@ -97,8 +97,8 @@ void remember_table_list::add_entry(function const & f, ex const & result)
 		}
 		case remember_strategies::delete_lfu: {
 			// delete least frequently used entry
-			iterator it = begin();
-			iterator lowest_hits_it = it;
+			auto it = begin();
+			auto lowest_hits_it = it;
 			unsigned lowest_hits = (*it).get_successful_hits();
 			++it;
 			while (it!=end()) {
@@ -121,7 +121,7 @@ void remember_table_list::add_entry(function const & f, ex const & result)
 
 bool remember_table_list::lookup_entry(function const & f, ex & result) const
 {
-	const_iterator i = begin(), iend = end();
+	auto i = begin(), iend = end();
 	while (i != iend) {
 		if (i->is_equal(f)) {
 			result = i->get_result();
@@ -183,7 +183,7 @@ void remember_table::init_table()
 
 std::vector<remember_table> & remember_table::remember_tables()
 {
-	static std::vector<remember_table> * rt = new std::vector<remember_table>;
+	static auto  rt = new std::vector<remember_table>;
 	return *rt;
 }
 

@@ -257,7 +257,7 @@ ex adaptivesimpson(const ex & x, const ex & a_in, const ex & b_in, const ex & f,
 	static lookup_map lookup;
 	static symbol ivar("ivar");
 	ex lookupex = integral(ivar,a,b,f.subs(x==ivar));
-	lookup_map::iterator emi = lookup.find(error_and_integral(error, lookupex));
+	auto emi = lookup.find(error_and_integral(error, lookupex));
 	if (emi!=lookup.end())
 		return emi->second;
 

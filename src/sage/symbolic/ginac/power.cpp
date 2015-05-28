@@ -657,12 +657,12 @@ ex power::eval(int level) const
 
                                 if (canonicalizable && (icont != *_num1_p)) {
                                         const add& addref = ex_to<add>(ebasis);
-                                        add* addp = new add(addref);
+                                        auto  addp = new add(addref);
                                         addp->setflag(status_flags::dynallocated);
                                         addp->clearflag(status_flags::hash_calculated);
                                         addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
                                         addp->seq_sorted.resize(0);
-                                        for (epvector::iterator i = addp->seq.begin(); i != addp->seq.end(); ++i)
+                                        for (auto i = addp->seq.begin(); i != addp->seq.end(); ++i)
                                                 i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
 
                                         const numeric c = icont.power(*num_exponent);
@@ -683,7 +683,7 @@ ex power::eval(int level) const
 				const numeric & num_coeff = ex_to<numeric>(mulref.overall_coeff);
 				if (num_coeff.is_real()) {
 					if (num_coeff.is_positive()) {
-						mul *mulp = new mul(mulref);
+						auto mulp = new mul(mulref);
 						mulp->overall_coeff = _ex1;
 						mulp->setflag(status_flags::dynallocated);
 						mulp->clearflag(status_flags::evaluated);
@@ -694,7 +694,7 @@ ex power::eval(int level) const
 					} else {
 						GINAC_ASSERT(num_coeff.compare(*_num0_p)<0);
 						if (!num_coeff.is_equal(*_num_1_p)) {
-							mul *mulp = new mul(mulref);
+							auto mulp = new mul(mulref);
 							mulp->overall_coeff = _ex_1;
 							mulp->setflag(status_flags::dynallocated);
 							mulp->clearflag(status_flags::evaluated);
@@ -796,7 +796,7 @@ ex power::subs(const exmap & m, unsigned options) const
 	if (!(options & subs_options::algebraic))
 		return subs_one_level(m, options);
 
-	for (exmap::const_iterator it = m.begin(); it != m.end(); ++it) {
+	for (auto it = m.begin(); it != m.end(); ++it) {
 		int nummatches = std::numeric_limits<int>::max();
 		lst repls;
 		if (tryfactsubs(*this, it->first, nummatches, repls))
@@ -952,8 +952,8 @@ ex power::expand(unsigned options) const
 		epvector powseq;
 		prodseq.reserve(m.seq.size() + 1);
 		powseq.reserve(m.seq.size() + 1);
-		epvector::const_iterator last = m.seq.end();
-		epvector::const_iterator cit = m.seq.begin();
+		auto last = m.seq.end();
+		auto cit = m.seq.begin();
 		bool possign = true;
 
 		// search for positive/negative factors
@@ -997,8 +997,8 @@ ex power::expand(unsigned options) const
 		const add &a = ex_to<add>(expanded_exponent);
 		exvector distrseq;
 		distrseq.reserve(a.seq.size() + 1);
-		epvector::const_iterator last = a.seq.end();
-		epvector::const_iterator cit = a.seq.begin();
+		auto last = a.seq.end();
+		auto cit = a.seq.begin();
 		while (cit!=last) {
 			distrseq.push_back(power(expanded_basis, a.recombine_pair_to_ex(*cit)));
 			++cit;
@@ -1154,11 +1154,11 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	epvector sum;
 	size_t a_nops = a.nops();
 	sum.reserve((a_nops*(a_nops+1))/2);
-	epvector::const_iterator last = a.seq.end();
+	auto last = a.seq.end();
 
 	// power(+(x,...,z;c),2)=power(+(x,...,z;0),2)+2*c*+(x,...,z;0)+c*c
 	// first part: ignore overall_coeff and expand other terms
-	for (epvector::const_iterator cit0=a.seq.begin(); cit0!=last; ++cit0) {
+	for (auto cit0=a.seq.begin(); cit0!=last; ++cit0) {
 		const ex & r = cit0->rest;
 		const ex & c = cit0->coeff;
 		
@@ -1188,7 +1188,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 			}
 		}
 
-		for (epvector::const_iterator cit1=cit0+1; cit1!=last; ++cit1) {
+		for (auto cit1=cit0+1; cit1!=last; ++cit1) {
 			const ex & r1 = cit1->rest;
 			const ex & c1 = cit1->coeff;
 			sum.push_back(a.combine_ex_with_coeff_to_pair((new mul(r,r1))->setflag(status_flags::dynallocated),
@@ -1200,7 +1200,7 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	
 	// second part: add terms coming from overall_factor (if != 0)
 	if (!a.overall_coeff.is_zero()) {
-		epvector::const_iterator i = a.seq.begin(), end = a.seq.end();
+		auto i = a.seq.begin(), end = a.seq.end();
 		while (i != end) {
 			sum.push_back(a.combine_pair_with_coeff_to_pair(*i, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
 			++i;
@@ -1243,8 +1243,8 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 	distrseq.reserve(m.seq.size());
 	bool need_reexpand = false;
 
-	epvector::const_iterator last = m.seq.end();
-	epvector::const_iterator cit = m.seq.begin();
+	auto last = m.seq.end();
+	auto cit = m.seq.begin();
 	while (cit!=last) {
 		expair p = m.combine_pair_with_coeff_to_pair(*cit, n);
 		if (from_expand && is_exactly_a<add>(cit->rest) && ex_to<numeric>(p.coeff).is_pos_integer()) {

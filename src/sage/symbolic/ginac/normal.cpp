@@ -196,7 +196,7 @@ static void get_symbol_stats(const ex &a, const ex &b, sym_desc_vec &v)
 {
 	collect_symbols(a.eval(), v);   // eval() to expand assigned symbols
 	collect_symbols(b.eval(), v);
-	sym_desc_vec::iterator it = v.begin(), itend = v.end();
+	auto it = v.begin(), itend = v.end();
 	while (it != itend) {
 		int deg_a = a.degree(it->sym);
 		int deg_b = b.degree(it->sym);
@@ -320,8 +320,8 @@ numeric numeric::integer_content() const
 
 numeric add::integer_content() const
 {
-	epvector::const_iterator it = seq.begin();
-	epvector::const_iterator itend = seq.end();
+	auto it = seq.begin();
+	auto itend = seq.end();
 	numeric c = *_num0_p, l = *_num1_p;
 	while (it != itend) {
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
@@ -1163,8 +1163,8 @@ numeric numeric::max_coefficient() const
 
 numeric add::max_coefficient() const
 {
-	epvector::const_iterator it = seq.begin();
-	epvector::const_iterator itend = seq.end();
+	auto it = seq.begin();
+	auto itend = seq.end();
 	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
 	numeric cur_max = abs(ex_to<numeric>(overall_coeff));
 	while (it != itend) {
@@ -1213,8 +1213,8 @@ ex add::smod(const numeric &xi) const
 {
 	epvector newseq;
 	newseq.reserve(seq.size()+1);
-	epvector::const_iterator it = seq.begin();
-	epvector::const_iterator itend = seq.end();
+	auto it = seq.begin();
+	auto itend = seq.end();
 	while (it != itend) {
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
 		numeric coeff = GiNaC::smod(ex_to<numeric>(it->coeff), xi);
@@ -1237,7 +1237,7 @@ ex mul::smod(const numeric &xi) const
 		it++;
 	}
 #endif // def DO_GINAC_ASSERT
-	mul * mulcopyp = new mul(*this);
+	auto  mulcopyp = new mul(*this);
 	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
 	mulcopyp->overall_coeff = GiNaC::smod(ex_to<numeric>(overall_coeff),xi);
 	mulcopyp->clearflag(status_flags::evaluated);
@@ -1615,7 +1615,7 @@ factored_b:
 
 	// The symbol with least degree which is contained in both polynomials
 	// is our main variable
-	sym_desc_vec::iterator vari = sym_stats.begin();
+	auto vari = sym_stats.begin();
 	while ((vari != sym_stats.end()) && 
 	       (((vari->ldeg_b == 0) && (vari->deg_b == 0)) ||
 	        ((vari->ldeg_a == 0) && (vari->deg_a == 0))))
@@ -1829,7 +1829,7 @@ ex sqrfree(const ex &a, const lst &l)
 
 	// recurse down the factors in remaining variables
 	if (newargs.nops()>0) {
-		exvector::iterator i = factors.begin();
+		auto i = factors.begin();
 		while (i != factors.end()) {
 			*i = sqrfree(*i, newargs);
 			++i;
@@ -2120,7 +2120,7 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
 	exvector nums, dens;
 	nums.reserve(seq.size()+1);
 	dens.reserve(seq.size()+1);
-	epvector::const_iterator it = seq.begin(), itend = seq.end();
+	auto it = seq.begin(), itend = seq.end();
 	while (it != itend) {
 		ex n = ex_to<basic>(recombine_pair_to_ex(*it)).normal(repl, rev_lookup, level-1);
 		nums.push_back(n.op(0));
@@ -2179,7 +2179,7 @@ ex mul::normal(exmap & repl, exmap & rev_lookup, int level) const
 	exvector num; num.reserve(seq.size());
 	exvector den; den.reserve(seq.size());
 	ex n;
-	epvector::const_iterator it = seq.begin(), itend = seq.end();
+	auto it = seq.begin(), itend = seq.end();
 	while (it != itend) {
 		n = ex_to<basic>(recombine_pair_to_ex(*it)).normal(repl, rev_lookup, level-1);
 		num.push_back(n.op(0));
@@ -2258,7 +2258,7 @@ ex power::normal(exmap & repl, exmap & rev_lookup, int level) const
 ex pseries::normal(exmap & repl, exmap & rev_lookup, int level) const
 {
 	epvector newseq;
-	epvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		ex restexp = i->rest.normal();
 		if (!restexp.is_zero())
@@ -2381,7 +2381,7 @@ ex ex::to_rational(lst & repl_lst) const
 {
 	// Convert lst to exmap
 	exmap m;
-	for (lst::const_iterator it = repl_lst.begin(); it != repl_lst.end(); ++it)
+	for (auto it = repl_lst.begin(); it != repl_lst.end(); ++it)
 		m.insert(std::make_pair(it->op(0), it->op(1)));
 
 	ex ret = bp->to_rational(m);
@@ -2404,7 +2404,7 @@ ex ex::to_polynomial(lst & repl_lst) const
 {
 	// Convert lst to exmap
 	exmap m;
-	for (lst::const_iterator it = repl_lst.begin(); it != repl_lst.end(); ++it)
+	for (auto it = repl_lst.begin(); it != repl_lst.end(); ++it)
 		m.insert(std::make_pair(it->op(0), it->op(1)));
 
 	ex ret = bp->to_polynomial(m);
@@ -2519,7 +2519,7 @@ ex expairseq::to_rational(exmap & repl) const
 {
 	epvector s;
 	s.reserve(seq.size());
-	epvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		s.push_back(split_ex_to_pair(recombine_pair_to_ex(*i).to_rational(repl)));
 		++i;
@@ -2537,7 +2537,7 @@ ex expairseq::to_polynomial(exmap & repl) const
 {
 	epvector s;
 	s.reserve(seq.size());
-	epvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		s.push_back(split_ex_to_pair(recombine_pair_to_ex(*i).to_polynomial(repl)));
 		++i;

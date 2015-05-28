@@ -141,8 +141,8 @@ ex ncmul::expand(unsigned options) const
 	size_t number_of_expanded_terms = 1;
 
 	size_t current_position = 0;
-	exvector::const_iterator last = expanded_seq.end();
-	for (exvector::const_iterator cit=expanded_seq.begin(); cit!=last; ++cit) {
+	auto last = expanded_seq.end();
+	for (auto cit=expanded_seq.begin(); cit!=last; ++cit) {
 		if (is_exactly_a<add>(*cit)) {
 			positions_of_adds[number_of_adds] = current_position;
 			size_t num_ops = cit->nops();
@@ -213,7 +213,7 @@ int ncmul::degree(const ex & s) const
 
 	// Sum up degrees of factors
 	int deg_sum = 0;
-	exvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		deg_sum += i->degree(s);
 		++i;
@@ -228,7 +228,7 @@ int ncmul::ldegree(const ex & s) const
 
 	// Sum up degrees of factors
 	int deg_sum = 0;
-	exvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		deg_sum += i->degree(s);
 		++i;
@@ -247,7 +247,7 @@ ex ncmul::coeff(const ex & s, int n) const
 	if (n == 0) {
 		// product of individual coeffs
 		// if a non-zero power of s is found, the resulting product will be 0
-		exvector::const_iterator it=seq.begin();
+		auto it=seq.begin();
 		while (it!=seq.end()) {
 			coeffseq.push_back((*it).coeff(s,n));
 			++it;
@@ -255,7 +255,7 @@ ex ncmul::coeff(const ex & s, int n) const
 		return (new ncmul(coeffseq,1))->setflag(status_flags::dynallocated);
 	}
 		 
-	exvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	bool coeff_found = false;
 	while (i != end) {
 		ex c = i->coeff(s,n);
@@ -458,7 +458,7 @@ ex ncmul::evalm() const
 	// Evaluate children first
 	std::unique_ptr<exvector> s(new exvector);
 	s->reserve(seq.size());
-	exvector::const_iterator it = seq.begin(), itend = seq.end();
+	auto it = seq.begin(), itend = seq.end();
 	while (it != itend) {
 		s->push_back(it->evalm());
 		it++;
@@ -504,7 +504,7 @@ ex ncmul::conjugate() const
 
 	exvector ev;
 	ev.reserve(nops());
-	for (const_iterator i=end(); i!=begin();) {
+	for (auto i=end(); i!=begin();) {
 		--i;
 		ev.push_back(i->conjugate());
 	}
@@ -556,7 +556,7 @@ unsigned ncmul::return_type() const
 	bool all_commutative = true;
 	exvector::const_iterator noncommutative_element; // point to first found nc element
 
-	exvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		unsigned rt = i->return_type();
 		if (rt == return_types::noncommutative_composite)
@@ -584,7 +584,7 @@ tinfo_t ncmul::return_type_tinfo() const
 		return this;
 
 	// return type_info of first noncommutative element
-	exvector::const_iterator i = seq.begin(), end = seq.end();
+	auto i = seq.begin(), end = seq.end();
 	while (i != end) {
 		if (i->return_type() == return_types::noncommutative)
 			return i->return_type_tinfo();
@@ -607,7 +607,7 @@ tinfo_t ncmul::return_type_tinfo() const
 
 std::unique_ptr<exvector> ncmul::expandchildren(unsigned options) const
 {
-	const_iterator cit = this->seq.begin(), end = this->seq.end();
+	auto cit = this->seq.begin(), end = this->seq.end();
 	while (cit != end) {
 		const ex & expanded_ex = cit->expand(options);
 		if (!are_ex_trivially_equal(*cit, expanded_ex)) {

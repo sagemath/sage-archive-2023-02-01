@@ -1452,7 +1452,7 @@ static ex Li_evalf(const ex& m_, const ex& x_, PyObject* parent)
 			return Li(m_,x_).hold();
 		}
 
-		for (lst::const_iterator itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
+		for (auto itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
 			if (!(*itm).info(info_flags::posint)) {
 				return Li(m_, x_).hold();
 			}
@@ -1488,7 +1488,7 @@ static ex Li_eval(const ex& m_, const ex& x_)
 			bool is_zeta = true;
 			bool do_evalf = true;
 			bool crational = true;
-			for (lst::const_iterator itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
+			for (auto itm = m.begin(), itx = x.begin(); itm != m.end(); ++itm, ++itx) {
 				if (!(*itm).info(info_flags::posint)) {
 					return Li(m_,x_).hold();
 				}
@@ -1634,7 +1634,7 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 		x = lst(x_);
 	}
 	c.s << "{\\rm Li}_{";
-	lst::const_iterator itm = m.begin();
+	auto itm = m.begin();
 	(*itm).print(c);
 	itm++;
 	for (; itm != m.end(); itm++) {
@@ -1642,7 +1642,7 @@ static void Li_print_latex(const ex& m_, const ex& x_, const print_context& c)
 		(*itm).print(c);
 	}
 	c.s << "}(";
-	lst::const_iterator itx = x.begin();
+	auto itx = x.begin();
 	(*itx).print(c);
 	itx++;
 	for (; itx != x.end(); itx++) {
@@ -3250,7 +3250,7 @@ static ex H_eval(const ex& m_, const ex& x)
 		pos1 = *m.begin();
 		p = _ex1;
 	}
-	for (lst::const_iterator it = ++m.begin(); it != m.end(); it++) {
+	for (auto it = ++m.begin(); it != m.end(); it++) {
 		if ((*it).info(info_flags::integer)) {
 			if (step == 0) {
 				if (*it > _ex1) {
@@ -3379,7 +3379,7 @@ static void H_print_latex(const ex& m_, const ex& x, const print_context& c)
 		m = lst(m_);
 	}
 	c.s << "{\\rm H}_{";
-	lst::const_iterator itm = m.begin();
+	auto itm = m.begin();
 	(*itm).print(c);
 	itm++;
 	for (; itm != m.end(); itm++) {
@@ -3789,8 +3789,8 @@ static ex zeta1_evalf(const ex& x, PyObject* parent)
 		std::vector<int> r(count);
 
 		// check parameters and convert them
-		lst::const_iterator it1 = xlst.begin();
-		std::vector<int>::iterator it2 = r.begin();
+		auto it1 = xlst.begin();
+		auto it2 = r.begin();
 		do {
 			if (!(*it1).info(info_flags::posint)) {
 				return zeta(x).hold();
@@ -3897,7 +3897,7 @@ static void zeta1_print_latex(const ex& m_, const print_context& c)
 	c.s << "\\zeta(";
 	if (is_a<lst>(m_)) {
 		const lst& m = ex_to<lst>(m_);
-		lst::const_iterator it = m.begin();
+		auto it = m.begin();
 		(*it).print(c);
 		it++;
 		for (; it != m.end(); it++) {
@@ -3942,10 +3942,10 @@ static ex zeta2_evalf(const ex& x, const ex& s, PyObject* parent)
 		std::vector<int> si(count);
 
 		// check parameters and convert them
-		lst::const_iterator it_xread = xlst.begin();
-		lst::const_iterator it_sread = slst.begin();
-		std::vector<int>::iterator it_xwrite = xi.begin();
-		std::vector<int>::iterator it_swrite = si.begin();
+		auto it_xread = xlst.begin();
+		auto it_sread = slst.begin();
+		auto it_xwrite = xi.begin();
+		auto it_swrite = si.begin();
 		do {
 			if (!(*it_xread).info(info_flags::posint)) {
 				return zeta(x, s).hold();
@@ -3979,7 +3979,7 @@ static ex zeta2_eval(const ex& m, const ex& s_)
 {
 	if (is_exactly_a<lst>(s_)) {
 		const lst& s = ex_to<lst>(s_);
-		for (lst::const_iterator it = s.begin(); it != s.end(); it++) {
+		for (auto it = s.begin(); it != s.end(); it++) {
 			if ((*it).info(info_flags::positive)) {
 				continue;
 			}
@@ -4024,8 +4024,8 @@ static void zeta2_print_latex(const ex& m_, const ex& s_, const print_context& c
 		s = lst(s_);
 	}
 	c.s << "\\zeta(";
-	lst::const_iterator itm = m.begin();
-	lst::const_iterator its = s.begin();
+	auto itm = m.begin();
+	auto its = s.begin();
 	if (*its < 0) {
 		c.s << "\\overline{";
 		(*itm).print(c);

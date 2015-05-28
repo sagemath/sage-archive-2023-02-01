@@ -154,7 +154,7 @@ ex symbol::unarchive(const archive_node &n, lst &sym_lst)
 	ex s = (new symbol(n, sym_lst))->setflag(status_flags::dynallocated);
 
 	// If symbol is in sym_lst, return the existing symbol
-	for (lst::const_iterator it = sym_lst.begin(); it != sym_lst.end(); ++it) {
+	for (auto it = sym_lst.begin(); it != sym_lst.end(); ++it) {
 		if (is_a<symbol>(*it) && (ex_to<symbol>(*it).name == ex_to<symbol>(s).name))
 			return *it;
 	}
@@ -387,7 +387,7 @@ unsigned symbol::next_serial = 0;
 const symbol & get_symbol(const std::string & s)
 {
 	static std::map<std::string, symbol> directory;
-	std::map<std::string, symbol>::iterator i = directory.find(s);
+	auto i = directory.find(s);
 	if (i != directory.end()) {
 		return i->second;
 	}

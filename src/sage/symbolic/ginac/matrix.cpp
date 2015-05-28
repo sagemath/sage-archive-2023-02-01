@@ -93,7 +93,7 @@ matrix::matrix(unsigned r, unsigned c, const lst & l)
 	setflag(status_flags::not_shareable);
 
 	size_t i = 0;
-	for (lst::const_iterator it = l.begin(); it != l.end(); ++it, ++i) {
+	for (auto it = l.begin(); it != l.end(); ++it, ++i) {
 		size_t x = i % c;
 		size_t y = i / c;
 		if (y >= r)
@@ -113,10 +113,10 @@ matrix::matrix(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 	if (!(n.find_unsigned("row", row)) || !(n.find_unsigned("col", col)))
 		throw (std::runtime_error("unknown matrix dimensions in archive"));
 	m.reserve(row * col);
-	archive_node::archive_node_cit first = n.find_first("m");
-	archive_node::archive_node_cit last = n.find_last("m");
+	auto first = n.find_first("m");
+	auto last = n.find_last("m");
 	++last;
-	for (archive_node::archive_node_cit i=first; i<last; ++i) {
+	for (auto i=first; i<last; ++i) {
 		ex e;
 		n.find_ex_by_loc(i, e, sym_lst);
 		m.push_back(e);
@@ -128,7 +128,7 @@ void matrix::archive(archive_node &n) const
 	inherited::archive(n);
 	n.add_unsigned("row", row);
 	n.add_unsigned("col", col);
-	exvector::const_iterator i = m.begin(), iend = m.end();
+	auto i = m.begin(), iend = m.end();
 	while (i != iend) {
 		n.add_ex("m", *i);
 		++i;
@@ -239,7 +239,7 @@ ex matrix::subs(const exmap & mp, unsigned options) const
 ex matrix::conjugate() const
 {
 	exvector * ev = nullptr;
-	for (exvector::const_iterator i=m.begin(); i!=m.end(); ++i) {
+	for (auto i=m.begin(); i!=m.end(); ++i) {
 		ex x = i->conjugate();
 		if (ev) {
 			ev->push_back(x);
@@ -250,7 +250,7 @@ ex matrix::conjugate() const
 		}
 		ev = new exvector;
 		ev->reserve(m.size());
-		for (exvector::const_iterator j=m.begin(); j!=i; ++j) {
+		for (auto j=m.begin(); j!=i; ++j) {
 			ev->push_back(*j);
 		}
 		ev->push_back(x);
@@ -267,7 +267,7 @@ ex matrix::real_part() const
 {
 	exvector v;
 	v.reserve(m.size());
-	for (exvector::const_iterator i=m.begin(); i!=m.end(); ++i)
+	for (auto i=m.begin(); i!=m.end(); ++i)
 		v.push_back(i->real_part());
 	return matrix(row, col, v);
 }
@@ -276,7 +276,7 @@ ex matrix::imag_part() const
 {
 	exvector v;
 	v.reserve(m.size());
-	for (exvector::const_iterator i=m.begin(); i!=m.end(); ++i)
+	for (auto i=m.begin(); i!=m.end(); ++i)
 		v.push_back(i->imag_part());
 	return matrix(row, col, v);
 }
@@ -560,8 +560,8 @@ matrix matrix::add(const matrix & other) const
 		throw std::logic_error("matrix::add(): incompatible matrices");
 	
 	exvector sum(this->m);
-	exvector::iterator i = sum.begin(), end = sum.end();
-	exvector::const_iterator ci = other.m.begin();
+	auto i = sum.begin(), end = sum.end();
+	auto ci = other.m.begin();
 	while (i != end)
 		*i++ += *ci++;
 	
@@ -578,8 +578,8 @@ matrix matrix::sub(const matrix & other) const
 		throw std::logic_error("matrix::sub(): incompatible matrices");
 	
 	exvector dif(this->m);
-	exvector::iterator i = dif.begin(), end = dif.end();
-	exvector::const_iterator ci = other.m.begin();
+	auto i = dif.begin(), end = dif.end();
+	auto ci = other.m.begin();
 	while (i != end)
 		*i++ -= *ci++;
 	
@@ -748,7 +748,7 @@ ex matrix::determinant(unsigned algo) const
 	bool numeric_flag = true;
 	bool normal_flag = false;
 	unsigned sparse_count = 0;  // counts non-zero elements
-	exvector::const_iterator r = m.begin(), rend = m.end();
+	auto r = m.begin(), rend = m.end();
 	while (r != rend) {
 		if (!r->info(info_flags::numeric))
 			numeric_flag = false;
@@ -904,7 +904,7 @@ ex matrix::charpoly(const ex & lambda) const
 		throw (std::logic_error("matrix::charpoly(): matrix not square"));
 	
 	bool numeric_flag = true;
-	exvector::const_iterator r = m.begin(), rend = m.end();
+	auto r = m.begin(), rend = m.end();
 	while (r!=rend && numeric_flag==true) {
 		if (!r->info(info_flags::numeric))
 			numeric_flag = false;
@@ -1404,7 +1404,7 @@ int matrix::fraction_free_elimination(const bool det)
 	matrix tmp_d(m,n);  // for denominators, if needed
 	exmap srl;  // symbol replacement list
 	exvector::const_iterator cit = this->m.begin(), citend = this->m.end();
-	exvector::iterator tmp_n_it = tmp_n.m.begin(), tmp_d_it = tmp_d.m.begin();
+	auto tmp_n_it = tmp_n.m.begin(), tmp_d_it = tmp_d.m.begin();
 	while (cit != citend) {
 		ex nd = cit->normal().to_rational(srl).numer_denom();
 		++cit;
@@ -1476,7 +1476,7 @@ int matrix::fraction_free_elimination(const bool det)
 	}
 
 	// repopulate *this matrix:
-	exvector::iterator it = this->m.begin(), itend = this->m.end();
+	auto it = this->m.begin(), itend = this->m.end();
 	tmp_n_it = tmp_n.m.begin();
 	tmp_d_it = tmp_d.m.begin();
 	while (it != itend)
@@ -1541,7 +1541,7 @@ int matrix::pivot(unsigned ro, unsigned co, bool symbolic)
  */
 bool matrix::is_zero_matrix() const
 {
-	for (exvector::const_iterator i=m.begin(); i!=m.end(); ++i) 
+	for (auto i=m.begin(); i!=m.end(); ++i) 
 		if(!(i->is_zero()))
 			return false;
 	return true;

@@ -167,7 +167,7 @@ ex color::eval_ncmul(const exvector & v) const
 	s.reserve(v.size());
 
 	// Remove superfluous ONEs
-	exvector::const_iterator it = v.begin(), itend = v.end();
+	auto it = v.begin(), itend = v.end();
 	while (it != itend) {
 		if (!is_a<su3one>(it->op(0)))
 			s.push_back(*it);
@@ -335,7 +335,7 @@ bool su3t::contract_with(exvector::iterator self, exvector::iterator other, exve
 
 		// T.a S T.a = 1/2 Tr(S) - 1/6 S
 		} else {
-			exvector::iterator it = self + 1;
+			auto it = self + 1;
 			while (it != other) {
 				if (!is_a<color>(*it)) {
 					return false;
@@ -627,7 +627,7 @@ ex color_trace(const ex & e, const lst & rll)
 {
 	// Convert list to set
 	std::set<unsigned char> rls;
-	for (lst::const_iterator i = rll.begin(); i != rll.end(); ++i) {
+	for (auto i = rll.begin(); i != rll.end(); ++i) {
 		if (i->info(info_flags::nonnegint))
 			rls.insert(ex_to<numeric>(*i).to_int());
 	}

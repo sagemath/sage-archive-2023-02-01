@@ -842,7 +842,7 @@ ex function::evalf(int level, PyObject* kwds) const
 	else {
 		eseq.reserve(seq.size());
 		--level;
-		exvector::const_iterator it = seq.begin(), itend = seq.end();
+		auto it = seq.begin(), itend = seq.end();
 		while (it != itend) {
 			eseq.push_back(it->evalf(level, kwds));
 			++it;
@@ -1426,7 +1426,7 @@ ex function::power(const ex & power_param) const // power of function
 
 std::vector<function_options> & function::registered_functions()
 {
-	static std::vector<function_options> * rf = new std::vector<function_options>;
+	static auto  rf = new std::vector<function_options>;
 	return *rf;
 }
 

@@ -180,7 +180,7 @@ void indexed::printindices(const print_context & c, unsigned level) const
 {
 	if (seq.size() > 1) {
 
-		exvector::const_iterator it=seq.begin() + 1, itend = seq.end();
+		auto it=seq.begin() + 1, itend = seq.end();
 
 		if (is_a<print_latex>(c)) {
 
@@ -391,7 +391,7 @@ ex indexed::expand(unsigned options) const
 void indexed::validate() const
 {
 	GINAC_ASSERT(seq.size() > 0);
-	exvector::const_iterator it = seq.begin() + 1, itend = seq.end();
+	auto it = seq.begin() + 1, itend = seq.end();
 	while (it != itend) {
 		if (!is_a<idx>(*it))
 			throw(std::invalid_argument("indices of indexed object must be of type idx"));
@@ -468,7 +468,7 @@ exvector indexed::get_dummy_indices(const indexed & other) const
 
 bool indexed::has_dummy_index_for(const ex & i) const
 {
-	exvector::const_iterator it = seq.begin() + 1, itend = seq.end();
+	auto it = seq.begin() + 1, itend = seq.end();
 	while (it != itend) {
 		if (is_dummy_pair(*it, i))
 			return true;
@@ -546,7 +546,7 @@ exvector integral::get_free_indices() const
 template<class T> size_t number_of_type(const exvector&v)
 {
 	size_t number = 0;
-	for(exvector::const_iterator i=v.begin(); i!=v.end(); ++i)
+	for(auto i=v.begin(); i!=v.end(); ++i)
 		if(is_exactly_a<T>(*i))
 			++number;
 	return number;
@@ -649,7 +649,7 @@ bool reposition_dummy_indices(ex & e, exvector & variant_dummy_indices, exvector
 		for (size_t j=i+1; j<e.nops(); ++j) {
 			if (is_dummy_pair(e.op(i), e.op(j))) {
 				local_var_dummies.push_back(e.op(i));
-				for (exvector::iterator k = variant_dummy_indices.begin();
+				for (auto k = variant_dummy_indices.begin();
 						k!=variant_dummy_indices.end(); ++k) {
 					if (e.op(i).op(0) == k->op(0)) {
 						variant_dummy_indices.erase(k);
@@ -692,7 +692,7 @@ bool reposition_dummy_indices(ex & e, exvector & variant_dummy_indices, exvector
 
 	// If a dummy index is encountered for the first time in the
 	// product, pull it up, otherwise, pull it down
-	for (exvector::iterator it2 = seq.begin()+1, it2end = seq.end();
+	for (auto it2 = seq.begin()+1, it2end = seq.end();
 			it2 != it2end; ++it2) {
 		if (!is_exactly_a<varidx>(*it2))
 			continue;
@@ -785,7 +785,7 @@ static void product_to_exvector(const ex & e, exvector & v, bool & non_commutati
 template<class T> ex idx_symmetrization(const ex& r,const exvector& local_dummy_indices)
 {	exvector dummy_syms;
 	dummy_syms.reserve(r.nops());
-	for (exvector::const_iterator it = local_dummy_indices.begin(); it != local_dummy_indices.end(); ++it)
+	for (auto it = local_dummy_indices.begin(); it != local_dummy_indices.end(); ++it)
 			if(is_exactly_a<T>(*it))
 				dummy_syms.push_back(it->op(0));
 	if(dummy_syms.size() < 2)
@@ -1145,7 +1145,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 			const ex & term = sum.op(i);
 			exvector dummy_indices_of_term;
 			dummy_indices_of_term.reserve(dummy_indices.size());
-			for(exvector::iterator i=dummy_indices.begin(); i!=dummy_indices.end(); ++i)
+			for(auto i=dummy_indices.begin(); i!=dummy_indices.end(); ++i)
 				if(hasindex(term,i->op(0)))
 					dummy_indices_of_term.push_back(*i);
 			ex term_symm = idx_symmetrization<idx>(term, dummy_indices_of_term);
@@ -1163,7 +1163,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 		std::vector<terminfo> terms_pass2;
 		for (std::vector<terminfo>::const_iterator i=terms.begin(); i!=terms.end(); ) {
 			size_t num = 1;
-			std::vector<terminfo>::const_iterator j = i + 1;
+			auto j = i + 1;
 			while (j != terms.end() && j->symm == i->symm) {
 				num++;
 				j++;
@@ -1196,7 +1196,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 		for (std::vector<symminfo>::const_iterator i=sy.begin(); i!=sy.end(); ) {
 
 			// Combine equal terms
-			std::vector<symminfo>::const_iterator j = i + 1;
+			auto j = i + 1;
 			if (j != sy.end() && j->symmterm == i->symmterm) {
 
 				// More than one term, collect the coefficients
@@ -1229,7 +1229,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 
 				// How many symmetrized terms of this original term are left?
 				size_t num = 1;
-				std::vector<symminfo>::const_iterator j = i + 1;
+				auto j = i + 1;
 				while (j != sy_pass2.end() && j->orig == i->orig) {
 					num++;
 					j++;
@@ -1381,8 +1381,8 @@ void scalar_products::add(const ex & v1, const ex & v2, const ex & dim, const ex
 void scalar_products::add_vectors(const lst & l, const ex & dim)
 {
 	// Add all possible pairs of products
-	for (lst::const_iterator it1 = l.begin(); it1 != l.end(); ++it1)
-		for (lst::const_iterator it2 = l.begin(); it2 != l.end(); ++it2)
+	for (auto it1 = l.begin(); it1 != l.end(); ++it1)
+		for (auto it2 = l.begin(); it2 != l.end(); ++it2)
 			add(*it1, *it2, *it1 * *it2);
 }
 
@@ -1406,7 +1406,7 @@ ex scalar_products::evaluate(const ex & v1, const ex & v2, const ex & dim) const
 void scalar_products::debugprint() const
 {
 	std::cerr << "map size=" << spm.size() << std::endl;
-	spmap::const_iterator i = spm.begin(), end = spm.end();
+	auto i = spm.begin(), end = spm.end();
 	while (i != end) {
 		const spmapkey & k = i->first;
 		std::cerr << "item key=";
@@ -1468,7 +1468,7 @@ exvector get_all_dummy_indices(const ex & e)
 		if (is_a<indexed>(*ip)) {
 			v1 = ex_to<indexed>(*ip).get_dummy_indices();
 			v.insert(v.end(), v1.begin(), v1.end());
-			exvector::const_iterator ip1 = ip+1;
+			auto ip1 = ip+1;
 			while (ip1 != ipend) {
 				if (is_a<indexed>(*ip1)) {
 					v1 = ex_to<indexed>(*ip).get_dummy_indices(ex_to<indexed>(*ip1));
@@ -1551,7 +1551,7 @@ ex rename_dummy_indices_uniquely(exvector & va, const ex & b, bool modify_va)
 			lst indices_subs = rename_dummy_indices_uniquely(va, vb);
 			if (indices_subs.op(0).nops() > 0) {
 				if (modify_va) {
-					for (lst::const_iterator i = ex_to<lst>(indices_subs.op(1)).begin(); i != ex_to<lst>(indices_subs.op(1)).end(); ++i)
+					for (auto i = ex_to<lst>(indices_subs.op(1)).begin(); i != ex_to<lst>(indices_subs.op(1)).end(); ++i)
 						va.push_back(*i);
 					exvector uncommon_indices;
 					set_difference(vb.begin(), vb.end(), indices_subs.op(0).begin(), indices_subs.op(0).end(), std::back_insert_iterator<exvector>(uncommon_indices), ex_is_less());

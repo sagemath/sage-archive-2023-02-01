@@ -376,10 +376,10 @@ int print_order::compare_same_type_mul(const mul &lh, const mul &rh) const
 	// compare each item in lh to corresponding element in rh
 	const epvector & sorted_seq1 = lh.get_sorted_seq();
 	const epvector & sorted_seq2 = rh.get_sorted_seq();
-	epvector::const_reverse_iterator cit1 = sorted_seq1.rbegin();
-	epvector::const_reverse_iterator cit2 = sorted_seq2.rbegin();
-	epvector::const_reverse_iterator last1 = sorted_seq1.rend();
-	epvector::const_reverse_iterator last2 = sorted_seq2.rend();
+	auto cit1 = sorted_seq1.rbegin();
+	auto cit2 = sorted_seq2.rbegin();
+	auto last1 = sorted_seq1.rend();
+	auto last2 = sorted_seq2.rend();
 
 	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
 		// compare bases
@@ -502,10 +502,10 @@ int print_order::compare_same_type_add(const add &lh, const add &rh) const
 
 	const epvector & sorted_seq1 = lh.get_sorted_seq();
 	const epvector & sorted_seq2 = rh.get_sorted_seq();
-	epvector::const_iterator cit1 = sorted_seq1.begin();
-	epvector::const_iterator cit2 = sorted_seq2.begin();
-	epvector::const_iterator last1 = sorted_seq1.end();
-	epvector::const_iterator last2 = sorted_seq2.end();
+	auto cit1 = sorted_seq1.begin();
+	auto cit2 = sorted_seq2.begin();
+	auto last1 = sorted_seq1.end();
+	auto last2 = sorted_seq2.end();
 
 	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
 		// compare bases
@@ -632,7 +632,7 @@ template <template <class T, class = std::allocator<T> > class C>
 int print_order::compare_same_type_container(const container<C> &lh,
 					     const container<C> &rh) const
 {
-	typename C<ex>::const_iterator it1 = lh.seq.begin(), it1end = lh.seq.end(),
+	auto it1 = lh.seq.begin(), it1end = lh.seq.end(),
 			      it2 = rh.seq.begin(), it2end = rh.seq.end();
 
 	while (it1 != it1end && it2 != it2end) {

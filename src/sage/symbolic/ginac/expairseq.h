@@ -189,7 +189,7 @@ class make_flat_inserter
 		{
 			if (!do_renaming)
 				return;
-			for (epvector::const_iterator i=epv.begin(); i!=epv.end(); ++i)
+			for (auto i=epv.begin(); i!=epv.end(); ++i)
 				if(are_ex_trivially_equal(i->coeff, 1))
 					combine_indices(i->rest.get_free_indices());
 		}
@@ -197,7 +197,7 @@ class make_flat_inserter
 		{
 			if (!do_renaming)
 				return;
-			for (exvector::const_iterator i=v.begin(); i!=v.end(); ++i)
+			for (auto i=v.begin(); i!=v.end(); ++i)
 				combine_indices(i->get_free_indices());
 		}
 		ex handle_factor(const ex &x, const ex &coeff)

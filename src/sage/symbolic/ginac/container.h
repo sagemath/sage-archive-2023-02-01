@@ -373,7 +373,7 @@ protected:
 	ex conjugate() const
 	{
 		STLT *newcont = nullptr;
-		for (const_iterator i=this->seq.begin(); i!=this->seq.end(); ++i) {
+		for (auto i=this->seq.begin(); i!=this->seq.end(); ++i) {
 			if (newcont) {
 				newcont->push_back(i->conjugate());
 				continue;
@@ -384,7 +384,7 @@ protected:
 			}
 			newcont = new STLT;
 			this->reserve(*newcont, this->seq.size());
-			for (const_iterator j=this->seq.begin(); j!=i; ++j) {
+			for (auto j=this->seq.begin(); j!=i; ++j) {
 				newcont->push_back(*j);
 			}
 			newcont->push_back(x);
@@ -401,9 +401,9 @@ protected:
 	{
 		STLT cont;
 		this->reserve(cont, nops());
-		const_iterator b = begin();
-		const_iterator e = end();
-		for(const_iterator i=b; i!=e; ++i)
+		auto b = begin();
+		auto e = end();
+		for(auto i=b; i!=e; ++i)
 			cont.push_back(i->real_part());
 		return thiscontainer(cont);
 	}
@@ -412,9 +412,9 @@ protected:
 	{
 		STLT cont;
 		this->reserve(cont, nops());
-		const_iterator b = begin();
-		const_iterator e = end();
-		for(const_iterator i=b; i!=e; ++i)
+		auto b = begin();
+		auto e = end();
+		for(auto i=b; i!=e; ++i)
 			cont.push_back(i->imag_part());
 		return thiscontainer(cont);
 	}
@@ -445,7 +445,7 @@ private:
 
 	void unique_()
 	{
-		typename STLT::iterator p = std::unique(this->seq.begin(), this->seq.end(), ex_is_equal());
+		auto p = std::unique(this->seq.begin(), this->seq.end(), ex_is_equal());
 		this->seq.erase(p, this->seq.end());
 	}
 
@@ -485,11 +485,11 @@ container<C>::container(const archive_node &n, lst &sym_lst) : inherited(n, sym_
 {
 	setflag(get_default_flags());
 
-	archive_node::archive_node_cit first = n.find_first("seq");
-	archive_node::archive_node_cit last = n.find_last("seq");
+	auto first = n.find_first("seq");
+	auto last = n.find_last("seq");
 	++last;
 	this->reserve(this->seq, last - first);
-	for (archive_node::archive_node_cit i=first; i<last; ++i) {
+	for (auto i=first; i<last; ++i) {
 		ex e;
 		n.find_ex_by_loc(i, e, sym_lst);
 		this->seq.push_back(e);
@@ -508,7 +508,7 @@ template <template <class T, class = std::allocator<T> > class C>
 void container<C>::archive(archive_node &n) const
 {
 	inherited::archive(n);
-	const_iterator i = this->seq.begin(), end = this->seq.end();
+	auto i = this->seq.begin(), end = this->seq.end();
 	while (i != end) {
 		n.add_ex("seq", *i);
 		++i;
@@ -529,7 +529,7 @@ void container<C>::do_print_tree(const print_tree & c, unsigned level) const
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << ", nops=" << nops()
 	    << std::endl;
-	const_iterator i = this->seq.begin(), end = this->seq.end();
+	auto i = this->seq.begin(), end = this->seq.end();
 	while (i != end) {
 		i->print(c, level + c.delta_indent);
 		++i;
@@ -555,7 +555,7 @@ ex container<C>::op(size_t i) const
 {
 	GINAC_ASSERT(i < nops());
 
-	const_iterator it = this->seq.begin();
+	auto it = this->seq.begin();
 	advance(it, i);
 	return *it;
 }
@@ -566,7 +566,7 @@ ex & container<C>::let_op(size_t i)
 	GINAC_ASSERT(i < nops());
 
 	ensure_if_modifiable();
-	typename STLT::iterator it = this->seq.begin();
+	auto it = this->seq.begin();
 	advance(it, i);
 	return *it;
 }
@@ -613,7 +613,7 @@ int container<C>::compare_same_type(const basic & other) const
 	GINAC_ASSERT(is_a<container>(other));
 	const container & o = static_cast<const container &>(other);
 
-	const_iterator it1 = this->seq.begin(), it1end = this->seq.end(),
+	auto it1 = this->seq.begin(), it1end = this->seq.end(),
 	               it2 = o.seq.begin(), it2end = o.seq.end();
 
 	while (it1 != it1end && it2 != it2end) {
@@ -635,7 +635,7 @@ bool container<C>::is_equal_same_type(const basic & other) const
 	if (this->seq.size() != o.seq.size())
 		return false;
 
-	const_iterator it1 = this->seq.begin(), it1end = this->seq.end(), it2 = o.seq.begin();
+	auto it1 = this->seq.begin(), it1end = this->seq.end(), it2 = o.seq.begin();
 	while (it1 != it1end) {
 		if (!it1->is_equal(*it2))
 			return false;
@@ -746,7 +746,7 @@ void container<C>::printseq(const print_context & c, const char* openbracket,
 		c.s << openbracket;
 
 	if (!this->seq.empty()) {
-		const_iterator it = this->seq.begin(), itend = this->seq.end();
+		auto it = this->seq.begin(), itend = this->seq.end();
 		--itend;
 		while (it != itend) {
 			it->print(c, this_precedence);
@@ -772,7 +772,7 @@ typename container<C>::STLT container<C>::evalchildren(int level) const
 	this->reserve(s, this->seq.size());
 
 	--level;
-	const_iterator it = this->seq.begin(), itend = this->seq.end();
+	auto it = this->seq.begin(), itend = this->seq.end();
 	while (it != itend) {
 		s.push_back(it->eval(level));
 		++it;
@@ -788,7 +788,7 @@ std::unique_ptr<typename container<C>::STLT> container<C>::subschildren(const ex
 	// returns a pointer to a newly created STLT otherwise
 	// (and relinquishes responsibility for the STLT)
 
-	const_iterator cit = this->seq.begin(), end = this->seq.end();
+	auto cit = this->seq.begin(), end = this->seq.end();
 	while (cit != end) {
 		const ex & subsed_ex = cit->subs(m, options);
 		if (!are_ex_trivially_equal(*cit, subsed_ex)) {

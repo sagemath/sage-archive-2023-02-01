@@ -375,7 +375,7 @@ ex idx::evalf(int level, PyObject* parent) const
 ex idx::subs(const exmap & m, unsigned options) const
 {
 	// First look for index substitutions
-	exmap::const_iterator it = m.find(*this);
+	auto it = m.find(*this);
 	if (it != m.end()) {
 
 		// Substitution index->index
@@ -543,7 +543,7 @@ void find_free_and_dummy(exvector::const_iterator it, exvector::const_iterator i
 
 	// Find dummy pairs and free indices
 	it = v.begin(); itend = v.end();
-	exvector::const_iterator last = it++;
+	auto last = it++;
 	while (it != itend) {
 		if (is_dummy_pair(*it, *last)) {
 			out_dummy.push_back(*last);

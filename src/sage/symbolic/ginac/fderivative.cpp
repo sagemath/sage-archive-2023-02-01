@@ -84,7 +84,7 @@ fderivative::fderivative(const archive_node &n, lst &sym_lst) : inherited(n, sym
 void fderivative::archive(archive_node &n) const
 {
 	inherited::archive(n);
-	paramset::const_iterator i = parameter_set.begin(), end = parameter_set.end();
+	auto i = parameter_set.begin(), end = parameter_set.end();
 	while (i != end) {
 		n.add_unsigned("param", *i);
 		++i;
@@ -140,7 +140,7 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 void fderivative::do_print_csrc(const print_csrc & c, unsigned level) const
 {
 	c.s << "D_";
-	paramset::const_iterator i = parameter_set.begin(), end = parameter_set.end();
+	auto i = parameter_set.begin(), end = parameter_set.end();
 	--end;
 	while (i != end)
 		c.s << *i++ << "_";
@@ -155,7 +155,7 @@ void fderivative::do_print_tree(const print_tree & c, unsigned level) const
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << ", nops=" << nops()
 	    << ", params=";
-	paramset::const_iterator i = parameter_set.begin(), end = parameter_set.end();
+	auto i = parameter_set.begin(), end = parameter_set.end();
 	--end;
 	while (i != end)
 		c.s << *i++ << ",";
@@ -260,7 +260,7 @@ unsigned fderivative::calchash() const
 
 	// FNV hash with custom prime and initial value
 	unsigned h = 2166136285;
-	for (paramset::const_iterator i = parameter_set.begin(), 
+	for (auto i = parameter_set.begin(), 
 			end = parameter_set.end(); i != end; ++i) {
 		h = ( h * 2097287 ) ^ (*i-prev);
 		prev = *i;

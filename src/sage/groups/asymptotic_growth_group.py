@@ -300,7 +300,8 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
+            sage: x = P.gen()
             sage: P.le(x, x^2)
             True
             sage: P.le(x^2, x)
@@ -763,8 +764,8 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
-            sage: hash(x)  # random
+            sage: P = agg.GrowthGroupPower("x")
+            sage: hash(P.gen())  # random
             -3234005094684624010
         """
         return hash((self.exponent, self.parent()))
@@ -809,7 +810,7 @@ class GrowthGroupPower(GenericGrowthGroup):
 
 
     @staticmethod
-    def __classcall__(cls, var=None, base=ZZ, category=None, names=None):
+    def __classcall__(cls, var=None, base=ZZ, category=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -828,9 +829,6 @@ class GrowthGroupPower(GenericGrowthGroup):
             sage: P1 is P4
             True
         """
-        if names is not None and len(names) == 1:
-            var = names[0]
-
         if hasattr(var, "is_symbol") and var.is_symbol():
             var = repr(var)
         elif hasattr(var, "is_gen") and var.is_gen():
@@ -984,7 +982,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: P.gens()
             (x,)
         """
@@ -1007,7 +1005,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: P.ngens()
             1
         """
@@ -1078,7 +1076,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: hash(P)  # random
             -8144479309627091876
         """

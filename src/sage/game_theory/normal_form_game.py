@@ -526,8 +526,6 @@ from sage.matrix.constructor import vector
 from sage.misc.package import is_package_installed
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
-import numpy as np
-from decimal import Decimal
 
 try:
     from gambit import Game
@@ -916,6 +914,7 @@ class NormalFormGame(SageObject, MutableMapping):
             <BLANKLINE>
 
         """
+        from decimal import Decimal
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
         for strategy_profile in self.utilities:

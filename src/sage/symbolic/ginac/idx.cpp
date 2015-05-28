@@ -70,7 +70,7 @@ spinidx::spinidx() : dotted(false)
 // other constructors
 //////////
 
-idx::idx(const ex & v, const ex & d) : inherited(&idx::tinfo_static), value(v), dim(d)
+idx::idx(ex  v, ex  d) : inherited(&idx::tinfo_static), value(std::move(v)), dim(std::move(d))
 {
 	if (is_dim_numeric())
 		if (!dim.info(info_flags::posint))

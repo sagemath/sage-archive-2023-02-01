@@ -51,7 +51,7 @@ relational::relational() : basic(&relational::tinfo_static) {}
 
 // public
 
-relational::relational(const ex & lhs, const ex & rhs, operators oper) : basic(&relational::tinfo_static), lh(lhs), rh(rhs), o(oper) {}
+relational::relational(ex  lhs, ex  rhs, operators oper) : basic(&relational::tinfo_static), lh(std::move(lhs)), rh(std::move(rhs)), o(oper) {}
 
 //////////
 // archiving

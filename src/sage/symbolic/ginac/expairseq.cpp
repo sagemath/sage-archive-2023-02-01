@@ -122,16 +122,16 @@ expairseq::expairseq(const exvector &v) : inherited(&expairseq::tinfo_static)
 	GINAC_ASSERT(is_canonical());
 }
 
-expairseq::expairseq(const epvector &v, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
+expairseq::expairseq(const epvector &v, ex oc, bool do_index_renaming)
+  : inherited(&expairseq::tinfo_static), overall_coeff(std::move(oc))
 {
 	GINAC_ASSERT(is_a<numeric>(oc));
 	construct_from_epvector(v, do_index_renaming);
 	GINAC_ASSERT(is_canonical());
 }
 
-expairseq::expairseq(std::unique_ptr<epvector> vp, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
+expairseq::expairseq(std::unique_ptr<epvector> vp, ex oc, bool do_index_renaming)
+  : inherited(&expairseq::tinfo_static), overall_coeff(std::move(oc))
 {
 	GINAC_ASSERT(vp.get()!=0);
 	GINAC_ASSERT(is_a<numeric>(oc));

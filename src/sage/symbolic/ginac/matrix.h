@@ -37,7 +37,7 @@ namespace GiNaC {
 template <typename T, typename It>
 class matrix_init {
 public:
-	matrix_init(It i) : iter(i) {}
+	matrix_init(It i) : iter(std::move(i)) {}
 
 	matrix_init<T, It> operator,(const T & x)
 	{
@@ -98,7 +98,7 @@ class matrix : public basic
 	// other constructors
 public:
 	matrix(unsigned r, unsigned c);
-	matrix(unsigned r, unsigned c, const exvector & m2);
+	matrix(unsigned r, unsigned c, exvector  m2);
 	matrix(unsigned r, unsigned c, const lst & l);
 
 	// First step of initialization of matrix with a comma-separated seqeuence

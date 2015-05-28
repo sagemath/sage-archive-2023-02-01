@@ -40,7 +40,7 @@ public:
 	expair() : rest(0), coeff(1) { }
 
 	/** Construct an expair from two ex. */
-	expair(const ex & r, const ex & c) : rest(r), coeff(c)
+	expair(ex  r, ex  c) : rest(std::move(r)), coeff(std::move(c))
 	{
 		GINAC_ASSERT(is_exactly_a<numeric>(coeff));
 	}

@@ -51,11 +51,11 @@ class symbol : public basic
 	
 	// other constructors
 public:
-	explicit symbol(const std::string & initname, unsigned domain = domain::complex);
-	symbol(const std::string & initname, const std::string & texname, unsigned domain = domain::complex);
+	explicit symbol(std::string  initname, unsigned domain = domain::complex);
+	symbol(std::string  initname, std::string  texname, unsigned domain = domain::complex);
 	symbol(const std::string & initname, const std::string & texname, unsigned rt, unsigned domain);
-	symbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain = domain::complex);
-	symbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain = domain::complex);
+	symbol(std::string  initname, unsigned rt, tinfo_t rtt, unsigned domain = domain::complex);
+	symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t rtt, unsigned domain = domain::complex);
 	
 	// functions overriding virtual functions from base classes
 public:

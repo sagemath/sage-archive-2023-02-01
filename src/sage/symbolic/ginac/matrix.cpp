@@ -77,8 +77,8 @@ matrix::matrix(unsigned r, unsigned c)
 // protected
 
 /** Ctor from representation, for internal use only. */
-matrix::matrix(unsigned r, unsigned c, const exvector & m2)
-  : inherited(&matrix::tinfo_static), row(r), col(c), m(m2)
+matrix::matrix(unsigned r, unsigned c, exvector  m2)
+  : inherited(&matrix::tinfo_static), row(r), col(c), m(std::move(m2))
 {
 	setflag(status_flags::not_shareable);
 }

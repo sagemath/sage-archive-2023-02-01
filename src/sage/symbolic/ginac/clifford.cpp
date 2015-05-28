@@ -105,18 +105,18 @@ clifford::clifford(const ex & b, unsigned char rl) : inherited(b), representatio
  *  use only. Use the clifford_unit() or dirac_gamma() functions instead.
  *  @see clifford_unit
  *  @see dirac_gamma */
-clifford::clifford(const ex & b, const ex & mu, const ex & metr, unsigned char rl, int comm_sign) : inherited(b, mu), representation_label(rl), metric(metr), commutator_sign(comm_sign)
+clifford::clifford(const ex & b, const ex & mu, ex  metr, unsigned char rl, int comm_sign) : inherited(b, mu), representation_label(rl), metric(std::move(metr)), commutator_sign(comm_sign)
 {
 	GINAC_ASSERT(is_a<varidx>(mu));
 	tinfo_key = &clifford::tinfo_static;
 }
 
-clifford::clifford(unsigned char rl, const ex & metr, int comm_sign, const exvector & v, bool discardable) : inherited(not_symmetric(), v, discardable), representation_label(rl), metric(metr), commutator_sign(comm_sign)
+clifford::clifford(unsigned char rl, ex  metr, int comm_sign, const exvector & v, bool discardable) : inherited(not_symmetric(), v, discardable), representation_label(rl), metric(std::move(metr)), commutator_sign(comm_sign)
 {
 	tinfo_key = &clifford::tinfo_static;
 }
 
-clifford::clifford(unsigned char rl, const ex & metr, int comm_sign, std::unique_ptr<exvector> vp) : inherited(not_symmetric(), std::move(vp)), representation_label(rl), metric(metr), commutator_sign(comm_sign)
+clifford::clifford(unsigned char rl, ex  metr, int comm_sign, std::unique_ptr<exvector> vp) : inherited(not_symmetric(), std::move(vp)), representation_label(rl), metric(std::move(metr)), commutator_sign(comm_sign)
 {
 	tinfo_key = &clifford::tinfo_static;
 }

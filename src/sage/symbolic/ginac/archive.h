@@ -64,7 +64,7 @@ public:
 	 *  @see get_properties */
 	struct property_info {
 		property_info() {}
-		property_info(property_type t, const std::string &n, unsigned c = 1) : type(t), name(n), count(c) {}
+		property_info(property_type t, std::string n, unsigned c = 1) : type(t), name(std::move(n)), count(c) {}
 
 		property_type type; /**< Data type of property. */
 		std::string name;   /**< Name of property. */

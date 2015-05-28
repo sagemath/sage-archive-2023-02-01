@@ -44,7 +44,7 @@ public:
 	 *  @param v Value of index (numeric or symbolic)
 	 *  @param dim Dimension of index space (numeric or symbolic)
 	 *  @return newly constructed index */
-	explicit idx(const ex & v, const ex & dim);
+	explicit idx(ex  v, ex  dim);
 
 	// functions overriding virtual functions from base classes
 public:

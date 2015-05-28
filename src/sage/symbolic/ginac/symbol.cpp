@@ -77,26 +77,26 @@ possymbol::possymbol()
 
 // symbol
 
-symbol::symbol(const std::string & initname, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+symbol::symbol(std::string  initname, unsigned domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(default_TeX_name()), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+symbol::symbol(std::string  initname, unsigned rt, tinfo_t rtt, unsigned domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(const std::string & initname, const std::string & texname, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+symbol::symbol(std::string  initname, std::string  texname, unsigned domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(initname), TeX_name(texname), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+symbol::symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t rtt, unsigned domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }

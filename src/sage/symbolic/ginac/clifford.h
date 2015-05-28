@@ -47,11 +47,11 @@ public:
 	// other constructors
 public:
 	clifford(const ex & b, unsigned char rl = 0);
-	clifford(const ex & b, const ex & mu,  const ex & metr, unsigned char rl = 0, int comm_sign = -1);
+	clifford(const ex & b, const ex & mu,  ex  metr, unsigned char rl = 0, int comm_sign = -1);
 
 	// internal constructors
-	clifford(unsigned char rl, const ex & metr, int comm_sign, const exvector & v, bool discardable = false);
-	clifford(unsigned char rl, const ex & metr, int comm_sign, std::unique_ptr<exvector> vp);
+	clifford(unsigned char rl, ex  metr, int comm_sign, const exvector & v, bool discardable = false);
+	clifford(unsigned char rl, ex  metr, int comm_sign, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 public:

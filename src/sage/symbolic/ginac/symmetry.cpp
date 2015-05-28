@@ -400,7 +400,7 @@ class sy_is_less : public std::binary_function<ex, ex, bool> {
 	exvector::iterator v;
 
 public:
-	sy_is_less(exvector::iterator v_) : v(v_) {}
+	sy_is_less(exvector::iterator v_) : v(std::move(v_)) {}
 
 	bool operator() (const ex &lh, const ex &rh) const
 	{
@@ -426,7 +426,7 @@ class sy_swap : public std::binary_function<ex, ex, void> {
 public:
 	bool &swapped;
 
-	sy_swap(exvector::iterator v_, bool &s) : v(v_), swapped(s) {}
+	sy_swap(exvector::iterator v_, bool &s) : v(std::move(v_)), swapped(s) {}
 
 	void operator() (const ex &lh, const ex &rh)
 	{

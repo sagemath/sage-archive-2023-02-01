@@ -330,7 +330,7 @@ public:
     function(unsigned ser, const ex & param1, const ex & param2);
     function(unsigned ser, const ex & param1, const ex & param2, const ex & param3);
 	// end of generated lines
-	function(unsigned ser, const exprseq & es);
+	function(unsigned ser, exprseq  es);
 	function(unsigned ser, const exvector & v, bool discardable = false);
 	function(unsigned ser, std::unique_ptr<exvector> vp);
 

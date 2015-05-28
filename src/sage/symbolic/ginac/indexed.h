@@ -139,7 +139,7 @@ public:
 	indexed(const ex & b, const symmetry & symm, const exvector & iv);
 
 	// internal constructors
-	indexed(const symmetry & symm, const exprseq & es);
+	indexed(const symmetry & symm, exprseq  es);
 	indexed(const symmetry & symm, const exvector & v, bool discardable = false);
 	indexed(const symmetry & symm, std::unique_ptr<exvector> vp);
 
@@ -204,7 +204,7 @@ protected:
 class spmapkey {
 public:
 	spmapkey() : dim(wild()) {}
-	spmapkey(const ex & v1, const ex & v2, const ex & dim = wild());
+	spmapkey(const ex & v1, const ex & v2, ex  dim = wild());
 
 	bool operator==(const spmapkey &other) const;
 	bool operator<(const spmapkey &other) const;

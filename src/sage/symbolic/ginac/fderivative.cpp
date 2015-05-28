@@ -54,12 +54,12 @@ fderivative::fderivative(unsigned ser, unsigned param, const exvector & args) : 
 	tinfo_key = &fderivative::tinfo_static;
 }
 
-fderivative::fderivative(unsigned ser, const paramset & params, const exvector & args) : function(ser, args), parameter_set(params)
+fderivative::fderivative(unsigned ser, paramset  params, const exvector & args) : function(ser, args), parameter_set(std::move(params))
 {
 	tinfo_key = &fderivative::tinfo_static;
 }
 
-fderivative::fderivative(unsigned ser, const paramset & params, std::unique_ptr<exvector> vp) : function(ser, std::move(vp)), parameter_set(params)
+fderivative::fderivative(unsigned ser, paramset  params, std::unique_ptr<exvector> vp) : function(ser, std::move(vp)), parameter_set(std::move(params))
 {
 	tinfo_key = &fderivative::tinfo_static;
 }

@@ -68,7 +68,7 @@ pseries::pseries() : inherited(&pseries::tinfo_static) { }
  *  @param rel_  expansion variable and point (must hold a relational)
  *  @param ops_  vector of {coefficient, power} pairs (coefficient must not be zero)
  *  @return newly constructed pseries */
-pseries::pseries(const ex &rel_, const epvector &ops_) : basic(&pseries::tinfo_static), seq(ops_)
+pseries::pseries(const ex &rel_, epvector ops_) : basic(&pseries::tinfo_static), seq(std::move(ops_))
 {
 	GINAC_ASSERT(is_a<relational>(rel_));
 	GINAC_ASSERT(is_a<symbol>(rel_.lhs()));

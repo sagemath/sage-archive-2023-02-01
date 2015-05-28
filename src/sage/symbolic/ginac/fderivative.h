@@ -55,10 +55,10 @@ public:
 	 *  @param ser Serial number of function
 	 *  @param params Set of numbers of parameters with respect to which to take the derivative
 	 *  @param args Arguments of derivative function */
-	fderivative(unsigned ser, const paramset & params, const exvector & args);
+	fderivative(unsigned ser, paramset  params, const exvector & args);
 
 	// internal constructors
-	fderivative(unsigned ser, const paramset & params, std::unique_ptr<exvector> vp);
+	fderivative(unsigned ser, paramset  params, std::unique_ptr<exvector> vp);
 
 	// functions overriding virtual functions from base classes
 public:

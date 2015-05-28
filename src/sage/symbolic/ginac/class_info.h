@@ -40,7 +40,7 @@ namespace GiNaC {
 template <class OPT>
 class class_info {
 public:
-	class_info(const OPT & o) : options(o), next(first), parent(nullptr)
+	class_info(OPT  o) : options(std::move(o)), next(first), parent(nullptr)
 	{
 		first = this;
 		parents_identified = false;

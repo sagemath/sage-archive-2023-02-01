@@ -38,7 +38,7 @@ class pseries : public basic
 
 	// other constructors
 public:
-	pseries(const ex &rel_, const epvector &ops_);
+	pseries(const ex &rel_, epvector ops_);
 
 	// functions overriding virtual functions from base classes
 public:

@@ -513,7 +513,7 @@ function::function(unsigned ser, const ex & param1, const ex & param2, const ex 
 
 // end of generated lines
 
-function::function(unsigned ser, const exprseq & es) : exprseq(es), serial(ser)
+function::function(unsigned ser, exprseq  es) : exprseq(std::move(es)), serial(ser)
 {
 	tinfo_key = &function::tinfo_static;
 

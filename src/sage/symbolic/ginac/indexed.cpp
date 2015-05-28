@@ -124,7 +124,7 @@ indexed::indexed(const ex & b, const symmetry & symm, const exvector & v) : inhe
 	validate();
 }
 
-indexed::indexed(const symmetry & symm, const exprseq & es) : inherited(es), symtree(symm)
+indexed::indexed(const symmetry & symm, exprseq  es) : inherited(std::move(es)), symtree(symm)
 {
 	tinfo_key = &indexed::tinfo_static;
 }
@@ -999,7 +999,7 @@ contraction_done:
  *  obtained during the simplification of sums. */
 class terminfo {
 public:
-	terminfo(const ex & orig_, const ex & symm_) : orig(orig_), symm(symm_) {}
+	terminfo(ex  orig_, ex  symm_) : orig(std::move(orig_)), symm(std::move(symm_)) {}
 
 	ex orig; /**< original term */
 	ex symm; /**< symmtrized term */
@@ -1019,7 +1019,7 @@ class symminfo {
 public:
 	symminfo() : num(0) {}
 
-	symminfo(const ex & symmterm_, const ex & orig_, size_t num_) : orig(orig_), num(num_)
+	symminfo(const ex & symmterm_, ex  orig_, size_t num_) : orig(std::move(orig_)), num(num_)
 	{
 		if (is_exactly_a<mul>(symmterm_) && is_exactly_a<numeric>(symmterm_.op(symmterm_.nops()-1))) {
 			coeff = symmterm_.op(symmterm_.nops()-1);
@@ -1319,7 +1319,7 @@ ex ex::symmetrize_cyclic() const
 // helper classes
 //////////
 
-spmapkey::spmapkey(const ex & v1_, const ex & v2_, const ex & dim_) : dim(dim_)
+spmapkey::spmapkey(const ex & v1_, const ex & v2_, ex  dim_) : dim(std::move(dim_))
 {
 	// If indexed, extract base objects
 	ex s1 = is_a<indexed>(v1_) ? v1_.op(0) : v1_;

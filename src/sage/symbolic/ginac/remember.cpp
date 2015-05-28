@@ -33,8 +33,8 @@ namespace GiNaC {
 // class remember_table_entry
 //////////
 
-remember_table_entry::remember_table_entry(function const & f, ex const & r)
-  : hashvalue(f.gethash()), seq(f.seq), result(r)
+remember_table_entry::remember_table_entry(function const & f, ex  r)
+  : hashvalue(f.gethash()), seq(f.seq), result(std::move(r))
 {
 	++last_access = access_counter;
 	successful_hits = 0;

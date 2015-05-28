@@ -35,7 +35,7 @@ class integral : public basic
 	
 	// other constructors
 public:
-	integral(const ex & x_, const ex & a_, const ex & b_, const ex & f_);
+	integral(ex  x_, ex  a_, ex  b_, ex  f_);
 	
 	// functions overriding virtual functions from base classes
 public:

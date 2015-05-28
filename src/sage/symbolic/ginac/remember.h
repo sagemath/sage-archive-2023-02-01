@@ -39,7 +39,7 @@ class ex;
  *  'is_equal'. */
 class remember_table_entry {
 public:
-	remember_table_entry(function const & f, ex const & r);
+	remember_table_entry(function const & f, ex  r);
 	bool is_equal(function const & f) const;
 	ex get_result() const { return result; }
 	unsigned long get_last_access() const { return last_access; }

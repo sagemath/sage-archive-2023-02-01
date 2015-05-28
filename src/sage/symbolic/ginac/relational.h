@@ -47,7 +47,7 @@ public:
 	
 	// other constructors
 public:
-	relational(const ex & lhs, const ex & rhs, operators oper=equal);
+	relational(ex  lhs, ex  rhs, operators oper=equal);
 	
 	// functions overriding virtual functions from base classes
 public:

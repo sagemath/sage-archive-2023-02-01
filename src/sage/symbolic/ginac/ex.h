@@ -385,7 +385,7 @@ public:
 	const_iterator() throw() {}
 
 private:
-	const_iterator(const ex &e_, size_t i_) throw() : e(e_), i(i_) {}
+	const_iterator(ex e_, size_t i_) throw() : e(std::move(e_)), i(i_) {}
 
 public:
 	// This should return an ex&, but that would be a reference to a
@@ -503,7 +503,7 @@ protected:
 namespace internal {
 
 struct _iter_rep {
-	_iter_rep(const ex &e_, size_t i_, size_t i_end_) : e(e_), i(i_), i_end(i_end_) {}
+	_iter_rep(ex e_, size_t i_, size_t i_end_) : e(std::move(e_)), i(i_), i_end(i_end_) {}
 
 	bool operator==(const _iter_rep &other) const throw()
 	{

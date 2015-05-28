@@ -73,8 +73,8 @@ class expairseq : public basic
 public:
 	expairseq(const ex & lh, const ex & rh);
 	expairseq(const exvector & v);
-	expairseq(const epvector & v, const ex & oc, bool do_index_renaming = false);
-	expairseq(std::unique_ptr<epvector>, const ex & oc, bool do_index_renaming = false);
+	expairseq(const epvector & v, ex  oc, bool do_index_renaming = false);
+	expairseq(std::unique_ptr<epvector>, ex  oc, bool do_index_renaming = false);
 	
 	// functions overriding virtual functions from base classes
 public:

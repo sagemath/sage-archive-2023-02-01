@@ -45,6 +45,8 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import Infinity
+
 
 def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     r"""
@@ -966,7 +968,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             t = x.to_translation_left()
             # t must be zero or a special fundamental basis element
             if self._general_linear:
-                ispecial = ZZ.sum([t[i] for i in t.support()])
+                ispecial = ZZ.sum([t[j] for j in t.support()])
             elif t == self.lattice().zero():
                 ispecial = 0
             else:

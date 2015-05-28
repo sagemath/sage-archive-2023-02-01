@@ -315,6 +315,7 @@ class Tarball(object):
           of a tarball on the Sage mirror network.
         """
         self.filename = tarball_name
+        self.package = None
         for pkg in Package.all():
             if pkg.tarball == tarball_name:
                 self.package = pkg

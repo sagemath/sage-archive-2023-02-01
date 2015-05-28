@@ -301,12 +301,16 @@ examples are covered here.
 
    ::
 
-       sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0), \
-       (1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0), \
-       (0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1), \
-       (0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0), \
-       (0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0), \
-       (0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
+       sage: M = Matrix([(-1, 0, 0, 0, 1, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0),
+       ....:             ( 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0),
+       ....:             ( 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0),
+       ....:             ( 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1, 0),
+       ....:             ( 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1),
+       ....:             ( 0, 0, 0, 0, 0,-1, 0, 0, 0, 1, 1, 0, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 1, 0, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 1, 0, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 1, 0),
+       ....:             ( 0, 0, 0, 0, 0, 0, 1,-1, 0, 0, 0, 0, 0, 0, 1)])
        sage: M
        [-1  0  0  0  1  0  0  0  0  0 -1  0  0  0  0]
        [ 1 -1  0  0  0  0  0  0  0  0  0 -1  0  0  0]
@@ -685,10 +689,6 @@ class Graph(GenericGraph):
     -  ``boundary`` - a list of boundary vertices, if
        empty, graph is considered as a 'graph without boundary'
 
-    -  ``implementation`` - what to use as a backend for
-       the graph. Currently, the options are either 'networkx' or
-       'c_graph'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
@@ -707,15 +707,11 @@ class Graph(GenericGraph):
          than the sparse backend and smaller in memory, and it is immutable, so
          that the resulting graphs can be used as dictionary keys).
 
-       *Only available when* ``implementation == 'c_graph'``
-
     - ``immutable`` (boolean) -- whether to create a immutable graph. Note that
       ``immutable=True`` is actually a shortcut for
-      ``data_structure='static_sparse'``. Set to ``False`` by default, only
-      available when ``implementation='c_graph'``
+      ``data_structure='static_sparse'``. Set to ``False`` by default.
 
-    -  ``vertex_labels`` - only for implementation == 'c_graph'.
-       Whether to allow any object as a vertex (slower), or
+    - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
        only the integers 0, ..., n-1, where n is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
@@ -884,11 +880,11 @@ class Graph(GenericGraph):
             sage: Graph(Matrix([[1],[1],[1]]))
             Traceback (most recent call last):
             ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: There must be two nonzero entries (-1 & 1) per column.
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1, 1] in column 0
             sage: Graph(Matrix([[1],[1],[0]]))
-            Traceback (most recent call last):
-            ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+            Graph on 3 vertices
 
             sage: M = Matrix([[0,1,-1],[1,0,-1],[-1,-1,0]]); M
             [ 0  1 -1]
@@ -904,15 +900,19 @@ class Graph(GenericGraph):
             sage: Graph(M)
             Traceback (most recent call last):
             ...
-            ValueError: Non-symmetric or non-square matrix assumed to be an incidence matrix: Each column represents an edge: -1 goes to 1.
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1] in column 2
 
-        ::
+        Check that :trac:`9714` is fixed::
 
-            sage: MA = Matrix([[1,2,0], [0,2,0], [0,0,1]])      # trac 9714
-            sage: MI = Graph(MA, format='adjacency_matrix').incidence_matrix(); MI
-            [-1 -1  0  0  0  1]
-            [ 1  1  0  1  1  0]
-            [ 0  0  1  0  0  0]
+            sage: MA = Matrix([[1,2,0], [0,2,0], [0,0,1]])
+            sage: GA = Graph(MA, format='adjacency_matrix')
+            sage: MI = GA.incidence_matrix(oriented=False)
+            sage: MI
+            [2 1 1 0 0 0]
+            [0 1 1 2 2 0]
+            [0 0 0 0 0 2]
             sage: Graph(MI).edges(labels=None)
             [(0, 0), (0, 1), (0, 1), (1, 1), (1, 1), (2, 2)]
 
@@ -951,35 +951,23 @@ class Graph(GenericGraph):
            sage: DiGraph(g)
            Digraph on 5 vertices
 
-    Note that in all cases, we copy the NetworkX structure.
-
-       ::
-
-          sage: import networkx
-          sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
-          sage: G = Graph(g, implementation='networkx')
-          sage: H = Graph(g, implementation='networkx')
-          sage: G._backend._nxg is H._backend._nxg
-          False
-
-    All these graphs are mutable and can thus not be used as a dictionary
+    By default, graphs are mutable and can thus not be used as a dictionary
     key::
 
-          sage: {G:1}[H]
+          sage: G = graphs.PetersenGraph()
+          sage: {G:1}[G]
           Traceback (most recent call last):
           ...
           TypeError: This graph is mutable, and thus not hashable. Create an immutable copy by `g.copy(immutable=True)`
 
     When providing the optional arguments ``data_structure="static_sparse"``
     or ``immutable=True`` (both mean the same), then an immutable graph
-    results. Note that this does not use the NetworkX data structure::
+    results.
 
-          sage: G_imm = Graph(g, immutable=True)
-          sage: H_imm = Graph(g, data_structure='static_sparse')
-          sage: G_imm == H_imm == G == H
+          sage: G_imm = Graph(G, immutable=True)
+          sage: H_imm = Graph(G, data_structure='static_sparse')
+          sage: G_imm == H_imm == G
           True
-          sage: hasattr(G_imm._backend, "_nxg")
-          False
           sage: {G_imm:1}[H_imm]
           1
 
@@ -1077,6 +1065,26 @@ class Graph(GenericGraph):
             sage: g = graphs.PetersenGraph()
             sage: Graph(g, immutable=True)
             Petersen graph: Graph on 10 vertices
+
+        Check error messages for graphs built from incidence matrices (see
+        :trac:`18440`)::
+
+            sage: Graph(matrix([[-1, 1, 0],[1, 0, 0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Column 1 of the (oriented) incidence matrix contains
+            only one nonzero value
+            sage: Graph(matrix([[1,1],[1,1],[1,0]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Non-symmetric or non-square matrix assumed to be an
+            incidence matrix: There must be one or two nonzero entries per
+            column. Got entries [1, 1, 1] in column 0
+            sage: Graph(matrix([[3,1,1],[0,1,1]]))
+            Traceback (most recent call last):
+            ...
+            ValueError: Each column of a non-oriented incidence matrix must sum
+            to 2, but column 0 does not
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1090,32 +1098,29 @@ class Graph(GenericGraph):
 
         # Choice of the backend
 
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend()
-        elif implementation == 'c_graph':
-            if multiedges or weighted:
-                if data_structure == "dense":
-                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
-            if immutable:
-                data_structure = 'static_sparse'
+        if implementation != 'c_graph':
+            deprecation(18375,"The 'implementation' keyword is deprecated, "
+                        "and the graphs has been stored as a 'c_graph'")
 
-            # If the data structure is static_sparse, we first build a graph
-            # using the sparse data structure, then reencode the resulting graph
-            # as a static sparse graph.
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if data_structure in ["sparse", "static_sparse"]:
-                CGB = SparseGraphBackend
-            elif data_structure == "dense":
-                 CGB = DenseGraphBackend
-            else:
-                raise ValueError("data_structure must be equal to 'sparse', "
-                                 "'static_sparse' or 'dense'")
-            self._backend = CGB(0, directed=False)
+        if multiedges or weighted:
+            if data_structure == "dense":
+                raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+        if immutable:
+            data_structure = 'static_sparse'
+
+        # If the data structure is static_sparse, we first build a graph
+        # using the sparse data structure, then reencode the resulting graph
+        # as a static sparse graph.
+        from sage.graphs.base.sparse_graph import SparseGraphBackend
+        from sage.graphs.base.dense_graph import DenseGraphBackend
+        if data_structure in ["sparse", "static_sparse"]:
+            CGB = SparseGraphBackend
+        elif data_structure == "dense":
+             CGB = DenseGraphBackend
         else:
-            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+            raise ValueError("data_structure must be equal to 'sparse', "
+                             "'static_sparse' or 'dense'")
+        self._backend = CGB(0, directed=False)
 
         if format is None and isinstance(data, str):
             if data.startswith(">>graph6<<"):
@@ -1303,36 +1308,37 @@ class Graph(GenericGraph):
             self.add_edges(e)
         elif format == 'incidence_matrix':
             assert is_Matrix(data)
+
+            oriented = any(data[pos] < 0 for pos in data.nonzero_positions(copy=False))
+
             positions = []
-            for c in data.columns():
-                NZ = c.nonzero_positions()
+            for i in range(data.ncols()):
+                NZ = data.nonzero_positions_in_column(i)
                 if len(NZ) == 1:
+                    if oriented:
+                        raise ValueError("Column {} of the (oriented) incidence "
+                                         "matrix contains only one nonzero value".format(i))
+                    elif data[NZ[0],i] != 2:
+                        raise ValueError("Each column of a non-oriented incidence "
+                                         "matrix must sum to 2, but column {} does not".format(i))
                     if loops is None:
                         loops = True
-                    elif not loops:
-                        msg += "There must be two nonzero entries (-1 & 1) per column."
-                        raise ValueError(msg)
-                    positions.append((NZ[0], NZ[0]))
-                elif len(NZ) != 2:
-                    msg += "There must be two nonzero entries (-1 & 1) per column."
+                    positions.append((NZ[0],NZ[0]))
+                elif len(NZ) != 2 or \
+                     (oriented and not ((data[NZ[0],i] == +1 and data[NZ[1],i] == -1) or \
+                                        (data[NZ[0],i] == -1 and data[NZ[1],i] == +1))) or \
+                     (not oriented and (data[NZ[0],i] != 1 or data[NZ[1],i] != 1)):
+                    msg += "There must be one or two nonzero entries per column. "
+                    msg += "Got entries {} in column {}".format([data[j,i] for j in NZ], i)
                     raise ValueError(msg)
                 else:
                     positions.append(tuple(NZ))
-                L = sorted(set(c.list()))
 
-                if data.nrows() != (2 if len(NZ) == 2 else 1):
-                    desirable = [-1, 0, 1] if len(NZ) == 2 else [0, 1]
-                else:
-                    desirable = [-1, 1] if len(NZ) == 2 else [1]
-
-                if L != desirable:
-                    msg += "Each column represents an edge: -1 goes to 1."
-                    raise ValueError(msg)
             if weighted   is None: weighted  = False
             if multiedges is None:
                 total = len(positions)
-                multiedges = (  len(set(positions)) < total  )
-            self.allow_loops(loops if loops else False, check=False)
+                multiedges = (len(set(positions)) < total  )
+            self.allow_loops(False if loops is None else loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
@@ -1547,6 +1553,13 @@ class Graph(GenericGraph):
         Only valid for simple (no loops, multiple edges) graphs on 0 to
         262143 vertices.
 
+        .. NOTE::
+
+            As the graph6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
+
         EXAMPLES::
 
             sage: G = graphs.KrackhardtKiteGraph()
@@ -1562,10 +1575,17 @@ class Graph(GenericGraph):
             return generic_graph_pyx.small_integer_to_graph6(n) + generic_graph_pyx.binary_string_to_graph6(self._bit_vector())
 
     def sparse6_string(self):
-        """
+        r"""
         Returns the sparse6 representation of the graph as an ASCII string.
         Only valid for undirected graphs on 0 to 262143 vertices, but loops
         and multiple edges are permitted.
+
+        .. NOTE::
+
+            As the sparse6 format only handles graphs whose vertex set is
+            `\{0,...,n-1\}`, a :meth:`relabelled copy
+            <sage.graphs.generic_graph.GenericGraph.relabel>` of your graph will
+            be encoded if necessary.
 
         EXAMPLES::
 
@@ -1584,6 +1604,14 @@ class Graph(GenericGraph):
             sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
             sage: Graph(':?',data_structure="sparse") == G
             True
+
+        TEST:
+
+        Check that :trac:`18445` is fixed::
+
+            sage: Graph(graphs.KneserGraph(5,2).sparse6_string()).size()
+            15
+
         """
         n = self.order()
         if n == 0:
@@ -1591,14 +1619,9 @@ class Graph(GenericGraph):
         if n > 262143:
             raise ValueError('sparse6 format supports graphs on 0 to 262143 vertices only.')
         else:
-            vertices = self.vertices()
-            n = len(vertices)
-            edges = self.edges(labels=False)
-            for i in xrange(len(edges)): # replace edge labels with natural numbers (by index in vertices)
-                edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
-            # order edges 'reverse lexicographically', that is, for
-            # edge (a,b) and edge (c,d) first compare b and d, then a and c;
-            edges.sort(key=lambda e: (e[1],e[0]))
+            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            edges = [sorted((v_to_int[u],v_to_int[v])) for u,v in self.edge_iterator(labels=False)]
+            edges.sort(key=lambda e: (e[1],e[0])) # reverse lexicographic order
 
             # encode bit vector
             from math import ceil
@@ -3482,8 +3505,7 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict(map(lambda x_y: (x_y[1], x_y[0]),
-                               list(enumerate(vertices))))
+        vertices_id = dict([(x_y[1], x_y[0]) for x_y in list(enumerate(vertices))])
 
         b = {}
 
@@ -4111,7 +4133,7 @@ class Graph(GenericGraph):
             matching = g.matching()
 
             # If the maximum matching has weight at most 1, we are done !
-            if sum(map(lambda x:x[2],matching)) <= 1:
+            if sum((x[2] for x in matching)) <= 1:
                 break
 
             # Otherwise, we add a new constraint
@@ -4669,10 +4691,6 @@ class Graph(GenericGraph):
         edges, one in each direction.
 
         INPUT:
-
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
 
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
@@ -5817,7 +5835,7 @@ class Graph(GenericGraph):
            - ``cliquer`` - This wraps the C program Cliquer [NisOst2003]_.
 
            - ``networkx`` - This function is based on NetworkX's implementation
-                of the Bron and Kerbosch Algorithm [BroKer1973]_.
+             of the Bron and Kerbosch Algorithm [BroKer1973]_.
 
         -  ``vertices`` - the vertices to inspect (default is entire graph).
            Ignored unless ``algorithm=='networkx'``.
@@ -6276,7 +6294,7 @@ class Graph(GenericGraph):
 
         id_label = dict(enumerate(self.vertices()))
 
-        relabel = lambda x : (x[0], map(relabel,x[1])) if isinstance(x,tuple) else id_label[x]
+        relabel = lambda x : (x[0], [relabel(_) for _ in x[1]]) if isinstance(x,tuple) else id_label[x]
 
         return relabel(D)
 
@@ -6312,7 +6330,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices=None, method="FF"):
+    def _gomory_hu_tree(self, vertices, method="FF"):
         r"""
         Returns a Gomory-Hu tree associated to self.
 
@@ -6345,101 +6363,65 @@ class Graph(GenericGraph):
         example is only present to have a doctest coverage of 100%.
 
             sage: g = graphs.PetersenGraph()
-            sage: t = g._gomory_hu_tree()
+            sage: t = g._gomory_hu_tree(frozenset(g.vertices()))
         """
         self._scream_if_not_simple()
-        from sage.sets.set import Set
-
-        # The default capacity of an arc is 1
-        from sage.rings.real_mpfr import RR
-        capacity = lambda label: label if label in RR else 1
-
-        # Keeping the graph's embedding
-        pos = False
 
         # Small case, not really a problem ;-)
-        if self.order() == 1:
-            return self.copy()
-
-        # This is a sign that this is the first call
-        # to this recursive function
-        if vertices is None:
-            # Now is the time to care about positions
-            pos = self.get_pos()
-
-            # if the graph is not connected, returns the union
-            # of the Gomory-Hu tree of each component
-            if not self.is_connected():
-                g = Graph()
-                for cc in self.connected_components_subgraphs():
-                    g = g.union(cc._gomory_hu_tree(method=method))
-                g.set_pos(self.get_pos())
-                return g
-            # All the vertices is this graph are the "real ones"
-            vertices = Set(self.vertices())
-
-        # There may be many vertices, though only one which is "real"
         if len(vertices) == 1:
             g = Graph()
-            g.add_vertex(vertices[0])
+            g.add_vertices(vertices)
             return g
 
-        # Take any two vertices
-        u,v = vertices[0:2]
+        # Take any two vertices (u,v)
+        it = vertices.__iter__()
+        u,v = it.next(),it.next()
 
-        # Recovers the following values
-        # flow is the connectivity between u and v
-        # edges of a min cut
-        # sets1, sets2 are the two sides of the edge cut
-        flow,edges,[set1,set2] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
+        # Compute a uv min-edge-cut.
+        #
+        # The graph is split into U,V with u \in U and v\in V.
+        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
-        g1,g2 = self.subgraph(set1), self.subgraph(set2)
+        gU,gV = self.subgraph(U), self.subgraph(V)
 
-        # Adding the fake vertex to each part
-        g1_v = Set(set2)
-        g2_v = Set(set1)
-        g1.add_vertex(g1_v)
-        g1.add_vertex(g2_v)
+        # A fake vertex fU (resp. fV) to represent U (resp. V)
+        fU = frozenset(U)
+        fV = frozenset(V)
 
-        # Each part of the graph had many edges going to the other part
-        # Now that we have a new fake vertex in each part
-        # we just say that the edges which were in the cut and going
-        # to the other side are now going to this fake vertex
+        # Each edge (uu,vv) with uu \in U and vv\in V yields:
+        # - an edge (uu,fV) in gU
+        # - an edge (vv,fU) in gV
+        #
+        # If the same edge is added several times their capacities add up.
 
-        # We must preserve the labels. They sum.
+        from sage.rings.real_mpfr import RR
+        for uu,vv,capacity in edges:
+            capacity = capacity if capacity in RR else 1
 
-        for e in edges:
-            x,y = e[0],e[1]
-            # Assumes x is in g1
-            if x in g2:
-                x,y = y,x
-            # If the edge x-g1_v exists, adds to its label the capacity of arc xy
-            if g1.has_edge(x, g1_v):
-                g1.set_edge_label(x, g1_v, g1.edge_label(x, g1_v) + capacity(self.edge_label(x, y)))
-            else:
-                # Otherwise, creates it with the good label
-                g1.add_edge(x, g1_v, capacity(self.edge_label(x, y)))
-            # Same thing for g2
-            if g2.has_edge(y, g2_v):
-                g2.set_edge_label(y, g2_v, g2.edge_label(y, g2_v) + capacity(self.edge_label(x, y)))
-            else:
-                g2.add_edge(y, g2_v, capacity(self.edge_label(x, y)))
+            # Assume uu is in gU
+            if uu in V:
+                uu,vv = vv,uu
 
-        # Recursion for the two new graphs... The new "real" vertices are the intersection with
-        # with the previous set of "real" vertices
-        g1_tree = g1._gomory_hu_tree(vertices=(vertices & Set(g1.vertices())), method=method)
-        g2_tree = g2._gomory_hu_tree(vertices=(vertices & Set(g2.vertices())), method=method)
+            # Create the new edges if necessary
+            if not gU.has_edge(uu, fV):
+                gU.add_edge(uu, fV, 0)
+            if not gV.has_edge(vv, fU):
+                gV.add_edge(vv, fU, 0)
 
-        # Union of the two partial trees ( it is disjoint, but
-        # disjoint_union does not preserve the name of the vertices )
-        g = g1_tree.union(g2_tree)
+            # update the capacities
+            gU.set_edge_label(uu, fV, gU.edge_label(uu, fV) + capacity)
+            gV.set_edge_label(vv, fU, gV.edge_label(vv, fU) + capacity)
+
+        # Recursion on each side
+        gU_tree = gU._gomory_hu_tree(vertices & frozenset(gU), method=method)
+        gV_tree = gV._gomory_hu_tree(vertices & frozenset(gV), method=method)
+
+        # Union of the two partial trees
+        g = gU_tree.union(gV_tree)
 
         # An edge to connect them, with the appropriate label
-        g.add_edge(next(g1_tree.vertex_iterator()), next(g2_tree.vertex_iterator()), flow)
-
-        if pos:
-            g.set_pos(pos)
+        g.add_edge(u, v, flow)
 
         return g
 
@@ -6448,14 +6430,16 @@ class Graph(GenericGraph):
         Returns a Gomory-Hu tree of self.
 
         Given a tree `T` with labeled edges representing capacities, it is very
-        easy to determine the maximal flow between any pair of vertices :
+        easy to determine the maximum flow between any pair of vertices :
         it is the minimal label on the edges of the unique path between them.
 
         Given a graph `G`, a Gomory-Hu tree `T` of `G` is a tree
-        with the same set of vertices, and such that the maximal flow
+        with the same set of vertices, and such that the maximum flow
         between any two vertices is the same in `G` as in `T`. See the
         `Wikipedia article on Gomory-Hu tree <http://en.wikipedia.org/wiki/Gomory%E2%80%93Hu_tree>`_.
         Note that, in general, a graph admits more than one Gomory-Hu tree.
+
+        See also 15.4 (Gomory-Hu trees) from [SchrijverCombOpt]_.
 
         INPUT:
 
@@ -6511,8 +6495,29 @@ class Graph(GenericGraph):
 
             sage: g.edge_connectivity() == min(t.edge_labels())
             True
+
+        TESTS:
+
+        :trac:`16475`::
+
+            sage: G = graphs.PetersenGraph()
+            sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
+            ....:     G.set_edge_label(u, v, 2)
+            sage: T = G.gomory_hu_tree()
+            sage: from itertools import combinations
+            sage: for u,v in combinations(G,2):
+            ....:     assert T.flow(u,v,use_edge_labels=True) == G.flow(u,v,use_edge_labels=True)
         """
-        return self._gomory_hu_tree(method=method)
+        if not self.is_connected():
+            g = Graph()
+            for cc in self.connected_components_subgraphs():
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()),method=method))
+        else:
+            g = self._gomory_hu_tree(frozenset(self.vertices()),method=method)
+
+        if self.get_pos() is not None:
+            g.set_pos(dict(self.get_pos()))
+        return g
 
     def two_factor_petersen(self):
         r"""
@@ -6793,4 +6798,5 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
+
 

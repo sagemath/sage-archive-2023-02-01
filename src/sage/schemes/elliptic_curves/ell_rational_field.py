@@ -3863,10 +3863,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
 
-        INPUT::
+        INPUT:
 
-             - `p` -- optional, default (None); if given, return the local
-                      root number at `p`
+        - `p` -- optional, default (None); if given, return the local
+          root number at `p`
 
         EXAMPLES::
 

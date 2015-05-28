@@ -208,6 +208,15 @@ if you want, but if they don't contain the ticket number then you will
 have to specify the ticket number manually when you are uploading your
 changes.
 
+.. _section-git_trac-editing:
+
+Making Changes
+--------------
+
+Once you have checked out a ticket, edit the appropriate files and 
+commit your changes to the branch as described in 
+:ref:`section-walkthrough-add-edit` and 
+:ref:`section-walkthrough-commit`.
 
 .. _section-git_trac-push:
 

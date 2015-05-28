@@ -355,7 +355,7 @@ class Huffman(SageObject):
             'Sage is my most favorite general purpose computer algebra system'
         """
         if self._character_to_code:
-            return "".join(map(lambda x: self._character_to_code[x], string))
+            return "".join((self._character_to_code[x] for x in string))
 
     def decode(self, string):
         r"""

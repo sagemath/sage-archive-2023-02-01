@@ -276,7 +276,7 @@ class Tableau(ClonableList):
         # We must verify ``t`` is a list of iterables, and also
         # normalize it to be a list of tuples.
         try:
-            t = map(tuple, t)
+            t = [tuple(_) for _ in t]
         except TypeError:
             raise ValueError("A tableau must be a list of iterables.")
 
@@ -467,9 +467,9 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in self])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
         else:
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in reversed(self)])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
 
     def _repr_compact(self):
         """
@@ -3812,7 +3812,7 @@ class StandardTableau(SemistandardTableau):
         #Go through and add n+1 to the end of each
         #of the rows
         for row, _ in outside_corners:
-            new_t = map(list, self)
+            new_t = [list(_) for _ in self]
             if row != len(self):
                 new_t[row] += [n+1]
             else:
@@ -4264,7 +4264,7 @@ class Tableaux(UniqueRepresentation, Parent):
             except TypeError:
                 return False
             # any list of lists of partition shape is a tableau
-            return map(len, x) in _Partitions
+            return [len(_) for _ in x] in _Partitions
         else:
             return False
 
@@ -5044,7 +5044,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             sage: 1 in SST
             False
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len,x)==self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x]==self.shape
 
     def _repr_(self):
         """
@@ -5386,7 +5386,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SST.cardinality()
             20
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len, x) == self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """
@@ -5706,8 +5706,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             True
         """
         from sage.combinat.partition import Partition
-        return x in SemistandardTableaux_shape_weight(Partition(map(len,
-            x)), self.weight)
+        return x in SemistandardTableaux_shape_weight(Partition(
+            [len(_) for _ in x]), self.weight)
 
 ########################
 # Standard Tableaux    #
@@ -6139,7 +6139,7 @@ class StandardTableaux_shape(StandardTableaux):
             sage: 1 in StandardTableaux([2,1,1])
             False
         """
-        return StandardTableaux.__contains__(self, x) and map(len,x) == self.shape
+        return StandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """

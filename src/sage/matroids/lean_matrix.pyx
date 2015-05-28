@@ -2444,7 +2444,7 @@ cdef class IntegerMatrix(LeanMatrix):
 
     EXAMPLES::
 
-        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(),
+        sage: M = Matroid(graphs.CompleteGraph(4).incidence_matrix(oriented=True),
         ....:             regular=True)  # indirect doctest
         sage: M.is_isomorphic(matroids.Wheel(3))
         True

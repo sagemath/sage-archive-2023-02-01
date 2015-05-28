@@ -137,8 +137,10 @@ import operator
 import sys
 
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.long cimport pyobject_to_long
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 from sage.ext.memory cimport check_malloc, check_allocarray
 from cpython.list cimport *
@@ -1865,7 +1867,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^x
             sage: 2^1.5              # real number
             2.82842712474619
-            sage: 2^float(1.5)       # python float
+            sage: 2^float(1.5)       # python float  abs tol 3e-16
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
@@ -1892,7 +1894,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^t
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError:
+            'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+            object cannot be interpreted as an index
             sage: int(3)^-3
             1/27
             sage: type(int(3)^2)
@@ -1915,7 +1919,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             s = parent_c(n)(self)
             return s**n

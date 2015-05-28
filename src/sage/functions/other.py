@@ -286,7 +286,7 @@ class Function_abs(GinacFunction):
 
         TESTS:
 
-        Check that :trac:`12588` is fixed:
+        Check that :trac:`12588` is fixed::
 
             sage: abs(pi*I)
             pi

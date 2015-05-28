@@ -356,6 +356,29 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         return hash(repr(self))
 
 
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GenericGrowthGroup();
+            sage: P.an_element()  # indirect doctest
+            Generic element of a Generic Asymptotic Growth Group
+        """
+        return GenericGrowthElement(self)
+
+
+
 class GrowthElementPower(GenericGrowthElement):
     r"""
     Class for the concrete realization of asymptotic growth group
@@ -964,6 +987,27 @@ class GrowthGroupPower(GenericGrowthGroup):
         return "Asymptotic Power Growth Group in %s over %s" \
                % (self.var, self.base())
 
+
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroupPower("x")
+            sage: P.an_element()  # indirect doctest
+            x
+        """
+        return self.gen()
 
     def gens(self):
         r"""

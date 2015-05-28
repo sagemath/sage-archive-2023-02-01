@@ -308,12 +308,12 @@ ex basic::map(map_function & f) const
 	if (num == 0)
 		return *this;
 
-	basic *copy = NULL;
+	basic *copy = nullptr;
 	for (size_t i=0; i<num; i++) {
 		const ex & o = op(i);
 		const ex & n = f(o);
 		if (!are_ex_trivially_equal(o, n)) {
-			if (copy == NULL)
+			if (copy == nullptr)
 				copy = duplicate();
 			copy->let_op(i) = n;
 		}

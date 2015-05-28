@@ -466,7 +466,7 @@ ex pseries::imag_part() const
 
 ex pseries::eval_integ() const
 {
-	epvector *newseq = NULL;
+	epvector *newseq = nullptr;
 	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
 		if (newseq) {
 			newseq->push_back(expair(i->rest.eval_integ(), i->coeff));

@@ -238,7 +238,7 @@ ex matrix::subs(const exmap & mp, unsigned options) const
 /** Complex conjugate every matrix entry. */
 ex matrix::conjugate() const
 {
-	exvector * ev = 0;
+	exvector * ev = nullptr;
 	for (exvector::const_iterator i=m.begin(); i!=m.end(); ++i) {
 		ex x = i->conjugate();
 		if (ev) {

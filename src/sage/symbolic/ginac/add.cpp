@@ -502,7 +502,7 @@ ex add::evalm() const
 
 ex add::conjugate() const
 {
-	exvector *v = 0;
+	exvector *v = nullptr;
 	for (size_t i=0; i<nops(); ++i) {
 		if (v) {
 			v->push_back(op(i).conjugate());
@@ -689,7 +689,7 @@ ex add::recombine_pair_to_ex(const expair & p) const
 ex add::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);
-	if (vp.get() == 0) {
+	if (vp.get() == nullptr) {
 		// the terms have not changed, so it is safe to declare this expanded
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
 	}

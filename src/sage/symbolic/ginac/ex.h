@@ -127,7 +127,7 @@ public:
 
 	// evaluation
 	ex eval(int level = 0) const { return bp->eval(level); }
-	ex evalf(int level = 0, PyObject* parent=NULL) const 
+	ex evalf(int level = 0, PyObject* parent=nullptr) const 
 	{ return bp->evalf(level, parent); }
 	ex evalm() const { return bp->evalm(); }
 	ex eval_ncmul(const exvector & v) const { return bp->eval_ncmul(v); }
@@ -782,7 +782,7 @@ inline ex collect(const ex & thisex, const ex & s, bool distributed = false)
 inline ex eval(const ex & thisex, int level = 0)
 { return thisex.eval(level); }
 
-inline ex evalf(const ex & thisex, int level = 0, PyObject* parent=NULL)
+inline ex evalf(const ex & thisex, int level = 0, PyObject* parent=nullptr)
 { return thisex.evalf(level, parent); }
 
 inline ex evalm(const ex & thisex)

@@ -52,7 +52,7 @@ public:
 	size_t nops() const;
 	ex op(size_t i) const;
 	ex map(map_function & f) const;
-	ex evalf(int level = 0, PyObject* parent = NULL) const;
+	ex evalf(int level = 0, PyObject* parent = nullptr) const;
 	ex subs(const exmap & m, unsigned options = 0) const;
 
 protected:

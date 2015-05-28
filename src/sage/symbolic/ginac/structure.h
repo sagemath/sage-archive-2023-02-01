@@ -131,7 +131,7 @@ public:
 public:
 	// evaluation
 	ex eval(int level = 0) const { return hold(); }
-	ex evalf(int level = 0, PyObject* parent=NULL) const {
+	ex evalf(int level = 0, PyObject* parent=nullptr) const {
 		return inherited::evalf(level, parent); }
 	ex evalm() const { return inherited::evalm(); }
 protected:

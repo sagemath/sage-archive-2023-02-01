@@ -207,7 +207,7 @@ inline bool Pynac_PyObj_RichCmp(PyObject *optr1, PyObject *optr2, int opid, cons
 // than what we can do without those. 
 static bool initialized = false;
 
-static PyObject* pyfunc_Float = 0;
+static PyObject* pyfunc_Float = nullptr;
 
 void ginac_pyinit_Float(PyObject* f) {
         Py_INCREF(f);
@@ -220,7 +220,7 @@ void ginac_pyinit_I(PyObject* z) {
         GiNaC::I = z; // I is a global constant defined below.
 }
 
-static PyObject* pyfunc_Integer = 0;
+static PyObject* pyfunc_Integer = nullptr;
 
 void ginac_pyinit_Integer(PyObject* f) {
         Py_INCREF(f);
@@ -1465,7 +1465,7 @@ PyObject* numeric::to_pyobject() const {
                 default:
                         std::cout << t << std::endl;
                         stub("numeric::to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
-                        return 0;
+                        return nullptr;
         }
 }
 

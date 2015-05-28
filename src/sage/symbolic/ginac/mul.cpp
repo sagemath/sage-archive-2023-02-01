@@ -1151,7 +1151,7 @@ ex mul::conjugate() const
 {
 	// The base class' method is wrong here because we have to be careful at
 	// branch cuts. power::conjugate takes care of that already, so use it.
-	epvector *newepv = 0;
+	epvector *newepv = nullptr;
 	for (epvector::const_iterator i=seq.begin(); i!=seq.end(); ++i) {
 		if (newepv) {
 			newepv->push_back(split_ex_to_pair(recombine_pair_to_ex(*i).conjugate()));

@@ -180,7 +180,7 @@ public:
 /** Check if obj is a T, including base classes. */
 template <class T>
 inline bool is_a(const print_context & obj)
-{ return dynamic_cast<const T *>(&obj) != 0; }
+{ return dynamic_cast<const T *>(&obj) != nullptr; }
 
 
 class basic;
@@ -240,7 +240,7 @@ private:
 class print_functor {
 public:
 	print_functor() : impl(nullptr) {}
-	print_functor(const print_functor & other) : impl(other.impl.get() ? other.impl->duplicate() : 0) {}
+	print_functor(const print_functor & other) : impl(other.impl.get() ? other.impl->duplicate() : nullptr) {}
 	print_functor(std::unique_ptr<print_functor_impl> impl_) : impl(std::move(impl_)) {}
 
 	template <class T, class C>
@@ -253,7 +253,7 @@ public:
 	{
 		if (this != &other) {
 			print_functor_impl *p = other.impl.get();
-			impl.reset(p ? other.impl->duplicate() : 0);
+			impl.reset(p ? other.impl->duplicate() : nullptr);
 		}
 		return *this;
 	}

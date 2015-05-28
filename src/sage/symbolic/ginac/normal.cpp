@@ -959,7 +959,7 @@ ex ex::content(const ex &x) const
 		return lcoeff * c / lcoeff.unit(x);
 	ex cont = _ex0;
 	for (int i=ldeg; i<=deg; i++)
-		cont = gcd(r.coeff(x, i), cont, NULL, NULL, false);
+		cont = gcd(r.coeff(x, i), cont, nullptr, nullptr, false);
 	return cont * c;
 }
 
@@ -1099,7 +1099,7 @@ static ex sr_gcd(const ex &a, const ex &b, sym_desc_vec::const_iterator var)
 	// Remove content from c and d, to be attached to GCD later
 	ex cont_c = c.content(x);
 	ex cont_d = d.content(x);
-	ex gamma = gcd(cont_c, cont_d, NULL, NULL, false);
+	ex gamma = gcd(cont_c, cont_d, nullptr, nullptr, false);
 	if (ddeg == 0)
 		return gamma;
 	c = c.primpart(x, cont_c);

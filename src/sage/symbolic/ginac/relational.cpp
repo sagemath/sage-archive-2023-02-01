@@ -373,7 +373,7 @@ relational::operators relational::the_operator() const
 
 relational::safe_bool relational::make_safe_bool(bool cond) const
 {
-	return cond? &safe_bool_helper::nonnull : 0;
+	return cond? &safe_bool_helper::nonnull : nullptr;
 }
 
 /** Cast the relational into a boolean, mainly for evaluation within an

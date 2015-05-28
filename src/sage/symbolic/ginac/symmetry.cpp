@@ -503,7 +503,7 @@ static ex symm(const ex & e, exvector::const_iterator first, exvector::const_ite
 	unsigned *iv = new unsigned[num], *iv2;
 	for (unsigned i=0; i<num; i++)
 		iv[i] = i;
-	iv2 = (asymmetric ? new unsigned[num] : NULL);
+	iv2 = (asymmetric ? new unsigned[num] : nullptr);
 
 	// Loop over all permutations (the first permutation, which is the
 	// identity, is unrolled)

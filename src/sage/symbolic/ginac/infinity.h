@@ -46,7 +46,7 @@ public:
 	// functions overriding virtual functions from base classes
 public:
 	bool info(unsigned inf) const;
-	ex evalf(int level = 0, PyObject* parent=NULL) const;
+	ex evalf(int level = 0, PyObject* parent=nullptr) const;
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;

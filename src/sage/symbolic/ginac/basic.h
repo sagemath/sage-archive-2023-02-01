@@ -139,7 +139,7 @@ public: // only const functions please (may break reference counting)
 
 	// evaluation
 	virtual ex eval(int level = 0) const;
-	virtual ex evalf(int level = 0, PyObject* parent=NULL) const;
+	virtual ex evalf(int level = 0, PyObject* parent=nullptr) const;
 	virtual ex evalm() const;
 	virtual ex eval_integ() const;
 protected:
@@ -303,7 +303,7 @@ extern int max_recursion_level;
 template <class T>
 inline bool is_a(const basic &obj)
 {
-	return dynamic_cast<const T *>(&obj) != 0;
+	return dynamic_cast<const T *>(&obj) != nullptr;
 }
 
 /** Check if obj is a T, not including base classes. */

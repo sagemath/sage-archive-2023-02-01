@@ -80,8 +80,8 @@ void function_options::initialize()
 	set_name("unnamed_function", "\\mbox{unnamed}");
 	nparams = 0;
 	eval_f = real_part_f = imag_part_f = conjugate_f = derivative_f
-		= power_f = series_f = 0;
-	evalf_f = 0;
+		= power_f = series_f = nullptr;
+	evalf_f = nullptr;
 	evalf_params_first = true;
 	apply_chain_rule = true;
 	use_return_type = false;
@@ -674,7 +674,7 @@ void function::print(const print_context & c, unsigned level) const
 
 next_context:
 	unsigned id = pc_info->options.get_id();
-	if (id >= pdt.size() || pdt[id] == NULL) {
+	if (id >= pdt.size() || pdt[id] == nullptr) {
 
 		// Method not found, try parent print_context class
 		const print_context_class_info *parent_pc_info = pc_info->get_parent();
@@ -772,7 +772,7 @@ ex function::eval(int level) const
 		}
 	}
 
-	if (opt.eval_f==0) {
+	if (opt.eval_f==nullptr) {
 		return this->hold();
 	}
 
@@ -849,7 +849,7 @@ ex function::evalf(int level, PyObject* kwds) const
 		}
 	}
 
-	if (opt.evalf_f==0) {
+	if (opt.evalf_f==nullptr) {
 		return function(serial,eseq).hold();
 	}
 	current_serial = serial;
@@ -920,7 +920,7 @@ ex function::series(const relational & r, int order, unsigned options) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options &opt = registered_functions()[serial];
 
-	if (opt.series_f==0) {
+	if (opt.series_f==nullptr) {
 		return basic::series(r, order);
 	}
 	ex res;
@@ -1023,7 +1023,7 @@ ex function::conjugate() const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options & opt = registered_functions()[serial];
 
-	if (opt.conjugate_f==0) {
+	if (opt.conjugate_f==nullptr) {
 		return conjugate_function(*this).hold();
 	}
 
@@ -1070,7 +1070,7 @@ ex function::real_part() const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options & opt = registered_functions()[serial];
 
-	if (opt.real_part_f==0)
+	if (opt.real_part_f==nullptr)
 		return basic::real_part();
 
 	if (opt.python_func & function_options::real_part_python_f) {
@@ -1114,7 +1114,7 @@ ex function::imag_part() const
 	GINAC_ASSERT(serial<registered_functions().size());
 	const function_options & opt = registered_functions()[serial];
 
-	if (opt.imag_part_f==0)
+	if (opt.imag_part_f==nullptr)
 		return basic::imag_part();
 
 	if (opt.python_func & function_options::imag_part_python_f) {
@@ -1171,7 +1171,7 @@ ex function::derivative(const symbol & s) const
 
 	// Check if we need to apply chain rule
 	if (!opt.apply_chain_rule) {
-		if (opt.derivative_f == NULL)
+		if (opt.derivative_f == nullptr)
 			throw(std::runtime_error("function::derivative(): custom derivative function must be defined"));
 
 		if (opt.python_func & function_options::derivative_python_f) {
@@ -1329,7 +1329,7 @@ ex function::pderivative(unsigned diff_param) const // partial differentiation
 	const function_options &opt = registered_functions()[serial];
 	
 	// No derivative defined? Then return abstract derivative object
-	if (opt.derivative_f == NULL)
+	if (opt.derivative_f == nullptr)
 		return fderivative(serial, diff_param, seq);
 
 	current_serial = serial;
@@ -1380,7 +1380,7 @@ ex function::power(const ex & power_param) const // power of function
 	const function_options &opt = registered_functions()[serial];
 	
 	// No derivative defined? Then return abstract derivative object
-	if (opt.power_f == NULL)
+	if (opt.power_f == nullptr)
 		return (new GiNaC::power(*this, power_param))->setflag(status_flags::dynallocated |
 	                                               status_flags::evaluated);
 

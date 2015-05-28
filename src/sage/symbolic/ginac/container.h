@@ -140,7 +140,7 @@ public:
 
 protected:
 	// helpers
-	static tinfo_t get_tinfo() { return NULL; }
+	static tinfo_t get_tinfo() { return nullptr; }
 	static unsigned get_default_flags() { return 0; }
 	static const char* get_open_delim() { return "("; }
 	static const char* get_close_delim() { return ")"; }
@@ -372,7 +372,7 @@ public:
 protected:
 	ex conjugate() const
 	{
-		STLT *newcont = NULL;
+		STLT *newcont = nullptr;
 		for (const_iterator i=this->seq.begin(); i!=this->seq.end(); ++i) {
 			if (newcont) {
 				newcont->push_back(i->conjugate());

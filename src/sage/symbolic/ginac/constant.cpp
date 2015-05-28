@@ -46,7 +46,7 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(constant, basic,
 
 // public
 
-constant::constant() : basic(&constant::tinfo_static), ef(0), serial(next_serial++), domain(domain::complex)
+constant::constant() : basic(&constant::tinfo_static), ef(nullptr), serial(next_serial++), domain(domain::complex)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -68,7 +68,7 @@ constant::constant(const std::string & initname, evalffunctype efun, const std::
 }
 
 constant::constant(const std::string & initname, const numeric & initnumber, const std::string & texname, unsigned dm)
-  : basic(&constant::tinfo_static), name(initname), ef(0), number(initnumber), serial(next_serial++), domain(dm)
+  : basic(&constant::tinfo_static), name(initname), ef(nullptr), number(initnumber), serial(next_serial++), domain(dm)
 {
 	if (texname.empty())
 		TeX_name = "\\mbox{" + name + "}";
@@ -164,7 +164,7 @@ bool constant::info(unsigned inf) const
 
 ex constant::evalf(int level, PyObject* parent) const
 {
-	if (ef!=0) {
+	if (ef!=nullptr) {
         return ef(serial, parent);
 	} else {
 		return number.evalf(level, parent);

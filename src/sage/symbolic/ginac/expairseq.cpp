@@ -349,7 +349,7 @@ ex expairseq::eval(int level) const
 		return *this;
 	
 	std::unique_ptr<epvector> vp = evalchildren(level);
-	if (vp.get() == 0)
+	if (vp.get() == nullptr)
 		return this->hold();
 	
 	return (new expairseq(std::move(vp), overall_coeff))->setflag(status_flags::dynallocated | status_flags::evaluated);
@@ -357,7 +357,7 @@ ex expairseq::eval(int level) const
 
 epvector* conjugateepvector(const epvector&epv)
 {
-	epvector *newepv = 0;
+	epvector *newepv = nullptr;
 	for (epvector::const_iterator i=epv.begin(); i!=epv.end(); ++i) {
 		if(newepv) {
 			newepv->push_back(i->conjugate());

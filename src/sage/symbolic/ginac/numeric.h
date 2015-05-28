@@ -122,7 +122,7 @@ public:
 	ex coeff(const ex & s, int n = 1) const;
 	bool has(const ex &other, unsigned options = 0) const;
 	ex eval(int level = 0) const;
-	ex evalf(int level = 0, PyObject* parent = NULL) const;
+	ex evalf(int level = 0, PyObject* parent = nullptr) const;
 
 	ex subs(const exmap & m, unsigned options = 0) const
 	{
@@ -439,10 +439,10 @@ inline const numeric denom(const numeric &x)
 
 // numeric evaluation functions for class constant objects:
 
-ex ConstantEvalf(unsigned serial, PyObject* parent = NULL);
-ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent = NULL);
-ex InfinityEvalf(unsigned serial, PyObject* parent = NULL);
-ex NegInfinityEvalf(unsigned serial, PyObject* parent = NULL);
+ex ConstantEvalf(unsigned serial, PyObject* parent = nullptr);
+ex UnsignedInfinityEvalf(unsigned serial, PyObject* parent = nullptr);
+ex InfinityEvalf(unsigned serial, PyObject* parent = nullptr);
+ex NegInfinityEvalf(unsigned serial, PyObject* parent = nullptr);
 
 } // namespace GiNaC
 

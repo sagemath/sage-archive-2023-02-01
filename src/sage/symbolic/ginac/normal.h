@@ -52,7 +52,7 @@ extern ex sprem(const ex &a, const ex &b, const ex &x, bool check_args = true);
 extern bool divide(const ex &a, const ex &b, ex &q, bool check_args = true);
 
 // Polynomial GCD in Z[X], cofactors are returned in ca and cb, if desired
-extern ex gcd(const ex &a, const ex &b, ex *ca = NULL, ex *cb = NULL, bool check_args = true);
+extern ex gcd(const ex &a, const ex &b, ex *ca = nullptr, ex *cb = nullptr, bool check_args = true);
 
 // Polynomial LCM in Z[X]
 extern ex lcm(const ex &a, const ex &b, bool check_args = true);

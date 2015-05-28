@@ -4734,6 +4734,153 @@ cdef class Matroid(SageObject):
         else:
             return True
 
+    cpdef is_3connected_beta(self, separation=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+
+        A `k`-*separation* in a matroid is a partition `(X, Y)` of the
+        groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
+        A matroid is `k`-*connected* if it has no `l`-separations for `l < k`.
+
+        INPUT:
+
+        - ``separation`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        .. SEEALSO::
+
+            :meth:`is_connected`
+
+        ALGORITHM:
+
+        The 3-connectivity algorithm from [BC79]_ which runs in `O(|E|^3)` time.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3).is_3connected()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M.is_3connected()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N.is_3connected()
+            False
+            sage: matroids.named_matroids.BetsyRoss().is_3connected()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M.is_3connected()
+            False
+            sage: B, X = M.is_3connected(True)
+            sage: M.connectivity(X)
+            1
+        """
+        # The 5 stages of the algorithm
+        # Stage 0, special cases
+        # Todo: There are exceptions to this rule need to be implemented
+        if self.loops() or self.coloops() or (not self.is_connected()):
+            return False
+        # Step 1: base case
+        if self.rank() <= 2:
+            return True
+
+        # Step 2: Find a separating B-fundamental cocircuit Y
+        basis = self.basis()
+        separating = False
+        for e in basis:
+            Y = self.fundamental_cocircuit(basis, e)
+            # Y is separating if M\Y is not connected
+            if not self.delete(Y).is_connected():
+                separating = True
+                break
+        if not separating :
+            return True
+        # Step 3: Check the avoidance graph of Y
+        N = self.delete(Y)
+        bridges = N.components()
+        Y_components = []
+        B_segments   = []
+        for B in bridges:
+            M = self.contract(self.groundset().difference(B.union(Y)))
+            Y_components.append(M)
+            # find a better way to compute parallel class of a Y_component
+            queue = list(M.groundset())
+            seen  = []
+            parallel_classes = []
+            while len(queue)>0:
+                e = queue.pop()
+                if e in seen:
+                    continue
+                parallel_class = [e]
+                for f in queue:
+                    if M.is_circuit([e,f]):
+                        seen.append(f)
+                        parallel_class.append(f)
+                parallel_classes.append(parallel_class)
+            B_segments.append(parallel_classes)
+        # build the avoidance graph
+        d = {}
+        for i in range(len(B_segments)):
+            d[i] = []
+            for j in range(len(B_segments)):
+                if i!= j:
+                    # avoidance check
+                    avoid = False
+                    for S in B_segments[i]:
+                        if Y.difference(S) in B_segments[j]:
+                            avoid = True
+                            break
+                    if avoid:
+                        d[i].append(j)
+        G = Graph(d);
+        if not G.is_connected():
+            return False
+        # Step 4: Apply algorithm recursively
+        for M in Y_components:
+            if not M.is_3connected_beta(M).simplify():
+                return False
+        return True
+    # matroid k-closed
+
+    cpdef is_k_closed(self, k):
+        r"""
+        Return if ``self`` is a ``k``-closed matroid.
+
+        We say a matroid is `k`-closed if all `k`-closed subsets
+        are closed in ``M``.
+
+        EXAMPLES::
+
+            sage: PR = RootSystem(['A',4]).root_lattice().positive_roots()
+            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: M = Matroid(m)
+            sage: M.is_k_closed(3)
+            True
+            sage: M.is_k_closed(4)
+            True
+
+            sage: PR = RootSystem(['D',4]).root_lattice().positive_roots()
+            sage: m = matrix(map(lambda x: x.to_vector(), PR)).transpose()
+            sage: M = Matroid(m)
+            sage: M.is_k_closed(3)
+            False
+            sage: M.is_k_closed(4)
+            True
+        """
+        for S in subsets(self.groundset()):
+            if self.is_subset_k_closed(S, k) and not self.is_closed(S):
+                return False
+        return True
+
     # matroid k-closed
 
     cpdef is_k_closed(self, int k):

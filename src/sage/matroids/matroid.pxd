@@ -138,6 +138,7 @@ cdef class Matroid(SageObject):
     cpdef connectivity(self, S, T=*)
     cpdef _connectivity(self, S, T)
     cpdef is_3connected(self, separation=*)
+    cpdef is_3connected_beta(self, separation=*)
 
     # matroid k-closed
     cpdef is_k_closed(self, int k)

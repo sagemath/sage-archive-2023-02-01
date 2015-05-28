@@ -112,6 +112,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
 from sage.env import SAGE_SHARE
 from sage.modules.all import vector, span
+from sage.misc.lazy_import import lazy_import
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
@@ -121,6 +122,8 @@ from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sequence import Sequence_generic
 from sage.structure.sage_object import SageObject
+
+lazy_import('sage.geometry.polyhedron.constructor', 'Polyhedron')
 
 from copy import copy
 import collections
@@ -518,8 +521,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         .. NOTE::
 
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
+            Two lattice polytopes are equal if they have the same vertices 
+            listed in the same order.
 
         TESTS::
 
@@ -3160,6 +3163,17 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 pplot += text3d(i+self.nvertices(), bc+index_shift*(p-bc), rgbcolor=pindex_color)
         return pplot
 
+    def polyhedron(self):
+        r"""
+        Return the Polyhedron object determined by this polytope's vertices.
+        
+        EXAMPLES::
+        
+            sage: o = lattice_polytope.cross_polytope(2)
+            sage: o.polyhedron()
+        """
+        return Polyhedron(vertices=[list(v) for v in self._vertices])        
+    
     def show3d(self):
         """
         Show a 3d picture of the polytope with default settings and without axes or frame.

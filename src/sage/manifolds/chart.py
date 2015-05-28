@@ -1,6 +1,12 @@
 r"""
 Coordinate charts on a topological manifold
 
+The class :class:`Chart` implements coordinate charts on a topological manifold
+over a topological field `K`. The subclass :class:`RealChart` is devoted
+to the case `K=\RR`, for which the concept of coordinate range is meaningful.
+
+Transition maps between charts are implemented via the class
+:class:`CoordChange`.
 
 AUTHORS:
 
@@ -38,9 +44,9 @@ class Chart(UniqueRepresentation, SageObject):
     r"""
     Chart on a topological manifold.
 
-    Given a topological manifold `M` of dimension `n` over a field `K`, a
-    *chart* is a pair `(U,\varphi)`, where `U` is an open subset of `M` and
-    `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from `U` to
+    Given a topological manifold `M` of dimension `n` over a topological field
+    `K`, a *chart* is a pair `(U,\varphi)`, where `U` is an open subset of `M`
+    and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from `U` to
     an open subset `V` of `K^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
@@ -52,8 +58,8 @@ class Chart(UniqueRepresentation, SageObject):
     - ``domain`` -- open subset `U` on which the chart is defined (must be
       an instance of :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
     - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols: the coordinates are separated by ' '
-      (space) and each coordinate has at most two fields, separated by ':':
+      the coordinate symbols, with ' ' (whitespace) as a separator; each item
+      has at most two fields, separated by ':':
 
         1. The coordinate symbol (a letter or a few letters)
         2. (optional) The LaTeX spelling of the coordinate; if not provided the
@@ -61,7 +67,7 @@ class Chart(UniqueRepresentation, SageObject):
 
       If it contains any LaTeX expression, the string ``coordinates`` must be
       declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of the backslash character (see examples below).
+      of LaTeX's backslash character (see examples below).
       If no LaTeX spelling is to be set for any coordinate, the argument
       ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
       used via Sage preparser (see examples below)
@@ -109,7 +115,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     Note that ``x`` and ``y`` declared in ``<x,y>`` are mere Python variable
     names and do not have to coincide with the coordinate symbols;
-    for instance, one may write:
+    for instance, one may write::
 
         sage: TopManifold._clear_cache_()  # for doctests only
         sage: M = TopManifold(2, 'M', field='complex')
@@ -133,7 +139,7 @@ class Chart(UniqueRepresentation, SageObject):
         sage: M = TopManifold(2, 'M', field='complex')
         sage: X.<x,y> = M.chart()
 
-    In the present case, the chart X covers entirely the manifold M::
+    In the above example, the chart X covers entirely the manifold M::
 
         sage: X.domain()
         Complex 2-dimensional topological manifold M
@@ -146,20 +152,19 @@ class Chart(UniqueRepresentation, SageObject):
         sage: Y.domain()
         Open subset U of the Complex 2-dimensional topological manifold M
 
-    In the above declaration, we have specified a LaTeX writing
+    In the above declaration, we have also specified some LaTeX writing
     of the coordinates different from the text one::
 
         sage: latex(z1)
         {\zeta_1}
 
-    Note the prefix ``r`` in front of the string ``r'z1:\zeta_1 z2:\zeta_2'``,
-    to make sure that the antislash character is treating as an ordinary
+    Note the prefix ``r`` in front of the string ``r'z1:\zeta_1 z2:\zeta_2'``;
+    it makes sure that the backslash character is treated as an ordinary
     character, to be passed to the LaTeX interpreter.
 
-    Coordinates are Sage symbolic variables::
+    Coordinates are Sage symbolic variables (see
+    :mod:`sage.symbolic.expression`)::
 
-        sage: type(x)
-        <type 'sage.symbolic.expression.Expression'>
         sage: type(z1)
         <type 'sage.symbolic.expression.Expression'>
 
@@ -170,7 +175,7 @@ class Chart(UniqueRepresentation, SageObject):
         (z1, z2)
 
     The index range is that declared during the creation of the manifold. By
-    default, it starts at 0, but it can be changed via the parameter
+    default, it starts at 0, but this can be changed via the parameter
     ``start_index``::
 
         sage: M1 = TopManifold(2, 'M_1', field='complex', start_index=1)
@@ -178,12 +183,19 @@ class Chart(UniqueRepresentation, SageObject):
         sage: Z[1], Z[2]
         (u, v)
 
-    Each constructed chart is automatically added to the manifold's atlas::
+    The full set of coordinates is obtained by means of the operator
+    ``[:]``::
+
+        sage: Y[:]
+        (z1, z2)
+
+    Each constructed chart is automatically added to the manifold's user
+    atlas::
 
         sage: M.atlas()
         [Chart (M, (x, y)), Chart (U, (z1, z2))]
 
-    and to the atlas of its domain::
+    and to the atlas of the chart's domain::
 
         sage: U.atlas()
         [Chart (U, (z1, z2))]
@@ -201,6 +213,16 @@ class Chart(UniqueRepresentation, SageObject):
     The default charts are not privileged charts on the manifold, but rather
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
+
+    The chart map `\varphi` acting on a point is obtained by means of the
+    call operator, i.e. the operator ``()``::
+
+        sage: p = M.point((1+i, 2), chart=X); p
+        Point on the Complex 2-dimensional topological manifold M
+        sage: X(p)
+        (I + 1, 2)
+        sage: X(p) == p.coord(X)
+        True
 
     .. SEEALSO::
 
@@ -482,7 +504,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must
           be an instance of
-          :class:`~sage.geometry.manifolds.domain.TopManifoldOpenSubset`)
+          :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
         - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
           defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -548,8 +570,8 @@ class Chart(UniqueRepresentation, SageObject):
         - ``*coordinates`` -- coordinate values
         - ``**kwds`` -- options:
 
-          - ``parameters=None``, to set some numerical values to parameters
-
+          - ``parameters=None``, dictionary to set numerical values to
+            some parameters (see example below)
 
         OUTPUT:
 
@@ -571,6 +593,18 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.valid_coordinates(i/2, 0)
             False
             sage: X.valid_coordinates(2, 0)
+            False
+
+        Example of use with the keyword ``parameters`` to set a specific value
+        to a parameter appearing in the coordinate restrictions::
+
+            sage: var('a')  # the parameter is a symbolic variable
+            a
+            sage: Y.<u,v> = M.chart()
+            sage: Y.add_restrictions(abs(v)<a)
+            sage: Y.valid_coordinates(1, i, parameters={a: 2})  # setting a=2
+            True
+            sage: Y.valid_coordinates(1, 2*i, parameters={a: 2})
             False
 
         """
@@ -611,10 +645,10 @@ class Chart(UniqueRepresentation, SageObject):
 
         .. MATH::
 
-            \psi\circ\varphi^{-1}: \varphi(U\cap V) \subset \RR^n
-            \rightarrow \psi(U\cap V) \subset \RR^n
+            \psi\circ\varphi^{-1}: \varphi(U\cap V) \subset K^n
+            \rightarrow \psi(U\cap V) \subset K^n,
 
-        In other words, the
+        where `K` is the manifold's base field. In other words, the
         transition map expresses the coordinates `(y^1,\ldots,y^n)` of
         `(V,\psi)` in terms of the coordinates `(x^1,\ldots,x^n)` of
         `(U,\varphi)` on the open subset where the two charts intersect, i.e.
@@ -623,9 +657,9 @@ class Chart(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``other`` -- the chart `(V,\psi)`
-        - ``transformations`` -- tuple (Y_1,...,Y_2), where Y_i is a symbolic
-          expression expressing the coordinate `y^i` in terms of the
-          coordinates `(x^1,\ldots,x^n)`
+        - ``transformations`` -- tuple (or list) `(Y_1,\ldots,Y_2)`, where
+          `Y_i` is the symbolic expression of the coordinate `y^i` in terms
+          of the coordinates `(x^1,\ldots,x^n)`
         - ``intersection_name`` -- (default: ``None``) name to be given to the
           subset `U\cap V` if the latter differs from `U` or `V`
         - ``restrictions1`` -- (default: ``None``) list of conditions on the
@@ -639,11 +673,11 @@ class Chart(UniqueRepresentation, SageObject):
           ``restrictions1``. For example, ``restrictions1`` = [x>y,
           (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0)) and (z^2<x).
           If the list ``restrictions1`` contains only one item, this item can
-          be passed as such, i.e. writing x>y instead of the single element
+          be passed as such, i.e. writing x>y instead of the single-element
           list [x>y].
         - ``restrictions2`` -- (default: ``None``) list of conditions on the
-          coordinates of the other chart that define `U\cap V` if the latter
-          differs from `V` (see ``restrictions1`` for the syntax)
+          coordinates of the chart `(V,\psi)` that define `U\cap V` if the
+          latter differs from `V` (see ``restrictions1`` for the syntax)
 
         OUTPUT:
 
@@ -660,10 +694,17 @@ class Chart(UniqueRepresentation, SageObject):
             sage: V = M.open_subset('V') # Complement of the South pole
             sage: cV.<y> = V.chart() # Stereographic chart from the South pole
             sage: M.declare_union(U,V)   # S^1 is the union of U and V
-            sage: trans = cU.transition_map(cV, 1/x, 'W', x!=0, y!=0)
+            sage: trans = cU.transition_map(cV, 1/x, intersection_name='W',
+            ....:                           restrictions1= x!=0, restrictions2 = y!=0)
             sage: trans
             Change of coordinates from Chart (W, (x,)) to Chart (W, (y,))
-            sage: M.list_of_subsets() # the subset W, intersection of U and V, has been created by transition_map()
+            sage: trans.display()
+            y = 1/x
+
+        The subset `W`, intersection of `U` and `V`, has been created by
+        ``transition_map()``::
+
+            sage: M.list_of_subsets()
             [1-dimensional topological manifold S^1,
              Open subset U of the 1-dimensional topological manifold S^1,
              Open subset V of the 1-dimensional topological manifold S^1,
@@ -674,21 +715,31 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M.atlas()
             [Chart (U, (x,)), Chart (V, (y,)), Chart (W, (x,)), Chart (W, (y,))]
 
-        Transition map between spherical chart and Cartesian chart on `\RR^2`::
+        Transition map between the spherical chart and the Cartesian one on
+        `\RR^2`::
 
             sage: TopManifold._clear_cache_() # for doctests only
             sage: M = TopManifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart()
             sage: U = M.open_subset('U') # the complement of the half line {y=0, x >= 0}
             sage: c_spher.<r,phi> = U.chart(r'r:(0,+oo) phi:(0,2*pi):\phi')
-            sage: trans = c_spher.transition_map(c_cart, (r*cos(phi), r*sin(phi)), \
-                                                 restrictions2=(y!=0, x<0))
+            sage: trans = c_spher.transition_map(c_cart, (r*cos(phi), r*sin(phi)),
+            ....:                                restrictions2=(y!=0, x<0))
             sage: trans
             Change of coordinates from Chart (U, (r, phi)) to Chart (U, (x, y))
-            sage: M.list_of_subsets() # in this case, no new subset has been created since U inter M = U
+            sage: trans.display()
+            x = r*cos(phi)
+            y = r*sin(phi)
+
+        In this case, no new subset has been created since `U\cap M = U`::
+
+            sage: M.list_of_subsets()
             [2-dimensional topological manifold R^2,
              Open subset U of the 2-dimensional topological manifold R^2]
-            sage: M.atlas() # ...but a new chart has been created: (U, (x, y))
+
+        ... but a new chart has been created: `(U, (x, y))`::
+
+            sage: M.atlas()
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
 
         """
@@ -714,8 +765,8 @@ class RealChart(Chart):
     r"""
     Chart on a topological manifold over `\RR`.
 
-    Given a manifold `M` of dimension `n`, a *chart* is a pair `(U,\varphi)`,
-    where `U` is an open subset of `M` and
+    Given a topological manifold `M` of dimension `n` over `\RR`, a *chart* is
+    a pair `(U,\varphi)`, where `U` is an open subset of `M` and
     `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
     an open subset `V` of `\RR^n`.
 
@@ -728,8 +779,8 @@ class RealChart(Chart):
     - ``domain`` -- open subset `U` on which the chart is defined (must be
       an instance of :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
     - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols and ranges: the coordinates are separated by ' '
-      (space) and each coordinate has at most three fields, separated by ':':
+      the coordinate symbols and ranges, with ' ' (whitespace) as a separator;
+      each item has at most three fields, separated by ':':
 
         1. The coordinate symbol (a letter or a few letters)
         2. (optional) The interval `I` defining the coordinate range: if not
@@ -739,8 +790,7 @@ class RealChart(Chart):
            ``Inf``, ``infinity``, ``inf`` or ``oo``.
            For *singular* coordinates, non-open intervals such as ``[a,b]`` and
            ``(a,b]`` (or equivalently ``]a,b]``) are allowed.
-           Note that the interval declaration must not contain any space
-           character.
+           Note that the interval declaration must not contain any whitespace.
         3. (optional) The LaTeX spelling of the coordinate; if not provided the
            coordinate symbol given in the first field will be used.
 
@@ -748,7 +798,7 @@ class RealChart(Chart):
       omitted.
       If it contains any LaTeX expression, the string ``coordinates`` must be
       declared with the prefix 'r' (for "raw") to allow for a proper treatment
-      of the backslash character (see examples below).
+      of LaTeX backslash characters (see examples below).
       If no interval range and no LaTeX spelling is to be set for any
       coordinate, the argument ``coordinates`` can be omitted when the
       shortcut operator ``<,>`` is used via Sage preparser (see examples below)
@@ -773,7 +823,7 @@ class RealChart(Chart):
 
     However, a shortcut is to use the declarator ``<x,y,z>`` in the left-hand
     side of the chart declaration (there is then no need to pass the string
-    'x y z' to chart())::
+    ``'x y z'`` to  ``chart()``)::
 
         sage: TopManifold._clear_cache_() # for doctests only
         sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
@@ -792,16 +842,16 @@ class RealChart(Chart):
         sage: preparse("c_cart.<x,y,z> = M.chart()")
         "c_cart = M.chart(names=('x', 'y', 'z',)); (x, y, z,) = c_cart._first_ngens(3)"
 
-    Note that x, y, z declared in ``<x,y,z>`` are mere Python variable names
-    and do not have to coincide with the coordinate symbols; for instance,
+    Note that ``x, y, z`` declared in ``<x,y,z>`` are mere Python variable
+    names and do not have to coincide with the coordinate symbols; for instance,
     one may write::
 
         sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
         sage: c_cart.<x1,y1,z1> = M.chart('x y z') ; c_cart
         Chart (R^3, (x, y, z))
 
-    Then y is not known as a global variable and the corresponding coordinate
-    is accessible only through the global variable y1::
+    Then ``y`` is not known as a global variable and the coordinate `y`
+    is accessible only through the global variable ``y1``::
 
         sage: y1
         y
@@ -820,12 +870,14 @@ class RealChart(Chart):
     complement of the half-plane `\{y=0, x\geq 0\}`::
 
         sage: U = M.open_subset('U')
-        sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') ; c_spher
+        sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
+        sage: c_spher
         Chart (U, (r, th, ph))
 
     Note the prefix 'r' for the string defining the coordinates in the arguments of ``Chart``.
 
-    Coordinates are some Sage symbolic variables::
+    Coordinates are Sage symbolic variables (see
+    :mod:`sage.symbolic.expression`)::
 
         sage: type(th)
         <type 'sage.symbolic.expression.Expression'>
@@ -869,7 +921,7 @@ class RealChart(Chart):
         sage: simplify(abs(x)) # no positive range has been declared for x
         abs(x)
 
-    Each constructed chart is automatically added to the manifold's atlas::
+    Each constructed chart is automatically added to the manifold's user atlas::
 
         sage: M.atlas()
         [Chart (R^3, (x, y, z)), Chart (U, (r, th, ph))]
@@ -879,15 +931,20 @@ class RealChart(Chart):
         sage: U.atlas()
         [Chart (U, (r, th, ph))]
 
-    Manifold subsets may have a default chart, which, unless changed via the
+
+    Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.geometry.manifolds.domain.ManifoldSubset.set_default_chart`,
+    :meth:`~sage.manifolds.subset.TopManifoldOpenSubset.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
         Chart (R^3, (x, y, z))
         sage: U.default_chart()
         Chart (U, (r, th, ph))
+
+    The default charts are not privileged charts on the manifold, but rather
+    charts whose name can be skipped in the argument list of functions having
+    an optional ``chart=`` argument.
 
     The chart map `\varphi` acting on a point is obtained by means of the
     call operator, i.e. the operator ``()``::
@@ -898,7 +955,7 @@ class RealChart(Chart):
         (1, 0, -2)
         sage: c_cart(p) == p.coord(c_cart)
         True
-        sage: q = M.point((2,pi/2,pi/3), c_spher) # point defined by its spherical coordinates
+        sage: q = M.point((2,pi/2,pi/3), chart=c_spher) # point defined by its spherical coordinates
         sage: c_spher(q)
         (2, 1/2*pi, 1/3*pi)
         sage: c_spher(q) == q.coord(c_spher)
@@ -909,8 +966,8 @@ class RealChart(Chart):
         sage: c_spher(a) == a.coord(c_spher)
         True
 
-    Cartesian coordinates on U as an example of chart construction with
-    coordinate restrictions: since U is the complement of the half-plane
+    Cartesian coordinates on `U` as an example of chart construction with
+    coordinate restrictions: since `U` is the complement of the half-plane
     `\{y=0, x\geq 0\}`, we must have `y\not=0` or `x<0` on U. Accordingly,
     we set::
 
@@ -1148,6 +1205,38 @@ class RealChart(Chart):
 
         """
         from sage.tensor.modules.format_utilities import FormattedExpansion
+        def _display_coord_range(self, xx, rtxt, rlatex):
+            ind = self._xx.index(xx)
+            bounds = self._bounds[ind]
+            rtxt += "{}: ".format(xx)
+            rlatex += latex(xx) + r":\ "
+            if bounds[0][1]:
+                rtxt += "["
+                rlatex += r"\left["
+            else:
+                rtxt += "("
+                rlatex += r"\left("
+            xmin = bounds[0][0]
+            if xmin == -Infinity:
+                rtxt += "-oo, "
+                rlatex += r"-\infty,"
+            else:
+                rtxt += "{}, ".format(xmin)
+                rlatex += latex(xmin) + ","
+            xmax = bounds[1][0]
+            if xmax == Infinity:
+                rtxt += "+oo"
+                rlatex += r"+\infty"
+            else:
+                rtxt += "{}".format(xmax)
+                rlatex += latex(xmax)
+            if bounds[1][1]:
+                rtxt += "]"
+                rlatex += r"\right]"
+            else:
+                rtxt += ")"
+                rlatex += r"\right)"
+            return rtxt, rlatex
         resu_txt = ""
         resu_latex = ""
         if xx is None:
@@ -1155,62 +1244,13 @@ class RealChart(Chart):
                 if resu_txt != "":
                     resu_txt += "; "
                     resu_latex += r";\quad "
-                resu_txt, resu_latex = self._display_coord_range(x, resu_txt,
-                                                                 resu_latex)
+                resu_txt, resu_latex = _display_coord_range(self, x, resu_txt,
+                                                            resu_latex)
         else:
-            resu_txt, resu_latex = self._display_coord_range(xx, resu_txt,
-                                                             resu_latex)
+            resu_txt, resu_latex = _display_coord_range(self, xx, resu_txt,
+                                                        resu_latex)
         return FormattedExpansion(resu_txt, resu_latex)
 
-    def _display_coord_range(self, xx, rtxt, rlatex):
-        r"""
-        Helper function for the display of a coordinate range
-
-        INPUT:
-
-        - ``xx`` -- symbolic expression corresponding to a
-          coordinate of ``self``
-        - ``rtxt`` -- string; initial state for the text version of the range
-        - ``rlatex`` -- string; initial state for the LaTeX version of the
-          range
-
-        OUTPUT:
-
-        - tuple of 2 strings containing the final state for the text and
-          LaTeX versions of the range
-
-        """
-        ind = self._xx.index(xx)
-        bounds = self._bounds[ind]
-        rtxt += "{}: ".format(xx)
-        rlatex += latex(xx) + r":\ "
-        if bounds[0][1]:
-            rtxt += "["
-            rlatex += r"\left["
-        else:
-            rtxt += "("
-            rlatex += r"\left("
-        xmin = bounds[0][0]
-        if xmin == -Infinity:
-            rtxt += "-oo, "
-            rlatex += r"-\infty,"
-        else:
-            rtxt += "{}, ".format(xmin)
-            rlatex += latex(xmin) + ","
-        xmax = bounds[1][0]
-        if xmax == Infinity:
-            rtxt += "+oo"
-            rlatex += r"+\infty"
-        else:
-            rtxt += "{}".format(xmax)
-            rlatex += latex(xmax)
-        if bounds[1][1]:
-            rtxt += "]"
-            rlatex += r"\right]"
-        else:
-            rtxt += ")"
-            rlatex += r"\right)"
-        return rtxt, rlatex
 
     def add_restrictions(self, restrictions):
         r"""
@@ -1337,7 +1377,7 @@ class RealChart(Chart):
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must
           be an instance of
-          :class:`~sage.geometry.manifolds.domain.TopManifoldOpenSubset`)
+          :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
         - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
           defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -1428,6 +1468,33 @@ class RealChart(Chart):
 
         - True if the coordinate values are admissible in the chart range.
 
+        EXAMPLES:
+
+        Cartesian coordinates on a square interior::
+
+            sage: forget()  # for doctest only
+            sage: M = TopManifold(2, 'M')  # the square interior
+            sage: X.<x,y> = M.chart('x:(-2,2) y:(-2,2)')
+            sage: X.valid_coordinates(0,1)
+            True
+            sage: X.valid_coordinates(-3/2,5/4)
+            True
+            sage: X.valid_coordinates(0,3)
+            False
+
+        The unit open disk inside the square::
+
+            sage: D = M.open_subset('D', coord_def={X: x^2+y^2<1})
+            sage: XD = X.restrict(D)
+            sage: XD.valid_coordinates(0,1)
+            False
+            sage: XD.valid_coordinates(-3/2,5/4)
+            False
+            sage: XD.valid_coordinates(-1/2,1/2)
+            True
+            sage: XD.valid_coordinates(0,0)
+            True
+
         """
         n = len(coordinates)
         if n != self._manifold._dim:
@@ -1487,14 +1554,43 @@ class CoordChange(SageObject):
     r"""
     Transition map between two charts of a topological manifold.
 
+    Giving two coordinate charts `(U,\varphi)` and `(V,\psi)` on a topological
+    manifold `M` of dimension `n` over a topological field `K`, the
+    *transition map from* `(U,\varphi)` *to* `(V,\psi)` is the map
+
+    .. MATH::
+
+        \psi\circ\varphi^{-1}: \varphi(U\cap V) \subset K^n
+        \rightarrow \psi(U\cap V) \subset K^n,
+
+    In other words, the transition map `\psi\circ\varphi^{-1}` expresses the
+    coordinates `(y^1,\ldots,y^n)` of `(V,\psi)` in terms of the coordinates
+    `(x^1,\ldots,x^n)` of `(U,\varphi)` on the open subset where the two
+    charts intersect, i.e. on `U\cap V`.
+
     INPUT:
 
-    - ``chart1`` -- initial chart
-    - ``chart2`` -- final chart
-    - ``transformations`` -- the coordinate transformations expressed as a list
-      of the expressions of the "new" coordinates in terms of the "old" ones
+    - ``chart1`` -- chart `(U,\varphi)`
+    - ``chart2`` -- chart `(V,\psi)`
+    - ``transformations`` -- tuple (or list) `(Y_1,\ldots,Y_2)`, where
+      `Y_i` is the symbolic expression of the coordinate `y^i` in terms
+      of the coordinates `(x^1,\ldots,x^n)`
 
     EXAMPLES:
+
+    Transition map on a 2-dimensional topological manifold::
+
+        sage: M = TopManifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: Y.<u,v> = M.chart()
+        sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+        sage: X_to_Y
+        Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
+        sage: type(X_to_Y)
+        <class 'sage.manifolds.chart.CoordChange'>
+        sage: X_to_Y.display()
+        u = x + y
+        v = x - y
 
     """
     def __init__(self, chart1, chart2, *transformations):
@@ -1515,7 +1611,7 @@ class CoordChange(SageObject):
 
         .. TODO::
 
-            have test_pickling passed
+            fix _test_pickling
 
         """
         self._n1 = len(chart1._xx)
@@ -1541,6 +1637,20 @@ class CoordChange(SageObject):
     def _repr_(self):
         r"""
         String representation of the transition map.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y._repr_()
+            'Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))'
+            sage: repr(X_to_Y)  # indirect doctest
+            'Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))'
+            sage: X_to_Y  # indirect doctest
+            Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
+
         """
         return "Change of coordinates from {} to {}".format(self._chart1,
                                                             self._chart2)
@@ -1548,6 +1658,18 @@ class CoordChange(SageObject):
     def _latex_(self):
         r"""
         LaTeX representation of the transition map.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y._latex_()
+            \left(M,(x, y)\right) \rightarrow \left(M,(u, v)\right)
+            sage: latex(X_to_Y)  # indirect doctest
+            \left(M,(x, y)\right) \rightarrow \left(M,(u, v)\right)
+
         """
         return latex(self._chart1) + r' \rightarrow ' + latex(self._chart2)
 
@@ -1562,6 +1684,15 @@ class CoordChange(SageObject):
         OUTPUT:
 
         - tuple of values of coordinates of ``chart2``
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: X_to_Y(1,2)
+            (3, -1)
 
         """
         #*# for now
@@ -1790,6 +1921,31 @@ class CoordChange(SageObject):
     def restrict(self, dom1, dom2=None):
         r"""
         Restriction to subsets.
+
+        INPUT:
+
+        - ``dom1`` -- open subset of the domain of ``chart1``
+        - ``dom2`` -- (default: ``None``) open subset of the domain of
+          ``chart2``; if ``None``, ``dom1`` is assumed.
+
+        OUTPUT:
+
+        - the transition map between the charts restricted to the specified
+          subsets.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: U = M.open_subset('U', coord_def={X: x>0, Y: u+v>0})
+            sage: X_to_Y_U = X_to_Y.restrict(U); X_to_Y_U
+            Change of coordinates from Chart (U, (x, y)) to Chart (U, (u, v))
+            sage: X_to_Y_U.display()
+            u = x + y
+            v = x - y
+
         """
         if dom2 is None:
             dom2 = dom1

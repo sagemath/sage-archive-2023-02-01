@@ -427,6 +427,9 @@ class GrowthElementPower(GenericGrowthElement):
             sage: e2.is_idempotent() and e2.is_one()
             True
         """
+        if exponent is None and x.parent() is parent:
+            self.exponent = x.exponent
+            super(GrowthElementPower, self).__init__(parent=parent)
         if exponent not in RR:
             raise NotImplementedError("Non-real exponents are not supported.")
         else:

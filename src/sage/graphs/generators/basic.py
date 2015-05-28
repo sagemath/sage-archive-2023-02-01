@@ -1065,6 +1065,11 @@ def PathGraph(n, pos=None):
         sage: s = graphs.PathGraph(5,'circle')
         sage: s.show() # long time
     """
+    if n<1:
+        return graph.Graph(name="Path graph")
+    if n==1:
+        return graph.Graph({0:[]}, name="Path Graph")
+
     pos_dict = {}
 
     # Choose appropriate drawing pattern

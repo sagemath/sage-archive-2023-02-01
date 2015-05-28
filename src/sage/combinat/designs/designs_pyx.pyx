@@ -154,7 +154,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
     Checks that input is a Group Divisible Design on `\{0,...,v-1\}`
 
     For more information on Group Divisible Designs, see
-    :class:`~sage.combinat.designs.incidence_structures.GroupDivisibleDesign`.
+    :class:`~sage.combinat.designs.group_divisible_designs.GroupDivisibleDesign`.
 
     INPUT:
 
@@ -359,6 +359,77 @@ def is_pairwise_balanced_design(blocks,v,K=None,lambd=1,verbose=False):
                                      v,
                                      K=K,
                                      lambd=lambd,
+                                     verbose=verbose)
+
+def is_projective_plane(blocks, verbose=False):
+    r"""
+    Test whether the blocks form a projective plane on `\{0,...,v-1\}`
+
+    A *projective plane* is an incidence structure that has the following properties:
+
+    1. Given any two distinct points, there is exactly one line incident with both of them.
+    2. Given any two distinct lines, there is exactly one point incident with both of them.
+    3. There are four points such that no line is incident with more than two of them.
+
+    For more informations, see :wikipedia:`Projective_plane`.
+
+    :meth:`~IncidenceStructure.is_t_design` can also check if an incidence structure is a projective plane
+    with the parameters `v=k^2+k+1`, `t=2` and `l=1`.
+
+    INPUT:
+
+    - ``blocks`` -- collection of blocks
+
+    - ``verbose`` -- whether to print additional information
+
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.designs_pyx import is_projective_plane
+        sage: p = designs.projective_plane(4)
+        sage: b = p.blocks()
+        sage: is_projective_plane(b, verbose=True)
+        True
+
+        sage: p = designs.projective_plane(2)
+        sage: b = p.blocks()
+        sage: is_projective_plane(b)
+        True
+        sage: b[0][2] = 5
+        sage: is_projective_plane(b, verbose=True)
+        the pair (0,5) has been seen 2 times but lambda=1
+        False
+
+        sage: is_projective_plane([[0,1,2],[1,2,4]], verbose=True)
+        the pair (0,3) has been seen 0 times but lambda=1
+        False
+
+        sage: is_projective_plane([[1]], verbose=True)
+        First block has less than 3 points.
+        False
+
+        sage: p = designs.projective_plane(2)
+        sage: b = p.blocks()
+        sage: b[2].append(4)
+        sage: is_projective_plane(b, verbose=True)
+        a block has size 4 while K=[3]
+        False
+    """
+    if not blocks:
+        if verbose:
+            print 'There is no block.'
+        return False
+    k = len(blocks[0])-1
+    if k < 2:
+        if verbose:
+            print 'First block has less than 3 points.'
+        return False
+    v = k**2 + k + 1
+    return is_group_divisible_design([[i] for i in range(v)],
+                                     blocks,
+                                     v,
+                                     K=[k+1],
+                                     lambd=1,
                                      verbose=verbose)
 
 def is_difference_matrix(M,G,k,lmbda=1,verbose=False):

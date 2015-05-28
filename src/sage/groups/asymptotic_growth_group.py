@@ -300,7 +300,8 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
+            sage: x = P.gen()
             sage: P.le(x, x^2)
             True
             sage: P.le(x^2, x)
@@ -353,6 +354,29 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
             8493512696244708699
         """
         return hash(repr(self))
+
+
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GenericGrowthGroup();
+            sage: P.an_element()  # indirect doctest
+            Generic element of a Generic Asymptotic Growth Group
+        """
+        return GenericGrowthElement(self)
+
 
 
 class GrowthElementPower(GenericGrowthElement):
@@ -427,6 +451,9 @@ class GrowthElementPower(GenericGrowthElement):
             sage: e2.is_idempotent() and e2.is_one()
             True
         """
+        if exponent is None and x.parent() is parent:
+            self.exponent = x.exponent
+            super(GrowthElementPower, self).__init__(parent=parent)
         if exponent not in RR:
             raise NotImplementedError("Non-real exponents are not supported.")
         else:
@@ -461,11 +488,11 @@ class GrowthElementPower(GenericGrowthElement):
         if self.exponent == 0:
             return "1"
         elif self.exponent == 1:
-            return self.parent().variable
+            return self.parent().var
         elif self.exponent in ZZ:
-            return self.parent().variable + "^" + str(self.exponent)
+            return self.parent().var + "^" + str(self.exponent)
         else:
-            return self.parent().variable + "^(" + str(self.exponent) + ")"
+            return self.parent().var + "^(" + str(self.exponent) + ")"
 
 
     def _mul_(self, other):
@@ -584,7 +611,7 @@ class GrowthElementPower(GenericGrowthElement):
             return self.parent()(None, exponent=self.exponent * power)
 
         if new_exponent in RR:
-            pnt = GrowthGroupPower(self.parent().variable,
+            pnt = GrowthGroupPower(self.parent().var,
                                    base=new_exponent.parent())
             return pnt(None, exponent=new_exponent)
         else:
@@ -760,8 +787,8 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
-            sage: hash(x)  # random
+            sage: P = agg.GrowthGroupPower("x")
+            sage: hash(P.gen())  # random
             -3234005094684624010
         """
         return hash((self.exponent, self.parent()))
@@ -780,7 +807,7 @@ class GrowthGroupPower(GenericGrowthGroup):
 
     INPUT:
 
-    - ``variable`` -- either a symbol from the symbolic ring, a
+    - ``var`` -- either a symbol from the symbolic ring, a
       generator from a polynomial ring, or a alphanumeric string
       starting with a letter and optionally containing underscores.
 
@@ -806,7 +833,7 @@ class GrowthGroupPower(GenericGrowthGroup):
 
 
     @staticmethod
-    def __classcall__(cls, variable=None, base=ZZ, category=None, names=None):
+    def __classcall__(cls, var=None, base=ZZ, category=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -825,20 +852,17 @@ class GrowthGroupPower(GenericGrowthGroup):
             sage: P1 is P4
             True
         """
-        if names is not None and len(names) == 1:
-            variable = names[0]
-
-        if hasattr(variable, "is_symbol") and variable.is_symbol():
-            variable = repr(variable)
-        elif hasattr(variable, "is_gen") and variable.is_gen():
-            variable = repr(variable)
-        elif isinstance(variable, buffer):
-            variable = str(variable)
+        if hasattr(var, "is_symbol") and var.is_symbol():
+            var = repr(var)
+        elif hasattr(var, "is_gen") and var.is_gen():
+            var = repr(var)
+        elif isinstance(var, buffer):
+            var = str(var)
         return super(GrowthGroupPower, cls).\
-            __classcall__(cls, variable, base, category)
+            __classcall__(cls, var, base, category)
 
 
-    def __init__(self, variable, base=ZZ, category=None):
+    def __init__(self, var, base=ZZ, category=None):
         r"""
         For more information see :class:`GrowthGroupPower`.
 
@@ -859,11 +883,11 @@ class GrowthGroupPower(GenericGrowthGroup):
             sage: P3 is P4
             True
         """
-        if variable is None:
+        if var is None:
             raise ValueError("Variable for initialization required.")
         else:
-            if re.match("^[A-Za-z][A-Za-z0-9_]*$", variable):
-                self.variable = str(variable)
+            if re.match("^[A-Za-z][A-Za-z0-9_]*$", var):
+                self.var = str(var)
             else:
                 raise ValueError("Only alphanumeric strings starting with a "
                                  "letter may be variables")
@@ -893,7 +917,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         """
         if isinstance(S, GrowthGroupPower):
             if self.base().coerce_map_from(S.base()) is not None \
-               and self.variable == S.variable:
+               and self.var == S.var:
                 return True
 
 
@@ -961,8 +985,29 @@ class GrowthGroupPower(GenericGrowthGroup):
             'Asymptotic Power Growth Group in v_107 over Rational Field'
         """
         return "Asymptotic Power Growth Group in %s over %s" \
-               % (self.variable, self.base())
+               % (self.var, self.base())
 
+
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroupPower("x")
+            sage: P.an_element()  # indirect doctest
+            x
+        """
+        return self.gen()
 
     def gens(self):
         r"""
@@ -981,7 +1026,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: P.gens()
             (x,)
         """
@@ -1004,7 +1049,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: P.ngens()
             1
         """
@@ -1075,8 +1120,8 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P.<x> = agg.GrowthGroupPower()
+            sage: P = agg.GrowthGroupPower("x")
             sage: hash(P)  # random
             -8144479309627091876
         """
-        return hash((self.variable, self.base()))
+        return hash((self.var, self.base()))

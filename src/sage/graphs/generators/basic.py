@@ -203,9 +203,11 @@ def CircularLadderGraph(n):
         y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
         pos_dict[i] = (x,y)
 
-    two_n = 2*n
-    return graph.Graph(dict( (i, [(i+1)%two_n, (i+n)%two_n]) for i in range(two_n) ),
-                       pos=pos_dict, name="Circular Ladder graph")
+    G = Graph(pos=pos_dict, name="Circular Ladder graph")
+    G.add_cycle(range(n))
+    G.add_cycle(range(n,2*n))
+    G.add_edges(list( (i,i+n) for i in range(n)))
+    return G
 
 def ClawGraph():
     """
@@ -399,7 +401,7 @@ def CompleteGraph(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    return graph.Graph( dict( (i,range(i+1,n)) for i in range(n-1) ),
+    return graph.Graph( dict( (i,range(i+1,n)) for i in range(n) ),
                         pos=pos_dict, name="Complete graph")
 
 def CompleteBipartiteGraph(n1, n2):
@@ -951,9 +953,10 @@ def LadderGraph(n):
     for i in range(n,2*n):
         x = i - n
         pos_dict[i] = (x,0)
-    import networkx
-    G = networkx.ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Ladder graph")
+    G = Graph(pos=pos_dict, name="Ladder graph")
+    G.add_cycle(range(2*n))
+    G.add_edges(list((i,i+n) for i in range(1,n-1)))
+    return G
 
 def LollipopGraph(n1, n2):
     """

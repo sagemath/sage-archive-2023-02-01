@@ -283,6 +283,21 @@ class Function_abs(GinacFunction):
 
             sage: loads(dumps(abs(x)))
             abs(x)
+
+        TESTS:
+
+        Check that :trac:`12588` is fixed:
+
+            sage: abs(pi*I)
+            pi
+            sage: abs(pi*I*catalan)
+            catalan*pi
+            sage: abs(pi*catalan*x)
+            catalan*pi*abs(x)
+            sage: abs(pi*I*catalan*x)
+            catalan*pi*abs(I*x)
+            sage: abs(1.0j*pi)
+            1.00000000000000*pi
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs'))

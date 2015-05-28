@@ -76,7 +76,8 @@ from sage.combinat.designs.block_design import (BlockDesign,
                                                 AffineGeometryDesign,
                                                 WittDesign,
                                                 HadamardDesign,
-                                                Hadamard3Design)
+                                                Hadamard3Design,
+                                                HughesPlane)
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 

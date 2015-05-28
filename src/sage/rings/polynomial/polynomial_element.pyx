@@ -2617,14 +2617,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: isinstance(x.numerator() / R(1), Polynomial)
             False
 
-        TESTS::
+        TESTS:
 
         Check that :trac:`18518` is fixed::
 
-        sage: R.<x> = PolynomialRing(QQ, sparse=True)
-        sage: p = x^(2^100) - 1/2
-        sage: p.denominator()
-        2
+            sage: R.<x> = PolynomialRing(QQ, sparse=True)
+            sage: p = x^(2^100) - 1/2
+            sage: p.denominator()
+            2
         """
 
         if self.degree() == -1:

@@ -667,6 +667,31 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             raise ValueError("Input is not an asymptotic growth element.")
 
 
+    def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: PG = agg.GrowthGroupPower("x")
+            sage: atm.ExactTermMonoid(PG, ZZ).an_element()  # indirect doctest
+            1 * x
+            sage: atm.OTermMonoid(PG).an_element()  # indirect doctest
+            O(x)
+        """
+        return self(self.base().an_element())
+
+
     def le(self, x, y):
         r"""
         Return whether the growth of term `x` is less than or equal

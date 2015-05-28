@@ -122,8 +122,6 @@ def is_ParentWithMultiplicativeAbelianGens(x):
         sage: from sage.structure.parent_gens import is_ParentWithMultiplicativeAbelianGens
         sage: is_ParentWithMultiplicativeAbelianGens(QQ)
         False
-        sage: is_ParentWithMultiplicativeAbelianGens(DirichletGroup(11))
-        True
     """
     return isinstance(x, ParentWithMultiplicativeAbelianGens)
 

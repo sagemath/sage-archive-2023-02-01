@@ -2381,8 +2381,8 @@ ex ex::to_rational(lst & repl_lst) const
 {
 	// Convert lst to exmap
 	exmap m;
-	for (auto it = repl_lst.begin(); it != repl_lst.end(); ++it)
-		m.insert(std::make_pair(it->op(0), it->op(1)));
+	for (const auto & elem : repl_lst)
+		m.insert(std::make_pair(elem.op(0), elem.op(1)));
 
 	ex ret = bp->to_rational(m);
 
@@ -2404,8 +2404,8 @@ ex ex::to_polynomial(lst & repl_lst) const
 {
 	// Convert lst to exmap
 	exmap m;
-	for (auto it = repl_lst.begin(); it != repl_lst.end(); ++it)
-		m.insert(std::make_pair(it->op(0), it->op(1)));
+	for (const auto & elem : repl_lst)
+		m.insert(std::make_pair(elem.op(0), elem.op(1)));
 
 	ex ret = bp->to_polynomial(m);
 

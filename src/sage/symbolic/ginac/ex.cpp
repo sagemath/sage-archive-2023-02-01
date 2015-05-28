@@ -165,8 +165,8 @@ ex ex::subs(const ex & e, unsigned options) const
 		// Argument is a list: convert it to a map
 		exmap m;
 		GINAC_ASSERT(is_a<lst>(e));
-		for (auto it = ex_to<lst>(e).begin(); it != ex_to<lst>(e).end(); ++it) {
-			ex r = *it;
+		for (auto r : ex_to<lst>(e)) {
+			
 			if (!r.info(info_flags::relation_equal))
 				throw(std::invalid_argument("basic::subs(ex): argument must be a list of equations"));
 			const ex & s = r.op(0);
@@ -246,8 +246,8 @@ bool ex::is_polynomial(const ex & vars) const
 {
 	if (is_a<lst>(vars)) {
 		const lst & varlst = ex_to<lst>(vars);
-		for (auto i=varlst.begin(); i!=varlst.end(); ++i)
-			if (!bp->is_polynomial(*i))
+		for (const auto & elem : varlst)
+			if (!bp->is_polynomial(elem))
 				return false;
 		return true;
 	}

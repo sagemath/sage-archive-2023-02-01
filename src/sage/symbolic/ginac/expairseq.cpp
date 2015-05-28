@@ -278,8 +278,8 @@ bool expairseq::info(unsigned inf) const
 				return true;
 			else if (flags & status_flags::has_no_indices)
 				return false;
-			for (auto i = seq.begin(); i != seq.end(); ++i) {
-				if (i->rest.info(info_flags::has_indices)) {
+			for (const auto & elem : seq) {
+				if (elem.rest.info(info_flags::has_indices)) {
 					this->setflag(status_flags::has_indices);
 					this->clearflag(status_flags::has_no_indices);
 					return true;
@@ -1724,8 +1724,8 @@ std::unique_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned opti
 	if (!(options & (subs_options::pattern_is_product | subs_options::pattern_is_not_product))) {
 
 		// Search the list of substitutions and cache our findings
-		for (auto it = m.begin(); it != m.end(); ++it) {
-			if (is_exactly_a<mul>(it->first) || is_exactly_a<power>(it->first)) {
+		for (const auto & elem : m) {
+			if (is_exactly_a<mul>(elem.first) || is_exactly_a<power>(elem.first)) {
 				options |= subs_options::pattern_is_product;
 				break;
 			}

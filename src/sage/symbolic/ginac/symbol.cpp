@@ -154,9 +154,9 @@ ex symbol::unarchive(const archive_node &n, lst &sym_lst)
 	ex s = (new symbol(n, sym_lst))->setflag(status_flags::dynallocated);
 
 	// If symbol is in sym_lst, return the existing symbol
-	for (auto it = sym_lst.begin(); it != sym_lst.end(); ++it) {
-		if (is_a<symbol>(*it) && (ex_to<symbol>(*it).name == ex_to<symbol>(s).name))
-			return *it;
+	for (const auto & elem : sym_lst) {
+		if (is_a<symbol>(elem) && (ex_to<symbol>(elem).name == ex_to<symbol>(s).name))
+			return elem;
 	}
 
 	// Otherwise add new symbol to list and return it

@@ -692,8 +692,8 @@ next_context:
 			    << ", nops=" << nops()
 			    << std::endl;
 			unsigned delta_indent = static_cast<const print_tree &>(c).delta_indent;
-			for (size_t i=0; i<seq.size(); ++i)
-				seq[i].print(c, level + delta_indent);
+			for (auto & elem : seq)
+				elem.print(c, level + delta_indent);
 			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
 
 		} else if (is_a<print_csrc>(c)) {
@@ -1445,8 +1445,8 @@ void function::store_remember_table(ex const & result) const
 unsigned function::register_new(function_options const & opt)
 {
 	size_t same_name = 0;
-	for (size_t i=0; i<registered_functions().size(); ++i) {
-		if (registered_functions()[i].name==opt.name) {
+	for (auto & elem : registered_functions()) {
+		if (elem.name==opt.name) {
 			++same_name;
 		}
 	}

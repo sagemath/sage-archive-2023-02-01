@@ -160,8 +160,8 @@ void fderivative::do_print_tree(const print_tree & c, unsigned level) const
 	while (i != end)
 		c.s << *i++ << ",";
 	c.s << *i << std::endl;
-	for (size_t i=0; i<seq.size(); ++i)
-		seq[i].print(c, level + c.delta_indent);
+	for (auto & elem : seq)
+		elem.print(c, level + c.delta_indent);
 	c.s << std::string(level + c.delta_indent, ' ') << "=====" << std::endl;
 }
 
@@ -260,10 +260,9 @@ unsigned fderivative::calchash() const
 
 	// FNV hash with custom prime and initial value
 	unsigned h = 2166136285;
-	for (auto i = parameter_set.begin(), 
-			end = parameter_set.end(); i != end; ++i) {
-		h = ( h * 2097287 ) ^ (*i-prev);
-		prev = *i;
+	for (const auto & elem : parameter_set) {
+		h = ( h * 2097287 ) ^ (elem-prev);
+		prev = elem;
 	}
 
 	res=h^res;

@@ -295,8 +295,8 @@ bool add::info(unsigned inf) const
 
 bool add::is_polynomial(const ex & var) const
 {
-	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		if (!(i->rest).is_polynomial(var)) {
+	for (const auto & elem : seq) {
+		if (!(elem.rest).is_polynomial(var)) {
 			return false;
 		}
 	}
@@ -530,13 +530,13 @@ ex add::real_part() const
 {
 	epvector v;
 	v.reserve(seq.size());
-	for (auto i=seq.begin(); i!=seq.end(); ++i)
-		if ((i->coeff).info(info_flags::real)) {
-			ex rp = (i->rest).real_part();
+	for (const auto & elem : seq)
+		if ((elem.coeff).info(info_flags::real)) {
+			ex rp = (elem.rest).real_part();
 			if (!rp.is_zero())
-				v.push_back(expair(rp, i->coeff));
+				v.push_back(expair(rp, elem.coeff));
 		} else {
-			ex rp=recombine_pair_to_ex(*i).real_part();
+			ex rp=recombine_pair_to_ex(elem).real_part();
 			if (!rp.is_zero())
 				v.push_back(split_ex_to_pair(rp));
 		}
@@ -548,13 +548,13 @@ ex add::imag_part() const
 {
 	epvector v;
 	v.reserve(seq.size());
-	for (auto i=seq.begin(); i!=seq.end(); ++i)
-		if ((i->coeff).info(info_flags::real)) {
-			ex ip = (i->rest).imag_part();
+	for (const auto & elem : seq)
+		if ((elem.coeff).info(info_flags::real)) {
+			ex ip = (elem.rest).imag_part();
 			if (!ip.is_zero())
-				v.push_back(expair(ip, i->coeff));
+				v.push_back(expair(ip, elem.coeff));
 		} else {
-			ex ip=recombine_pair_to_ex(*i).imag_part();
+			ex ip=recombine_pair_to_ex(elem).imag_part();
 			if (!ip.is_zero())
 				v.push_back(split_ex_to_pair(ip));
 		}

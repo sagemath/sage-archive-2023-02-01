@@ -193,10 +193,10 @@ unsigned symmetry::calchash() const
 		if (!indices.empty())
 			v ^= *(indices.begin());
 	} else {
-		for (auto i=children.begin(); i!=children.end(); ++i)
+		for (const auto & elem : children)
 		{
 			v = rotate_left(v);
-			v ^= i->gethash();
+			v ^= elem.gethash();
 		}
 	}
 
@@ -274,8 +274,8 @@ bool symmetry::has_nonsymmetric() const
 	if (type == antisymmetric || type == cyclic)
 		return true;
 
-	for (auto i=children.begin(); i!=children.end(); ++i)
-		if (ex_to<symmetry>(*i).has_nonsymmetric())
+	for (const auto & elem : children)
+		if (ex_to<symmetry>(elem).has_nonsymmetric())
 			return true;
 
 	return false;
@@ -286,8 +286,8 @@ bool symmetry::has_cyclic() const
 	if (type == cyclic)
 		return true;
 
-	for (auto i=children.begin(); i!=children.end(); ++i)
-		if (ex_to<symmetry>(*i).has_cyclic())
+	for (const auto & elem : children)
+		if (ex_to<symmetry>(elem).has_cyclic())
 			return true;
 
 	return false;

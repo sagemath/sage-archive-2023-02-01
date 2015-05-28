@@ -267,8 +267,8 @@ ex matrix::real_part() const
 {
 	exvector v;
 	v.reserve(m.size());
-	for (auto i=m.begin(); i!=m.end(); ++i)
-		v.push_back(i->real_part());
+	for (const auto & elem : m)
+		v.push_back(elem.real_part());
 	return matrix(row, col, v);
 }
 
@@ -276,8 +276,8 @@ ex matrix::imag_part() const
 {
 	exvector v;
 	v.reserve(m.size());
-	for (auto i=m.begin(); i!=m.end(); ++i)
-		v.push_back(i->imag_part());
+	for (const auto & elem : m)
+		v.push_back(elem.imag_part());
 	return matrix(row, col, v);
 }
 
@@ -1541,8 +1541,8 @@ int matrix::pivot(unsigned ro, unsigned co, bool symbolic)
  */
 bool matrix::is_zero_matrix() const
 {
-	for (auto i=m.begin(); i!=m.end(); ++i) 
-		if(!(i->is_zero()))
+	for (const auto & elem : m) 
+		if(!(elem.is_zero()))
 			return false;
 	return true;
 }

@@ -189,16 +189,16 @@ class make_flat_inserter
 		{
 			if (!do_renaming)
 				return;
-			for (auto i=epv.begin(); i!=epv.end(); ++i)
-				if(are_ex_trivially_equal(i->coeff, 1))
-					combine_indices(i->rest.get_free_indices());
+			for (const auto & elem : epv)
+				if(are_ex_trivially_equal(elem.coeff, 1))
+					combine_indices(elem.rest.get_free_indices());
 		}
 		make_flat_inserter(const exvector &v, bool b): do_renaming(b)
 		{
 			if (!do_renaming)
 				return;
-			for (auto i=v.begin(); i!=v.end(); ++i)
-				combine_indices(i->get_free_indices());
+			for (const auto & elem : v)
+				combine_indices(elem.get_free_indices());
 		}
 		ex handle_factor(const ex &x, const ex &coeff)
 		{

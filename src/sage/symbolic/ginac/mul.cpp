@@ -575,9 +575,9 @@ bool mul::info(unsigned inf) const
 
 bool mul::is_polynomial(const ex & var) const
 {
-	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		if (!i->rest.is_polynomial(var) ||
-		    (i->rest.has(var) && !i->coeff.info(info_flags::nonnegint))) {
+	for (const auto & elem : seq) {
+		if (!elem.rest.is_polynomial(var) ||
+		    (elem.rest.has(var) && !elem.coeff.info(info_flags::nonnegint))) {
 			return false;
 		}
 	}
@@ -809,9 +809,8 @@ ex mul::eval(int level) const
 			primitive->clearflag(status_flags::hash_calculated);
 			primitive->overall_coeff = ex_to<numeric>(primitive->overall_coeff).div_dyn(c);
 			primitive->seq_sorted.resize(0);
-			for (auto ai = primitive->seq.begin();
-					ai != primitive->seq.end(); ++ai)
-				ai->coeff = ex_to<numeric>(ai->coeff).div_dyn(c);
+			for (auto & elem : primitive->seq)
+				elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(c);
 
 			s->push_back(expair(*primitive, _ex1));
 
@@ -903,8 +902,8 @@ void mul::find_real_imag(ex & rp, ex & ip) const
 {
 	rp = overall_coeff.real_part();
 	ip = overall_coeff.imag_part();
-	for (auto i=seq.begin(); i!=seq.end(); ++i) {
-		ex factor = recombine_pair_to_ex(*i);
+	for (const auto & elem : seq) {
+		ex factor = recombine_pair_to_ex(elem);
 		ex new_rp = factor.real_part();
 		ex new_ip = factor.imag_part();
 		if(new_ip.is_zero()) {
@@ -1094,25 +1093,25 @@ ex mul::algebraic_subs_mul(const exmap & m, unsigned options) const
 	ex divide_by = 1;
 	ex multiply_by = 1;
 
-	for (auto it = m.begin(); it != m.end(); ++it) {
+	for (const auto & elem : m) {
 
-		if (is_exactly_a<mul>(it->first)) {
+		if (is_exactly_a<mul>(elem.first)) {
 retry1:
 			int nummatches = std::numeric_limits<int>::max();
 			std::vector<bool> currsubsed(nops(), false);
 			lst repls;
 			
-			if(!algebraic_match_mul_with_mul(*this, it->first, repls, 0, nummatches, subsed, currsubsed))
+			if(!algebraic_match_mul_with_mul(*this, elem.first, repls, 0, nummatches, subsed, currsubsed))
 				continue;
 
 			for (size_t j=0; j<subsed.size(); j++)
 				if (currsubsed[j])
 					subsed[j] = true;
 			ex subsed_pattern
-				= it->first.subs(ex(repls), subs_options::no_pattern);
+				= elem.first.subs(ex(repls), subs_options::no_pattern);
 			divide_by *= power(subsed_pattern, nummatches);
 			ex subsed_result
-				= it->second.subs(ex(repls), subs_options::no_pattern);
+				= elem.second.subs(ex(repls), subs_options::no_pattern);
 			multiply_by *= power(subsed_result, nummatches);
 			goto retry1;
 
@@ -1121,13 +1120,13 @@ retry1:
 			for (size_t j=0; j<this->nops(); j++) {
 				int nummatches = std::numeric_limits<int>::max();
 				lst repls;
-				if (!subsed[j] && tryfactsubs(op(j), it->first, nummatches, repls)){
+				if (!subsed[j] && tryfactsubs(op(j), elem.first, nummatches, repls)){
 					subsed[j] = true;
 					ex subsed_pattern
-						= it->first.subs(ex(repls), subs_options::no_pattern);
+						= elem.first.subs(ex(repls), subs_options::no_pattern);
 					divide_by *= power(subsed_pattern, nummatches);
 					ex subsed_result
-						= it->second.subs(ex(repls), subs_options::no_pattern);
+						= elem.second.subs(ex(repls), subs_options::no_pattern);
 					multiply_by *= power(subsed_result, nummatches);
 				}
 			}
@@ -1135,8 +1134,8 @@ retry1:
 	}
 
 	bool subsfound = false;
-	for (size_t i=0; i<subsed.size(); i++) {
-		if (subsed[i]) {
+        for (size_t i=0; i<subsed.size(); i++) {
+                if (subsed[i]) {
 			subsfound = true;
 			break;
 		}
@@ -1384,8 +1383,8 @@ bool mul::can_make_flat(const expair & p) const
 bool mul::can_be_further_expanded(const ex & e)
 {
 	if (is_exactly_a<mul>(e)) {
-		for (auto cit = ex_to<mul>(e).seq.begin(); cit != ex_to<mul>(e).seq.end(); ++cit) {
-			if (is_exactly_a<add>(cit->rest) && cit->coeff.info(info_flags::posint))
+		for (const auto & elem : ex_to<mul>(e).seq) {
+			if (is_exactly_a<add>(elem.rest) && elem.coeff.info(info_flags::posint))
 				return true;
 		}
 	} else if (is_exactly_a<power>(e)) {
@@ -1427,20 +1426,20 @@ ex mul::expand(unsigned options) const
 	epvector non_adds;
 	non_adds.reserve(expanded_seq.size());
 
-	for (auto cit = expanded_seq.begin(); cit != expanded_seq.end(); ++cit) {
-		if (is_exactly_a<add>(cit->rest) &&
-			(cit->coeff.is_integer_one())) {
+	for (const auto & elem : expanded_seq) {
+		if (is_exactly_a<add>(elem.rest) &&
+			(elem.coeff.is_integer_one())) {
 			if (is_exactly_a<add>(last_expanded)) {
 
 				// Expand a product of two sums, aggressive version.
 				// Caring for the overall coefficients in separate loops can
 				// sometimes give a performance gain of up to 15%!
 
-				const int sizedifference = ex_to<add>(last_expanded).seq.size()-ex_to<add>(cit->rest).seq.size();
+				const int sizedifference = ex_to<add>(last_expanded).seq.size()-ex_to<add>(elem.rest).seq.size();
 				// add2 is for the inner loop and should be the bigger of the two sums
 				// in the presence of asymptotically good sorting:
-				const add& add1 = (sizedifference<0 ? ex_to<add>(last_expanded) : ex_to<add>(cit->rest));
-				const add& add2 = (sizedifference<0 ? ex_to<add>(cit->rest) : ex_to<add>(last_expanded));
+				const add& add1 = (sizedifference<0 ? ex_to<add>(last_expanded) : ex_to<add>(elem.rest));
+				const add& add2 = (sizedifference<0 ? ex_to<add>(elem.rest) : ex_to<add>(last_expanded));
 				const epvector::const_iterator add1begin = add1.seq.begin();
 				const epvector::const_iterator add1end   = add1.seq.end();
 				const epvector::const_iterator add2begin = add2.seq.begin();
@@ -1514,11 +1513,11 @@ ex mul::expand(unsigned options) const
 			} else {
 				if (!last_expanded.is_integer_one())
 					non_adds.push_back(split_ex_to_pair(last_expanded));
-				last_expanded = cit->rest;
+				last_expanded = elem.rest;
 			}
 
 		} else {
-			non_adds.push_back(*cit);
+			non_adds.push_back(elem);
 		}
 	}
 

@@ -627,9 +627,9 @@ ex color_trace(const ex & e, const lst & rll)
 {
 	// Convert list to set
 	std::set<unsigned char> rls;
-	for (auto i = rll.begin(); i != rll.end(); ++i) {
-		if (i->info(info_flags::nonnegint))
-			rls.insert(ex_to<numeric>(*i).to_int());
+	for (const auto & elem : rll) {
+		if (elem.info(info_flags::nonnegint))
+			rls.insert(ex_to<numeric>(elem).to_int());
 	}
 
 	return color_trace(e, rls);

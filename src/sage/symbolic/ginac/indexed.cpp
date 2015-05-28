@@ -546,8 +546,8 @@ exvector integral::get_free_indices() const
 template<class T> size_t number_of_type(const exvector&v)
 {
 	size_t number = 0;
-	for(auto i=v.begin(); i!=v.end(); ++i)
-		if(is_exactly_a<T>(*i))
+	for(const auto & elem : v)
+		if(is_exactly_a<T>(elem))
 			++number;
 	return number;
 }
@@ -785,9 +785,9 @@ static void product_to_exvector(const ex & e, exvector & v, bool & non_commutati
 template<class T> ex idx_symmetrization(const ex& r,const exvector& local_dummy_indices)
 {	exvector dummy_syms;
 	dummy_syms.reserve(r.nops());
-	for (auto it = local_dummy_indices.begin(); it != local_dummy_indices.end(); ++it)
-			if(is_exactly_a<T>(*it))
-				dummy_syms.push_back(it->op(0));
+	for (const auto & local_dummy_indice : local_dummy_indices)
+			if(is_exactly_a<T>(local_dummy_indice))
+				dummy_syms.push_back(local_dummy_indice.op(0));
 	if(dummy_syms.size() < 2)
 		return r;
 	ex q=symmetrize(r, dummy_syms);
@@ -1145,9 +1145,9 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
 			const ex & term = sum.op(i);
 			exvector dummy_indices_of_term;
 			dummy_indices_of_term.reserve(dummy_indices.size());
-			for(auto i=dummy_indices.begin(); i!=dummy_indices.end(); ++i)
-				if(hasindex(term,i->op(0)))
-					dummy_indices_of_term.push_back(*i);
+			for(auto & dummy_indice : dummy_indices)
+				if(hasindex(term,dummy_indice.op(0)))
+					dummy_indices_of_term.push_back(dummy_indice);
 			ex term_symm = idx_symmetrization<idx>(term, dummy_indices_of_term);
 			term_symm = idx_symmetrization<varidx>(term_symm, dummy_indices_of_term);
 			term_symm = idx_symmetrization<spinidx>(term_symm, dummy_indices_of_term);
@@ -1382,8 +1382,8 @@ void scalar_products::add_vectors(const lst & l, const ex & dim)
 {
 	// Add all possible pairs of products
 	for (auto it1 = l.begin(); it1 != l.end(); ++it1)
-		for (auto it2 = l.begin(); it2 != l.end(); ++it2)
-			add(*it1, *it2, *it1 * *it2);
+		for (const auto & elem : l)
+			add(*it1, elem, *it1 * elem);
 }
 
 void scalar_products::clear()

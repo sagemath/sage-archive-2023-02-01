@@ -444,8 +444,8 @@ ex pseries::real_part() const
 
 	epvector v;
 	v.reserve(seq.size());
-	for(auto i=seq.begin(); i!=seq.end(); ++i)
-		v.push_back(expair((i->rest).real_part(), i->coeff));
+	for(const auto & elem : seq)
+		v.push_back(expair((elem.rest).real_part(), elem.coeff));
 	return (new pseries(var==point, v))->setflag(status_flags::dynallocated);
 }
 
@@ -459,8 +459,8 @@ ex pseries::imag_part() const
 
 	epvector v;
 	v.reserve(seq.size());
-	for(auto i=seq.begin(); i!=seq.end(); ++i)
-		v.push_back(expair((i->rest).imag_part(), i->coeff));
+	for(const auto & elem : seq)
+		v.push_back(expair((elem.rest).imag_part(), elem.coeff));
 	return (new pseries(var==point, v))->setflag(status_flags::dynallocated);
 }
 

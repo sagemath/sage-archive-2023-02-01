@@ -380,10 +380,10 @@ ex basic::collect(const ex & s, bool distributed) const
 			for (const_iterator xi=x.begin(); xi!=x.end(); ++xi) {
 				ex key = _ex1;
 				ex pre_coeff = *xi;
-				for (auto li=l.begin(); li!=l.end(); ++li) {
-					int cexp = pre_coeff.degree(*li);
-					pre_coeff = pre_coeff.coeff(*li, cexp);
-					key *= pow(*li, cexp);
+				for (const auto & elem : l) {
+					int cexp = pre_coeff.degree(elem);
+					pre_coeff = pre_coeff.coeff(elem, cexp);
+					key *= pow(elem, cexp);
 				}
 				auto ci = cmap.find(key);
 				if (ci != cmap.end())
@@ -560,9 +560,9 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 		// Wildcard matches anything, but check whether we already have found
 		// a match for that wildcard first (if so, the earlier match must be
 		// the same expression)
-		for (auto it = repl_lst.begin(); it != repl_lst.end(); ++it) {
-			if (it->op(0).is_equal(pattern))
-				return is_equal(ex_to<basic>(it->op(1)));
+		for (const auto & elem : repl_lst) {
+			if (elem.op(0).is_equal(pattern))
+				return is_equal(ex_to<basic>(elem.op(1)));
 		}
 		repl_lst.append(pattern == *this);
 		return true;

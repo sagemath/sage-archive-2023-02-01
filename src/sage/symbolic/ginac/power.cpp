@@ -662,8 +662,8 @@ ex power::eval(int level) const
                                         addp->clearflag(status_flags::hash_calculated);
                                         addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
                                         addp->seq_sorted.resize(0);
-                                        for (auto i = addp->seq.begin(); i != addp->seq.end(); ++i)
-                                                i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
+                                        for (auto & elem : addp->seq)
+                                                elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
 
                                         const numeric c = icont.power(*num_exponent);
                                         if (likely(c != *_num1_p))

@@ -988,9 +988,9 @@ ex dirac_trace(const ex & e, const lst & rll, const ex & trONE)
 {
 	// Convert list to set
 	std::set<unsigned char> rls;
-	for (auto i = rll.begin(); i != rll.end(); ++i) {
-		if (i->info(info_flags::nonnegint))
-			rls.insert(ex_to<numeric>(*i).to_int());
+	for (const auto & elem : rll) {
+		if (elem.info(info_flags::nonnegint))
+			rls.insert(ex_to<numeric>(elem).to_int());
 	}
 
 	return dirac_trace(e, rls, trONE);
@@ -1018,10 +1018,10 @@ ex canonicalize_clifford(const ex & e_)
 		// Scan for any ncmul objects
 		exmap srl;
 		ex aux = e.to_rational(srl);
-		for (auto i = srl.begin(); i != srl.end(); ++i) {
+		for (auto & elem : srl) {
 
-			ex lhs = i->first;
-			ex rhs = i->second;
+			ex lhs = elem.first;
+			ex rhs = elem.second;
 
 			if (is_exactly_a<ncmul>(rhs)
 					&& rhs.return_type() == return_types::noncommutative
@@ -1030,7 +1030,7 @@ ex canonicalize_clifford(const ex & e_)
 				// Expand product, if necessary
 				ex rhs_expanded = rhs.expand();
 				if (!is_a<ncmul>(rhs_expanded)) {
-					i->second = canonicalize_clifford(rhs_expanded);
+					elem.second = canonicalize_clifford(rhs_expanded);
 					continue;
 
 				} else if (!is_a<clifford>(rhs.op(0)))
@@ -1060,7 +1060,7 @@ ex canonicalize_clifford(const ex & e_)
 						it[0] = save1;
 						it[1] = save0;
 						sum += ex_to<clifford>(save0).get_commutator_sign() * ncmul(v, true);
-						i->second = canonicalize_clifford(sum);
+						elem.second = canonicalize_clifford(sum);
 						goto next_sym;
 					}
 					++it;

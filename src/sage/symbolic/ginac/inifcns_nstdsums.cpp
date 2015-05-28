@@ -3979,8 +3979,8 @@ static ex zeta2_eval(const ex& m, const ex& s_)
 {
 	if (is_exactly_a<lst>(s_)) {
 		const lst& s = ex_to<lst>(s_);
-		for (auto it = s.begin(); it != s.end(); it++) {
-			if ((*it).info(info_flags::positive)) {
+		for (const auto & elem : s) {
+			if ((elem).info(info_flags::positive)) {
 				continue;
 			}
 			return zeta(m, s_).hold();

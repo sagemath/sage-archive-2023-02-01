@@ -9,7 +9,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import cached_function, cached_method
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.rings.integer import Integer
@@ -544,6 +544,18 @@ class RootedTrees_all(DisjointUnionEnumeratedSets, RootedTrees):
             [[], []]
         """
         return self.element_class(self, *args, **keywords)
+
+    @cached_method
+    def leaf(self):
+        """
+        Return a leaf tree with ``self`` as parent.
+
+        EXAMPLES::
+
+            sage: RootedTrees().leaf()
+            []
+        """
+        return self([])
 
     Element = RootedTree
 

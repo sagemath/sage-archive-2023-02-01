@@ -3682,11 +3682,11 @@ class NumberField_generic(number_field_base.NumberField):
         """
         Returns a list of generators of the S-units.
 
-        INPUT::
+        INPUT:
 
-        - ``S`` - a set of primes of the base field
+        - ``S`` -- a set of primes of the base field
 
-        - ``proof`` - if False, assume the GRH in computing the class group
+        - ``proof`` -- if ``False``, assume the GRH in computing the class group
 
         OUTPUT:
 

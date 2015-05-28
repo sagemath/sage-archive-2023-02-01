@@ -365,7 +365,6 @@ def reduce_load_Matlab():
     return matlab
 
 
-import os
 def matlab_console():
     """
     This requires that the optional matlab program be installed and in

@@ -331,7 +331,10 @@ see :trac:`11645`::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, sys
+import os
+import re
+import sys
+import pexpect
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -879,9 +882,9 @@ class Singular(Expect):
         """
         name = self._next_var_name()
         if entries is None:
-            s = self.eval('matrix %s[%s][%s]'%(name, nrows, ncols))
+            self.eval('matrix %s[%s][%s]'%(name, nrows, ncols))
         else:
-            s = self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
+            self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
         return SingularElement(self, None, name, True)
 
     def ring(self, char=0, vars='(x)', order='lp', check=True):
@@ -1164,13 +1167,13 @@ class Singular(Expect):
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
     def _keyboard_interrupt(self):
-        print "Interrupting %s..."%self
+        print "Interrupting %s..." % self
         try:
             self._expect.sendline(chr(4))
         except pexpect.ExceptionPexpect as msg:
-            raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
         self._start()
-        raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+        raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
@@ -1492,7 +1495,6 @@ class SingularElement(ExpectElement):
         elif charstr[0]=='complex':
             from sage.all import ComplexField, ceil, log
             prec = singular.eval('ringlist(basering)[1][2][1]')
-            I = singular.eval('ringlist(basering)[1][3]')
             br = ComplexField(ceil((ZZ(prec)+1)/log(2,10)))
             is_extension = False
         else:
@@ -1515,7 +1517,7 @@ class SingularElement(ExpectElement):
                 BR = Frac(br[charstr[1]])
             else:
                 is_short = singular.eval('short')
-                if is_short!='0':
+                if is_short != '0':
                     singular.eval('short=0')
                     minpoly = ZZ[charstr[1]](singular.eval('minpoly'))
                     singular.eval('short=%s'%is_short)

@@ -246,9 +246,9 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
-            sage: f._repr()
+            sage: f._repr()   # abs tol 1e-15
             '1.0*w^5 - 3.141592653589793*w + 3.718281828459045 + 2.0*I'
-            sage: f._repr(name='z')
+            sage: f._repr(name='z')   # abs tol 1e-15
             '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
         TESTS::
@@ -309,9 +309,9 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: R.<w> = PolynomialRing(RDF, sparse=True)
             sage: e = RDF(e)
-            sage: f = sum(e^n*w^n for n in range(4)); f
+            sage: f = sum(e^n*w^n for n in range(4)); f   # abs tol 1.1e-14
             20.085536923187664*w^3 + 7.3890560989306495*w^2 + 2.718281828459045*w + 1.0
-            sage: f[1]
+            sage: f[1]  # abs tol 5e-16
             2.718281828459045
             sage: f[5]
             0.0

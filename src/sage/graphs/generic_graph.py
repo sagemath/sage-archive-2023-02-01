@@ -344,6 +344,31 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._latex_opts = None
 
+    def __setstate__(self,state):
+        r"""
+        Set the state from a pickle dict
+
+        Also converts old NetworkX backends into a more recent one.
+
+        EXAMPLE::
+
+            sage: sage.structure.sage_object.unpickle_all() # indirect random
+        """
+        for k,v in state.iteritems():
+            self.__dict__[k] = v
+        from sage.graphs.base.graph_backends import NetworkXGraphBackend
+        if isinstance(self._backend, NetworkXGraphBackend):
+            from sage.misc.superseded import deprecation
+            deprecation(1000,"You unpickled an object which relies on an old "
+                        "data structure. Save it again to update it, for it "
+                        "may break in the future.")
+            g = self._backend._nxg
+            if g.is_directed():
+                from sage.graphs.digraph import DiGraph as constructor
+            else:
+                from sage.graphs.graph   import Graph   as constructor
+            self._backend = constructor(g)._backend
+
     def __add__(self, other_graph):
         """
         Returns the disjoint union of self and other.
@@ -784,9 +809,6 @@ class GenericGraph(GenericGraph_pyx):
          - ``weighted`` boolean (default: ``None``) -- weightedness for
            the copy. Might change the equality class if not ``None``.
 
-         - ``implementation`` - string (default: 'c_graph') the implementation
-           goes here.  Current options are only 'networkx' or 'c_graph'.
-
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
            ``data_structure="dense"``. Only used when
@@ -962,8 +984,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.copy(immutable=False, sparse=True)._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
             sage: G.copy(immutable=False, sparse=False)._backend
-            <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
-            sage: Graph(implementation="networkx").copy(implementation='c_graph')._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
 
         Fake immutable graphs::
@@ -1166,22 +1186,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: N = G.networkx_graph()
             sage: type(N)
             <class 'networkx.classes.graph.Graph'>
-
-        ::
-
-            sage: G = graphs.TetrahedralGraph()
-            sage: G = Graph(G, implementation='networkx')
-            sage: N = G.networkx_graph()
-            sage: G._backend._nxg is N
-            False
-
-        ::
-
-            sage: G = Graph(graphs.TetrahedralGraph(), implementation='networkx')
-            sage: N = G.networkx_graph(copy=False)
-            sage: G._backend._nxg is N
-            True
         """
+
         try:
             if copy:
                 return self._backend._nxg.copy()
@@ -1508,69 +1514,114 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, sparse=True):
+    def incidence_matrix(self, oriented=None, sparse=True):
         """
-        Returns the incidence matrix of the (di)graph.
+        Return the incidence matrix of the (di)graph.
 
-        Each row is a vertex, and each column is an edge. Note that in the case
-        of graphs, there is a choice of orientation for each edge.
+        Each row is a vertex, and each column is an edge. The vertices as
+        ordered as obtained by the method :meth:`vertices` and the edges as
+        obtained by the method :meth:`edge_iterator`.
+
+        If the graph is not directed, then return a matrix with entries in
+        `\{0,1,2\}`. Each column will either contain two `1` (at the position of
+        the endpoint of the edge), or one `2` (if the corresponding edge is a
+        loop).
+
+        If the graph is directed return a matrix in `\{-1,0,1\}` where `-1` and
+        `+1` correspond respectively to the source and the target of the edge. A
+        loop will correspond to a zero column. In particular, it is not possible
+        to recover the loops of an oriented graph from its incidence matrix.
+
+        See :wikipedia:`Incidence_Matrix` for more informations.
+
+        INPUT:
+
+        - ``oriented`` -- an optional boolean. If set to ``True``, the matrix
+          will be oriented (i.e. with entries in `-1`, `0`, `1`) and if set to
+          ``False`` the matrix will be not oriented (i.e. with entries in `0`,
+          `1`, `2`). By default, this argument is inferred from the graph type.
+          Note that in the case the graph is not directed and with the option
+          ``directed=True``, a somewhat random direction is chosen for each
+          edge.
+
+        - ``sparse`` -- default to ``True``, whether to use a sparse or a dense
+          matrix.
 
         EXAMPLES::
 
             sage: G = graphs.CubeGraph(3)
             sage: G.incidence_matrix()
-            [-1 -1 -1  0  0  0  0  0  0  0  0  0]
-            [ 0  0  1 -1 -1  0  0  0  0  0  0  0]
-            [ 0  1  0  0  0 -1 -1  0  0  0  0  0]
-            [ 0  0  0  0  1  0  1 -1  0  0  0  0]
-            [ 1  0  0  0  0  0  0  0 -1 -1  0  0]
-            [ 0  0  0  1  0  0  0  0  0  1 -1  0]
-            [ 0  0  0  0  0  1  0  0  1  0  0 -1]
-            [ 0  0  0  0  0  0  0  1  0  0  1  1]
+            [0 1 0 0 0 1 0 1 0 0 0 0]
+            [0 0 0 1 0 1 1 0 0 0 0 0]
+            [1 1 1 0 0 0 0 0 0 0 0 0]
+            [1 0 0 1 1 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 1 0 0 1 1]
+            [0 0 0 0 0 0 1 0 0 1 0 1]
+            [0 0 1 0 0 0 0 0 1 0 1 0]
+            [0 0 0 0 1 0 0 0 1 1 0 0]
+            sage: G.incidence_matrix(oriented=True)
+            [ 0 -1  0  0  0 -1  0 -1  0  0  0  0]
+            [ 0  0  0 -1  0  1 -1  0  0  0  0  0]
+            [-1  1 -1  0  0  0  0  0  0  0  0  0]
+            [ 1  0  0  1 -1  0  0  0  0  0  0  0]
+            [ 0  0  0  0  0  0  0  1  0  0 -1 -1]
+            [ 0  0  0  0  0  0  1  0  0 -1  0  1]
+            [ 0  0  1  0  0  0  0  0 -1  0  1  0]
+            [ 0  0  0  0  1  0  0  0  1  1  0  0]
 
+            sage: G = digraphs.Circulant(4, [1,3])
+            sage: G.incidence_matrix()
+            [-1 -1  1  0  0  0  1  0]
+            [ 1  0 -1 -1  1  0  0  0]
+            [ 0  0  0  1 -1 -1  0  1]
+            [ 0  1  0  0  0  1 -1 -1]
 
-        A well known result states that the product of the incidence matrix
-        with its transpose is in fact the Kirchhoff matrix::
+            sage: graphs.CompleteGraph(3).incidence_matrix()
+            [1 1 0]
+            [1 0 1]
+            [0 1 1]
+            sage: G = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
+            sage: G.incidence_matrix(oriented=False)
+            [2 1 1]
+            [0 1 1]
+
+        A well known result states that the product of the (oriented) incidence
+        matrix with its transpose of a (non-oriented graph) is in fact the
+        Kirchhoff matrix::
 
             sage: G = graphs.PetersenGraph()
-            sage: G.incidence_matrix()*G.incidence_matrix().transpose() == G.kirchhoff_matrix()
+            sage: m = G.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == G.kirchhoff_matrix()
             True
 
-        ::
+            sage: K = graphs.CompleteGraph(3)
+            sage: m = K.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == K.kirchhoff_matrix()
+            True
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
-            sage: D.incidence_matrix()
-            [-1 -1 -1  0  0  0  0  0  1  1]
-            [ 0  0  1 -1  0  0  0  1 -1  0]
-            [ 0  1  0  1 -1  0  0  0  0  0]
-            [ 1  0  0  0  1 -1  0  0  0  0]
-            [ 0  0  0  0  0  1 -1  0  0 -1]
-            [ 0  0  0  0  0  0  1 -1  0  0]
+            sage: H = Graph([(0,0),(0,1),(0,1)], loops=True, multiedges=True)
+            sage: m = H.incidence_matrix(oriented=True)
+            sage: m * m.transpose() == H.kirchhoff_matrix()
+            True
         """
+        if oriented is None:
+            oriented = self.is_directed()
         from sage.matrix.constructor import matrix
-        n = self.order()
-        verts = self.vertices()
-        d = [0]*n
-        cols = []
-        if self._directed:
-            for i, j, l in self.edge_iterator():
-                col = copy(d)
-                i = verts.index(i)
-                j = verts.index(j)
-                col[i] = -1
-                col[j] = 1
-                cols.append(col)
+        from sage.rings.integer_ring import ZZ
+        m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
+        verts = {v:i for i,v in enumerate(self.vertices())}
+
+        if oriented:
+            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
+                if i != j:
+                    m[verts[i],e] = -1
+                    m[verts[j],e] = +1
         else:
-            for i, j, l in self.edge_iterator():
-                col = copy(d)
-                i,j = (i,j) if i <= j else (j,i)
-                i = verts.index(i)
-                j = verts.index(j)
-                col[i] = -1
-                col[j] = 1
-                cols.append(col)
-        cols.sort()
-        return matrix(cols, sparse=sparse).transpose()
+            for e, (i, j) in enumerate(self.edge_iterator(labels=False)):
+                m[verts[i],e] += 1
+                m[verts[j],e] += 1
+
+        return m
 
     def distance_matrix(self):
         """
@@ -3514,7 +3565,7 @@ class GenericGraph(GenericGraph_pyx):
         def vertices_to_edges(x):
             return [(u[0], u[1], self.edge_label(u[0], u[1]))
                     for u in zip(x, x[1:] + [x[0]])]
-        return map(vertices_to_edges, cycle_basis_v)
+        return [vertices_to_edges(_) for _ in cycle_basis_v]
 
 
     ### Planarity
@@ -5738,7 +5789,7 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective( p.sum([ w(l) * cut[u,v] for u,v,l in self.edge_iterator() ]) )
 
-            for s,t in chain( combinations(vertices,2), map(lambda x_y: (x_y[1],x_y[0]), combinations(vertices,2))) :
+            for s,t in chain( combinations(vertices,2), [(x_y[1],x_y[0]) for x_y in combinations(vertices,2)]) :
                 # For each commodity, the source is at height 0
                 # and the destination is at height 1
                 p.add_constraint( height[(s,t),s], min = 0, max = 0)
@@ -7509,8 +7560,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Rewrites a path as a list of edges labeled with their
         # available capacity
-        path_to_labelled_edges = lambda P : map(lambda x_y: (x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]),
-                                                path_to_edges(P))
+        path_to_labelled_edges = lambda P : [(x_y[0], x_y[1], capacity[(x_y[0], x_y[1])] - flow[(x_y[0], x_y[1])] + flow[(x_y[1], x_y[0])]) for x_y in path_to_edges(P)]
 
         # Total flow going from s to t
         flow_intensity = 0
@@ -7527,7 +7577,7 @@ class GenericGraph(GenericGraph_pyx):
             edges = path_to_labelled_edges(path)
 
             # minimum capacity available on the whole path
-            epsilon = min(map( lambda x : x[2], edges))
+            epsilon = min((x[2] for x in edges))
 
             flow_intensity = flow_intensity + epsilon
 
@@ -7732,7 +7782,7 @@ class GenericGraph(GenericGraph_pyx):
         # which could be .. graphs !
         if not self.is_directed():
             from sage.graphs.graph import Graph
-            flow_graphs = map(Graph, flow_graphs)
+            flow_graphs = [Graph(_) for _ in flow_graphs]
 
         return flow_graphs
 
@@ -9512,26 +9562,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.size()
             167
 
-        Note that NetworkX accidentally deletes these edges, even though the
-        labels do not match up::
-
-            sage: N = graphs.CompleteGraph(19).copy(implementation='networkx')
-            sage: N.size()
-            171
-            sage: N.delete_edge( 1, 2 )
-            sage: N.delete_edge( (3, 4) )
-            sage: N.delete_edges( [ (5, 6), (7, 8) ] )
-            sage: N.size()
-            167
-            sage: N.delete_edge( 9, 10, 'label' )
-            sage: N.delete_edge( (11, 12, 'label') )
-            sage: N.delete_edges( [ (13, 14, 'label') ] )
-            sage: N.size()
-            167
-            sage: N.has_edge( (11, 12) )
-            True
-
-        However, CGraph backends handle things properly::
+        ::
 
             sage: G.delete_edge( 9, 10, 'label' )
             sage: G.delete_edge( (11, 12, 'label') )
@@ -9547,20 +9578,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: C.delete_edge( 1, 2 )
             sage: C.delete_edge( (3, 4) )
             sage: C.delete_edges( [ (5, 6), (7, 8) ] )
-
-            sage: D = graphs.CompleteGraph(19).to_directed(sparse=True, implementation='networkx')
-            sage: D.size()
-            342
-            sage: D.delete_edge( 1, 2 )
-            sage: D.delete_edge( (3, 4) )
-            sage: D.delete_edges( [ (5, 6), (7, 8) ] )
-            sage: D.delete_edge( 9, 10, 'label' )
-            sage: D.delete_edge( (11, 12, 'label') )
-            sage: D.delete_edges( [ (13, 14, 'label') ] )
-            sage: D.size()
-            338
-            sage: D.has_edge( (11, 12) )
-            True
 
         ::
 
@@ -10250,16 +10267,6 @@ class GenericGraph(GenericGraph_pyx):
             ''
             sage: H.get_vertex(0)
             sage: H = G.copy(implementation='c_graph', sparse=False)
-            sage: H.clear()
-            sage: H.order(); H.size()
-            0
-            0
-            sage: len(H._pos)
-            0
-            sage: H.name()
-            ''
-            sage: H.get_vertex(0)
-            sage: H = G.copy(implementation='networkx')
             sage: H.clear()
             sage: H.order(); H.size()
             0
@@ -18304,10 +18311,10 @@ class GenericGraph(GenericGraph_pyx):
                 G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 self_vertices = sum(partition,[])
                 G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
-                if map(len, partition) != map(len, partition2):
+                if [len(_) for _ in partition] != [len(_) for _ in partition2]:
                     return (False, None) if certify else False
-                multilabel = (lambda e:e) if edge_labels else (lambda e:map(lambda el: [None, el[1]], e))
-                if map(multilabel, G_edge_labels) != map(multilabel, G2_edge_labels):
+                multilabel = (lambda e:e) if edge_labels else (lambda e:[[None, el[1]] for el in e])
+                if [multilabel(_) for _ in G_edge_labels] != [multilabel(_) for _ in G2_edge_labels]:
                     return (False, None) if certify else False
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
@@ -18802,7 +18809,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         if g_has_multiple_edges:
 
             # Compute the multiplicity the label
-            multiplicity = lambda x : sum(map(lambda y:y[1],x))
+            multiplicity = lambda x : sum((y[1] for y in x))
 
             # Sort the edge according to their multiplicity
             edge_partition = sorted([[multiplicity(el),part] for el, part in sorted(edge_partition)])

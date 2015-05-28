@@ -98,7 +98,8 @@ TODO:
 
 import os
 
-from expect import Expect, ExpectElement, AsciiArtString, ExpectFunction
+from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
+                                    AsciiArtString)
 
 from sage.misc.multireplace import multiple_replace
 
@@ -1207,7 +1208,6 @@ def is_Macaulay2Element(x):
 # An instance
 macaulay2 = Macaulay2()
 
-import os
 
 def macaulay2_console():
     """

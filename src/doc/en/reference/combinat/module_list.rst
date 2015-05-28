@@ -266,6 +266,7 @@ Comprehensive Module list
     sage/combinat/sf/sf
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
+    sage/combinat/shard_order
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type

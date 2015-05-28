@@ -1,13 +1,197 @@
 r"""
 Topological manifolds
 
-The class :class:`TopManifold` implements topological manifolds over a
-general field.
+Given a topological field `K` (in most applications, `K = \RR` or
+`K = \CC`) and a non-negative integer `n`, a *topological manifold of
+dimension* `n` *over K* is a topological space `M` such that
 
-In the current setting, manifolds are mostly described by means of charts
-(see :class:`~sage.manifolds.chart.Chart`).
+- `M` is a Hausdorff space,
+- `M` is second countable,
+- every point in `M` has a neighborhood homeomorphic to `K^n`
+
+Topological manifolds are implemented via the class :class:`TopManifold`.
+In the current setting, topological manifolds are mostly described by means of
+charts (see :class:`~sage.manifolds.chart.Chart`).
 
 :class:`TopManifold` serves as a base class for more specific manifold classes.
+
+.. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
+  2 over `\RR`
+
+One starts by declaring `S^2` as a 2-dimensional topological manifold::
+
+    sage: M = TopManifold(2, 'S^2')
+    sage: M
+    2-dimensional topological manifold S^2
+
+Since the base topological field has not been specified in the argument list
+of ``TopManifold``, `\RR` is assumed::
+
+    sage: M.base_field()
+    'real'
+    sage: dim(M)
+    2
+
+Let us consider the complement of a point, the "North pole" say; this is an
+open subset of `S^2`, which we call U::
+
+    sage: U = M.open_subset('U'); U
+    Open subset U of the 2-dimensional topological manifold S^2
+
+A standard chart on U is provided by the stereographic projection from the
+North pole to the equatorial plane::
+
+    sage: stereoN.<x,y> = U.chart(); stereoN
+    Chart (U, (x, y))
+
+Thanks to the operator ``<x,y>`` on the left-hand side, the coordinates
+declared in a chart (here x and y), are accessible by their names; they are
+Sage's symbolic variables::
+
+    sage: y
+    y
+    sage: type(y)
+    <type 'sage.symbolic.expression.Expression'>
+
+The South pole is the point of coordinates `(x,y)=(0,0)` in the above
+chart::
+
+    sage: S = U.point((0,0), chart=stereoN, name='S'); S
+    Point S on the 2-dimensional topological manifold S^2
+
+Let us call V the open subset that is the complement of the South pole and let
+us introduce on it the chart induced by the stereographic projection from
+the South pole to the equatorial plane::
+
+    sage: V = M.open_subset('V'); V
+    Open subset V of the 2-dimensional topological manifold S^2
+    sage: stereoS.<u,v> = V.chart(); stereoS
+    Chart (V, (u, v))
+
+The North pole is the point of coordinates `(u,v)=(0,0)` in this chart::
+
+    sage: N = V.point((0,0), chart=stereoS, name='N'); N
+    Point N on the 2-dimensional topological manifold S^2
+
+To fully construct the manifold, we declare that it is the union of U
+and V::
+
+    sage: M.declare_union(U,V)
+
+and we provide the transition map between the charts ``stereoN`` = `(U, (x, y))`
+and ``stereoS`` = `(V, (u, v))`, denoting by W the intersection of U and V
+(W is the subset of U defined by `x^2+y^2\not=0`, as well as the subset of V
+defined by`u^2+v^2\not=0`)::
+
+    sage: stereoN_to_S = stereoN.transition_map(stereoS, [x/(x^2+y^2), y/(x^2+y^2)],
+    ....:                intersection_name='W', restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+    sage: stereoN_to_S
+    Change of coordinates from Chart (W, (x, y)) to Chart (W, (u, v))
+    sage: stereoN_to_S.display()
+    u = x/(x^2 + y^2)
+    v = y/(x^2 + y^2)
+
+We give the name W for the Python variable representing `W=U\cap V`::
+
+    sage: W = U.intersection(V)
+
+The inverse of the transition map is computed by the method inverse()::
+
+    sage: stereoN_to_S.inverse()
+    Change of coordinates from Chart (W, (u, v)) to Chart (W, (x, y))
+    sage: stereoN_to_S.inverse().display()
+    x = u/(u^2 + v^2)
+    y = v/(u^2 + v^2)
+
+At this stage, we have four open subsets on `S^2`::
+
+    sage: M.list_of_subsets()
+    [2-dimensional topological manifold S^2,
+     Open subset U of the 2-dimensional topological manifold S^2,
+     Open subset V of the 2-dimensional topological manifold S^2,
+     Open subset W of the 2-dimensional topological manifold S^2]
+
+`W` is the open subset that is the complement of the two poles::
+
+    sage: N in W or S in W
+    False
+
+
+The North pole lies in `V` and the South pole in `U`::
+
+    sage: N in V, N in U
+    (True, False)
+    sage: S in U, S in V
+    (True, False)
+
+The manifold's (user) atlas contains four charts, two of them
+being restrictions of charts to a smaller domain::
+
+    sage: M.atlas()
+    [Chart (U, (x, y)), Chart (V, (u, v)), Chart (W, (x, y)), Chart (W, (u, v))]
+
+Let us consider the point of coordinates (1,2) in the chart ``stereoN``::
+
+    sage: p = M.point((1,2), chart=stereoN, name='p'); p
+    Point p on the 2-dimensional topological manifold S^2
+    sage: p.parent()
+    2-dimensional topological manifold S^2
+    sage: p in W
+    True
+
+The coordinates of `p` in the chart ``stereoS`` are::
+
+    sage: stereoS(p)
+    (1/5, 2/5)
+
+Given the definition of `p`, we have of course::
+
+    sage: stereoN(p)
+    (1, 2)
+
+Similarly::
+
+    sage: stereoS(N)
+    (0, 0)
+    sage: stereoN(S)
+    (0, 0)
+
+
+.. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
+  dimension 1 over `\CC`
+
+We declare the Riemann sphere `\CC^*` as a 1-dimensional topological manifold
+over `\CC`::
+
+    sage: M = TopManifold(1, 'C*', field='complex'); M
+    Complex 1-dimensional topological manifold C*
+    sage: U = M.open_subset('U')
+    sage: Z.<z> = U.chart()
+    sage: O = U.point((0,), chart=Z, name='O'); O
+    Point O on the Complex 1-dimensional topological manifold C*
+    sage: V = M.open_subset('V')
+    sage: W.<w> = V.chart(); W
+    Chart (V, (w,))
+    sage: inf = M.point((0,), chart=W, name='inf', latex_name=r'\infty')
+    sage: inf
+    Point inf on the Complex 1-dimensional topological manifold C*
+    sage: Z_to_W = Z.transition_map(W, 1/z, intersection_name='A', restrictions1= z!=0, restrictions2= w!=0)
+    sage: Z_to_W
+    Change of coordinates from Chart (A, (z,)) to Chart (A, (w,))
+    sage: Z_to_W.display()
+    w = 1/z
+    sage: Z_to_W.inverse()
+    Change of coordinates from Chart (A, (w,)) to Chart (A, (z,))
+    sage: Z_to_W.inverse().display()
+    z = 1/w
+    sage: M.list_of_subsets()
+    [Open subset A of the Complex 1-dimensional topological manifold C*,
+     Complex 1-dimensional topological manifold C*,
+     Open subset U of the Complex 1-dimensional topological manifold C*,
+     Open subset V of the Complex 1-dimensional topological manifold C*]
+    sage: M.atlas()
+    [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
+
 
 AUTHORS:
 
@@ -36,11 +220,11 @@ from sage.manifolds.subset import TopManifoldOpenSubset
 
 class TopManifold(TopManifoldOpenSubset):
     r"""
-    Topological manifold over a field `K`.
+    Topological manifold over a topological field `K`.
 
-    Given a field `K` (in most applications, `K = \RR` or `K = \CC`) and
-    a non-negative integer `n`, a *topological manifold of dimension* `n`
-    *over K* is a topological space `M` such that
+    Given a topological field `K` (in most applications, `K = \RR` or
+    `K = \CC`) and a non-negative integer `n`, a *topological manifold of
+    dimension* `n` *over K* is a topological space `M` such that
 
     - `M` is a Hausdorff space,
     - `M` is second countable,

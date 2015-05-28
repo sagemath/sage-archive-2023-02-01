@@ -1,5 +1,5 @@
 r"""
-Coordinate charts on a topological manifold
+Coordinate charts on topological manifolds
 
 The class :class:`Chart` implements coordinate charts on a topological manifold
 over a topological field `K`. The subclass :class:`RealChart` is devoted
@@ -1791,7 +1791,10 @@ class CoordChange(SageObject):
                 for transf in x2_to_x1:
                     try:
                         transf = simplify_chain(transf)
-                    except AttributeError:
+                    #*# when MultiFunctionChart will be implemented:
+                    # except AttributeError:
+                    #*# for now:
+                    except NameError, AttributeError:
                         pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)

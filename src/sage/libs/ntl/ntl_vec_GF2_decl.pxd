@@ -1,6 +1,6 @@
 from sage.libs.ntl.ntl_GF2_decl cimport GF2_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct vec_GF2_c "struct vec_GF2":
         void (*SetLength)(long n)
         void (*SetMaxLength)(long n)

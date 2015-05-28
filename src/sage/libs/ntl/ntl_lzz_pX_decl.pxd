@@ -1,7 +1,7 @@
 from sage.libs.ntl.ntl_lzz_p_decl cimport zz_p_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### zz_pX_c
     ctypedef struct zz_pX_c "struct zz_pX":
         void *rep

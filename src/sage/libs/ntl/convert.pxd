@@ -1,5 +1,5 @@
 # Copied from ntl_ZZ_decl to avoid circular cimports
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct ZZ_c "struct ZZ":
         pass
 

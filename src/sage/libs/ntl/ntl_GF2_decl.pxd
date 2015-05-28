@@ -1,4 +1,4 @@
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct GF2_c "struct GF2":
         pass
 

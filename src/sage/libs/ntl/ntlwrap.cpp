@@ -1,4 +1,4 @@
-#include "ntl_wrap.h"
+#include "ntlwrap.h"
 
 #ifdef __cplusplus
 

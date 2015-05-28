@@ -2,7 +2,7 @@ from sage.libs.gmp.types cimport mpz_t
 from sage.libs.ntl.ntl_ZZ_decl cimport vec_ZZ_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     # really, this is from NTL/ZZX.h
     ctypedef struct ZZX_c "struct ZZX":
         vec_ZZ_c rep

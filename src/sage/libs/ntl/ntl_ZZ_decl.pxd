@@ -1,4 +1,4 @@
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### ZZ_c
     ctypedef struct ZZ_c "struct ZZ":
         pass
@@ -104,4 +104,4 @@ cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
     long ZZ_Jacobi "Jacobi"(ZZ_c a, ZZ_c n)
     void ZZ_SqrRootMod "SqrRootMod"(ZZ_c x, ZZ_c a, ZZ_c n)
 
-    long ZZ_remove(ZZ_c x, ZZ_c a, ZZ_c p) # a la mpz_remove.  Written in ntl_wrap.cpp.
+    long ZZ_remove(ZZ_c x, ZZ_c a, ZZ_c p) # a la mpz_remove.  Written in ntlwrap.cpp.

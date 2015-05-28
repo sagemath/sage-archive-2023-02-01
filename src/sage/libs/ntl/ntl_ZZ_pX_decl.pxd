@@ -4,7 +4,7 @@ from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 from sage.libs.ntl.ntl_ZZX_decl cimport ZZX_c
 from sage.libs.ntl.ntl_ZZ_pContext_decl cimport ZZ_pContext_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### ZZ_pX_c
     ctypedef struct ZZ_pX_c "struct ZZ_pX":
         void *rep
@@ -138,7 +138,7 @@ cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
     void ZZ_pX_factor(ZZ_pX_c*** v, long** e, long* n, ZZ_pX_c* x, long verbose)
     void ZZ_pX_linear_roots(ZZ_p_c*** v, long* n, ZZ_pX_c* x)
 
-    # The following are ZZ_pX functions written in ntl_wrap, used for padics.
+    # The following are ZZ_pX functions written in ntlwrap, used for padics.
 
     void ZZ_pX_conv_modulus(ZZ_pX_c fout, ZZ_pX_c fin, ZZ_pContext_c c)
     void ZZ_pX_min_val_coeff(long valuation, long index, ZZ_pX_c f, ZZ_c p)

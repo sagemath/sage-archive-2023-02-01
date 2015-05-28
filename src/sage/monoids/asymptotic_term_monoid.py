@@ -31,8 +31,8 @@ class GenericTerm(MonoidElement):
 
     - ``parent`` -- the parent of the asymptotic term.
 
-    - ``growth`` -- an element of the parent's ``base``, specifying
-      the growth of the asymptotic term.
+    - ``growth`` -- an element of the parent's ``growth_group``,
+      specifying the growth of the asymptotic term.
 
     OUTPUT:
 
@@ -79,9 +79,9 @@ class GenericTerm(MonoidElement):
             raise ValueError("The growth must be provided and must inherit "
                              "from GenericGrowthElement")
         else:
-            if growth not in parent.base():
+            if growth not in parent.growth_group():
                 raise ValueError("%s is not in the parent's "
-                                 "specified base" % growth)
+                                 "specified growth group" % growth)
             else:
                 self.growth = growth
         super(GenericTerm, self).__init__(parent=parent)
@@ -143,9 +143,9 @@ class GenericTerm(MonoidElement):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower("x"); x = PG.gen()
-            sage: OT = atm.OTermMonoid(base=PG)
-            sage: ET = atm.ExactTermMonoid(base=PG, coefficient_ring=QQ)
-            sage: LT = atm.LTermGenericMonoid(base=PG, coefficient_ring=QQ)
+            sage: OT = atm.OTermMonoid(growth_group=PG)
+            sage: ET = atm.ExactTermMonoid(growth_group=PG, coefficient_ring=QQ)
+            sage: LT = atm.LTermGenericMonoid(growth_group=PG, coefficient_ring=QQ)
             sage: ot1, ot2 = OT(x), OT(x^2)
             sage: et1 = ET(x^2, 2)
             sage: lt1 = LT(x^2, 2, start=0)
@@ -241,9 +241,9 @@ class GenericTerm(MonoidElement):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower(var="x", base=QQ); x = PG.gen()
-            sage: OT = atm.OTermMonoid(base=PG)
-            sage: ET = atm.ExactTermMonoid(base=PG, coefficient_ring=QQ)
-            sage: LT = atm.LTermGenericMonoid(base=PG, coefficient_ring=QQ)
+            sage: OT = atm.OTermMonoid(growth_group=PG)
+            sage: ET = atm.ExactTermMonoid(growth_group=PG, coefficient_ring=QQ)
+            sage: LT = atm.LTermGenericMonoid(growth_group=PG, coefficient_ring=QQ)
             sage: ot1, ot2 = OT(x), OT(x^2)
             sage: et1, et2 = ET(x, 100), ET(x^2, 2)
             sage: et3, et4 = ET(x^2, 1), ET(x^2, -2)
@@ -302,6 +302,7 @@ class GenericTerm(MonoidElement):
             point.
         """
         from sage.structure.element import have_same_parent
+
         if not self.can_absorb(other):
             raise ArithmeticError("%s cannot absorb %s" % (self, other))
 
@@ -309,12 +310,14 @@ class GenericTerm(MonoidElement):
             return self._absorb_(other)
 
         from sage.structure.element import get_coercion_model
+
         try:
             return get_coercion_model().bin_op(self, other,
                                                lambda self, other:
                                                self._absorb_(other))
         except TypeError:
             return False
+
 
     def _absorb_(self, other):
         r"""
@@ -480,7 +483,7 @@ class GenericTerm(MonoidElement):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower("x"); x = PG.gen()
-            sage: P = atm.GenericTermMonoid(base=PG)
+            sage: P = atm.GenericTermMonoid(growth_group=PG)
             sage: P(x)._repr_()
             'Generic Term with growth x'
             sage: P(x^7)._repr_()
@@ -501,7 +504,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     INPUT:
 
-    - ``base`` -- an asymptotic growth group. This is the parent of
+    - ``growth_group`` -- an asymptotic growth group. This is the parent of
       the elements specifying the growth of the asymptotic terms.
 
     - ``category`` -- The category of the parent can be specified
@@ -529,8 +532,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
     # enable the category framework for elements
     Element = GenericTerm
 
-
-    def __init__(self, base=None, category=None):
+    def __init__(self, growth_group=None, category=None):
         r"""
         See :class:`GenericTermMonoid` for more information.
         
@@ -541,7 +543,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: PG1 = agg.GrowthGroupPower("x")
             sage: GT1 = atm.GenericTermMonoid(PG1); GT1
             Generic Term Monoid over Asymptotic Power Growth Group in x over Integer Ring
-            sage: GT1.base()
+            sage: GT1.growth_group()
             Asymptotic Power Growth Group in x over Integer Ring
             sage: PG2 = agg.GrowthGroupPower("y")
             sage: GT2 = atm.GenericTermMonoid(PG2); GT2
@@ -558,24 +560,46 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             category = Monoids() & Posets()
         else:
             if not isinstance(category, tuple):
-                category = (category, )
+                category = (category,)
             if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
                        category):
                 raise ValueError("%s is not a subcategory of %s"
                                  % (category, Monoids() & Posets()))
-        if base is None:
-            base = GenericGrowthGroup()
+        if growth_group is None:
+            growth_group = GenericGrowthGroup()
         else:
-            if not isinstance(base, GenericGrowthGroup):
+            if not isinstance(growth_group, GenericGrowthGroup):
                 raise ValueError("%s does not inherit from %s"
-                                 % (base, GenericGrowthGroup()))
-        super(GenericTermMonoid, self).__init__(category=category, base=base)
+                                 % (growth_group, GenericGrowthGroup()))
+        self._growth_group = growth_group
+        super(GenericTermMonoid, self).__init__(category=category)
 
+    def growth_group(self):
+        r"""
+        Return the growth group underlying ``self``.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The asymptotic growth group of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: PG = agg.GrowthGroupPower("x")
+            sage: atm.ExactTermMonoid(PG, ZZ).growth_group()
+            Asymptotic Power Growth Group in x over Integer Ring
+        """
+        return self._growth_group
 
     def _repr_(self):
         r"""
         Represent the generic term monoid as "Generic Term Monoid
-        over `base`".
+        over `growth_group`".
 
         INPUT:
 
@@ -592,32 +616,33 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: atm.GenericTermMonoid()._repr_()
             'Generic Term Monoid over Generic Asymptotic Growth Group'
             sage: PG = agg.GrowthGroupPower("x")
-            sage: atm.GenericTermMonoid(base=PG)._repr_()
+            sage: atm.GenericTermMonoid(growth_group=PG)._repr_()
             'Generic Term Monoid over Asymptotic Power Growth Group in x over Integer Ring'
         """
-        return "Generic Term Monoid over %s" % repr(self.base())
-
+        return "Generic Term Monoid over %s" % repr(self.growth_group())
 
     def _coerce_map_from_(self, S):
         r"""
         Another GenericTermMonoid ``S`` coerces into ``self`` if and
-        only if the base of ``S`` coerces into the base of ``self``.
+        only if the growth group of ``S`` coerces into the growth
+        group of ``self``.
 
         EXAMPLES::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG1 = agg.GrowthGroupPower("x", base=ZZ)
-            sage: T1 = atm.GenericTermMonoid(base=PG1); T1
+            sage: T1 = atm.GenericTermMonoid(growth_group=PG1); T1
             Generic Term Monoid over Asymptotic Power Growth Group in x over Integer Ring
             sage: PG2 = agg.GrowthGroupPower("x", base=QQ)
-            sage: T2 = atm.GenericTermMonoid(base=PG2); T2
+            sage: T2 = atm.GenericTermMonoid(growth_group=PG2); T2
             Generic Term Monoid over Asymptotic Power Growth Group in x over Rational Field
             sage: T2._coerce_map_from_(T1)
             True
         """
         if isinstance(S, self.__class__):
-            if self.base().coerce_map_from(S.base()) is not None:
+            if self.growth_group().coerce_map_from(
+                    S.growth_group()) is not None:
                 return True
 
     def _element_constructor_(self, x):
@@ -641,8 +666,8 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG1 = agg.GrowthGroupPower("x", base=ZZ)
             sage: PG2 = agg.GrowthGroupPower("x", base=QQ)
-            sage: P1 = atm.GenericTermMonoid(base=PG1)
-            sage: P2 = atm.GenericTermMonoid(base=PG2)
+            sage: P1 = atm.GenericTermMonoid(growth_group=PG1)
+            sage: P2 = atm.GenericTermMonoid(growth_group=PG2)
             sage: term1 = P1(PG1.gen())
             sage: term2 = P2(PG2.gen()^2)
             sage: term1 <= term2  # in order for two terms to be compared,
@@ -662,10 +687,10 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
         elif x.parent() is self:
             return x
         elif isinstance(x, GenericTerm):
-            return self.element_class(self, self.base().coerce(x.growth))
+            return self.element_class(self,
+                                      self.growth_group().coerce(x.growth))
         else:
             raise ValueError("Input is not an asymptotic growth element.")
-
 
     def _an_element_(self):
         r"""
@@ -689,8 +714,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: atm.OTermMonoid(PG).an_element()  # indirect doctest
             O(x)
         """
-        return self(self.base().an_element())
-
+        return self(self.growth_group().an_element())
 
     def le(self, x, y):
         r"""
@@ -710,7 +734,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower("x"); x = PG.gen()
-            sage: P = atm.GenericTermMonoid(base=PG)
+            sage: P = atm.GenericTermMonoid(growth_group=PG)
             sage: t1, t2 = P(x), P(x^2)
             sage: P.le(t1,t2)
             True
@@ -730,8 +754,8 @@ class OTerm(GenericTerm):
 
     - ``parent`` -- the parent of the asymptotic term.
 
-    - ``growth`` -- an element of the parent's ``base``, specifying
-      the growth of the asymptotic term.
+    - ``growth`` -- an element of the parent's ``growth_group``,
+      specifying the growth of the asymptotic term.
 
     OUTPUT:
 
@@ -806,7 +830,7 @@ class OTerm(GenericTerm):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower("x"); x = PG.gen()
-            sage: OT = atm.OTermMonoid(base=PG)
+            sage: OT = atm.OTermMonoid(growth_group=PG)
             sage: ot1, ot2 = OT(x), OT(x^2)
             sage: ot1.absorb(ot1)
             O(x)
@@ -826,8 +850,8 @@ class OTermMonoid(GenericTermMonoid):
 
     INPUT:
 
-    - ``base`` -- the underlying asymptotic growth group, compare
-      :class:`GenericTermMonoid`.
+    - ``growth_group`` -- the underlying asymptotic growth group,
+      compare :class:`GenericTermMonoid`.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -865,7 +889,8 @@ class OTermMonoid(GenericTermMonoid):
         - :class:`ExactTermMonoid`
 
         In all those cases, ``S`` coerces into ``self`` if the
-        base of ``S`` coerces into the base of ``self``.
+        growth group of ``S`` coerces into the growth group
+        of ``self``.
 
         INPUT:
 
@@ -886,10 +911,11 @@ class OTermMonoid(GenericTermMonoid):
             sage: OT2 = atm.OTermMonoid(PG2)
             sage: ET = atm.ExactTermMonoid(PG1, ZZ)
 
-        Now, the ``OTermMonoid`` whose base is over the Integer Ring
-        has to coerce into the ``OTermMonoid`` with the base over the
-        rational field, and the ``ExactTermMonoid`` also has to
-        coerce in both the ``OTermMonoid``'s::
+        Now, the ``OTermMonoid`` whose growth group is over the
+        Integer Ring has to coerce into the ``OTermMonoid`` with
+        the growth group over the rational field, and the
+        ``ExactTermMonoid`` also has to coerce in both the
+        ``OTermMonoid``'s::
 
             sage: OT2._coerce_map_from_(OT1)
             True
@@ -899,7 +925,8 @@ class OTermMonoid(GenericTermMonoid):
             True
         """
         if isinstance(S, (ExactTermMonoid, LTermGenericMonoid)):
-            if self.base().coerce_map_from(S.base()) is not None:
+            if self.growth_group().coerce_map_from(
+                    S.growth_group()) is not None:
                 return True
         else:
             return super(OTermMonoid, self)._coerce_map_from_(S)
@@ -907,7 +934,8 @@ class OTermMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as "Asymptotic O term monoid over ``base``".
+        Represent ``self`` as "Asymptotic O term monoid over
+        ``growth_group``".
 
         INPUT:
 
@@ -925,7 +953,7 @@ class OTermMonoid(GenericTermMonoid):
             sage: atm.OTermMonoid(PG)._repr_()
             'Asymptotic O Term Monoid over Asymptotic Power Growth Group in x over Integer Ring'
         """
-        return "Asymptotic O Term Monoid over %s" % self.base()
+        return "Asymptotic O Term Monoid over %s" % self.growth_group()
 
 
 class TermWithCoefficient(GenericTerm):
@@ -939,7 +967,7 @@ class TermWithCoefficient(GenericTerm):
     - ``parent`` -- the parent of the asymptotic term.
 
     - ``growth`` -- an asymptotic growth element from
-      ``parent.base()``.
+      ``parent.growth_group()``.
 
     - ``coefficient`` -- an element from ``parent.coefficient_ring``.
 
@@ -1024,6 +1052,7 @@ class TermWithCoefficient(GenericTerm):
         """
         return "Asymptotic Term with coefficient %s and growth %s" % \
                (self.coefficient, self.growth)
+
 
     def _mul_(self, other):
         r"""
@@ -1113,8 +1142,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     INPUT:
 
-    - ``base`` -- The underlying asymptotic growth group, compare
-      :class:`GenericTermMonoid`.
+    - ``growth_group`` -- The underlying asymptotic growth group,
+      compare :class:`GenericTermMonoid`.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -1149,7 +1178,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = TermWithCoefficient
 
-    def __init__(self, base=None, coefficient_ring=None, category=None):
+    def __init__(self, growth_group=None, coefficient_ring=None,
+                 category=None):
         r"""
         For more information see :class:`TermWithCoefficientMonoid`.
 
@@ -1168,17 +1198,17 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         if coefficient_ring is None:
             raise ValueError("Base ring is not specified")
         self.coefficient_ring = coefficient_ring
-        super(TermWithCoefficientMonoid, self).__init__(base=base,
-                                                        category=category)
+        super(TermWithCoefficientMonoid,
+              self).__init__(growth_group=growth_group, category=category)
 
 
     def _coerce_map_from_(self, S):
         r"""
         :class:`TermWithCoefficientMonoid` is still a generic base
         class handling structure. Thus, ``S`` coerces into ``self``
-        if and only if the base and the coefficient ring of ``S``
-        coerce into the base and coefficient ring of ``self``,
-        respectively.
+        if and only if the growth group and the coefficient ring of
+        ``S`` coerce into the growth group and coefficient ring of
+        ``self``, respectively.
 
         EXAMPLES::
 
@@ -1235,8 +1265,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as ``Monoid for asymptotic terms with
-        coefficients from coefficient_ring over base``.
+        Represent ``self`` as "Monoid for asymptotic terms with
+        coefficients from ``coefficient_ring`` over
+        ``growth_group``".
 
         INPUT:
 
@@ -1255,7 +1286,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             'Monoid for asymptotic terms with coefficients from Integer Ring over Asymptotic Power Growth Group in x over Integer Ring'
         """
         return "Monoid for asymptotic terms with coefficients from %s " \
-               "over %s" % (self.coefficient_ring, self.base())
+               "over %s" % (self.coefficient_ring, self.growth_group())
 
 
 class LTermGeneric(TermWithCoefficient):
@@ -1280,7 +1311,7 @@ class LTermGeneric(TermWithCoefficient):
         - ``parent`` -- the parent of the asymptotic term.
 
         - ``growth`` -- an asymptotic growth element from
-          ``parent.base()``.
+          ``parent.growth_group()``.
 
         - ``coefficient`` -- an element from
           ``parent.coefficient_ring``.
@@ -1315,7 +1346,6 @@ class LTermGeneric(TermWithCoefficient):
         ...
         NotImplementedError: Not yet implemented
     """
-
 
     def __init__(self, parent, growth, coefficient=1, start=0):
         r"""
@@ -1444,8 +1474,8 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     INPUT:
 
-    - ``base`` -- The underlying asymptotic growth group, compare
-      :class:`GenericTermMonoid`.
+    - ``growth_group`` -- The underlying asymptotic growth group,
+      compare :class:`GenericTermMonoid`.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -1527,8 +1557,9 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     def _repr_(self):
         r"""
-        Represent the generic `L` term monoid as ``Generic L Term
-        Monoid with coefficients from coefficient_ring over base``.
+        Represent the generic `L` term monoid as "Generic L Term
+        Monoid with coefficients from ``coefficient_ring`` over
+        ``growth_group``".
 
         INPUT:
 
@@ -1547,16 +1578,16 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
             'Generic L Term Monoid with coefficients from Integer Ring over Asymptotic Power Growth Group in x over Rational Field'
         """
         return "Generic L Term Monoid with coefficients from %s over %s" % \
-               (self.coefficient_ring, self.base())
+               (self.coefficient_ring, self.growth_group())
 
 
     def _coerce_map_from_(self, S):
         r"""
         Another :class:`LTermGenericMonoid` or
         :class:`ExactTermMonoid` ``S`` coerces into ``self`` if the
-        base of ``S`` as well as the coefficient ring of ``S`` coerce
-        into the base and the coefficient ring of ``self``,
-        respectively.
+        growth group of ``S`` as well as the coefficient ring of
+        ``S`` coerce into the growth group and the coefficient ring
+        of ``self``, respectively.
 
         INPUT:
 
@@ -1585,9 +1616,9 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
               To:   Generic L Term Monoid with coefficients from Rational Field over Asymptotic Power Growth Group in x over Integer Ring
         """
         if isinstance(S, ExactTermMonoid):
-            if self.base().coerce_map_from(S.base()) is not None and \
-                self.coefficient_ring.coerce_map_from(
-                    S.coefficient_ring) is not None:
+            if self.growth_group().coerce_map_from(S.growth_group()) is not None \
+                    and self.coefficient_ring.coerce_map_from(S.coefficient_ring) \
+                    is not None:
                 return True
         return super(LTermGenericMonoid, self)._coerce_map_from_(S)
 
@@ -1603,7 +1634,7 @@ class ExactTerm(TermWithCoefficient):
     - ``parent`` -- the parent of the asymptotic term.
 
     - ``growth`` -- an asymptotic growth element from
-      ``parent.base()``.
+      ``parent.growth_group()``.
 
     - ``coefficient`` -- an element from ``parent.coefficient_ring``.
 
@@ -1673,7 +1704,7 @@ class ExactTerm(TermWithCoefficient):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: PG = agg.GrowthGroupPower("x"); x = PG.gen()
-            sage: ET = atm.ExactTermMonoid(base=PG, coefficient_ring=ZZ)
+            sage: ET = atm.ExactTermMonoid(growth_group=PG, coefficient_ring=ZZ)
             sage: et1 = ET(x^2, 2); et1
             2 * x^2
         """
@@ -1735,7 +1766,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     INPUT:
 
-    - ``base`` -- The underlying asymptotic growth group, compare
+    - ``growth_group`` -- The underlying asymptotic growth group, compare
       :class:`GenericTermMonoid`.
 
     - ``category`` -- The category of the parent can be specified
@@ -1769,11 +1800,11 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
     # enable the category framework for elements
     Element = ExactTerm
 
-
     def _repr_(self):
         r"""
-        Represent the asymptotic exact term monoid as ``Exact Term
-        Monoid with coefficients from coefficient_ring over base``.
+        Represent the asymptotic exact term monoid as "Exact Term
+        Monoid with coefficients from ``coefficient_ring`` over
+        ``growth_group``".
 
         INPUT:
 
@@ -1792,4 +1823,4 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             'Exact Term Monoid with coefficients from Rational Field over Asymptotic Power Growth Group in x over Integer Ring'
         """
         return "Exact Term Monoid with coefficients from %s over %s" % \
-               (self.coefficient_ring, self.base())
+               (self.coefficient_ring, self.growth_group())

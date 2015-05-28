@@ -88,18 +88,15 @@ cdef class SatSolver:
 
     def read(self, filename):
         """
-        Reads in a DIMAC file and adds clauses
-        to this instance.
-        """
-        return self.load(open(filename,"r"))
-
-    def load(self, file_object):
-        """
-        Loads in DIMAC formatted lines (lazily) from a
-        python file object and adds the corresponding
+        Reads in DIMAC formatted lines (lazily) from a
+        file or file object and adds the corresponding
         clauses into this instance.
 
         See http://trac.sagemath.org/ticket/16924
+
+        INPUT:
+
+        - ``filename`` - The name of a file as a string or a file object
 
         EXAMPLE::
 
@@ -107,10 +104,14 @@ cdef class SatSolver:
             sage: file_object = StringIO("c A sample .cnf file.\np cnf 3 2\n1 -3 0\n2 3 -1 0 ")
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
-            sage: solver.load(file_object)
+            sage: solver.read(file_object)
             sage: solver
             DIMACS Solver: ''
         """
+        if isinstance(filename,str):
+            file_object = open(filename,"r")
+        else:
+            file_object = filename
         for line in file_object:
             if line.startswith("c"):
                 continue # comment
@@ -120,6 +121,7 @@ cdef class SatSolver:
             clause = map(int,[e for e in line if e])
             clause = clause[:-1] # strip trailing zero
             self.add_clause(clause)
+
 
     def __call__(self, assumptions=None):
         """

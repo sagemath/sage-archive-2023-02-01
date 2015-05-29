@@ -303,7 +303,7 @@ def CycleGraph(n):
         sage: G.show() # long time
     """
     if n<1:
-        return graph.Graph(name="Cycle graph")
+        return graph.Graph(pos=dict(), name="Cycle graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
@@ -787,10 +787,10 @@ def Grid2dGraph(n1, n2):
         for j in range(n2):
             x = j
             pos_dict[i, j] = (x, y)
-    G = graph.Graph( dict( ((i,j), [(i,j+1),(i+1,j)]) for i in range(n1-1) for j in range(n2-1) ),
-                     pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
-    G.add_path([(i,n2-1) for i in range(n1)])
-    G.add_path([(n1-1,j) for j in range(n2)])
+    G = graph.Graph(pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
+    G.add_vertices( (i,j) for i in range(n1) for j in range(n2) )
+    G.add_edges( ((i,j),(i+1,j)) for i in range(n1-1) for j in range(n2) )
+    G.add_edges( ((i,j),(i,j+1)) for i in range(n1) for j in range(n2-1) )
     return G
 
 def GridGraph(dim_list):
@@ -954,6 +954,7 @@ def LadderGraph(n):
         x = i - n
         pos_dict[i] = (x,0)
     G = Graph(pos=pos_dict, name="Ladder graph")
+    G.add_vertices( range(2*n) )
     G.add_cycle(range(2*n))
     G.add_edges(list((i,i+n) for i in range(1,n-1)))
     return G
@@ -1009,10 +1010,10 @@ def LollipopGraph(n1, n2):
         x = float(i - n1 - n2/2 + 1)
         y = float(i - n1 - n2/2 + 1)
         pos_dict[i] = (x,y)
-
-    import networkx
-    G = networkx.lollipop_graph(n1,n2)
-    return graph.Graph(G, pos=pos_dict, name="Lollipop Graph")
+    G = graph.Graph(dict( (i,range(i+1,n1)) for i in range(n1) ), pos=pos_dict, name="Lollipop Graph")
+    G.add_vertices( range(n1+n2) )
+    G.add_path( range(n1-1,n1+n2) )
+    return G
 
 def PathGraph(n, pos=None):
     """

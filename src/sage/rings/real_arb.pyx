@@ -2486,7 +2486,7 @@ cdef class RealBall(RingElement):
         """
         Return the image of this ball by the logarithmic Gamma function.
 
-        The complex branch structure is assumed, so if ``self`` ≤ 0, the result
+        The complex branch structure is assumed, so if ``self`` <= 0, the result
         is an indeterminate interval.
 
         EXAMPLES::

@@ -15698,8 +15698,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertex_size`` - size of vertices displayed
 
-        - ``vertex_shape`` - the shape to draw the vertices (Not
-          available for multiedge digraphs.)
+        - ``vertex_shape`` - the shape to draw the vertices, for
+          example ``"o"`` for circle or ``"s"`` for square. Whole list
+          is available at http://matplotlib.org/api/markers_api.html.
+          (Not available for multiedge digraphs.)
 
         - ``graph_border`` - whether to include a box around the graph
 

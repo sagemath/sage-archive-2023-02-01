@@ -21,10 +21,9 @@ from sage.structure.sage_object import SageObject
 
 class Encoder(SageObject):
     r"""
-    Abstract top-class for Encoder objects.
+    Abstract top-class for :class:`Encoder` objects.
 
-    This class contains all methods that can be used by encoders.
-    So, every encoder class should inherit from this abstract class.
+    Every encoder class should inherit from this abstract class.
 
     This class provides:
 
@@ -34,21 +33,21 @@ class Encoder(SageObject):
 
     To implement an encoder, you need to:
 
-    - inherit from Encoder
+    - inherit from :class:`Encoder`
 
-    - call Encoder ``__init__`` method in the subclass constructor. Example:
-      ``super(SubclassName, self).__init__(code)``.
+    - call :class:`Encoder`'s :meth:`__init__` in the subclass constructor.
+      Example: ``super(SubclassName, self).__init__(code)``.
       By doing that, your subclass will have its ``code`` parameter initialized.
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
-    Then, if the message space is a vectorial space, default implementation of ``encode`` and
-    ``unencode_nocheck`` methods are provided. These implementations rely on ``generator_matrix``
+    Then, if the message space is a vectorial space, default implementation of :meth:`encode` and
+    :meth:`unencode_nocheck` methods are provided. These implementations rely on :meth:`generator_matrix`
     which you need to override to use the default implementations.
 
     If the message space is not of the form `F^k`, where `F` is a finite field,
     you cannot have a generator matrix.
-    In that case, you need to override ``encode`` and ``unencode_nocheck``.
+    In that case, you need to override :meth:`encode` and :meth:`unencode_nocheck`.
 
     Equality methods (``__eq__`` and ``__ne__``) might be useful for encoding in advanced
     codes constructions (like concatenated codes). If provided default implementation of
@@ -61,13 +60,13 @@ class Encoder(SageObject):
         for a new encoder named ``EncName``, for code family ``CodeFam``, call it
         ``CodeFamEncNameEncoder``.
 
-    As Encoder is not designed to be implemented, it does not have any representation
+    As :class:`Encoder` is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
     """
 
     def __init__(self, code):
         r"""
-        Initializes mandatory parameters for an Encoder object.
+        Initializes mandatory parameters for an :class:`Encoder` object.
 
         This method only exists for inheritance purposes as it initializes
         parameters that need to be known by every linear code. An abstract
@@ -79,7 +78,7 @@ class Encoder(SageObject):
 
         EXAMPLES:
 
-        We first create a new Encoder subclass::
+        We first create a new :class:`Encoder` subclass::
 
             sage: class EncoderExample(sage.coding.encoder.Encoder):
             ....:   def __init__(self, code):
@@ -143,7 +142,8 @@ class Encoder(SageObject):
         Transforms an element of the message space into an element of the code.
 
         This is a default implementation which assumes that the message
-        space of the encoder is a Vector Space. If this is not the case,
+        space of the encoder is `F^k`, where `F` is ``self.code().base_field()``
+        and ``k`` is ``self.code().dimension()``. If this is not the case,
         this method should be overwritten by the subclass.
 
         INPUT:
@@ -174,8 +174,8 @@ class Encoder(SageObject):
         - ``c`` -- a vector of the same length as ``self`` over the
           base field of ``self``
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in self. If this is set
-          to True, the return value of this method is not guaranteed to be correct.
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. If this is set
+          to ``True``, the return value of this method is not guaranteed to be correct.
 
         OUTPUT:
 
@@ -201,8 +201,8 @@ class Encoder(SageObject):
     @cached_method
     def unencoder_matrix(self):
         r"""
-        Finds an information set for G, and returns the inverse of those
-        columns of G.
+        Finds an information set for the matrix ``G`` returned by :meth:`generator_matrix`,
+        and returns the inverse of that submatrix of ``G``.
 
         .. NOTE::
 
@@ -231,7 +231,7 @@ class Encoder(SageObject):
         r"""
         Returns the message corresponding to ``c``.
 
-        When c is not a codeword, the output is unspecified.
+        When ``c`` is not a codeword, the output is unspecified.
 
         AUTHORS:
 
@@ -293,7 +293,7 @@ class Encoder(SageObject):
     def message_space(self):
         r"""
         Returns the ambient space of allowed input to ``self.encode()``.
-        Note that the ``self.encode()`` is possibly a partial function over
+        Note that `self.encode()` is possibly a partial function over
         the ambient space.
 
         EXAMPLES::
@@ -309,10 +309,10 @@ class Encoder(SageObject):
     @abstract_method(optional = True)
     def generator_matrix(self):
         r"""
-        Returns a generator matrix of the associated code of self.
+        Returns a generator matrix of the associated code of ``self``.
 
         This is an abstract method and it should be implemented separately.
-        Reimplementing this for each subclass of Encoder is not mandatory
+        Reimplementing this for each subclass of :class:`Encoder` is not mandatory
         (as encoders with a polynomial message space, for instance, do not
         need a generator matrix).
         """

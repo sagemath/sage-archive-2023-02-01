@@ -1,10 +1,9 @@
 r"""
 Index of encoders
 
-The ``codes.encoders`` object may be used to access the codes that Sage can build.
+The ``codes.encoders`` object may be used to access the encoders that Sage can build.
 
-- :func:`linear_code.LinearCodeGeneratorMatrixEncoder <sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder>
-
+- :func:`linear_code.LinearCodeGeneratorMatrixEncoder <sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder>`
 
 .. NOTE::
 

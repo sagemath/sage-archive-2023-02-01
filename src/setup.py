@@ -175,22 +175,28 @@ for m in ext_modules:
 def run_command(cmd):
     """
     INPUT:
-        cmd -- a string; a command to run
 
-    OUTPUT:
-        prints cmd to the console and then runs os.system
+    - ``cmd`` -- a string; a command to run
+
+    OUTPUT: prints ``cmd`` to the console and then runs
+    ``os.system(cmd)``.
     """
     print(cmd)
+    sys.stdout.flush()
     return os.system(cmd)
 
-def apply_pair(p):
+def apply_func_progress(p):
     """
-    Given a pair p consisting of a function and a value, apply
-    the function to the value.
+    Given a triple p consisting of a function, value and a string,
+    output the string and apply the function to the value.
+
+    The string could for example be some progress indicator.
 
     This exists solely because we can't pickle an anonymous function
     in execute_list_of_commands_in_parallel below.
     """
+    sys.stdout.write(p[2])
+    sys.stdout.flush()
     return p[0](p[1])
 
 def execute_list_of_commands_in_parallel(command_list, nthreads):
@@ -210,13 +216,20 @@ def execute_list_of_commands_in_parallel(command_list, nthreads):
     WARNING: commands are run roughly in order, but of course successive
     commands may be run at the same time.
     """
+    # Add progress indicator strings to the command_list
+    N = len(command_list)
+    progress_fmt = "[{:%i}/{}] " % len(str(N))
+    for i in range(N):
+        progress = progress_fmt.format(i+1, N)
+        command_list[i] = command_list[i] + (progress,)
+
     from multiprocessing import Pool
     import fpickle_setup #doing this import will allow instancemethods to be pickable
     # map_async handles KeyboardInterrupt correctly if an argument is
     # given to get().  Plain map() and apply_async() do not work
     # correctly, see Trac #16113.
     pool = Pool(nthreads)
-    result = pool.map_async(apply_pair, command_list, 1).get(99999)
+    result = pool.map_async(apply_func_progress, command_list, 1).get(99999)
     pool.close()
     pool.join()
     process_command_results(result)

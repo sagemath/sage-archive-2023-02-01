@@ -2567,7 +2567,41 @@ cdef class Matroid(SageObject):
             if self._rank(X) == len(X):
                 res.append(X)
         return res
+    
+    cpdef independent_sets(self):
+        r"""
+        Return the list of independent subsets of the matroid.
 
+        OUTPUT:
+
+        An iterable containing all independent subsets of the matroid.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Pappus()
+            sage: I = M.independent_sets()
+            sage: len(I)
+            121
+
+        """
+        
+        T = [set() for r in range(self.full_rank()+1)]
+        I = [frozenset() for i in range(self.full_rank()+1)]
+        r = 0
+        
+        res = [frozenset()]
+        T[0] = set(self.groundset()) - self.closure([])
+        while r >= 0:
+            if T[r]:
+                e = T[r].pop()
+                I[r+1] = I[r].union(set([e]))
+                res.append(I[r+1]) 
+                T[r+1] = T[r] - self._closure(I[r+1])
+                r = r + 1
+            else:
+                r = r - 1    
+        return res
+    
     cpdef independent_r_sets(self, long r):
         r"""
         Return the list of size-``r`` independent subsets of the matroid.

@@ -1946,6 +1946,21 @@ class DirichletGroup_class(WithEqualityById, Parent):
         self._module = free_module.FreeModule(rings.IntegerModRing(zeta_order),
                                               len(self._integers.unit_gens()))
 
+    def __setstate__(self, state):
+        """
+        Used for unpickling old instances.
+
+        TESTS::
+
+            sage: G = DirichletGroup(9)
+            sage: loads(dumps(G)) is G
+            True
+        """
+        self._set_element_constructor()
+        if '_zeta_order' in state:
+            state['_zeta_order'] = rings.Integer(state['_zeta_order'])
+        super(DirichletGroup_class, self).__setstate__(state)
+
     def change_ring(self, R, zeta=None, zeta_order=None):
         """
         Return the base extension of ``self`` to ``R``.

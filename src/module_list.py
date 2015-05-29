@@ -1221,11 +1221,10 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++'),
 
-    OptionalExtension("sage.rings.complex_ball_acb",
-                      ["sage/rings/complex_ball_acb.pyx"],
-                      libraries=['arb', 'mpfi', 'mpfr'],
-                      include_dirs=[SAGE_INC + '/flint'],
-                      package='arb'),
+    Extension("sage.rings.complex_ball_acb",
+              ["sage/rings/complex_ball_acb.pyx"],
+              libraries=['arb', 'mpfi', 'mpfr'],
+              include_dirs=[SAGE_INC + '/flint']),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1294,11 +1293,10 @@ ext_modules = [
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx']),
 
-    OptionalExtension("sage.rings.real_arb",
-                      ["sage/rings/real_arb.pyx"],
-                      libraries = ['arb', 'mpfi', 'mpfr'],
-                      include_dirs = [SAGE_INC + '/flint'],
-                      package = 'arb'),
+    Extension("sage.rings.real_arb",
+              ["sage/rings/real_arb.pyx"],
+              libraries = ['arb', 'mpfi', 'mpfr'],
+              include_dirs = [SAGE_INC + '/flint']),
 
     Extension('sage.rings.real_lazy',
               sources = ['sage/rings/real_lazy.pyx']),

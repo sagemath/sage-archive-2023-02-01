@@ -1820,7 +1820,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
 
-        Check that :trac:`18xxx` is fixed::
+        Check that :trac:`18457` is fixed::
 
             sage: R.<x> = GF(5)[]
             sage: (1+x)^(5^10) # used to hang forever

@@ -57,7 +57,7 @@ def mma_free_integrator(expression, v, a=None, b=None):
             if chr(i) not in vars:
                 shadow_x = SR.var(chr(i))
                 break
-        expression = expression.subs({x:shadow_x}).subs({dvar: x})
+        expression = expression.subs({x:shadow_x}).subs({v: x})
     params = urllib.urlencode({'expr': expression._mathematica_init_(), 'random': 'false'})
     page = urllib.urlopen("http://integrals.wolfram.com/index.jsp", params).read()
     page = page[page.index('"inputForm"'):page.index('"outputForm"')]

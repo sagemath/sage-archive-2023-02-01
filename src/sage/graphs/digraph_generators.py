@@ -33,7 +33,6 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
-    :meth:`~DiGraphGenerators.Sierpinski`    | Returns a Sierpinski graph.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
 
@@ -914,78 +913,6 @@ class DiGraphGenerators():
 
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
-
-    def Sierpinski(self, n):
-        """
-        Return the Sierpinski triangle graph of generation `n`.
-
-        INPUT:
-
-        - `n` -- an integer
-
-        OUTPUT:
-
-        a directed graph `S_n` with `3 (3^{n-1}-1)/2` vertices and
-        `3^n` edges, closely related to the famous Sierpinski triangle
-        fractal.
-
-        All these graphs have a triangular shape, and three special
-        vertices at top, bottom left and bottom right. These are the only
-        vertices of valence 2, all the other ones having valence 4.
-
-        The graph `S_1` (generation `1`) is an oriented triangle.
-
-        The graph `S_{n+1}` is obtained from the disjoint union of
-        three copies A,B,C of `S_n` by identifying pairs of vertices:
-        the top vertex of A with the bottom left vertex of B, 
-        the bottom right vertex of B with the top vertex of C,
-        and the bottom left vertex of C with the bottom right vertex of A.
-
-        Another familly of graphs can be defined by joined the same
-        pairs of vertices by new edges instead of identifying them.
-        These graphs are also sometimes called Sierpinski graphs.
-
-        EXAMPLES::
-
-            sage: s4 = digraphs.Sierpinski(4); s4
-            Digraph on 42 vertices
-            sage: s4.adjacency_matrix().charpoly()
-            x^42 - 36*x^39 + 552*x^36 - 4695*x^33 + 24074*x^30 - 74898*x^27 +
-            130069*x^24 - 79941*x^21 - 99231*x^18 + 162871*x^15 - 6780*x^12 -
-            56213*x^9 - 9790*x^6 + 548*x^3 + 1
-            sage: g4 = s4.to_undirected()
-            sage: g4.is_hamiltonian()
-            True
-
-        REFERENCES:
-
-        .. todo
-        """
-        from sage.modules.free_module_element import vector
-        from sage.rings.rational_field import QQ
-
-        if n <= 0:
-            raise ValueError('n should be at least 1')
-
-        def next_step(triangle_list):
-            # compute the next subdivision
-            resu = []
-            for a, b, c in triangle_list:
-                ab = (a + b) / 2
-                bc = (b + c) / 2
-                ac = (a + c) / 2
-                resu += [(a, ab, ac), (ab, b, bc), (ac, bc, c)]
-            return resu
-
-        tri_list = [list(vector(QQ, u) for u in [(0, 0), (0, 1), (1, 0)])]
-        for k in range(n - 1):
-            tri_list = next_step(tri_list)
-        dg = DiGraph()
-        dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
-        dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
-        dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
-        dg.set_pos({xy: (xy[0], xy[1]) for xy in dg.vertices()})
-        return dg
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """

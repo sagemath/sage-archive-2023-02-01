@@ -405,7 +405,7 @@ class DLXMatrix:
             sage: M = DLXMatrix([[1,[1,2]],[2,[2,3]],[3,[1,3]]])
             sage: while 1:
             ...     try:
-            ...         C = M.next()
+            ...         C = next(M)
             ...     except StopIteration:
             ...         print "StopIteration"
             ...         break

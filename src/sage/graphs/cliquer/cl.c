@@ -8,7 +8,7 @@ static int sage_clique_list_size=0;
 
 // As the global variables remain between two SAGE call, they
 // have to be reset each time
-void sage_reset_global_variables(){
+void sage_reset_global_variables(void){
   maximal=FALSE; // reachable from read_options
   sage_clique_count=0;
   sage_clique_list_size=0;

@@ -152,12 +152,9 @@ class HeckeModules(Category_module):
 
     class Homsets(HomsetsCategory):
         """
-        .. TODO:: shall there be any additional category structure on Homsets of hecke modules?
-
         TESTS::
 
-            sage: HeckeModules(ZZ).Homsets().super_categories()
-            [Category of homsets]
+            sage: TestSuite(HeckeModules(ZZ).Homsets()).run()
         """
 
         def base_ring(self):
@@ -168,6 +165,21 @@ class HeckeModules(Category_module):
                 Rational Field
             """
             return self.base_category().base_ring()
+
+        def extra_super_categories(self):
+            """
+            TESTS:
+
+            Check that Hom sets of Hecke modules are in the correct
+            category (see :trac:`17359`)::
+
+                sage: HeckeModules(ZZ).Homsets().super_categories()
+                [Category of modules over Integer Ring, Category of homsets]
+                sage: HeckeModules(QQ).Homsets().super_categories()
+                [Category of vector spaces over Rational Field, Category of homsets]
+            """
+            from sage.categories.modules import Modules
+            return [Modules(self.base_ring())]
 
         class ParentMethods:
             pass

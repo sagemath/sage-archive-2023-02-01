@@ -1072,7 +1072,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         """
         p = self.characteristic()
         if m == 1:
-            return self._subfield(n).one_element()
+            return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 

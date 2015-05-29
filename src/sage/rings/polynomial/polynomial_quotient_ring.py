@@ -29,8 +29,8 @@ import sage.rings.rational_field
 import sage.rings.complex_field
 
 import sage.rings.commutative_ring
-import sage.rings.field as field
 import sage.rings.integral_domain
+from sage.rings.ring import Field
 
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
@@ -171,7 +171,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:
             if polynomial.is_irreducible():
-                if isinstance(R, field.Field):
+                if isinstance(R, Field):
                     return PolynomialQuotientRing_field(ring, polynomial, names)
                 else:
                     return PolynomialQuotientRing_domain(ring, polynomial, names)
@@ -225,7 +225,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
 
     TESTS:
 
-    By trac ticket #11900, polynomial quotient rings use Sage's
+    By trac ticket :trac:`11900`, polynomial quotient rings use Sage's
     category framework. They do so in an unusual way: During their
     initialisation, they are declared to be objects in the category of
     quotients of commutative algebras over a base ring. However, if it
@@ -238,10 +238,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: P.<x> = QQ[]
         sage: Q = P.quotient(x^2+2)
         sage: Q.category()
-        Join of Category of integral domains
-         and Category of commutative algebras over Rational Field
-         and Category of subquotients of monoids
-         and Category of quotients of semigroups
+        Category of commutative no zero divisors
+        quotients of algebras over Rational Field
 
     The test suite passes::
 
@@ -264,7 +262,8 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: Q in Fields()
         True
         sage: Q.category()
-        Join of Category of fields and Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
+        Category of commutative division no zero divisors
+        quotients of algebras over Rational Field
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]
@@ -276,10 +275,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
     new methods from the category of fields, thanks to
     :meth:`Element.__getattr__`::
 
-        sage: isinstance(Q.an_element(),Q.element_class)
+        sage: e = Q.an_element()
+        sage: isinstance(e, Q.element_class)
         False
-        sage: Q.an_element().gcd.__module__
-        'sage.categories.fields'
+        sage: e.gcd(e+1)
+        1
 
     Since the category has changed, we repeat the test suite. However, we have to skip the test
     for its elements, since `an_element` has been cached in the previous run of the test suite,
@@ -1574,7 +1574,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.i
 
 
 
-class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
+class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
     """
     EXAMPLES::
 

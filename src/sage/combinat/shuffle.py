@@ -124,10 +124,10 @@ class SetShuffleProduct(SageObject):
             self._element_constructor_ = element_constructor
         else:
             try:
-                e = iter(l1).next()
-                if hasattr(e, "parent") and hasattr(e.parent(), "_element_constructor_"):
+                e = next(iter(l1))
+                try:
                     self._element_constructor_ = e.parent()._element_constructor_
-                else:
+                except AttributeError:
                     self._element_constructor_ = list
             except StopIteration:
                 self._element_constructor_ = list
@@ -265,9 +265,9 @@ class ShuffleProduct(SageObject):
         self._l2 = list(l2)
 
         if element_constructor is None:
-            if hasattr(l1, "parent") and hasattr(l1.parent(), "_element_constructor_"):
+            try:
                 self._element_constructor_ = l1.parent()._element_constructor_
-            else:
+            except AttributeError:
                 self._element_constructor_ = list
         else:
             self._element_constructor_ = element_constructor

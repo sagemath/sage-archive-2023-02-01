@@ -2089,11 +2089,17 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     m[]
                     sage: (2*M([])).to_symmetric_function()
                     2*m[]
+
+                We check that the result is indexed by partitions::
+
+                    sage: M([]).to_symmetric_function().leading_support().parent()
+                    Partitions
                 """
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
                 if self.is_symmetric():
-                    return m.sum_of_terms([(I, coeff) for (I, coeff) in self
-                        if list(I) in _Partitions], distinct=True)
+                    return m._from_dict({_Partitions(list(I)): coeff
+                                         for I, coeff in self
+                        if list(I) in _Partitions}, remove_zeros=False)
                 else:
                     raise ValueError("%s is not a symmetric function"%self)
 
@@ -2853,7 +2859,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - A quasi-symmetric function in the dual immaculate basis.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: dI = QuasiSymmetricFunctions(QQ).dI()
                 sage: dI._from_Monomial_on_basis(Composition([]))

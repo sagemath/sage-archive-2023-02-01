@@ -66,7 +66,7 @@ which is anyway set to raise an error::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.ring import SR, var
+from sage.symbolic.ring import SR
 
 from sage.libs.ecl import *
 
@@ -141,7 +141,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)']
+            'load(abs_integrate)', 'load(diag)']
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
@@ -1149,7 +1149,7 @@ import sage.functions.trig
 import sage.functions.log
 import sage.functions.other
 import sage.symbolic.integration.integral
-from sage.symbolic.operators import FDerivativeOperator
+from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 
 car=EclObject("car")
 cdr=EclObject("cdr")
@@ -1166,14 +1166,14 @@ lisp_length=EclObject("length")
 ## Dictionaries for standard operators
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
-    sage.symbolic.expression.operator.add : "MPLUS",
+    add_vararg : "MPLUS",
     sage.symbolic.expression.operator.div : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",
     sage.symbolic.expression.operator.le : "MLEQP",
     sage.symbolic.expression.operator.lt : "MLESSP",
-    sage.symbolic.expression.operator.mul : "MTIMES",
+    mul_vararg : "MTIMES",
     sage.symbolic.expression.operator.ne : "MNOTEQUAL",
     sage.symbolic.expression.operator.neg : "MMINUS",
     sage.symbolic.expression.operator.pow : "MEXPT",
@@ -1192,47 +1192,6 @@ max_op_dict = dict([(sage_op_dict[k],k) for k in sage_op_dict])
 
 
 ## Here we correct the dictionaries for some simple operators
-def add_vararg(*args):
-    r"""
-    Addition of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to add
-
-    OUTPUT: sum of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import add_vararg
-        sage: add_vararg(1,2,3,4,5,6,7)
-        28
-    """
-    S=0
-    for a in args:
-        S=S+a
-    return S
-
-def mul_vararg(*args):
-    r"""
-    Multiplication of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to multiply
-
-    OUTPUT: product of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import mul_vararg
-        sage: mul_vararg(9,8,7,6,5,4)
-        60480
-    """
-    P=1
-    for a in args:
-        P=P*a
-    return P
 
 def sage_rat(x,y):
     r"""
@@ -1572,8 +1531,8 @@ def sr_to_max(expr):
                 # temporary variable e.g. `t0` and then evaluate the
                 # derivative f'(t0) symbolically at t0=1. See trac
                 # #12796.
-                temp_args=[var("t%s"%i) for i in range(len(args))]
-                f =sr_to_max(op.function()(*temp_args))
+                temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+                f = sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()
                 deriv_max = [[mdiff],f]
                 for i in set(params):

@@ -11,7 +11,7 @@ Indexed Generators
 from sage.rings.all import Integer
 
 class IndexedGenerators(object):
-    r"""
+    r"""nodetex
     Abstract base class for parents whose elements consist of generators
     indexed by an arbitrary set.
 

@@ -3,7 +3,7 @@ Callable Symbolic Expressions
 
 EXAMPLES:
 
-When you do arithmetic with
+When you do arithmetic with::
 
     sage: f(x, y, z) = sin(x+y+z)
     sage: g(x, y) = y + 2*x
@@ -209,8 +209,8 @@ class CallableSymbolicExpressionFunctor(ConstructionFunctor):
         .. NOTE::
 
            When used for arithmetic between
-           ``CallableSymbolicExpression``s, these rules ensure that
-           the set of ``CallableSymbolicExpression``s will have
+           ``CallableSymbolicExpression``'s, these rules ensure that
+           the set of ``CallableSymbolicExpression``'s will have
            certain properties. In particular, it ensures that the set
            is a *commutative* ring, i.e., the order of the input
            variables is the same no matter in which order arithmetic

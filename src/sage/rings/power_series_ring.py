@@ -113,7 +113,6 @@ TESTS::
 
 """
 
-import weakref
 import power_series_poly
 import power_series_mpoly
 import power_series_ring_element
@@ -125,9 +124,7 @@ import laurent_series_ring
 import laurent_series_ring_element
 import commutative_ring
 import integral_domain
-import field
 import integer
-import sage.structure.parent_gens as gens
 from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
@@ -138,7 +135,6 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import normalize_names
-from sage.structure.category_object import check_default_category
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -164,8 +160,8 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
 
     - ``default_prec`` - the default precision used if an exact object must
        be changed to an approximate object in order to do an arithmetic
-       operation.  If left as ``None``, it will be set to 20 in the
-       univariate case, and 12 in the multivariate case.
+       operation.  If left as ``None``, it will be set to the global
+       default (20) in the univariate case, and 12 in the multivariate case.
 
     -  ``sparse`` - (default: ``False``) whether power series
        are represented as sparse objects.
@@ -323,6 +319,9 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         Category of commutative rings
         sage: TestSuite(M).run()
 
+    .. SEEALSO::
+    
+        * :func:`sage.misc.defaults.set_series_precision`
     """
     #multivariate case:
     # examples for first case:
@@ -349,7 +348,8 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     # and thus that is what the code below expects; this behavior is being
     # deprecated, and will eventually be removed.
     if default_prec is None and arg2 is None:
-        default_prec = 20
+        from sage.misc.defaults import series_precision
+        default_prec = series_precision()
     elif arg2 is not None:
         default_prec = arg2
 
@@ -454,7 +454,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
     A power series ring.
     """
     Element = power_series_poly.PowerSeries_poly
-    def __init__(self, base_ring, name=None, default_prec=20, sparse=False,
+    def __init__(self, base_ring, name=None, default_prec=None, sparse=False,
                  use_lazy_mpoly_ring=False, category=None):
         """
         Initializes a power series ring.
@@ -503,6 +503,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         R = PolynomialRing(base_ring, name, sparse=sparse)
         self.__poly_ring = R
         self.__is_sparse = sparse
+        if default_prec is None:
+            from sage.misc.defaults import series_precision
+            default_prec = series_precision()
         self.__params = (base_ring, name, default_prec, sparse)
 
         if use_lazy_mpoly_ring and (is_MPolynomialRing(base_ring) or \

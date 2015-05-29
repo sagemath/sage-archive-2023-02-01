@@ -522,7 +522,6 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: from sage.misc.misc import SAGE_LOCAL
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
     'SINGULAR .../local/bin\n'
 
@@ -540,7 +539,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.misc
+from sage.env import SAGE_LOCAL
 import pexpect
 import re
 import sys
@@ -560,7 +559,6 @@ def _qepcad_cmd(memcells=None):
     EXAMPLES::
 
         sage: from sage.interfaces.qepcad import _qepcad_cmd
-        sage: from sage.misc.misc import SAGE_LOCAL
         sage: s = _qepcad_cmd()
         sage: s == 'env qe=%s qepcad '%SAGE_LOCAL
         True
@@ -572,7 +570,7 @@ def _qepcad_cmd(memcells=None):
         memcells_arg = '+N%s' % memcells
     else:
         memcells_arg = ''
-    return "env qe=%s qepcad %s"%(sage.misc.misc.SAGE_LOCAL, memcells_arg)
+    return "env qe=%s qepcad %s"%(SAGE_LOCAL, memcells_arg)
 
 _command_info_cache = None
 
@@ -597,7 +595,7 @@ def _update_command_info():
 
     cache = {}
 
-    with open('%s/bin/qepcad.help'%sage.misc.misc.SAGE_LOCAL) as help:
+    with open('%s/bin/qepcad.help'%SAGE_LOCAL) as help:
         assert(help.readline().strip() == '@')
 
         while True:

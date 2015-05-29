@@ -543,11 +543,11 @@ d'entiers positifs jusqu'à :math:`10000000`.
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 Nous créons maintenant un itérateur sur les nombres premiers de la forme
@@ -559,11 +559,11 @@ quelques premières valeurs qu'il prend.
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w
     <generator object <genexpr> at 0x...>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 Certains anneaux, par exemple les corps finis et les entiers, disposent
@@ -574,11 +574,11 @@ d'itérateurs associés :
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 Boucles, fonctions, structures de contrôle et comparaisons

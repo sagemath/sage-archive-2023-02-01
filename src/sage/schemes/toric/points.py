@@ -18,7 +18,7 @@ EXAMPLES::
     sage: point_set = P2.point_set()
     sage: point_set.cardinality()
     13
-    sage: iter(point_set).next()
+    sage: next(iter(point_set))
     [0 : 0 : 1]
     sage: list(point_set)[0:5]
     [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2]]
@@ -39,7 +39,7 @@ EXAMPLES::
 from copy import copy
 
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.misc.misc import powerset, prod
+from sage.misc.all import powerset, prod
 from sage.misc.cachefunc import cached_method
 
 
@@ -62,10 +62,10 @@ class InfinitePointEnumerator(object):
             sage: fan = toric_varieties.P2().fan()
             sage: n = InfinitePointEnumerator(fan, QQ)
             sage: ni = iter(n)
-            sage: [ni.next() for k in range(10)]
-            [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1), 
+            sage: [next(ni) for k in range(10)]
+            [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1),
              (2, 1, 1), (-2, 1, 1), (1/3, 1, 1), (-1/3, 1, 1), (3, 1, 1)]
-          
+
             sage: X = ToricVariety(Fan([], lattice=ZZ^0))
             sage: X.point_set().cardinality()
             1
@@ -91,7 +91,7 @@ class InfinitePointEnumerator(object):
             sage: fan = toric_varieties.P2().fan()
             sage: n = InfinitePointEnumerator(fan, QQ)
             sage: ni = iter(n)
-            sage: [ni.next() for k in range(5)]
+            sage: [next(ni) for k in range(5)]
             [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1)]
         """
         rays = self.fan().rays() + self.fan().virtual_rays()
@@ -125,7 +125,7 @@ class NaiveFinitePointEnumerator(object):
             sage: from sage.schemes.toric.points import NaiveFinitePointEnumerator
             sage: fan = toric_varieties.P2().fan()
             sage: n = NaiveFinitePointEnumerator(fan, GF(3))
-            sage: iter(n).next()
+            sage: next(iter(n))
             (0, 0, 1)
         """
         assert ring.is_finite()

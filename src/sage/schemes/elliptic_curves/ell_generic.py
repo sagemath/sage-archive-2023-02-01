@@ -13,8 +13,8 @@ EXAMPLES:
 We construct an elliptic curve over an elaborate base ring::
 
     sage: p = 97; a=1; b=3
-    sage: R, u = PolynomialRing(GF(p), 'u').objgen()
-    sage: S, v = PolynomialRing(R, 'v').objgen()
+    sage: R.<u> = GF(p)[]
+    sage: S.<v> = R[]
     sage: T = S.fraction_field()
     sage: E = EllipticCurve(T, [a, b]); E
     Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
@@ -61,7 +61,7 @@ from sage.plot.plot import generate_plot_points
 import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.number_field.number_field_base import is_NumberField
-import sage.misc.misc as misc
+from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.fast_methods import WithEqualityById
 
@@ -79,7 +79,6 @@ import weierstrass_morphism as wm
 factor = arith.factor
 sqrt = math.sqrt
 exp = math.exp
-mul = misc.mul
 next_prime = arith.next_prime
 
 oo = rings.infinity       # infinity
@@ -2779,10 +2778,10 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectiveCurve_generi
 
         Epi = iter(Ep) # used to iterate through Ep
         # Find P1,P2 which generate the p-torsion:
-        P1 = Epi.next()
-        while P1.is_zero(): P1 = Epi.next()
-        P2 = Epi.next()
-        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = Epi.next()
+        P1 = next(Epi)
+        while P1.is_zero(): P1 = next(Epi)
+        P2 = next(Epi)
+        while generic.linear_relation(P1,P2,'+')[0] != 0: P2 = next(Epi)
 
         k = 1
         log_order = 2

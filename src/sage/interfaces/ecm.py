@@ -43,7 +43,7 @@ from math import ceil, floor
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
-from sage.misc.misc import verbose, tmp_filename
+from sage.misc.all import verbose, tmp_filename
 from sage.misc.decorators import rename_keyword
 
 

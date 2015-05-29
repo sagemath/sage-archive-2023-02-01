@@ -35,7 +35,7 @@ Let's request the category of some objects::
 
     sage: V = VectorSpace(RationalField(), 3)
     sage: V.category()
-    Category of vector spaces over Rational Field
+    Category of vector spaces with basis over quotient fields
     sage: G = SymmetricGroup(9)
     sage: G.category()
     Join of Category of finite permutation groups and Category of finite weyl groups
@@ -2625,7 +2625,7 @@ def category_graph(categories = None):
         Graphics object consisting of 20 graphics primitives
 
         sage: sage.categories.category.category_graph().plot()
-        Graphics object consisting of 312 graphics primitives
+        Graphics object consisting of ... graphics primitives
     """
     from sage import graphs
     if categories is None:

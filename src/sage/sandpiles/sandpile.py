@@ -1,61 +1,34 @@
-from string import join
-import os
-from sage.symbolic.all import I, pi
-from sage.functions.log import exp
-from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from copy import deepcopy
-from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix, identity_matrix
-from sage.interfaces.singular import singular
-from sage.combinat.combinat import CombinatorialClass
-from sage.combinat.set_partition import SetPartitions
-from sage.homology.simplicial_complex import SimplicialComplex
-from sage.plot.colors import rainbow
-from sage.env import SAGE_LOCAL
-
 r"""
-To calculate linear systems associated with divisors, 4ti2 must be installed.
-One way to do this is to run sage -i to install glpk, then 4ti2.  See
-http://sagemath.org/download-packages.html to get the exact names of these
-packages.  An alternative is to install 4ti2 separately, then point the
-following variable to the correct path.
-"""
-
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
-
-r"""
-Sage Sandpiles
+Sandpiles
 
 Functions and classes for mathematical sandpiles.
 
 Version: 2.3
 
 AUTHOR:
-    -- Marshall Hampton (2010-1-10) modified for inclusion as a module
-       within Sage library.
 
-    -- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
-       replaced elementary_divisors() with invariant_factors(), added show() for
-       SandpileConfig and SandpileDivisor.
+- Marshall Hampton (2010-1-10) modified for inclusion as a module within Sage
+  library.
 
-    -- David Perkinson (2010-9-18): removed is_undirected, added show(), added
-       verbose arguments to several functions to display SandpileConfigs and divisors as
-       lists of integers
+- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
+  replaced elementary_divisors() with invariant_factors(), added show() for
+  SandpileConfig and SandpileDivisor.
 
-    -- David Perkinson (2010-12-19): created separate SandpileConfig, SandpileDivisor, and
-       Sandpile classes
+- David Perkinson (2010-9-18): removed is_undirected, added show(), added
+  verbose arguments to several functions to display SandpileConfigs and
+  divisors as lists of integers
 
-    -- David Perkinson (2009-07-15): switched to using config_to_list instead
-       of .values(), thus fixing a few bugs when not using integer labels for
-       vertices.
+- David Perkinson (2010-12-19): created separate SandpileConfig,
+  SandpileDivisor, and Sandpile classes
 
-    -- David Perkinson (2009): many undocumented improvements
+- David Perkinson (2009-07-15): switched to using config_to_list instead of
+  .values(), thus fixing a few bugs when not using integer labels for vertices.
 
-    -- David Perkinson (2008-12-27): initial version
+- David Perkinson (2009): many undocumented improvements
 
-EXAMPLES::
+- David Perkinson (2008-12-27): initial version
+
+EXAMPLES:
 
 A weighted directed graph given as a Python dictionary::
 
@@ -221,13 +194,39 @@ Distribution of avalanche sizes::
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
+
+To calculate linear systems associated with divisors, 4ti2 must be installed.
+One way to do this is to run sage -i to install glpk, then 4ti2.  See
+http://sagemath.org/download-packages.html to get the exact names of these
+packages.  An alternative is to install 4ti2 separately, then point the
+following variable to the correct path.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from string import join
+import os
+from sage.symbolic.all import I, pi
+from sage.functions.log import exp
+from sage.graphs.all import DiGraph, Graph, graphs, digraphs
+from copy import deepcopy
+from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.interfaces.singular import singular
+from sage.combinat.combinat import CombinatorialClass
+from sage.combinat.set_partition import SetPartitions
+from sage.homology.simplicial_complex import SimplicialComplex
+from sage.plot.colors import rainbow
+from sage.env import SAGE_LOCAL
+
+path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
 
 class Sandpile(DiGraph):
     """
@@ -238,9 +237,11 @@ class Sandpile(DiGraph):
         r"""
         Create a sandpile.
 
+        A sandpile is always a weighted graph.
+
         INPUT:
 
-         - ``g`` - dict for directed multgraph (see NOTES) edges weighted by
+         - ``g`` - dict for directed multigraph (see NOTES) edges weighted by
            nonnegative integers
 
          - ``sink`` - A sink vertex.  Any outgoing edges from the designated
@@ -286,6 +287,13 @@ class Sandpile(DiGraph):
 
             sage: S = complete_sandpile(4)
             sage: TestSuite(S).run()
+
+        Make sure we cannot make an unweighted sandpile::
+
+            sage: G = Sandpile({0:[]}, 0, weighted=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'weighted'
         """
         # preprocess a graph, if necessary
         if isinstance(g, dict) and isinstance(g.values()[0], dict):
@@ -336,6 +344,23 @@ class Sandpile(DiGraph):
         temp = range(self.num_verts())
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
+
+    def __copy__(self):
+        """
+        Make a copy of this sandpile
+
+        OUTPUT:
+
+        A new :class:`Sandpile` instance.
+
+        EXAMPLES::
+
+            sage: G = complete_sandpile(4)
+            sage: G_copy = copy(G)
+            sage: G_copy == G == G.__copy__()
+            True
+        """
+        return self.__class__(self, self._sink)
 
     def __getattr__(self, name):
         """
@@ -560,7 +585,7 @@ class Sandpile(DiGraph):
             [ 0 -1  0 -1  2  0]
             [ 0  0 -1 -1  0  2]
 
-        NOTES::
+        NOTES:
 
         The function ``laplacian_matrix`` should be avoided.  It returns the
         indegree version of the laplacian.
@@ -839,8 +864,8 @@ class Sandpile(DiGraph):
         bc = {} # burning config
         bs = {} # burning script
         for v in self._nonsink_vertices:
-            bc[v] = b.next()
-            bs[v] = s.next()
+            bc[v] = next(b)
+            bs[v] = next(s)
         self._burning_config = SandpileConfig(self,bc)
         self._burning_script = SandpileConfig(self,bs)
 
@@ -1312,7 +1337,7 @@ class Sandpile(DiGraph):
 
         list (of maximal superstables)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: S=sandlib('riemann-roch2')
             sage: S.max_superstables()
@@ -3502,7 +3527,13 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: eff = D.effective_div() # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
-            {'_sandpile': Digraph on 3 vertices, '_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}], '_linear_system': {'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 1, 1], [-1, -1, -1]]}, '_vertices': [0, 1, 2]}
+            {'_effective_div': [{0: 2, 1: 0, 2: 0}, {0: 0, 1: 1, 2: 1}],
+             '_linear_system': {'homog': [[1, 1, 1], [-1, -1, -1]],
+              'inhomog': [[1, 0, 0], [0, 0, 0], [0, -1, -1]],
+              'num_homog': 2,
+              'num_inhomog': 3},
+             '_sandpile': Digraph on 3 vertices,
+             '_vertices': [0, 1, 2]}
             sage: D[0] += 1 # optional - 4ti2
             sage: D.__dict__ # optional - 4ti2
             {'_sandpile': Digraph on 3 vertices, '_vertices': [0, 1, 2]}
@@ -4141,7 +4172,10 @@ class SandpileDivisor(dict):
             sage: S = sandlib('generic')
             sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
             sage: D.linear_system() # optional - 4ti2
-            {'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]], 'num_inhomog': 3, 'num_homog': 2, 'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]]}
+            {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
+             'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
+             'num_homog': 2,
+             'num_inhomog': 3}
 
         NOTES:
 
@@ -4690,9 +4724,11 @@ def grid_sandpile(m,n):
     The mxn grid sandpile.  Each nonsink vertex has degree 4.
 
     INPUT:
+
     ``m``, ``n`` - positive integers
 
     OUTPUT:
+
     Sandpile with sink named ``sink``.
 
     EXAMPLES::
@@ -5273,8 +5309,8 @@ def firing_vector(S,D,E):
 
     INPUT:
 
-    - ``S`` -Sandpile
-    ``D``, ``E`` - tuples (representing linearly equivalent divisors)
+    - ``S`` - Sandpile
+    - ``D``, ``E`` - tuples (representing linearly equivalent divisors)
 
     OUTPUT:
 

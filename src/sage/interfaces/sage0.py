@@ -385,7 +385,7 @@ class Sage(Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | Sage Version ..., Release Date: ...                                |
+            | SageMath Version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -397,7 +397,7 @@ class Sage(Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'Sage Version ..., Release Date: ...'
+            'SageMath Version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -426,17 +426,18 @@ class Sage(Expect):
 
 class SageElement(ExpectElement):
 
-    def _graphics_(self, **kwds):
+    def _rich_repr_(self, display_manager, **kwds):
         """
-        Disable graphical output.
+        Disable rich output
 
         This is necessary because otherwise our :meth:`__getattr__`
         would be called.
 
         EXAMPLES::
 
+            sage: from sage.repl.rich_output import get_display_manager
             sage: m = sage0(4)
-            sage: m._graphics_() is None
+            sage: m._rich_repr_(get_display_manager()) is None
             True
         """
         return None
@@ -548,7 +549,7 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | Sage Version ..., Release Date: ...                                |
+        | SageMath Version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

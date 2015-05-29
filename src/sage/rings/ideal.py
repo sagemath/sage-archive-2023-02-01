@@ -63,7 +63,7 @@ def Ideal(*args, **kwds):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: R.<x> = ZZ[]
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: I
         Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
@@ -136,7 +136,7 @@ def Ideal(*args, **kwds):
 
     TESTS::
 
-        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: R.<x> = ZZ[]
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: I == loads(dumps(I))
         True
@@ -249,9 +249,8 @@ class Ideal_generic(MonoidElement):
 
         EXAMPLES::
 
-            sage: R, x = PolynomialRing(ZZ, 'x').objgen()
-            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
-            sage: I
+            sage: R.<x> = ZZ[]
+            sage: R.ideal([4 + 3*x + x^2, 1 + x^2])
             Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
         """
         self.__ring = ring
@@ -261,7 +260,7 @@ class Ideal_generic(MonoidElement):
             gens = [ring(x) for x in gens]
 
         gens = tuple(gens)
-        if len(gens)==0: gens=(ring.zero_element(),)
+        if len(gens)==0: gens=(ring.zero(),)
         self.__gens = gens
         MonoidElement.__init__(self, ring.ideal_monoid())
 
@@ -1428,10 +1427,19 @@ class Ideal_pid(Ideal_principal):
             Principal ideal (x^2 + 1) of Univariate Polynomial Ring in x over Rational Field
             sage: P.is_prime()
             True
+
+        In fields, only the zero ideal is prime::
+
+            sage: RR.ideal(0).is_prime()
+            True
+            sage: RR.ideal(7).is_prime()
+            False
         """
         if self.is_zero(): # PIDs are integral domains by definition
             return True
         g = self.gen()
+        if g.is_one():     # The ideal (1) is never prime
+            return False
         if hasattr(g, 'is_irreducible'):
             return g.is_irreducible()
 

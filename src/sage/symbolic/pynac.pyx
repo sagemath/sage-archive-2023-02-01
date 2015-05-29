@@ -1,3 +1,7 @@
+# distutils: libraries = gsl
+
+"Pynac interface"
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -7,8 +11,6 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-# distutils: libraries = gsl
-
 cdef extern from "pynac_cc.h":
     long double sage_logl(long double)
     long double sage_sqrtl(long double)
@@ -16,7 +18,7 @@ cdef extern from "pynac_cc.h":
     long double sage_lgammal(long double)
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/python.pxi"
 
 from ginac cimport *
@@ -27,7 +29,7 @@ include "sage/gsl/gsl_sf_result.pxi"
 include "sage/gsl/gsl_gamma.pxi"
 
 
-from sage.structure.element import Element
+from sage.structure.element cimport Element, parent_c
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -38,7 +40,7 @@ from sage.rings.all import CC
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.substitution_map cimport SubstitutionMap, new_SubstitutionMap_from_GExMap
 from sage.symbolic.function import get_sfunction_from_serial
-from sage.symbolic.function cimport Function, parent_c
+from sage.symbolic.function cimport Function
 from sage.symbolic.constants_c cimport PynacConstant
 
 import ring
@@ -60,7 +62,7 @@ cdef public object ex_to_pyExpression(GEx juice):
     Used to pass parameters to custom power and series functions.
     """
     cdef Expression nex
-    nex = <Expression>PY_NEW(Expression)
+    nex = <Expression>Expression.__new__(Expression)
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = ring.SR
     return nex
@@ -317,7 +319,7 @@ cdef public stdstring* py_repr(object o, int level) except +:
             t = s
         # Python complexes are always printed with parentheses
         # we try to avoid double parantheses
-        if not PY_TYPE_CHECK_EXACT(o, complex) and \
+        if type(o) is not complex and \
                 (' ' in t or '/' in t or '+' in t or '-' in t or '*' in t \
                 or '^' in t):
             s = '(%s)'%s
@@ -403,10 +405,10 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
 
     EXAMPLES::
 
@@ -464,7 +466,7 @@ cdef public stdstring* py_print_function(unsigned id, object args) except +:
     return string_from_pystr(py_print_function_pystring(id, args))
 
 def py_latex_function_pystring(id, args, fname_paren=False):
-    """
+    r"""
     Return a string with the latex representation of the symbolic function
     specified by the given id applied to args.
 
@@ -561,12 +563,10 @@ cdef public stdstring* py_print_fderivative(unsigned id, object params,
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
-
-
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
     """
     ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
     fstr = py_print_function_pystring(id, args, True)
@@ -625,7 +625,7 @@ cdef public stdstring* py_latex_fderivative(unsigned id, object params,
     return string_from_pystr(py_res)
 
 def py_latex_fderivative_for_doctests(id, params, args):
-    """
+    r"""
     Used internally for writing doctests for certain cdef'd functions.
 
     EXAMPLES::
@@ -728,8 +728,6 @@ cdef public unsigned py_get_serial_for_new_sfunction(stdstring &s,
 # Modular helpers
 #################################################################
 
-from sage.structure.element cimport Element
-
 cdef public int py_get_parent_char(object o) except -1:
     if isinstance(o, Element):
         return (<Element>o)._parent.characteristic()
@@ -743,9 +741,9 @@ cdef public int py_get_parent_char(object o) except -1:
 
 from sage.rings.rational cimport rational_power_parts
 cdef public object py_rational_power_parts(object base, object exp) except +:
-    if not PY_TYPE_CHECK_EXACT(base, Rational):
+    if type(base) is not Rational:
         base = Rational(base)
-    if not PY_TYPE_CHECK_EXACT(exp, Rational):
+    if type(exp) is not Rational:
         exp = Rational(exp)
     res= rational_power_parts(base, exp)
     return res + (bool(res[0] == 1),)
@@ -798,9 +796,11 @@ def test_binomial(n, k):
     binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result.
 
     INPUT:
-        n, k -- integers, with k >= 0.
+
+    - n, k -- integers, with k >= 0.
 
     OUTPUT:
+
         integer
 
     EXAMPLES::
@@ -820,14 +820,14 @@ def test_binomial(n, k):
 #################################################################
 import sage.rings.arith
 cdef public object py_gcd(object n, object k) except +:
-    if PY_TYPE_CHECK(n, Integer) and PY_TYPE_CHECK(k, Integer):
+    if isinstance(n, Integer) and isinstance(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
             return n
         elif mpz_cmp_si((<Integer>k).value,1) == 0:
             return k
         return n.gcd(k)
 
-    if PY_TYPE_CHECK_EXACT(n, Rational) and PY_TYPE_CHECK_EXACT(k, Rational):
+    if type(n) is Rational and type(k) is Rational:
         return n.content(k)
     try:
         return sage.rings.arith.gcd(n,k)
@@ -840,7 +840,7 @@ cdef public object py_gcd(object n, object k) except +:
 # LCM
 #################################################################
 cdef public object py_lcm(object n, object k) except +:
-    if PY_TYPE_CHECK(n, Integer) and PY_TYPE_CHECK(k, Integer):
+    if isinstance(n, Integer) and isinstance(k, Integer):
         if mpz_cmp_si((<Integer>n).value,1) == 0:
             return k
         elif mpz_cmp_si((<Integer>k).value,1) == 0:
@@ -883,10 +883,10 @@ cdef public object py_real(object x) except +:
         sage: py_real(complex(2,2))
         2.0
     """
-    if PY_TYPE_CHECK_EXACT(x, float) or PY_TYPE_CHECK_EXACT(x, int) or \
-            PY_TYPE_CHECK_EXACT(x, long):
+    if type(x) is float or type(x) is int or \
+            type(x) is long:
         return x
-    elif PY_TYPE_CHECK_EXACT(x, complex):
+    elif type(x) is complex:
         return x.real
 
     try:
@@ -940,9 +940,9 @@ cdef public object py_imag(object x) except +:
         sage: py_imag(complex(2,2))
         2.0
     """
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
         return float(0)
-    if PY_TYPE_CHECK_EXACT(x, complex):
+    if type(x) is complex:
         return x.imag
     try:
         return x.imag()
@@ -979,9 +979,9 @@ cdef public object py_conjugate(object x) except +:
         return x # assume is real since it doesn't have an imag attribute.
 
 cdef public bint py_is_rational(object x) except +:
-    return PY_TYPE_CHECK_EXACT(x, Rational) or \
-           PY_TYPE_CHECK_EXACT(x, Integer) or\
-           IS_INSTANCE(x, int) or IS_INSTANCE(x, long)
+    return type(x) is Rational or \
+           type(x) is Integer or\
+           isinstance(x, int) or isinstance(x, long)
 
 cdef public bint py_is_equal(object x, object y) except +:
     """
@@ -1015,8 +1015,8 @@ cdef public bint py_is_integer(object x) except +:
         sage: py_is_integer(3.0r)
         False
     """
-    return IS_INSTANCE(x, int) or IS_INSTANCE(x, long) or PY_TYPE_CHECK(x, Integer) or \
-           (IS_INSTANCE(x, Element) and
+    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
+           (isinstance(x, Element) and
             ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR) and
             (x in ZZ))
 
@@ -1075,8 +1075,8 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef public bint py_is_real(object a) except +:
-    if PyInt_CheckExact(a) or PY_TYPE_CHECK(a, Integer) or\
-            PyLong_CheckExact(a) or PY_TYPE_CHECK_EXACT(a, float):
+    if PyInt_CheckExact(a) or isinstance(a, Integer) or\
+            PyLong_CheckExact(a) or type(a) is float:
         return True
     return py_imag(a) == 0
 
@@ -1258,9 +1258,9 @@ cdef public object py_tgamma(object x) except +:
         sage: py_tgamma(1/2)
         1.77245385090552
     """
-    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+    if type(x) is int or type(x) is long:
         x = float(x)
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
         return sage_tgammal(x)
 
     # try / except blocks are faster than
@@ -1343,10 +1343,12 @@ cdef public object py_doublefactorial(object x) except +:
 def doublefactorial(n):
     """
     The double factorial combinatorial function:
+
         n!! == n * (n-2) * (n-4) * ... * ({1|2}) with 0!! == (-1)!! == 1.
 
     INPUT:
-        n -- an integer > = 1
+
+    - n -- an integer > = 1
 
     EXAMPLES::
 
@@ -1488,7 +1490,7 @@ cdef public object py_exp(object x) except +:
         sage: py_exp(QQbar(I))
         0.540302305868140 + 0.841470984807897*I
     """
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
         return math.exp(x)
     try:
         return x.exp()
@@ -1545,9 +1547,9 @@ cdef public object py_log(object x) except +:
     """
     cdef gsl_complex res
     cdef double real, imag
-    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+    if type(x) is int or type(x) is long:
         x = float(x)
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
         if (<float>x) > 0:
             return sage_logl(x)
         elif x < 0:
@@ -1555,7 +1557,7 @@ cdef public object py_log(object x) except +:
             return PyComplex_FromDoubles(res.dat[0], res.dat[1])
         else:
             return float('-inf')
-    elif PY_TYPE_CHECK_EXACT(x, complex):
+    elif type(x) is complex:
         real = PyComplex_RealAsDouble(x)
         imag = PyComplex_ImagAsDouble(x)
         if real == 0 and imag == 0:
@@ -1678,7 +1680,7 @@ cdef public object py_sinh(object x) except +:
 
 
 cdef public object py_cosh(object x) except +:
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
         return math.cosh(x)
     try:
         return x.cosh()
@@ -1737,11 +1739,11 @@ cdef public object py_lgamma(object x) except +:
     """
     cdef gsl_sf_result lnr, arg
     cdef gsl_complex res
-    if PY_TYPE_CHECK_EXACT(x, int) or PY_TYPE_CHECK_EXACT(x, long):
+    if type(x) is int or type(x) is long:
         x = float(x)
-    if PY_TYPE_CHECK_EXACT(x, float):
+    if type(x) is float:
          return sage_lgammal(x)
-    elif PY_TYPE_CHECK_EXACT(x, complex):
+    elif type(x) is complex:
         gsl_sf_lngamma_complex_e(PyComplex_RealAsDouble(x),PyComplex_ImagAsDouble(x), &lnr, &arg)
         res = gsl_complex_polar(lnr.val, arg.val)
         return PyComplex_FromDoubles(res.dat[0], res.dat[1])
@@ -1916,7 +1918,7 @@ cdef public object py_psi(object x) except +:
         0.577215664901533
     """
     import mpmath
-    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+    if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
         prec = (<Element>x)._parent.prec()
     else:
         prec = 53
@@ -1944,7 +1946,7 @@ cdef public object py_psi2(object n, object x) except +:
         -2.40411380631919
     """
     import mpmath
-    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+    if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
         prec = (<Element>x)._parent.prec()
     else:
         prec = 53
@@ -1972,7 +1974,7 @@ cdef public object py_li2(object x) except +:
         -0.890838090262283
     """
     import mpmath
-    if PY_TYPE_CHECK(x, Element) and hasattr((<Element>x)._parent, 'prec'):
+    if isinstance(x, Element) and hasattr((<Element>x)._parent, 'prec'):
         prec = (<Element>x)._parent.prec()
     else:
         prec = 53

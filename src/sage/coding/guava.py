@@ -63,7 +63,7 @@ def BinaryReedMullerCode(r,k):
         Linear code of length 16, dimension 11 over Finite Field of size 2
         sage: C.minimum_distance()              # optional - gap_packages (Guava package)
         4
-        sage: C.gen_mat()                       # optional - gap_packages (Guava package)
+        sage: C.generator_matrix()                       # optional - gap_packages (Guava package)
         [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
         [0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1]
         [0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1]

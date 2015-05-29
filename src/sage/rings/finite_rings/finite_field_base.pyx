@@ -29,7 +29,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
@@ -1062,7 +1061,7 @@ cdef class FiniteField(Field):
         if R is int or R is long or R is ZZ:
             return True
         if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
-            return R.hom((self.one_element(),), check=False)
+            return R.hom((self.one(),), check=False)
         if is_FiniteField(R):
             if R is self:
                 return True
@@ -1071,7 +1070,7 @@ cdef class FiniteField(Field):
                 return False
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
-                    return R.hom((self.one_element(),), check=False)
+                    return R.hom((self.one(),), check=False)
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
@@ -1464,4 +1463,4 @@ def is_FiniteField(x):
         sage: is_FiniteField(Integers(7))
         False
     """
-    return IS_INSTANCE(x, FiniteField)
+    return isinstance(x, FiniteField)

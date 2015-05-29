@@ -41,7 +41,6 @@ import infinity
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
 
-include "sage/ext/stdsage.pxi"
 
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}
@@ -121,7 +120,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         parent as ``self``.
         """
         cdef ComplexNumber x
-        x = PY_NEW(ComplexNumber)
+        x = ComplexNumber.__new__(ComplexNumber)
         x._parent = self._parent
         x._prec = self._prec
         x._multiplicative_order = None
@@ -168,7 +167,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if imag is None:
             if real is None: return
 
-            if PY_TYPE_CHECK(real, ComplexNumber):
+            if isinstance(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 real, imag = real.real(), real.imag()
@@ -590,7 +589,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             mpc(real='1.0', imag='2.0')
         """
         if prec is not None:
-            return self.n(prec=prec)._mpmath_()
+            from complex_field import ComplexField
+            return ComplexField(prec)(self)._mpmath_()
         from sage.libs.mpmath.all import make_mpc
         re = mpfr_to_mpfval(self.__re)
         im = mpfr_to_mpfval(self.__im)
@@ -1138,7 +1138,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int a, b
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)
@@ -2597,7 +2597,7 @@ cdef class CCtoCDF(Map):
             sage: f(exp(pi*CC.0/4))
             0.7071067811865476 + 0.7071067811865475*I
         """
-        cdef ComplexDoubleElement z = <ComplexDoubleElement>PY_NEW(ComplexDoubleElement)
+        cdef ComplexDoubleElement z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
         z._complex.dat[0] = mpfr_get_d((<ComplexNumber>x).__re, GMP_RNDN)
         z._complex.dat[1] = mpfr_get_d((<ComplexNumber>x).__im, GMP_RNDN)
         return z

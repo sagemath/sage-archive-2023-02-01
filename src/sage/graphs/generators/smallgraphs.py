@@ -3923,7 +3923,7 @@ def SylvesterGraph():
         True
     """
     g = HoffmanSingletonGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
@@ -3963,7 +3963,7 @@ def SimsGewirtzGraph():
 
     """
     g = HigmanSimsGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,
@@ -4101,7 +4101,7 @@ def TietzeGraph():
         sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
         True
     """
-    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8)], name="Tietze Graph")
     g.add_cycle(range(9))
     g.add_cycle([9,10,11])
     _circle_embedding(g,range(9))

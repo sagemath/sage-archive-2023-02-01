@@ -20,7 +20,6 @@ cdef class NumberFieldElement(FieldElement):
     cdef object __multiplicative_order
     cdef object __pari
     cdef object __matrix
-    cdef object __symbolic
 
     cdef _new(self)
 
@@ -35,7 +34,8 @@ cdef class NumberFieldElement(FieldElement):
     cpdef ModuleElement _sub_(self, ModuleElement right)
     cpdef ModuleElement _neg_(self)
 
-    cdef bint is_rational_c(self)
+    cpdef bint is_rational(self)
+    cpdef bint is_one(self)
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1
 
 

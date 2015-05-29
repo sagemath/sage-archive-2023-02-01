@@ -118,8 +118,8 @@ def process_worksheet(worksheet_dir, base_name):
     with codecs.open(rst_file, mode='w', encoding='utf-8') as out_file:
         out_file.write(rst_text)
 
-    print "File at", rst_file
-    print "Image directory at", images_dir
+    print("File at", rst_file)
+    print("Image directory at", images_dir)
 
 
 # Set the parser
@@ -185,7 +185,7 @@ parser.add_option("--sphinxify",
 
 # Parse option
 if options.sphinxify:
-    print sphinxify_text
+    print(sphinxify_text)
     sys.exit(0)
 
 # Parse arguments
@@ -194,5 +194,5 @@ if len(args) < 1:
     sys.exit(1)
 
 for file_name in args:
-    print "Processing "+file_name
+    print("Processing", file_name)
     process_sws(file_name)

@@ -179,7 +179,12 @@ you would use
 
      sudo apt-get install binutils gcc make m4 perl tar
 
-to install all general requirements (this was tested on Ubuntu 12.04.2).
+to install all general requirements, or, if you don't want Sage to build its
+own GCC::
+
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+
+(This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -310,15 +315,22 @@ It is highly recommended that you have
 `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
 
-On Linux systems, it is usually provided by packages derived from
-`TeX Live <www.tug.org/texlive/>`_  and can be installed using::
+The most popular packaging is `TeX Live <www.tug.org/texlive/>`_ ,
+which you can install locally inside Sage with the commands::
 
-    sudo apt-get install texlive
+    sage -sh -c '$SAGE_ROOT/src/ext/texlive/texlive-install'
 
-or similar commands.
+On Linux systems you can alternatively install your distribution's
+texlive packages::
 
-On other systems it might be necessary to install TeX Live from source code,
-which is quite easy, though a rather time-consuming process.
+    sudo apt-get install texlive       # debian
+    sudo yum install texlive           # redhat
+
+or similar commands. In addition to the base texlive install you will
+probably need a number of optional texlive packages, for example
+country-specific babel packages for the localized Sage
+documentation. The required texlive packages are listed in
+`SAGE_ROOT/src/ext/texlive/package-list.txt`.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -760,6 +772,20 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
+- ``make doc-html-no-plot`` builds Sage's documentation in html format
+  but skips the inclusion of graphics auto-generated using the
+  ``.. PLOT`` markup and the ``sphinx_plot`` function. This is
+  primarily intended for use when producing certain binary
+  distributions of Sage, to lower the size of the distribution. As of
+  this writing (December 2014, Sage 6.5), there are only a few such
+  plots, adding about 4M to the :file:`src/doc/output/` directory. In
+  the future, this may grow, of course. Note: after using this, if you
+  want to build the documentation and include the pictures, you should
+  run ``make doc-clean``, because the presence, or lack, of pictures
+  is cached in the documentation output.
+  You can benefit from this no-plot feature with other make targets by doing
+  ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
+
 - ``make build-serial`` builds the components of Sage serially, rather
   than in parallel (parallel building is the default).
   Running ``make build-serial`` is equivalent to setting the environment
@@ -776,6 +802,9 @@ how it is built:
   If you want to run tests depending on optional packages and additional
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
+
+- ``make doc-clean`` removes several directories which are produced
+  when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
   building: it is almost equivalent to deleting Sage's entire home directory and
@@ -794,6 +823,31 @@ platforms.
 speed up the process.)
 Building Sage involves building about 100 packages, each of which has its own
 compilation instructions.
+
+The Sage source tarball already includes the sources for all standard
+packages, that is, it allows you to build Sage without internet
+connection. The git repository, however, does not contain the source
+code for third-party packages. Instead, it will be downloaded as
+needed (Note: you can run ``make download`` to force downloading
+packages before building). Package downloads use the Sage mirror
+network, the nearest mirror will be determined automatically for
+you. This is influenced by the following environment variable:
+
+- :envvar:`SAGE_SERVER` - Try the specified mirror first, before
+  falling back to the official Sage mirror list. Note that Sage will
+  search the directory
+
+  - ``SAGE_SERVER/spkg/upstream``
+
+  for clean upstream tarballs, and it searches the directories
+
+  - ``SAGE_SERVER/spkg/standard/``,
+  - ``SAGE_SERVER/spkg/optional/``,
+  - ``SAGE_SERVER/spkg/experimental/``,
+  - ``SAGE_SERVER/spkg/archive/``
+
+  for old-style Sage packages.
+
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -941,9 +995,11 @@ Here are some of the more commonly used variables affecting the build process:
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
 
-- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed
-  as an argument to ``sage --docbuild all html`` or ``sage --docbuild
-  all pdf`` when you run ``make``, ``make doc``, or ``make doc-pdf``.
+- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
+  argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
+  you run ``make``, ``make doc``, or ``make doc-pdf``.
+  For example, you can add ``--no-plot`` to this variable to avoid building
+  the graphics coming from the ``.. PLOT`` directive within the documentation.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
@@ -1065,6 +1121,20 @@ an unsupported machine or an unusual compiler:
   Expect the build to fail in this case.
 
 Environment variables dealing with specific Sage packages:
+
+- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
+  for multiprecision integer arithmetic. Supported values are
+
+    ``MPIR`` (default choice), ``GMP``.
+
+  The value used at installation time is stored in
+
+    :file:`$SAGE_LOCAL/share/mp_config`.
+
+  You should only set this environment variable before the installation process
+  starts.
+  Indeed, the only supported way to switch the library used is to restart the
+  installation process from start.
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
@@ -1206,25 +1276,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_STARTUP_FILE` - a file including commands to be executed every
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
-
-- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
-  ``sage -i <package-name>``, Sage downloads the file from the web, using the
-  address ``http://www.sagemath.org/`` by default, or the address given by
-  :envvar:`SAGE_SERVER` if it is set.
-  If you wish to set up your own server, then note that Sage will search the
-  directory
-
-  - ``SAGE_SERVER/packages/upstream``
-
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - and ``SAGE_SERVER/packages/archive/``
-
-  for old-style Sage packages.
-  See the script :file:`$SAGE_ROOT/src/bin/sage-spkg` for the implementation.
 
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
@@ -1420,4 +1471,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in November 2014 (Sage 6.5).**
+**This page was last updated in December 2014 (Sage 6.5).**

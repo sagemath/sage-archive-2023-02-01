@@ -90,7 +90,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         ...
         NotImplementedError: infinite list
         sage: p = iter(I)
-        sage: for i in range(10): p.next()
+        sage: for i in range(10): next(p)
         [0, 0, 0]
         [1, 0, 0]
         [2, 0, 0]
@@ -158,7 +158,7 @@ class IntegerVectorsModPermutationGroup(UniqueRepresentation):
         sage: I = IntegerVectorsModPermutationGroup(SymmetricGroup(5)) # long time
         sage: p = iter(I) # long time
         sage: for i in range(100): # long time
-        ...       v = list(p.next())
+        ...       v = list(next(p))
         ...       assert sorted(v, reverse=True) == v
 
     We now check that there is as much of canonical vectors under the
@@ -250,13 +250,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         +Infinity
         sage: TestSuite(I).run()
         sage: it = iter(I)
-        sage: [it.next(), it.next(), it.next(), it.next(), it.next()]
+        sage: [next(it), next(it), next(it), next(it), next(it)]
         [[0, 0, 0, 0],
          [1, 0, 0, 0],
          [2, 0, 0, 0],
          [1, 1, 0, 0],
          [1, 0, 1, 0]]
-        sage: x = it.next(); x
+        sage: x = next(it); x
         [3, 0, 0, 0]
         sage: I.first()
         [0, 0, 0, 0]
@@ -305,9 +305,13 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             sage: S.ambient()
             Integer vectors
         """
-        # TODO: Fix me once 'IntegerVectors(length=bla)' will return
-        # the integer vectors of length bla
-        return IntegerVectors(length=self.n)
+        ## TODO: Fix me once 'IntegerVectors(length=bla)' will return
+        ## the integer vectors of length bla
+        #return IntegerVectors(length=self.n)
+
+        # (#17927) The previous line was replaced by the following, as
+        # IntegerVectors(length=k) is invalid at the moment.
+        return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -338,15 +342,15 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
 
         EXAMPLES::
 
-            sage: [0,0,0,0] in IntegerVectors(length=4)
+            sage: [0,0,0,0] in IntegerVectors(0,4)
             True
-            sage: [1,0,0,0] in IntegerVectors(length=4)
+            sage: [1,0,0,0] in IntegerVectors(1,4)
             True
-            sage: [0,1,0,0] in IntegerVectors(length=4)
+            sage: [0,1,0,0] in IntegerVectors(1,4)
             True
-            sage: [1,0,1,0] in IntegerVectors(length=4)
+            sage: [1,0,1,0] in IntegerVectors(2,4)
             True
-            sage: [0,1,0,1] in IntegerVectors(length=4)
+            sage: [0,1,0,1] in IntegerVectors(2,4)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]))
             sage: S.retract([0,0,0,0])
@@ -814,9 +818,13 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             else:
                 return IntegerVectors(n=self._sum, max_part=self._max_part)
         else:
-            # Fix me once max_part should be accepted as a single
-            # argument for integer vectors
-            return IntegerVectors(max_part=self._max_part)
+            ## Fix me once max_part should be accepted as a single
+            ## argument for integer vectors
+            #return IntegerVectors(max_part=self._max_part)
+
+            # (#17927) The previous line was replaced by the following, as
+            # IntegerVectors(max_part=k) is invalid at the moment.
+            return IntegerVectors()
 
     def lift(self, elt):
         r"""
@@ -827,7 +835,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), max_part=1)
             sage: v = S.lift([1,0,1,0]); v
             [1, 0, 1, 0]
-            sage: v in IntegerVectors(max_part=1)
+            sage: v in IntegerVectors(2,4,max_part=1)
             True
             sage: S = IntegerVectorsModPermutationGroup(PermutationGroup([[(1,2,3,4)]]), sum=6)
             sage: v = S.lift(S.list()[5]); v
@@ -903,7 +911,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         else:
             try:
                 v = iter(self)
-                return v.next()
+                return next(v)
             except StopIteration:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError

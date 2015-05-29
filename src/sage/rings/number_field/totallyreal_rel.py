@@ -785,7 +785,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         nf = nf.polresultant(nfF, parit)
         d = nf.poldisc()
         #counts[0] += 1
-        if d > 0 and nf.polsturm_full() == n:
+        if d > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1
@@ -885,7 +885,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
     # Make sure to return elements that belong to Sage
     if return_seqs:
         return [map(ZZ, counts),
-                [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coeffs()]
+                [[s[0], map(QQ, s[1].reverse().Vec()), s[2].coefficients(sparse=False)]
                  for s in S]
                ]
     elif return_pari_objects:

@@ -143,12 +143,10 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "sage/data_structures/bitset.pxi"
-include "sage/misc/binary_matrix.pxi"
+include "sage/data_structures/binary_matrix.pxi"
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
+from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
-from sage.graphs.base.c_graph cimport vertex_label
-from sage.graphs.base.c_graph cimport get_vertex
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 
@@ -162,8 +160,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     """
 
     from sage.rings.infinity import Infinity
-
-    cdef CGraph cg = <CGraph> gg._backend._cg
 
     cdef list int_to_vertex = gg.vertices()
     cdef int i
@@ -363,13 +359,13 @@ def shortest_path_all_pairs(G):
     cdef dict d = {}
     cdef dict d_tmp
 
-    cdef CGraph cg = <CGraph> G._backend._cg
+    cdef CGraphBackend cg = <CGraphBackend> G._backend
 
     cdef list int_to_vertex = G.vertices()
     cdef int i, j
 
     for i, l in enumerate(int_to_vertex):
-        int_to_vertex[i] = get_vertex(l, G._backend.vertex_ints, G._backend.vertex_labels, cg)
+        int_to_vertex[i] = cg.get_vertex(l)
 
     for j in range(n):
         d_tmp = {}
@@ -540,13 +536,16 @@ def is_distance_regular(G, parameters = False):
         if distance_matrix[i] > diameter and distance_matrix[i] != infinity:
             diameter = distance_matrix[i]
 
+    cdef bitset_t b_tmp
+    bitset_init(b_tmp, n)
+            
     # b_distance_matrix[d*n+v] is the set of vertices at distance d from v.
     cdef binary_matrix_t b_distance_matrix
     try:
         binary_matrix_init(b_distance_matrix,n*(diameter+2),n)
-        binary_matrix_fill(b_distance_matrix, 0)
     except MemoryError:
         sage_free(distance_matrix)
+        bitset_free(b_tmp)
         raise
 
     # Fills b_distance_matrix
@@ -554,8 +553,8 @@ def is_distance_regular(G, parameters = False):
         for v in range(u,n):
             d = distance_matrix[u*n+v]
             if d != infinity:
-                binary_matrix_set1(b_distance_matrix, d*n+u,v)
-                binary_matrix_set1(b_distance_matrix, d*n+v,u)
+                binary_matrix_set1(b_distance_matrix, d*n+u, v)
+                binary_matrix_set1(b_distance_matrix, d*n+v, u)
 
     cdef list bi = [-1 for i in range(diameter +1)]
     cdef list ci = [-1 for i in range(diameter +1)]
@@ -572,11 +571,10 @@ def is_distance_regular(G, parameters = False):
 
             # Computations of b_d and c_d for u,v. We intersect sets stored in
             # b_distance_matrix.
-            b = 0
-            c = 0
-            for l in range(b_distance_matrix.width):
-                b += __builtin_popcountl(b_distance_matrix.rows[(d+1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
-                c += __builtin_popcountl(b_distance_matrix.rows[(d-1)*n+u][l] & b_distance_matrix.rows[1*n+v][l])
+            bitset_and(b_tmp, b_distance_matrix.rows[(d+1)*n+u], b_distance_matrix.rows[n+v])
+            b = bitset_len(b_tmp)
+            bitset_and(b_tmp, b_distance_matrix.rows[(d-1)*n+u], b_distance_matrix.rows[n+v])
+            c = bitset_len(b_tmp)
 
             # Consistency of b_d and c_d
             if bi[d] == -1:
@@ -586,10 +584,12 @@ def is_distance_regular(G, parameters = False):
             elif bi[d] != b or ci[d] != c:
                 sage_free(distance_matrix)
                 binary_matrix_free(b_distance_matrix)
+                bitset_free(b_tmp)
                 return False
 
     sage_free(distance_matrix)
     binary_matrix_free(b_distance_matrix)
+    bitset_free(b_tmp)
 
     if parameters:
         bi[0] = k
@@ -979,6 +979,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     # We perform new 2sweep calls for as long as we are able to improve the
     # lower bound.
     LB = 0
+    m = source
     while tmp>LB:
 
         LB = tmp
@@ -1192,6 +1193,13 @@ def diameter(G, method='iFUB', source=None):
         sage: lbm = G.diameter(method='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
 
+    TEST:
+
+    This was causing a segfault. Fixed in :trac:`17873` ::
+
+        sage: G = graphs.PathGraph(1)
+        sage: G.diameter(method='iFUB')
+        0
     """
     cdef int n = G.order()
     if n==0:
@@ -1490,7 +1498,7 @@ def floyd_warshall(gg, paths = True, distances = False):
     """
 
     from sage.rings.infinity import Infinity
-    cdef CGraph g = <CGraph> gg._backend._cg
+    cdef CGraph g = <CGraph> gg._backend.c_graph()[0]
 
     cdef list gverts = g.verts()
 
@@ -1558,7 +1566,8 @@ def floyd_warshall(gg, paths = True, distances = False):
                 prec[v_int][u_int] = v_int
 
     # The algorithm itself.
-    cdef unsigned short *dv, *dw
+    cdef unsigned short *dv
+    cdef unsigned short *dw
     cdef int dvw
     cdef int val
 
@@ -1581,21 +1590,20 @@ def floyd_warshall(gg, paths = True, distances = False):
     cdef dict tmp_prec
     cdef dict tmp_dist
 
-    cdef dict ggbvi = gg._backend.vertex_ints
-    cdef dict ggbvl = gg._backend.vertex_labels
+    cdef CGraphBackend cgb = <CGraphBackend> gg._backend
 
     if paths: d_prec = {}
     if distances: d_dist = {}
     for v_int in gverts:
         if paths: tmp_prec = {}
         if distances: tmp_dist = {}
-        v = vertex_label(v_int, ggbvi, ggbvl, g)
+        v = cgb.vertex_label(v_int)
         dv = dist[v_int]
         for u_int in gverts:
-            u = vertex_label(u_int, ggbvi, ggbvl, g)
+            u = cgb.vertex_label(u_int)
             if paths:
                 tmp_prec[u] = (None if v == u
-                               else vertex_label(prec[v_int][u_int], ggbvi, ggbvl, g))
+                               else cgb.vertex_label(prec[v_int][u_int]))
             if distances:
                 tmp_dist[u] = (dv[u_int] if (dv[u_int] != <unsigned short> -1)
                                else Infinity)

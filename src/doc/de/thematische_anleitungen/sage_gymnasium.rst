@@ -386,15 +386,21 @@ wir dies mit der ``simplify_full()`` Funktion::
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
-Dabei werden auch Additionstheoreme für trigonometrische Funktionen und manche
-Logarithmengesetze eingesetzt::
+Dabei werden auch Additionstheoreme für trigonometrische Funktionen eingesetzt::
 
     sage: var('x, y, z')
     (x, y, z)
-    sage: (sin(x + y)/(log(x) + log(y))).simplify_full()
-    (cos(y)*sin(x) + cos(x)*sin(y))/log(x*y)
+    sage: sin(x + y).simplify_full()
+    cos(y)*sin(x) + cos(x)*sin(y)
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
+
+Mit der verwandten Funktion ``simplify_real()`` werden auch Additionstheoreme
+bei Logarithmen angewandt, die nur mit reellen Werten erlaubt sind::
+
+    sage: x, y = var('x, y')
+    sage: (log(x) + log(y)).simplify_real()
+    log(x*y)
 
 Faktorisieren und ausmultiplizieren
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

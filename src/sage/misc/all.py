@@ -6,18 +6,23 @@ from misc import (alarm, cancel_alarm,
                   BackslashOperator, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
-                  version, banner, add, union, uniq, powerset, subsets,
+                  union, uniq, powerset, subsets,
                   exists, forall, is_iterator,
-                  random_sublist, mul, walltime, generic_cmp,
+                  random_sublist, walltime, generic_cmp,
                   repr_lincomb,
                   pad_zeros, attrcall,
                   SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, newton_method_sizes, compose,
+                  newton_method_sizes, compose,
                   self_compose, nest)
+
+from banner import version, banner
 
 from temporary_file import tmp_dir, tmp_filename
 
 from misc_c import prod, running_total, balanced_sum
+lazy_import('sage.misc.misc_c', ['is_32_bit', 'is_64_bit'], deprecation=17460)
+mul = prod
+add = sum
 
 from dev_tools import runsnake, import_statements
 
@@ -63,7 +68,8 @@ from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 
-from defaults import set_default_variable_name
+from defaults import (set_default_variable_name,
+                        series_precision, set_series_precision)
 
 from sage_eval import sage_eval, sageobj
 
@@ -130,7 +136,6 @@ from functional import (additive_order,
                         round,
                         quotient,
                         quo,
-                        show,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
@@ -138,7 +143,7 @@ from functional import (additive_order,
                         zero)
 
 
-from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
+from latex import LatexExpr, latex, view, pretty_print_default
 
 from trace import trace
 
@@ -193,6 +198,6 @@ class logstr(str):
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
 
-import messaging
+lazy_import("sage.misc", "messaging", deprecation=18140)
 
 from ascii_art import ascii_art

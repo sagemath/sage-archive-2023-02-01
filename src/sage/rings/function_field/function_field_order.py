@@ -299,7 +299,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
             V, fr, to = fraction_field.vector_space()
             f_vector = to(fraction_field(f))
             if not f_vector in self._module:
-                raise ValueError("%s is not an element of %s"%(f_vector,self))
+                raise TypeError("%r is not an element of %r"%(f_vector,self))
         return fraction_field._element_class(self, f)
 
     def fraction_field(self):
@@ -479,11 +479,11 @@ class FunctionFieldOrder_rational(PrincipalIdealDomain, FunctionFieldOrder):
             sage: O._element_constructor_(1/y)
             Traceback (most recent call last):
             ...
-            ValueError: `1/y` is not a member of `Maximal order in Rational function field in y over Rational Field`
+            TypeError: 1/y is not an element of Maximal order in Rational function field in y over Rational Field
         """
         if f.parent() is self.fraction_field():
             if not f.denominator() in self.fraction_field().constant_base_field():
-                raise ValueError("`%s` is not a member of `%s`"%(f,self))
+                raise TypeError("%r is not an element of %r"%(f,self))
             f = f.element()
         from function_field_element import FunctionFieldElement_rational
         return FunctionFieldElement_rational(self, self._ring(f))

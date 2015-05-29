@@ -327,7 +327,7 @@ from sage.calculus.calculus import maxima
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
 from sage.functions.other import factorial, binomial
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 
 _done = False
 def _init():

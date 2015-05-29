@@ -124,7 +124,7 @@ def category(x):
 
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
-        Category of vector spaces over Rational Field
+        Category of vector spaces with basis over quotient fields
     """
     try:
         return x.category()
@@ -463,7 +463,7 @@ def symbolic_sum(expression, *args, **kwds):
             sage: sum(valuation(n,2),n,1,5)
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
+            TypeError: unable to convert n to an integer
             
         Again, use python ``sum()``::
         
@@ -1029,10 +1029,10 @@ def norm(x):
         sage: v = vector([-1,2,3])
         sage: norm(v)
         sqrt(14)
-        sage: _ = var("a b c d")
+        sage: _ = var("a b c d", domain='real')
         sage: v = vector([a, b, c, d])
         sage: norm(v)
-        sqrt(abs(a)^2 + abs(b)^2 + abs(c)^2 + abs(d)^2)
+        sqrt(a^2 + b^2 + c^2 + d^2)
 
     The norm of matrices::
 
@@ -1137,11 +1137,11 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         12.5878862295484
         sage: n(pi^2 + e, digits=50)
         12.587886229548403854194778471228813633070946500941
-        sage: a = CC(-5).n(prec=100)
-        sage: b = ComplexField(100)(-5)
+        sage: a = CC(-5).n(prec=40)
+        sage: b = ComplexField(40)(-5)
         sage: a == b
         True
-        sage: type(a) == type(b)
+        sage: parent(a) is parent(b)
         True
         sage: numerical_approx(9)
         9.00000000000000
@@ -1166,8 +1166,8 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         (1.00000000000000, 2.00000000000000, 3.00000000000000)
         sage: _.parent()
         Vector space of dimension 3 over Complex Field with 53 bits of precision
-        sage: v.n(prec=75)
-        (1.000000000000000000000, 2.000000000000000000000, 3.000000000000000000000)
+        sage: v.n(prec=20)
+        (1.0000, 2.0000, 3.0000)
 
         sage: u = vector(QQ, [1/2, 1/3, 1/4])
         sage: n(u, prec=15)
@@ -1208,6 +1208,21 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         sage: y.str(base=2)
         '11.001000111101'
 
+    Increasing the precision of a floating point number is not allowed::
+
+        sage: CC(-5).n(prec=100)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 100 bits, use at most 53 bits
+        sage: n(1.3r, digits=20)
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 70 bits, use at most 53 bits
+        sage: RealField(24).pi().n()
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot approximate to a precision of 53 bits, use at most 24 bits
+
     As an exceptional case, ``digits=1`` usually leads to 2 digits (one
     significant) in the decimal output (see :trac:`11647`)::
 
@@ -1219,7 +1234,6 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         320.
         sage: N(100*pi, digits=2)
         310.
-
 
     In the following example, ``pi`` and ``3`` are both approximated to two
     bits of precision and then subtracted, which kills two bits of precision::
@@ -1283,15 +1297,46 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
     try:
         return x._numerical_approx(prec, algorithm=algorithm)
     except AttributeError:
-        from sage.rings.complex_double import is_ComplexDoubleElement
-        from sage.rings.complex_number import is_ComplexNumber
-        if not (is_ComplexNumber(x) or is_ComplexDoubleElement(x)):
-            try:
-                return sage.rings.real_mpfr.RealField(prec)(x)
-            # Trac 10761: now catches ValueErrors as well as TypeErrors
-            except (TypeError, ValueError):
-                pass
-        return sage.rings.complex_field.ComplexField(prec)(x)
+        pass
+
+    from sage.structure.element import parent
+    B = parent(x)
+
+    RR = sage.rings.real_mpfr.RealField(prec)
+    map = RR.coerce_map_from(B)
+    if map is not None:
+        return map(x)
+    CC = sage.rings.complex_field.ComplexField(prec)
+    map = CC.coerce_map_from(B)
+    if map is not None:
+        return map(x)
+
+    # Coercion didn't work: there are 3 possibilities:
+    # (1) There is a coercion possible to a lower precision
+    # (2) There is a conversion but no coercion
+    # (3) The type doesn't convert at all
+
+    # Figure out input precision to check for case (1)
+    try:
+        inprec = x.prec()
+    except AttributeError:
+        if prec > 53 and CDF.has_coerce_map_from(B):
+            # If we can coerce to CDF, assume input precision was 53 bits
+            inprec = 53
+        else:
+            # Otherwise, assume precision wasn't the issue
+            inprec = prec
+
+    if prec > inprec:
+        raise TypeError("cannot approximate to a precision of %s bits, use at most %s bits" % (prec, inprec))
+
+    # The issue is not precision, try conversion instead
+    try:
+        return RR(x)
+    except (TypeError, ValueError):
+        pass
+    return CC(x)
+
 
 n = numerical_approx
 N = numerical_approx
@@ -1471,66 +1516,6 @@ def quotient(x, y, *args, **kwds):
         return x/y
 
 quo = quotient
-
-def show(x, *args, **kwds):
-    r"""
-    Show a graphics object x.
-
-    For additional ways to show objects in the notebook, look
-    at the methods on the html object.  For example,
-    html.table will produce an HTML table from a nested
-    list.
-
-
-    OPTIONAL INPUT:
-
-
-    -  ``filename`` - (default: None) string
-
-
-    SOME OF THESE MAY APPLY:
-
-    - ``dpi`` - dots per inch
-
-    - ``figsize``- [width, height] (same for square aspect)
-
-    - ``axes`` - (default: True)
-
-    - ``fontsize`` - positive integer
-
-    - ``frame`` - (default: False) draw a MATLAB-like frame around the
-      image
-
-    EXAMPLES::
-
-        sage: show(graphs(3))
-        sage: show(list(graphs(3)))
-    """
-    if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
-        try:
-            return x.show(*args, **kwds)
-        except AttributeError:
-            pass
-    if isinstance(x, sage.interfaces.mathematica.MathematicaElement):
-        return x.show(*args, **kwds)
-
-    import types
-    if isinstance(x, types.GeneratorType):
-        x = list(x)
-    if isinstance(x, list):
-        if len(x) > 0:
-            from sage.graphs.graph import GenericGraph
-            if isinstance(x[0], GenericGraph):
-                import sage.graphs.graph_list as graphs_list
-                graphs_list.show_graphs(x)
-                return
-    _do_show(x)
-
-def _do_show(x):
-    if sage.doctest.DOCTEST_MODE:
-        return sage.misc.latex.latex(x)
-    from latex import view
-    view(x, mode='display')
 
 
 def isqrt(x):

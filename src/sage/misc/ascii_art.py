@@ -65,6 +65,7 @@ manager activated by the magic function: ``%display ascii_art``::
           ]
     ***** ]
     sage: shell.run_cell('%display simple')
+    sage: shell.quit()
 
 ::
 
@@ -150,8 +151,11 @@ manager activated by the magic function: ``%display ascii_art``::
 #
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
+
+import os, sys
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
+
 
 ################################################################################
 ### Global variable use to compute the maximal length allows for ascii art
@@ -244,8 +248,6 @@ class AsciiArt(SageObject):
             sage: repr(p5)
             '  *  \n * * \n*****'
         """
-        #return "\n".join(self._matrix)
-        import os
         # Compute the max length of a draw
         global MAX_WIDTH
         if MAX_WIDTH is not None:
@@ -352,6 +354,34 @@ class AsciiArt(SageObject):
         """
         return self._breakpoints
 
+    def _isatty(self):
+        """
+        Test whether stdout is a TTY
+
+        If this test succeeds, you can assume that stdout is directly
+        connected to a terminal. Otherwise you should treat stdout as
+        being redirected to a file.
+
+        OUTPUT:
+
+        Boolean
+
+        EXAMPLES::
+
+            sage: from sage.misc.ascii_art import empty_ascii_art
+            sage: empty_ascii_art._isatty()
+            False
+        """
+        from sage.doctest import DOCTEST_MODE
+        if DOCTEST_MODE:
+            return False
+        try:
+            return os.isatty(sys.stdout.fileno())
+        except Exception:
+            # The IPython zeromq kernel uses a fake stdout that does
+            # not support fileno()
+            return False
+    
     def _terminal_width(self):
         """
         Compute the width size of the terminal.
@@ -362,10 +392,7 @@ class AsciiArt(SageObject):
             sage: empty_ascii_art._terminal_width()
             80
         """
-        import os, sys
-        from sage.doctest.__init__ import DOCTEST_MODE
-        isatty = os.isatty(sys.stdout.fileno())
-        if DOCTEST_MODE or not isatty:
+        if not self._isatty():
             return 80
         import fcntl, termios, struct
         rc = fcntl.ioctl(int(0), termios.TIOCGWINSZ,

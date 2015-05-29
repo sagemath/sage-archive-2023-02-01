@@ -289,6 +289,20 @@ cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
     """
     return bitset_issubset(b, a)
 
+
+cdef inline bint bitset_are_disjoint(bitset_t a, bitset_t b):
+    """
+    Tests whether ``a`` and ``b`` have an empty intersection.
+
+    We assume ``a.limbs <= b.limbs``.
+    """
+    cdef mp_size_t i
+    for i from 0 <= i < a.limbs:
+        if (a.bits[i]&b.bits[i]) != 0:
+            return False
+    return True
+
+
 #############################################################################
 # Bitset Bit Manipulation
 #############################################################################
@@ -629,8 +643,9 @@ cdef void bitset_rshift(bitset_t r, bitset_t a, mp_bitcnt_t n):
         # Number of limbs to shift is r.limbs
         if nbits:
             mpn_rshift(r.bits, a.bits + nlimbs, r.limbs, nbits)
-            # Add the additional bits from top limb of a
-            r.bits[r.limbs-1] |= a.bits[r.limbs+nlimbs] << (GMP_LIMB_BITS - nbits)
+            if shifted_limbs > r.limbs:
+                # Add the additional bits from top limb of a
+                r.bits[r.limbs-1] |= a.bits[r.limbs+nlimbs] << (GMP_LIMB_BITS - nbits)
         else:
             mpn_copyi(r.bits, a.bits + nlimbs, r.limbs)
 

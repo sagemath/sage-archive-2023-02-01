@@ -87,7 +87,7 @@ cdef class SatSolver:
         raise NotImplementedError
 
     def read(self, filename):
-        """
+        r"""
         Reads in DIMAC formatted lines (lazily) from a
         file or file object and adds the corresponding
         clauses into this instance.

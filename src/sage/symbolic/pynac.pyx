@@ -264,7 +264,6 @@ def get_fn_serial():
 
         sage: from sage.symbolic.pynac import get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
-        sage: from sage.symbolic.pynac import get_fn_serial
         sage: get_fn_serial() > 125
         True
         sage: print get_sfunction_from_serial(get_fn_serial())

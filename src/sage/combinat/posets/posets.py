@@ -5206,12 +5206,16 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         A finite graded poset is called slender if every rank 2
         interval contains three or four elements, as defined in
-        [Stan2009]_.
+        [Stan2009]_. (This notion of "slender" is unrelated to
+        the eponymous notion defined by Graetzer and Kelly in
+        "The Free $\mathfrak{m}$-Lattice on the Poset $H$",
+        Order 1 (1984), 47--65.)
 
         This function *does not* check if the poset is graded or not.
         Instead it just returns ``True`` if the poset does not contain
-        5 elements `x`, `y`, `a`, `b` and `c` such that
-        `x \lessdot a,b,c \lessdot y` where `\lessdot` is covering relation.
+        5 distinct elements `x`, `y`, `a`, `b` and `c` such that
+        `x \lessdot a,b,c \lessdot y` where `\lessdot` is the covering
+        relation.
 
         EXAMPLES::
 
@@ -5233,11 +5237,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         for x in self:
             d = {}
-            S = self.upper_covers(x)
-            Y = [ c for y in S for c in self.upper_covers(y) ]
-            for y in Y:
-                d[y] = d.get(y,0) + 1
-            if not all( d[y]<3 for y in d.keys() ):
+            for y in self.upper_covers(x):
+                for c in self.upper_covers(y):
+                    d[c] = d.get(c,0) + 1
+            if not all( y < 3 for y in d.itervalues() ):
                 return False
         return True
 

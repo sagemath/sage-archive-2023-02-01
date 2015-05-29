@@ -603,12 +603,12 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
                                 "free module elements!")
             M = FreeModule(R, len(x))
             try:
-                gens = map(M, gens)
+                gens = [M(_) for _ in gens]
             except TypeError:
                 R = R.fraction_field()
                 M = FreeModule(R, len(x))
                 try:
-                    gens = map(M, gens)
+                    gens = [M(_) for _ in gens]
                 except TypeError:
                     raise ValueError("The elements of gens (= %s) must be "
                                      "defined over base_ring (= %s) or its "

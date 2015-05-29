@@ -10407,7 +10407,7 @@ class GenericGraph(GenericGraph_pyx):
             2
             ...
             2
-            4
+            3
             sage: for i in G.degree_iterator(labels=True):
             ...    print i
             ((0, 1), 3)
@@ -10415,7 +10415,7 @@ class GenericGraph(GenericGraph_pyx):
             ((0, 0), 2)
             ...
             ((0, 3), 2)
-            ((1, 1), 4)
+            ((0, 2), 3)
 
         ::
 
@@ -10432,8 +10432,8 @@ class GenericGraph(GenericGraph_pyx):
             ((0, 1), 6)
             ((1, 2), 6)
             ...
-            ((0, 3), 4)
-            ((1, 1), 6)
+            ((1, 0), 4)
+            ((0, 2), 6)
         """
         if vertices is None:
             vertices = self
@@ -15162,12 +15162,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
             sage: g.layout_spring()
-            {0: [1.28..., -0.943...],
-             1: [1.57..., -0.101...],
-             2: [1.83..., 0.747...],
-             3: [0.531..., -0.757...],
-             4: [0.795..., 0.108...],
-             5: [1.08..., 0.946...]}
+            {0: [1.84..., 0.96...],
+             1: [1.25..., 0.24...],
+             2: [0.71..., -0.47...],
+             3: [1.31..., -0.95...],
+             4: [1.89..., -0.26...],
+             5: [2.45..., 0.48...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
             Graphics object consisting of 34 graphics primitives

@@ -204,9 +204,10 @@ def CircularLadderGraph(n):
         pos_dict[i] = (x,y)
 
     G = Graph(pos=pos_dict, name="Circular Ladder graph")
-    G.add_cycle(range(n))
-    G.add_cycle(range(n,2*n))
-    G.add_edges(list( (i,i+n) for i in range(n)))
+    G.add_vertices( range(2*n) )
+    G.add_cycle( range(n) )
+    G.add_cycle( range(n,2*n) )
+    G.add_edges( (i,i+n) for i in range(n) )
     return G
 
 def ClawGraph():
@@ -309,9 +310,11 @@ def CycleGraph(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    E = list( (i, i+1) for i in range(n-1) )
-    E.append( (0, n-1) )
-    return graph.Graph(E, pos=pos_dict, name="Cycle graph")
+    G = graph.Graph(pos=pos_dict, name="Cycle graph")
+    G.add_vertices( range(n) )
+    G.add_edges( (i,i+1) for i in range(n-1) )
+    G.add_edge(0, n-1)
+    return G
 
 def CompleteGraph(n):
     """
@@ -395,7 +398,7 @@ def CompleteGraph(n):
         sage: posdict23.show() # long time
     """
     if n<1:
-        return graph.Graph(name="Complete graph")
+        return graph.Graph(pos=dict(), name="Complete graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
@@ -659,7 +662,7 @@ def ToroidalGrid2dGraph(n1, n2):
         True
     """
 
-    g = Grid2dGraph(n1,n2)
+    g = Grid2dGraph(n1,n2, set_positions=False)
 
     g.add_edges([((i,0),(i,n2-1)) for i in range(n1)] + [((0,i),(n1-1,i)) for i in range(n2)])
 
@@ -733,7 +736,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
     g.name("Toroidal Hexagonal Grid graph on "+str(n1)+"x"+str(n2)+" elements")
     return g
 
-def Grid2dGraph(n1, n2):
+def Grid2dGraph(n1, n2, set_positions=True):
     r"""
     Returns a `2`-dimensional grid graph with `n_1n_2` nodes (`n_1` rows and
     `n_2` columns).
@@ -743,8 +746,13 @@ def Grid2dGraph(n1, n2):
     connected to their `3` neighbors. Corner nodes are connected to their
     2 neighbors.
 
-    This constructor depends on NetworkX numeric labels.
+    INPUT:
 
+    - ``n1`` and ``n2`` -- two positive integers
+
+    - ``set_positions`` -- (default: ``True``) boolean use to prevent setting
+      the position of the nodes.
+    
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, nodes are
     labelled in (row, column) pairs with `(0, 0)` in the top left corner.
@@ -782,11 +790,13 @@ def Grid2dGraph(n1, n2):
         raise ValueError("Parameters n1 and n2 must be positive integers !")
 
     pos_dict = {}
-    for i in range(n1):
-        y = -i
-        for j in range(n2):
-            x = j
-            pos_dict[i, j] = (x, y)
+    if set_positions:
+        for i in range(n1):
+            y = -i
+            for j in range(n2):
+                x = j
+                pos_dict[i, j] = (x, y)
+
     G = graph.Graph(pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
     G.add_vertices( (i,j) for i in range(n1) for j in range(n2) )
     G.add_edges( ((i,j),(i+1,j)) for i in range(n1-1) for j in range(n2) )
@@ -955,8 +965,8 @@ def LadderGraph(n):
         pos_dict[i] = (x,0)
     G = Graph(pos=pos_dict, name="Ladder graph")
     G.add_vertices( range(2*n) )
-    G.add_cycle(range(2*n))
-    G.add_edges(list((i,i+n) for i in range(1,n-1)))
+    G.add_cycle( range(2*n) )
+    G.add_edges( (i,i+n) for i in range(1,n-1) )
     return G
 
 def LollipopGraph(n1, n2):

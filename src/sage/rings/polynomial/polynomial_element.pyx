@@ -1819,6 +1819,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
             sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
+
+        Check that :trac:`18xxx` is fixed::
+
+            sage: R.<x> = GF(5)[]
+            sage: (1+x)^(5^10) # used to hang forever
+            x^9765625 + 1
         """
         if type(right) is not Integer:
             try:
@@ -1828,12 +1834,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
-        elif right < 0:
+        if right < 0:
             return (~self)**(-right)
-        elif modulus:
+        if modulus:
             from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
-        elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
+        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
@@ -1841,8 +1847,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
-        else:
-            return generic_power(self,right)
+        if right > 20: # no gain below
+            p = self.parent().characteristic()
+            if p > 2 and p <= right or p == 2 and right > 40: # characteristic 2 is special
+                q, r = right.quo_rem(p)
+                x = self.parent().gen()
+                if self.parent().base_ring().is_finite():
+                    return self.subs({x:x**(q*p)}) * self**r
+                if self.parent().is_sparse():
+                    c = self.dict()
+                    for key in c.keys():
+                        c[key] = c[key]**(q*p)
+                else:
+                    c = [cc**(q*p) for cc in self.coefficients()]
+                tmp = self.parent()(c, check=False)
+                return tmp.subs({x:x**(q*p)}) * self**r
+
+        return generic_power(self,right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure

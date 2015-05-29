@@ -38,7 +38,7 @@ from sage.structure.element import RingElement
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
-from sage.manifolds.subset import TopManifoldOpenSubset
+from sage.manifolds.manifold import TopManifold
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -55,8 +55,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     INPUT:
 
-    - ``domain`` -- open subset `U` on which the chart is defined (must be
-      an instance of :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
+    - ``domain`` -- open subset `U` on which the chart is defined
     - ``coordinates`` -- (default: '' (empty string)) single string defining
       the coordinate symbols, with ' ' (whitespace) as a separator; each item
       has at most two fields, separated by ':':
@@ -202,7 +201,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.subset.TopManifoldOpenSubset.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -246,8 +245,9 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         from sage.symbolic.ring import SR
-        if not isinstance(domain, TopManifoldOpenSubset):
-            raise TypeError("the first argument must be an open subset")
+        if not isinstance(domain, TopManifold):
+            raise TypeError("the first argument must be an open subset of " +
+                            "a topological manifold")
         if coordinates == '':
             for x in names:
                 coordinates += x + ' '
@@ -502,9 +502,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``subset`` -- open subset `V` of the chart domain `U` (must
-          be an instance of
-          :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
+        - ``subset`` -- open subset `V` of the chart domain `U`
         - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
           defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -776,8 +774,7 @@ class RealChart(Chart):
 
     INPUT:
 
-    - ``domain`` -- open subset `U` on which the chart is defined (must be
-      an instance of :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
+    - ``domain`` -- open subset `U` on which the chart is defined
     - ``coordinates`` -- (default: '' (empty string)) single string defining
       the coordinate symbols and ranges, with ' ' (whitespace) as a separator;
       each item has at most three fields, separated by ':':
@@ -812,7 +809,7 @@ class RealChart(Chart):
     Cartesian coordinates on `\RR^3`::
 
         sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
-        sage: c_cart = M.chart('x y z') ; c_cart
+        sage: c_cart = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
         sage: type(c_cart)
         <class 'sage.manifolds.chart.RealChart'>
@@ -827,7 +824,7 @@ class RealChart(Chart):
 
         sage: TopManifold._clear_cache_() # for doctests only
         sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
-        sage: c_cart.<x,y,z> = M.chart() ; c_cart
+        sage: c_cart.<x,y,z> = M.chart(); c_cart
         Chart (R^3, (x, y, z))
 
     The coordinates are then immediately accessible::
@@ -847,7 +844,7 @@ class RealChart(Chart):
     one may write::
 
         sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
-        sage: c_cart.<x1,y1,z1> = M.chart('x y z') ; c_cart
+        sage: c_cart.<x1,y1,z1> = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
 
     Then ``y`` is not known as a global variable and the coordinate `y`
@@ -934,7 +931,7 @@ class RealChart(Chart):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.subset.TopManifoldOpenSubset.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -949,7 +946,7 @@ class RealChart(Chart):
     The chart map `\varphi` acting on a point is obtained by means of the
     call operator, i.e. the operator ``()``::
 
-        sage: p = M.point((1,0,-2)) ; p
+        sage: p = M.point((1,0,-2)); p
         Point on the 3-dimensional topological manifold R^3
         sage: c_cart(p)
         (1, 0, -2)
@@ -1003,8 +1000,9 @@ class RealChart(Chart):
         """
         from sage.symbolic.ring import SR
         from sage.symbolic.assumptions import assume
-        if not isinstance(domain, TopManifoldOpenSubset):
-            raise TypeError("the first argument must be an open subset")
+        if not isinstance(domain, TopManifold):
+            raise TypeError("the first argument must be an open subset of " +
+                            "a topological manifold")
         if coordinates == '':
             for x in names:
                 coordinates += x + ' '
@@ -1026,8 +1024,8 @@ class RealChart(Chart):
             coord_symb = coord_properties[0].strip() # the coordinate symbol
             # default values, possibly redefined below:
             coord_latex = None
-            xmin = -Infinity ; xmin_included = False
-            xmax = +Infinity ; xmax_included = False
+            xmin = -Infinity; xmin_included = False
+            xmax = +Infinity; xmax_included = False
             # scan of the properties other than the symbol:
             for prop in coord_properties[1:]:
                 prop1 = prop.strip()
@@ -1375,9 +1373,7 @@ class RealChart(Chart):
 
         INPUT:
 
-        - ``subset`` -- open subset `V` of the chart domain `U` (must
-          be an instance of
-          :class:`~sage.manifolds.subset.TopManifoldOpenSubset`)
+        - ``subset`` -- open subset `V` of the chart domain `U`
         - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
           defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -1902,7 +1898,7 @@ class CoordChange(SageObject):
             sage: X_to_U = X.transition_map(U, (x+y, x-y))
             sage: W.<w,z> = M.chart()
             sage: U_to_W = U.transition_map(W, (u+cos(u)/2, v-sin(v)/2))
-            sage: X_to_W = U_to_W * X_to_U ; X_to_W
+            sage: X_to_W = U_to_W * X_to_U; X_to_W
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (w, z))
             sage: X_to_W.display()
             w = 1/2*cos(x)*cos(y) - 1/2*sin(x)*sin(y) + x + y

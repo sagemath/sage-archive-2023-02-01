@@ -1,4 +1,14 @@
-"Symbolic integration via external software"
+"""Symbolic integration via external software
+
+TESTS:
+
+Test a few imports, without internet::
+
+    sage: from sage.symbolic.integration.external import mma_free_integrator
+    sage: from sage.symbolic.integration.external import sympy_integrator
+    sage: sympy_integrator(sin(x), x)
+    -cos(x)
+"""
 
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
@@ -42,9 +52,23 @@ def sympy_integrator(expression, v, a=None, b=None):
 
 def mma_free_integrator(expression, v, a=None, b=None):
     """
-        sage: from sage.symbolic.integration.external import mma_free_integrator
+    Function for using integrals.wolfram.com to compute
+    symbolic integration.
+
+    EXAMPLE::
+
+        sage: from sage.symbolic.integration.external import mma_free_integrator # optional - internet
         sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
+
+    TESTS:
+
+    Check that :trac:`18212` is resolved::
+
+        sage: var('y')   # optional - internet
+        y
+        sage: integral(sin(y)^2, y, algorithm='mathematica_free') # optional - internet
+        -1/2*cos(y)*sin(y) + 1/2*y
     """
     import urllib, re
     # We need to integrate against x

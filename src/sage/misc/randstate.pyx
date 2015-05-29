@@ -439,7 +439,6 @@ cdef randstate _current_randstate
 cdef randstate _libc_seed_randstate
 cdef randstate _ntl_seed_randstate
 cdef randstate _gap_seed_randstate
-cdef randstate _singular_seed_randstate
 cdef randstate _pari_seed_randstate
 # For each gp subprocess that has been seeded, keep track of which
 # randstate object was the most recent one to seed it.
@@ -707,40 +706,6 @@ cdef class randstate:
                      prev_mersenne_seed, prev_classic_seed
 
              _gap_seed_randstate = self
-
-     def set_seed_singular(self):
-         r"""
-         Checks to see if ``self`` was the most recent :class:`randstate`
-         to seed the Singular random number generator.  If not, seeds
-         the generator.
-
-         EXAMPLES::
-
-             sage: set_random_seed(0)
-             sage: current_randstate().set_seed_singular()
-             sage: singular.random(1, 100)
-             25
-             sage: singular.random(1, 100)
-             95
-         """
-         global _singular_seed_randstate
-         if _singular_seed_randstate is not self:
-             from sage.interfaces.singular import singular
-
-             if self._singular_saved_seed is not None:
-                 seed = self.singular_saved_seed
-             else:
-                 import sage.rings.integer_ring as integer_ring
-                 from sage.rings.integer_ring import ZZ
-                 seed = ZZ.random_element(long(1)<<30)
-
-             # reset the seed in Singular
-             singular.eval('system("--random",%d)' % seed)
-
-             if _singular_seed_randstate is not None:
-                 _singular_seed_randstate._singular_saved_seed = seed
-
-             _singular_seed_randstate = self
 
      def set_seed_gp(self, gp=None):
          r"""

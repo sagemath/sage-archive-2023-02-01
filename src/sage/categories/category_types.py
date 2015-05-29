@@ -513,34 +513,7 @@ class Category_ideal(Category_in_ambient):
             return v
         return self.ring().ideal(v)
 
-#############################################################
-# TODO: make those two into real categories (with super_category, ...)
-
-# SimplicialComplex
-#############################################################
-class SimplicialComplexes(Category):
-    """
-    The category of simplicial complexes.
-
-    EXAMPLES::
-
-        sage: SimplicialComplexes()
-        Category of simplicial complexes
-
-    TESTS::
-
-        sage: TestSuite(SimplicialComplexes()).run()
-    """
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: SimplicialComplexes().super_categories()
-            [Category of objects]
-        """
-        return [Objects()] # anything better?
-
+# TODO: make this into a better category
 #############################################################
 # ChainComplex
 #############################################################

@@ -11,6 +11,7 @@
 import contextlib
 import os
 import sys
+import re
 
 try:
     # Python 3
@@ -280,7 +281,6 @@ class Package(object):
         """
         Load the checksums from the appropriate ``checksums.ini`` file
         """
-        import re
         checksums_ini = os.path.join(self.path, 'checksums.ini')
         assignment = re.compile('(?P<var>[a-zA-Z0-9]*)=(?P<value>.*)')
         result = dict()
@@ -297,9 +297,18 @@ class Package(object):
         self.sha1 = result['sha1']
         self.tarball_pattern = result['tarball']
         
+    VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
+    
     def _init_version(self):
         with open(os.path.join(self.path, 'package-version.txt')) as f:
-            self.version = f.read().strip()
+            package_version = f.read().strip()
+        match = self.VERSION_PATCHLEVEL.match(package_version)
+        if match is None:
+            self.version = package_version
+            self.patchlevel = -1
+        else:
+            self.version = match.group('version')
+            self.patchlevel = match.group('patchlevel')
         self.tarball = self.tarball_pattern.replace('VERSION', self.version)
         
         

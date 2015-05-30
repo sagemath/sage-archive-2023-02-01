@@ -27,6 +27,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.icosahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Kirkman_icosahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.parallelotope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.pentakis_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
@@ -35,6 +36,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.simplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 
 REFERENCES:
@@ -270,6 +272,10 @@ class Polytopes():
           approximations and corresponds to the projection given by the matrix
           from :func:`zero_sum_projection`.
 
+        .. SEEALSO::
+
+            :meth:`tetrahedron`
+
         EXAMPLES::
 
             sage: s5 = polytopes.simplex(5)
@@ -369,7 +375,6 @@ class Polytopes():
         verts = [p(v) for p in AlternatingGroup(3) for v in pts]
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
-
     def dodecahedron(self, exact=True, base_ring=None):
         """
         Return a dodecahedron.
@@ -468,7 +473,6 @@ class Polytopes():
         verts.extend([s1*one, s3*a, s2*one] for s1,s2,s3 in itertools.product([1,-1], repeat=3))
         verts.extend([s1*a, s2*one, s3*one] for s1,s2,s3 in itertools.product([1,-1], repeat=3))
         return Polyhedron(vertices=verts)
-
 
     def great_rhombicuboctahedron(self, exact=True, base_ring=None):
         """
@@ -602,6 +606,164 @@ class Polytopes():
               [ 1,  1,  0], [ 1, 0, 1], [ 1, 0,-1],
               [ 0,  1,  1], [ 0,-1, 1], [-1, 0, 1],
               [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def truncated_cube(self, exact=True, base_ring=None):
+        """
+        Return the truncated cube.
+
+        The truncated cube is an Archimedean solid with 24 vertices
+        and 14 faces. It can be defined as the convex hull of the 24 vertices
+        `(\pm x, \pm 1, \pm 1), (\pm 1, \pm x, \pm 1), (\pm 1, \pm 1, \pm x)`
+        where `x = \sqrt(2) - 1`. For more information, see the
+        :wikipedia:`Truncated_cube`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\sqrt{2}]` and if ``exact=False`` it
+          will be the real double field.
+
+        EXAMPLES::
+
+            sage: co = polytopes.truncated_cube()
+            sage: co.f_vector()
+            (1, 24, 36, 14, 1)
+
+        Its faces are 8 triangles and 6 octogons::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            8
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 8)
+            6
+
+        Some more computation::
+
+            sage: co.volume()
+            56/3*sqrt2 - 56/3
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(2, 'sqrt2')
+            sqrt2 = K.gen()
+            g = sqrt2 - 1
+            base_ring = K
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            g = base_ring(2).sqrt() - 1
+
+        v = [[a * g, b, c] for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+        v += [[a, b * g, c] for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+        v += [[a, b, c * g] for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+        return Polyhedron(vertices=v, base_ring=base_ring)
+
+
+    def tetrahedron(self):
+        """
+        Return the tetrahedron.
+
+        The tetrahedron is a Platonic solid with 4 vertices and 4 faces
+        dual to itself. It can be defined as the convex hull
+        of the 4 vertices `(0, 0, 0)`, `(1, 1, 0)`, `(1, 0, 1)` and
+        `(0, 1, 1)`. For more information, see the
+        :wikipedia:`Tetrahedron`.
+
+        .. SEEALSO::
+
+            :meth:`simplex`
+
+        EXAMPLES::
+
+            sage: co = polytopes.tetrahedron()
+            sage: co.f_vector()
+            (1, 4, 6, 4, 1)
+
+        Its faces are 4 triangles::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            4
+
+        Some more computation::
+
+            sage: co.volume()
+            1/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            1/3*t^3 + t^2 + 5/3*t + 1
+        """
+        v = [[0, 0, 0], [1, 0, 1], [1, 1, 0], [0, 1, 1]]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def truncated_tetrahedron(self):
+        """
+        Return the truncated tetrahedron.
+
+        The truncated tetrahedron is an Archimedean solid with 12
+        vertices and 8 faces. It can be defined as the convex hull off
+        all the permutations of `(\pm 1, \pm 1, \pm 3)` with an even
+        number of minus signs. For more information, see the
+        :wikipedia:`Truncated_tetrahedron`.
+
+        EXAMPLES::
+
+            sage: co = polytopes.truncated_tetrahedron()
+            sage: co.f_vector()
+            (1, 12, 18, 8, 1)
+
+        Its faces are 4 triangles and 4 hexagons::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            4
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 6)
+            4
+
+        Some more computation::
+
+            sage: co.volume()
+            184/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            184/3*t^3 + 28*t^2 + 26/3*t + 1
+        """
+        v = [(3,1,1), (1,3,1), (1,1,3),
+             (-3,-1,1), (-1,-3,1), (-1,-1,3),
+             (-3,1,-1), (-1,3,-1), (-1,1,-3),
+             (3,-1,-1), (1,-3,-1), (1,-1,-3)]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def octahedron(self):
+        """
+        Return the octahedron.
+
+        The octahedron is a Platonic solid with 6 vertices and 8 faces
+        dual to the cube. It can be defined as the convex hull
+        of the six vertices `(0, 0, \pm 1)`, `(\pm 1, 0, 0)` and
+        `(0, \pm 1, 0)`. For more information, see the
+        :wikipedia:`Octahedron`.
+
+        EXAMPLES::
+
+            sage: co = polytopes.octahedron()
+            sage: co.f_vector()
+            (1, 6, 12, 8, 1)
+
+        Its faces are 8 triangles::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 3)
+            8
+
+        Some more computation::
+
+            sage: co.volume()
+            4/3
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            4/3*t^3 + 2*t^2 + 8/3*t + 1
+        """
+        v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
+             [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
     def buckyball(self, exact=True, base_ring=None):

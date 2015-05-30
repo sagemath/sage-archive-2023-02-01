@@ -10,7 +10,6 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 from sage.rings.all import ZZ, Infinity
 from sage.functions.all import ceil
-from sage.misc.all import flatten
 
 class BSD_data:
     """
@@ -284,11 +283,11 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     .. [Kolyvagin] V. A. Kolyvagin. On the structure of Shafarevich-Tate
        groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
        Springer, Berlin, 1991.
+    .. [LawsonWuthrich] T. Lawson and C. Wuthrich, Vanishing of some Galois
+       cohomology groups for elliptic curves, http://arxiv.org/abs/1505.02940
     .. [LumStein] A. Lum, W. Stein. Verification of the Birch and
        Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
        Multiplication (unpublished)
-    .. [LawsonWuthrich] T. Lawson and C. Wuthrich, Vanishing of some Galois
-       cohomology groups for elliptic curves, http://arxiv.org/abs/1505.02940
     .. [Mazur] B. Mazur. Modular curves and the Eisenstein ideal. Inst.
        Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
     .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
@@ -684,9 +683,10 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         # the lemma about the vanishing of H^1 is false in Stein et al for p=5 and 11
         # here is the correction from Lawson-Wuthrich. Especially Theorem 14 in
         # [LawsonWuthrich] above.
-        if p in kolyvagin_primes or p == 2 or D_K % p == 0: continue
+        if p in kolyvagin_primes or p == 2 or D_K % p == 0:
+            continue
         crit_lw = False
-        if p > 11 or p == 7 :
+        if p > 11 or p == 7:
             crit_lw = True
         elif p == 11:
             if BSD.N != 121 or BSD.curve.label() != "121c2":
@@ -702,13 +702,13 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 if p == 3:
                     if BSD.curve.torsion_order() % p != 0 and C.torsion_order() % p != 0:
                         crit_lw = True
-                else: #p == 5:
+                else:  # p == 5
                     Et = BSD.curve.quadratic_twist(5)
                     if Et.torsion_order() % p != 0 and C.torsion_order() % p != 0:
                         crite_lw = True
         if crit_lw:
             if verbosity > 0:
-                print 'Kolyvagin\'s bound for p = %d applies by Lawson-Wuthrich'%p
+                print('Kolyvagin\'s bound for p = %d applies by Lawson-Wuthrich' % p)
             kolyvagin_primes.append(p)
             if p in BSD.proof:
                 BSD.proof[p].append('Lawson-Wuthrich')

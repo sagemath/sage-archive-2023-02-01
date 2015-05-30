@@ -140,9 +140,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def is_le_one(self):
         r"""
-        Abstract method for comparison with one. See
-        :meth:`GrowthElementPower.is_le_one` for a
-        concrete implementation.
+        Abstract method for comparison with one.
 
         INPUT:
 
@@ -155,8 +153,8 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: (~P.gen()).is_le_one()
+            sage: G = agg.GrowthGroupPower('x')
+            sage: (~G.gen()).is_le_one()
             True
         """
         raise NotImplementedError("Only implemented in concrete realizations")
@@ -164,27 +162,170 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def __le__(self, other):
         r"""
-        Abstract method for comparison of ``self`` and ``other``. See
-        :meth:`GrowthElementPower.__le__` and
-        :meth:`GrowthElementPower._le_` for a concrete realization.
+        Return if this growth element is at most (less than or equal
+        to) ``other``.
 
         INPUT:
 
-        - ``other`` -- a generic asymptotic growth element.
+        - ``other`` -- an element.
 
         OUTPUT:
 
         A boolean.
 
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_le_`.
+
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: (~P.gen()).__le__(P.gen())
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.an_element() <= G.an_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations
+
+        ::
+
+            sage: P_ZZ = agg.GrowthGroupPower('x', base=ZZ)
+            sage: P_QQ = agg.GrowthGroupPower('x', base=QQ)
+            sage: P_ZZ.gen() <= P_QQ.gen()^2
             True
+            sage: ~P_ZZ.gen() <= P_ZZ.gen()
+            True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._le_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.le)
+        except TypeError:
+            return False
+
+
+    def _le_(self, other):
+        r"""
+        Return if this :class:`GenericGrowthElement` is at most (less
+        than or equal to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
+
+        TESTS::
+
+            sage: TODO
         """
         raise NotImplementedError("Only implemented in concrete realizations")
 
+
+    def __eq__(self, other):
+        r"""
+        Return if this growth element is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_eq_`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.an_element() == G.an_element()
+            True
+            sage: G(raw_element=42) == G(raw_element=7)
+            False
+
+        ::
+
+            sage: G_ZZ = agg.GenericGrowthGroup(ZZ)
+            sage: G_QQ = agg.GenericGrowthGroup(QQ)
+            sage: G_ZZ(raw_element=1) == G_QQ(raw_element=1)
+            True
+
+        ::
+
+            sage: P_ZZ = agg.GrowthGroupPower('x', base=ZZ)
+            sage: P_QQ = agg.GrowthGroupPower('x', base=QQ)
+            sage: P_ZZ.gen() == P_QQ.gen()
+            True
+            sage: ~P_ZZ.gen() == P_ZZ.gen()
+            False
+            sage: ~P_ZZ(1) == P_ZZ(1)
+            True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+
+    def _eq_(self, other):
+        r"""
+        Return if this :class:`GenericGrowthElement` is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroupPower('x')
+            sage: e1 = P(raw_element=1)
+            sage: e1._eq_(P.gen())
+            True
+            sage: e2 = e1^4
+            sage: e2 == e1^2 * e1 * e1
+            True
+            sage: e2 == e1
+            False
+        """
+        return self._raw_element_ == other._raw_element_
 
     def __hash__(self):
         r"""
@@ -790,41 +931,6 @@ class GrowthElementPower(GenericGrowthElement):
             False
         """
         return self.exponent == other.exponent
-
-
-    def __le__(self, other):
-        r"""
-        Return whether the growth of the asymptotic power growth
-        element ``self`` is less than or equal to the growth of the
-        asymptotic power growth element ``other``.
-
-        INPUT:
-
-        - ``other`` -- a growth power element to be compared
-          to ``self``.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.GrowthGroupPower("x", base=ZZ)
-            sage: P2 = agg.GrowthGroupPower("x", base=QQ)
-            sage: P1.gen() <= P2.gen()^2
-            True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
 
 
     def _le_(self, other):

@@ -33,6 +33,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.misc.long cimport pyobject_to_long
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -66,6 +67,13 @@ cdef extern from "flint/flint.h":
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
+
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
     """
 
     def __cinit__(self):
@@ -825,6 +833,36 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
+        r"""
+        Truncated multiplication
+
+        .. SEEALSO:
+
+            :meth:`_mul_` for standard multiplication
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p1 = 1 + x + x**2 + x**4
+            sage: p2 = -2 + 3*x**2 + 5*x**4
+            sage: p1._mul_trunc_(p2, 4)
+            3*x^3 + x^2 - 2*x - 2
+            sage: (p1*p2).truncate(4)
+            3*x^3 + x^2 - 2*x - 2
+            sage: p1._mul_trunc_(p2, 6)
+            5*x^5 + 6*x^4 + 3*x^3 + x^2 - 2*x - 2
+        """
+        if n <= 0:
+            raise ValueError("length must be > 0")
+
+        cdef Polynomial_integer_dense_flint x = self._new()
+        sig_on()
+        fmpz_poly_mullow(x.__poly, self.__poly,
+                    (<Polynomial_integer_dense_flint>right).__poly,
+                    n)
+        sig_off()
+        return x
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         r"""

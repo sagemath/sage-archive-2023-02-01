@@ -374,7 +374,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_const', 0.0), ('load_const', -3.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 1), 'mul', 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 1), ('ipow', 2), 'mul', 'mul', 'add', ('load_const', -6.0), ('load_arg', 0), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 1), ('ipow', 2), 'mul', 'add', ('load_const', -1.0), ('load_arg', 0), ('ipow', 1), ('load_arg', 2), ('ipow', 2), 'mul', 'mul', 'add', 'return']
-        sage: fp(e, pi, sqrt(2))
+        sage: fp(e, pi, sqrt(2))   # abs tol 3e-14
         -98.00156403362932
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
         -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e

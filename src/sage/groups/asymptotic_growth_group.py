@@ -1018,15 +1018,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
             sage: P1 is P4
             True
+            sage: P5 = agg.MonomialGrowthGroup(ZZ, 'x ')
+            sage: P1 is P5
+            True
         """
-        if hasattr(var, 'is_symbol') and var.is_symbol():
-            var = repr(var)
-        elif hasattr(var, 'is_gen') and var.is_gen():
-            var = repr(var)
-        elif isinstance(var, buffer):
-            var = str(var)
-        return super(MonomialGrowthGroup, cls).\
-            __classcall__(cls, base, var, category)
+        var = str(var).strip()
+        return super(MonomialGrowthGroup, cls).__classcall__(
+            cls, base, var, category)
 
 
     def __init__(self, base, var, category=None):
@@ -1036,31 +1034,24 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x'); P1
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')
             Asymptotic Power Growth Group in x over Integer Ring
-            sage: var('n')
-            n
-            sage: P2 = agg.MonomialGrowthGroup(QQ, n); P2
+            sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
             Asymptotic Power Growth Group in n over Rational Field
-            sage: y = PolynomialRing(ZZ, 'y').gen()
-            sage: P3 = agg.MonomialGrowthGroup(ZZ, y); P3
+            sage: agg.MonomialGrowthGroup(ZZ, PolynomialRing(ZZ, 'y').gen())
             Asymptotic Power Growth Group in y over Integer Ring
-            sage: P4 = agg.MonomialGrowthGroup(ZZ, 'y'); P4
-            Asymptotic Power Growth Group in y over Integer Ring
-            sage: P3 is P4
-            True
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
+            Asymptotic Power Growth Group in log(x) over Rational Field
         """
-        if var is None:
-            raise ValueError('Variable for initialization required.')
-        else:
-            import re
-            if re.match('^[A-Za-z][A-Za-z0-9_]*$', var):
-                self._var_ = str(var)
-            else:
-                raise ValueError('Only alphanumeric strings starting with a '
-                                 'letter may be variables')
-        super(MonomialGrowthGroup, self).\
-            __init__(category=category, base=base)
+        if not var:
+            raise ValueError('Empty var is not allowed.')
+        if var[0] in '0123456789=+-*/^%':
+            # This restriction is mainly for optical reasons on the
+            # representation. Feel free to relax this if needed.
+            raise ValueError('The inapproproate variable name %s.' % (var,))
+        self._var_ = var
+
+        super(MonomialGrowthGroup, self).__init__(category=category, base=base)
         self._populate_coercion_lists_()
 
 

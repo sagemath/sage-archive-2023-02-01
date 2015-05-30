@@ -1,14 +1,15 @@
 r"""
-Asymptotic Growth Group
+(Asymptotic) Growth Groups
 
 AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
-
+- Daniel Krenn (2015-05-29): initial version and review
 """
 
 #*****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
+#               2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

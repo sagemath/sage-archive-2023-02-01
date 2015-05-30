@@ -1089,10 +1089,33 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t = T(b1, b2)
             sage: [[t._sig(i,k) for k in range(1,len(t)+1)] for i in B.index_set()]
             [[0, -1], [0, 0], [0, 1], [1, 2]]
+
+        TESTS:
+
+        Check that :trac:`18469` is fixed::
+
+            sage: E1 = crystals.elementary.B(['A',2], 1)
+            sage: E2 = crystals.elementary.B(['A',2], 2)
+            sage: T = crystals.TensorProduct(E1, E2)
+            sage: x = T(E1.module_generators[0], E2.module_generators[0]); x
+            [0, 0]
+            sage: [[x._sig(i,k) for k in range(1,3)] for i in T.index_set()]
+            [[-inf, 0], [0, -inf]]
+            sage: x.f(1)
+            [-1, 0]
+            sage: x.e(1)
+            [1, 0]
         """
         if k == 1:
             return self[-1].epsilon(i)
-        return self._sig(i, k-1) + self[-k].epsilon(i) - self[-k+1].phi(i)
+        ep = self[-k].epsilon(i)
+        if ep == float("-inf"):
+            return ep
+
+        P = self[-1].parent().weight_lattice_realization()
+        h = P.simple_coroots()
+        wt = sum(P(self[-j].weight()) for j in range(1, k))
+        return ep - P(wt).scalar(h[i])
 
     def e(self,i):
         r"""
@@ -1912,7 +1935,7 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
                 the_list += col
         else:
             the_list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, the_list))
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, [parent.letters(_) for _ in the_list])
 
     def _repr_(self):
         """

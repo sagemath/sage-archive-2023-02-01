@@ -76,7 +76,6 @@ See :trac:`12091` ::
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
 cdef extern from "limits.h":

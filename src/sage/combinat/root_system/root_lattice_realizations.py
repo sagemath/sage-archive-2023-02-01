@@ -3019,7 +3019,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             for i,b in enumerate(paths):
                 prev = plot_options.projection(self.zero())
                 for x in b.value:
-                    next = plot_options.projection(self(x))
+                    next = prev + plot_options.projection(self(x))
                     G += line([prev, next], rgbcolor=color[i])
                     prev = next
                 if plot_labels is not None:

@@ -90,7 +90,6 @@ from sage.plot.plot3d.index_face_set cimport IndexFaceSet
 from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
 
-include 'sage/ext/cdefs.pxi'
 include 'sage/gsl/gsl.pxi'
 from cpython.string cimport *
 

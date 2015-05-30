@@ -268,7 +268,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return self(symbolic_expression_from_string(x))
             except SyntaxError as err:
                 msg, s, pos = err.args
-                raise TypeError, "%s: %s !!! %s" % (msg, s[:pos], s[pos:])
+                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
@@ -674,7 +674,7 @@ cdef class SymbolicRing(CommutativeRing):
             return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
         if len(names_list) > 1:
             if latex_name:
-                raise ValueError, "cannot specify latex_name for multiple symbol names"
+                raise ValueError("cannot specify latex_name for multiple symbol names")
             return tuple([self.symbol(s, domain=domain) for s in names_list])
 
     def _repr_element_(self, Expression x):
@@ -783,7 +783,7 @@ cdef class SymbolicRing(CommutativeRing):
                 try:
                     d[ vars[i] ] = arg
                 except IndexError:
-                    raise ValueError, "the number of arguments must be less than or equal to %s"%len(vars)
+                    raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
 
         return _the_element.subs(d, **kwds)
 
@@ -1046,6 +1046,4 @@ def isidentifier(x):
         code = parser.expr(x).compile()
     except (MemoryError, OverflowError, SyntaxError, SystemError, parser.ParserError), msg:
         return False
-    return len(code.co_names)==1 and code.co_names[0]==x
-
-
+    return len(code.co_names) == 1 and code.co_names[0] == x

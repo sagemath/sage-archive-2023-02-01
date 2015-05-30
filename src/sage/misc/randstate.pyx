@@ -410,11 +410,11 @@ Classes and methods
 ===================
 """
 
-from sage.libs.gmp.pylong cimport mpz_set_pylong
-
 cdef extern from "stdlib.h":
     long c_libc_random "random"()
     void c_libc_srandom "srandom"(unsigned int seed)
+
+from sage.libs.gmp.all cimport *
 
 import binascii
 import os

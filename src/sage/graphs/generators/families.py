@@ -1933,9 +1933,92 @@ def petersen_family(generate=False):
     return [Graph(x) for x in l]
 
 
+def Sierpinski3Graph(n, prefix=None):
+    """
+    Return the trivalent Sierpinski graph of generation `n`.
+
+    All vertices but 3 have valence 3.
+
+    INPUT:
+
+    - `n` -- an integer
+    - prefix -- a list of integers in [0,1,2] (used only for the recursion)
+
+    OUTPUT:
+
+    a graph `S_n` with `(3^{n}` vertices and `(3^(n+1) - 3)/2` edges,
+    closely related to the famous Sierpinski triangle fractal.
+
+    All these graphs have a triangular shape, and three special
+    vertices at top, bottom left and bottom right. These are the only
+    vertices of valence 2, all the other ones having valence 3.
+
+    The graph `S_0` (generation `0`) is a point.
+
+    The graph `S_{n+1}` is obtained from the disjoint union of
+    three copies A,B,C of `S_n` by adding edges between pairs of vertices:
+    from the top vertex of A to the bottom left vertex of B, 
+    from the bottom right vertex of B to the top vertex of C,
+    and from the bottom left vertex of C to the bottom right vertex of A.
+
+    .. SEEALSO::
+
+        Another familly of graphs can be defined by identifying the
+        same pairs of vertices by new edges instead of joining them. They
+        are available using :func:`Sierpinski4Graph`
+
+    EXAMPLES::
+
+        sage: s4 = graphs.Sierpinski3Graph(4); s4
+        Graph on 81 vertices
+        sage: s4.size()
+        120
+        sage: s4.degree_histogram()
+        [0, 0, 3, 78]
+
+    REFERENCES:
+
+    .. todo
+    """
+    from sage.modules.free_module_element import vector
+    from sage.rings.integer_ring import ZZ
+
+    if n <= -1:
+        raise ValueError('n should be at least 0')
+
+    init_run = False
+    if prefix is None:
+        init_run = True
+        prefix = []
+
+    if n == 0:
+        dg = Graph()
+        dg.add_vertex(tuple(prefix))
+        # dg.set_pos()
+        return dg
+
+    A = Sierpinski3Graph(n - 1, prefix=[0] + prefix)
+    B = Sierpinski3Graph(n - 1, prefix=[1] + prefix)
+    C = Sierpinski3Graph(n - 1, prefix=[2] + prefix)
+    G = (A.union(B)).union(C)
+
+    N = n - 1
+    G.add_edge(tuple(prefix + [0] + [1] * N), tuple(prefix + [1] + [0] * N))
+    G.add_edge(tuple(prefix + [1] + [2] * N), tuple(prefix + [2] + [1] * N))
+    G.add_edge(tuple(prefix + [2] + [0] * N), tuple(prefix + [0] + [2] * N))
+
+    vec = [vector(ZZ, u) for u in [(0, 0), (0, 1), (1, 0)]]
+
+    if init_run:
+        G.set_pos({tu: sum(vec[tu[n - 1 - i]] * 2 ** i for i in range(n))
+                   for tu in G.vertices()})
+
+    return G
+
+
 def Sierpinski4Graph(n):
     """
-    Return the Sierpinski graph of generation `n`.
+    Return the tetravalent Sierpinski graph of generation `n`.
 
     All vertices but 3 have valence 4.
 
@@ -2007,85 +2090,6 @@ def Sierpinski4Graph(n):
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
     dg.set_pos({xy: (xy[0], xy[1]) for xy in dg.vertices()})
     return dg
-
-
-def Sierpinski3Graph(n, prefix=None):
-    """
-    Return the Sierpinski graph of generation `n`.
-
-    All vertices but 3 have valence 3.
-
-    INPUT:
-
-    - `n` -- an integer
-
-    OUTPUT:
-
-    a graph `S_n` with `(3^{n}` vertices and
-    `?` edges, closely related to the famous Sierpinski triangle
-    fractal.
-
-    All these graphs have a triangular shape, and three special
-    vertices at top, bottom left and bottom right. These are the only
-    vertices of valence 2, all the other ones having valence 3.
-
-    The graph `S_0` (generation `0`) is a point.
-
-    The graph `S_{n+1}` is obtained from the disjoint union of
-    three copies A,B,C of `S_n` by adding edges between pairs of vertices:
-    from the top vertex of A to the bottom left vertex of B, 
-    from the bottom right vertex of B to the top vertex of C,
-    and from the bottom left vertex of C to the bottom right vertex of A.
-
-    .. SEEALSO::
-
-        Another familly of graphs can be defined by identifying the
-        same pairs of vertices by new edges instead of joining them. They
-        are available using :func:`Sierpinski4Graph`
-
-    EXAMPLES::
-
-        sage: s4 = graphs.Sierpinski3Graph(4); s4
-        Graph on 81 vertices
-        sage: s4.size()
-        120
-        sage: s4.degree_histogram()
-        [0, 0, 3, 78]
-
-    REFERENCES:
-
-    .. todo
-    """
-    from sage.modules.free_module_element import vector
-    from sage.rings.rational_field import QQ
-
-    if n <= -1:
-        raise ValueError('n should be at least 0')
-
-    if prefix is None:
-        prefix = []
-
-    if n == 0:
-        dg = Graph()
-        dg.add_vertex(tuple(prefix))
-        # dg.set_pos()
-        return dg
-
-    A = Sierpinski3Graph(n - 1, prefix=[0] + prefix)
-    B = Sierpinski3Graph(n - 1, prefix=[1] + prefix)
-    C = Sierpinski3Graph(n - 1, prefix=[2] + prefix)
-    G = (A.union(B)).union(C)
-
-    N = n - 1
-    G.add_edge(tuple(prefix + [0] + [1] * N), tuple(prefix + [1] + [0] * N))
-    G.add_edge(tuple(prefix + [1] + [2] * N), tuple(prefix + [2] + [1] * N))
-    G.add_edge(tuple(prefix + [2] + [0] * N), tuple(prefix + [0] + [2] * N))
-
-    vec = [vector(QQ, u) for u in [(0, 0), (0, 1), (1, 0)]]
-    G.set_pos({tu: sum(vec[tu[i]] / QQ(3) ** i for i in range(n))
-               for tu in G.vertices()})
-
-    return G
 
 
 def WheelGraph(n):

@@ -17,19 +17,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-import re
-
-from sage.structure.element import MultiplicativeGroupElement
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+import sage
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.real_mpfr import RR
-
-
-
-class GenericGrowthElement(MultiplicativeGroupElement):
+class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
     Class for a generic asymptotic growth group element. These
     elements hold exactly one asymptotic term and can be compared to
@@ -350,7 +341,9 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         return hash(repr(self))
 
 
-class GenericGrowthGroup(Parent, UniqueRepresentation):
+class GenericGrowthGroup(
+        sage.structure.parent.Parent,
+        sage.structure.unique_representation.UniqueRepresentation):
     r"""
     Class for the generic asymptotic growth group. Only base
     structure is handled here, for a concrete realization see
@@ -779,6 +772,8 @@ class GrowthElementPower(GenericGrowthElement):
             sage: P(raw_element=1/2)._repr_()
             'x^(1/2)'
         """
+        from sage.rings.integer_ring import ZZ
+
         if self.exponent == 0:
             return "1"
         elif self.exponent == 1:
@@ -906,6 +901,7 @@ class GrowthElementPower(GenericGrowthElement):
         if new_exponent in self.parent().base():
             return self.parent()(raw_element=self.exponent * power)
 
+        from sage.rings.real_mpfr import RR
         if new_exponent in RR:
             pnt = GrowthGroupPower(self.parent()._var_,
                                    base=new_exponent.parent())
@@ -1151,6 +1147,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         if var is None:
             raise ValueError("Variable for initialization required.")
         else:
+            import re
             if re.match("^[A-Za-z][A-Za-z0-9_]*$", var):
                 self._var_ = str(var)
             else:

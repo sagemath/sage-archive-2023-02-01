@@ -1028,7 +1028,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         self._var_ = var
 
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)
-        self._populate_coercion_lists_()
 
 
     def _repr_(self):

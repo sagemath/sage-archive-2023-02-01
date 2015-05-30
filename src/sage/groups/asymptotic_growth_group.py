@@ -1027,7 +1027,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             cls, base, var, category)
 
 
-    def __init__(self, base, var, category=None):
+    def __init__(self, base, var, category):
         r"""
         For more information see :class:`MonomialGrowthGroup`.
 

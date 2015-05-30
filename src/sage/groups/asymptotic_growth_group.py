@@ -933,69 +933,6 @@ class GrowthElementPower(GenericGrowthElement):
             raise NotImplementedError("Only real exponents are implemented.")
 
 
-    def __eq__(self, other):
-        r"""
-        Tests for equality of the given elements (with taking care of
-        different parents by using the coercion model).
-
-        INPUT:
-
-        - ``other`` -- power element to be compared with ``self``.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P2 = agg.MonimialGrowthGroup(QQ, 'x')
-            sage: P1.gen() == P2.gen()
-            True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._eq_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.eq)
-        except TypeError:
-            return False
-
-
-    def _eq_(self, other):
-        r"""
-        Return whether the asymptotic power growth elements
-        ``self`` and ``other`` are equal and have the same parent.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic power growth element to
-          be compared to ``self``.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: e1 = P(raw_element=1)
-            sage: e1._eq_(P.gen())
-            True
-            sage: e2 = e1^4
-            sage: e2 == e1^2 * e1 * e1
-            True
-            sage: e2 == e1
-            False
-        """
-        return self.exponent == other.exponent
-
-
     def _le_(self, other):
         r"""
         Return whether the exponent of ``self`` is less than or equal

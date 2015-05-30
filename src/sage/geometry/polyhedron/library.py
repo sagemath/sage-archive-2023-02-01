@@ -37,6 +37,9 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_cube`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
 
 REFERENCES:
@@ -732,6 +735,42 @@ class Polytopes():
              (-3,-1,1), (-1,-3,1), (-1,-1,3),
              (-3,1,-1), (-1,3,-1), (-1,1,-3),
              (3,-1,-1), (1,-3,-1), (1,-1,-3)]
+        return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def truncated_octahedron(self):
+        """
+        Return the truncated octahedron.
+
+        The truncated octahedron is an Archimedean solid with 24
+        vertices and 14 faces. It can be defined as the convex hull
+        off all the permutations of `(0, \pm 1, \pm 2)`. For more
+        information, see the :wikipedia:`Truncated_octahedron`.
+
+        This is also know as the permutohedron of dimension 3.
+
+        EXAMPLES::
+
+            sage: co = polytopes.truncated_octahedron()
+            sage: co.f_vector()
+            (1, 24, 36, 14, 1)
+
+        Its faces are 6 squares and 8 hexagons::
+
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 4)
+            6
+            sage: sum(1 for f in co.faces(2) if len(f.vertices()) == 6)
+            8
+
+        Some more computation::
+
+            sage: co.volume()
+            32
+            sage: co.ehrhart_polynomial()      # optional - latte_int
+            32*t^3 + 18*t^2 + 6*t + 1
+        """
+        v = [(0, e, f) for e in [-1, 1] for f in [-2, 2]]
+        v = [(xyz[sigma(1) - 1], xyz[sigma(2) - 1], xyz[sigma(3) - 1])
+             for sigma in Permutations(3) for xyz in v]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
     def octahedron(self):

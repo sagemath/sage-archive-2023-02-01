@@ -1081,7 +1081,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _convert_(self, data):
         r"""
-
         Converts given ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
@@ -1123,8 +1122,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if data == 1:
             return self.base().zero()
         if str(data) == self._var_:
-            return self.base().one()  # not sure if this will work for
-                                      # all possible bases
+            return self.base().one()
 
         try:
             P = data.parent()
@@ -1139,16 +1137,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if str(base) == self._var_:
                     return exponent
         #elif ...
-        #TODO: SR; PolynomialRing
-
-        ###TODO
-        #if exponent is None and x.parent() is parent:
-        #    self.exponent = x.exponent
-        #    super(MonomialGrowthElement, self).__init__(parent=parent)
-        #if exponent not in RR:
-        #    raise NotImplementedError('Non-real exponents are not supported.')
-        #else:
-        #    self.exponent = parent.base()(exponent)
+        #TODO: PolynomialRing, PowerSeriesRing
 
 
     def _coerce_map_from_(self, S):
@@ -1185,7 +1174,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if super(MonomialGrowthGroup, self)._coerce_map_from_(S):
             if self._var_ == S._var_:
                 return True
-        # TODO: SR, PolynomialRing
 
 
     def gen(self):

@@ -40,12 +40,9 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     INPUT:
 
-    - ``parent`` -- a GenericGrowthGroup, the parent of the
-      element.
+    - ``parent`` -- a :class:`GenericGrowthGroup`.
 
-    OUTPUT:
-
-    A generic element of a generic growth group.
+    - ``raw_element`` -- an element from the base ring of the parent.
 
     EXAMPLES::
 
@@ -86,19 +83,20 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def _mul_(self, other):
         r"""
-        Abstract multiplication method for generic asymptotic growth
-        group elements. For a concrete realization see
-        :meth:`GrowthElementPower._mul_`.
+        Abstract multiplication method for generic elements.
 
         INPUT:
 
-        - ``other`` -- a GenericGrowthElement from the same parent as
-          ``self``.
+        - ``other`` -- a :class:`GenericGrowthElement`.
 
         OUTPUT:
 
-        A GenericGrowthElement representing the product of ``self``
-        and ``other``.
+        A class:`GenericGrowthElement` representing the product with
+        ``other``.
+
+        .. NOTE::
+
+            Inherited classes must override this.
 
         EXAMPLES::
 
@@ -116,9 +114,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def _repr_(self):
         r"""
-        Represent the abstract element of an abstract asymptotic growth
-        group as "Generic element of a Generic Asymptotic Growth
-        Group".
+        A representation string for this abstract generic element.
 
         INPUT:
 
@@ -326,6 +322,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             False
         """
         return self._raw_element_ == other._raw_element_
+
 
     def __hash__(self):
         r"""
@@ -1032,6 +1029,7 @@ class GrowthElementPower(GenericGrowthElement):
             True
         """
         return self.exponent <= 0
+
 
     def __hash__(self):
         r"""

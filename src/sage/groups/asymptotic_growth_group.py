@@ -743,31 +743,6 @@ class MonomialGrowthElement(GenericGrowthElement):
     """
     # TODO: implement comparison for the cartesian product structure.
 
-
-#    def __init__(self, parent, exponent):
-#        r"""
-#        See :class:`MonomialGrowthElement` for more information.
-#
-#        EXAMPLES::
-#
-#            sage: import sage.groups.asymptotic_growth_group as agg
-#            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
-#            sage: e1 = G.gen(); e1
-#            x
-#            sage: e1.is_idempotent()
-#            False
-#            sage: e1.is_one()
-#            False
-#            sage: e1.parent()
-#            Asymptotic Power Growth Group in x over Integer Ring
-#            sage: e2 = G.one(); e2
-#            1
-#            sage: e2.is_idempotent() and e2.is_one()
-#            True
-#        """
-#        super(MonomialGrowthElement, self).__init__(parent=parent, raw_element=exponent)
-
-
     @property
     def exponent(self):
         return self._raw_element_

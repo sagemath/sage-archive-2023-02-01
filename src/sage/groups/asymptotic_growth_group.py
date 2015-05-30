@@ -1297,27 +1297,6 @@ class GrowthGroupPower(GenericGrowthGroup):
                % (self._var_, self.base())
 
 
-    def _an_element_(self):
-        r"""
-        Return an element of ``self``.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An element of ``self``.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: P.an_element()  # indirect doctest
-            x
-        """
-        return self.gen()
-
     def gens(self):
         r"""
         Return a list with all generators of ``self``. For power growth

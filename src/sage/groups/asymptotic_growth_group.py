@@ -329,8 +329,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def __hash__(self):
         r"""
-        Return the hash of the representation of the element produced
-        by :meth:`GenericGrowthElement._repr_`
+        Return the hash of this element
 
         INPUT:
 
@@ -340,12 +339,15 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
         An integer.
 
+        The hash uses the representation string of this element
+        produced by :meth:`_repr_`.
+
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup();
-            sage: e = agg.GenericGrowthElement(P); e.__hash__()  # random
-            -7923874249531374658
+            sage: G = agg.GenericGrowthGroup(ZZ);
+            sage: hash(G(raw_element=42))  # random
+            5656565656565656
         """
         return hash(repr(self))
 
@@ -456,8 +458,7 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
 
     def _repr_(self):
         r"""
-        Represent the generic asymptotic growth group as
-        "Generic Asymptotic Growth Group".
+        A representation string for this generic growth group.
 
         INPUT:
 
@@ -470,16 +471,15 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.GenericGrowthGroup()._repr_()
-            'Generic Asymptotic Growth Group'
+            sage: agg.GenericGrowthGroup(ZZ)  # indirect doctest
+            Generic Growth Group over Integer Ring
         """
-        return "Generic Asymptotic Growth Group"
+        return "Generic Growth Group over %s" % (self.base(),)
 
 
     def __hash__(self):
         r"""
-        Return the hash of the representation of the group produced by
-        :meth:`GenericGrowthGroup._repr_`
+        Return the hash of this group.
 
         INPUT:
 
@@ -492,10 +492,10 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup(); P.__hash__()  # random
-            8493512696244708699
+            sage: hash(agg.GenericGrowthGroup(ZZ))  # random
+            4242424242424242
         """
-        return hash(repr(self))
+        return hash((self.__class__, self.base()))
 
 
     def _an_element_(self):

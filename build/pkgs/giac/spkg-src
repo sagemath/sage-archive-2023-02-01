@@ -21,8 +21,8 @@ fi
 set -e
 
 #
-VERSION="1.1.4"
-VERSIONREV="10"
+VERSION="1.2.0"
+VERSIONREV="13"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"

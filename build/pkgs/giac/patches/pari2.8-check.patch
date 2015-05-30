@@ -1,0 +1,26 @@
+diff -ruN src/check/cas.out src/check.new/cas.out
+--- a/check/cas.out	2015-05-30 04:53:20.916095107 +0200
++++ b/check/cas.out	2015-05-30 04:49:23.201561768 +0200
+@@ -252,8 +252,8 @@
+ matrix[[-8.1,-2.1,6.9,-9.1,2.9],[-5.1,-2.1,9.9,9.9,2.9],[-2.1,8.9,7.9,-7.1,6.9],[0.9,-3.1,7.9,-9.1,0.9],[0.9,-7.1,-1.1,2.9,8.9]],
+ matrix[[-8.1-X,-2.1,6.9,-9.1,2.9],[-5.1,-2.1-X,9.9,9.9,2.9],[-2.1,8.9,7.9-X,-7.1,6.9],[0.9,-3.1,7.9,-9.1-X,0.9],[0.9,-7.1,-1.1,2.9,8.9-X]],
+ -1.00000000004*X^5-2.49999999953*X^4+110.499999998*X^3+1240.4*X^2-11443.7*X-228845.7,
+-1/20736*(12*x+12*(-1/sqrt(2)+(i)/sqrt(2)))*(12*x+12*(-1/sqrt(2)-(i)/sqrt(2)))*(12*x+12*(1/sqrt(2)+(i)/sqrt(2)))*(12*x+12*(1/sqrt(2)-(i)/sqrt(2))),
+-1/20736*(12*x+12*(-1/sqrt(2)+(i)/sqrt(2)))*(12*x+12*(-1/sqrt(2)-(i)/sqrt(2)))*(12*x+12*(1/sqrt(2)+(i)/sqrt(2)))*(12*x+12*(1/sqrt(2)-(i)/sqrt(2))),
++1/20736*(12*x+12*((i)/sqrt(2)-1/sqrt(2)))*(12*x+12*(-(i)/sqrt(2)-1/sqrt(2)))*(12*x+12*((i)/sqrt(2)+1/sqrt(2)))*(12*x+12*(-(i)/sqrt(2)+1/sqrt(2))),
++1/20736*(12*x+12*((i)/sqrt(2)-1/sqrt(2)))*(12*x+12*(-(i)/sqrt(2)-1/sqrt(2)))*(12*x+12*((i)/sqrt(2)+1/sqrt(2)))*(12*x+12*(-(i)/sqrt(2)+1/sqrt(2))),
+ [[1,2],[3,4]],
+ [[1.0,2.0],[3.0,4.0]],
+ [[-2.0,1.0],[1.5,-0.5]],
+diff -ruN src/check/TP12-sol.cas.out1 src/check.new/TP12-sol.cas.out1
+--- a/check/TP12-sol.cas.out1	2015-05-30 04:53:02.723594726 +0200
++++ b/check/TP12-sol.cas.out1	2015-05-30 04:48:53.924760046 +0200
+@@ -128,7 +128,7 @@
+ 2,
+ "All PARI functions are now defined with the pari_ prefix.
+ PARI functions are also defined without prefix except:
+-% abs acos acosh apply arg asin asinh atan atanh binomial bitand bitor bitxor break ceil charpoly concat conj content cos cosh default divisors erfc eval exp factor factorial floor frac gcd global hilbert imag isprime kill lcm length local matrix max min next nextprime norm print real round select shift sign simplify sin sinh solve sqrt subst sum tan tanh taylor trace truncate type until valuation vector version write 
++% abs acos acosh apply arg asin asinh atan atanh binomial bitand bitor bitxor break ceil charpoly concat conj content cos cosh default divisors erfc eval exp factor factorial floor frac gcd global hilbert imag input isprime kill lcm length local matrix max min next nextprime norm print read real round select shift sign simplify sin sinh solve sqrt subst sum tan tanh taylor trace truncate type until valuation vector version write 
+ When working with p-adic numbers use them in a pari() call
+ Type ?pari for short help
+ Inside xcas, try Help->Manuals->PARI for HTML help",

@@ -68,7 +68,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             ValueError: The parent must be provided
         """
         if parent is None:
-            raise ValueError("The parent must be provided")
+            raise ValueError('The parent must be provided')
         super(GenericGrowthElement, self).__init__(parent=parent)
 
         self._raw_element_ = parent.base()(raw_element)
@@ -148,7 +148,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             ...
             NotImplementedError: Only implemented in concrete realizations
         """
-        raise NotImplementedError("Only implemented in concrete realizations")
+        raise NotImplementedError('Only implemented in concrete realizations')
 
 
     def __eq__(self, other):
@@ -340,7 +340,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: (~G.gen()).is_le_one()
             True
         """
-        raise NotImplementedError("Only implemented in concrete realizations")
+        raise NotImplementedError('Only implemented in concrete realizations')
 
 
 class GenericGrowthGroup(
@@ -373,11 +373,11 @@ class GenericGrowthGroup(
         Generic Growth Group over Integer Ring
     """
 
-    # TODO: implement some sort of "assume", where basic assumptions
+    # TODO: implement some sort of 'assume', where basic assumptions
     # for the variables can be stored. --> within the cartesian product
 
     # TODO: implement a cartesian product class for the asymptotic
-    # growth group. the "standard" cart. prod. produces an element
+    # growth group. the 'standard' cart. prod. produces an element
     # of the cart. prod. class, which does not have a order structure.
 
     # enable the category framework for elements
@@ -418,7 +418,7 @@ class GenericGrowthGroup(
                 category = (category,)
             if not any(cat.is_subcategory(Groups() & Posets()) for cat in
                        category):
-                raise ValueError("%s is not a subcategory of %s"
+                raise ValueError('%s is not a subcategory of %s'
                                  % (category, Groups() & Posets()))
         super(GenericGrowthGroup, self).__init__(category=category,
                                                  base=base)
@@ -442,7 +442,7 @@ class GenericGrowthGroup(
             sage: agg.GenericGrowthGroup(ZZ)  # indirect doctest
             Generic Growth Group over Integer Ring
         """
-        return "Generic Growth Group over %s" % (self.base(),)
+        return 'Generic Growth Group over %s' % (self.base(),)
 
 
     def __hash__(self):
@@ -800,13 +800,13 @@ class MonomialGrowthElement(GenericGrowthElement):
         from sage.rings.integer_ring import ZZ
 
         if self.exponent == 0:
-            return "1"
+            return '1'
         elif self.exponent == 1:
             return self.parent()._var_
         elif self.exponent in ZZ:
-            return self.parent()._var_ + "^" + str(self.exponent)
+            return self.parent()._var_ + '^' + str(self.exponent)
         else:
-            return self.parent()._var_ + "^(" + str(self.exponent) + ")"
+            return self.parent()._var_ + '^(' + str(self.exponent) + ')'
 
 
     def __hash__(self):
@@ -955,7 +955,7 @@ class MonomialGrowthElement(GenericGrowthElement):
                                    self.parent()._var_)
             return pnt(raw_element=new_exponent)
         else:
-            raise NotImplementedError("Only real exponents are implemented.")
+            raise NotImplementedError('Only real exponents are implemented.')
 
 
     def is_le_one(self):
@@ -1040,13 +1040,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P3 = agg.MonomialGrowthGroup(ZZ, SR.var('x'))
             sage: P1 is P2 and P2 is P3
             True
-            sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer("xylophone", 0, 1))
+            sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
             sage: P1 is P4
             True
         """
-        if hasattr(var, "is_symbol") and var.is_symbol():
+        if hasattr(var, 'is_symbol') and var.is_symbol():
             var = repr(var)
-        elif hasattr(var, "is_gen") and var.is_gen():
+        elif hasattr(var, 'is_gen') and var.is_gen():
             var = repr(var)
         elif isinstance(var, buffer):
             var = str(var)
@@ -1076,14 +1076,14 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             True
         """
         if var is None:
-            raise ValueError("Variable for initialization required.")
+            raise ValueError('Variable for initialization required.')
         else:
             import re
-            if re.match("^[A-Za-z][A-Za-z0-9_]*$", var):
+            if re.match('^[A-Za-z][A-Za-z0-9_]*$', var):
                 self._var_ = str(var)
             else:
-                raise ValueError("Only alphanumeric strings starting with a "
-                                 "letter may be variables")
+                raise ValueError('Only alphanumeric strings starting with a '
+                                 'letter may be variables')
         super(MonomialGrowthGroup, self).\
             __init__(category=category, base=base)
         self._populate_coercion_lists_()
@@ -1092,8 +1092,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     def _repr_(self):
         r"""
         Represent the asymptotic power growth group as
-        "Asymptotic Power Growth Group in ``variable``
-        over ``base``".
+        'Asymptotic Power Growth Group in ``variable``
+        over ``base``'.
 
         INPUT:
 
@@ -1111,7 +1111,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_()
             'Asymptotic Power Growth Group in v_107 over Rational Field'
         """
-        return "Asymptotic Power Growth Group in %s over %s" \
+        return 'Asymptotic Power Growth Group in %s over %s' \
                % (self._var_, self.base())
 
 
@@ -1205,7 +1205,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         #    self.exponent = x.exponent
         #    super(MonomialGrowthElement, self).__init__(parent=parent)
         #if exponent not in RR:
-        #    raise NotImplementedError("Non-real exponents are not supported.")
+        #    raise NotImplementedError('Non-real exponents are not supported.')
         #else:
         #    self.exponent = parent.base()(exponent)
 

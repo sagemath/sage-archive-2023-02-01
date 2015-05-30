@@ -312,6 +312,7 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
+from sage.graphs.graph import Graph
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -4788,6 +4789,7 @@ cdef class Matroid(SageObject):
         # Stage 0, special cases
         # Todo: There are exceptions to this rule need to be implemented
         if self.loops() or self.coloops() or (not self.is_connected()):
+        #    print "Fail step 0"
             return False
         # Step 1: base case
         if self.rank() <= 2:
@@ -4795,38 +4797,41 @@ cdef class Matroid(SageObject):
 
         # Step 2: Find a separating B-fundamental cocircuit Y
         basis = self.basis()
+        # print "basis", basis
         separating = False
         for e in basis:
             Y = self.fundamental_cocircuit(basis, e)
             # Y is separating if M\Y is not connected
             if not self.delete(Y).is_connected():
+                # print "Y", Y
                 separating = True
                 break
         if not separating :
             return True
+
         # Step 3: Check the avoidance graph of Y
         N = self.delete(Y)
         bridges = N.components()
+        # print "N",N
+        # print "bridges", bridges
         Y_components = []
         B_segments   = []
         for B in bridges:
+            # M is a Y-component if M/ (E\(B union Y))
             M = self.contract(self.groundset().difference(B.union(Y)))
             Y_components.append(M)
-            # find a better way to compute parallel class of a Y_component
-            queue = list(M.groundset())
-            seen  = []
+            s = set(M.groundset().copy())
             parallel_classes = []
-            while len(queue)>0:
-                e = queue.pop()
-                if e in seen:
-                    continue
-                parallel_class = [e]
-                for f in queue:
+            while len(s)>0:
+                e = s.pop()
+                parallel_class = set([e])
+                for f in s:
                     if M.is_circuit([e,f]):
-                        seen.append(f)
-                        parallel_class.append(f)
+                        parallel_class.add(f)
+                s -= parallel_class
                 parallel_classes.append(parallel_class)
             B_segments.append(parallel_classes)
+        # print B_segments
         # build the avoidance graph
         d = {}
         for i in range(len(B_segments)):
@@ -4839,14 +4844,17 @@ cdef class Matroid(SageObject):
                         if Y.difference(S) in B_segments[j]:
                             avoid = True
                             break
-                    if avoid:
+                    if not avoid:
                         d[i].append(j)
         G = Graph(d);
+        # print G
         if not G.is_connected():
+        #    print "Fail Step 3"
             return False
         # Step 4: Apply algorithm recursively
         for M in Y_components:
-            if not M.is_3connected_beta(M).simplify():
+            if not M.simplify().is_3connected_beta():
+        #        print "Fail step 4"
                 return False
         return True
 

@@ -27,7 +27,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     each other, multiplied and divided, but possess no explicit
     coefficient. At this stage, just the order of magnitude shall be
     managed. In this class, only base structure is handled.
-    For a concrete realization see :class:`GrowthElementPower`.
+    For a concrete realization see :class:`MonomialGrowthElement`.
 
     INPUT:
 
@@ -189,8 +189,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         ::
 
-            sage: P_ZZ = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P_QQ = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P_ZZ.gen() == P_QQ.gen()
             True
             sage: ~P_ZZ.gen() == P_ZZ.gen()
@@ -230,7 +230,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P(raw_element=1)
             sage: e1._eq_(P.gen())
             True
@@ -275,8 +275,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         ::
 
-            sage: P_ZZ = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P_QQ = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P_ZZ.gen() <= P_QQ.gen()^2
             True
             sage: ~P_ZZ.gen() <= P_ZZ.gen()
@@ -334,7 +334,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: (~G.gen()).is_le_one()
             True
         """
@@ -347,7 +347,7 @@ class GenericGrowthGroup(
     r"""
     Class for the generic asymptotic growth group. Only base
     structure is handled here, for a concrete realization see
-    :class:`MonimialGrowthGroup`.
+    :class:`MonomialGrowthGroup`.
 
     INPUT:
 
@@ -516,7 +516,7 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: x = G.gen()
             sage: G.le(x, x^2)
             True
@@ -656,8 +656,8 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G1 = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: G2 = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: G1 = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G2 = agg.MonomialGrowthGroup(QQ, 'x')
             sage: bool(G1._coerce_map_from_(G2))
             False
             sage: bool(G2._coerce_map_from_(G1))
@@ -668,7 +668,7 @@ class GenericGrowthGroup(
                 return True
 
 
-class GrowthElementPower(GenericGrowthElement):
+class MonomialGrowthElement(GenericGrowthElement):
     r"""
     Class for the concrete realization of asymptotic growth group
     elements in the case of polynomial growth. These elements hold
@@ -689,7 +689,7 @@ class GrowthElementPower(GenericGrowthElement):
 
     INPUT:
 
-    - ``parent`` -- a :class:`MonimialGrowthGroup`, the
+    - ``parent`` -- a :class:`MonomialGrowthGroup`, the
       parent of the element.
     - ``x`` -- an expression (string, polynomial ring element,
       symbolic ring element, or the integer `1`) representing
@@ -704,7 +704,7 @@ class GrowthElementPower(GenericGrowthElement):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+        sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
         sage: e1 = P(x=1); e1
         1
         sage: e2 = P(raw_element=2); e2
@@ -721,12 +721,12 @@ class GrowthElementPower(GenericGrowthElement):
 
 #    def __init__(self, parent, exponent):
 #        r"""
-#        See :class:`GrowthElementPower` for more information.
+#        See :class:`MonomialGrowthElement` for more information.
 #
 #        EXAMPLES::
 #
 #            sage: import sage.groups.asymptotic_growth_group as agg
-#            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
+#            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
 #            sage: e1 = G.gen(); e1
 #            x
 #            sage: e1.is_idempotent()
@@ -740,7 +740,7 @@ class GrowthElementPower(GenericGrowthElement):
 #            sage: e2.is_idempotent() and e2.is_one()
 #            True
 #        """
-#        super(GrowthElementPower, self).__init__(parent=parent, raw_element=exponent)
+#        super(MonomialGrowthElement, self).__init__(parent=parent, raw_element=exponent)
 
 
     @property
@@ -764,7 +764,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P(x=1)._repr_()
             '1'
             sage: P(raw_element=5)._repr_()
@@ -800,7 +800,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: hash(P.gen())  # random
             -3234005094684624010
         """
@@ -825,7 +825,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: a = P(raw_element=2)
             sage: b = P(raw_element=3)
             sage: c = a._mul_(b); c
@@ -856,7 +856,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
             x^-2
@@ -884,7 +884,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P(raw_element=2)
             sage: e1._div_(P.gen())
             x
@@ -912,7 +912,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P.gen().__pow__(5)
             x^5
             sage: P.gen().__pow__(1/2)
@@ -926,7 +926,7 @@ class GrowthElementPower(GenericGrowthElement):
 
         from sage.rings.real_mpfr import RR
         if new_exponent in RR:
-            pnt = MonimialGrowthGroup(new_exponent.parent(),
+            pnt = MonomialGrowthGroup(new_exponent.parent(),
                                    self.parent()._var_)
             return pnt(raw_element=new_exponent)
         else:
@@ -937,7 +937,7 @@ class GrowthElementPower(GenericGrowthElement):
         r"""
         Return whether the exponent of ``self`` is less than or equal
         to the exponent of ``other`` by calling
-        :meth:`MonimialGrowthGroup.le`.
+        :meth:`MonomialGrowthGroup.le`.
 
         INPUT:
 
@@ -951,7 +951,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P.gen()
             sage: e2 = P(raw_element=2)
             sage: e1._le_(e2)
@@ -979,7 +979,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P.gen()
             sage: e1.is_le_one()
             False
@@ -989,11 +989,11 @@ class GrowthElementPower(GenericGrowthElement):
         return self.exponent <= 0
 
 
-class MonimialGrowthGroup(GenericGrowthGroup):
+class MonomialGrowthGroup(GenericGrowthGroup):
     r"""
     Class for the concrete realization of asymptotic power growth
     groups. These are the parents for the
-    :class:`GrowthElementPower` elements. These parents
+    :class:`MonomialGrowthElement` elements. These parents
     contain single monomial terms in a specified variable with
     exponents from a specified base.
 
@@ -1021,13 +1021,13 @@ class MonimialGrowthGroup(GenericGrowthGroup):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.MonimialGrowthGroup(ZZ, 'x'); P
+        sage: P = agg.MonomialGrowthGroup(ZZ, 'x'); P
         Asymptotic Power Growth Group in x over Integer Ring
     """
     # TODO: implement the cartesian product structure
 
     # enable the category framework for elements
-    Element = GrowthElementPower
+    Element = MonomialGrowthElement
 
 
     @staticmethod
@@ -1039,12 +1039,12 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P2 = agg.MonimialGrowthGroup(ZZ, PolynomialRing(ZZ, 'x').gen())
-            sage: P3 = agg.MonimialGrowthGroup(ZZ, SR.var('x'))
+            sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P2 = agg.MonomialGrowthGroup(ZZ, PolynomialRing(ZZ, 'x').gen())
+            sage: P3 = agg.MonomialGrowthGroup(ZZ, SR.var('x'))
             sage: P1 is P2 and P2 is P3
             True
-            sage: P4 = agg.MonimialGrowthGroup(ZZ, buffer("xylophone", 0, 1))
+            sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer("xylophone", 0, 1))
             sage: P1 is P4
             True
         """
@@ -1054,27 +1054,27 @@ class MonimialGrowthGroup(GenericGrowthGroup):
             var = repr(var)
         elif isinstance(var, buffer):
             var = str(var)
-        return super(MonimialGrowthGroup, cls).\
+        return super(MonomialGrowthGroup, cls).\
             __classcall__(cls, base, var, category)
 
 
     def __init__(self, base, var, category=None):
         r"""
-        For more information see :class:`MonimialGrowthGroup`.
+        For more information see :class:`MonomialGrowthGroup`.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.MonimialGrowthGroup(ZZ, 'x'); P1
+            sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x'); P1
             Asymptotic Power Growth Group in x over Integer Ring
             sage: var('n')
             n
-            sage: P2 = agg.MonimialGrowthGroup(QQ, n); P2
+            sage: P2 = agg.MonomialGrowthGroup(QQ, n); P2
             Asymptotic Power Growth Group in n over Rational Field
             sage: y = PolynomialRing(ZZ, 'y').gen()
-            sage: P3 = agg.MonimialGrowthGroup(ZZ, y); P3
+            sage: P3 = agg.MonomialGrowthGroup(ZZ, y); P3
             Asymptotic Power Growth Group in y over Integer Ring
-            sage: P4 = agg.MonimialGrowthGroup(ZZ, 'y'); P4
+            sage: P4 = agg.MonomialGrowthGroup(ZZ, 'y'); P4
             Asymptotic Power Growth Group in y over Integer Ring
             sage: P3 is P4
             True
@@ -1088,7 +1088,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
             else:
                 raise ValueError("Only alphanumeric strings starting with a "
                                  "letter may be variables")
-        super(MonimialGrowthGroup, self).\
+        super(MonomialGrowthGroup, self).\
             __init__(category=category, base=base)
         self._populate_coercion_lists_()
 
@@ -1109,9 +1109,9 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.MonimialGrowthGroup(ZZ, 'x')._repr_()
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')._repr_()
             'Asymptotic Power Growth Group in x over Integer Ring'
-            sage: agg.MonimialGrowthGroup(QQ, 'v_107')._repr_()
+            sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_()
             'Asymptotic Power Growth Group in v_107 over Rational Field'
         """
         return "Asymptotic Power Growth Group in %s over %s" \
@@ -1134,7 +1134,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: hash(P)  # random
             -8144479309627091876
         """
@@ -1163,7 +1163,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P._convert_('icecream') is None
             True
             sage: P(1)  # indirect doctest
@@ -1206,7 +1206,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         ###TODO
         #if exponent is None and x.parent() is parent:
         #    self.exponent = x.exponent
-        #    super(GrowthElementPower, self).__init__(parent=parent)
+        #    super(MonomialGrowthElement, self).__init__(parent=parent)
         #if exponent not in RR:
         #    raise NotImplementedError("Non-real exponents are not supported.")
         #else:
@@ -1228,13 +1228,13 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P_x_ZZ = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P_x_QQ = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P_x_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: bool(P_x_ZZ._coerce_map_from_(P_x_QQ))
             False
             sage: bool(P_x_QQ._coerce_map_from_(P_x_ZZ))
             True
-            sage: P_y_ZZ = agg.MonimialGrowthGroup(ZZ, 'y')
+            sage: P_y_ZZ = agg.MonomialGrowthGroup(ZZ, 'y')
             sage: bool(P_y_ZZ._coerce_map_from_(P_x_ZZ))
             False
             sage: bool(P_x_ZZ._coerce_map_from_(P_y_ZZ))
@@ -1244,7 +1244,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
             sage: bool(P_x_QQ._coerce_map_from_(P_y_ZZ))
             False
         """
-        if super(MonimialGrowthGroup, self)._coerce_map_from_(S):
+        if super(MonomialGrowthGroup, self)._coerce_map_from_(S):
             if self._var_ == S._var_:
                 return True
         # TODO: SR, PolynomialRing
@@ -1266,7 +1266,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.MonimialGrowthGroup(ZZ, 'x').gen(); e1
+            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').gen(); e1
             x
             sage: e1.exponent == 1
             True
@@ -1291,7 +1291,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P.gens()
             (x,)
         """
@@ -1314,7 +1314,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P.ngens()
             1
         """
@@ -1338,7 +1338,7 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.MonimialGrowthGroup(ZZ, 'x').one(); e1
+            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').one(); e1
             1
             sage: e1.is_idempotent()
             True

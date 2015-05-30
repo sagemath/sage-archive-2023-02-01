@@ -650,7 +650,7 @@ void function::print(const print_context & c, unsigned level) const
 	GINAC_ASSERT(serial<registered_functions().size());
 	// Dynamically dispatch on print_context type
 	const print_context_class_info *pc_info = &c.get_class_info();
-	if (serial >= py_funcs.py_get_ginac_serial()) {
+	if (serial >= static_cast<unsigned>(py_funcs.py_get_ginac_serial())) {
 		//convert arguments to a PyTuple of Expressions
 		PyObject* args = py_funcs.exvector_to_PyTuple(seq);
 
@@ -1159,8 +1159,8 @@ ex function::imag_part() const
  *  @see ex::diff */
 ex function::derivative(const symbol & s) const
 {
-	ex result;
-
+        ex result;
+        
 	/*
 	if (serial == Order_SERIAL::serial) {
 		// Order Term function only differentiates the argument
@@ -1193,7 +1193,7 @@ ex function::derivative(const symbol & s) const
 				throw(std::runtime_error("function::derivative(): python function raised exception"));
 			}
 			// convert output Expression to an ex
-			ex result = py_funcs.pyExpression_to_ex(pyresult);
+			result = py_funcs.pyExpression_to_ex(pyresult);
 			Py_DECREF(pyresult);
 			if (PyErr_Occurred()) { 
 				throw(std::runtime_error("function::derivative(): python function (pyExpression_to_ex) raised exception"));

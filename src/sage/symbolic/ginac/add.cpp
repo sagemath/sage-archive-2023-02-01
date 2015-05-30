@@ -71,11 +71,11 @@ add::add(const ex & lh, const ex & rh)
 	GINAC_ASSERT(is_canonical());
 }
 
-add::add(const exvector & v, bool hold)
+add::add(const exvector & v, bool do_hold)
 {
 	tinfo_key = &add::tinfo_static;
 	overall_coeff = _ex0;
-	construct_from_exvector(v, hold);
+	construct_from_exvector(v, do_hold);
 	GINAC_ASSERT(is_canonical());
 }
 
@@ -125,13 +125,11 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 			c.s << '(';
 	}
 
-	numeric coeff;
 	bool first = true;
 
 	const epvector & sorted_seq = get_sorted_seq();
 	// Then proceed with the remaining factors
-	auto it = sorted_seq.begin(), itend = sorted_seq.end();
-	while (it != itend) {
+	for (const auto & elem : sorted_seq) {
 		std::stringstream tstream;
 		print_context *tcontext_p;
 		if (latex) {
@@ -139,7 +137,7 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 		} else {
 			tcontext_p = new print_dflt(tstream, c.options);
 		}
-		mul(it->rest,it->coeff).print(*tcontext_p, precedence());
+		mul(elem.rest, elem.coeff).print(*tcontext_p, precedence());
 
 		if (!first) {
 			if (tstream.peek() == '-') {
@@ -152,7 +150,6 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 		}
 		tstream.get(*(c.s.rdbuf()));
 		delete tcontext_p;
-		++it;
 	}
 
 	// Finally print the "overall" numeric coefficient, if present.
@@ -202,30 +199,28 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << "(";
 	
 	// Print arguments, separated by "+" or "-"
-	auto it = seq.begin(), itend = seq.end();
 	char separator = ' ';
-	while (it != itend) {
+        for (const auto & elem : seq) {
 		
 		// If the coefficient is negative, separator is "-"
-		if (it->coeff.is_equal(_ex_1) || 
-			ex_to<numeric>(it->coeff).numer().is_equal(*_num_1_p))
+		if (elem.coeff.is_equal(_ex_1) || 
+			ex_to<numeric>(elem.coeff).numer().is_equal(*_num_1_p))
 			separator = '-';
 		c.s << separator;
-		if (it->coeff.is_equal(_ex1) || it->coeff.is_equal(_ex_1)) {
-			it->rest.print(c, precedence());
-		} else if (ex_to<numeric>(it->coeff).numer().is_equal(*_num1_p) ||
-				 ex_to<numeric>(it->coeff).numer().is_equal(*_num_1_p))
+		if (elem.coeff.is_equal(_ex1) || elem.coeff.is_equal(_ex_1)) {
+			elem.rest.print(c, precedence());
+		} else if (ex_to<numeric>(elem.coeff).numer().is_equal(*_num1_p) ||
+				 ex_to<numeric>(elem.coeff).numer().is_equal(*_num_1_p))
 		{
-			it->rest.print(c, precedence());
+			elem.rest.print(c, precedence());
 			c.s << '/';
-			ex_to<numeric>(it->coeff).denom().print(c, precedence());
+			ex_to<numeric>(elem.coeff).denom().print(c, precedence());
 		} else {
-			it->coeff.print(c, precedence());
+			elem.coeff.print(c, precedence());
 			c.s << '*';
-			it->rest.print(c, precedence());
+			elem.rest.print(c, precedence());
 		}
 		
-		++it;
 		separator = '+';
 	}
 	
@@ -240,7 +235,7 @@ void add::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << ")";
 }
 
-void add::do_print_python_repr(const print_python_repr & c, unsigned level) const
+void add::do_print_python_repr(const print_python_repr & c, unsigned) const
 {
 	c.s << class_name() << '(';
 	op(0).print(c);
@@ -270,22 +265,18 @@ bool add::info(unsigned inf) const
 		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {
-			auto i = seq.begin(), end = seq.end();
-			while (i != end) {
-				if (!(recombine_pair_to_ex(*i).info(inf)))
+			for (const auto & elem : seq) {
+				if (!(recombine_pair_to_ex(elem).info(inf)))
 					return false;
-				++i;
 			}
 			if (overall_coeff.is_zero() && (inf == info_flags::positive || inf == info_flags::posint))
 				return true;
 			return overall_coeff.info(inf);
 		}
 		case info_flags::algebraic: {
-			auto i = seq.begin(), end = seq.end();
-			while (i != end) {
-				if ((recombine_pair_to_ex(*i).info(inf)))
+                        for (const auto & elem : seq) {
+				if ((recombine_pair_to_ex(elem).info(inf)))
 					return true;
-				++i;
 			}
 			return false;
 		}
@@ -310,12 +301,10 @@ int add::degree(const ex & s) const
 		deg = 0;
 	
 	// Find maximum of degrees of individual terms
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		int cur_deg = i->rest.degree(s);
+        for (const auto & elem : seq) {
+		int cur_deg = elem.rest.degree(s);
 		if (cur_deg > deg)
 			deg = cur_deg;
-		++i;
 	}
 	return deg;
 }
@@ -327,12 +316,10 @@ int add::ldegree(const ex & s) const
 		deg = 0;
 	
 	// Find minimum of degrees of individual terms
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		int cur_deg = i->rest.ldegree(s);
+        for (const auto & elem : seq) {
+		int cur_deg = elem.rest.ldegree(s);
 		if (cur_deg < deg)
 			deg = cur_deg;
-		++i;
 	}
 	return deg;
 }
@@ -612,13 +599,13 @@ tinfo_t add::return_type_tinfo() const
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming) const
+ex add::thisexpairseq(const epvector & v, const ex & oc, bool) const
 {
 	return (new add(v,oc))->setflag(status_flags::dynallocated);
 }
 
 // Note: do_index_renaming is ignored because it makes no sense for an add.
-ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
+ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool) const
 {
 	return (new add(std::move(vp),oc))->setflag(status_flags::dynallocated);
 }

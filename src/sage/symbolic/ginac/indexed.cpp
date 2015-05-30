@@ -408,7 +408,7 @@ void indexed::validate() const
 /** Implementation of ex::diff() for an indexed object always returns 0.
  *
  *  @see ex::diff */
-ex indexed::derivative(const symbol & s) const
+ex indexed::derivative(const symbol &) const
 {
 	return _ex0;
 }
@@ -1276,7 +1276,7 @@ ex simplify_indexed(const ex & e, exvector & free_indices, exvector & dummy_indi
  *
  *  @param options Simplification options (currently unused)
  *  @return simplified expression */
-ex ex::simplify_indexed(unsigned options) const
+ex ex::simplify_indexed(unsigned) const
 {
 	exvector free_indices, dummy_indices;
 	scalar_products sp;
@@ -1291,7 +1291,7 @@ ex ex::simplify_indexed(unsigned options) const
  *  @param sp Scalar products to be replaced automatically
  *  @param options Simplification options (currently unused)
  *  @return simplified expression */
-ex ex::simplify_indexed(const scalar_products & sp, unsigned options) const
+ex ex::simplify_indexed(const scalar_products & sp, unsigned) const
 {
 	exvector free_indices, dummy_indices;
 	return GiNaC::simplify_indexed(*this, free_indices, dummy_indices, sp);
@@ -1378,12 +1378,12 @@ void scalar_products::add(const ex & v1, const ex & v2, const ex & dim, const ex
 	spm[spmapkey(v1, v2, dim)] = sp;
 }
 
-void scalar_products::add_vectors(const lst & l, const ex & dim)
+void scalar_products::add_vectors(const lst & l, const ex &)
 {
 	// Add all possible pairs of products
-	for (auto it1 = l.begin(); it1 != l.end(); ++it1)
-		for (const auto & elem : l)
-			add(*it1, elem, *it1 * elem);
+        for (const auto & elem1 : l)
+		for (const auto & elem2 : l)
+			add(elem1, elem2, elem1 * elem2);
 }
 
 void scalar_products::clear()
@@ -1426,7 +1426,7 @@ exvector get_all_dummy_indices_safely(const ex & e)
 	else if (is_a<mul>(e) || is_a<ncmul>(e)) {
 		exvector dummies;
 		exvector free_indices;
-		for (int i=0; i<e.nops(); ++i) {
+		for (unsigned i=0; i<e.nops(); ++i) {
 			exvector dummies_of_factor = get_all_dummy_indices_safely(e.op(i));
 			dummies.insert(dummies.end(), dummies_of_factor.begin(),
 				dummies_of_factor.end());
@@ -1442,7 +1442,7 @@ exvector get_all_dummy_indices_safely(const ex & e)
 	}
 	else if(is_a<add>(e)) {
 		exvector result;
-		for(int i=0; i<e.nops(); ++i) {
+		for(unsigned i=0; i<e.nops(); ++i) {
 			exvector dummies_of_term = get_all_dummy_indices_safely(e.op(i));
 			sort(dummies_of_term.begin(), dummies_of_term.end());
 			exvector new_vec;

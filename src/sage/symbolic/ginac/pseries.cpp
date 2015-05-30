@@ -90,10 +90,10 @@ pseries::pseries(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 
 	for (auto loc = first; loc < last;) {
 		ex rest;
-		ex coeff;
+		ex coef;
 		n.find_ex_by_loc(loc++, rest, sym_lst);
-		n.find_ex_by_loc(loc++, coeff, sym_lst);
-		seq.push_back(expair(rest, coeff));
+		n.find_ex_by_loc(loc++, coef, sym_lst);
+		seq.push_back(expair(rest, coef));
 	}
 
 	n.find_ex("var", var, sym_lst);
@@ -647,10 +647,9 @@ ex basic::series(const relational & r, int order, unsigned options) const
 	// do Taylor expansion
 	numeric fac = 1;
 	ex deriv = *this;
-	ex coeff = deriv.subs(r, subs_options::no_pattern);
-
-	if (!coeff.is_zero()) {
-		seq.push_back(expair(coeff, _ex0));
+	const ex co = deriv.subs(r, subs_options::no_pattern);
+	if (!co.is_zero()) {
+		seq.push_back(expair(co, _ex0));
 	}
 
 	int n;
@@ -663,9 +662,9 @@ ex basic::series(const relational & r, int order, unsigned options) const
 		if (deriv.is_zero())  // Series terminates
 			return pseries(r, seq);
 
-		coeff = deriv.subs(r, subs_options::no_pattern);
-		if (!coeff.is_zero())
-			seq.push_back(expair(fac.inverse() * coeff, n));
+		const ex coef = deriv.subs(r, subs_options::no_pattern);
+		if (!coef.is_zero())
+			seq.push_back(expair(fac.inverse() * coef, n));
 	}
 	
 	// Higher-order terms, if present
@@ -782,19 +781,17 @@ ex add::series(const relational & r, int order, unsigned options) const
 	acc = overall_coeff.series(r, order, options);
 	
 	// Add remaining terms
-	auto it = seq.begin();
-	auto itend = seq.end();
-	for (; it!=itend; ++it) {
-		ex op;
-		if (is_exactly_a<pseries>(it->rest))
-			op = it->rest;
+	for (const auto & elem : seq) {
+		ex term;
+		if (is_exactly_a<pseries>(elem.rest))
+			term = elem.rest;
 		else
-			op = it->rest.series(r, order, options);
-		if (!it->coeff.is_equal(_ex1))
-			op = ex_to<pseries>(op).mul_const(ex_to<numeric>(it->coeff));
+			term = elem.rest.series(r, order, options);
+		if (!elem.coeff.is_equal(_ex1))
+			term = ex_to<pseries>(term).mul_const(ex_to<numeric>(elem.coeff));
 		
 		// Series addition
-		acc = ex_to<pseries>(acc).add_series(ex_to<pseries>(op));
+		acc = ex_to<pseries>(acc).add_series(ex_to<pseries>(term));
 	}
 	return acc;
 }
@@ -981,13 +978,13 @@ ex mul::series(const relational & r, int order, unsigned options) const
 	for (epvector::const_iterator it=itbeg; it!=itend; ++it, ++itd) {
 
 		// do series expansion with adjusted order
-		ex op = recombine_pair_to_ex(*it).series(r, order-degsum+(*itd), options);
+		ex term = recombine_pair_to_ex(*it).series(r, order-degsum+(*itd), options);
 
 		// Series multiplication
 		if (it == itbeg)
-			acc = ex_to<pseries>(op);
+			acc = ex_to<pseries>(term);
 		else
-			acc = ex_to<pseries>(acc.mul_series(ex_to<pseries>(op)));
+			acc = ex_to<pseries>(acc.mul_series(ex_to<pseries>(term)));
 	}
 
 	return acc.mul_const(ex_to<numeric>(overall_coeff));

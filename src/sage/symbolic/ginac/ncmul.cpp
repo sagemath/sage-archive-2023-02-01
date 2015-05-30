@@ -124,7 +124,7 @@ bool ncmul::info(unsigned inf) const
 	return inherited::info(inf);
 }
 
-typedef std::vector<int> intvector;
+typedef std::vector<unsigned> intvector;
 
 ex ncmul::expand(unsigned options) const
 {
@@ -213,11 +213,8 @@ int ncmul::degree(const ex & s) const
 
 	// Sum up degrees of factors
 	int deg_sum = 0;
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		deg_sum += i->degree(s);
-		++i;
-	}
+        for (const auto & elem : seq)
+		deg_sum += elem.degree(s);
 	return deg_sum;
 }
 
@@ -228,11 +225,8 @@ int ncmul::ldegree(const ex & s) const
 
 	// Sum up degrees of factors
 	int deg_sum = 0;
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		deg_sum += i->degree(s);
-		++i;
-	}
+        for (const auto & elem : seq)
+		deg_sum += elem.degree(s);
 	return deg_sum;
 }
 
@@ -255,17 +249,15 @@ ex ncmul::coeff(const ex & s, int n) const
 		return (new ncmul(coeffseq,1))->setflag(status_flags::dynallocated);
 	}
 		 
-	auto i = seq.begin(), end = seq.end();
 	bool coeff_found = false;
-	while (i != end) {
-		ex c = i->coeff(s,n);
+        for (const auto & elem : seq) {
+		ex c = elem.coeff(s,n);
 		if (c.is_zero()) {
-			coeffseq.push_back(*i);
+			coeffseq.push_back(elem);
 		} else {
 			coeffseq.push_back(c);
 			coeff_found = true;
 		}
-		++i;
 	}
 
 	if (coeff_found) return (new ncmul(coeffseq,1))->setflag(status_flags::dynallocated);
@@ -381,11 +373,11 @@ ex ncmul::eval(int level) const
 		exvector noncommutativeseq;
 		noncommutativeseq.reserve(assocseq.size()-count_commutative);
 		size_t num = assocseq.size();
-		for (size_t i=0; i<num; ++i) {
-			if (rettypes[i]==return_types::commutative)
-				commutativeseq.push_back(assocseq[i]);
+		for (size_t ii=0; ii<num; ++ii) {
+			if (rettypes[ii]==return_types::commutative)
+				commutativeseq.push_back(assocseq[ii]);
 			else
-				noncommutativeseq.push_back(assocseq[i]);
+				noncommutativeseq.push_back(assocseq[ii]);
 		}
 		commutativeseq.push_back((new ncmul(noncommutativeseq,1))->setflag(status_flags::dynallocated));
 		return (new mul(commutativeseq))->setflag(status_flags::dynallocated);
@@ -554,24 +546,22 @@ unsigned ncmul::return_type() const
 		return return_types::commutative;
 
 	bool all_commutative = true;
-	exvector::const_iterator noncommutative_element; // point to first found nc element
 
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		unsigned rt = i->return_type();
+        for (const auto & elem : seq) {
+                ex noncommutative_element; // point to first found nc element
+		unsigned rt = elem.return_type();
 		if (rt == return_types::noncommutative_composite)
 			return rt; // one ncc -> mul also ncc
 		if ((rt == return_types::noncommutative) && (all_commutative)) {
 			// first nc element found, remember position
-			noncommutative_element = i;
+			noncommutative_element = elem;
 			all_commutative = false;
 		}
 		if ((rt == return_types::noncommutative) && (!all_commutative)) {
 			// another nc element found, compare type_infos
-			if(noncommutative_element->return_type_tinfo() != i->return_type_tinfo())
+			if(noncommutative_element.return_type_tinfo() != elem.return_type_tinfo())
 					return return_types::noncommutative_composite;
 		}
-		++i;
 	}
 	// all factors checked
 	GINAC_ASSERT(!all_commutative); // not all factors should commutate, because this is a ncmul();
@@ -584,12 +574,9 @@ tinfo_t ncmul::return_type_tinfo() const
 		return this;
 
 	// return type_info of first noncommutative element
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		if (i->return_type() == return_types::noncommutative)
-			return i->return_type_tinfo();
-		++i;
-	}
+        for (const auto & elem : seq)
+		if (elem.return_type() == return_types::noncommutative)
+			return elem.return_type_tinfo();
 
 	// no noncommutative element found, should not happen
 	return this;
@@ -607,8 +594,8 @@ tinfo_t ncmul::return_type_tinfo() const
 
 std::unique_ptr<exvector> ncmul::expandchildren(unsigned options) const
 {
-	auto cit = this->seq.begin(), end = this->seq.end();
-	while (cit != end) {
+	auto cit = this->seq.begin(), citend = this->seq.end();
+	while (cit != citend) {
 		const ex & expanded_ex = cit->expand(options);
 		if (!are_ex_trivially_equal(*cit, expanded_ex)) {
 
@@ -621,7 +608,7 @@ std::unique_ptr<exvector> ncmul::expandchildren(unsigned options) const
 			++cit;
 
 			// copy rest
-			while (cit != end) {
+			while (cit != citend) {
 				s->push_back(cit->expand(options));
 				++cit;
 			}

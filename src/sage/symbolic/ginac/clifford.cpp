@@ -338,7 +338,7 @@ struct is_not_a_clifford : public std::unary_function<ex, bool> {
 };
 
 /** Contraction of a gamma matrix with something else. */
-bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const
+bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other, exvector &) const
 {
 	GINAC_ASSERT(is_a<clifford>(*self));
 	GINAC_ASSERT(is_a<indexed>(*other));
@@ -449,7 +449,7 @@ bool diracgamma::contract_with(exvector::iterator self, exvector::iterator other
 }
 
 /** Contraction of a Clifford unit with something else. */
-bool cliffordunit::contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const
+bool cliffordunit::contract_with(exvector::iterator self, exvector::iterator other, exvector &) const
 {
 	GINAC_ASSERT(is_a<clifford>(*self));
 	GINAC_ASSERT(is_a<indexed>(*other));
@@ -1219,20 +1219,22 @@ static ex get_clifford_comp(const ex & e, const ex & c)
 	else if (is_a<ncmul>(e) || is_a<mul>(e)) {
 		// find a Clifford unit with the same metric, delete it and substitute its index
 		size_t ind = e.nops() + 1;
-		for (size_t j = 0; j < e.nops(); j++) 
-			if (is_a<clifford>(e.op(j)) && ex_to<clifford>(c).same_metric(e.op(j)))
+		for (size_t j = 0; j < e.nops(); j++) {
+			if (is_a<clifford>(e.op(j)) && ex_to<clifford>(c).same_metric(e.op(j))) {
 				if (ind > e.nops()) 
 					ind = j;
 				else 
 					throw(std::invalid_argument("get_clifford_comp(): expression is a Clifford multi-vector"));
+                        }
+                }
 		if (ind < e.nops()) {
 			ex S = 1;
 			bool same_value_index, found_dummy;
 			same_value_index = ( ex_to<idx>(e.op(ind).op(1)).is_numeric()
 								 &&  (ival == ex_to<numeric>(ex_to<idx>(e.op(ind).op(1)).get_value()).to_int()) );
 			found_dummy = same_value_index;
-			for(size_t j=0; j < e.nops(); j++)
-				if (j != ind) 
+			for(size_t j=0; j < e.nops(); j++) {
+				if (j != ind) {
 					if (same_value_index) 
 						S = S * e.op(j);
 					else {
@@ -1252,19 +1254,22 @@ static ex get_clifford_comp(const ex & e, const ex & c)
 						} else
 							S = S * e.op(j);
 					}
+                                }
 			return (found_dummy ? S : 0);
+                        }
 		} else
 			throw(std::invalid_argument("get_clifford_comp(): expression is not a Clifford vector to the given units"));
 	} else if (e.is_zero()) 
 		return e;
-	else if (is_a<clifford>(e) && ex_to<clifford>(e).same_metric(c))
-		if ( ex_to<idx>(e.op(1)).is_numeric() &&
-			 (ival != ex_to<numeric>(ex_to<idx>(e.op(1)).get_value()).to_int()) )
+	else {
+                if (is_a<clifford>(e) and ex_to<clifford>(e).same_metric(c)
+                and ex_to<idx>(e.op(1)).is_numeric()
+                and (ival != ex_to<numeric>(ex_to<idx>(e.op(1)).get_value()).to_int()) )
 			return 0;
 		else 
 			return 1;
-	else
-		throw(std::invalid_argument("get_clifford_comp(): expression is not usable as a Clifford vector"));
+        }
+        throw(std::invalid_argument("get_clifford_comp(): expression is not usable as a Clifford vector"));
 }
 
 

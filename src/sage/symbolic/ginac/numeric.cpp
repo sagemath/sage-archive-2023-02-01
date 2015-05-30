@@ -404,10 +404,10 @@ numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static) {
 /** Constructor for rational numerics a/b.
  *
  *  @exception overflow_error (division by zero) */
-numeric::numeric(long numer, long denom) : basic(&numeric::tinfo_static) {
-        if (!denom)
+numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
+        if (!den)
                 throw std::overflow_error("numeric::div(): division by zero");
-        const numeric &value = numeric(numer) / numeric(denom);
+        const numeric &value = numeric(num) / numeric(den);
         v = value.v;
         t = value.t;
         if (t == PYOBJECT)
@@ -846,27 +846,27 @@ const numeric numeric::div(const numeric &other) const {
 
 /** Numerical exponentiation.  Raises *this to the power given as argument and
  *  returns result as a numeric object. */
-const numeric numeric::power(const numeric &exp) const {
+const numeric numeric::power(const numeric &exponent) const {
         verbose("pow");
-        if (t != exp.t) {
+        if (t != exponent.t) {
                 numeric a, b;
-                coerce(a, b, *this, exp);
+                coerce(a, b, *this, exponent);
                 return pow(a, b);
         }
         switch (t) {
                 case DOUBLE:
-                        return ::pow(v._double, exp.v._double);
+                        return ::pow(v._double, exponent.v._double);
                 case LONG:
                         // TODO: change to use GMP!
-                        return ::pow((double) v._long, (double) exp.v._long);
+                        return ::pow((double) v._long, (double) exponent.v._long);
                 case PYOBJECT:
                         if PyInt_Check(v._pyobject) {
                                 PyObject* o = Integer(PyInt_AsLong(v._pyobject));
-                                PyObject* r = PyNumber_Power(o, exp.v._pyobject, Py_None);
+                                PyObject* r = PyNumber_Power(o, exponent.v._pyobject, Py_None);
                                 Py_DECREF(o);
                                 return r;
                         }
-                        return PyNumber_Power(v._pyobject, exp.v._pyobject, Py_None);
+                        return PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None);
                 default:
                         stub("invalid type: pow numeric");
         }
@@ -1024,13 +1024,13 @@ int numeric::csgn() const {
                         if (is_real()) {
                                 result = Pynac_PyObj_Cmp(v._pyobject, ZERO, "csgn");
                         } else {
-                                PyObject *t = py_funcs.py_real(v._pyobject);
-                                result = Pynac_PyObj_Cmp(t, ZERO, "csgn");
-                                Py_DECREF(t);
+                                PyObject *tmp = py_funcs.py_real(v._pyobject);
+                                result = Pynac_PyObj_Cmp(tmp, ZERO, "csgn");
+                                Py_DECREF(tmp);
                                 if (result == 0) {
-                                        t = py_funcs.py_imag(v._pyobject);
-                                        result = Pynac_PyObj_Cmp(t, ZERO, "csgn");
-                                        Py_DECREF(t);
+                                        tmp = py_funcs.py_imag(v._pyobject);
+                                        result = Pynac_PyObj_Cmp(tmp, ZERO, "csgn");
+                                        Py_DECREF(tmp);
                                 }
                         }
                         return result;

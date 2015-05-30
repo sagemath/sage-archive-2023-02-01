@@ -370,11 +370,12 @@ ex tensepsilon::eval_indexed(const basic & i) const
 				const ex & x = i.op(j);
 				if (!is_a<varidx>(x))
 					throw(std::runtime_error("indices of epsilon tensor in Minkowski space must be of type varidx"));
-				if (ex_to<varidx>(x).is_covariant())
+				if (ex_to<varidx>(x).is_covariant()) {
 					if (ex_to<idx>(x).get_value().is_zero())
 						sign = (pos_sig ? -sign : sign);
 					else
 						sign = (pos_sig ? sign : -sign);
+                                        }
 			}
 		}
 

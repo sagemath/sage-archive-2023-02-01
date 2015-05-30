@@ -48,6 +48,7 @@ private:
 	const tinfo_t& wildcard_id() const;
 
 public:
+	virtual ~print_order() {}
 	bool operator() (const ex &lh, const ex &rh) const;
 	int compare(const ex &lh, const ex &rh) const;
 
@@ -81,7 +82,7 @@ protected:
 	// fderivative objects
 	int compare_same_type_fderivative(const fderivative &lh, const fderivative &rh) const;
 
-	int generic_compare(const tinfo_t typeid_lh, const tinfo_t typeid_rh) const
+	int generic_compare(const tinfo_t, const tinfo_t) const
 		{ return 1; }
 };
 

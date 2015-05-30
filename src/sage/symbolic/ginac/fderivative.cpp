@@ -84,11 +84,8 @@ fderivative::fderivative(const archive_node &n, lst &sym_lst) : inherited(n, sym
 void fderivative::archive(archive_node &n) const
 {
 	inherited::archive(n);
-	auto i = parameter_set.begin(), end = parameter_set.end();
-	while (i != end) {
-		n.add_unsigned("param", *i);
-		++i;
-	}
+        for (const auto & elem : parameter_set)
+		n.add_unsigned("param", elem);
 }
 
 DEFAULT_UNARCHIVE(fderivative)
@@ -103,7 +100,7 @@ void fderivative::print(const print_context & c, unsigned level) const
 	basic::print(c, level);
 }
 
-void fderivative::do_print(const print_context & c, unsigned level) const
+void fderivative::do_print(const print_context & c, unsigned) const
 {
 	//convert paramset to a python list
 	PyObject* params = py_funcs.paramset_to_PyTuple(parameter_set);
@@ -137,12 +134,12 @@ void fderivative::do_print(const print_context & c, unsigned level) const
 	*/
 }
 
-void fderivative::do_print_csrc(const print_csrc & c, unsigned level) const
+void fderivative::do_print_csrc(const print_csrc & c, unsigned) const
 {
 	c.s << "D_";
-	auto i = parameter_set.begin(), end = parameter_set.end();
-	--end;
-	while (i != end)
+	auto i = parameter_set.begin(), iend = parameter_set.end();
+	--iend;
+	while (i != iend)
 		c.s << *i++ << "_";
 	c.s << *i << "_" << registered_functions()[serial].name;
 	printseq(c, "(", ',', ")", exprseq::precedence(), function::precedence());
@@ -155,9 +152,9 @@ void fderivative::do_print_tree(const print_tree & c, unsigned level) const
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << ", nops=" << nops()
 	    << ", params=";
-	auto i = parameter_set.begin(), end = parameter_set.end();
-	--end;
-	while (i != end)
+	auto i = parameter_set.begin(), iend = parameter_set.end();
+	--iend;
+	while (i != iend)
 		c.s << *i++ << ",";
 	c.s << *i << std::endl;
 	for (auto & elem : seq)

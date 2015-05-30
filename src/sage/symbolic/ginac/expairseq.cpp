@@ -154,11 +154,11 @@ expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst
 	seq.reserve((last-first)/2);
 
 	for (auto loc = first; loc < last;) {
-		ex rest;
-		ex coeff;
-		n.find_ex_by_loc(loc++, rest, sym_lst);
-		n.find_ex_by_loc(loc++, coeff, sym_lst);
-		seq.push_back(expair(rest, coeff));
+		ex lrest;
+		ex lcoeff;
+		n.find_ex_by_loc(loc++, lrest, sym_lst);
+		n.find_ex_by_loc(loc++, lcoeff, sym_lst);
+		seq.push_back(expair(lrest, lcoeff));
 	}
 
 	n.find_ex("overall_coeff", overall_coeff, sym_lst);
@@ -708,7 +708,7 @@ ex expairseq::thisexpairseq(std::unique_ptr<epvector> vp, const ex &oc, bool do_
 	return expairseq(std::move(vp), oc, do_index_renaming);
 }
 
-void expairseq::printpair(const print_context & c, const expair & p, unsigned upper_precedence) const
+void expairseq::printpair(const print_context & c, const expair & p, unsigned) const
 {
 	c.s << "[[";
 	p.rest.print(c, precedence());
@@ -773,7 +773,7 @@ ex expairseq::recombine_pair_to_ex(const expair &p) const
 	return lst(p.rest,p.coeff);
 }
 
-bool expairseq::expair_needs_further_processing(epp it)
+bool expairseq::expair_needs_further_processing(epp)
 {
 #if EXPAIRSEQ_USE_HASHTAB
 	//#  error "FIXME: expair_needs_further_processing not yet implemented for hashtabs, sorry. A.F."
@@ -808,7 +808,7 @@ void expairseq::combine_overall_coeff(const ex &c1, const ex &c2)
 	                add_dyn(ex_to<numeric>(c1).mul(ex_to<numeric>(c2)));
 }
 
-bool expairseq::can_make_flat(const expair &p) const
+bool expairseq::can_make_flat(const expair &) const
 {
 	return true;
 }
@@ -1060,18 +1060,18 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 	}
 }
 
-void expairseq::construct_from_exvector(const exvector &v, bool hold)
+void expairseq::construct_from_exvector(const exvector &v, bool do_hold)
 {
 	// simplifications: +(a,+(b,c),d) -> +(a,b,c,d) (associativity)
 	//                  +(d,b,c,a) -> +(a,b,c,d) (canonicalization)
 	//                  +(...,x,*(x,c1),*(x,c2)) -> +(...,*(x,1+c1+c2)) (c1, c2 numeric)
 	//                  (same for (+,*) -> (*,^)
 
-	make_flat(v, hold);
+	make_flat(v, do_hold);
 #if EXPAIRSEQ_USE_HASHTAB
 	combine_same_terms();
 #else
-	if (!hold) {
+	if (!do_hold) {
 		canonicalize();
 		combine_same_terms_sorted_seq();
 	}
@@ -1096,7 +1096,7 @@ void expairseq::construct_from_epvector(const epvector &v, bool do_index_renamin
 
 /** Combine this expairseq with argument exvector.
  *  It cares for associativity as well as for special handling of numerics. */
-void expairseq::make_flat(const exvector &v, bool hold)
+void expairseq::make_flat(const exvector &v, bool do_hold)
 {
 	exvector::const_iterator cit;
 	
@@ -1106,7 +1106,7 @@ void expairseq::make_flat(const exvector &v, bool hold)
 	int noperands = 0;
 	bool do_idx_rename = false;
 	
-	if (!hold) {
+	if (!do_hold) {
 		cit = v.begin();
 		while (cit!=v.end()) {
 			if (ex_to<basic>(*cit).tinfo()==this->tinfo()) {
@@ -1128,7 +1128,7 @@ void expairseq::make_flat(const exvector &v, bool hold)
 	make_flat_inserter mf(v, do_idx_rename);
 	cit = v.begin();
 	while (cit!=v.end()) {
-		if (ex_to<basic>(*cit).tinfo()==this->tinfo() && !hold) {
+		if (ex_to<basic>(*cit).tinfo()==this->tinfo() && !do_hold) {
 			ex newfactor = mf.handle_factor(*cit, _ex1);
 			const expairseq &subseqref = ex_to<expairseq>(newfactor);
 			combine_overall_coeff(subseqref.overall_coeff);

@@ -401,10 +401,8 @@ protected:
 	{
 		STLT cont;
 		this->reserve(cont, nops());
-		auto b = begin();
-		auto e = end();
-		for(auto i=b; i!=e; ++i)
-			cont.push_back(i->real_part());
+		for (const auto & elem : this->seq)
+			cont.push_back(elem.real_part());
 		return thiscontainer(cont);
 	}
 
@@ -412,10 +410,8 @@ protected:
 	{
 		STLT cont;
 		this->reserve(cont, nops());
-		auto b = begin();
-		auto e = end();
-		for(auto i=b; i!=e; ++i)
-			cont.push_back(i->imag_part());
+		for (const auto & elem : this->seq)
+			cont.push_back(elem.imag_part());
 		return thiscontainer(cont);
 	}
 
@@ -508,15 +504,12 @@ template <template <class T, class = std::allocator<T> > class C>
 void container<C>::archive(archive_node &n) const
 {
 	inherited::archive(n);
-	auto i = this->seq.begin(), end = this->seq.end();
-	while (i != end) {
-		n.add_ex("seq", *i);
-		++i;
-	}
+	for (const auto & elem : this->seq)
+		n.add_ex("seq", elem);
 }
 
 template <template <class T, class = std::allocator<T> > class C>
-void container<C>::do_print(const print_context & c, unsigned level) const
+void container<C>::do_print(const print_context & c, unsigned) const
 {
 	// always print brackets around seq, ignore upper_precedence
 	printseq(c, get_open_delim(), ',', get_close_delim(), precedence(), precedence()+1);
@@ -529,10 +522,8 @@ void container<C>::do_print_tree(const print_tree & c, unsigned level) const
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 	    << ", nops=" << nops()
 	    << std::endl;
-	auto i = this->seq.begin(), end = this->seq.end();
-	while (i != end) {
-		i->print(c, level + c.delta_indent);
-		++i;
+	for (const auto & elem : this->seq) {
+		elem.print(c, level + c.delta_indent);
 	}
 	c.s << std::string(level + c.delta_indent,' ') << "=====" << std::endl;
 }
@@ -544,7 +535,7 @@ void container<C>::do_print_python(const print_python & c, unsigned level) const
 }
 
 template <template <class T, class = std::allocator<T> > class C>
-void container<C>::do_print_python_repr(const print_python_repr & c, unsigned level) const
+void container<C>::do_print_python_repr(const print_python_repr & c, unsigned) const
 {
 	c.s << class_name();
 	printseq(c, "(", ',', ")", precedence(), precedence()+1);
@@ -772,10 +763,8 @@ typename container<C>::STLT container<C>::evalchildren(int level) const
 	this->reserve(s, this->seq.size());
 
 	--level;
-	auto it = this->seq.begin(), itend = this->seq.end();
-	while (it != itend) {
-		s.push_back(it->eval(level));
-		++it;
+	for (const auto & elem : this->seq) {
+		s.push_back(elem.eval(level));
 	}
 
 	return s;
@@ -788,8 +777,8 @@ std::unique_ptr<typename container<C>::STLT> container<C>::subschildren(const ex
 	// returns a pointer to a newly created STLT otherwise
 	// (and relinquishes responsibility for the STLT)
 
-	auto cit = this->seq.begin(), end = this->seq.end();
-	while (cit != end) {
+	auto cit = this->seq.begin(), cend = this->seq.end();
+	while (cit != cend) {
 		const ex & subsed_ex = cit->subs(m, options);
 		if (!are_ex_trivially_equal(*cit, subsed_ex)) {
 
@@ -802,7 +791,7 @@ std::unique_ptr<typename container<C>::STLT> container<C>::subschildren(const ex
 			++cit;
 
 			// copy rest
-			while (cit != end) {
+			while (cit != cend) {
 				s->push_back(cit->subs(m, options));
 				++cit;
 			}

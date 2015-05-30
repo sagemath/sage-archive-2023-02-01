@@ -222,7 +222,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 	else if (typeid_rh == function_id())
 		//print functions before fderivatives, after anything else
 		return 1;
-	else if (typeid_lh == mul_id())
+	else if (typeid_lh == mul_id()) {
 		if (typeid_rh == power_id())
 			return compare_mul_power(
 					static_cast<const mul&>(lh),
@@ -236,7 +236,8 @@ int print_order::compare(const basic &lh, const basic &rh) const
 					static_cast<const add&>(rh),
 					static_cast<const mul&>(lh));
 		else return generic_compare(typeid_lh, typeid_rh);
-	else if (typeid_lh == add_id())
+                }
+        else if (typeid_lh == add_id()) {
 		if (typeid_rh == power_id())
 			return compare_add_power(
 					static_cast<const add&>(lh),
@@ -250,7 +251,8 @@ int print_order::compare(const basic &lh, const basic &rh) const
 					static_cast<const add&>(lh),
 					static_cast<const mul&>(rh));
 		else return generic_compare(typeid_lh, typeid_rh);
-	else if (typeid_lh == power_id())
+                }
+	else if (typeid_lh == power_id()) {
 		if (typeid_rh == mul_id())
 			return -compare_mul_power(
 					static_cast<const mul&>(rh),
@@ -264,7 +266,8 @@ int print_order::compare(const basic &lh, const basic &rh) const
 					static_cast<const power&>(lh),
 					static_cast<const symbol&>(rh));
 		else return generic_compare(typeid_lh, typeid_rh);
-	else if (typeid_lh == symbol_id())
+                }
+	else if (typeid_lh == symbol_id()) {
 		if (typeid_rh == mul_id())
 			return -compare_mul_symbol(
 					static_cast<const mul&>(rh),
@@ -278,6 +281,7 @@ int print_order::compare(const basic &lh, const basic &rh) const
 					static_cast<const power&>(rh),
 					static_cast<const symbol&>(lh));
 		else return generic_compare(typeid_lh, typeid_rh);
+                }
         return generic_compare(typeid_lh, typeid_rh);
 }
 

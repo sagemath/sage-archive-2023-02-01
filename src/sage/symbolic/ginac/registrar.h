@@ -130,12 +130,12 @@ public: \
 	classname(); \
 	virtual classname * duplicate() const { return new classname(*this); } \
 	\
-	virtual void accept(GiNaC::visitor & v) const \
+	virtual void accept(GiNaC::visitor & vis) const \
 	{ \
-		if (visitor *p = dynamic_cast<visitor *>(&v)) \
+		if (visitor *p = dynamic_cast<visitor *>(&vis)) \
 			p->visit(*this); \
 		else \
-			inherited::accept(v); \
+			inherited::accept(vis); \
 	} \
 protected: \
 	virtual int compare_same_type(const GiNaC::basic & other) const; \

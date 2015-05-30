@@ -94,12 +94,12 @@ const basic & basic::operator=(const basic & other)
 //////////
 
 /** Construct object from archive_node. */
-basic::basic(const archive_node &n, lst &sym_lst) : flags(0)
+basic::basic(const archive_node &n, lst&) : flags(0)
 {
 	// Reconstruct tinfo_key from class name
-	std::string class_name;
-	if (n.find_string("class", class_name))
-		tinfo_key = find_tinfo_key(class_name);
+	std::string found_class_name;
+	if (n.find_string("class", found_class_name))
+		tinfo_key = find_tinfo_key(found_class_name);
 	else
 		throw (std::runtime_error("archive node contains no class name"));
 }
@@ -177,7 +177,7 @@ next_context:
 }
 
 /** Default output to stream. */
-void basic::do_print(const print_context & c, unsigned level) const
+void basic::do_print(const print_context & c, unsigned) const
 {
 	c.s << "[" << class_name() << " object]";
 }
@@ -195,7 +195,7 @@ void basic::do_print_tree(const print_tree & c, unsigned level) const
 }
 
 /** Python parsable output to stream. */
-void basic::do_print_python_repr(const print_python_repr & c, unsigned level) const
+void basic::do_print_python_repr(const print_python_repr & c, unsigned) const
 {
 	c.s << class_name() << "()";
 }
@@ -230,7 +230,7 @@ unsigned basic::precedence() const
 /** Information about the object.
  *
  *  @see class info_flags */
-bool basic::info(unsigned inf) const
+bool basic::info(unsigned) const
 {
 	// all possible properties are false for basic objects
 	return false;
@@ -246,13 +246,13 @@ size_t basic::nops() const
 }
 
 /** Return operand/member at position i. */
-ex basic::op(size_t i) const
+ex basic::op(size_t) const
 {
 	throw(std::range_error(std::string("basic::op(): ") + class_name() + std::string(" has no operands")));
 }
 
 /** Return modifyable operand/member at position i. */
-ex & basic::let_op(size_t i)
+ex & basic::let_op(size_t)
 {
 	ensure_if_modifiable();
 	throw(std::range_error(std::string("basic::let_op(): ") + class_name() + std::string(" has no operands")));
@@ -422,7 +422,7 @@ ex basic::collect(const ex & s, bool distributed) const
 }
 
 /** Perform automatic non-interruptive term rewriting rules. */
-ex basic::eval(int level) const
+ex basic::eval(int) const
 {
 	// There is nothing to do for basic objects:
 	return hold();
@@ -528,7 +528,7 @@ ex basic::scalar_mul_indexed(const ex & self, const numeric & other) const
  *  @param v The complete vector of factors
  *  @return true if the contraction was successful, false otherwise
  *  @see ex::simplify_indexed() */
-bool basic::contract_with(exvector::iterator self, exvector::iterator other, exvector & v) const
+bool basic::contract_with(exvector::iterator, exvector::iterator, exvector&) const
 {
 	// Do nothing
 	return false;
@@ -758,7 +758,7 @@ bool basic::is_equal_same_type(const basic & other) const
  *  automatically used instead of match_same_type() if nops() == 0.
  *
  *  @see basic::match */
-bool basic::match_same_type(const basic & other) const
+bool basic::match_same_type(const basic &) const
 {
 	// The default is to only consider subexpressions, but not any other
 	// attributes

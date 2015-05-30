@@ -748,18 +748,16 @@ ex matrix::determinant(unsigned algo) const
 	bool numeric_flag = true;
 	bool normal_flag = false;
 	unsigned sparse_count = 0;  // counts non-zero elements
-	auto r = m.begin(), rend = m.end();
-	while (r != rend) {
-		if (!r->info(info_flags::numeric))
+        for (const auto elem : m) {
+		if (elem.info(info_flags::numeric))
 			numeric_flag = false;
 		exmap srl;  // symbol replacement list
-		ex rtest = r->to_rational(srl);
+		ex rtest = elem.to_rational(srl);
 		if (!rtest.is_zero())
 			++sparse_count;
 		if (!rtest.info(info_flags::crational_polynomial) &&
 			 rtest.info(info_flags::rational_function))
 			normal_flag = true;
-		++r;
 	}
 	
 	// Here is the heuristics in case this routine has to decide:
@@ -835,8 +833,8 @@ ex matrix::determinant(unsigned algo) const
 			std::vector<uintpair> c_zeros;  // number of zeros in column
 			for (unsigned c=0; c<col; ++c) {
 				unsigned acc = 0;
-				for (unsigned r=0; r<row; ++r)
-					if (m[r*col+c].is_zero())
+				for (unsigned rr=0; rr<row; ++rr)
+					if (m[rr*col+c].is_zero())
 						++acc;
 				c_zeros.push_back(uintpair(acc,c));
 			}
@@ -848,11 +846,10 @@ ex matrix::determinant(unsigned algo) const
 			int sign = permutation_sign(pre_sort_test.begin(), pre_sort_test.end());
 			exvector result(row*col);  // represents sorted matrix
 			unsigned c = 0;
-			for (std::vector<unsigned>::const_iterator i=pre_sort.begin();
-				 i!=pre_sort.end();
-				 ++i,++c) {
-				for (unsigned r=0; r<row; ++r)
-					result[r*col+c] = m[r*col+(*i)];
+                        for (const auto & elem : pre_sort) {
+				for (unsigned rr=0; rr<row; ++rr)
+					result[rr*col + c] = m[rr*col + elem];
+                                ++c;
 			}
 			
 			if (normal_flag)
@@ -904,12 +901,11 @@ ex matrix::charpoly(const ex & lambda) const
 		throw (std::logic_error("matrix::charpoly(): matrix not square"));
 	
 	bool numeric_flag = true;
-	auto r = m.begin(), rend = m.end();
-	while (r!=rend && numeric_flag==true) {
-		if (!r->info(info_flags::numeric))
+        for (const auto & elem : m)
+		if (!elem.info(info_flags::numeric)) {
 			numeric_flag = false;
-		++r;
-	}
+                        break;
+                }
 	
 	// The pure numeric case is traditionally rather common.  Hence, it is
 	// trapped and we use Leverrier's algorithm which goes as row^3 for
@@ -996,12 +992,12 @@ matrix matrix::solve(const matrix & vars,
                      const matrix & rhs,
                      unsigned algo) const
 {
-	const unsigned m = this->rows();
+	const unsigned mm = this->rows();
 	const unsigned n = this->cols();
 	const unsigned p = rhs.cols();
 	
 	// syntax checks    
-	if ((rhs.rows() != m) || (vars.rows() != n) || (vars.col != p))
+	if ((rhs.rows() != mm) || (vars.rows() != n) || (vars.col != p))
 		throw (std::logic_error("matrix::solve(): incompatible matrices"));
 	for (unsigned ro=0; ro<n; ++ro)
 		for (unsigned co=0; co<p; ++co)
@@ -1009,8 +1005,8 @@ matrix matrix::solve(const matrix & vars,
 				throw (std::invalid_argument("matrix::solve(): 1st argument must be matrix of symbols"));
 	
 	// build the augmented matrix of *this with rhs attached to the right
-	matrix aug(m,n+p);
-	for (unsigned r=0; r<m; ++r) {
+	matrix aug(mm,n+p);
+	for (unsigned r=0; r<mm; ++r) {
 		for (unsigned c=0; c<n; ++c)
 			aug.m[r*(n+p)+c] = this->m[r*n+c];
 		for (unsigned c=0; c<p; ++c)
@@ -1019,12 +1015,11 @@ matrix matrix::solve(const matrix & vars,
 	
 	// Gather some statistical information about the augmented matrix:
 	bool numeric_flag = true;
-	exvector::const_iterator r = aug.m.begin(), rend = aug.m.end();
-	while (r!=rend && numeric_flag==true) {
-		if (!r->info(info_flags::numeric))
+        for (const auto & elem : aug.m)
+		if (!elem.info(info_flags::numeric)) {
 			numeric_flag = false;
-		++r;
-	}
+                        break;
+                }
 	
 	// Here is the heuristics in case this routine has to decide:
 	if (algo == solve_algo::automatic) {
@@ -1032,7 +1027,7 @@ matrix matrix::solve(const matrix & vars,
 		algo = solve_algo::bareiss;
 		// For m<3, Bareiss elimination is equivalent to division free
 		// elimination but has more logistic overhead
-		if (m<3)
+		if (mm<3)
 			algo = solve_algo::divfree;
 		// This overrides any prior decisions.
 		if (numeric_flag)
@@ -1056,7 +1051,7 @@ matrix matrix::solve(const matrix & vars,
 	matrix sol(n,p);
 	for (unsigned co=0; co<p; ++co) {
 		unsigned last_assigned_sol = n+1;
-		for (int r=m-1; r>=0; --r) {
+		for (int r=mm-1; r>=0; --r) {
 			unsigned fnz = 1;    // first non-zero in row
 			while ((fnz<=n) && (aug.m[r*(n+p)+(fnz-1)].is_zero()))
 				++fnz;
@@ -1245,13 +1240,13 @@ ex matrix::determinant_minor() const
 int matrix::gauss_elimination(const bool det)
 {
 	ensure_if_modifiable();
-	const unsigned m = this->rows();
+	const unsigned mm = this->rows();
 	const unsigned n = this->cols();
-	GINAC_ASSERT(!det || n==m);
+	GINAC_ASSERT(!det || n==mm);
 	int sign = 1;
 	
 	unsigned r0 = 0;
-	for (unsigned c0=0; c0<n && r0<m-1; ++c0) {
+	for (unsigned c0=0; c0<n && r0<mm-1; ++c0) {
 		int indx = pivot(r0, c0, true);
 		if (indx == -1) {
 			sign = 0;
@@ -1261,7 +1256,7 @@ int matrix::gauss_elimination(const bool det)
 		if (indx>=0) {
 			if (indx > 0)
 				sign = -sign;
-			for (unsigned r2=r0+1; r2<m; ++r2) {
+			for (unsigned r2=r0+1; r2<mm; ++r2) {
 				if (!this->m[r2*n+c0].is_zero()) {
 					// yes, there is something to do in this row
 					ex piv = this->m[r2*n+c0] / this->m[r0*n+c0];
@@ -1284,7 +1279,7 @@ int matrix::gauss_elimination(const bool det)
 		}
 	}
 	// clear remaining rows
-	for (unsigned r=r0+1; r<m; ++r) {
+	for (unsigned r=r0+1; r<mm; ++r) {
 		for (unsigned c=0; c<n; ++c)
 			this->m[r*n+c] = _ex0;
 	}
@@ -1304,13 +1299,13 @@ int matrix::gauss_elimination(const bool det)
 int matrix::division_free_elimination(const bool det)
 {
 	ensure_if_modifiable();
-	const unsigned m = this->rows();
+	const unsigned mm = this->rows();
 	const unsigned n = this->cols();
-	GINAC_ASSERT(!det || n==m);
+	GINAC_ASSERT(!det || n==mm);
 	int sign = 1;
 	
 	unsigned r0 = 0;
-	for (unsigned c0=0; c0<n && r0<m-1; ++c0) {
+	for (unsigned c0=0; c0<n && r0<mm-1; ++c0) {
 		int indx = pivot(r0, c0, true);
 		if (indx==-1) {
 			sign = 0;
@@ -1320,7 +1315,7 @@ int matrix::division_free_elimination(const bool det)
 		if (indx>=0) {
 			if (indx>0)
 				sign = -sign;
-			for (unsigned r2=r0+1; r2<m; ++r2) {
+			for (unsigned r2=r0+1; r2<mm; ++r2) {
 				for (unsigned c=c0+1; c<n; ++c)
 					this->m[r2*n+c] = (this->m[r0*n+c0]*this->m[r2*n+c] - this->m[r2*n+c0]*this->m[r0*n+c]).expand();
 				// fill up left hand side with zeros
@@ -1336,7 +1331,7 @@ int matrix::division_free_elimination(const bool det)
 		}
 	}
 	// clear remaining rows
-	for (unsigned r=r0+1; r<m; ++r) {
+	for (unsigned r=r0+1; r<mm; ++r) {
 		for (unsigned c=0; c<n; ++c)
 			this->m[r*n+c] = _ex0;
 	}
@@ -1382,11 +1377,11 @@ int matrix::fraction_free_elimination(const bool det)
 	//     D{m[k-1](k-1,k-1)}.
 	
 	ensure_if_modifiable();
-	const unsigned m = this->rows();
+	const unsigned mm = this->rows();
 	const unsigned n = this->cols();
-	GINAC_ASSERT(!det || n==m);
+	GINAC_ASSERT(!det || n==mm);
 	int sign = 1;
-	if (m==1)
+	if (mm==1)
 		return 1;
 	ex divisor_n = 1;
 	ex divisor_d = 1;
@@ -1401,7 +1396,7 @@ int matrix::fraction_free_elimination(const bool det)
 	// need GCDs) since the elements of *this might be unnormalized, which
 	// makes things more complicated than they need to be.
 	matrix tmp_n(*this);
-	matrix tmp_d(m,n);  // for denominators, if needed
+	matrix tmp_d(mm,n);  // for denominators, if needed
 	exmap srl;  // symbol replacement list
 	exvector::const_iterator cit = this->m.begin(), citend = this->m.end();
 	auto tmp_n_it = tmp_n.m.begin(), tmp_d_it = tmp_d.m.begin();
@@ -1413,22 +1408,22 @@ int matrix::fraction_free_elimination(const bool det)
 	}
 	
 	unsigned r0 = 0;
-	for (unsigned c0=0; c0<n && r0<m-1; ++c0) {
+	for (unsigned c0=0; c0<n && r0<mm-1; ++c0) {
 		// When trying to find a pivot, we should try a bit harder than expand().
 		// Searching the first non-zero element in-place here instead of calling
 		// pivot() allows us to do no more substitutions and back-substitutions
 		// than are actually necessary.
 		int indx = r0;
-		while ((indx<m) &&
+		while ((static_cast<unsigned>(indx)<mm) &&
 		       (tmp_n[indx*n+c0].subs(srl, subs_options::no_pattern).expand().is_zero()))
 			++indx;
-		if (indx==m) {
+		if (static_cast<unsigned> (indx)==mm) {
 			// all elements in column c0 below row r0 vanish
 			sign = 0;
 			if (det)
 				return 0;
 		} else {
-			if (indx>r0) {
+			if (static_cast<unsigned>(indx)>r0) {
 				// Matrix needs pivoting, swap rows r0 and indx of tmp_n and tmp_d.
 				sign = -sign;
 				for (unsigned c=c0; c<n; ++c) {
@@ -1436,7 +1431,7 @@ int matrix::fraction_free_elimination(const bool det)
 					tmp_d.m[n*indx+c].swap(tmp_d.m[n*r0+c]);
 				}
 			}
-			for (unsigned r2=r0+1; r2<m; ++r2) {
+			for (unsigned r2=r0+1; r2<mm; ++r2) {
 				for (unsigned c=c0+1; c<n; ++c) {
 					dividend_n = (tmp_n.m[r0*n+c0]*tmp_n.m[r2*n+c]*
 					              tmp_d.m[r2*n+c0]*tmp_d.m[r0*n+c]
@@ -1454,7 +1449,7 @@ int matrix::fraction_free_elimination(const bool det)
 				for (unsigned c=r0; c<=c0; ++c)
 					tmp_n.m[r2*n+c] = _ex0;
 			}
-			if (c0<n && r0<m-1) {
+			if (c0<n && r0<mm-1) {
 				// compute next iteration's divisor
 				divisor_n = tmp_n.m[r0*n+c0].expand();
 				divisor_d = tmp_d.m[r0*n+c0].expand();
@@ -1470,7 +1465,7 @@ int matrix::fraction_free_elimination(const bool det)
 		}
 	}
 	// clear remaining rows
-	for (unsigned r=r0+1; r<m; ++r) {
+	for (unsigned r=r0+1; r<mm; ++r) {
 		for (unsigned c=0; c<n; ++c)
 			tmp_n.m[r*n+c] = _ex0;
 	}

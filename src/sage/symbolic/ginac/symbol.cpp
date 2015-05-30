@@ -77,57 +77,57 @@ possymbol::possymbol()
 
 // symbol
 
-symbol::symbol(std::string  initname, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+symbol::symbol(std::string  initname, unsigned a_domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(a_domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(std::string  initname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+symbol::symbol(std::string  initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(default_TeX_name()), domain(a_domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(std::string  initname, std::string  texname, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
+symbol::symbol(std::string  initname, std::string  texname, unsigned a_domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(a_domain), ret_type(return_types::commutative), ret_type_tinfo(&symbol::tinfo_static)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-symbol::symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t rtt, unsigned domain)
- : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(domain), ret_type(rt), ret_type_tinfo(rtt)
+symbol::symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : inherited(&symbol::tinfo_static), serial(next_serial++), name(std::move(initname)), TeX_name(std::move(texname)), domain(a_domain), ret_type(rt), ret_type_tinfo(rtt)
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 // realsymbol
 	
-realsymbol::realsymbol(const std::string & initname, unsigned domain)
- : symbol(initname, domain) { }
+realsymbol::realsymbol(const std::string & initname, unsigned a_domain)
+ : symbol(initname, a_domain) { }
 
-realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned domain)
- : symbol(initname, texname, domain) { }
+realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned a_domain)
+ : symbol(initname, texname, a_domain) { }
 
-realsymbol::realsymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain)
- : symbol(initname, rt, rtt, domain) { }
+realsymbol::realsymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : symbol(initname, rt, rtt, a_domain) { }
 
-realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain)
- : symbol(initname, texname, rt, rtt, domain) { }
+realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : symbol(initname, texname, rt, rtt, a_domain) { }
 
 // possymbol
 	
-possymbol::possymbol(const std::string & initname, unsigned domain)
- : symbol(initname, domain) { }
+possymbol::possymbol(const std::string & initname, unsigned a_domain)
+ : symbol(initname, a_domain) { }
 
-possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned domain)
- : symbol(initname, texname, domain) { }
+possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned a_domain)
+ : symbol(initname, texname, a_domain) { }
 
-possymbol::possymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain)
- : symbol(initname, rt, rtt, domain) { }
+possymbol::possymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : symbol(initname, rt, rtt, a_domain) { }
 
-possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain)
- : symbol(initname, texname, rt, rtt, domain) { }
+possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
+ : symbol(initname, texname, rt, rtt, a_domain) { }
 
 //////////
 // archiving

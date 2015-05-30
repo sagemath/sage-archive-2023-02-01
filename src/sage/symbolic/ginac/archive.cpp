@@ -83,18 +83,14 @@ ex archive::unarchive_ex(const lst &sym_lst, const char *name) const
 	// Find root node
 	std::string name_string = name;
 	archive_atom id = atomize(name_string);
-	auto i = exprs.begin(), iend = exprs.end();
-	while (i != iend) {
-		if (i->name == id)
-			goto found;
-		i++;
+        for (const auto & elem : exprs) {
+		if (elem.name == id) {
+                        // Recursively unarchive all nodes, starting at the root node
+                        lst sym_lst_copy = sym_lst;
+                        return nodes[elem.root].unarchive(sym_lst_copy);
+                }
 	}
 	throw (std::runtime_error("expression with name '" + name_string + "' not found in archive"));
-
-found:
-	// Recursively unarchive all nodes, starting at the root node
-	lst sym_lst_copy = sym_lst;
-	return nodes[i->root].unarchive(sym_lst_copy);
 }
 
 ex archive::unarchive_ex(const lst &sym_lst, unsigned index) const
@@ -402,17 +398,15 @@ void archive_node::add_ex(const std::string &name, const ex &value)
 bool archive_node::find_bool(const std::string &name, bool &ret, unsigned index) const
 {
 	archive_atom name_atom = a.atomize(name);
-	auto i = props.begin(), iend = props.end();
 	unsigned found_index = 0;
-	while (i != iend) {
-		if (i->type == PTYPE_BOOL && i->name == name_atom) {
+	for (const auto & elem : props) {
+		if (elem.type == PTYPE_BOOL && elem.name == name_atom) {
 			if (found_index == index) {
-				ret = i->value;
+				ret = elem.value;
 				return true;
 			}
 			found_index++;
 		}
-		i++;
 	}
 	return false;
 }
@@ -420,17 +414,15 @@ bool archive_node::find_bool(const std::string &name, bool &ret, unsigned index)
 bool archive_node::find_unsigned(const std::string &name, unsigned &ret, unsigned index) const
 {
 	archive_atom name_atom = a.atomize(name);
-	auto i = props.begin(), iend = props.end();
 	unsigned found_index = 0;
-	while (i != iend) {
-		if (i->type == PTYPE_UNSIGNED && i->name == name_atom) {
+	for (const auto & elem : props) {
+		if (elem.type == PTYPE_UNSIGNED && elem.name == name_atom) {
 			if (found_index == index) {
-				ret = i->value;
+				ret = elem.value;
 				return true;
 			}
 			found_index++;
 		}
-		i++;
 	}
 	return false;
 }
@@ -438,17 +430,15 @@ bool archive_node::find_unsigned(const std::string &name, unsigned &ret, unsigne
 bool archive_node::find_string(const std::string &name, std::string &ret, unsigned index) const
 {
 	archive_atom name_atom = a.atomize(name);
-	auto i = props.begin(), iend = props.end();
 	unsigned found_index = 0;
-	while (i != iend) {
-		if (i->type == PTYPE_STRING && i->name == name_atom) {
+        for (const auto & elem : props) {
+		if (elem.type == PTYPE_STRING && elem.name == name_atom) {
 			if (found_index == index) {
-				ret = a.unatomize(i->value);
+				ret = a.unatomize(elem.value);
 				return true;
 			}
 			found_index++;
 		}
-		i++;
 	}
 	return false;
 }
@@ -462,17 +452,15 @@ void archive_node::find_ex_by_loc(archive_node_cit loc, ex &ret, lst &sym_lst)
 bool archive_node::find_ex(const std::string &name, ex &ret, lst &sym_lst, unsigned index) const
 {
 	archive_atom name_atom = a.atomize(name);
-	auto i = props.begin(), iend = props.end();
 	unsigned found_index = 0;
-	while (i != iend) {
-		if (i->type == PTYPE_NODE && i->name == name_atom) {
+        for (const auto & elem : props) {
+		if (elem.type == PTYPE_NODE && elem.name == name_atom) {
 			if (found_index == index) {
-				ret = a.get_node(i->value).unarchive(sym_lst);
+				ret = a.get_node(elem.value).unarchive(sym_lst);
 				return true;
 			}
 			found_index++;
 		}
-		i++;
 	}
 	return false;
 }
@@ -480,15 +468,13 @@ bool archive_node::find_ex(const std::string &name, ex &ret, lst &sym_lst, unsig
 const archive_node &archive_node::find_ex_node(const std::string &name, unsigned index) const
 {
 	archive_atom name_atom = a.atomize(name);
-	auto i = props.begin(), iend = props.end();
 	unsigned found_index = 0;
-	while (i != iend) {
-		if (i->type == PTYPE_NODE && i->name == name_atom) {
+        for (const auto & elem : props) {
+		if (elem.type == PTYPE_NODE && elem.name == name_atom) {
 			if (found_index == index)
-				return a.get_node(i->value);
+				return a.get_node(elem.value);
 			found_index++;
 		}
-		i++;
 	}
 	throw (std::runtime_error("property with name '" + name + "' not found in archive node"));
 }
@@ -497,24 +483,20 @@ const archive_node &archive_node::find_ex_node(const std::string &name, unsigned
 void archive_node::get_properties(propinfovector &v) const
 {
 	v.clear();
-	auto i = props.begin(), iend = props.end();
-	while (i != iend) {
-		property_type type = i->type;
-		std::string name = a.unatomize(i->name);
+        for (const auto & elem : props) {
+		property_type type = elem.type;
+		std::string name = a.unatomize(elem.name);
 
-		auto a = v.begin(), aend = v.end();
 		bool found = false;
-		while (a != aend) {
-			if (a->type == type && a->name == name) {
-				a->count++;
+                for (auto & velem : v) {
+			if (velem.type == type && velem.name == name) {
+				velem.count++;
 				found = true;
 				break;
 			}
-			++a;
 		}
 		if (!found)
 			v.push_back(property_info(type, name));
-		i++;
 	}	
 }
 
@@ -569,11 +551,10 @@ void archive::printraw(std::ostream &os) const
 	// Dump atoms
 	os << "Atoms:\n";
 	{
-		std::vector<std::string>::const_iterator i = atoms.begin(), iend = atoms.end();
 		archive_atom id = 0;
-		while (i != iend) {
-			os << " " << id << " " << *i << std::endl;
-			i++; id++;
+                for (const auto & elem : atoms) {
+			os << " " << id << " " << elem << std::endl;
+			id++;
 		}
 	}
 	os << std::endl;
@@ -581,11 +562,10 @@ void archive::printraw(std::ostream &os) const
 	// Dump expressions
 	os << "Expressions:\n";
 	{
-		auto i = exprs.begin(), iend = exprs.end();
 		unsigned index = 0;
-		while (i != iend) {
-			os << " " << index << " \"" << unatomize(i->name) << "\" root node " << i->root << std::endl;
-			i++; index++;
+                for (const auto & elem : exprs) {
+			os << " " << index << " \"" << unatomize(elem.name) << "\" root node " << elem.root << std::endl;
+			index++;
 		}
 	}
 	os << std::endl;
@@ -593,12 +573,11 @@ void archive::printraw(std::ostream &os) const
 	// Dump nodes
 	os << "Nodes:\n";
 	{
-		auto i = nodes.begin(), iend = nodes.end();
 		archive_node_id id = 0;
-		while (i != iend) {
+                for (const auto & elem : nodes) {
 			os << " " << id << " ";
-			i->printraw(os);
-			i++; id++;
+			elem.printraw(os);
+			id++;
 		}
 	}
 }
@@ -613,18 +592,16 @@ void archive_node::printraw(std::ostream &os) const
 		os << "\n";
 
 	// Dump properties
-	auto i = props.begin(), iend = props.end();
-	while (i != iend) {
+        for (const auto & elem : props) {
 		os << "  ";
-		switch (i->type) {
+		switch (elem.type) {
 			case PTYPE_BOOL: os << "bool"; break;
 			case PTYPE_UNSIGNED: os << "unsigned"; break;
 			case PTYPE_STRING: os << "string"; break;
 			case PTYPE_NODE: os << "node"; break;
 			default: os << "<unknown>"; break;
 		}
-		os << " \"" << a.unatomize(i->name) << "\" " << i->value << std::endl;
-		i++;
+		os << " \"" << a.unatomize(elem.name) << "\" " << elem.value << std::endl;
 	}
 }
 

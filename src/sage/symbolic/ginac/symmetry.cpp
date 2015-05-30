@@ -160,7 +160,6 @@ int symmetry::compare_same_type(const basic & other) const
 		return 1;
 	if (this_size < that_size)
 		return -1;
-	typedef std::set<unsigned>::const_iterator set_it;
 	auto end = indices.end();
 	for (auto i=indices.begin(),j=othersymm.indices.begin(); i!=end; ++i,++j) {
 		if(*i < *j)

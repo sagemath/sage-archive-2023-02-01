@@ -949,14 +949,14 @@ ex ex::content(const ex &x) const
 	ex c = e.integer_content();
 	ex r = e / c;
 	int deg = r.degree(x);
-	ex lcoeff = r.coeff(x, deg);
-	if (lcoeff.info(info_flags::integer))
+	ex lcoef = r.coeff(x, deg);
+	if (lcoef.info(info_flags::integer))
 		return c;
 
 	// GCD of all coefficients
 	int ldeg = r.ldegree(x);
 	if (deg == ldeg)
-		return lcoeff * c / lcoeff.unit(x);
+		return lcoef * c / lcoef.unit(x);
 	ex cont = _ex0;
 	for (int i=ldeg; i<=deg; i++)
 		cont = gcd(r.coeff(x, i), cont, nullptr, nullptr, false);
@@ -1217,14 +1217,14 @@ ex add::smod(const numeric &xi) const
 	auto itend = seq.end();
 	while (it != itend) {
 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
-		numeric coeff = GiNaC::smod(ex_to<numeric>(it->coeff), xi);
-		if (!coeff.is_zero())
-			newseq.push_back(expair(it->rest, coeff));
+		numeric num_coeff = GiNaC::smod(ex_to<numeric>(it->coeff), xi);
+		if (!num_coeff.is_zero())
+			newseq.push_back(expair(it->rest, num_coeff));
 		it++;
 	}
 	GINAC_ASSERT(is_exactly_a<numeric>(overall_coeff));
-	numeric coeff = GiNaC::smod(ex_to<numeric>(overall_coeff), xi);
-	return (new add(newseq,coeff))->setflag(status_flags::dynallocated);
+	numeric num_coeff = GiNaC::smod(ex_to<numeric>(overall_coeff), xi);
+	return (new add(newseq, num_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex mul::smod(const numeric &xi) const

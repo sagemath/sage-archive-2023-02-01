@@ -79,11 +79,11 @@ mul::mul(const ex & lh, const ex & rh)
 	GINAC_ASSERT(is_canonical());
 }
 
-mul::mul(const exvector & v, bool hold)
+mul::mul(const exvector & v, bool do_hold)
 {
 	tinfo_key = &mul::tinfo_static;
 	overall_coeff = _ex1;
-	construct_from_exvector(v, hold);
+	construct_from_exvector(v, do_hold);
 	GINAC_ASSERT(is_canonical());
 }
 
@@ -138,7 +138,7 @@ DEFAULT_ARCHIVING(mul)
 void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		const char *mul_sym, bool latex) const
 {
-	const numeric &coeff = ex_to<numeric>(coeff_ex);
+	const numeric & num_coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
 	print_context* tcontext_p;
 	if (latex)
@@ -146,7 +146,7 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 	else
 		tcontext_p = new print_dflt(tstream, c.options);
 	//print_context tcontext(tstream, c.options);
-	coeff.print(*tcontext_p, 0);
+	num_coeff.print(*tcontext_p, 0);
 	std::string coeffstr = tstream.str();
 
 	bool parenthesis =((coeffstr.find(' ') != std::string::npos && !latex)||
@@ -155,9 +155,9 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		//(coeffstr.find('/') != std::string::npos) ||
 		//(coeffstr.find('*') != std::string::npos) ||
 		//(coeffstr.find('^') != std::string::npos));
-	if (coeff.is_integer() &&
-                coeff.is_equal(*_num_1_p) &&
-                !coeff.is_parent_pos_char())
+	if (num_coeff.is_integer() &&
+                num_coeff.is_equal(*_num_1_p) &&
+                !num_coeff.is_parent_pos_char())
 		c.s<<"-";
 	else if (parenthesis && coeffstr[0] == '-') {
 		// We want to move the '-' out of the parenthesis if it is
@@ -170,14 +170,14 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		else
 			c.s<<"(";
 		tstream.str("");
-		coeff.mul(*_num_1_p).print(*tcontext_p, 0);
+		num_coeff.mul(*_num_1_p).print(*tcontext_p, 0);
 		c.s<<tstream.str();
 		if (latex)
 			c.s<<"\\right)";
 		else
 			c.s<<")";
 		c.s << mul_sym;
-	} else if (!coeff.is_integer() || !coeff.is_equal(*_num1_p)) {
+	} else if (!num_coeff.is_integer() || !num_coeff.is_equal(*_num1_p)) {
 		if (parenthesis) {
 			if (latex)
 				c.s << "\\left(";
@@ -291,10 +291,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 			} else {
 				std::stringstream tstream;
 				print_context* tcontext_p;
-				if (latex)
-					tcontext_p = new print_latex(tstream, c.options);
-				else
-					tcontext_p = new print_dflt(tstream, c.options);
+                                tcontext_p = new print_latex(tstream, c.options);
 				coeff_numer.print(*tcontext_p, 0);
 				if (tstream.peek() == '-') {
 					c.s<<"-";
@@ -703,14 +700,14 @@ ex mul::eval(int level) const
 	// handle infinity and handle exp(a)*exp(b) -> exp(a+b) and
 	unsigned exp_count = 0;
 	for (auto i = seq.begin(); i != seq.end(); i++) {
-		const numeric& coeff = ex_to<numeric>(i->coeff);
+		const numeric& num_coeff = ex_to<numeric>(i->coeff);
 		if (unlikely(is_exactly_a<infinity>(i->rest)))
 			return eval_infinity(i);
 		if (unlikely(is_ex_the_function(i->rest, exp) and
-			     coeff.is_integer())) {
+			     num_coeff.is_integer())) {
 			exp_count++;
-			if (exp_count>1 or not coeff.is_equal(*_num1_p) or
-                                not coeff.is_integer())
+			if (exp_count>1 or not num_coeff.is_equal(*_num1_p) or
+                                not num_coeff.is_integer())
 				return eval_exponentials();
 		}
 	}
@@ -842,13 +839,13 @@ ex mul::eval_exponentials() const
 	std::unique_ptr<epvector> s(new epvector);
 	s->reserve(seq.size());
 
-	for (auto i = seq.begin(); i != seq.end(); i++) {
-		const numeric & coeff = ex_to<numeric>(i->coeff);
-		const bool simplifyable_exp = is_ex_the_function(i->rest, exp) and coeff.is_integer();
+	for (const auto & elem : seq) {
+		const numeric & num_coeff = ex_to<numeric>(elem.coeff);
+		const bool simplifyable_exp = is_ex_the_function(elem.rest, exp) and num_coeff.is_integer();
 		if (likely(not simplifyable_exp))
-			s->push_back(*i);
+			s->push_back(elem);
 		else
-			exp_arg += i->rest.op(0) * coeff;
+			exp_arg += elem.rest.op(0) * num_coeff;
 	}
 
 	ex new_exp = exp(exp_arg);
@@ -1040,7 +1037,7 @@ bool tryfactsubs(const ex & origfactor, const ex & patternfactor, int & nummatch
   * is true for factors that have been matched by the current match.
   */
 bool algebraic_match_mul_with_mul(const mul &e, const ex &pat, lst &repls,
-		int factor, int &nummatches, const std::vector<bool> &subsed,
+		unsigned factor, int &nummatches, const std::vector<bool> &subsed,
 		std::vector<bool> &matched)
 {
 	GINAC_ASSERT(subsed.size() == e.nops());

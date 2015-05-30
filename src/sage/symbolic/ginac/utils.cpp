@@ -35,8 +35,8 @@ const int version_micro = GINACLIB_MICRO_VERSION;
 
 
 /** ctor for pole_error exception class. */
-pole_error::pole_error(const std::string& what_arg, int degree)
-	: domain_error(what_arg), deg(degree) { }
+pole_error::pole_error(const std::string& what_arg, int a_degree)
+	: domain_error(what_arg), deg(a_degree) { }
 
 /** Return the degree of the pole_error exception class. */
 int pole_error::degree() const

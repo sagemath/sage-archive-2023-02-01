@@ -465,16 +465,16 @@ ex power::eval(int level) const
 	
 	bool basis_is_numerical = false;
 	bool exponent_is_numerical = false;
-	const numeric *num_basis;
-	const numeric *num_exponent;
+	numeric num_basis;
+	numeric num_exponent;
 	
 	if (is_exactly_a<numeric>(ebasis)) {
 		basis_is_numerical = true;
-		num_basis = &ex_to<numeric>(ebasis);
+		num_basis = ex_to<numeric>(ebasis);
 	}
 	if (is_exactly_a<numeric>(eexponent)) {
 		exponent_is_numerical = true;
-		num_exponent = &ex_to<numeric>(eexponent);
+		num_exponent = ex_to<numeric>(eexponent);
 	}
 
 	// ^(\infty, x)
@@ -486,11 +486,12 @@ ex power::eval(int level) const
 			throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
 		if (eexponent.info(info_flags::negative))
 			return _ex0;
-		if (eexponent.info(info_flags::positive))
+		if (eexponent.info(info_flags::positive)) {
 			if (basis_inf.is_unsigned_infinity())
 				return UnsignedInfinity;
 			else
 				return mul(pow(basis_inf.get_direction(), eexponent), Infinity);
+                }
 		throw(std::domain_error("power::eval(): pow(Infinity, c)"
 					" for constant of undetermined sign is not defined."));
 	}
@@ -504,11 +505,12 @@ ex power::eval(int level) const
 			throw(std::domain_error("power::eval(): pow(f(x), infinity) is not defined."));
 		// x^(c*oo) --> (x^c)^(+oo)
 		const ex abs_base = abs(pow(ebasis, exp_inf.get_direction()));
-		if (abs_base > _ex1) 
+		if (abs_base > _ex1) {
 			if (ebasis.info(info_flags::positive))
 				return Infinity;
 			else
 				return UnsignedInfinity;
+                        }
 		if (abs_base < _ex1) return _ex0;
 		if (abs_base == _ex1)
 			throw(std::domain_error("power::eval(): pow(1, Infinity) is not defined."));
@@ -519,7 +521,7 @@ ex power::eval(int level) const
 	// ^(x,0) -> 1  (0^0 also handled here)
 	if (eexponent.is_zero() && 
 		!(basis_is_numerical && 
-			num_basis->is_parent_pos_char())) {
+			num_basis.is_parent_pos_char())) {
 		return _ex1;
 	}
 	
@@ -529,9 +531,9 @@ ex power::eval(int level) const
 
 	// ^(0,c1) -> 0 or exception  (depending on real value of c1)
 	if (ebasis.is_zero() && exponent_is_numerical) {
-		if ((num_exponent->real()).is_zero())
+		if ((num_exponent.real()).is_zero())
 			throw (std::domain_error("power::eval(): pow(0,I) is undefined"));
-		else if ((num_exponent->real()).is_negative())
+		else if ((num_exponent.real()).is_negative())
 			throw (pole_error("power::eval(): division by zero",1));
 		else
 			return _ex0;
@@ -553,18 +555,18 @@ ex power::eval(int level) const
 		// ^(c1,c2) -> c1^c2  (c1, c2 numeric(),
 		// except if c1,c2 are rational, but c1^c2 is not)
 		if (basis_is_numerical) {
-			const bool basis_is_crational = num_basis->is_crational();
-                        const bool exponent_is_rational = num_exponent->is_rational();
-			const bool exponent_is_crational = exponent_is_rational || num_exponent->is_crational();
+			const bool basis_is_crational = num_basis.is_crational();
+                        const bool exponent_is_rational = num_exponent.is_rational();
+			const bool exponent_is_crational = exponent_is_rational || num_exponent.is_crational();
 			if (!basis_is_crational || !exponent_is_crational) {
 				// return a plain float
-				return (new numeric(num_basis->power(*num_exponent)))->setflag(status_flags::dynallocated |
+				return (new numeric(num_basis.power(num_exponent)))->setflag(status_flags::dynallocated |
 				                                                               status_flags::evaluated |
 				                                                               status_flags::expanded);
 			}
 
 			if (exponent_is_rational) {
-				const numeric res = num_basis->power(*num_exponent);
+				const numeric res = num_basis.power(num_exponent);
 				if (res.is_crational()) {
 					return res;
 				}
@@ -573,8 +575,8 @@ ex power::eval(int level) const
 
 			// ^(c1,n/m) -> *(c1^q,c1^(n/m-q)), 0<(n/m-q)<1, q integer
 			if (basis_is_crational && exponent_is_rational) {
-				const numeric n = num_exponent->numer();
-				const numeric m = num_exponent->denom();
+				const numeric n = num_exponent.numer();
+				const numeric m = num_exponent.denom();
 				numeric r;
 				numeric q = iquo(n, m, r);
 				if (r.is_negative()) {
@@ -582,12 +584,12 @@ ex power::eval(int level) const
 					--q;
 				}
 				if (q.is_zero()) {  // the exponent was in the allowed range 0<(n/m)<1
-					if (num_basis->is_rational()) {
+					if (num_basis.is_rational()) {
 						// call rational_power_parts
 						// for a^b return c,d such that a^b = c*d^b
-						PyObject* basis = num_basis->to_pyobject();
-						PyObject* exponent = num_exponent->to_pyobject();
-						PyObject* restuple = py_funcs.py_rational_power_parts(basis, exponent);
+						PyObject* basis_py = num_basis.to_pyobject();
+						PyObject* exponent_py = num_exponent.to_pyobject();
+						PyObject* restuple = py_funcs.py_rational_power_parts(basis_py, exponent_py);
 						if(!restuple) {
 							throw(std::runtime_error("power::eval, error in rational_power_parts"));
 						}
@@ -598,8 +600,8 @@ ex power::eval(int level) const
 						if (not ppower_equals_one)
 							result = (new mul(result, ppower))->setflag(status_flags::dynallocated | status_flags::evaluated);
 						Py_DECREF(restuple);
-						Py_DECREF(basis);
-						Py_DECREF(exponent);
+						Py_DECREF(basis_py);
+						Py_DECREF(exponent_py);
 						return result;
 					}
 					return this->hold();
@@ -607,14 +609,14 @@ ex power::eval(int level) const
 					// if r == 0, the following else clause causes the power
 					// constructor to be called again with the same parameter
 					// leading to an infinite loop
-					return num_basis->power(q);
+					return num_basis.power(q);
 				} else {
 					// assemble resulting product, but allowing for a re-evaluation,
 					// because otherwise we'll end up with something like
 					//    (7/8)^(4/3)  ->  7/8*(1/2*7^(1/3))
 					// instead of 7/16*7^(1/3).
-					ex prod = power(*num_basis,r.div(m));
-					return prod*power(*num_basis,q);
+					ex prod = power(num_basis, r.div(m));
+					return prod * power(num_basis, q);
 				}
 			}
 		}
@@ -629,18 +631,18 @@ ex power::eval(int level) const
 			if (is_exactly_a<numeric>(sub_exponent)) {
 				const numeric & num_sub_exponent = ex_to<numeric>(sub_exponent);
 				GINAC_ASSERT(num_sub_exponent!=numeric(1));
-				if (num_exponent->is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative() 
-						|| (num_sub_exponent == *_num_1_p && num_exponent->is_positive())) {
-					return power(sub_basis,num_sub_exponent.mul(*num_exponent));
+				if (num_exponent.is_integer() || (abs(num_sub_exponent) - (*_num1_p)).is_negative() 
+						|| (num_sub_exponent == *_num_1_p && num_exponent.is_positive())) {
+					return power(sub_basis,num_sub_exponent.mul(num_exponent));
 				}
 			}
 		}
 	
-		if (num_exponent->is_integer()) {
+		if (num_exponent.is_integer()) {
                         
                         // ^(*(x,y,z),c1) -> *(x^c1,y^c1,z^c1) (c1 integer)
                         if (is_exactly_a<mul>(ebasis)) {
-                                return expand_mul(ex_to<mul>(ebasis), *num_exponent, 0);
+                                return expand_mul(ex_to<mul>(ebasis), num_exponent, 0);
                         }
 
                         // (2*x + 6*y)^(-4) -> 1/16*(x + 3*y)^(-4)
@@ -657,19 +659,19 @@ ex power::eval(int level) const
 
                                 if (canonicalizable && (icont != *_num1_p)) {
                                         const add& addref = ex_to<add>(ebasis);
-                                        auto  addp = new add(addref);
-                                        addp->setflag(status_flags::dynallocated);
-                                        addp->clearflag(status_flags::hash_calculated);
-                                        addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
-                                        addp->seq_sorted.resize(0);
-                                        for (auto & elem : addp->seq)
+                                        add newadd = addref;
+                                        newadd.setflag(status_flags::dynallocated);
+                                        newadd.clearflag(status_flags::hash_calculated);
+                                        newadd.overall_coeff = ex_to<numeric>(newadd.overall_coeff).div_dyn(icont);
+                                        newadd.seq_sorted.resize(0);
+                                        for (auto & elem : newadd.seq)
                                                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
 
-                                        const numeric c = icont.power(*num_exponent);
+                                        const numeric c = icont.power(num_exponent);
                                         if (likely(c != *_num1_p))
-                                                return (new mul(power(*addp, *num_exponent), c))->setflag(status_flags::dynallocated);
+                                                return (new mul(power(newadd, num_exponent), c))->setflag(status_flags::dynallocated);
                                         else
-                                                return power(*addp, *num_exponent);
+                                                return power(newadd, num_exponent);
                                 }
                         }
                 }
@@ -677,7 +679,7 @@ ex power::eval(int level) const
 		// ^(*(...,x;c1),c2) -> *(^(*(...,x;1),c2),c1^c2)  (c1, c2 numeric(), c1>0)
 		// ^(*(...,x;c1),c2) -> *(^(*(...,x;-1),c2),(-c1)^c2)  (c1, c2 numeric(), c1<0)
 		if (is_exactly_a<mul>(ebasis)) {
-			GINAC_ASSERT(!num_exponent->is_integer()); // should have been handled above
+			GINAC_ASSERT(!num_exponent.is_integer()); // should have been handled above
 			const mul & mulref = ex_to<mul>(ebasis);
 			if (!mulref.overall_coeff.is_equal(_ex1)) {
 				const numeric & num_coeff = ex_to<numeric>(mulref.overall_coeff);
@@ -690,7 +692,7 @@ ex power::eval(int level) const
 						mulp->clearflag(status_flags::hash_calculated);
 						mulp->seq_sorted.resize(0);
 						return (new mul(power(*mulp,exponent),
-						                power(num_coeff,*num_exponent)))->setflag(status_flags::dynallocated);
+						                power(num_coeff, num_exponent)))->setflag(status_flags::dynallocated);
 					} else {
 						GINAC_ASSERT(num_coeff.compare(*_num0_p)<0);
 						if (!num_coeff.is_equal(*_num_1_p)) {
@@ -700,8 +702,8 @@ ex power::eval(int level) const
 							mulp->clearflag(status_flags::evaluated);
 							mulp->clearflag(status_flags::hash_calculated);
 							mulp->seq_sorted.resize(0);
-							return (new mul(power(*mulp,exponent),
-							                power(abs(num_coeff),*num_exponent)))->setflag(status_flags::dynallocated);
+							return (new mul(power(*mulp, exponent),
+							                power(abs(num_coeff), num_exponent)))->setflag(status_flags::dynallocated);
 						}
 					}
 				}
@@ -710,9 +712,9 @@ ex power::eval(int level) const
 
 		// ^(nc,c1) -> ncmul(nc,nc,...) (c1 positive integer, unless nc is a matrix)
 		if (ebasis.return_type() != return_types::commutative &&
-                    num_exponent->is_pos_integer() &&
+                    num_exponent.is_pos_integer() &&
                     !is_a<matrix>(ebasis)) {
-			return ncmul(exvector(num_exponent->to_int(), ebasis), true);
+			return ncmul(exvector(num_exponent.to_int(), ebasis), true);
 		}
 	}
 	
@@ -970,19 +972,19 @@ ex power::expand(unsigned options) const
 		}
 
 		// take care on the numeric coefficient
-		ex coeff=(possign? _ex1 : _ex_1);
+		ex coef = (possign? _ex1 : _ex_1);
 		if (m.overall_coeff.info(info_flags::positive) && m.overall_coeff != _ex1)
 			prodseq.push_back(power(m.overall_coeff, exponent));
 		else if (m.overall_coeff.info(info_flags::negative) && m.overall_coeff != _ex_1)
 			prodseq.push_back(power(-m.overall_coeff, exponent));
 		else
-			coeff *= m.overall_coeff;
+			coef *= m.overall_coeff;
 
 		// If positive/negative factors are found, then extract them.
 		// In either case we set a flag to avoid the second run on a part
 		// which does not have positive/negative terms.
 		if (prodseq.size() > 0) {
-			ex newbasis = coeff*mul(powseq);
+			ex newbasis = coef*mul(powseq);
 			ex_to<basic>(newbasis).setflag(status_flags::purely_indefinite);
 			return ((new mul(prodseq))->setflag(status_flags::dynallocated)*(new power(newbasis, exponent))->setflag(status_flags::dynallocated).expand(options)).expand(options);
 		} else
@@ -1076,7 +1078,6 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 	intvector k(m-1);
 	intvector k_cum(m-1); // k_cum[l]:=sum(i=0,l,k[l]);
 	intvector upper_limit(m-1);
-	int l;
 
 	for (size_t l=0; l<m-1; ++l) {
 		k[l] = 0;
@@ -1087,7 +1088,7 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 	while (true) {
 		exvector term;
 		term.reserve(m+1);
-		for (l=0; l<m-1; ++l) {
+		for (size_t l=0; l<m-1; ++l) {
 			const ex & b = a.op(l);
 			GINAC_ASSERT(!is_exactly_a<add>(b));
 			GINAC_ASSERT(!is_exactly_a<power>(b) ||
@@ -1102,7 +1103,7 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 				term.push_back(power(b,k[l]));
 		}
 
-		const ex & b = a.op(l);
+		const ex & b = a.op(m-1);
 		GINAC_ASSERT(!is_exactly_a<add>(b));
 		GINAC_ASSERT(!is_exactly_a<power>(b) ||
 		             !is_exactly_a<numeric>(ex_to<power>(b).exponent) ||
@@ -1117,7 +1118,7 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 
 
 		numeric f = py_funcs.py_binomial_int(n,k[0]);
-		for (l=1; l<m-1; ++l)
+		for (size_t l=1; l<m-1; ++l)
 		  f *= py_funcs.py_binomial_int(n-k_cum[l-1], k[l]);
 
 		term.push_back(f);
@@ -1125,7 +1126,7 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 		result.push_back(ex((new mul(term))->setflag(status_flags::dynallocated)).expand(options));
 
 		// increment k[]
-		l = m-2;
+		int l = m-2;
 		while ((l>=0) && ((++k[l])>upper_limit[l])) {
 			k[l] = 0;
 			--l;

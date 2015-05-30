@@ -309,7 +309,11 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         # Handle all the legacy cruft. This branch can be deleted once
         # we get rid of old-style spkgs
-        echo "Attempting to get on-line info for package $PKG_NAME"
+        if [ $INFO -eq 0 ]; then
+            echo "Attempting to download package $PKG_NAME"
+        else
+            echo "Attempting to get on-line info for package $PKG_NAME"
+        fi
         
         # Reduce everything to case 4: full URL.
         if [ -n "$PKG_HAS_PATH" ]; then
@@ -326,7 +330,7 @@ if [ ! -f "$PKG_SRC" ]; then
                 echo ">>> Checking online list of $repo packages."
                 # File inside DOT_SAGE should be writable
                 repolist="${DOT_SAGE}/${repo}.list"
-                sage-download-file "$MIRROR/$repo/list" $repolist
+                sage-download-file --quiet "$MIRROR/$repo/list" $repolist
                 if [ $? -ne 0 ]; then
                     echo >&2 "Error: failed to download $MIRROR/$repo/list, aborting"
                     rm -f $repolist
@@ -346,7 +350,7 @@ if [ ! -f "$PKG_SRC" ]; then
                     # If INFO is set, try downloading only the .txt file
                     if [ $INFO -eq 1 ]; then
                         PKG_URL="$MIRROR/$repo/$pkg.txt"
-                        sage-download-file "$PKG_URL" && exit 0
+                        sage-download-file --quiet "$PKG_URL" && exit 0
                         # If the download failed (for whatever reason),
                         # fall through and use the .spkg file.
                     else

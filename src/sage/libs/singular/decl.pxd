@@ -5,9 +5,11 @@ AUTHOR:
 
 - Martin Albrecht (2009-07): initial implementation
 
-NOTE: our ring, poly etc. types are not the SINGULAR ring, poly,
-etc. types. They are deferences. So a SINGULAR ring is a ring pointer
-here.
+.. NOTE::
+
+    Our ``ring``, ``poly``,... types are not the Singular ``ring``,
+    ``poly``,... types. They are dereferences. So a Singular ``ring`` is
+    a pointer to a ``ring`` from Sage.
 """
 
 #*****************************************************************************

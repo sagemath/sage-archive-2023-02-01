@@ -432,8 +432,26 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
                                                  base=base)
 
 
-    def le(self, x, y):
+    def le(self, left, right):
         r"""
+        Return if the growth element ``left`` is at most (less than or
+        equal to) the growth element ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
         Return whether the asymptotic order of magnitude of `x` is less
         than or equal to the asymptotic order of magnitude of `y`.
 

@@ -10661,7 +10661,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g=graphs.PathGraph(1000)
             sage: g.subgraph(range(10)) # uses the 'add' algorithm
-            Subgraph of (Path Graph): Graph on 10 vertices
+            Subgraph of (Path graph): Graph on 10 vertices
 
 
 
@@ -14214,7 +14214,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
-            complement(Path Graph): Graph on 5 vertices
+            complement(Path graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
@@ -14797,7 +14797,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g=graphs.PathGraph(4)
             sage: g.transitive_closure()
-            Transitive closure of Path Graph: Graph on 4 vertices
+            Transitive closure of Path graph: Graph on 4 vertices
             sage: g.transitive_closure()==graphs.CompleteGraph(4)
             True
             sage: g=DiGraph({0:[1,2], 1:[3], 2:[4,5]})
@@ -15172,12 +15172,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
             sage: g.layout_spring()
-            {0: [1.84..., 0.96...],
-             1: [1.25..., 0.24...],
-             2: [0.71..., -0.47...],
-             3: [1.31..., -0.95...],
-             4: [1.89..., -0.26...],
-             5: [2.45..., 0.48...]}
+            {0: [1.28..., -0.94...],
+             1: [1.57..., -0.10...],
+             2: [1.83..., 0.74...],
+             3: [0.53..., -0.75...],
+             4: [0.79..., 0.10...],
+             5: [1.08..., 0.94...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
             Graphics object consisting of 34 graphics primitives

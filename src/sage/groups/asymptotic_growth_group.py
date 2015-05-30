@@ -645,6 +645,39 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         pass
 
 
+    def _coerce_map_from_(self, S):
+        r"""
+        Return if ``S`` coerces into this growth group.
+
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Another growth group ``S`` coerces into this growth group
+            if and only if the base of ``S`` coerces into the base of
+            this growth group.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G1 = agg.GrowthGroupPower('x', base=ZZ)
+            sage: G2 = agg.GrowthGroupPower('x', base=QQ)
+            sage: bool(G1._coerce_map_from_(G2))
+            False
+            sage: bool(G2._coerce_map_from_(G1))
+            True
+        """
+        if isinstance(S, GenericGrowthGroup):
+            if self.base().has_coerce_map_from(S.base()):
+                return True
+
+
 class GrowthElementPower(GenericGrowthElement):
     r"""
     Class for the concrete realization of asymptotic growth group
@@ -1128,7 +1161,6 @@ class GrowthGroupPower(GenericGrowthGroup):
         self._populate_coercion_lists_()
 
 
-    def _coerce_map_from_(self, S):
     def _convert_(self, data):
         r"""
 
@@ -1200,44 +1232,43 @@ class GrowthGroupPower(GenericGrowthGroup):
         #else:
         #    self.exponent = parent.base()(exponent)
 
+
+    def _coerce_map_from_(self, S):
         r"""
-        Coerce object to this asymptotic power growth group.
+        Return if ``S`` coerces into this growth group.
 
         INPUT:
 
-        - ``x`` -- an expression (string, polynomial ring element,
-          symbolic ring element, or some integer) representing the
-          element to be initialized.
-        - ``exponent`` -- the exponent of the asymptotic element.
+        - ``S`` -- a parent.
 
         OUTPUT:
 
-        An element of an asymptotic power growth group.
+        A boolean.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.GrowthGroupPower("x", base=ZZ)
-            sage: P2 = agg.GrowthGroupPower("x", base=QQ)
-            sage: e = P2(None, exponent=3/2) / P1.gen(); e
-            x^(1/2)
-            sage: e.parent() is P2
+            sage: P_x_ZZ = agg.GrowthGroupPower('x', base=ZZ)
+            sage: P_x_QQ = agg.GrowthGroupPower('x', base=QQ)
+            sage: bool(P_x_ZZ._coerce_map_from_(P_x_QQ))
+            False
+            sage: bool(P_x_QQ._coerce_map_from_(P_x_ZZ))
             True
+            sage: P_y_ZZ = agg.GrowthGroupPower('y', base=ZZ)
+            sage: bool(P_y_ZZ._coerce_map_from_(P_x_ZZ))
+            False
+            sage: bool(P_x_ZZ._coerce_map_from_(P_y_ZZ))
+            False
+            sage: bool(P_y_ZZ._coerce_map_from_(P_x_QQ))
+            False
+            sage: bool(P_x_QQ._coerce_map_from_(P_y_ZZ))
+            False
         """
-        if isinstance(x, GrowthElementPower):
-            return self.element_class(self, None, exponent=x.exponent)
+        if super(GrowthGroupPower, self)._coerce_map_from_(S):
+            if self._var_ == S._var_:
+                return True
+        # TODO: SR, PolynomialRing
 
-        if x is None and exponent is None:
-            raise ValueError("Neither x nor exponent are specified.")
-        elif x is not None and exponent is not None:
-            raise ValueError("Both x and exponent are specified.")
-        elif exponent is None:
-            if x == 1:
-                exponent = 0
-            else:
-                raise NotImplementedError("Parsing of %s is not yet "
-                                          "implemented" % x)
-        return self.element_class(self, None, exponent=exponent)
 
 
     def _repr_(self):

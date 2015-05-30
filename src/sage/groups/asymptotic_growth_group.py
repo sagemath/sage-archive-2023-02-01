@@ -267,20 +267,20 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G.an_element() <= G.an_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Only implemented in concrete realizations
-
-        ::
-
             sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P_ZZ.gen() <= P_QQ.gen()^2
             True
             sage: ~P_ZZ.gen() <= P_ZZ.gen()
             True
+
+        TESTS::
+
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.an_element() <= G.an_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert 1.
         """
         from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
@@ -316,7 +316,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
             sage: TODO
         """
-        raise NotImplementedError("Only implemented in concrete realizations")
+        return (self / other).is_le_one()
 
 
     def is_le_one(self):
@@ -335,6 +335,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G.gen().is_le_one()
+            False
             sage: (~G.gen()).is_le_one()
             True
         """
@@ -525,7 +527,30 @@ class GenericGrowthGroup(
             sage: G.le(x^0, 1)
             True
         """
-        return (self(left) / self(right)).is_le_one()
+        return self(left) <= self(right)
+
+
+    def one(self):
+        r"""
+        Return the neutral element of this growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of this group.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').one(); e1
+            1
+            sage: e1.is_idempotent()
+            True
+        """
+        return self(1)
 
 
     def _element_constructor_(self, data, raw_element=None):
@@ -933,35 +958,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             raise NotImplementedError("Only real exponents are implemented.")
 
 
-    def _le_(self, other):
-        r"""
-        Return whether the exponent of ``self`` is less than or equal
-        to the exponent of ``other`` by calling
-        :meth:`MonomialGrowthGroup.le`.
-
-        INPUT:
-
-        - ``other`` -- a growth power element from the same parent to
-          be compared to ``self``.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: e1 = P.gen()
-            sage: e2 = P(raw_element=2)
-            sage: e1._le_(e2)
-            True
-            sage: e2._le_(e1)
-            False
-        """
-        return self.parent().le(self, other)
-
-
     def is_le_one(self):
         r"""
         Return whether or not the growth of the asymptotic power
@@ -1091,6 +1087,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         super(MonomialGrowthGroup, self).\
             __init__(category=category, base=base)
         self._populate_coercion_lists_()
+
 
     def _repr_(self):
         r"""
@@ -1319,28 +1316,3 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             1
         """
         return 1
-
-
-    def one(self):
-        r"""
-        Return the neutral element of the asymptotic power growth
-        group.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        The neutral element of the asymptotic power growth group
-        ``self``.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').one(); e1
-            1
-            sage: e1.is_idempotent()
-            True
-        """
-        return self(1)

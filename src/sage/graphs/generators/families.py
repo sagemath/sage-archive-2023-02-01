@@ -2275,7 +2275,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
     V = list(VectorSpace(F,d))
 
     G = Graph()
-    G.add_vertices(map(tuple,V))
+    G.add_vertices([tuple(_) for _ in V])
     for x,y in combinations(V,2):
         if not (x-y)*M*(x-y):
             G.add_edge(tuple(x),tuple(y))

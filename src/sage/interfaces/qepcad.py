@@ -1177,7 +1177,7 @@ class Qepcad:
                    = x - 1
         """
         name = name.replace('_', '-')
-        args = map(str, args)
+        args = [str(_) for _ in args]
         pre_phase = self.phase()
         result = self._eval_line('%s %s'%(name, ' '.join(args)))
         post_phase = self.phase()

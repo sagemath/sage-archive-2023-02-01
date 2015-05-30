@@ -993,7 +993,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: P = agg.MonomialGrowthGroup(ZZ, 'x'); P
-        Asymptotic Power Growth Group in x over Integer Ring
+        Monomial Growth Group in x over Integer Ring
     """
     # TODO: implement the cartesian product structure
 
@@ -1035,13 +1035,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.MonomialGrowthGroup(ZZ, 'x')
-            Asymptotic Power Growth Group in x over Integer Ring
+            Monomial Growth Group in x over Integer Ring
             sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
-            Asymptotic Power Growth Group in n over Rational Field
+            Monomial Growth Group in n over Rational Field
             sage: agg.MonomialGrowthGroup(ZZ, PolynomialRing(ZZ, 'y').gen())
-            Asymptotic Power Growth Group in y over Integer Ring
+            Monomial Growth Group in y over Integer Ring
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
-            Asymptotic Power Growth Group in log(x) over Rational Field
+            Monomial Growth Group in log(x) over Rational Field
         """
         if not var:
             raise ValueError('Empty var is not allowed.')
@@ -1057,9 +1057,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _repr_(self):
         r"""
-        Represent the asymptotic power growth group as
-        'Asymptotic Power Growth Group in ``variable``
-        over ``base``'.
+        A representation string for this monomial growth group.
 
         INPUT:
 
@@ -1072,13 +1070,15 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.MonomialGrowthGroup(ZZ, 'x')._repr_()
-            'Asymptotic Power Growth Group in x over Integer Ring'
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')  # indirect doctest
+            Monomial Growth Group in x over Integer Ring
+
+        TESTS::
+
             sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_()
-            'Asymptotic Power Growth Group in v_107 over Rational Field'
+            'Monomial Growth Group in v_107 over Rational Field'
         """
-        return 'Asymptotic Power Growth Group in %s over %s' \
-               % (self._var_, self.base())
+        return 'Monomial Growth Group in %s over %s' % (self._var_, self.base())
 
 
     def __hash__(self):

@@ -762,6 +762,9 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     @property
     def exponent(self):
+        r"""
+        The exponent of this growth element.
+        """
         return self._raw_element_
 
 

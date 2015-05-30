@@ -55,12 +55,21 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: e = G(raw_element=42); e
+            sage: G(raw_element=42)
             GenericGrowthElement(42)
-            sage: e.category()  # TODO: warum ist das hier?
-            Category of elements of Generic Growth Group over Integer Ring
 
         TESTS::
+
+            sage: G(raw_element=42).category()
+            Category of elements of Generic Growth Group over Integer Ring
+
+        ::
+
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42).category()
+            Category of elements of Generic Growth Group over Integer Ring
+
+        ::
 
             sage: agg.GenericGrowthElement(None, 0)
             Traceback (most recent call last):
@@ -311,7 +320,11 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: TODO
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
+            sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
+            True
         """
         return (self / other).is_le_one()
 
@@ -561,7 +574,7 @@ class GenericGrowthGroup(
 
         OUTPUT:
 
-        An element of an asymptotic power growth group.
+        An element of this growth group.
 
         .. NOTE::
 
@@ -734,7 +747,6 @@ class MonomialGrowthElement(GenericGrowthElement):
         sage: P.le(e1, P.gen()) and P.le(P.gen(), e2)
         True
     """
-    # TODO: implement comparison for the cartesian product structure.
 
     @property
     def exponent(self):
@@ -995,6 +1007,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P5 = agg.MonomialGrowthGroup(ZZ, 'x ')
             sage: P1 is P5
             True
+
+        ::
+
+            sage: L1 = agg.MonomialGrowthGroup(QQ, log(x))
+            sage: L2 = agg.MonomialGrowthGroup(QQ, 'log(x)')
+            sage: L1 is L2
+            True
         """
         var = str(var).strip()
         return super(MonomialGrowthGroup, cls).__classcall__(
@@ -1089,10 +1108,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         An element of the base ring or ``None`` (when no such element
         can be constructed).
-
-        .. NOTE::
-
-            TODO (mention possibilites here?)
 
         TESTS::
 

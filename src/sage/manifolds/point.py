@@ -2,8 +2,8 @@ r"""
 Points of topological manifolds
 
 The class :class:`TopManifoldPoint` implements points of a
-topological manifold, in a coordinate independent manner:
-a :class:`TopManifoldPoint` object can have coordinates in
+topological manifold.
+A :class:`TopManifoldPoint` object can have coordinates in
 various charts defined on the manifold. Two points are declared equal if they
 have the same coordinates in the same chart.
 
@@ -15,45 +15,46 @@ REFERENCES:
 
 - J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
-- M. Berger & B. Gostiaux: *Geometrie differentielle, varietes, courbes et
-  surfaces*, Presses Universitaires de France (Paris, 1987)
 - J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York,
   2013)
 
 EXAMPLES:
 
-Defining a point on `\RR^3` by its spherical coordinates::
+Defining a point in `\RR^3` by its spherical coordinates::
 
-    sage: M = TopManifold(3, 'R3', r'\mathcal{M}')
-    sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
-    sage: p = M.point((1, pi/2, 0), name='P') # coordinates in the manifold's default chart
+    sage: M = TopManifold(3, 'R^3')
+    sage: U = M.open_subset('U')  # the complement of the half-plane (y=0, x>=0)
+    sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
+    sage: p = U((1, pi/2, pi), name='P') # coordinates in U's default chart (c_spher)
     sage: p
-    Point P on the 3-dimensional topological manifold R3
+    Point P on the 3-dimensional topological manifold R^3
     sage: latex(p)
     P
+    sage: p in U
+    True
+    sage: p.parent()
+    3-dimensional topological manifold R^3
+    sage: c_spher(p)
+    (1, 1/2*pi, pi)
+    sage: p.coord(c_spher) # equivalent to above
+    (1, 1/2*pi, pi)
 
-Computing the coordinates of the point in a new chart::
+Computing the point's coordinates in a new chart::
 
-    sage: c_cart.<x,y,z> = M.chart()
-    sage: ch = c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
-    sage: p.coord(c_cart) # evaluate P's Cartesian coordinates
-    (1, 0, 0)
+    sage: c_cart.<x,y,z> = U.chart() # Cartesian coordinates on U
+    sage: spher_to_cart = c_spher.transition_map(c_cart,
+    ....:                    [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
+    sage: c_cart(p)  # evaluate P's Cartesian coordinates
+    (-1, 0, 0)
 
 Points can be compared::
 
-    sage: p1 = M.point((1, pi/2, 0))
+    sage: p1 = U((1, pi/2, pi))
     sage: p == p1
     True
-    sage: q = M.point((1,2,3), c_cart, name='Q') # point defined by its Cartesian coordinates
+    sage: q = U((1,2,3), chart=c_cart, name='Q') # point defined by its Cartesian coordinates
     sage: p == q
     False
-
-Listing all the coordinates of a point in different charts::
-
-    sage: p._coordinates # random (dictionary output)
-    {Chart (R3, (r, th, ph)): (1, 1/2*pi, 0), Chart (R3, (x, y, z)): (1, 0, 0)}
-    sage: q._coordinates
-    {Chart (R3, (x, y, z)): (1, 2, 3)}
 
 """
 
@@ -80,7 +81,8 @@ class TopManifoldPoint(Element):
 
     - ``subset`` -- the manifold subset to which the point belongs (can be
       the entire manifold)
-    - ``coords`` -- (default: ``None``) the point coordinates (as a tuple or a list)
+    - ``coords`` -- (default: ``None``) the point coordinates (as a tuple or a
+      list) in the chart ``chart``
     - ``chart`` -- (default: ``None``) chart in which the coordinates are given;
       if none is provided, the coordinates are assumed
       to refer to the subset's default chart
@@ -167,14 +169,15 @@ class TopManifoldPoint(Element):
         Element.__init__(self, subset._manifold)
         self._manifold = subset._manifold
         self._subset = subset
-        self._coordinates = {}
+        self._coordinates = {} # dictionary of the point coordinates in various
+                               # charts, with the charts as keys
         if coords is not None:
             if len(coords) != self._manifold._dim:
                 raise ValueError("The number of coordinates must be equal" +
                                  " to the manifold dimension.")
             if chart is None:
                 chart = self._subset._def_chart
-            else:
+            elif self._subset._is_open:
                 if chart not in self._subset._atlas:
                     raise ValueError("The " + str(chart) +
                            " has not been defined on the " + str(self._subset))
@@ -197,6 +200,20 @@ class TopManifoldPoint(Element):
     def _repr_(self):
         r"""
         Return a string representation of the point.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((2,-3))
+            sage: p._repr_()
+            'Point on the 2-dimensional topological manifold M'
+            sage: p = M((2,-3), name='p')
+            sage: p._repr_()
+            'Point p on the 2-dimensional topological manifold M'
+            sage: repr(p)  # indirect doctest
+            'Point p on the 2-dimensional topological manifold M'
+
         """
         description = "Point"
         if self._name is not None:
@@ -207,6 +224,23 @@ class TopManifoldPoint(Element):
     def _latex_(self):
         r"""
         Return a LaTeX representation of the point.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((2,-3))
+            sage: p._latex_()
+            '\\mbox{Point on the 2-dimensional topological manifold M}'
+            sage: p = M((2,-3), name='p')
+            sage: p._latex_()
+            'p'
+            sage: p = M((2,-3), name='p', latex_name=r'\mathcal{P}')
+            sage: p._latex_()
+            '\\mathcal{P}'
+            sage: latex(p)  # indirect doctest
+            \mathcal{P}
+
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
@@ -262,6 +296,10 @@ class TopManifoldPoint(Element):
         If these coordinates are not already known, they are computed from
         known ones by means of change-of-chart formulas.
 
+        An equivalent way to get the coordinates of a point is to let the
+        chart acting of the point, i.e. if ``X`` is a chart and ``p`` a
+        point, one has ``p.coord(chart=X) == X(p)``.
+
         INPUT:
 
         - ``chart`` -- (default: ``None``) chart in which the coordinates are
@@ -277,21 +315,29 @@ class TopManifoldPoint(Element):
         Spherical coordinates of a point on `\RR^3`::
 
             sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'R3', r'\mathcal{M}')
-            sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi') # spherical coordinates
-            sage: p = M.point((1, pi/2, 0))
+            sage: M = TopManifold(3, 'M') # the part of R^3 covered by spherical coordinates
+            sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
+            sage: p = M.point((1, pi/2, pi))
             sage: p.coord()    # coordinates on the manifold's default chart
-            (1, 1/2*pi, 0)
+            (1, 1/2*pi, pi)
             sage: p.coord(c_spher) # with the chart c_spher specified (same result as above since this is the default chart)
-            (1, 1/2*pi, 0)
+            (1, 1/2*pi, pi)
+
+        An alternative way to get the coordinates is to let the chart act
+        on the point (from the very definition of a chart)::
+
+            sage: c_spher(p)
+            (1, 1/2*pi, pi)
 
         Computing the Cartesian coordinates from the spherical ones::
 
             sage: c_cart.<x,y,z> = M.chart()  # Cartesian coordinates
             sage: c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
-            Change of coordinates from Chart (R3, (r, th, ph)) to Chart (R3, (x, y, z))
+            Change of coordinates from Chart (M, (r, th, ph)) to Chart (M, (x, y, z))
             sage: p.coord(c_cart)  # the computation is performed by means of the above change of coordinates
-            (1, 0, 0)
+            (-1, 0, 0)
+            sage: p.coord(c_cart) == c_cart(p)
+            True
 
         Coordinates of a point on a 2-dimensional manifold::
 
@@ -412,31 +458,30 @@ class TopManifoldPoint(Element):
 
         EXAMPLES:
 
-        Setting coordinates to a point on `\RR^3`::
+        Setting coordinates to a point on a 2-dimensional manifold::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'R3', r'\mathcal{M}')
-            sage: c_cart.<x,y,z> = M.chart()
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
             sage: p = M.point()
-            sage: p.set_coord((1,2,3))  # coordinates on the manifold's default chart
+            sage: p.set_coord((2,-3)) # coordinates on the manifold's default chart
             sage: p.coord()
-            (1, 2, 3)
+            (2, -3)
+            sage: X(p)
+            (2, -3)
 
-        A point defined in another coordinate system::
+        Let us introduce a second chart on the manifold::
 
-            sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
-            sage: q = M.point()
-            sage: q.set_coord((1,2,3), c_spher)
-            sage: cart_from_spher = c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
 
-        If we set the coordinates of q in the chart c_cart, those in the chart c_spher
+        If we set the coordinates of p in the chart Y, those in the chart X
         are lost::
 
-            sage: q.set_coord( cart_from_spher(*q.coord(c_spher)), c_cart)
-            sage: q._coordinates
-            {Chart (R3, (x, y, z)): (cos(3)*sin(2), sin(3)*sin(2), cos(2))}
+            sage: Y(p)
+            (-1, 5)
+            sage: p.set_coord(Y(p), chart=Y)
             sage: p._coordinates
-            {Chart (R3, (x, y, z)): (1, 2, 3)}
+            {Chart (M, (u, v)): (-1, 5)}
 
         """
         self._coordinates.clear()
@@ -464,43 +509,35 @@ class TopManifoldPoint(Element):
 
         EXAMPLES:
 
-        Setting coordinates to a point on `\RR^3`::
+        Setting coordinates to a point on a 2-dimensional manifold::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'R3', r'\mathcal{M}')
-            sage: c_cart.<x,y,z> = M.chart()
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
             sage: p = M.point()
-            sage: p.add_coord((1,2,3))  # coordinates on the manifold's default chart
+            sage: p.add_coord((2,-3)) # coordinates on the manifold's default chart
             sage: p.coord()
-            (1, 2, 3)
+            (2, -3)
+            sage: X(p)
+            (2, -3)
 
-        A point defined in another coordinate system::
+        Let us introduce a second chart on the manifold::
 
-            sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
-            sage: q = M.point()
-            sage: q.add_coord((1,2,3), c_spher)
-            sage: cart_from_spher = c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
-            sage: q.add_coord( cart_from_spher(*q.coord(c_spher)), c_cart)
-            sage: q._coordinates  # random (dictionary output)
-            {Chart (R3, (r, th, ph)): (1, 2, 3),
-             Chart (R3, (x, y, z)): (cos(3)*sin(2), sin(3)*sin(2), cos(2))}
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+
+        If we add the coordinates of p in the chart Y, those in the chart X
+        are kept::
+
+            sage: p.add_coord((-1,5), chart=Y)
+            sage: p._coordinates  # random (dictionary output)
+            {Chart (M, (u, v)): (-1, 5), Chart (M, (x, y)): (2, -3)}
+
+        On the contrary, with the method :meth:`set_coord`, the coordinates
+        in charts different from Y would be lost::
+
+            sage: p.set_coord((-1,5), chart=Y)
             sage: p._coordinates
-            {Chart (R3, (x, y, z)): (1, 2, 3)}
-            sage: p == q  # p and q should differ because the coordinates (1,2,3) are on different charts
-            False
-
-        Contrary to :meth:`set_coord`, the method :meth:`add_coord` does not
-        the coordinates in other charts::
-
-            sage: p = M.point((1,2,3), c_spher)
-            sage: p._coordinates
-            {Chart (R3, (r, th, ph)): (1, 2, 3)}
-            sage: p.set_coord((4,5,6), c_cart)
-            sage: p._coordinates
-            {Chart (R3, (x, y, z)): (4, 5, 6)}
-            sage: p.add_coord((7,8,9), c_spher)
-            sage: p._coordinates # random (dictionary output)
-            {Chart (R3, (x, y, z)): (4, 5, 6), chart (R3, (r, th, ph)): (7, 8, 9)}
+            {Chart (M, (u, v)): (-1, 5)}
 
         """
         if len(coords) != self._manifold._dim:
@@ -602,6 +639,18 @@ class TopManifoldPoint(Element):
     def __ne__(self, other):
         r"""
         Non-equality operator.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((2,-3), chart=X)
+            sage: q = M((0,1), chart=X)
+            sage: p != q
+            True
+            sage: p != M((2,-3), chart=X)
+            False
+
         """
         return not self.__eq__(other)
 
@@ -610,6 +659,18 @@ class TopManifoldPoint(Element):
         Old-style (Python 2) comparison operator.
 
         This is provisory, until migration to Python 3 is achieved.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((2,-3), chart=X)
+            sage: q = M((2,-3), chart=X)
+            sage: p.__cmp__(q)
+            0
+            sage: q = M((0,1), chart=X)
+            sage: p.__cmp__(q)
+            -1
 
         """
         if self.__eq__(other):
@@ -624,5 +685,16 @@ class TopManifoldPoint(Element):
         p == q  ==>  hash(p) == hash(q)
         This is necessary since p and q may be created in different coordinate
         systems and nevertheless be equal
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((2,-3), chart=X)
+            sage: p.__hash__()  # random
+            8791657334475
+            sage: p.__hash__() == hash(M)
+            True
+
         """
         return self._manifold.__hash__()

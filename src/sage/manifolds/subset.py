@@ -90,6 +90,10 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
     as a facade for the true parent of its points, which is the whole manifold
     (see example below).
 
+    Note that open subsets are not implemented directly by this class, but
+    by the derived class :class:`~sage.manifolds.manifold.TopManifold` (an
+    open subset of a topological manifold being itself a topological manifold).
+
     INPUT:
 
     - ``manifold`` -- topological manifold on which the subset is defined
@@ -200,10 +204,83 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         self._is_open = False  # a priori (may be redifined by subclasses)
 
     #### Methods required for any Parent in the category of sets:
+
     def _element_constructor_(self, coords=None, chart=None, name=None,
                               latex_name=None, check_coords=True):
         r"""
-        Construct a point on ``self`` from its coordinates in some chart.
+        Construct a point in the subset from its coordinates in some chart.
+
+        INPUT:
+
+        - ``coords`` -- (default: ``None``) either (i) the point coordinates
+          (as a tuple or a list) in the chart ``chart`` or (ii) another point
+          in the subset
+        - ``chart`` -- (default: ``None``) chart in which the coordinates are
+          given; if none is provided, the coordinates are assumed to refer to
+          the subset's default chart
+        - ``name`` -- (default: ``None``) name given to the point
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          point; if none is provided, the LaTeX symbol is set to ``name``
+        - ``check_coords`` -- (default: ``True``) determines whether ``coords``
+          are valid coordinates for the chart ``chart``; for symbolic
+          coordinates, it is recommended to set ``check_coords`` to ``False``.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.point.TopManifoldPoint`
+          representing a point in the current subset.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M._element_constructor_(); p
+            Point on the 2-dimensional topological manifold M
+            sage: p = M._element_constructor_((-2,3)); p  # coord in the default chart
+            Point on the 2-dimensional topological manifold M
+            sage: X(p)
+            (-2, 3)
+
+        A generic subset has no default chart, so the chart must be explicited::
+
+            sage: A = M.subset('A')
+            sage: p = A._element_constructor_((-2,3), chart=X); p
+            Point on the 2-dimensional topological manifold M
+            sage: X(p)
+            (-2, 3)
+            sage: p.containing_set()
+            Subset A of the 2-dimensional topological manifold M
+            sage: p in A
+            True
+
+        Coordinates in a chart with some coordinate restrictions::
+
+            sage: Y.<u,v> = M.chart('u:(-1,1) v:(-1,1)')
+            sage: p = A._element_constructor_((0,1/2), chart=Y); p
+            Point on the 2-dimensional topological manifold M
+            sage: Y(p)
+            (0, 1/2)
+            sage: p = A._element_constructor_((0,1/2), chart=Y, check_coords=False); p
+            Point on the 2-dimensional topological manifold M
+            sage: Y(p)
+            (0, 1/2)
+            sage: p = A._element_constructor_((3,1/2), chart=Y)
+            Traceback (most recent call last):
+            ...
+            ValueError: The coordinates (3, 1/2) are not valid on the Chart (M, (u, v))
+
+        Specifying the name of the point::
+
+            sage: p = A._element_constructor_((-2,3), chart=X, name='p'); p
+            Point p on the 2-dimensional topological manifold M
+
+        A point as entry::
+
+            sage: q = A._element_constructor_(p); q
+            Point p on the 2-dimensional topological manifold M
+            sage: X(q)
+            (-2, 3)
+
         """
         if isinstance(coords, TopManifoldPoint):
             point = coords # for readability
@@ -227,6 +304,14 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.subset('A')
+            sage: p = A._an_element_(); p
+            Point on the 2-dimensional topological manifold M
+            sage: p in A
+            True
+
         """
         #!# should be improved...
         return self.element_class(self)
@@ -236,12 +321,35 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
     def _repr_(self):
         r"""
         String representation of ``self``.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: A = M.subset('A')
+            sage: A._repr_()
+            'Subset A of the 2-dimensional topological manifold M'
+            sage: repr(A)  # indirect doctest
+            'Subset A of the 2-dimensional topological manifold M'
+
         """
         return "Subset {} of the {}".format(self._name, self._manifold)
 
     def _latex_(self):
         r"""
         LaTeX representation of ``self``.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: A = M.subset('A')
+            sage: A._latex_()
+            'A'
+            sage: B = A.subset('B', latex_name=r'\mathcal{B}')
+            sage: B._latex_()
+            '\\mathcal{B}'
+            sage: latex(B)  # indirect doctest
+            \mathcal{B}
+
         """
         return self._latex_name
 
@@ -251,6 +359,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: TopManifold._clear_cache_()  # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: A = M.subset('A')
             sage: A.manifold()
@@ -723,6 +832,25 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
     def __contains__(self, point):
         r"""
         Check whether a point is contained in ``self``.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: A = M.subset('A')
+            sage: p = A((-2,3), chart=X); p
+            Point on the 2-dimensional topological manifold M
+            sage: A.__contains__(p)
+            True
+            sage: p in A  # indirect doctest
+            True
+            sage: A.__contains__(A.an_element())
+            True
+            sage: q = M((0,0), chart=X); q
+            Point on the 2-dimensional topological manifold M
+            sage: A.__contains__(q)
+            False
+
         """
         # for efficiency, a quick test first:
         if point._subset is self:

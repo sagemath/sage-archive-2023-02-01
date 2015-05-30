@@ -36,19 +36,19 @@ of ``TopManifold``, `\RR` is assumed::
     2
 
 Let us consider the complement of a point, the "North pole" say; this is an
-open subset of `S^2`, which we call U::
+open subset of `S^2`, which we call `U`::
 
     sage: U = M.open_subset('U'); U
     Open subset U of the 2-dimensional topological manifold S^2
 
-A standard chart on U is provided by the stereographic projection from the
+A standard chart on `U` is provided by the stereographic projection from the
 North pole to the equatorial plane::
 
     sage: stereoN.<x,y> = U.chart(); stereoN
     Chart (U, (x, y))
 
 Thanks to the operator ``<x,y>`` on the left-hand side, the coordinates
-declared in a chart (here x and y), are accessible by their names; they are
+declared in a chart (here `x` and `y`), are accessible by their names; they are
 Sage's symbolic variables::
 
     sage: y
@@ -62,8 +62,8 @@ chart::
     sage: S = U.point((0,0), chart=stereoN, name='S'); S
     Point S on the 2-dimensional topological manifold S^2
 
-Let us call V the open subset that is the complement of the South pole and let
-us introduce on it the chart induced by the stereographic projection from
+Let us call `V` the open subset that is the complement of the South pole and
+let us introduce on it the chart induced by the stereographic projection from
 the South pole to the equatorial plane::
 
     sage: V = M.open_subset('V'); V
@@ -76,8 +76,8 @@ The North pole is the point of coordinates `(u,v)=(0,0)` in this chart::
     sage: N = V.point((0,0), chart=stereoS, name='N'); N
     Point N on the 2-dimensional topological manifold S^2
 
-To fully construct the manifold, we declare that it is the union of U
-and V::
+To fully construct the manifold, we declare that it is the union of `U`
+and `V`::
 
     sage: M.declare_union(U,V)
 
@@ -94,11 +94,11 @@ defined by`u^2+v^2\not=0`)::
     u = x/(x^2 + y^2)
     v = y/(x^2 + y^2)
 
-We give the name W for the Python variable representing `W=U\cap V`::
+We give the name ``W`` to the Python variable representing `W=U\cap V`::
 
     sage: W = U.intersection(V)
 
-The inverse of the transition map is computed by the method inverse()::
+The inverse of the transition map is computed by the method ``inverse()``::
 
     sage: stereoN_to_S.inverse()
     Change of coordinates from Chart (W, (u, v)) to Chart (W, (x, y))
@@ -168,17 +168,46 @@ over `\CC`::
 
     sage: M = TopManifold(1, 'C*', field='complex'); M
     Complex 1-dimensional topological manifold C*
+
+We introduce a first open subset, which is actually
+`\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the Alexandroff
+one-point compactification of `\CC`::
+
     sage: U = M.open_subset('U')
+
+A natural chart on `U` is then nothing but the identity map of `\CC`, hence
+we denote the associated coordinate by `z`::
+
     sage: Z.<z> = U.chart()
+
+The origin of the complex plane is the point of coordinate `z=0`::
+
     sage: O = U.point((0,), chart=Z, name='O'); O
     Point O on the Complex 1-dimensional topological manifold C*
+
+Another open subset of `\CC^*` is `V = \CC^*\setminus\{O\}`::
+
     sage: V = M.open_subset('V')
+
+We define a chart on `V` such that the point at infinity is the point of
+coordinate 0 in this chart::
+
     sage: W.<w> = V.chart(); W
     Chart (V, (w,))
     sage: inf = M.point((0,), chart=W, name='inf', latex_name=r'\infty')
     sage: inf
     Point inf on the Complex 1-dimensional topological manifold C*
-    sage: Z_to_W = Z.transition_map(W, 1/z, intersection_name='A', restrictions1= z!=0, restrictions2= w!=0)
+
+To fully construct the Riemann sphere, we declare that it is the union of `U`
+and `V`::
+
+    sage: M.declare_union(U,V)
+
+and we provide the transition map between the two charts as `w=1/z` on
+on `A = U\cap V`::
+
+    sage: Z_to_W = Z.transition_map(W, 1/z, intersection_name='A',
+    ....:                           restrictions1= z!=0, restrictions2= w!=0)
     sage: Z_to_W
     Change of coordinates from Chart (A, (z,)) to Chart (A, (w,))
     sage: Z_to_W.display()
@@ -187,6 +216,28 @@ over `\CC`::
     Change of coordinates from Chart (A, (w,)) to Chart (A, (z,))
     sage: Z_to_W.inverse().display()
     z = 1/w
+
+Let consider the complex number `i` as a point of the Riemann sphere::
+
+    sage: i = M((I,), chart=Z, name='i'); i
+    Point i on the Complex 1-dimensional topological manifold C*
+
+Its coordinates w.r.t. the charts ``Z`` and ``W`` are::
+
+    sage: Z(i)
+    (I,)
+    sage: W(i)
+    (-I,)
+
+and we have::
+
+    sage: i in U
+    True
+    sage: i in V
+    True
+
+The following subsets and charts have been defined::
+
     sage: M.list_of_subsets()
     [Open subset A of the Complex 1-dimensional topological manifold C*,
      Complex 1-dimensional topological manifold C*,
@@ -336,8 +387,8 @@ class TopManifold(TopManifoldSubset):
         sage: M is TopManifold(4, 'M', latex_name='M', start_index=1)
         False
 
-    Since an open subset of a topological manifold `M` is a topological
-    manifold by itself, open subsets of `M` are instances of the class
+    Since an open subset of a topological manifold `M` is itself a topological
+    manifold, open subsets of `M` are instances of the class
     :class:`TopManifold`::
 
         sage: U = M.open_subset('U'); U

@@ -1,11 +1,11 @@
 --- Sphinx-1.2.2/sphinx/environment.py.orig	2014-03-02 20:38:09.000000000 +1300
 +++ Sphinx-1.2.2/sphinx/environment.py	2014-10-19 23:31:15.000000000 +1300
-@@ -424,10 +424,13 @@
+@@ -540,10 +540,13 @@
          else:
              # check if a config value was changed that affects how
              # doctrees are read
 +            import inspect
-             for key, descr in config.values.iteritems():
+             for key, descr in iteritems(config.values):
                  if descr[1] != 'env':
                      continue
                  if self.config[key] != config[key]:

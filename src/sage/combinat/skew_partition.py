@@ -1835,11 +1835,11 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
         nn -= overlap
         for i in range(nn+1):
-            (skp1, skp2) = sskp
+            skp1, skp2 = sskp
             skp2 += [0]*(len(skp1)-len(skp2))
             skp1 = [x + i + mm for x in skp1]
             skp1 += [ck]
-            skp2 = map(lambda x: x + i + mm, skp2)
+            skp2 = [x + i + mm for x in skp2]
             skp2 = [x for x in skp2 if x != 0]
             yield SkewPartition([skp1, skp2])
 

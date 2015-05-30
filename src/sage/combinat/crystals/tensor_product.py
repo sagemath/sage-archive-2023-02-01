@@ -1836,8 +1836,7 @@ class CrystalOfTableaux(CrystalOfWords):
         # The column canonical tableau, read by columns
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
         if invert:
-            f = lambda x : -x if x == type[1] else x
-            module_generator = map(f, module_generator)
+            module_generator = [(-x if x == type[1] else x) for x in module_generator]
         return self(list=[self.letters(x) for x in module_generator])
 
     def _element_constructor_(self, *args, **options):

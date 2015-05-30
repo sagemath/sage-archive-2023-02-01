@@ -420,7 +420,7 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
             category = Groups() & Posets()
         else:
             if not isinstance(category, tuple):
-                category = (category, )
+                category = (category,)
             if not any(cat.is_subcategory(Groups() & Posets()) for cat in
                        category):
                 raise ValueError("%s is not a subcategory of %s"
@@ -711,7 +711,7 @@ class GrowthElementPower(GenericGrowthElement):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.GrowthGroupPower("x")
+        sage: P = agg.GrowthGroupPower('x')
         sage: e1 = P(x=1); e1
         1
         sage: e2 = P(raw_element=2); e2
@@ -771,7 +771,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x", base=QQ)
+            sage: P = agg.GrowthGroupPower('x', base=QQ)
             sage: P(x=1)._repr_()
             '1'
             sage: P(raw_element=5)._repr_()
@@ -838,7 +838,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
             x^-2
@@ -866,7 +866,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: e1 = P(raw_element=2)
             sage: e1._div_(P.gen())
             x
@@ -894,7 +894,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: P.gen().__pow__(5)
             x^5
             sage: P.gen().__pow__(1/2)
@@ -930,8 +930,8 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.GrowthGroupPower("x", base=ZZ)
-            sage: P2 = agg.GrowthGroupPower("x", base=QQ)
+            sage: P1 = agg.GrowthGroupPower('x', base=ZZ)
+            sage: P2 = agg.GrowthGroupPower('x', base=QQ)
             sage: P1.gen() == P2.gen()
             True
         """
@@ -964,7 +964,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: e1 = P(raw_element=1)
             sage: e1._eq_(P.gen())
             True
@@ -995,7 +995,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: e1 = P.gen()
             sage: e2 = P(raw_element=2)
             sage: e1._le_(e2)
@@ -1023,7 +1023,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: e1 = P.gen()
             sage: e1.is_le_one()
             False
@@ -1049,7 +1049,7 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: hash(P.gen())  # random
             -3234005094684624010
         """
@@ -1088,7 +1088,7 @@ class GrowthGroupPower(GenericGrowthGroup):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.GrowthGroupPower("x"); P
+        sage: P = agg.GrowthGroupPower('x'); P
         Asymptotic Power Growth Group in x over Integer Ring
     """
     # TODO: implement the cartesian product structure
@@ -1106,7 +1106,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: x1, x2, x3 = "x", PolynomialRing(ZZ, "x").gen(), var("x")
+            sage: x1, x2, x3 = 'x', PolynomialRing(ZZ, 'x').gen(), var('x')
             sage: P1 = agg.GrowthGroupPower(x1)
             sage: P2 = agg.GrowthGroupPower(x2)
             sage: P3 = agg.GrowthGroupPower(x3)
@@ -1134,7 +1134,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.GrowthGroupPower("x"); P1
+            sage: P1 = agg.GrowthGroupPower('x'); P1
             Asymptotic Power Growth Group in x over Integer Ring
             sage: var('n')
             n
@@ -1288,7 +1288,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.GrowthGroupPower("x")._repr_()
+            sage: agg.GrowthGroupPower('x')._repr_()
             'Asymptotic Power Growth Group in x over Integer Ring'
             sage: agg.GrowthGroupPower("v_107", base=QQ)._repr_()
             'Asymptotic Power Growth Group in v_107 over Rational Field'
@@ -1314,11 +1314,11 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: P.gens()
             (x,)
         """
-        return (self.gen(), )
+        return (self.gen(),)
 
 
     def ngens(self):
@@ -1337,7 +1337,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: P.ngens()
             1
         """
@@ -1361,7 +1361,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.GrowthGroupPower("x").one(); e1
+            sage: e1 = agg.GrowthGroupPower('x').one(); e1
             1
             sage: e1.is_idempotent()
             True
@@ -1385,7 +1385,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.GrowthGroupPower("x").gen(); e1
+            sage: e1 = agg.GrowthGroupPower('x').gen(); e1
             x
             sage: e1.exponent == 1
             True
@@ -1409,7 +1409,7 @@ class GrowthGroupPower(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
+            sage: P = agg.GrowthGroupPower('x')
             sage: hash(P)  # random
             -8144479309627091876
         """

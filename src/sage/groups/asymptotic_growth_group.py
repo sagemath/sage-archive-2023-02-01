@@ -57,7 +57,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         Generic Asymptotic Growth Group
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, raw_element):
         r"""
         See :class:`GenericGrowthElement` for more information.
 
@@ -135,7 +135,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             sage: e = agg.GenericGrowthElement(P); e._repr_()
             'Generic element of a Generic Asymptotic Growth Group'
         """
-        return "Generic element of a Generic Asymptotic Growth Group"
+        return 'GenericGrowthElement(%s)' % (self._raw_element_,)
 
 
     def is_le_one(self):
@@ -248,7 +248,7 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
     Element = GenericGrowthElement
 
 
-    def __init__(self, category=None, base=None):
+    def __init__(self, base, category=None):
         r"""
         See :class:`GenericGrowthElement` for more information.
 
@@ -379,6 +379,111 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         """
         return GenericGrowthElement(self)
 
+    def _element_constructor_(self, data, raw_element=None):
+        r"""
+        Converts given object to this growth group.
+
+        INPUT:
+
+        - ``data`` -- an object representing the element to be
+          initialized.
+
+        - ``raw_element`` -- (default: ``None``) if given, then this is
+          directly passed to the element constructor (i.e., no conversion
+          is performed).
+
+        OUTPUT:
+
+        An element of an asymptotic power growth group.
+
+        .. NOTE::
+
+            This method calls :meth:`_convert_`, which does the actual
+            conversion from ``data``.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G_ZZ = agg.GenericGrowthGroup(ZZ)
+            sage: z = G_ZZ(raw_element=42); z
+            GenericGrowthElement(42)
+            sage: z is G_ZZ(z)
+            True
+
+        ::
+
+            sage: G_QQ = agg.GenericGrowthGroup(QQ)
+            sage: q = G_QQ(raw_element=42)
+            sage: q is z
+            False
+            sage: G_ZZ(q)
+            GenericGrowthElement(42)
+            sage: G_QQ(z)
+            GenericGrowthElement(42)
+            sage: q is G_ZZ(q)
+            False
+
+        ::
+
+            sage: G_ZZ()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input specified. Cannot continue.
+            sage: G_ZZ('blub')
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert blub.
+            sage: G_ZZ('x', raw_element=42)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input is ambigous: x as well as raw_element=42 are specified
+        """
+        if raw_element is None:
+            if type(data) == self.element_class and data.parent() == self:
+                return data
+            elif isinstance(data, GenericGrowthElement):
+                raw_element = data._raw_element_
+            elif type(data) == int and data == 0:
+                raise ValueError('No input specified. Cannot continue.')
+            else:
+                raw_element = self._convert_(data)
+            if raw_element is None:
+                raise ValueError('Cannot convert %s.' % (data,))
+        elif type(data) != int or data != 0:
+            raise ValueError('Input is ambigous: '
+                             '%s as well as raw_element=%s '
+                             'are specified' % (data, raw_element))
+
+        return self.element_class(self, raw_element)
+
+
+    def _convert_(self, data):
+        r"""
+        Converts given ``data`` to something the constructor of the
+        element class accepts (``raw_element``).
+
+        INPUT:
+
+        - ``data`` -- an object.
+
+        OUTPUT:
+
+        An element of the base ring or ``None`` (when no such element
+        can be constructed).
+
+        .. NOTE::
+
+            This method always returns ``None`` in this abstract base
+            class and should be overridden in inherited class.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G._convert_('icecream') is None
+            True
+        """
+        pass
 
 
 class GrowthElementPower(GenericGrowthElement):
@@ -906,28 +1011,77 @@ class GrowthGroupPower(GenericGrowthGroup):
 
 
     def _coerce_map_from_(self, S):
+    def _convert_(self, data):
         r"""
-        Another GrowthGroupPower ``S`` coerces into
-        ``self`` if and only if the base of ``S`` coerces into the
-        base of ``self``.
 
-        EXAMPLES::
+        Converts given ``data`` to something the constructor of the
+        element class accepts (``raw_element``).
+
+        INPUT:
+
+        - ``data`` -- an object.
+
+        OUTPUT:
+
+        An element of the base ring or ``None`` (when no such element
+        can be constructed).
+
+        .. NOTE::
+
+            TODO (mention possibilites here?)
+
+        TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P1 = agg.GrowthGroupPower("x", base=ZZ)
-            sage: P2 = agg.GrowthGroupPower("x", base=QQ)
-            sage: bool(P1._coerce_map_from_(P2))
-            False
-            sage: bool(P2._coerce_map_from_(P1))
+            sage: P = agg.GrowthGroupPower('x', base=ZZ)
+            sage: P._convert_('icecream') is None
             True
+            sage: P(1)  # indirect doctest
+            1
+            sage: P('x')  # indirect doctest
+            x
+
+        ::
+
+            sage: P(x)  # indirect doctest
+            x
+            sage: P(x^-333)  # indirect doctest
+            x^-333
+            sage: P(log(x)^2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert log(x)^2.
         """
-        if isinstance(S, GrowthGroupPower):
-            if self.base().coerce_map_from(S.base()) is not None \
-               and self.var == S.var:
-                return True
+        if data == 1:
+            return self.base().zero()
+        if str(data) == self._var_:
+            return self.base().one()  # not sure if this will work for
+                                      # all possible bases
 
+        try:
+            P = data.parent()
+        except AttributeError:
+            return  # this has to end here
 
-    def _element_constructor_(self, x, exponent=None):
+        from sage.symbolic.ring import SR
+        import operator
+        if P is SR:
+            if data.operator() == operator.pow:
+                base, exponent = data.operands()
+                if str(base) == self._var_:
+                    return exponent
+        #elif ...
+        #TODO: SR; PolynomialRing
+
+        ###TODO
+        #if exponent is None and x.parent() is parent:
+        #    self.exponent = x.exponent
+        #    super(GrowthElementPower, self).__init__(parent=parent)
+        #if exponent not in RR:
+        #    raise NotImplementedError("Non-real exponents are not supported.")
+        #else:
+        #    self.exponent = parent.base()(exponent)
+
         r"""
         Coerce object to this asymptotic power growth group.
 
@@ -1108,7 +1262,8 @@ class GrowthGroupPower(GenericGrowthGroup):
             sage: e1.exponent == 1
             True
         """
-        return self(x=None, exponent=1)
+        return self(raw_element=self.base().gen())
+
 
     def __hash__(self):
         r"""

@@ -47,11 +47,13 @@ class GenericGrowthElement(MultiplicativeGroupElement):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.GenericGrowthGroup()
-        sage: e = agg.GenericGrowthElement(P); e
-        Generic element of a Generic Asymptotic Growth Group
-        sage: e.parent()
-        Generic Asymptotic Growth Group
+        sage: G = agg.GenericGrowthGroup(ZZ)
+        sage: g = agg.GenericGrowthElement(G, 42); g
+        GenericGrowthElement(42)
+        sage: g.parent()
+        Generic Growth Group over Integer Ring
+        sage: G(raw_element=42) == g
+        True
     """
 
     def __init__(self, parent, raw_element):
@@ -61,15 +63,15 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup()
-            sage: e = agg.GenericGrowthElement(P)
-            sage: e.category()
-            Category of elements of Generic Asymptotic Growth Group
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: e = G(raw_element=42); e
+            GenericGrowthElement(42)
+            sage: e.category()  # TODO: warum ist das hier?
+            Category of elements of Generic Growth Group over Integer Ring
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e = agg.GenericGrowthElement(None)
+            sage: agg.GenericGrowthElement(None, 0)
             Traceback (most recent call last):
             ...
             ValueError: The parent must be provided
@@ -101,13 +103,12 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P(x=None, exponent=2)
-            sage: e2 = P(x=None, exponent=3)
-            sage: e1._mul_(e2)
-            x^5
-            sage: e1 * e2 * e1
-            x^7
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: g = G.an_element()
+            sage: g * g
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations
         """
         raise NotImplementedError("Only implemented in concrete realizations")
 
@@ -127,9 +128,9 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup()
-            sage: e = agg.GenericGrowthElement(P); e._repr_()
-            'Generic element of a Generic Asymptotic Growth Group'
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42)  # indirect doctest
+            GenericGrowthElement(42)
         """
         return 'GenericGrowthElement(%s)' % (self._raw_element_,)
 
@@ -373,8 +374,8 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: P = agg.GenericGrowthGroup(); P
-        Generic Asymptotic Growth Group
+        sage: G = agg.GenericGrowthGroup(ZZ); G
+        Generic Growth Group over Integer Ring
     """
 
     # TODO: implement some sort of "assume", where basic assumptions
@@ -395,20 +396,19 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.GenericGrowthGroup().category()
+            sage: agg.GenericGrowthGroup(ZZ).category()
             Join of Category of groups and Category of posets
 
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup()
-            sage: P.is_parent_of(agg.GenericGrowthElement(P))
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.is_parent_of(G(raw_element=42))
             True
-            sage: P2 = agg.GenericGrowthGroup(category=FiniteGroups()\
-            ....:                               & Posets())
-            sage: P2.category()
+            sage: G2 = agg.GenericGrowthGroup(ZZ, category=FiniteGroups() & Posets())
+            sage: G2.category()
             Join of Category of finite groups and Category of finite posets
-            sage: P3 = agg.GenericGrowthGroup(category=Rings())
+            sage: G3 = agg.GenericGrowthGroup(ZZ, category=Rings())
             Traceback (most recent call last):
             ...
             ValueError: (Category of rings,) is not a subcategory of Join of Category of groups and Category of posets
@@ -528,9 +528,9 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GenericGrowthGroup();
-            sage: P.an_element()  # indirect doctest
-            Generic element of a Generic Asymptotic Growth Group
+            sage: G = agg.GenericGrowthGroup(ZZ);
+            sage: G.an_element()  # indirect doctest
+            GenericGrowthElement(1)
         """
         return self.element_class(self, self.base().an_element())
 
@@ -714,7 +714,7 @@ class GrowthElementPower(GenericGrowthElement):
         sage: P = agg.GrowthGroupPower("x")
         sage: e1 = P(x=1); e1
         1
-        sage: e2 = P(x=None, exponent=2); e2
+        sage: e2 = P(raw_element=2); e2
         x^2
         sage: e1 == e2
         False
@@ -774,9 +774,9 @@ class GrowthElementPower(GenericGrowthElement):
             sage: P = agg.GrowthGroupPower("x", base=QQ)
             sage: P(x=1)._repr_()
             '1'
-            sage: P(x=None, exponent=5)._repr_()
+            sage: P(raw_element=5)._repr_()
             'x^5'
-            sage: P(x=None, exponent=1/2)._repr_()
+            sage: P(raw_element=1/2)._repr_()
             'x^(1/2)'
         """
         if self.exponent == 0:
@@ -807,13 +807,15 @@ class GrowthElementPower(GenericGrowthElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P(x=None, exponent=2)
-            sage: e2 = P(x=None, exponent=3)
-            sage: e3 = e1._mul_(e2); e3
+            sage: P = agg.GrowthGroupPower('x')
+            sage: a = P(raw_element=2)
+            sage: b = P(raw_element=3)
+            sage: c = a._mul_(b); c
             x^5
-            sage: e3 == e1 * e2
+            sage: c == a * b
             True
+            sage: a * b * a
+            x^7
         """
         cls = self.__class__
         return cls(self.parent(), self.exponent + other.exponent)
@@ -837,7 +839,7 @@ class GrowthElementPower(GenericGrowthElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P(x=None, exponent=2)
+            sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
             x^-2
             sage: e2 == ~e1
@@ -865,7 +867,7 @@ class GrowthElementPower(GenericGrowthElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P(x=None, exponent=2)
+            sage: e1 = P(raw_element=2)
             sage: e1._div_(P.gen())
             x
             sage: e1._div_(P.gen()) == e1 / P.gen()
@@ -963,7 +965,7 @@ class GrowthElementPower(GenericGrowthElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P(x=None, exponent=1)
+            sage: e1 = P(raw_element=1)
             sage: e1._eq_(P.gen())
             True
             sage: e2 = e1^4
@@ -995,7 +997,7 @@ class GrowthElementPower(GenericGrowthElement):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.GrowthGroupPower("x")
             sage: e1 = P.gen()
-            sage: e2 = P(None, exponent=2)
+            sage: e2 = P(raw_element=2)
             sage: e1._le_(e2)
             True
             sage: e2._le_(e1)

@@ -2992,8 +2992,7 @@ cdef class Matroid(SageObject):
         vector_e = ambient.basis()
         convert = {ind: i for i, ind in enumerate(self.groundset())}
         vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
-                    for r in range(self.full_rank() + 1)
-                    for IS in self.independent_r_sets(r)]
+                    for IS in self.independent_sets()]
         return Polyhedron(vertices)
 
     # isomorphism and equality

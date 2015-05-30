@@ -74,6 +74,53 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         self._raw_element_ = parent.base()(raw_element)
 
 
+    def _repr_(self):
+        r"""
+        A representation string for this abstract generic element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42)  # indirect doctest
+            GenericGrowthElement(42)
+        """
+        return 'GenericGrowthElement(%s)' % (self._raw_element_,)
+
+
+    def __hash__(self):
+        r"""
+        Return the hash of this element
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        The hash uses the representation string of this element
+        produced by :meth:`_repr_`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ);
+            sage: hash(G(raw_element=42))  # random
+            5656565656565656
+        """
+        return hash(repr(self))
+
+
     def _mul_(self, other):
         r"""
         Abstract multiplication method for generic elements.
@@ -100,126 +147,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations
-        """
-        raise NotImplementedError("Only implemented in concrete realizations")
-
-
-    def _repr_(self):
-        r"""
-        A representation string for this abstract generic element.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G(raw_element=42)  # indirect doctest
-            GenericGrowthElement(42)
-        """
-        return 'GenericGrowthElement(%s)' % (self._raw_element_,)
-
-
-    def is_le_one(self):
-        r"""
-        Abstract method for comparison with one.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: (~G.gen()).is_le_one()
-            True
-        """
-        raise NotImplementedError("Only implemented in concrete realizations")
-
-
-    def __le__(self, other):
-        r"""
-        Return if this growth element is at most (less than or equal
-        to) ``other``.
-
-        INPUT:
-
-        - ``other`` -- an element.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_le_`.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G.an_element() <= G.an_element()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Only implemented in concrete realizations
-
-        ::
-
-            sage: P_ZZ = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: P_QQ = agg.MonimialGrowthGroup(QQ, 'x')
-            sage: P_ZZ.gen() <= P_QQ.gen()^2
-            True
-            sage: ~P_ZZ.gen() <= P_ZZ.gen()
-            True
-        """
-        from sage.structure.element import have_same_parent
-        if have_same_parent(self, other):
-            return self._le_(other)
-
-        from sage.structure.element import get_coercion_model
-        import operator
-        try:
-            return get_coercion_model().bin_op(self, other, operator.le)
-        except TypeError:
-            return False
-
-
-    def _le_(self, other):
-        r"""
-        Return if this :class:`GenericGrowthElement` is at most (less
-        than or equal to) ``other``.
-
-        INPUT:
-
-        - ``other`` -- a :class:`GenericGrowthElement`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function compares two instances of
-            :class:`GenericGrowthElement`.
-
-        TESTS::
-
-            sage: TODO
         """
         raise NotImplementedError("Only implemented in concrete realizations")
 
@@ -316,9 +243,85 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         return self._raw_element_ == other._raw_element_
 
 
-    def __hash__(self):
+    def __le__(self, other):
         r"""
-        Return the hash of this element
+        Return if this growth element is at most (less than or equal
+        to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_le_`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.an_element() <= G.an_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations
+
+        ::
+
+            sage: P_ZZ = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: P_QQ = agg.MonimialGrowthGroup(QQ, 'x')
+            sage: P_ZZ.gen() <= P_QQ.gen()^2
+            True
+            sage: ~P_ZZ.gen() <= P_ZZ.gen()
+            True
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._le_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.le)
+        except TypeError:
+            return False
+
+
+    def _le_(self, other):
+        r"""
+        Return if this :class:`GenericGrowthElement` is at most (less
+        than or equal to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`GenericGrowthElement`.
+
+        TESTS::
+
+            sage: TODO
+        """
+        raise NotImplementedError("Only implemented in concrete realizations")
+
+
+    def is_le_one(self):
+        r"""
+        Abstract method for comparison with one.
 
         INPUT:
 
@@ -326,19 +329,16 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        An integer.
-
-        The hash uses the representation string of this element
-        produced by :meth:`_repr_`.
+        A boolean.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ);
-            sage: hash(G(raw_element=42))  # random
-            5656565656565656
+            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: (~G.gen()).is_le_one()
+            True
         """
-        return hash(repr(self))
+        raise NotImplementedError("Only implemented in concrete realizations")
 
 
 class GenericGrowthGroup(
@@ -422,48 +422,6 @@ class GenericGrowthGroup(
                                                  base=base)
 
 
-    def le(self, left, right):
-        r"""
-        Return if the growth element ``left`` is at most (less than or
-        equal to) the growth element ``right``.
-
-        INPUT:
-
-        - ``left`` -- an element.
-
-        - ``right`` -- an element.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-        Return whether the asymptotic order of magnitude of `x` is less
-        than or equal to the asymptotic order of magnitude of `y`.
-
-        INPUT:
-
-        - ``x``, ``y`` -- elements of ``self``.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: x = G.gen()
-            sage: G.le(x, x^2)
-            True
-            sage: G.le(x^2, x)
-            False
-            sage: G.le(x^0, 1)
-            True
-        """
-        return (self(left) / self(right)).is_le_one()
-
-
     def _repr_(self):
         r"""
         A representation string for this generic growth group.
@@ -526,6 +484,48 @@ class GenericGrowthGroup(
             GenericGrowthElement(1)
         """
         return self.element_class(self, self.base().an_element())
+
+
+    def le(self, left, right):
+        r"""
+        Return if the growth element ``left`` is at most (less than or
+        equal to) the growth element ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        Return whether the asymptotic order of magnitude of `x` is less
+        than or equal to the asymptotic order of magnitude of `y`.
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements of ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: x = G.gen()
+            sage: G.le(x, x^2)
+            True
+            sage: G.le(x^2, x)
+            False
+            sage: G.le(x^0, 1)
+            True
+        """
+        return (self(left) / self(right)).is_le_one()
 
 
     def _element_constructor_(self, data, raw_element=None):
@@ -784,6 +784,29 @@ class GrowthElementPower(GenericGrowthElement):
             return self.parent()._var_ + "^(" + str(self.exponent) + ")"
 
 
+    def __hash__(self):
+        r"""
+        Return the hash of the tuple containing the exponent and the
+        parent.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: hash(P.gen())  # random
+            -3234005094684624010
+        """
+        return hash((self.exponent, self.parent()))
+
+
     def _mul_(self, other):
         r"""
         Multiply two asymptotic power growth elements from the
@@ -1029,29 +1052,6 @@ class GrowthElementPower(GenericGrowthElement):
         return self.exponent <= 0
 
 
-    def __hash__(self):
-        r"""
-        Return the hash of the tuple containing the exponent and the
-        parent.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: hash(P.gen())  # random
-            -3234005094684624010
-        """
-        return hash((self.exponent, self.parent()))
-
-
 class MonimialGrowthGroup(GenericGrowthGroup):
     r"""
     Class for the concrete realization of asymptotic power growth
@@ -1154,6 +1154,54 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         super(MonimialGrowthGroup, self).\
             __init__(category=category, base=base)
         self._populate_coercion_lists_()
+
+    def _repr_(self):
+        r"""
+        Represent the asymptotic power growth group as
+        "Asymptotic Power Growth Group in ``variable``
+        over ``base``".
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.MonimialGrowthGroup(ZZ, 'x')._repr_()
+            'Asymptotic Power Growth Group in x over Integer Ring'
+            sage: agg.MonimialGrowthGroup(QQ, 'v_107')._repr_()
+            'Asymptotic Power Growth Group in v_107 over Rational Field'
+        """
+        return "Asymptotic Power Growth Group in %s over %s" \
+               % (self._var_, self.base())
+
+
+    def __hash__(self):
+        r"""
+        Return the hash of the tuple containing the variable and the
+        base.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
+            sage: hash(P)  # random
+            -8144479309627091876
+        """
+        return hash((self._var_, self.base()))
 
 
     def _convert_(self, data):
@@ -1265,12 +1313,10 @@ class MonimialGrowthGroup(GenericGrowthGroup):
         # TODO: SR, PolynomialRing
 
 
-
-    def _repr_(self):
+    def gen(self):
         r"""
-        Represent the asymptotic power growth group as
-        "Asymptotic Power Growth Group in ``variable``
-        over ``base``".
+        Return the asymptotic power growth element with
+        exponent 1.
 
         INPUT:
 
@@ -1278,18 +1324,17 @@ class MonimialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A string.
+        The asymptotic power growth element with exponent 1.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.MonimialGrowthGroup(ZZ, 'x')._repr_()
-            'Asymptotic Power Growth Group in x over Integer Ring'
-            sage: agg.MonimialGrowthGroup(QQ, 'v_107')._repr_()
-            'Asymptotic Power Growth Group in v_107 over Rational Field'
+            sage: e1 = agg.MonimialGrowthGroup(ZZ, 'x').gen(); e1
+            x
+            sage: e1.exponent == 1
+            True
         """
-        return "Asymptotic Power Growth Group in %s over %s" \
-               % (self._var_, self.base())
+        return self(raw_element=self.base().gen())
 
 
     def gens(self):
@@ -1362,50 +1407,3 @@ class MonimialGrowthGroup(GenericGrowthGroup):
             True
         """
         return self(1)
-
-
-    def gen(self):
-        r"""
-        Return the asymptotic power growth element with
-        exponent 1.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        The asymptotic power growth element with exponent 1.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.MonimialGrowthGroup(ZZ, 'x').gen(); e1
-            x
-            sage: e1.exponent == 1
-            True
-        """
-        return self(raw_element=self.base().gen())
-
-
-    def __hash__(self):
-        r"""
-        Return the hash of the tuple containing the variable and the
-        base.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonimialGrowthGroup(ZZ, 'x')
-            sage: hash(P)  # random
-            -8144479309627091876
-        """
-        return hash((self._var_, self.base()))

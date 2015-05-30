@@ -88,10 +88,9 @@ def BullGraph():
         sage: bool(expand(x * (x^2 - x - 3) * (x^2 + x - 1)) == charpoly)
         True
     """
+    edge_list = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 4)]
     pos_dict = {0:(0,0), 1:(-1,1), 2:(1,1), 3:(-2,2), 4:(2,2)}
-    import networkx
-    G = networkx.bull_graph()
-    return graph.Graph(G, pos=pos_dict, name="Bull graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Bull graph")
 
 def ButterflyGraph():
     r"""
@@ -203,9 +202,13 @@ def CircularLadderGraph(n):
         x = float(2*(cos((pi/2) + ((2*pi)/n)*(i-n))))
         y = float(2*(sin((pi/2) + ((2*pi)/n)*(i-n))))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.circular_ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Circular Ladder graph")
+
+    G = Graph(pos=pos_dict, name="Circular Ladder graph")
+    G.add_vertices( range(2*n) )
+    G.add_cycle( range(n) )
+    G.add_cycle( range(n,2*n) )
+    G.add_edges( (i,i+n) for i in range(n) )
+    return G
 
 def ClawGraph():
     """
@@ -230,10 +233,9 @@ def ClawGraph():
         sage: G
         Claw graph: Graph on 4 vertices
     """
+    edge_list = [(0, 1), (0, 2), (0, 3)]
     pos_dict = {0:(0,1),1:(-1,0),2:(0,0),3:(1,0)}
-    import networkx
-    G = networkx.complete_bipartite_graph(1,3)
-    return graph.Graph(G, pos=pos_dict, name="Claw graph")
+    return graph.Graph(edge_list, pos=pos_dict, name="Claw graph")
 
 def CycleGraph(n):
     r"""
@@ -301,14 +303,18 @@ def CycleGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
+    if n<1:
+        return graph.Graph(pos=dict(), name="Cycle graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.cycle_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Cycle graph")
+    G = graph.Graph(pos=pos_dict, name="Cycle graph")
+    G.add_vertices( range(n) )
+    G.add_edges( (i,i+1) for i in range(n-1) )
+    G.add_edge(0, n-1)
+    return G
 
 def CompleteGraph(n):
     """
@@ -391,14 +397,15 @@ def CompleteGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
+    if n<1:
+        return graph.Graph(pos=dict(), name="Complete graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Complete graph")
+    return graph.Graph( dict( (i,range(i+1,n)) for i in range(n) ),
+                        pos=pos_dict, name="Complete graph")
 
 def CompleteBipartiteGraph(n1, n2):
     """
@@ -492,7 +499,23 @@ def CompleteBipartiteGraph(n1, n2):
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
+
+    TESTS:
+
+    Prevent negative dimensions (:trac:`18530`)::
+
+        sage: graphs.CompleteBipartiteGraph(-1,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input parameters must be positive integers.
+        sage: graphs.CompleteBipartiteGraph(1,-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input parameters must be positive integers.
     """
+    if n1<0 or n2<0:
+        raise ValueError('The input parameters must be positive integers.')
+
     pos_dict = {}
     c1 = 1 # scaling factor for top row
     c2 = 1 # scaling factor for bottom row
@@ -516,9 +539,11 @@ def CompleteBipartiteGraph(n1, n2):
         x = c2*(i-n1) + c4
         y = 0
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.complete_bipartite_graph(n1,n2)
-    return Graph(G, pos=pos_dict, name="Complete bipartite graph")
+
+    if n1==0 or n2==0:
+        return Graph(dict( (i,[]) for i in range(n1+n2) ), pos=pos_dict, name="Complete bipartite graph")
+    V2 = range(n1,n1+n2)
+    return Graph(dict( (i,V2) for i in range(n1) ), pos=pos_dict, name="Complete bipartite graph")
 
 def CompleteMultipartiteGraph(l):
     r"""
@@ -574,9 +599,8 @@ def DiamondGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(0,1),1:(-1,0),2:(1,0),3:(0,-1)}
-    import networkx
-    G = networkx.diamond_graph()
-    return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
+    edges = [(0, 1), (0, 2), (1, 2), (1, 3), (2, 3)]
+    return graph.Graph(edges, pos=pos_dict, name="Diamond Graph")
 
 def EmptyGraph():
     """
@@ -638,7 +662,7 @@ def ToroidalGrid2dGraph(n1, n2):
         True
     """
 
-    g = Grid2dGraph(n1,n2)
+    g = Grid2dGraph(n1,n2, set_positions=False)
 
     g.add_edges([((i,0),(i,n2-1)) for i in range(n1)] + [((0,i),(n1-1,i)) for i in range(n2)])
 
@@ -712,7 +736,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
     g.name("Toroidal Hexagonal Grid graph on "+str(n1)+"x"+str(n2)+" elements")
     return g
 
-def Grid2dGraph(n1, n2):
+def Grid2dGraph(n1, n2, set_positions=True):
     r"""
     Returns a `2`-dimensional grid graph with `n_1n_2` nodes (`n_1` rows and
     `n_2` columns).
@@ -722,8 +746,13 @@ def Grid2dGraph(n1, n2):
     connected to their `3` neighbors. Corner nodes are connected to their
     2 neighbors.
 
-    This constructor depends on NetworkX numeric labels.
+    INPUT:
 
+    - ``n1`` and ``n2`` -- two positive integers
+
+    - ``set_positions`` -- (default: ``True``) boolean use to prevent setting
+      the position of the nodes.
+    
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, nodes are
     labelled in (row, column) pairs with `(0, 0)` in the top left corner.
@@ -761,14 +790,18 @@ def Grid2dGraph(n1, n2):
         raise ValueError("Parameters n1 and n2 must be positive integers !")
 
     pos_dict = {}
-    for i in range(n1):
-        y = -i
-        for j in range(n2):
-            x = j
-            pos_dict[i, j] = (x, y)
-    import networkx
-    G = networkx.grid_2d_graph(n1, n2)
-    return graph.Graph(G, pos=pos_dict, name="2D Grid Graph for "+str([n1, n2]))
+    if set_positions:
+        for i in range(n1):
+            y = -i
+            for j in range(n2):
+                x = j
+                pos_dict[i, j] = (x, y)
+
+    G = graph.Graph(pos=pos_dict, name="2D Grid Graph for [{}, {}]".format(n1, n2))
+    G.add_vertices( (i,j) for i in range(n1) for j in range(n2) )
+    G.add_edges( ((i,j),(i+1,j)) for i in range(n1-1) for j in range(n2) )
+    G.add_edges( ((i,j),(i,j+1)) for i in range(n1) for j in range(n2-1) )
+    return G
 
 def GridGraph(dim_list):
     """
@@ -852,9 +885,8 @@ def HouseGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(-1,0),1:(1,0),2:(-1,1),3:(1,1),4:(0,2)}
-    import networkx
-    G = networkx.house_graph()
-    return graph.Graph(G, pos=pos_dict, name="House Graph")
+    edges = [(0, 1), (0, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
 def HouseXGraph():
     """
@@ -883,9 +915,8 @@ def HouseXGraph():
         sage: g.show() # long time
     """
     pos_dict = {0:(-1,0),1:(1,0),2:(-1,1),3:(1,1),4:(0,2)}
-    import networkx
-    G = networkx.house_x_graph()
-    return graph.Graph(G, pos=pos_dict, name="House Graph")
+    edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
+    return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
 def LadderGraph(n):
     """
@@ -932,9 +963,11 @@ def LadderGraph(n):
     for i in range(n,2*n):
         x = i - n
         pos_dict[i] = (x,0)
-    import networkx
-    G = networkx.ladder_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Ladder graph")
+    G = Graph(pos=pos_dict, name="Ladder graph")
+    G.add_vertices( range(2*n) )
+    G.add_cycle( range(2*n) )
+    G.add_edges( (i,i+n) for i in range(1,n-1) )
+    return G
 
 def LollipopGraph(n1, n2):
     """
@@ -987,10 +1020,10 @@ def LollipopGraph(n1, n2):
         x = float(i - n1 - n2/2 + 1)
         y = float(i - n1 - n2/2 + 1)
         pos_dict[i] = (x,y)
-
-    import networkx
-    G = networkx.lollipop_graph(n1,n2)
-    return graph.Graph(G, pos=pos_dict, name="Lollipop Graph")
+    G = graph.Graph(dict( (i,range(i+1,n1)) for i in range(n1) ), pos=pos_dict, name="Lollipop Graph")
+    G.add_vertices( range(n1+n2) )
+    G.add_path( range(n1-1,n1+n2) )
+    return G
 
 def PathGraph(n, pos=None):
     """
@@ -1043,6 +1076,11 @@ def PathGraph(n, pos=None):
         sage: s = graphs.PathGraph(5,'circle')
         sage: s.show() # long time
     """
+    if n<1:
+        return graph.Graph(name="Path graph")
+    if n==1:
+        return graph.Graph({0:[]}, name="Path Graph")
+
     pos_dict = {}
 
     # Choose appropriate drawing pattern
@@ -1085,9 +1123,7 @@ def PathGraph(n, pos=None):
             pos_dict[counter] = (x,y)
             counter += 1
 
-    import networkx
-    G = networkx.path_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Path Graph")
+    return graph.Graph(dict( (i,[i+1]) for i in range(n-1) ), pos=pos_dict, name="Path Graph")
 
 def StarGraph(n):
     """
@@ -1166,7 +1202,5 @@ def StarGraph(n):
         x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
         y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.star_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Star graph")
+    return graph.Graph({0:range(1,n+1)}, pos=pos_dict, name="Star graph")
 

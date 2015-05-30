@@ -1292,8 +1292,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1302,11 +1302,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -1372,8 +1372,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1382,11 +1382,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()

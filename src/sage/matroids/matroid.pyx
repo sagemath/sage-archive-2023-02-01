@@ -313,6 +313,7 @@ from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
 from sage.graphs.graph import Graph
+from sage.matroids.catalog import *
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -4734,7 +4735,6 @@ cdef class Matroid(SageObject):
             return True, None
         else:
             return True
-
     cpdef is_3connected_beta(self, separation=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
@@ -4787,8 +4787,12 @@ cdef class Matroid(SageObject):
         """
         # The 5 stages of the algorithm
         # Stage 0, special cases
-        # Todo: There are exceptions to this rule need to be implemented
-        if self.loops() or self.coloops() or (not self.is_connected()):
+        if (self.size() <= 1 or
+            self.is_isomorphic(sage.matroids.catalog.Uniform(1,2)) or
+            self.is_isomorphic(sage.matroids.catalog.Uniform(1,3)) or
+            self.is_isomorphic(sage.matroids.catalog.Uniform(2,3))):
+            return True
+        if not (self.is_simple() and self.is_cosimple() and self.is_connected()):
         #    print "Fail step 0"
             return False
         # Step 1: base case

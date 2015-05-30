@@ -98,7 +98,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __hash__(self):
         r"""
-        Return the hash of this element
+        Return the hash of this element.
 
         INPUT:
 
@@ -108,9 +108,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         An integer.
 
-        The hash uses the representation string of this element
-        produced by :meth:`_repr_`.
-
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
@@ -118,7 +115,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: hash(G(raw_element=42))  # random
             5656565656565656
         """
-        return hash(repr(self))
+        return hash((self.parent(), self._raw_element_))
 
 
     def _mul_(self, other):
@@ -784,29 +781,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             return self.parent()._var_ + '^(' + str(self.exponent) + ')'
 
 
-    def __hash__(self):
-        r"""
-        Return the hash of the tuple containing the exponent and the
-        parent.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An integer.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: hash(P.gen())  # random
-            -3234005094684624010
-        """
-        return hash((self.exponent, self.parent()))
-
-
     def _mul_(self, other):
         r"""
         Multiply two asymptotic power growth elements from the
@@ -1007,6 +981,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         Normalizes the input in order to ensure a unique
         representation.
 
+        For more information see :class:`MonomialGrowthGroup`.
+
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
@@ -1083,8 +1059,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def __hash__(self):
         r"""
-        Return the hash of the tuple containing the variable and the
-        base.
+        Return the hash of this group.
 
         INPUT:
 
@@ -1099,9 +1074,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: hash(P)  # random
-            -8144479309627091876
+            -1234567890123456789
         """
-        return hash((self._var_, self.base()))
+        return hash((super(MonomialGrowthGroup, self).__hash__(), self._var_))
 
 
     def _convert_(self, data):

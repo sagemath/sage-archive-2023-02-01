@@ -344,38 +344,34 @@ class GenericGrowthGroup(
         sage.structure.parent.Parent,
         sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    Class for the generic asymptotic growth group. Only base
-    structure is handled here, for a concrete realization see
-    :class:`MonomialGrowthGroup`.
+    An abstract implementation for growth groups.
 
     INPUT:
 
-    - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a
-      subcategory of ``Join of Category of groups and Category
-      of posets``. This is also the default category if ``None``
-      is specified.
+    - ``base`` -- one of SageMath's parents, out of which the elements
+      get their data (``raw_element``).
 
-    - ``base`` -- The base of the parent associated to concrete
-      implementations of this abstract base class.
+    - ``category`` -- (default: ``None``) the category of the newly
+      created growth group. It has to be a subcategory of ``Join of
+      Category of groups and Category of posets``. This is also the
+      default category if ``None`` is specified.
 
-    OUTPUT:
+    .. NOTE::
 
-    A generic asymptotic growth group.
+        This class should be derived to get concrete implementations.
 
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GenericGrowthGroup(ZZ); G
         Generic Growth Group over Integer Ring
-    """
 
+    .. SEEALSO::
+
+        :class:`MonomialGrowthGroup`
+    """
     # TODO: implement some sort of 'assume', where basic assumptions
     # for the variables can be stored. --> within the cartesian product
-
-    # TODO: implement a cartesian product class for the asymptotic
-    # growth group. the 'standard' cart. prod. produces an element
-    # of the cart. prod. class, which does not have a order structure.
 
     # enable the category framework for elements
     Element = GenericGrowthElement
@@ -936,40 +932,42 @@ class MonomialGrowthElement(GenericGrowthElement):
 
 class MonomialGrowthGroup(GenericGrowthGroup):
     r"""
-    Class for the concrete realization of asymptotic power growth
-    groups. These are the parents for the
-    :class:`MonomialGrowthElement` elements. These parents
-    contain single monomial terms in a specified variable with
-    exponents from a specified base.
+    A growth group dealing with powers of a fixed object/symbol.
 
-    More complex growth elements can be constructed by constructing the
-    cartesian product of various asymptotic growth groups.
+    The elements :class:`MonomialGrowthElement` of this group represent powers
+    of a fixed base; the group law is the multiplication, which corresponds
+    to the addition of the exponents of the monomials.
 
     INPUT:
 
-    - ``var`` -- either a symbol from the symbolic ring, a
-      generator from a polynomial ring, or a alphanumeric string
-      starting with a letter and optionally containing underscores.
+    - ``base`` -- one of SageMath's parents, out of which the elements
+      get their data (``raw_element``).
 
-    - ``base`` -- the base structure containing the exponents.
+      As monomials are represented by this group, the elements in
+      ``base`` are the exponents of these monomials.
 
-    - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a
-      subcategory of ``Join of Category of groups and Category of
-      posets``. This is also the default category if ``None`` is
-      specified.
+    - ``var`` -- an object.
 
-    OUTPUT:
+      The string representation of ``var`` acts as a base of the
+      monomials represented by this group.
 
-    An asymptotic power growth group.
+    - ``category`` -- (default: ``None``) the category of the newly
+      created growth group. It has to be a subcategory of ``Join of
+      Category of groups and Category of posets``. This is also the
+      default category if ``None`` is specified.
 
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: P = agg.MonomialGrowthGroup(ZZ, 'x'); P
         Monomial Growth Group in x over Integer Ring
+        sage: agg.MonomialGrowthGroup(ZZ, log(SR.var('y')))
+        Monomial Growth Group in log(y) over Integer Ring
+
+    .. SEEALSO::
+
+        :class:`GenericGrowthGroup`
     """
-    # TODO: implement the cartesian product structure
 
     # enable the category framework for elements
     Element = MonomialGrowthElement

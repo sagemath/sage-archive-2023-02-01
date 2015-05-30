@@ -724,9 +724,9 @@ base_class_as_func = [
 # link to the Python documentation several links where broken because there
 # where class listed as functions. Expand the list 'base_class_as_func'
 # above instead of marking the link as broken.
-nitpick_ignore = (
+nitpick_ignore = [
     ('py:class', 'twisted.web2.resource.Resource'),
-    ('py:class', 'twisted.web2.resource.PostableResource'))
+    ('py:class', 'twisted.web2.resource.PostableResource')]
 
 def nitpick_patch_config(app):
     """

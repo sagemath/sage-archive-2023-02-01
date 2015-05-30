@@ -535,7 +535,8 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
             sage: P.an_element()  # indirect doctest
             Generic element of a Generic Asymptotic Growth Group
         """
-        return GenericGrowthElement(self)
+        return self.element_class(self, self.base().an_element())
+
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
@@ -695,35 +696,29 @@ class GrowthElementPower(GenericGrowthElement):
     # TODO: implement comparison for the cartesian product structure.
 
 
-    def __init__(self, parent, x=None, exponent=None):
-        r"""
-        See :class:`GrowthElementPower` for more information.
+#    def __init__(self, parent, exponent):
+#        r"""
+#        See :class:`GrowthElementPower` for more information.
+#
+#        EXAMPLES::
+#
+#            sage: import sage.groups.asymptotic_growth_group as agg
+#            sage: G = agg.GrowthGroupPower('x')
+#            sage: e1 = G.gen(); e1
+#            x
+#            sage: e1.is_idempotent()
+#            False
+#            sage: e1.is_one()
+#            False
+#            sage: e1.parent()
+#            Asymptotic Power Growth Group in x over Integer Ring
+#            sage: e2 = G.one(); e2
+#            1
+#            sage: e2.is_idempotent() and e2.is_one()
+#            True
+#        """
+#        super(GrowthElementPower, self).__init__(parent=parent, raw_element=exponent)
 
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: e1 = P.gen(); e1
-            x
-            sage: e1.is_idempotent()
-            False
-            sage: e1.is_one()
-            False
-            sage: e1.parent()
-            Asymptotic Power Growth Group in x over Integer Ring
-            sage: e2 = P.one(); e2
-            1
-            sage: e2.is_idempotent() and e2.is_one()
-            True
-        """
-        if exponent is None and x.parent() is parent:
-            self.exponent = x.exponent
-            super(GrowthElementPower, self).__init__(parent=parent)
-        if exponent not in RR:
-            raise NotImplementedError("Non-real exponents are not supported.")
-        else:
-            self.exponent = parent.base()(exponent)
-        super(GrowthElementPower, self).__init__(parent=parent)
 
     @property
     def exponent(self):
@@ -791,7 +786,7 @@ class GrowthElementPower(GenericGrowthElement):
             True
         """
         cls = self.__class__
-        return cls(self.parent(), exponent=self.exponent + other.exponent)
+        return cls(self.parent(), self.exponent + other.exponent)
 
 
     def __invert__(self):
@@ -819,7 +814,7 @@ class GrowthElementPower(GenericGrowthElement):
             True
         """
         cls = self.__class__
-        return cls(self.parent(), exponent=-self.exponent)
+        return cls(self.parent(), -self.exponent)
 
 
     def _div_(self, other):
@@ -847,7 +842,7 @@ class GrowthElementPower(GenericGrowthElement):
             True
         """
         cls = self.__class__
-        return cls(self.parent(), exponent=self.exponent - other.exponent)
+        return cls(self.parent(), self.exponent - other.exponent)
 
 
     def __pow__(self, power):
@@ -1065,6 +1060,9 @@ class GrowthGroupPower(GenericGrowthGroup):
     """
     # TODO: implement the cartesian product structure
 
+    # enable the category framework for elements
+    Element = GrowthElementPower
+
 
     @staticmethod
     def __classcall__(cls, var=None, base=ZZ, category=None):
@@ -1128,9 +1126,6 @@ class GrowthGroupPower(GenericGrowthGroup):
         super(GrowthGroupPower, self).\
             __init__(category=category, base=base)
         self._populate_coercion_lists_()
-
-    # enable the category framework for elements
-    Element = GrowthElementPower
 
 
     def _coerce_map_from_(self, S):

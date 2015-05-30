@@ -2034,10 +2034,6 @@ class FinitePoset(UniqueRepresentation, Parent):
            Cambridge University Press (2011).
            http://math.mit.edu/~rstan/ec/ec1/
         """
-        # TODO: If n is a list, it should be arranged starting with smaller
-        # values. It is, for example, more propably to find a pair of chains
-        # of length (10,20) than (14,15). We could then return False as soon
-        # as possible.
         if n is None:
             try:
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]

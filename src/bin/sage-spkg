@@ -54,9 +54,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# This script is called in a pipe, do not let Python buffer stdout
-export PYTHONUNBUFFERED=yes
-
 # Avoid surprises with character ranges [a-z] in regular expressions
 export LC_ALL=C
 

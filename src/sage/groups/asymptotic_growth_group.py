@@ -494,11 +494,11 @@ class GrowthElementPower(GenericGrowthElement):
         if self.exponent == 0:
             return "1"
         elif self.exponent == 1:
-            return self.parent().var
+            return self.parent()._var_
         elif self.exponent in ZZ:
-            return self.parent().var + "^" + str(self.exponent)
+            return self.parent()._var_ + "^" + str(self.exponent)
         else:
-            return self.parent().var + "^(" + str(self.exponent) + ")"
+            return self.parent()._var_ + "^(" + str(self.exponent) + ")"
 
 
     def _mul_(self, other):
@@ -617,7 +617,7 @@ class GrowthElementPower(GenericGrowthElement):
             return self.parent()(raw_element=self.exponent * power)
 
         if new_exponent in RR:
-            pnt = GrowthGroupPower(self.parent().var,
+            pnt = GrowthGroupPower(self.parent()._var_,
                                    base=new_exponent.parent())
             return pnt(raw_element=new_exponent)
         else:
@@ -893,7 +893,7 @@ class GrowthGroupPower(GenericGrowthGroup):
             raise ValueError("Variable for initialization required.")
         else:
             if re.match("^[A-Za-z][A-Za-z0-9_]*$", var):
-                self.var = str(var)
+                self._var_ = str(var)
             else:
                 raise ValueError("Only alphanumeric strings starting with a "
                                  "letter may be variables")
@@ -991,7 +991,7 @@ class GrowthGroupPower(GenericGrowthGroup):
             'Asymptotic Power Growth Group in v_107 over Rational Field'
         """
         return "Asymptotic Power Growth Group in %s over %s" \
-               % (self.var, self.base())
+               % (self._var_, self.base())
 
 
     def _an_element_(self):
@@ -1130,4 +1130,4 @@ class GrowthGroupPower(GenericGrowthGroup):
             sage: hash(P)  # random
             -8144479309627091876
         """
-        return hash((self.var, self.base()))
+        return hash((self._var_, self.base()))

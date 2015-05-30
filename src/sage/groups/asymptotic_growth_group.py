@@ -439,20 +439,19 @@ class GenericGrowthGroup(Parent, UniqueRepresentation):
 
         - ``x``, ``y`` -- elements of ``self``.
 
-
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.GrowthGroupPower("x")
-            sage: x = P.gen()
-            sage: P.le(x, x^2)
+            sage: G = agg.GrowthGroupPower('x')
+            sage: x = G.gen()
+            sage: G.le(x, x^2)
             True
-            sage: P.le(x^2, x)
+            sage: G.le(x^2, x)
             False
-            sage: P.le(x^0,1)
+            sage: G.le(x^0, 1)
             True
         """
-        return (self(x) / self(y)).is_le_one()
+        return (self(left) / self(right)).is_le_one()
 
 
     def _repr_(self):

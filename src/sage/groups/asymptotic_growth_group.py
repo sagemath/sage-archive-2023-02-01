@@ -81,6 +81,8 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             raise ValueError("The parent must be provided")
         super(GenericGrowthElement, self).__init__(parent=parent)
 
+        self._raw_element_ = parent.base()(raw_element)
+
 
     def _mul_(self, other):
         r"""
@@ -460,6 +462,10 @@ class GrowthElementPower(GenericGrowthElement):
             self.exponent = parent.base()(exponent)
         super(GrowthElementPower, self).__init__(parent=parent)
 
+    @property
+    def exponent(self):
+        return self._raw_element_
+
 
     def _repr_(self):
         r"""
@@ -608,12 +614,12 @@ class GrowthElementPower(GenericGrowthElement):
         """
         new_exponent = self.exponent * power
         if new_exponent in self.parent().base():
-            return self.parent()(None, exponent=self.exponent * power)
+            return self.parent()(raw_element=self.exponent * power)
 
         if new_exponent in RR:
             pnt = GrowthGroupPower(self.parent().var,
                                    base=new_exponent.parent())
-            return pnt(None, exponent=new_exponent)
+            return pnt(raw_element=new_exponent)
         else:
             raise NotImplementedError("Only real exponents are implemented.")
 

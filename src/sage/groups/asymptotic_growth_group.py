@@ -1175,8 +1175,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def gen(self):
         r"""
-        Return the asymptotic power growth element with
-        exponent 1.
+        Return the monomial growth element with exponent `1`.
 
         INPUT:
 
@@ -1184,7 +1183,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        The asymptotic power growth element with exponent 1.
+        A :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -1194,14 +1193,14 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: e1.exponent == 1
             True
         """
-        return self(raw_element=self.base().gen())
+        return self(raw_element=self.base().one())
 
 
     def gens(self):
         r"""
-        Return a list with all generators of ``self``. For power growth
-        groups, this is a list with only one element: the variable
-        to the power `1`.
+        Return a tuple of all generators of this monomial growth
+        group, which is exactly consisting of one element, namely the
+        monomial growth element with exponent `1`.
 
         INPUT:
 
@@ -1209,7 +1208,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A list of generators.
+        A tuple whose entries are :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -1223,8 +1222,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def ngens(self):
         r"""
-        Return the number of generators of ``self``. For power growth
-        groups, this is exactly `1`.
+        Return the number of generators of this monomial growth group,
+        which is exactly `1`.
 
         INPUT:
 
@@ -1232,7 +1231,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        The number of generators of ``self``.
+        A Python integer.
 
         EXAMPLES::
 

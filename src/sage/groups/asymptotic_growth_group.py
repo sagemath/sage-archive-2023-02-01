@@ -1,6 +1,18 @@
 r"""
 (Asymptotic) Growth Groups
 
+This module adds support for (asymptotic) growth groups. Such groups is equipped with a partial order: the elements can be seen as functions and their behavior as the argument(s) get large (tend to `\infty`) is compared.
+
+Beside an abstract base class :class:`GenericGrowthGroup`, this module contains concrete realizations of growth groups. At the moment there is
+
+- :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
+
+More complex growth groups can be constructed via cartesian products
+(to be implemented).
+
+These growth groups are used behind the scenes when performing
+calculations in an asymptotic ring (to be implemented).
+
 AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version

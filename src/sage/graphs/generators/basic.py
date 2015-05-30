@@ -244,9 +244,6 @@ def CycleGraph(n):
     A cycle graph is a basic structure which is also typically called
     an n-gon.
 
-    This constructor is dependent on vertices numbered 0 through n-1 in
-    NetworkX ``cycle_graph()``
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each cycle
     graph will be displayed with the first (0) node at the top, with
@@ -303,17 +300,13 @@ def CycleGraph(n):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
-    if n<1:
-        return graph.Graph(pos=dict(), name="Cycle graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    G = graph.Graph(pos=pos_dict, name="Cycle graph")
-    G.add_vertices( range(n) )
-    G.add_edges( (i,i+1) for i in range(n-1) )
-    G.add_edge(0, n-1)
+    G = graph.Graph(n,pos=pos_dict, name="Cycle graph")
+    G.add_cycle(range(n))
     return G
 
 def CompleteGraph(n):
@@ -322,9 +315,6 @@ def CompleteGraph(n):
 
     A Complete Graph is a graph in which all nodes are connected to all
     other nodes.
-
-    This constructor is dependent on vertices numbered 0 through n-1 in
-    NetworkX complete_graph()
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each complete
@@ -397,15 +387,14 @@ def CompleteGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    if n<1:
-        return graph.Graph(pos=dict(), name="Complete graph")
     pos_dict = {}
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
         pos_dict[i] = (x,y)
-    return graph.Graph( dict( (i,range(i+1,n)) for i in range(n) ),
-                        pos=pos_dict, name="Complete graph")
+    G = graph.Graph(n,pos=pos_dict, name="Complete graph")
+    G.add_edges(((i,j) for i in range(n) for j in range(i+1,n)))
+    return G
 
 def CompleteBipartiteGraph(n1, n2):
     """
@@ -507,14 +496,14 @@ def CompleteBipartiteGraph(n1, n2):
         sage: graphs.CompleteBipartiteGraph(-1,1)
         Traceback (most recent call last):
         ...
-        ValueError: The input parameters must be positive integers.
+        ValueError: The arguments n1(=-1) and n2(=1) must be positive integers.
         sage: graphs.CompleteBipartiteGraph(1,-1)
         Traceback (most recent call last):
         ...
-        ValueError: The input parameters must be positive integers.
+        ValueError: The arguments n1(=1) and n2(=-1) must be positive integers.
     """
     if n1<0 or n2<0:
-        raise ValueError('The input parameters must be positive integers.')
+        raise ValueError('The arguments n1(={}) and n2(={}) must be positive integers.'.format(n1,n2))
 
     pos_dict = {}
     c1 = 1 # scaling factor for top row
@@ -540,10 +529,9 @@ def CompleteBipartiteGraph(n1, n2):
         y = 0
         pos_dict[i] = (x,y)
 
-    if n1==0 or n2==0:
-        return Graph(dict( (i,[]) for i in range(n1+n2) ), pos=pos_dict, name="Complete bipartite graph")
-    V2 = range(n1,n1+n2)
-    return Graph(dict( (i,V2) for i in range(n1) ), pos=pos_dict, name="Complete bipartite graph")
+    G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
+    G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
+    return G
 
 def CompleteMultipartiteGraph(l):
     r"""
@@ -965,8 +953,9 @@ def LadderGraph(n):
         pos_dict[i] = (x,0)
     G = Graph(pos=pos_dict, name="Ladder graph")
     G.add_vertices( range(2*n) )
-    G.add_cycle( range(2*n) )
-    G.add_edges( (i,i+n) for i in range(1,n-1) )
+    G.add_path( range(n) )
+    G.add_path( range(n,2*n) )
+    G.add_edges( (i,i+n) for i in range(n) )
     return G
 
 def LollipopGraph(n1, n2):
@@ -1036,8 +1025,6 @@ def PathGraph(n, pos=None):
     one inner neighbors. (i.e.: a cycle graph without the first and
     last node connected).
 
-    This constructor depends on NetworkX numeric labels.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the graph may
     be drawn in one of two ways: The 'line' argument will draw the
@@ -1076,10 +1063,7 @@ def PathGraph(n, pos=None):
         sage: s = graphs.PathGraph(5,'circle')
         sage: s.show() # long time
     """
-    if n<1:
-        return graph.Graph(name="Path graph")
-    if n==1:
-        return graph.Graph({0:[]}, name="Path Graph")
+    G = graph.Graph(n, name="Path graph")
 
     pos_dict = {}
 
@@ -1123,7 +1107,9 @@ def PathGraph(n, pos=None):
             pos_dict[counter] = (x,y)
             counter += 1
 
-    return graph.Graph(dict( (i,[i+1]) for i in range(n-1) ), pos=pos_dict, name="Path Graph")
+    G.add_edges( (i,i+1) for i in range(n-1) )
+    G.set_pos(pos_dict)
+    return G
 
 def StarGraph(n):
     """

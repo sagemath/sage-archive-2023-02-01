@@ -14132,8 +14132,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
         """
-        self.add_path(vertices)
-        self.add_edge(vertices[-1], vertices[0])
+        if vertices:
+            self.add_path(vertices)
+            self.add_edge(vertices[-1], vertices[0])
 
     def add_path(self, vertices):
         """
@@ -14168,6 +14169,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None)]
         """
+        if not vertices:
+            return
         vert1 = vertices[0]
         for v in vertices[1:]:
             self.add_edge(vert1, v)

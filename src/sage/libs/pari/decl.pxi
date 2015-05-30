@@ -22,7 +22,7 @@ AUTHORS:
 
 """
 
-include 'sage/ext/cdefs.pxi'
+from libc.stdio cimport FILE
 
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list

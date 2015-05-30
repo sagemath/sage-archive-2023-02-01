@@ -440,7 +440,6 @@ command-line version of MuPAD.
         return res if res != [''] else []
 
 
-
 class MupadFunction(ExpectFunction):
     def _sage_doc_(self):
         """
@@ -476,6 +475,7 @@ class MupadFunction(ExpectFunction):
         """
         res = self._parent.completions(self._name+"::", strip=True)
         return res if res != [] else self._parent.trait_names()
+
 
 class MupadFunctionElement(FunctionElement):
     def _sage_doc_(self):
@@ -663,7 +663,7 @@ def reduce_load_mupad():
     """
     return mupad
 
-import os
+
 def mupad_console():
     """
     Spawn a new MuPAD command-line session.

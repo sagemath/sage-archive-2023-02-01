@@ -43,7 +43,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
-include 'sage/ext/cdefs.pxi'
+from libc.string cimport memcpy
 from cpython.dict cimport *
 
 import copy

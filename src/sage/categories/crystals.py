@@ -102,14 +102,14 @@ class Crystals(Category_singleton):
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
-        INPUT::
+        INPUT:
 
-         - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
-           for the highest weight crystal of type A, or 'naive' for an
-           example of a broken crystal.
+        - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
+          for the highest weight crystal of type A, or 'naive' for an
+          example of a broken crystal.
 
-         - ``**kwds`` -- keyword arguments passed onto the constructor for the
-           chosen crystal.
+        - ``**kwds`` -- keyword arguments passed onto the constructor for the
+          chosen crystal.
 
         EXAMPLES::
 

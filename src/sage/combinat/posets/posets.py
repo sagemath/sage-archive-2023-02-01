@@ -1759,7 +1759,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: [len(x) for x in Q.level_sets()]
             [1, 2, 1, 1]
         """
-        return [map(self._vertex_to_element, level) for level in
+        return [[self._vertex_to_element(_) for _ in level] for level in
                 self._hasse_diagram.level_sets()]
 
     def cover_relations(self):
@@ -1816,7 +1816,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
         for u,v,l in self._hasse_diagram.edge_iterator():
-            yield map(self._vertex_to_element,(u,v))
+            yield [self._vertex_to_element(_) for _ in (u,v)]
 
     def relations(self):
         r"""
@@ -2193,7 +2193,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def minimal_elements(self):
         """
-        Returns a list of the minimal elements of the poset.
+        Return the list of the minimal elements of the poset.
 
         EXAMPLES::
 
@@ -2204,24 +2204,28 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
             sage: P(2) in P.minimal_elements()
             True
+
+        .. SEEALSO:: :meth:`maximal_elements`.
         """
-        return map(self._vertex_to_element, self._hasse_diagram.minimal_elements())
+        return [self._vertex_to_element(_) for _ in self._hasse_diagram.minimal_elements()]
 
     def maximal_elements(self):
         """
-        Returns a list of the maximal elements of the poset.
+        Return the list of the maximal elements of the poset.
 
         EXAMPLES::
 
             sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
             sage: P.maximal_elements()
             [4]
+
+        .. SEEALSO:: :meth:`minimal_elements`.
         """
-        return map(self._vertex_to_element, self._hasse_diagram.maximal_elements())
+        return [self._vertex_to_element(_) for _ in self._hasse_diagram.maximal_elements()]
 
     def bottom(self):
         """
-        Returns the bottom element of the poset, if it exists.
+        Return the unique minimal element of the poset, if it exists.
 
         EXAMPLES::
 
@@ -2231,6 +2235,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.bottom()
             0
+
+        .. SEEALSO:: :meth:`has_bottom`, :meth:`top`.
         """
         hasse_bot = self._hasse_diagram.bottom()
         if hasse_bot is None:
@@ -2240,7 +2246,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_bottom(self):
         """
-        Returns True if the poset has a unique minimal element.
+        Return ``True`` if the poset has a unique minimal element, and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2250,12 +2257,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.has_bottom()
             True
+
+        .. SEEALSO:: :meth:`bottom`, :meth:`has_top`.
         """
         return self._hasse_diagram.has_bottom()
 
     def top(self):
         """
-        Returns the top element of the poset, if it exists.
+        Return the unique maximal element of the poset, if it exists.
 
         EXAMPLES::
 
@@ -2266,6 +2275,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.top()
             1
 
+        .. SEEALSO:: :meth:`has_top`, :meth:`bottom`.
+
         TESTS::
 
             sage: R = Poset([[0],[]])
@@ -2273,7 +2284,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             [0]
             sage: R.top() #Trac #10776
             0
-
         """
         hasse_top = self._hasse_diagram.top()
         if hasse_top is None:
@@ -2283,8 +2293,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def has_top(self):
         """
-        Returns True if the poset contains a unique maximal element, and
-        False otherwise.
+        Return ``True`` if the poset has a unique maximal element, and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -2294,6 +2304,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset({0:[1],1:[]})
             sage: Q.has_top()
             True
+
+        .. SEEALSO:: :meth:`top`, :meth:`has_bottom`.
         """
         return self._hasse_diagram.has_top()
 
@@ -2900,7 +2912,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.covers(Q(1),Q(4))
             False
         """
-        return self._hasse_diagram.has_edge(*map(self._element_to_vertex,(x,y)))
+        return self._hasse_diagram.has_edge(*[self._element_to_vertex(_) for _ in (x,y)])
 
     def upper_covers_iterator(self,y):
         """
@@ -3157,7 +3169,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_join_semilattice(self):
         """
-        Returns True is the poset has a join operation, and False
+        Returns True if the poset has a join operation, and False
         otherwise.
 
         EXAMPLES::
@@ -3352,7 +3364,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         vertex_to_element = self._vertex_to_element
         for antichain in self._hasse_diagram.antichains_iterator():
-            yield map(vertex_to_element, antichain)
+            yield [vertex_to_element(_) for _ in antichain]
 
     def width(self):
         r"""
@@ -4269,7 +4281,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         vertices = sorted(map(self._element_to_vertex,elements))
         of = self._hasse_diagram.order_filter(vertices)
-        return map(self._vertex_to_element,of)
+        return [self._vertex_to_element(_) for _ in of]
 
     def order_ideal(self,elements):
         """
@@ -4287,9 +4299,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: B.order_ideal(iter(range(4, 9)))
             [0, 1, 2, 3, 4, 5, 6, 7, 8]
         """
-        vertices = map(self._element_to_vertex,elements)
+        vertices = [self._element_to_vertex(_) for _ in elements]
         oi = self._hasse_diagram.order_ideal(vertices)
-        return map(self._vertex_to_element,oi)
+        return [self._vertex_to_element(_) for _ in oi]
 
     def interval(self, x, y):
         """
@@ -4317,8 +4329,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.interval("a","d")
             [a, b, c, d]
         """
-        return map(self._vertex_to_element,self._hasse_diagram.interval(
-                self._element_to_vertex(x),self._element_to_vertex(y)))
+        return [self._vertex_to_element(_) for _ in self._hasse_diagram.interval(
+                self._element_to_vertex(x),self._element_to_vertex(y))]
 
     def closed_interval(self, x, y):
         """
@@ -4355,8 +4367,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.open_interval("a","d")
             [b, c]
         """
-        return map(self._vertex_to_element,self._hasse_diagram.open_interval(
-                self._element_to_vertex(x),self._element_to_vertex(y)))
+        return [self._vertex_to_element(_) for _ in self._hasse_diagram.open_interval(
+                self._element_to_vertex(x),self._element_to_vertex(y))]
 
     def comparability_graph(self):
         r"""

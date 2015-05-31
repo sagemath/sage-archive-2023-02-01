@@ -987,7 +987,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             return [tuple(_) for _ in exterior_algebra_basis(n, tuple(odd_degrees))]
         if not odd_degrees: # No odd generators.
             return [tuple(_) for _ in WeightedIntegerVectors(n, tuple(even_degrees))]
- 
+
         # General case: both even and odd generators.
         result = []
         for dim in range(n+1):

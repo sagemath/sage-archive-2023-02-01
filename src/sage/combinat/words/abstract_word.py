@@ -132,9 +132,9 @@ class Word_class(SageObject):
                 return ls.join(letters)
         elif word_options['display'] == 'list':
             if suffix == "...":
-                return "[%s, %s]" % (str(list(letters))[1:-1], suffix)
+                return "[%s, %s]" % (str(letters)[1:-1], suffix)
             else:
-                return str(list(letters))
+                return str(letters)
 
     __str__ = string_rep
 

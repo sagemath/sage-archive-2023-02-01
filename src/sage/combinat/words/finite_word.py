@@ -953,13 +953,13 @@ class FiniteWord_class(Word_class):
             sage: w = Word([1,2,1,2,3])
             sage: w.number_of_factors()
             13
-            sage: [w.number_of_factors(_) for _ in range(6)]
+            sage: [w.number_of_factors(i) for i in range(6)]
             [1, 3, 3, 3, 2, 1]
 
         ::
 
             sage: w = words.ThueMorseWord()[:100]
-            sage: [w.number_of_factors(_) for _ in range(10)]
+            sage: [w.number_of_factors(i) for i in range(10)]
             [1, 2, 4, 6, 10, 12, 16, 20, 22, 24]
 
         ::
@@ -988,7 +988,7 @@ class FiniteWord_class(Word_class):
             sage: blueberry = Word("blueberry")
             sage: blueberry.number_of_factors()
             43
-            sage: [blueberry.number_of_factors(_) for _ in range(10)]
+            sage: [blueberry.number_of_factors(i) for i in range(10)]
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
         if algorithm == 'suffix tree':
@@ -5324,13 +5324,13 @@ class FiniteWord_class(Word_class):
         EXAMPLES::
 
             sage: w = words.FibonacciWord()[:100]
-            sage: [w.abelian_complexity(_) for _ in range(20)]
+            sage: [w.abelian_complexity(i) for i in range(20)]
             [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
         ::
 
             sage: w = words.ThueMorseWord()[:100]
-            sage: [w.abelian_complexity(_) for _ in range(20)]
+            sage: [w.abelian_complexity(i) for i in range(20)]
             [1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2]
 
         """

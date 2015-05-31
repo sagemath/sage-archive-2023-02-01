@@ -1944,7 +1944,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_incomparable_chain_free(self, m, n = None):
         r"""
-        Returns ``True`` if the poset is `(m+n)`-free (that is, there is no pair
+        Return ``True`` if the poset is `(m+n)`-free (that is, there is no pair
         of incomparable chains of lengths `m` and `n`), and ``False`` if not.
 
         If ``m`` is a tuple of pairs of chain lengths, returns ``True`` if the poset
@@ -2049,7 +2049,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if m < 0 or n < 0:
             raise ValueError("%s and %s must be nonnegative integers." % (m, n))
         twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
-        return self.hasse_diagram().transitive_closure().subgraph_search(twochains, induced = True) is None
+        return self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced = True) is None
 
     def is_lequal(self, x, y):
         """

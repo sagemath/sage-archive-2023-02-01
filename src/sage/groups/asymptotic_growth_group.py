@@ -34,12 +34,11 @@ import sage
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
-    Class for a generic asymptotic growth group element. These
-    elements hold exactly one asymptotic term and can be compared to
-    each other, multiplied and divided, but possess no explicit
-    coefficient. At this stage, just the order of magnitude shall be
-    managed. In this class, only base structure is handled.
-    For a concrete realization see :class:`MonomialGrowthElement`.
+    An abstract implementation of a generic growth element.
+
+    Growth elements form a group by multiplication and (some of) the
+    elements can be compared to each other, i.e., all elements form a
+    poset.
 
     INPUT:
 
@@ -770,36 +769,20 @@ class GenericGrowthGroup(
 
 class MonomialGrowthElement(GenericGrowthElement):
     r"""
-    Class for the concrete realization of asymptotic growth group
-    elements in the case of polynomial growth. These elements hold
-    exactly one asymptotic term.
-
-    A power growth element represents a polynomial term
-    `\operatorname{variable}^{\operatorname{exponent}}`.
-    More complex constructions including logarithmic or exponential
-    terms can be constructed via a cartesian product of the related
-    growth groups. Asymptotic growth elements can be multiplied,
-    divided, inverted, and compared to each other. However, they
-    possess no explicit coefficient.
-
-    The elements can be specified by either an expression ``x`` being
-    a string, an element from the symbolic or a polynomial ring or the
-    integer `1`. On the other hand, elements can also be specified
-    by their exponent.
+    An implementation of monomial growth elements.
 
     INPUT:
 
-    - ``parent`` -- a :class:`MonomialGrowthGroup`, the
-      parent of the element.
-    - ``x`` -- an expression (string, polynomial ring element,
-      symbolic ring element, or the integer `1`) representing
-      the element to be initialized.
-    - ``exponent`` -- the exponent of the power element.
+    - ``parent`` -- a :class:`GenericGrowthGroup`.
 
-    OUTPUT:
+    - ``raw_element`` -- an element from the base ring of the parent.
 
-    An asymptotic power growth element with the specified
-    parent and magnitude of growth, i.e. exponent.
+      This ``raw_element`` is the exponent of the created monomial
+      growth element.
+
+    A monomial growth element represents a term of the type
+    `\operatorname{variable}^{\operatorname{exponent}}`. The multiplication
+    corresponds to the addition of the exponents.
 
     EXAMPLES::
 
@@ -821,14 +804,20 @@ class MonomialGrowthElement(GenericGrowthElement):
     def exponent(self):
         r"""
         The exponent of this growth element.
+
+        EXAMPLES:
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P(x^42).exponent
+            42
         """
         return self._raw_element_
 
 
     def _repr_(self):
         r"""
-        Represent the asymptotic power growth element as
-        ``variable^{exponent}``.
+        A representation string for this abstract generic element.
 
         INPUT:
 
@@ -844,10 +833,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P(x=1)._repr_()
             '1'
-            sage: P(raw_element=5)._repr_()
-            'x^5'
-            sage: P(raw_element=1/2)._repr_()
-            'x^(1/2)'
+            sage: P(x^5)  # indirect doctest
+            x^5
+            sage: P(x^(1/2))  # indirect doctest
+            x^(1/2)
         """
         from sage.rings.integer_ring import ZZ
 
@@ -967,9 +956,8 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def is_le_one(self):
         r"""
-        Return whether or not the growth of the asymptotic power
-        growth element ``self`` is less than or equal to the
-        (constant) growth of `1`.
+        Returns if this monomial growth element is at most (less than
+        or equal to) `1`.
 
         INPUT:
 

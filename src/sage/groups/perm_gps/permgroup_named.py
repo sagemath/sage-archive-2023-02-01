@@ -6,7 +6,7 @@ You can construct the following permutation groups:
 -- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
                    positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+-- AlternatingGroup, $A_n$ of order $n!/2$ (n can also be a list $X$
                    of distinct positive integers, in which case it returns
                    $A_X$)
 
@@ -303,13 +303,13 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S8 = SymmetricGroup(8)
             sage: S8.index_set()
-            [1, 2, 3, 4, 5, 6, 7]
+            (1, 2, 3, 4, 5, 6, 7)
 
             sage: S = SymmetricGroup([3,1,4,5])
             sage: S.index_set()
-            [3, 1, 4]
+            (3, 1, 4)
         """
-        return self.domain()[:-1]
+        return tuple(self.domain()[:-1])
 
     def __cmp__(self, x):
         """
@@ -345,9 +345,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.degree() - 1])
+        return CartanType(['A', max(self.degree() - 1,0)])
 
     def simple_reflection(self, i):
         r"""
@@ -535,18 +538,59 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
         return SymmetricGroupConjugacyClass(self, g)
 
-    def algebra(self, base_ring):
+    def algebra(self, base_ring, category=None):
         """
         Return the symmetric group algebra associated to ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- a ring
+        - ``category`` -- a category (default: the category of ``self``)
+
+        If ``self`` is the symmetric group on `1,\ldots,n`, then this
+        is special cased to take advantage of the features in
+        :class:`SymmetricGroupAlgebra`. Otherwise the usual group
+        algebra is returned.
 
         EXAMPLES::
 
             sage: S4 = SymmetricGroup(4)
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: S3 = SymmetricGroup([1,2,3])
+            sage: A = S3.algebra(QQ); A
+            Symmetric group algebra of order 3 over Rational Field
+            sage: a = S3.an_element(); a
+            (1,2,3)
+            sage: A(a)
+            (1,2,3)
+
+        We illustrate the choice of the category::
+
+            sage: A.category()
+            Join of Category of coxeter group algebras over Rational Field
+                and Category of finite group algebras over Rational Field
+            sage: A = S3.algebra(QQ, category=Semigroups())
+            sage: A.category()
+            Category of finite dimensional semigroup algebras over Rational Field
+
+        In the following case, a usual group algebra is returned:
+
+            sage: S = SymmetricGroup([2,3,5])
+            sage: S.algebra(QQ)
+            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            sage: a = S.an_element(); a
+            (2,3,5)
+            sage: S.algebra(QQ)(a)
+            B[(2,3,5)]
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        domain = self.domain()
+        if list(domain) == range(1, len(domain)+1):
+            return SymmetricGroupAlgebra(base_ring, self, category=category)
+        else:
+            return super(SymmetricGroup, self).algebra(base_ring)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1222,15 +1266,18 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
         """
-        The Dihedral group of order $2n$ for any integer $n\geq 1$.
+        The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
-            n -- a positive integer
+
+        - ``n`` -- a positive integer
 
         OUTPUT:
-            -- the dihedral group of order 2*n, as a permutation group
 
-        .. note::
+        The dihedral group of order `2n`, as a permutation group
+
+        .. NOTE::
+
           This group is also available via ``groups.permutation.Dihedral()``.
 
         EXAMPLES::
@@ -1246,7 +1293,8 @@ class DihedralGroup(PermutationGroup_unique):
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
             sage: list(DihedralGroup(5))
-            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
+            [(), (1,5)(2,4), (1,2,3,4,5), (1,4)(2,3), (1,3,5,2,4), (2,5)(3,4),
+            (1,3)(4,5), (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()

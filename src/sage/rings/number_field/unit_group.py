@@ -176,7 +176,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: UK.gen(5)
         u5
         sage: UK.gen(5).value()
-        z^6 + z^4
+        z^7 + z
 
     An S-unit group::
 
@@ -187,7 +187,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         sage: SUK.zeta_order()
         26
         sage: SUK.log(21*z)
-        (13, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
+        (12, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1)
     """
     # This structure is not a parent in the usual sense. The
     # "elements" are NumberFieldElement_absolute. Instead, they should
@@ -591,7 +591,7 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           180*z^10 - 280*z^9 + 580*z^8 - 720*z^7 + 948*z^6 - 924*z^5 + 948*z^4 - 720*z^3 + 580*z^2 - 280*z + 180
+           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
@@ -637,12 +637,12 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK = UnitGroup(K,S=2)
            sage: v = (3,1,4,1,5,9,2)
            sage: u = SUK.exp(v); u
-           180*z^10 - 280*z^9 + 580*z^8 - 720*z^7 + 948*z^6 - 924*z^5 + 948*z^4 - 720*z^3 + 580*z^2 - 280*z + 180
+           -8732*z^11 + 15496*z^10 + 51840*z^9 + 68804*z^8 + 51840*z^7 + 15496*z^6 - 8732*z^5 + 34216*z^3 + 64312*z^2 + 64312*z + 34216
            sage: SUK.log(u)
            (3, 1, 4, 1, 5, 9, 2)
            sage: SUK.log(u) == v
            True
         """
-        return prod([u**e for u,e in zip(self.gens_values(),exponents)], self.number_field().one_element())
+        return prod((u**e for u,e in zip(self.gens_values(),exponents)), self.number_field().one())
 
 

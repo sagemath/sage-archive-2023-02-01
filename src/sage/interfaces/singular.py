@@ -298,10 +298,10 @@ We test an automatic coercion::
     <class 'sage.interfaces.singular.SingularElement'>
 
 Create a ring over GF(9) to check that ``gftables`` has been installed,
-see ticket #11645::
+see :trac:`11645`::
 
     sage: singular.eval("ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);")
-    'ring testgf9 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+    ''
 """
 
 
@@ -331,7 +331,10 @@ see ticket #11645::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, sys
+import os
+import re
+import sys
+import pexpect
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -590,7 +593,6 @@ class Singular(Expect):
             raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:
-            ret = []
             for line in s.splitlines():
                 if line.startswith("//"):
                     print line
@@ -880,9 +882,9 @@ class Singular(Expect):
         """
         name = self._next_var_name()
         if entries is None:
-            s = self.eval('matrix %s[%s][%s]'%(name, nrows, ncols))
+            self.eval('matrix %s[%s][%s]'%(name, nrows, ncols))
         else:
-            s = self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
+            self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
         return SingularElement(self, None, name, True)
 
     def ring(self, char=0, vars='(x)', order='lp', check=True):
@@ -1165,13 +1167,13 @@ class Singular(Expect):
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
     def _keyboard_interrupt(self):
-        print "Interrupting %s..."%self
+        print "Interrupting %s..." % self
         try:
             self._expect.sendline(chr(4))
         except pexpect.ExceptionPexpect as msg:
-            raise pexcept.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
+            raise pexpect.ExceptionPexpect("THIS IS A BUG -- PLEASE REPORT. This should never happen.\n" + msg)
         self._start()
-        raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)"%self)
+        raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
@@ -1409,7 +1411,7 @@ class SingularElement(ExpectElement):
         EXAMPLE::
 
             sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-            'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+            ''
             sage: R = singular('r1').sage_global_ring()
             sage: R
             Multivariate Polynomial Ring in a, b, c, d, e, f over Finite Field in x of size 3^2
@@ -1424,16 +1426,16 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring r2 = (0,x),(a,b,c),dp')
-            'ring r2 = (0,x),(a,b,c),dp;'
+            ''
             sage: singular('r2').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         ::
 
             sage: singular.eval('ring r3 = (3,z),(a,b,c),dp')
-            'ring r3 = (3,z),(a,b,c),dp;'
+            ''
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
-            'minpoly = 1+z+z2+z3+z4;'
+            ''
             sage: singular('r3').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Finite Field in z of size 3^4
 
@@ -1443,7 +1445,7 @@ class SingularElement(ExpectElement):
         bit precision::
 
             sage: singular.eval('ring r4 = (real,20),(a,b,c),dp')
-            'ring r4 = (real,20),(a,b,c),dp;'
+            ''
             sage: singular('r4').sage_global_ring()
             Multivariate Polynomial Ring in a, b, c over Real Field with 70 bits of precision
 
@@ -1451,7 +1453,7 @@ class SingularElement(ExpectElement):
         the generator of a complex field in Sage is always called "I"::
 
             sage: singular.eval('ring r5 = (complex,15,j),(a,b,c),dp')
-            'ring r5 = (complex,15,j),(a,b,c),dp;'
+            ''
             sage: R = singular('r5').sage_global_ring(); R
             Multivariate Polynomial Ring in a, b, c over Complex Field with 54 bits of precision
             sage: R.base_ring()('j')
@@ -1464,7 +1466,7 @@ class SingularElement(ExpectElement):
         In our last example, the base ring is a quotient ring::
 
             sage: singular.eval('ring r6 = (9,a), (x,y,z),lp')
-            'ring r6 = (9,a), (x,y,z),lp;'
+            ''
             sage: Q = singular('std(ideal(x^2,x+y^2+z^3))', type='qring')
             sage: Q.sage_global_ring()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
@@ -1493,7 +1495,6 @@ class SingularElement(ExpectElement):
         elif charstr[0]=='complex':
             from sage.all import ComplexField, ceil, log
             prec = singular.eval('ringlist(basering)[1][2][1]')
-            I = singular.eval('ringlist(basering)[1][3]')
             br = ComplexField(ceil((ZZ(prec)+1)/log(2,10)))
             is_extension = False
         else:
@@ -1516,7 +1517,7 @@ class SingularElement(ExpectElement):
                 BR = Frac(br[charstr[1]])
             else:
                 is_short = singular.eval('short')
-                if is_short!='0':
+                if is_short != '0':
                     singular.eval('short=0')
                     minpoly = ZZ[charstr[1]](singular.eval('minpoly'))
                     singular.eval('short=%s'%is_short)
@@ -1580,9 +1581,9 @@ class SingularElement(ExpectElement):
         TESTS::
 
             sage: singular.eval('ring r = (3,z),(a,b,c),dp')
-            'ring r = (3,z),(a,b,c),dp;'
+            ''
             sage: singular.eval('minpoly = 1+z+z2+z3+z4')
-            'minpoly = 1+z+z2+z3+z4;'
+            ''
             sage: p = singular('z^4*a^3+z^2*a*b*c')
             sage: p.sage_poly()
             (-z^3 - z^2 - z - 1)*a^3 + (z^2)*a*b*c
@@ -1804,9 +1805,9 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('ring r10 = (9,a), (x,y,z),lp')
-            'ring r10 = (9,a), (x,y,z),lp;'
+            ''
             sage: singular.eval('setring R')
-            'setring R;'
+            ''
             sage: singular('r10').sage()
             Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2
 
@@ -1822,7 +1823,7 @@ class SingularElement(ExpectElement):
         ::
 
             sage: singular.eval('setring r10')
-            'setring r10;'
+            ''
             sage: Q = singular('std(ideal(x^2,x+y^2+z^3))', type='qring')
             sage: Q.sage()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
@@ -2215,7 +2216,7 @@ def reduce_load_Singular():
     """
     return singular
 
-import os
+
 def singular_console():
     """
     Spawn a new Singular command-line session.
@@ -2550,7 +2551,7 @@ def singular_gb_standard_options(func):
         sage: "basis" in sage_getsource(J.interreduced_basis) #indirect doctest
         True
 
-    The following tests against a bug that was fixed in trac ticket #11298::
+    The following tests against a bug that was fixed in :trac:`11298`::
 
         sage: from sage.misc.sageinspect import sage_getsourcelines, sage_getargspec
         sage: P.<x,y> = QQ[]

@@ -14,6 +14,7 @@ Thematic tutorial document tree
    numtheory_rsa
    coding_theory
    polytutorial
+   polytope_tikz
    tutorial-programming-python
    tutorial-comprehensions
    tutorial-objects-and-classes
@@ -22,3 +23,5 @@ Thematic tutorial document tree
    cython_interface
    numerical_sage/index
    explicit_methods_in_number_theory/index
+   sws2rst
+   profiling

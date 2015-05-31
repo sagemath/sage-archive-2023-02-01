@@ -443,13 +443,12 @@ class Decorator:
             sage: print sage_getdoc(d)   # indirect doctest
                Test whether "self" is prime.
             ...
-               IMPLEMENTATION: Calls the PARI "isprime" function.
-            <BLANKLINE>
+               Calls the PARI "isprime" function.
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_LIB, SAGE_SRC
@@ -795,23 +794,22 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import set_from_method
-            sage: from sage.structure.misc import getattr_from_other_class
             sage: class A:
-            ...      stop = 10000
-            ...      @set_from_method
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: a = A()
-            sage: getattr_from_other_class(a, A, 'f')(4)
+            sage: A.f(a,4)
             {4, 5, 6, 7, 8, ...}
 
             sage: class B:
-            ...      stop = 10000
-            ...      @set_from_method(category=FiniteEnumeratedSets())
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method(category=FiniteEnumeratedSets())
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: b = B()
-            sage: getattr_from_other_class(b, B, 'f')(2)
+            sage: B.f(b,2)
             {2, 3, 4, 5, 6, ...}
         """
         return EnumeratedSetFromIterator_method_caller(

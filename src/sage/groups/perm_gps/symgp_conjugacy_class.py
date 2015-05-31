@@ -6,23 +6,20 @@ AUTHORS:
 - Vincent Delacroix, Travis Scrimshaw (2014-11-23)
 """
 
-from sage.groups.conjugacy_classes import ConjugacyClassGAP
+from sage.groups.conjugacy_classes import ConjugacyClass, ConjugacyClassGAP
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.combinat.partition import Partitions_n
+from sage.combinat.partition import Partitions_n, _Partitions
 from sage.combinat.set_partition import SetPartitions
+from sage.combinat.permutation import Permutation, from_cycles
 from sage.sets.set import Set
 import itertools
 
-class SymmetricGroupConjugacyClass(ConjugacyClassGAP):
+class SymmetricGroupConjugacyClassMixin(object):
+    r"""
+    Mixin class which contains methods for conjugacy classes of
+    the symmetric group.
     """
-    A conjugacy class of the symmetric group.
-
-    INPUT:
-
-    - ``group`` -- the symmetric group
-    - ``part`` -- a partition or an element of ``group``
-    """
-    def __init__(self, group, part):
+    def __init__(self, domain, part):
         """
         Initialize ``self``.
 
@@ -30,23 +27,16 @@ class SymmetricGroupConjugacyClass(ConjugacyClassGAP):
 
             sage: G = SymmetricGroup(5)
             sage: g = G([(1,2), (3,4,5)])
-            sage: C = G.conjugacy_class(g)
-            sage: TestSuite(C).run()
             sage: C = G.conjugacy_class(Partition([3,2]))
-            sage: TestSuite(C).run()
+            sage: type(C._part)
+            <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
         """
-        P = Partitions_n( len(group.domain()) )
-        if isinstance(part, PermutationGroupElement) and part.parent() is group:
-            elt = part
-            part = P( sorted(map(len, part.cycle_tuples(True)), reverse=True) )
-        else:
-            part = P(part)
-            elt = default_representative(part, group)
-        self._part = part
+        P = Partitions_n(len(domain))
+        self._part = P(part)
+        self._domain = domain
         self._set = None
-        ConjugacyClassGAP.__init__(self, group, elt)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return a string representation of ``self``.
 
@@ -58,32 +48,6 @@ class SymmetricGroupConjugacyClass(ConjugacyClassGAP):
              Symmetric group of order 4! as a permutation group
         """
         return "Conjugacy class of cycle type %s in %s"%(self._part, self._parent)
-
-    def __iter__(self):
-        """
-        Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: G = SymmetricGroup(4)
-            sage: C = G.conjugacy_class(Partition([3,1]))
-            sage: for x in C: x
-            (2,3,4)
-            (2,4,3)
-            (1,3,4)
-            (1,4,3)
-            (1,2,4)
-            (1,4,2)
-            (1,2,3)
-            (1,3,2)
-        """
-        if self._set:
-            for x in self._set:
-                yield x
-            return
-
-        for x in conjugacy_class_iterator(self._part, self._parent.domain()):
-            yield PermutationGroupElement(x, self._parent, check=False)
 
     def __cmp__(self, other):
         r"""
@@ -116,6 +80,62 @@ class SymmetricGroupConjugacyClass(ConjugacyClassGAP):
         """
         return self._part
 
+class SymmetricGroupConjugacyClass(SymmetricGroupConjugacyClassMixin, ConjugacyClassGAP):
+    """
+    A conjugacy class of the symmetric group.
+
+    INPUT:
+
+    - ``group`` -- the symmetric group
+    - ``part`` -- a partition or an element of ``group``
+    """
+    def __init__(self, group, part):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(5)
+            sage: g = G([(1,2), (3,4,5)])
+            sage: C = G.conjugacy_class(g)
+            sage: TestSuite(C).run()
+            sage: C = G.conjugacy_class(Partition([3,2]))
+            sage: TestSuite(C).run()
+        """
+        if isinstance(part, PermutationGroupElement) and part.parent() is group:
+            elt = part
+            part = sorted([len(x) for x in part.cycle_tuples(True)], reverse=True)
+        else:
+            elt = default_representative(part, group)
+        SymmetricGroupConjugacyClassMixin.__init__(self, group.domain(), part)
+        ConjugacyClassGAP.__init__(self, group, elt)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: C = G.conjugacy_class(Partition([3,1]))
+            sage: for x in C: x
+            (2,3,4)
+            (2,4,3)
+            (1,3,4)
+            (1,4,3)
+            (1,2,4)
+            (1,4,2)
+            (1,2,3)
+            (1,3,2)
+        """
+        if self._set:
+            for x in self._set:
+                yield x
+            return
+
+        for x in conjugacy_class_iterator(self._part, self._parent.domain()):
+            yield PermutationGroupElement(x, self._parent, check=False)
+
     def set(self):
         r"""
         The set of all elements in the conjugacy class ``self``.
@@ -129,10 +149,83 @@ class SymmetricGroupConjugacyClass(ConjugacyClassGAP):
             sage: C.set() == Set(G(x) for x in S)
             True
         """
-        if self._set is None:
-            to_elt = lambda x: PermutationGroupElement(x, self._parent, check=False)
-            self._set = Set(to_elt(x) for x
-                            in conjugacy_class_iterator(self._part, self._parent.domain()) )
+        if not self._set:
+            self._set = Set(PermutationGroupElement(x, self._parent, check=False)
+                            for x in conjugacy_class_iterator(self._part, self._domain) )
+        return self._set
+
+class PermutationsConjugacyClass(SymmetricGroupConjugacyClassMixin, ConjugacyClass):
+    """
+    A conjugacy class of the permutations of `n`.
+
+    INPUT:
+
+    - ``P`` -- the permutations of `n`
+    - ``part`` -- a partition or an element of ``P``
+    """
+    def __init__(self, P, part):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: G = Permutations(5)
+            sage: g = G([2, 1, 4, 5, 3])
+            sage: C = G.conjugacy_class(g)
+            sage: TestSuite(C).run()
+            sage: C = G.conjugacy_class(Partition([3,2]))
+            sage: TestSuite(C).run()
+        """
+        if isinstance(part, Permutation) and part.parent() is P:
+            elt = part
+            part = elt.cycle_type()
+        else:
+            elt = P.element_in_conjugacy_classes(part)
+        SymmetricGroupConjugacyClassMixin.__init__(self, range(1, P.n+1), part)
+        ConjugacyClass.__init__(self, P, elt)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: G = Permutations(4)
+            sage: C = G.conjugacy_class(Partition([3,1]))
+            sage: for x in C: x
+            [1, 3, 4, 2]
+            [1, 4, 2, 3]
+            [3, 2, 4, 1]
+            [4, 2, 1, 3]
+            [2, 4, 3, 1]
+            [4, 1, 3, 2]
+            [2, 3, 1, 4]
+            [3, 1, 2, 4]
+        """
+        if self._set:
+            for x in self._set:
+                yield x
+            return
+
+        for x in conjugacy_class_iterator(self._part, self._domain):
+            yield from_cycles(self._parent.n, x, self._parent)
+
+    def set(self):
+        r"""
+        The set of all elements in the conjugacy class ``self``.
+
+        EXAMPLES::
+
+            sage: G = Permutations(3)
+            sage: g = G([2, 1, 3])
+            sage: C = G.conjugacy_class(g)
+            sage: S = [[1, 3, 2], [2, 1, 3], [3, 2, 1]]
+            sage: C.set() == Set(G(x) for x in S)
+            True
+        """
+        if not self._set:
+            self._set = Set(from_cycles(self._parent.n, x, self._parent)
+                            for x in conjugacy_class_iterator(self._part, self._domain) )
         return self._set
 
 #####################################################################
@@ -155,7 +248,7 @@ def default_representative(part, G):
 
     INPUT:
 
-    - ``part`` -- partition for the size of the subsets
+    - ``part`` -- partition
 
     - ``G`` -- a symmetric group
 
@@ -190,9 +283,15 @@ def conjugacy_class_iterator(part, S=None):
 
     INPUT:
 
-    - ``part`` -- partition for the size of the subsets
+    - ``part`` -- partition
 
-    - ``S`` -- (optional) a set, if not specified `{1, ..., n}` is used
+    - ``S`` -- (optional, default: `\{ 1, 2, \ldots, n \}`, where `n`
+      is the size of ``part``) a set
+
+    OUTPUT:
+
+    An iterator over the conjugacy class consisting of all
+    permutations of the set ``S`` whose cycle type is ``part``.
 
     EXAMPLES::
 
@@ -217,8 +316,8 @@ def conjugacy_class_iterator(part, S=None):
         (1,2,3)(4,5)
         (1,3,2)(4,5)
 
-    Check that the number of elements correspond to the number of elements in
-    the conjugacy class
+    Check that the number of elements is the number of elements in
+    the conjugacy class::
 
         sage: s = lambda p: sum(1 for _ in conjugacy_class_iterator(p))
         sage: all(s(p) == p.conjugacy_class_size() for p in Partitions(5))
@@ -233,7 +332,8 @@ def conjugacy_class_iterator(part, S=None):
         [('a', 'c'), ('b', 'd'), ('e', 'f')]
     """
     n = sum(part)
-    part = Partitions_n(n)(part)
+    if part not in _Partitions:
+        raise ValueError("invalid partition")
     if S is None:
         S = range(1, n+1)
     else:

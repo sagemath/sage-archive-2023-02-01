@@ -164,8 +164,8 @@ class LabelledPermutation(SageObject):
                 self._init_alphabet(intervals)
 
             self._intervals = [
-                map(self._alphabet.rank, intervals[0]),
-                map(self._alphabet.rank, intervals[1])]
+                [self._alphabet.rank(_) for _ in intervals[0]],
+                [self._alphabet.rank(_) for _ in intervals[1]]]
 
     def __copy__(self):
         r"""
@@ -301,7 +301,7 @@ class LabelledPermutation(SageObject):
             sage: p[1][2]
             'a'
         """
-        return map(self._alphabet.unrank, self._intervals[i])
+        return [self._alphabet.unrank(_) for _ in self._intervals[i]]
 
     def __hash__(self):
         r"""
@@ -425,8 +425,8 @@ class LabelledPermutation(SageObject):
             sage: p2 == q2
             True
         """
-        a0 = map(self._alphabet.unrank, self._intervals[0])
-        a1 = map(self._alphabet.unrank, self._intervals[1])
+        a0 = [self._alphabet.unrank(_) for _ in self._intervals[0]]
+        a1 = [self._alphabet.unrank(_) for _ in self._intervals[1]]
         return [a0, a1]
 
     def erase_letter(self, letter):
@@ -723,7 +723,7 @@ def LabelledPermutationsIET_iterator(nintervals=None,
 
         alphabet = Alphabet(alphabet)
         g = lambda x: [alphabet.unrank(k-1) for k in x]
-        P = map(g, Permutations(nintervals))
+        P = [g(_) for _ in Permutations(nintervals)]
         return imap(f,product(P,P))
     else:
         return ifilter(
@@ -1558,11 +1558,11 @@ class FlippedLabelledPermutation(LabelledPermutation):
             True
         """
         if flips:
-            a0 = zip(map(self._alphabet.unrank, self._intervals[0]), self._flips[0])
-            a1 = zip(map(self._alphabet.unrank, self._intervals[1]), self._flips[1])
+            a0 = zip([self._alphabet.unrank(_) for _ in self._intervals[0]], self._flips[0])
+            a1 = zip([self._alphabet.unrank(_) for _ in self._intervals[1]], self._flips[1])
         else:
-            a0 = map(self._alphabet.unrank, self._intervals[0])
-            a1 = map(self._alphabet.unrank, self._intervals[1])
+            a0 = [self._alphabet.unrank(_) for _ in self._intervals[0]]
+            a1 = [self._alphabet.unrank(_) for _ in self._intervals[1]]
 
         return [a0,a1]
 
@@ -1588,7 +1588,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
         if i != 0 and i != 1:
             raise IndexError("The integer must be 0 or 1")
 
-        letters = map(self._alphabet.unrank, self._intervals[i])
+        letters = [self._alphabet.unrank(_) for _ in self._intervals[i]]
         flips = self._flips[i]
 
         return zip(letters,flips)

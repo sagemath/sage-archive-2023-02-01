@@ -20,10 +20,12 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 
-# import from Sage library
+
+from copy import copy
+from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
-from math import sin, cos, pi
+
 
 def JohnsonGraph(n, k):
     r"""
@@ -362,11 +364,17 @@ def BubbleSortGraph(n):
     r"""
     Returns the bubble sort graph `B(n)`.
 
-    The vertices of the bubble sort graph are the set of permutations on
-    `n` symbols. Two vertices are adjacent if one can be obtained from the
-    other by swapping the labels in the `i`-th and `(i+1)`-th positions for
-    `1 \leq i \leq n-1`. In total, `B(n)` has order `n!`. Thus, the order
-    of `B(n)` increases according to `f(n) = n!`.
+    The vertices of the bubble sort graph are the set of permutations
+    on `n` symbols. Two vertices are adjacent if one can be obtained
+    from the other by swapping the labels in the `i`-th and `(i+1)`-th
+    positions for `1 \leq i \leq n-1`. In total, `B(n)` has order
+    `n!`. Swapping two labels as described previously corresponds to
+    multiplying on the right the permutation corresponding to the node
+    by an elementary transposition in the
+    :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
+
+    The bubble sort graph is the underlying graph of the
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`. 
 
     INPUT:
 
@@ -395,6 +403,10 @@ def BubbleSortGraph(n):
         sage: g = graphs.BubbleSortGraph(n)
         sage: g.order() == factorial(n)
         True
+
+    .. SEEALSO::
+
+        * :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
 
     TESTS:
 
@@ -1278,7 +1290,7 @@ def MycielskiStep(g):
     """
 
     # Make a copy of the input graph g
-    gg = g.copy(immutable=False)
+    gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
     renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
@@ -2173,7 +2185,7 @@ def SymplecticGraph(d,q):
 
     V = VectorSpace(F,d)
     PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([map(tuple,PV), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+    G = Graph([[tuple(_) for _ in PV], lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
     G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
     G.relabel()
     return G

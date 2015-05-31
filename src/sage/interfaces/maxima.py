@@ -462,7 +462,8 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re
+import os
+import re
 import pexpect
 #cygwin = os.uname()[0][:6]=="CYGWIN"
 
@@ -473,7 +474,7 @@ from sage.env import DOT_SAGE, SAGE_LOCAL
 ##import sage.rings.all
 
 from expect import (Expect, ExpectElement, FunctionElement,
-                    ExpectFunction, gc_disabled, AsciiArtString)
+                    ExpectFunction, gc_disabled)
 
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
@@ -587,7 +588,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6722`)::
+        Test that we can use more than 256MB RAM (see trac :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds

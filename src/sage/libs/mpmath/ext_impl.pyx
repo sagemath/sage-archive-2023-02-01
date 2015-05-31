@@ -32,18 +32,14 @@ from sage.libs.gmp.all cimport *
 from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
-cdef extern from "mpz_pylong.h":
-    cdef mpz_get_pylong(mpz_t src)
-    cdef mpz_get_pyintlong(mpz_t src)
-    cdef int mpz_set_pylong(mpz_t dst, src) except -1
-    cdef long mpz_pythonhash(mpz_t src)
+from sage.libs.gmp.pylong cimport *
 
 cdef mpz_set_integer(mpz_t v, x):
     if PyInt_Check(x):
         mpz_set_si(v, PyInt_AS_LONG(x))
     elif PyLong_Check(x):
         mpz_set_pylong(v, x)
-    elif PY_TYPE_CHECK(x, Integer):
+    elif isinstance(x, Integer):
         mpz_set(v, (<Integer>x).value)
     else:
         raise TypeError("cannot convert %s to an integer" % x)
@@ -271,7 +267,7 @@ cdef MPF_set_tuple(MPF *x, tuple value):
     #cdef int sign
     cdef Integer man
     sign, _man, exp, bc = value
-    if PY_TYPE_CHECK(_man, Integer):
+    if isinstance(_man, Integer):
         man = <Integer>_man
     else:
         # This is actually very unlikely; it should never happen

@@ -142,7 +142,7 @@ call GUAVA:
            sage: G.order() # not tested (see trac #17617)
            168
            sage: C = codes.HammingCode(3,GF(2))
-           sage: C.gen_mat() # not tested (see trac #17617)
+           sage: C.generator_matrix() # not tested (see trac #17617)
            [1 0 0 1 0 1 0]
            [0 1 0 1 0 1 1]
            [0 0 1 1 0 0 1]
@@ -152,7 +152,7 @@ call GUAVA:
            [1 1 1]
            [1 0 1]
            [0 1 1]
-           sage: C.standard_form()[0].gen_mat() # not tested (see trac #17617)
+           sage: C.standard_form()[0].generator_matrix() # not tested (see trac #17617)
            [1 0 0 0 1 1 0]
            [0 1 0 0 1 1 1]
            [0 0 1 0 1 0 1]
@@ -417,7 +417,7 @@ Python:
          sage: g = x^3+x+1
          sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
          Linear code of length 7, dimension 4 over Finite Field of size 2
-         sage: C.gen_mat()
+         sage: C.generator_matrix()
          [1 1 0 1 0 0 0]
          [0 1 1 0 1 0 0]
          [0 0 1 1 0 1 0]
@@ -425,7 +425,7 @@ Python:
          sage: g = x+1
          sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
          Linear code of length 4, dimension 3 over Finite Field of size 2
-         sage: C.gen_mat()
+         sage: C.generator_matrix()
          [1 1 0 0]
          [0 1 1 0]
          [0 0 1 1]
@@ -434,7 +434,7 @@ Python:
          Linear code of length 4, dimension 1 over Finite Field of size 3
          sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
          Linear code of length 4, dimension 3 over Finite Field of size 3
-         sage: C.gen_mat()
+         sage: C.generator_matrix()
          [2 1 0 0]
          [0 2 1 0]
          [0 0 2 1]
@@ -515,20 +515,20 @@ Python:
 
 
          sage: C = codes.HammingCode(3,GF(2))
-         sage: H = C.check_mat(); H   # not tested (see trac #17617)
+         sage: H = C.parity_check_matrix(); H   # not tested (see trac #17617)
          [1 0 0 1 1 0 1]
          [0 1 0 1 0 1 1]
          [0 0 1 1 1 1 0]
          sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
          sage: C = codes.HammingCode(2,GF(3))
-         sage: H = C.check_mat(); H                    # not tested (see trac #17617)
+         sage: H = C.parity_check_matrix(); H                    # not tested (see trac #17617)
          [1 0 2 2]
          [0 1 2 1]
          sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
          sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
-         sage: H = C.check_mat()
+         sage: H = C.parity_check_matrix()
          sage: codes.LinearCodeFromCheckMatrix(H) == C # not tested (see trac #17617)
          True
 

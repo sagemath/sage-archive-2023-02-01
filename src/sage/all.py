@@ -75,13 +75,10 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-import sage.ext.c_lib
-sage.ext.c_lib._init_csage()
-sig_on_count = sage.ext.c_lib._sig_on_reset
+# This import also setups the interrupt handler
+from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
 
 from time                import sleep
-
-from sage.ext.c_lib import AlarmInterrupt, SignalError
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while

@@ -852,8 +852,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)  # 32-bit
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)  # 64-bit
+        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
 
     This will return a multiple of the order of P::
 

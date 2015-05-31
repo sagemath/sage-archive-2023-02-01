@@ -600,7 +600,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: Epari.omega()
             [2.99345864623196, -2.45138938198679*I]
             sage: Epari
-            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [[2.99345864623196, -2.45138938198679*I], 0, [0.837565435283323, 0.269594436405445, -1.10715987168877]~, 0, 0, 0, 0, 0]]
+            [0, 0, 1, -1, 0, 0, -2, 1, -1, 48, -216, 37, 110592/37, Vecsmall([1]), [Vecsmall([64, 1])], [[2.99345864623196, -2.45138938198679*I], 0, [0.837565435283323, 0.269594436405445, -1.10715987168877, 1.37675430809421, 1.94472530697209, 0.567970998877878]~, 0, 0, 0, 0, 0]]
 
         This shows that the bug uncovered by :trac:`4715` is fixed::
 
@@ -3863,10 +3863,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
 
-        INPUT::
+        INPUT:
 
-             - `p` -- optional, default (None); if given, return the local
-                      root number at `p`
+        - `p` -- optional, default (None); if given, return the local
+          root number at `p`
 
         EXAMPLES::
 
@@ -6664,7 +6664,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
     for i in range(1,r):
         RPi[i] = RPi[i-1] + RgensN[i]
 
-    tors_points_R = map(ER, tors_points)
+    tors_points_R = [ER(_) for _ in tors_points]
     while True:
         if all([n==0 for n in ni]):
              use_t(E(0))

@@ -267,7 +267,7 @@ class Function_abs(GinacFunction):
             sage: sqrt(x^2)
             sqrt(x^2)
             sage: abs(sqrt(x))
-            abs(sqrt(x))
+            sqrt(abs(x))
             sage: complex(abs(3*I))
             (3+0j)
 
@@ -464,6 +464,16 @@ class Function_ceil(BuiltinFunction):
                 return Integer(int(math.ceil(x)))
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = ceil(x)
+            sage: h(pi)._numerical_approx()
+            4
+        """
+        return self._eval_(x)
+
 ceil = Function_ceil()
 
 
@@ -625,6 +635,16 @@ class Function_floor(BuiltinFunction):
             elif isinstance(x, (float, complex)):
                 return Integer(int(math.floor(x)))
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = floor(x)
+            sage: h(pi)._numerical_approx()
+            3
+        """
+        return self._eval_(x)
 
 floor = Function_floor()
 
@@ -935,7 +955,7 @@ class Function_gamma_inc(BuiltinFunction):
             (-0.8231640121031085+3.141592653589793j)
             sage: incomplete_gamma(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2))) # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -1390,6 +1410,16 @@ class Function_factorial(GinacFunction):
             return py_factorial_py(x)
 
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = factorial(x)
+            sage: h(5)._numerical_approx()
+            120.000000000000
+        """
+        return self._eval_(x)
 
 factorial = Function_factorial()
 

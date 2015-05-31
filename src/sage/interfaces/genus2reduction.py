@@ -506,7 +506,7 @@ class Genus2reduction(SageObject):
         if Q.degree() >=4:
             raise ValueError("Q (=%s) must have degree at most 3"%Q)
 
-        res = pari.genus2red(Q, P)
+        res = pari.genus2red([P,Q])
 
         conductor = ZZ(res[0])
         minimal_equation = R(res[2])

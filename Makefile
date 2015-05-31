@@ -20,7 +20,7 @@ build: logs configure
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
 		"tee -a ../logs/install.log"
-	./sage -b
+	+./sage -b
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -58,6 +58,13 @@ doc: doc-html
 
 doc-html: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+
+# 'doc-html-no-plot': build docs without building the graphics coming
+# from the '.. plot' directive, in case you want to save a few
+# megabytes of disk space. 'doc-clean' is a prerequisite because the
+# presence of graphics is cached in src/doc/output.
+doc-html-no-plot: build doc-clean
+	$(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"

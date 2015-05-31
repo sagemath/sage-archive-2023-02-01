@@ -642,7 +642,8 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
             The vertices are first sorted using Python's sorted command.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: Y = YangBaxterGraph(partition=[3,2])
             sage: list(Y.__iter__())
             [(1, 0, 2, 1, 0), (1, 2, 0, 1, 0), (1, 2, 1, 0, 0), (2, 1, 0, 1, 0), (2, 1, 1, 0, 0)]

@@ -131,6 +131,7 @@ AUTHORS:
 #    class AlgebraicScheme_quasi
 
 
+from sage.categories.number_fields import NumberFields
 
 from sage.rings.all import ZZ
 
@@ -193,7 +194,7 @@ def is_AlgebraicScheme(x):
 
     We create a more complicated closed subscheme::
 
-        sage: A, x = AffineSpace(10, QQ).objgens()
+        sage: A,x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
         x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
@@ -1445,18 +1446,28 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
-    def rational_points(self, F=None, bound=0):
+    def rational_points(self, bound=0, F=None):
         """
         Return the rational points on the algebraic subscheme.
 
         EXAMPLES:
+
+        Enumerate over a projective scheme over a number field::
+
+            sage: u = QQ['u'].0
+            sage: K.<v> = NumberField(u^2 + 3)
+            sage: A.<x,y> = ProjectiveSpace(K,1)
+            sage: X=A.subscheme(x^2 - y^2)
+            sage: X.rational_points(3)
+            [(-1 : 1), (1 : 1)]
 
         One can enumerate points up to a given bound on a projective scheme
         over the rationals::
 
             sage: E = EllipticCurve('37a')
             sage: E.rational_points(bound=8)
-            [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1), (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
+            [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1),
+            (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1), (2 : -3 : 1), (2 : 2 : 1)]
 
         For a small finite field, the complete set of points can be
         enumerated. ::
@@ -1489,11 +1500,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         if F is None:
             F = self.base_ring()
         X = self(F)
-        if is_RationalField(F) or F == ZZ:
-            if not bound > 0:
-                raise TypeError("A positive bound (= %s) must be specified."%bound)
+        if F in NumberFields() or F == ZZ:
             try:
-                return X.points(bound)
+                return X.points(bound) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
         try:
@@ -1517,6 +1526,85 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         A=self.ambient_space().change_ring(R)
         I=self.defining_ideal().change_ring(A.coordinate_ring())
         return(A.subscheme(I))
+
+    def weil_restriction(self):
+        r"""
+        Compute the Weil restriction of this variety over some extension
+        field. If the field is a finite field, then this computes
+        the Weil restriction to the prime subfield.
+
+        A Weil restriction of scalars - denoted `Res_{L/k}` - is a
+        functor which, for any finite extension of fields `L/k` and
+        any algebraic variety `X` over `L`, produces another
+        corresponding variety `Res_{L/k}(X)`, defined over `k`. It is
+        useful for reducing questions about varieties over large
+        fields to questions about more complicated varieties over
+        smaller fields.
+
+        This function does not compute this Weil restriction directly
+        but computes on generating sets of polynomial ideals:
+
+        Let `d` be the degree of the field extension `L/k`, let `a` a
+        generator of `L/k` and `p` the minimal polynomial of
+        `L/k`. Denote this ideal by `I`.
+
+        Specifically, this function first maps each variable `x` to
+        its representation over `k`: `\sum_{i=0}^{d-1} a^i x_i`. Then
+        each generator of `I` is evaluated over these representations
+        and reduced modulo the minimal polynomial `p`. The result is
+        interpreted as a univariate polynomial in `a` and its
+        coefficients are the new generators of the returned ideal.
+
+        If the input and the output ideals are radical, this is
+        equivalent to the statement about algebraic varieties above.
+
+        OUTPUT: Affine subscheme - the Weil restriction of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: K.<w> = NumberField(x^5-2)
+            sage: R.<x> = K[]
+            sage: L.<v> = K.extension(x^2+1)
+            sage: A.<x,y> = AffineSpace(L,2)
+            sage: X = A.subscheme([y^2-L(w)*x^3-v])
+            sage: X.weil_restriction()
+            Closed subscheme of Affine Space of dimension 4 over Number Field in w
+            with defining polynomial x^5 - 2 defined by:
+              (-w)*z0^3 + (3*w)*z0*z1^2 + z2^2 - z3^2,
+              (-3*w)*z0^2*z1 + (w)*z1^3 + 2*z2*z3 - 1
+            sage: X.weil_restriction().ambient_space() is A.weil_restriction()
+            True
+
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(GF(5^2,'t'),3)
+            sage: X = A.subscheme([y^2-x*z, z^2+2*y])
+            sage: X.weil_restriction()
+            Closed subscheme of Affine Space of dimension 6 over Finite Field of
+            size 5 defined by:
+              z2^2 - 2*z3^2 - z0*z4 + 2*z1*z5,
+              2*z2*z3 + z3^2 - z1*z4 - z0*z5 - z1*z5,
+              z4^2 - 2*z5^2 + 2*z2,
+              2*z4*z5 + z5^2 + 2*z3
+        """
+        try:
+            X = self.__weil_restriction
+        except AttributeError:
+            L = self.base_ring()
+            if L.is_finite():
+                d = L.degree()
+            else:
+                d = L.relative_degree()
+
+            if d == 1:
+                X = self
+            else:
+                A = self.ambient_space().weil_restriction()
+                I = self.defining_ideal().weil_restriction()
+                X = A.subscheme(I)
+            self.__weil_restriction = X
+        return X
 
 #*******************************************************************
 # Affine varieties
@@ -1688,10 +1776,11 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         PR = PP.coordinate_ring()
         v = list(PP.gens())
         z = v.pop(i)
+        R = AA.coordinate_ring()
+        phi = R.hom(v,PR)
         v.append(z)
         polys = self.defining_polynomials()
-        X = PP.subscheme([ PR(f.homogenize())(v) for f in polys ])
-        R = AA.coordinate_ring()
+        X = PP.subscheme([phi(f).homogenize(i) for f in polys ])
         v = list(R.gens())
         v.insert(i, R(1))
         phi = self.hom(v, X)
@@ -1985,7 +2074,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         """
         point = list(point)
         try:
-            abs_point = map(abs, point)
+            abs_point = [abs(_) for _ in point]
         except ArithmeticError:
             # our base ring does not know abs
             abs_point = point
@@ -2646,7 +2735,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             return result
 
         # construct the affine algebraic scheme to use as patch
-        polynomials = map(pullback_polynomial, polynomials)
+        polynomials = [pullback_polynomial(_) for _ in polynomials]
         patch_cover = sage.schemes.affine.affine_space.AffineSpace(R)
         polynomials = list(I.gens()) + polynomials
         polynomials = [x for x in polynomials if not x.is_zero()]

@@ -361,11 +361,6 @@ cdef class LinearTensor(ModuleElement):
         """
         Override the rich comparison.
 
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
-
         EXAMPLES::
 
             sage: mip.<x> = MixedIntegerLinearProgram()
@@ -464,7 +459,7 @@ cdef class LinearTensor(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        # see _cmp_c_impl() if you want to change the hash function
+        # see _cmp_() if you want to change the hash function
         return id(self) % LONG_MAX
 
     def __cmp__(left, right):
@@ -480,7 +475,7 @@ cdef class LinearTensor(ModuleElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Implement comparison of two linear functions.
 

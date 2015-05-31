@@ -574,7 +574,8 @@ class Subsets_sk(Subsets_s):
 
     def __contains__(self, value):
         """
-        TESTS:
+        TESTS::
+
             sage: S = Subsets([1,2,3], 2)
             sage: Set([1,2]) in S
             True

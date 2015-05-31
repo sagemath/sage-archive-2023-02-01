@@ -31,4 +31,6 @@ design catalog:
 
 - :ref:`sage.combinat.designs.ext_rep`
 - :ref:`sage.combinat.designs.designs_pyx`
+- :ref:`sage.combinat.designs.subhypergraph_search`
+- :ref:`sage.combinat.designs.evenly_distributed_sets`
 """

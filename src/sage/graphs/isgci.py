@@ -977,7 +977,7 @@ class GraphClasses(UniqueRepresentation):
 
         # Computing te max of each field with the database
         for key in MAX:
-            MAX[key] = len(max(map(lambda x:str(x.get(key,"")),classes_list), key = len))
+            MAX[key] = len(max((str(x.get(key,"")) for x in classes_list), key = len))
 
         # At most MAX characters per field
         for key, length in MAX.iteritems():
@@ -1035,6 +1035,7 @@ def _XML_to_dict(root):
 graph_classes = GraphClasses()
 
 # Any object added to this list should also appear in the class' documentation, at the top of the file.
+graph_classes.AT_free = GraphClass("AT-free", "gc_61", recognition_function = lambda x:x.is_asteroidal_triple_free())
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
 graph_classes.Block = GraphClass("Block", "gc_93")

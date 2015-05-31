@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
 
@@ -106,6 +107,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`components() <sage.matroids.matroid.Matroid.components>`
     - :meth:`is_connected() <sage.matroids.matroid.Matroid.is_connected>`
     - :meth:`is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
+    - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
@@ -122,6 +124,8 @@ additional functionality (e.g. linear extensions).
 
 - Misc
     - :meth:`broken_circuit_complex() <sage.matroids.matroid.Matroid.broken_circuit_complex>`
+    - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
+    - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
 
 In addition to these, all methods provided by
 :class:`SageObject <sage.structure.sage_object.SageObject>` are available,
@@ -308,11 +312,8 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
-from sage.combinat.subset import Subsets
-from sage.misc.misc import subsets
 
 from utilities import newlabel, sanitize_contractions_deletions
-from sage.calculus.all import var
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1492,6 +1493,8 @@ cdef class Matroid(SageObject):
             sage: sorted(M.k_closure({0,1}, 4))
             [0, 1, 4]
         """
+        if not self.groundset().issuperset(X):
+            raise ValueError("input X is not a subset of the groundset.")
         cdef int cur
         cdef frozenset S, cl
         cur = 0
@@ -1499,8 +1502,8 @@ cdef class Matroid(SageObject):
         while cur != len(S):
             cur = len(S)
             cl = frozenset([])
-            for T in Subsets(S, min(k,cur)):
-                cl = cl.union(self.closure(T))
+            for T in combinations(S, min(k,cur)):
+                cl = cl.union(self._closure(set(T)))
             S = cl
         return S
 
@@ -1943,7 +1946,7 @@ cdef class Matroid(SageObject):
             raise ValueError("input X is not a subset of the groundset.")
         return self._is_closed(frozenset(X))
 
-    cpdef is_subset_k_closed(self, X, k):
+    cpdef is_subset_k_closed(self, X, int k):
         r"""
         Test if ``X`` is a ``k``-closed set of the matroid.
 
@@ -1995,7 +1998,7 @@ cdef class Matroid(SageObject):
             return self.is_closed(X)
 
         cdef frozenset cl
-        for T in Subsets(X, k):
+        for T in combinations(X, k):
             cl = self.closure(T)
             if not cl.issubset(T):
                 return False
@@ -2866,6 +2869,99 @@ cdef class Matroid(SageObject):
                     ret.append(I)
         return ret
 
+    # polytopes
+
+    def matroid_polytope(self):
+        r"""
+        Return the matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            e_B = \sum_{i \in B} e_i
+
+        over all bases `B` of the matroid. Here `e_i` are the standard
+        basis vectors of `\RR^n`. An arbitrary labelling of the
+        groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`independence_matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: P = M.matroid_polytope(); P
+            A 7-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 46 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.matroid_polytope()
+            A 6-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 29 vertices
+
+        REFERENCE:
+
+        .. [DLHK2007] J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart polynomials
+          of matroid polytopes and polymatroids. Discrete & Computational
+          Geometry, Volume 42, Issue 4. :arxiv:`0710.4346`,
+          :doi:`10.1007/s00454-008-9120-8`
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        vector_e = FreeModule(ZZ, n).basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [sum(vector_e[convert[i]] for i in B)
+                    for B in self.bases()]
+        return Polyhedron(vertices)
+
+    def independence_matroid_polytope(self):
+        """
+        Return the independence matroid polytope of ``self``.
+
+        This is defined as the convex hull of the vertices
+
+        .. MATH::
+
+            \sum_{i \in I} e_i
+
+        over all independent sets `I` of the matroid. Here `e_i` are
+        the standard basis vectors of `\RR^n`. An arbitrary labelling
+        of the groundset by `{0,\dots,n-1}` is chosen.
+
+        .. SEEALSO::
+
+            :meth:`matroid_polytope`
+
+        EXAMPLES::
+
+            sage: M = matroids.Whirl(4)
+            sage: M.independence_matroid_polytope()
+            A 8-dimensional polyhedron in ZZ^8 defined as the convex hull
+            of 135 vertices
+
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.independence_matroid_polytope()
+            A 7-dimensional polyhedron in ZZ^7 defined as the convex hull
+            of 58 vertices
+
+        REFERENCE:
+
+        [DLHK2007]_
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from sage.modules.free_module import FreeModule
+        n = self.size()
+        ambient = FreeModule(ZZ, n)
+        vector_e = ambient.basis()
+        convert = {ind: i for i, ind in enumerate(self.groundset())}
+        vertices = [ambient.sum(vector_e[convert[i]] for i in IS)
+                    for r in range(self.full_rank() + 1)
+                    for IS in self.independent_r_sets(r)]
+        return Polyhedron(vertices)
+
     # isomorphism and equality
 
     cpdef is_isomorphic(self, other):
@@ -2937,6 +3033,78 @@ cdef class Matroid(SageObject):
             return True
         return (self.full_rank() == other.full_rank() and self.nonbases()._isomorphism(other.nonbases()) is not None)
 
+    cpdef isomorphism(self, other):
+        r"""
+        Return a matroid isomorphism.
+
+        Two matroids `M` and `N` are *isomorphic* if there is a bijection `f`
+        from the groundset of `M` to the groundset of `N` such that a subset
+        `X` is independent in `M` if and only if `f(X)` is independent in `N`.
+        This method returns one isomorphism `f` from self to other, if such an isomorphism exists.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``.
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: G3 = graphs.CompleteGraph(4)
+            sage: M1.isomorphism(G3)
+            Traceback (most recent call last):
+            ...
+            TypeError: can only give isomorphism between matroids.
+
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if not isinstance(other, Matroid):
+            raise TypeError("can only give isomorphism between matroids.")
+        return self._isomorphism(other)
+
+    cpdef _isomorphism(self, other):
+        """
+        Return isomorphism from ``self`` to ``other``, if such an isomorphism exists.
+
+        Internal version that performs no checks on input.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``
+
+        EXAMPLES::
+
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism=M1.isomorphism(M2)
+            sage: M1.is_isomorphism(M2, morphism)
+            True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1.isomorphism(M2) is not None
+            False
+        """
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if self.full_rank() == other.full_rank():
+            return self.nonbases()._isomorphism(other.nonbases())
+        else:
+            return None
+    
     cpdef equals(self, other):
         """
         Test for matroid equality.
@@ -4374,25 +4542,119 @@ cdef class Matroid(SageObject):
         """
         return len(self.components()) == 1
 
-    cpdef is_3connected(self):
+    cpdef connectivity(self, S, T=None):
+        r"""
+        Evaluate the connectivity function of the matroid.
+
+        If the input is a single subset `S` of the groundset `E`,
+        then the output is `r(S) + r(E\S) - r(E)`.
+
+        If the input are disjoint subsets `S, T` of the groundset,
+        then the output is
+
+        .. MATH::
+
+            \min \{ r(X) + r(Y) - r(E) \mid X \subseteq S, Y \subseteq T,
+            {X,Y} \text{a partition of} E \}.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- (optional) a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: M.connectivity('ab')
+            2
+            sage: M.connectivity('ab', 'cd')
+            2
         """
-        Test if the matroid is 3-connected.
+        S = set(S)
+        if T is None:
+            return self.rank(S) + self.rank(self.groundset()-S) - self.full_rank()
+        T = set(T)
+        if S.intersection(T):
+            raise ValueError("no well-defined matroid connectivity between intersecting sets")
+        return self._connectivity(S, T)
+
+    cpdef _connectivity(self, S, T):
+        r"""
+        Return the connectivity of two subsets ``S`` and ``T`` in the matroid.
+
+        This evaluates the connectivity
+
+        .. MATH::
+
+            \min \{ r(X) + r(Y) - r(E) \mid X \subseteq S, Y \subseteq T,
+            {X,Y} \text{a partition of} E \}.
+
+        between two disjoint subsets `S` and `T` of the groundset `E`
+        of this matroid.
+
+        Internal version that does not verify that ``S`` and ``T``
+        are sets, are disjoint, are subsets of the groundset.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- (optional) a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        An integer.
+
+        ALGORITHM:
+
+        Computes the maximum cardinality of a common independent set
+        of `M / S \ T` and `M \ S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: M._connectivity('ab', 'cd')
+            2
+        """
+        N1 = self.minor(T,S)
+        N2 = self.minor(S,T)
+        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
+
+    cpdef is_3connected(self, separation=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
 
         A `k`-*separation* in a matroid is a partition `(X, Y)` of the
         groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
         A matroid is `k`-*connected* if it has no `l`-separations for `l < k`.
 
+        INPUT:
+
+        - ``separation`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+
         OUTPUT:
 
-        Boolean.
-
-        .. TODO::
-
-            Implement this using the efficient algorithm from [BC79]_.
+        boolean, or a tuple ``(boolean, frozenset)``
 
         .. SEEALSO::
 
-            :meth:`M.is_connected() <sage.matroids.matroid.Matroid.is_connected>`
+            :meth:`is_connected`
+
+        ALGORITHM:
+
+        Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+        sets `S`,`T` with `|S| = |T| = 2`.
+
+        .. TODO::
+
+            Implement the more efficient 3-connectivity algorithm
+            from [BC79]_ which runs in `O(|E|^3)` time.
 
         EXAMPLES::
 
@@ -4410,32 +4672,71 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.BetsyRoss().is_3connected()
             True
-
-        ALGORITHM:
-
-        Test all subsets `X` to see if `r(X) + r(E - X) - r(E)` does not equal
-        `1`.
-
+            sage: M = matroids.named_matroids.R6()
+            sage: M.is_3connected()
+            False
+            sage: B, X = M.is_3connected(True)
+            sage: M.connectivity(X)
+            1
         """
-        groundset = self.groundset()
-        size = len(groundset)
-        if not self.is_connected():
+        if self.loops() or self.coloops():
             return False
-        if (size < 4):
-            return True  # vacuously true
-        r = self.full_rank()
-        part_sizes = xrange(2, (size / 2) + 1)  # all possible partition sizes
-        for part in part_sizes:
-            subs = Subsets(groundset, part)
-            for X in subs:
-                Y = groundset.difference(X)
-                if (self.rank(X) + self.rank(Y) - r == 1):
+        E = set(self.groundset())
+        e = E.pop()
+        f = E.pop()
+        S = {e, f}
+        w = {e:1 for e in E}
+        I = set()
+        for T in combinations(E, 2):
+            T = set(T)
+            N1 = self.minor(T,S)
+            N2 = self.minor(S,T)
+            # make previous I a common independent set of current N1, N2
+            I = I - T
+            I = N1.max_independent(I)
+            I = N2.max_independent(I)
+            J = N1._intersection_augmentation(N2, w, I)
+            while J[0]:
+                I = I.symmetric_difference(J[1])
+                J = N1._intersection_augmentation(N2, w, I)
+            # check if connectivity between S,T is <2
+            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+                if separation:
+                    return False, S.union(J[1])
+                else:
                     return False
-        return True
+        for g in E:
+            S = {e, g}
+            I = I - S
+            for h in E:
+                if g is h:
+                    continue
+                T = {f, h}
+                T = set(T)
+                N1 = self.minor(T,S)
+                N2 = self.minor(S,T)
+                # make previous I a common independent set of current N1, N2
+                I = I - T
+                I = N1.max_independent(I)
+                I = N2.max_independent(I)
+                J = N1._intersection_augmentation(N2, w, I)
+                while J[0]:
+                    I = I.symmetric_difference(J[1])
+                    J = N1._intersection_augmentation(N2, w, I)
+                # check if connectivity between S,T is <2
+                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+                    if separation:
+                        return False, S.union(J[1])
+                    else:
+                        return False
+        if separation:
+            return True, None
+        else:
+            return True
 
     # matroid k-closed
 
-    cpdef is_k_closed(self, k):
+    cpdef is_k_closed(self, int k):
         r"""
         Return if ``self`` is a ``k``-closed matroid.
 
@@ -4460,9 +4761,12 @@ cdef class Matroid(SageObject):
             sage: M.is_k_closed(4)
             True
         """
-        for S in subsets(self.groundset()):
-            if self.is_subset_k_closed(S, k) and not self.is_closed(S):
-                return False
+        G = self.groundset()
+        cdef int m
+        for m in range(len(G)+1):
+            for S in combinations(G, m):
+                if self.is_subset_k_closed(S, k) and not self._is_closed(frozenset(S)):
+                    return False
         return True
 
     # optimization
@@ -4724,8 +5028,8 @@ cdef class Matroid(SageObject):
         """
         Y = set()
         U = self._intersection_augmentation(other, weights, Y)
-        while U is not None and sum([weights[x] for x in U - Y]) > sum([weights[y] for y in U.intersection(Y)]):
-            Y = Y.symmetric_difference(U)
+        while U[0] and sum([weights[x] for x in U[1] - Y]) > sum([weights[y] for y in U[1].intersection(Y)]):
+            Y = Y.symmetric_difference(U[1])
             U = self._intersection_augmentation(other, weights, Y)
         return Y
 
@@ -4737,16 +5041,18 @@ cdef class Matroid(SageObject):
 
         - ``other`` -- a matroid with the same ground set as ``self``.
         - ``weights`` -- a dictionary specifying a weight for each element of
-          the ground set
+          the common ground set ``E``.
         - ``Y`` -- an extremal common independent set of ``self`` and
           ``other`` of size `k`. That is, a common independent set of maximum
           weight among common independent sets of size `k`.
 
         OUTPUT:
 
-        A set ``U`` such that the symmetric difference of ``Y`` and ``U``
-        is extremal and has `k + 1` elements; or ``None``, if there is no
-        common independent ste of size `k + 1`.
+        A pair ``True, U`` such that the symmetric difference of ``Y``
+        and ``U`` is extremal and has `k + 1` elements; or a pair
+        ``False, X``, if there is no common independent set of size
+        `k + 1`. If all weights are ``1``, then the cardinality of ``Y``
+        equals ``self.rank(X) + other.rank(E-X)``.
 
         .. NOTE::
 
@@ -4763,13 +5069,12 @@ cdef class Matroid(SageObject):
             sage: Y = M.intersection(N, w)
             sage: sorted(Y)
             ['a', 'd', 'e', 'g', 'i', 'k']
-            sage: M._intersection_augmentation(N, w, Y) is None
-            True
+            sage: M._intersection_augmentation(N, w, Y)[0]
+            False
         """
         X = self.groundset() - Y
-
-        X1 = frozenset([x for x in X if self._is_independent(Y.union([x]))])
-        X2 = frozenset([x for x in X if other._is_independent(Y.union([x]))])
+        X1 = self.groundset() - self._closure(Y)
+        X2 = other.groundset() - other._closure(Y)
 
         w = {x: -weights[x] for x in X1}
         predecessor = {x: None for x in X1}
@@ -4778,40 +5083,46 @@ cdef class Matroid(SageObject):
         todo = set(X1)
         next_layer = set()
         while todo:
-            while todo:
+            while todo: # todo is subset of X
                 u = todo.pop()
                 m = w[u]
-                if u in Y:
-                    if u not in out_neighbors:
-                        out_neighbors[u] = X - self._closure(Y - set([u]))
-                    for x in out_neighbors[u]:
-                        m2 = m - weights[x]
-                        if not x in w or w[x] > m2:
-                            predecessor[x] = u
-                            w[x] = m2
-                            next_layer.add(x)
-                else:
-                    if u not in out_neighbors:
-                        out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # have to make sure that u is not in X2 for this
-                    for y in out_neighbors[u]:
-                        m2 = m + weights[y]
-                        if not y in w or w[y] > m2:
-                            predecessor[y] = u
-                            w[y] = m2
-                            next_layer.add(y)
+                if u not in out_neighbors:
+                    out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
+                for y in out_neighbors[u]:
+                    m2 = m + weights[y]
+                    if not y in w or w[y] > m2:
+                        predecessor[y] = u
+                        w[y] = m2
+                        next_layer.add(y)
             todo = next_layer
             next_layer = set()
-        X3 = X2.intersection(w)
-        if not X3:
-            return None
-        s = min([w[x] for x in X3])
-        for u in X3:
-            if w[u] == s:
-                path = set([u])
-                while predecessor[u] is not None:
-                    u = predecessor[u]
-                    path.add(u)
-                return path
+            while todo: # todo is subset of Y
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = X - self._closure(Y - set([u]))
+                for x in out_neighbors[u]:
+                    m2 = m - weights[x]
+                    if not x in w or w[x] > m2:
+                        predecessor[x] = u
+                        w[x] = m2
+                        next_layer.add(x)
+            todo = next_layer
+            next_layer = set()
+
+        X3 = X2.intersection(w) # w is the set of elements reachable from X1
+        if not X3:              # if no path from X1 to X2, then no augmenting set exists
+            return False, frozenset(w)
+        else:
+            s = min([w[x] for x in X3]) # find shortest length of an X1 - X2 path
+            for u in X3:
+                if w[u] == s:
+                    break
+            path = set([u])             # reconstruct path
+            while predecessor[u] is not None:
+                u = predecessor[u]
+                path.add(u)
+            return True, frozenset(path)
 
     # invariants
 

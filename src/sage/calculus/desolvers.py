@@ -1188,12 +1188,12 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         ivar = ivars[0]
 
     if not is_SymbolicVariable(dvar):
-        from sage.calculus.var import var
+        from sage.symbolic.ring import SR
         from sage.calculus.all import diff
         from sage.symbolic.relation import solve
         if is_SymbolicEquation(de):
             de = de.lhs() - de.rhs()
-        dummy_dvar=var('dummy_dvar')
+        dummy_dvar = SR.var('dummy_dvar')
         # consider to add warning if the solution is not unique
         de=solve(de,diff(dvar,ivar),solution_dict=True)
         if len(de) != 1:
@@ -1493,12 +1493,12 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         if len(ivars)==1:
             ivar = ivars.pop()
         elif not ivars:
-            from sage.symbolic.ring import var
             try:
                 safe_names = [ 't_' + str(dvar) for dvar in dvars ]
             except TypeError:  # not iterable
                 safe_names = [ 't_' + str(dvars) ]
-            ivar = map(var, safe_names)
+            from sage.symbolic.ring import SR
+            ivar = [SR.var(name) for name in safe_names]
         else:
             raise ValueError("Unable to determine independent variable, please specify.")
 

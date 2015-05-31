@@ -254,7 +254,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             self.__gen = -(self._modulus[0])
         except AttributeError:
-            self.__gen = self.one_element()
+            self.__gen = self.one()
         return self.__gen
 
     def __iter__(self):

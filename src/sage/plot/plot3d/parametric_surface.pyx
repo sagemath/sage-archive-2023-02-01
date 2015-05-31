@@ -573,12 +573,12 @@ cdef class ParametricSurface(IndexFaceSet):
             sage_free(ulist)
             sage_free(vlist)
 
-        elif PY_TYPE_CHECK(self.f, tuple):
+        elif isinstance(self.f, tuple):
 
                 fx, fy, fz = self.f
-                fast_x = PY_TYPE_CHECK(fx, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
-                fast_y = PY_TYPE_CHECK(fy, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
-                fast_z = PY_TYPE_CHECK(fz, FastDoubleFunc) or PY_TYPE_CHECK(fx, Wrapper_rdf)
+                fast_x = isinstance(fx, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
+                fast_y = isinstance(fy, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
+                fast_z = isinstance(fz, FastDoubleFunc) or isinstance(fx, Wrapper_rdf)
 
                 if fast_x or fast_y or fast_z:
 
@@ -586,7 +586,7 @@ cdef class ParametricSurface(IndexFaceSet):
                     ulist = to_double_array(urange)
                     vlist = to_double_array(vrange)
 
-                    if PY_TYPE_CHECK(fx, FastDoubleFunc):
+                    if isinstance(fx, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:
@@ -600,7 +600,7 @@ cdef class ParametricSurface(IndexFaceSet):
                                 (<Wrapper_rdf>fx).call_c(uv, &self.vs[i*n+j].x)
 
 
-                    if PY_TYPE_CHECK(fy, FastDoubleFunc):
+                    if isinstance(fy, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:
@@ -613,7 +613,7 @@ cdef class ParametricSurface(IndexFaceSet):
                                 uv[1] = vlist[j]
                                 (<Wrapper_rdf>fy).call_c(uv, &self.vs[i*n+j].y)
 
-                    if PY_TYPE_CHECK(fz, FastDoubleFunc):
+                    if isinstance(fz, FastDoubleFunc):
                         for i from 0 <= i < m:
                             uv[0] = ulist[i]
                             for j from 0 <= j < n:

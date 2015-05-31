@@ -15,6 +15,7 @@ elements. For general information about libGAP, you should read the
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
+include "sage/ext/interrupt.pxi"
 from cpython.object cimport *
 
 from sage.structure.sage_object cimport SageObject
@@ -48,7 +49,7 @@ decode_type_number = {
 ### helper functions to construct lists and records ########################
 ############################################################################
 
-cdef libGAP_Obj make_gap_list(sage_list):
+cdef libGAP_Obj make_gap_list(sage_list) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -68,7 +69,7 @@ cdef libGAP_Obj make_gap_list(sage_list):
     return l.value
 
 
-cdef libGAP_Obj make_gap_record(sage_dict):
+cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     """
     Convert Sage lists into Gap lists
 
@@ -100,7 +101,7 @@ cdef libGAP_Obj make_gap_record(sage_dict):
     return rec
 
 
-cdef libGAP_Obj make_gap_integer(sage_int):
+cdef libGAP_Obj make_gap_integer(sage_int) except NULL:
     """
     Convert Sage integer into Gap integer
 
@@ -123,7 +124,7 @@ cdef libGAP_Obj make_gap_integer(sage_int):
     return result
 
 
-cdef libGAP_Obj make_gap_string(sage_string):
+cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     Convert a Sage string to a Gap string
 
@@ -575,7 +576,7 @@ cdef class GapElement(RingElement):
         """
         return hash(str(self))
 
-    cdef _richcmp_c_impl(self, Element other, int op):
+    cpdef _richcmp_(self, Element other, int op):
         """
         Compare ``self`` with ``other``.
 
@@ -644,7 +645,7 @@ cdef class GapElement(RingElement):
         """
         Compare ``self`` with ``other``.
 
-        Helper for :meth:`_richcmp_c_impl`
+        Helper for :meth:`_richcmp_`
 
         EXAMPLES::
 
@@ -670,7 +671,7 @@ cdef class GapElement(RingElement):
         """
         Compare ``self`` with ``other``.
 
-        Helper for :meth:`_richcmp_c_impl`
+        Helper for :meth:`_richcmp_`
 
         EXAMPLES::
 
@@ -880,9 +881,10 @@ cdef class GapElement(RingElement):
             sage: libgap(3) ^ Infinity
             Traceback (most recent call last):
             ...
-            ValueError: libGAP: Error, Variable: 'Infinity' must have a value
+            ValueError: libGAP: Error, no method found! Error, no 1st choice
+            method found for `InverseMutable' on 1 arguments
         """
-        if not PY_TYPE_CHECK(right, GapElement):
+        if not isinstance(right, GapElement):
             libgap = self.parent()
             right = libgap(right)
         cdef libGAP_Obj result
@@ -1030,6 +1032,11 @@ cdef class GapElement(RingElement):
             sage: libgap.eval('5 + 7*E(3)').sage()
             7*zeta3 + 5
 
+            sage: libgap(Infinity).sage()
+            +Infinity
+            sage: libgap(-Infinity).sage()
+            -Infinity
+
             sage: libgap(True).sage()
             True
             sage: libgap(False).sage()
@@ -1045,6 +1052,14 @@ cdef class GapElement(RingElement):
         if self.value is NULL:
             return None
         libgap = self.parent()
+
+        if self.IsInfinity():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        elif self.IsNegInfinity():
+            from sage.rings.infinity import Infinity
+            return -Infinity
+
         raise NotImplementedError('cannot construct equivalent Sage object')
 
 
@@ -1156,7 +1171,7 @@ cdef GapElement_Integer make_GapElement_Integer(parent, libGAP_Obj obj):
 
 cdef class GapElement_Integer(GapElement):
     r"""
-    Derived class of GapElement for GAP rational numbers.
+    Derived class of GapElement for GAP integers.
 
     EXAMPLES::
 
@@ -1196,7 +1211,6 @@ cdef class GapElement_Integer(GapElement):
             true
         """
         return libGAP_IS_INTOBJ(self.value)
-
 
     def sage(self, ring=None):
         r"""
@@ -1241,6 +1255,21 @@ cdef class GapElement_Integer(GapElement):
             string = self.String().sage()
             return ring(string)
 
+    def __int__(self):
+        r"""
+        TESTS::
+
+            sage: int(libgap(3))
+            3
+            sage: type(_)
+            <type 'int'>
+
+            sage: int(libgap(2)**128)
+            340282366920938463463374607431768211456L
+            sage: type(_)
+            <type 'long'>
+        """
+        return self.sage(ring=int)
 
 ############################################################################
 ### GapElement_IntegerMod #####################################################

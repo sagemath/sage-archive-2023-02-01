@@ -1120,7 +1120,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 parent = self.parent()
                 M = parent.realization_of().M()
                 C = parent._indices
-                dct = {C(map(lambda i: n * i, I)): coeff
+                dct = {C([n * i for i in I]): coeff
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
@@ -1157,7 +1157,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`star involution on NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -1250,9 +1251,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.omega_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`omega involution on NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.omega_involution>`,
+                    :meth:`psi involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -1309,8 +1313,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution on NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -1486,7 +1492,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 restricts to a binary operation on `QSym`.
 
                 This operation `\preceq` is related to the dendriform
-                smaller relation `\prec` (:meth:`dendriform_lesser`).
+                smaller relation `\prec` (:meth:`dendriform_less`).
                 Namely, if we define a binary operation `\succ` on
                 `QSym` by `a \succ b = b \prec a`, then
                 `(QSym, \preceq, \succ)` is a dendriform `R`-algebra.
@@ -1910,9 +1916,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`psi involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`psi involution on NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution>`,
+                    :meth:`star involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -2089,11 +2098,17 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     m[]
                     sage: (2*M([])).to_symmetric_function()
                     2*m[]
+
+                We check that the result is indexed by partitions::
+
+                    sage: M([]).to_symmetric_function().leading_support().parent()
+                    Partitions
                 """
                 m = SymmetricFunctions(self.parent().base_ring()).monomial()
                 if self.is_symmetric():
-                    return m.sum_of_terms([(I, coeff) for (I, coeff) in self
-                        if list(I) in _Partitions], distinct=True)
+                    return m._from_dict({_Partitions(list(I)): coeff
+                                         for I, coeff in self
+                        if list(I) in _Partitions}, remove_zeros=False)
                 else:
                     raise ValueError("%s is not a symmetric function"%self)
 
@@ -2511,8 +2526,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`,
-                    :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`.
+                    :meth:`star involution on QSym
+                    <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution>`,
+                    :meth:`star involution on NCSF
+                    <sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution>`.
 
                 EXAMPLES::
 
@@ -2853,7 +2870,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             - A quasi-symmetric function in the dual immaculate basis.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: dI = QuasiSymmetricFunctions(QQ).dI()
                 sage: dI._from_Monomial_on_basis(Composition([]))
@@ -2909,8 +2926,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         Let `I` be a composition. Let `I = I_1 I_2 \ldots I_k` be the
         Chen-Fox-Lyndon factorization of `I` (see
-        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`
-        ). For every `j \in \{1, 2, \ldots , k\}`, let `g_j` be the
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.lyndon_factorization`).
+        For every `j \in \{1, 2, \ldots , k\}`, let `g_j` be the
         gcd of the entries of the Lyndon word `I_j`, and let `J_j` be
         the result of dividing the entries of `I_j` by this gcd. Then,
         `\mathrm{HWL}_I` is defined to be

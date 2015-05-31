@@ -1,8 +1,12 @@
 r"""
-Interface to 4ti2 (http://www.4ti2.de)
+Interface to 4ti2
+
+http://www.4ti2.de
 
 You must have the 4ti2 Sage package installed on your computer
 for this interface to work.
+
+Use ``sage -i 4ti2`` to install the package.
 
 AUTHORS:
 
@@ -34,22 +38,22 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 import os
 
+
 class FourTi2(object):
     r"""
     This object defines an interface to the program 4ti2. Each command
     4ti2 has is exposed as one method.
     """
-
     def __init__(self, directory=None):
         r"""
         Initialize this object.
 
         INPUT:
 
-        - ``directory`` - 4ti2 only deals with files, and this is the
-           directory that Sage will write input files to and run 4ti2
-           in. Use an appropriate temporary directory if the value is
-           ``None``.
+        - ``directory`` -- 4ti2 only deals with files, and this is the
+          directory that Sage will write input files to and run 4ti2
+          in. Use an appropriate temporary directory if the value is
+          ``None``.
 
         EXAMPLES::
 
@@ -96,7 +100,7 @@ class FourTi2(object):
         """
         n = 0
         while True:
-            project = "project_%s"%n
+            project = "project_%s" % n
             touch_file = os.path.join(self.directory(),project) + '.touch'
             if not os.path.exists(touch_file):
                 break
@@ -112,9 +116,9 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``mat`` - A matrix of integers or something that can be
-           converted to that.
-        - ``filename`` - A file name not including a path.
+        - ``mat`` -- A matrix of integers or something that can be
+          converted to that.
+        - ``filename`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -137,8 +141,8 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``row`` - A list of integers.
-        - ``filename`` - A file name not including a path.
+        - ``row`` -- A list of integers.
+        - ``filename`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -156,11 +160,11 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``array`` - A matrix of integers. Can be represented as a list
-           of lists.
-        - ``nrows`` - The number of rows in ``array``.
-        - ``ncols`` - The number of columns in ``array``.
-        - ``file`` - A file name not including a path.
+        - ``array`` -- A matrix of integers. Can be represented as a list
+          of lists.
+        - ``nrows`` -- The number of rows in ``array``.
+        - ``ncols`` -- The number of columns in ``array``.
+        - ``file`` -- A file name not including a path.
 
         EXAMPLES::
 
@@ -181,9 +185,10 @@ class FourTi2(object):
 
         INPUT:
 
-        - ``filename`` - The name of the file to read from.
+        - ``filename`` -- The name of the file to read from.
 
         OUTPUT:
+
         The data from the file as a matrix over `\ZZ`.
 
         EXAMPLES::
@@ -204,7 +209,7 @@ class FourTi2(object):
 
         nrows, ncols = map(ZZ, lines.pop(0).strip().split())
         return matrix(ZZ, nrows, ncols,
-                      [map(ZZ, line.strip().split()) for line in lines
+                      [[ZZ(_) for _ in line.strip().split()] for line in lines
                        if line.strip() != ""])
 
     def _process_input(self, kwds):
@@ -226,7 +231,7 @@ class FourTi2(object):
 
         INPUT:
 
-        - kwds - A dict controlling what data is written to what files.
+        - kwds -- A dict controlling what data is written to what files.
 
         OUTPUT:
 
@@ -273,9 +278,9 @@ class FourTi2(object):
 
         INPUT:
 
-        - command - The 4ti2 program to run.
-        - project - The file name of the project to run on.
-        - verbose - Display the output of 4ti2 if ``True``.
+        - command -- The 4ti2 program to run.
+        - project -- The file name of the project to run on.
+        - verbose -- Display the output of 4ti2 if ``True``.
 
         EXAMPLES::
 
@@ -288,7 +293,7 @@ class FourTi2(object):
         """
         import subprocess
 
-        cmd = '%s %s'%(command, project)
+        cmd = '%s %s' % (command, project)
         if verbose is False:
             cmd += " > /dev/null 2> /dev/null"
         subprocess.call(cmd, shell=True, cwd=self.directory())

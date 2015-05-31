@@ -1886,7 +1886,7 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: S1 = (ZZ^3).submodule([(1,2,3),(4,5,6)])
             sage: S2 = (Frac(P)^3).submodule([(t,t^2,t^3+1),(4*t,0,1)])
             sage: v = S1([0,3,6]) + S2([2,0,1/(2*t)]); v   # indirect doctest
-            (2, 3, (12*t + 1)/(2*t))
+            (2, 3, (-12*t - 1)/(-2*t))
             sage: v.parent()
             Vector space of degree 3 and dimension 3 over Fraction Field of Univariate Polynomial Ring in t over Integer Ring
             User basis matrix:
@@ -1908,7 +1908,9 @@ class SubspaceFunctor(ConstructionFunctor):
             except CoercionException:
                 return None
             try:
-                submodule = P.submodule
+                # Use span instead of submodule because we want to
+                # allow denominators.
+                submodule = P.span
             except AttributeError:
                 return None
             S = submodule(self.basis+other.basis).echelonized_basis()
@@ -2158,7 +2160,7 @@ class CompletionFunctor(ConstructionFunctor):
             c = cmp(self.p, other.p)
         return c
 
-    _real_types = ['Interval','MPFR','RDF','RLF']
+    _real_types = ['Interval','Ball','MPFR','RDF','RLF']
     _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
 
     def merge(self, other):
@@ -2628,6 +2630,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2636,8 +2647,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """

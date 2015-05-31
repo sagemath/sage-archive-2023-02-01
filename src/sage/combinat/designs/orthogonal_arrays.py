@@ -600,9 +600,9 @@ def wilson_construction(OA,k,r,m,u,check=True,explain_construction=False):
                     .format(r, m, "+".join(str(x) for ((_,x),) in u), k, n_trunc, r))
         else:
             return ("Brouwer-van Rees construction n={}.{}+{} with master design OA({}+{},{})"
-                    .format(r, m, 
+                    .format(r, m,
                             "+".join("(" + "+".join(str(x)+"."+str(mul) for mul,x in uu) + ")"
-                                     for uu in u), 
+                                     for uu in u),
                             k, n_trunc, r))
 
     if OA is None:

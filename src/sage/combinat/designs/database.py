@@ -296,7 +296,6 @@ MOLS_constructions = {
 # Add this data to the module's doc
 LIST_OF_MOLS_CONSTRUCTIONS = ", ".join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
                                         for n,(k,_) in MOLS_constructions.items()])
-                              
 
 def OA_7_18():
     r"""
@@ -2052,7 +2051,6 @@ OA_constructions = {
 # Add this data to the module's doc
 LIST_OF_OA_CONSTRUCTIONS = ", ".join(":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
                                       for n,(k,_) in OA_constructions.items())
-                               
 
 def QDM_19_6_1_1_1():
     r"""
@@ -4412,7 +4410,7 @@ EDS={
 }
 
 LIST_OF_EDS = "\n".join("    - `k = {}`: {}".format(
-                        k, ', '.join('`{}`'.format(q) for q in sorted(EDS[k]) if EDS[k][q] is not False)) 
+                        k, ', '.join('`{}`'.format(q) for q in sorted(EDS[k]) if EDS[k][q] is not False))
                         for k in sorted(EDS))
 
 __doc__ = __doc__.format(

@@ -165,6 +165,8 @@ include "sage/ext/interrupt.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p

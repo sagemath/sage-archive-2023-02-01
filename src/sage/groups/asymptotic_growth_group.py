@@ -164,7 +164,10 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: g * g
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented in concrete realizations
+            NotImplementedError: Only implemented in concrete realizations.
+        """
+        raise NotImplementedError('Only implemented in concrete realizations.')
+
 
     def _div_(self, other):
         r"""
@@ -196,6 +199,31 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         """
         return self._mul_(~other)
 
+
+    def __pow__(self, power):
+        r"""
+        Takes this growth element to the given ``power``.
+
+        INPUT:
+
+        - ``power`` -- a number. This can anything that is valid to be
+          on the right hand side of ``*`` with an elements of the
+          parent's base.
+
+        OUTPUT:
+
+        The result of this exponentiation a :class:`MonomialGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: G.an_element()^7
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
+        """
+        raise NotImplementedError('Only implemented in concrete realizations.')
 
 
     def __eq__(self, other):
@@ -391,7 +419,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: (~G.gen()).is_le_one()
             True
         """
-        raise NotImplementedError('Only implemented in concrete realizations')
+        raise NotImplementedError('Only implemented in concrete realizations.')
 
 
 class GenericGrowthGroup(
@@ -835,30 +863,32 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _mul_(self, other):
         r"""
-        Multiply two asymptotic power growth elements from the
-        same parent by adding their exponents.
+        Multiply this monomial growth element with another.
 
         INPUT:
 
-        - ``other`` -- the asymptotic growth element to be
-          multiplied with ``self``.
+        - ``other`` -- a :class:`MonomialGrowthElement`
 
         OUTPUT:
 
-        An asymptotic power growth element representing the product
-        of ``self`` and ``other``.
+        The product as a :class:`MonomialGrowthElement`.
+
+        .. NOTE::
+
+            Two monomial growth elements are multiplied by adding
+            their exponents.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: a = P(raw_element=2)
-            sage: b = P(raw_element=3)
+            sage: a = P(x^2)
+            sage: b = P(x^3)
             sage: c = a._mul_(b); c
             x^5
             sage: c == a * b
             True
-            sage: a * b * a
+            sage: a * b * a  # indirect doctest
             x^7
         """
         cls = self.__class__
@@ -867,8 +897,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def __invert__(self):
         r"""
-        Return the multiplicative inverse from a given asymptotic power
-        growth element.
+        Return the multiplicative inverse of this monomial growth element.
 
         INPUT:
 
@@ -876,8 +905,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         OUTPUT:
 
-        The multiplicative inverse asymptotic power growth element
-        of ``self``.
+        The multiplicative inverse as a :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -893,44 +921,48 @@ class MonomialGrowthElement(GenericGrowthElement):
         return cls(self.parent(), -self.exponent)
 
 
-
-
     def __pow__(self, power):
         r"""
-        Return a asymptotic power element to the power of
-        ``power``.
+        Takes this growth element to the given ``power``.
 
         INPUT:
 
-        - ``power`` -- a rational number.
+        - ``power`` -- a number. This can anything that is valid to be
+          on the right hand side of ``*`` with an elements of the
+          parent's base.
 
         OUTPUT:
 
-        The asymptotic power growth element ``self`` to the power of
-        ``power``.
+        The result of this exponentiation a :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: P.gen().__pow__(5)
-            x^5
-            sage: P.gen().__pow__(1/2)
-            x^(1/2)
-            sage: P.gen()^7
+            sage: x = P.gen()
+            sage: a = x^7; a
             x^7
+            sage: b = a^(1/2); b
+            x^(7/2)
+            sage: b.parent()
+            Monomial Growth Group in x over Rational Field
+            sage: b^12
+            x^42
         """
         new_exponent = self.exponent * power
-        if new_exponent in self.parent().base():
-            return self.parent()(raw_element=self.exponent * power)
+        try:
+            cls = self.__class__
+            return cls(self.parent(), new_exponent)
+        except (ValueError, TypeError):
+            pass
 
         from sage.rings.real_mpfr import RR
-        if new_exponent in RR:
-            pnt = MonomialGrowthGroup(new_exponent.parent(),
-                                   self.parent()._var_)
-            return pnt(raw_element=new_exponent)
-        else:
+        if new_exponent not in RR:
             raise NotImplementedError('Only real exponents are implemented.')
+
+        new_parent = MonomialGrowthGroup(new_exponent.parent(),
+                                         self.parent()._var_)
+        return new_parent(raw_element=new_exponent)
 
 
     def is_le_one(self):

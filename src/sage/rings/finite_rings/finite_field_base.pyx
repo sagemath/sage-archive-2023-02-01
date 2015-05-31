@@ -70,10 +70,10 @@ cdef class FiniteFieldIterator:
         EXAMPLE::
 
             sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
-            sage: k.next() # indirect doctest
+            sage: next(k) # indirect doctest
             0
         """
-        return self.parent(self.iter.next())
+        return self.parent(next(self.iter))
 
     def __iter__(self):
         """
@@ -354,7 +354,7 @@ cdef class FiniteField(Field):
             sage: k = FiniteField(8, 'a', impl='pari_ffelt')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
-            sage: i.next()
+            sage: next(i)
             0
             sage: list(k) # indirect doctest
             [0, 1, a, a + 1, a^2, a^2 + 1, a^2 + a, a^2 + a + 1]

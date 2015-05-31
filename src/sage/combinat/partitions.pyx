@@ -130,7 +130,7 @@ def ZS1_iterator(int n):
 
         sage: from sage.combinat.partitions import ZS1_iterator
         sage: it = ZS1_iterator(4)
-        sage: it.next()
+        sage: next(it)
         [4]
         sage: type(_)
         <type 'list'>
@@ -195,7 +195,7 @@ def ZS1_iterator_nk(int n, int k):
 
         sage: from sage.combinat.partitions import ZS1_iterator_nk
         sage: it = ZS1_iterator_nk(4, 3)
-        sage: it.next()
+        sage: next(it)
         [4]
         sage: type(_)
         <type 'list'>

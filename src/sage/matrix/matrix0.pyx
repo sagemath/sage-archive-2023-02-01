@@ -535,7 +535,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: m=matrix(2,[1,2,3,4])
-            sage: m.__iter__().next()
+            sage: next(m.__iter__())
             (1, 2)
         """
 

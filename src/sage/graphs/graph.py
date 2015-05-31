@@ -6375,7 +6375,7 @@ class Graph(GenericGraph):
 
         # Take any two vertices (u,v)
         it = vertices.__iter__()
-        u,v = it.next(),it.next()
+        u,v = next(it),next(it)
 
         # Compute a uv min-edge-cut.
         #

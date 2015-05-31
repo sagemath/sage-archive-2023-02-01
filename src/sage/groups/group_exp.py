@@ -8,9 +8,11 @@ from sage.categories.functor import Functor
 from sage.categories.homset import Hom
 from sage.structure.element_wrapper import ElementWrapper
 
+
 class GroupExp(Functor):
     r"""
-    A functor that wraps a commutative additive group to become a multiplicative group.
+    A functor that wraps a commutative additive group to become a
+    multiplicative group.
 
     EXAMPLES::
 
@@ -33,7 +35,7 @@ class GroupExp(Functor):
         sage: W = L.weyl_group(prefix="s")
         sage: s2 = W.simple_reflection(2)
         sage: def my_action(mu):
-        ...       return s2.action(mu)
+        ....:     return s2.action(mu)
         sage: from sage.categories.morphism import SetMorphism
         sage: from sage.categories.homset import Hom
         sage: f = SetMorphism(Hom(L,L,CommutativeAdditiveGroups()), my_action)
@@ -47,13 +49,13 @@ class GroupExp(Functor):
         Multiplicative form of Ambient space of the Root system of type ['A', 2]
 
     """
-
     def __init__(self):
         Functor.__init__(self, CommutativeAdditiveGroups(), Groups())
 
     def _apply_functor(self, x):
         r"""
-        Given a commutative additive group `x`, returns the isomorphic multiplicative group.
+        Given a commutative additive group `x`, returns the isomorphic
+        multiplicative group.
 
         EXAMPLES::
 
@@ -68,8 +70,7 @@ class GroupExp(Functor):
             True
             sage: EQ2.one()
             (0, 0)
-
-    """
+        """
         return GroupExp_Class(x)
 
     def _apply_functor_to_morphism(self, f):
@@ -80,7 +81,7 @@ class GroupExp(Functor):
         EXAMPLES::
 
             sage: def double(x):
-            ...       return x + x
+            ....:     return x + x
             sage: from sage.categories.morphism import SetMorphism
             sage: from sage.categories.homset import Hom
             sage: f = SetMorphism(Hom(ZZ,ZZ,CommutativeAdditiveGroups()),double)
@@ -93,12 +94,12 @@ class GroupExp(Functor):
             True
             sage: F(EZ(3)) == EZ(3)*EZ(3)
             True
-
         """
         new_domain = self._apply_functor(f.domain())
         new_codomain = self._apply_functor(f.codomain())
         new_f = lambda a: new_codomain(f(a.value))
         return SetMorphism(Hom(new_domain, new_codomain, Groups()), new_f)
+
 
 class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
     r"""
@@ -118,12 +119,10 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
         (1, -3)
         sage: x.parent()
         Multiplicative form of Vector space of dimension 2 over Rational Field
-
     """
-
     def __init__(self, parent, x):
         if x not in parent._G:
-            return ValueError, "%s is not an element of %s"%(x,parent._G)
+            return ValueError("%s is not an element of %s" % (x, parent._G))
         ElementWrapper.__init__(self, parent, x)
 
     def inverse(self):
@@ -135,7 +134,6 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
             sage: EZ = GroupExp()(ZZ)
             sage: EZ(-3)^(-1)
             3
-
         """
         return GroupExpElement(self.parent(), -self.value)
 
@@ -153,9 +151,9 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
             5
             sage: G.product(G(2),G(3))
             5
-
         """
         return GroupExpElement(self.parent(), self.value + x.value)
+
 
 class GroupExp_Class(UniqueRepresentation, Parent):
     r"""
@@ -163,14 +161,11 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     INPUT:
 
-        - `G`: a commutative additive group
-
+    - `G`: a commutative additive group
     """
-
-
     def __init__(self, G):
         if not G in CommutativeAdditiveGroups():
-            raise TypeError, "%s must be a commutative additive group"%G
+            raise TypeError("%s must be a commutative additive group" % G)
         self._G = G
         Parent.__init__(self, category=Groups())
 
@@ -182,20 +177,19 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
             sage: GroupExp()(ZZ) # indirect doctest
             Multiplicative form of Integer Ring
-
         """
-        return "Multiplicative form of %s"%self._G
+        return "Multiplicative form of %s" % self._G
 
     def _element_constructor_(self, x):
         r"""
-        Constructs the element of ``self`` that wraps the additive group element `x`.
+        Constructs the element of ``self`` that wraps the additive
+        group element `x`.
 
         EXAMPLES::
 
             sage: G = GroupExp()(ZZ)
             sage: G(4) # indirect doctest
             4
-
         """
         return GroupExpElement(self, x)
 
@@ -208,7 +202,6 @@ class GroupExp_Class(UniqueRepresentation, Parent):
             sage: G = GroupExp()(ZZ^2)
             sage: G.one()
             (0, 0)
-
         """
         return GroupExpElement(self, self._G.zero())
 
@@ -224,7 +217,6 @@ class GroupExp_Class(UniqueRepresentation, Parent):
             2*Lambda[1] + 2*Lambda[2]
             sage: x.parent()
             Multiplicative form of Weight lattice of the Root system of type ['A', 2]
-
         """
         return GroupExpElement(self, self._G.an_element())
 
@@ -240,8 +232,8 @@ class GroupExp_Class(UniqueRepresentation, Parent):
             sage: x = G(2)
             sage: x.__mul__(G(7))
             9
-
         """
-        return GroupExpElement(self, x.value+y.value)
+        return GroupExpElement(self, x.value + y.value)
+
 
 GroupExp_Class.Element = GroupExpElement

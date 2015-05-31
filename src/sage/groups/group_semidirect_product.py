@@ -58,7 +58,7 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             sage: W = L.weyl_group(prefix="s"); W
             Weyl Group of type ['A', 2] (as a matrix group acting on the root lattice)
             sage: def twist(w,v):
-            ...       return EL(w.action(v.value))
+            ....:     return EL(w.action(v.value))
             sage: G = GroupSemidirectProduct(W, EL, twist, prefix1='t'); G
             Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the root lattice) acting on Multiplicative form of Root lattice of the Root system of type ['A', 2]
             sage: mu = L.an_element(); mu
@@ -111,7 +111,7 @@ class GroupSemidirectProduct(CartesianProduct):
         sage: V = QQ^2
         sage: EV = GroupExp()(V) # make a multiplicative version of V
         sage: def twist(g,v):
-        ...       return EV(g*v.value)
+        ....:     return EV(g*v.value)
         sage: H = GroupSemidirectProduct(G, EV, twist=twist, prefix1 = 't'); H
         Semidirect product of General Linear Group of degree 2 over Rational Field acting on Multiplicative form of Vector space of dimension 2 over Rational Field
         sage: x = H.an_element(); x
@@ -121,7 +121,7 @@ class GroupSemidirectProduct(CartesianProduct):
         sage: cartan_type = CartanType(['A',2])
         sage: W = WeylGroup(cartan_type, prefix="s")
         sage: def twist(w,v):
-        ...       return w*v*(~w)
+        ....:     return w*v*(~w)
         sage: WW = GroupSemidirectProduct(W,W, twist=twist, print_tuple=True)
         sage: s = Family(cartan_type.index_set(), lambda i: W.simple_reflection(i))
         sage: y = WW((s[1],s[2])); y
@@ -131,9 +131,10 @@ class GroupSemidirectProduct(CartesianProduct):
         sage: y.inverse()
         (s1, s1*s2*s1)
 
-    TODO: Functorial constructor for semidirect products for various categories
-    Twofold Direct product as a special case of semidirect product
+    .. TODO::
 
+        - Functorial constructor for semidirect products for various categories
+        - Twofold Direct product as a special case of semidirect product
     """
 
     def __init__(self, G, H, twist=None, act_to_right=True, prefix0=None, prefix1=None, print_tuple=False,category=Groups()):

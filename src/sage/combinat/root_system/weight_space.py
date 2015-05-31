@@ -436,19 +436,18 @@ class WeightSpace(CombinatorialFreeModule):
             From: Weight lattice of the Root system of type ['A', 2]
             To:   Ambient space of the Root system of type ['A', 2]
 
-        ..warning::
+        .. warning::
 
             Implemented only for finite Cartan type.
-
         """
-
         if self.root_system.dual_side:
-            raise TypeError, "No implemented map from the coweight space to the ambient space"
+            raise TypeError("No implemented map from the coweight space to the ambient space")
         L = self.cartan_type().root_system().ambient_space()
         basis = L.fundamental_weights()
         def basis_value(basis, i):
             return basis[i]
-        return self.module_morphism(on_basis = functools.partial(basis_value, basis) , codomain=L)
+        return self.module_morphism(on_basis = functools.partial(basis_value, basis), codomain=L)
+
 
 class WeightSpaceElement(CombinatorialFreeModuleElement):
 

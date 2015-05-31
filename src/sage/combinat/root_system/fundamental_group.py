@@ -190,7 +190,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
         if cartan_type.is_untwisted_affine() and cartan_type.type() == "A":
             return FundamentalGroupGL(cartan_type, prefix)
         else:
-            raise ValueError, "General Linear Fundamental group is untwisted type A"
+            raise ValueError("General Linear Fundamental group is untwisted type A")
     return FundamentalGroupOfExtendedAffineWeylGroup_Class(cartan_type,prefix)
 
 class FundamentalGroupElement(MultiplicativeGroupElement):
@@ -199,7 +199,7 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
         This should not be called directly
         """
         if x not in parent.special_nodes():
-            raise ValueError, "%s is not a special node"%x
+            raise ValueError("%s is not a special node" % x)
         self._value = x
         MultiplicativeGroupElement.__init__(self, parent)
 

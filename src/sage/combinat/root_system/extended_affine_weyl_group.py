@@ -418,11 +418,11 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     """
     cartan_type = CartanType(cartan_type)
     if cartan_type.is_reducible():
-        raise ValueError, "Extended affine Weyl groups are only implemented for irreducible affine Cartan types"
+        raise ValueError("Extended affine Weyl groups are only implemented for irreducible affine Cartan types")
     if cartan_type.is_finite(): # a finite Cartan type is an abbreviation for its untwisted affinization
         cartan_type = cartan_type.affine()
     elif not cartan_type.is_affine():
-        raise ValueError, "Cartan type must be finite or affine"
+        raise ValueError("Cartan type must be finite or affine")
 
     return ExtendedAffineWeylGroup_Class(cartan_type, general_linear, **print_options)
 
@@ -433,7 +433,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
     def __init__(self, cartan_type, general_linear, **print_options):
         if not cartan_type.is_affine():
-            raise ValueError, "%s is not affine"%cartan_type
+            raise ValueError("%s is not affine" % cartan_type)
 
         self._cartan_type = cartan_type
 
@@ -460,7 +460,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             elif option == 'classical':
                 self._prefixcl = print_options['classical']
             else:
-                raise ValueError, "Print option %s is unrecognized"%option
+                raise ValueError("Print option %s is unrecognized" % option)
 
         if self._prefixaf:
             if not self._prefixcl:

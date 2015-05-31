@@ -96,7 +96,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. [Bour] Bourbaki, *Lie Groups and Lie Algebras* IV.2
 
-    .. [Kac] Kac, *Infinite-dimensional Lie algebras*.
+    .. [Kac]_
 
     .. RUBRIC: Notation
 

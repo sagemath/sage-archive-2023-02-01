@@ -3500,7 +3500,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Finally checking the cycles are a free set::
 
-            sage: basis_as_vectors = map( cycle_to_vector, basis )
+            sage: basis_as_vectors = [cycle_to_vector(_) for _ in basis]
             sage: edge_space.span(basis_as_vectors).rank() == len(basis)
             True
 
@@ -16877,7 +16877,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: H = graphs.HoffmanSingletonGraph()
             sage: evals = H.spectrum()
-            sage: lap = map(lambda x : 7 - x, evals)
+            sage: lap = [7-x for x in evals]
             sage: lap.sort(reverse=True)
             sage: lap == H.spectrum(laplacian=True)
             True

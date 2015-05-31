@@ -50,7 +50,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON)
+SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(IPYTHON)
 
 ###############################################################################
 # Building the base system

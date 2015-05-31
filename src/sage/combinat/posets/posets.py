@@ -2936,7 +2936,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
-            sage: map(Q.upper_covers,Q.list())
+            sage: [Q.upper_covers(_) for _ in Q.list()]
             [[2], [2], [3], [4], []]
         """
         return [x for x in self.upper_covers_iterator(y)]
@@ -2963,7 +2963,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
-            sage: map(Q.lower_covers,Q.list())
+            sage: [Q.lower_covers(_) for _ in Q.list()]
             [[], [], [1, 0], [2], [3]]
         """
         return [x for x in self.lower_covers_iterator(y)]
@@ -4028,7 +4028,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         We check that we can pass in a list of elements of ``P`` instead::
 
-            sage: Q = P.with_linear_extension(map(P, [1,3,2,6,4,12]))
+            sage: Q = P.with_linear_extension([P(_) for _ in [1,3,2,6,4,12]])
             sage: list(Q)
             [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
@@ -4254,16 +4254,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             count = seedlist[0][1] * 2
             seedlist.insert(0, (current_randstate().long_seed(), count))
         if direction == 'up':
-            return map(self._vertex_to_element,
-                       [i for i, x in enumerate(state) if x == 1])
+            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 1]
         if direction == 'antichain':
-            return map(self._vertex_to_element,
-                       [i for i, x in enumerate(state)
-                        if x == 0 and all(state[j] == 1
-                                          for j in hd.upper_covers_iterator(i))])
+            return [self._vertex_to_element(i) for i,x in enumerate(state)
+                        if x == 0 and all(state[j] == 1 for j in hd.upper_covers_iterator(i))]
         else:  # direction is assumed to be 'down'
-            return map(self._vertex_to_element, [i for i, x in enumerate(state)
-                                                 if x == 0])
+            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
     def order_filter(self,elements):
         """

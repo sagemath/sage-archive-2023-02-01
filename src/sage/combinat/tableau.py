@@ -323,7 +323,7 @@ class Tableau(ClonableList):
             return
 
         # Normalize t to be a list of tuples.
-        t = map(tuple, t)
+        t = [tuple(_) for _ in t]
 
         ClonableList.__init__(self, parent, t)
         # This dispatches the input verification to the :meth:`check`
@@ -407,7 +407,7 @@ class Tableau(ClonableList):
         """
         # Check that it has partition shape. That's all we require from a
         # general tableau.
-        lens = map(len, self)
+        lens = [len(_) for _ in self]
         for (a, b) in itertools.izip(lens, lens[1:]):
             if a < b:
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
@@ -444,7 +444,7 @@ class Tableau(ClonableList):
             sage: T._repr_list()
             '[[1, 2, 3], [4, 5]]'
         """
-        return repr(map(list, self))
+        return repr([list(_) for _ in self])
 
     # See #18024. CombinatorialObject provided __str__, though ClonableList
     # doesn't. Emulate the old functionality. Possibly remove when
@@ -648,7 +648,7 @@ class Tableau(ClonableList):
             return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
-        str_tab = map(lambda row: map(str, row), self)
+        str_tab = [[str(_) for _ in row] for row in self]
         col_widths = [1]*len(str_tab[0])
         for row in str_tab:
             for i,e in enumerate(row):
@@ -728,7 +728,7 @@ class Tableau(ClonableList):
             T = reversed(self)
 
         # Get the widths of the columns
-        str_tab = map(lambda row: map(str, row), T)
+        str_tab = [[str(_) for _ in row] for row in T]
         col_widths = [1]*len(self[0])
         for row in str_tab:
             for i,e in enumerate(row):

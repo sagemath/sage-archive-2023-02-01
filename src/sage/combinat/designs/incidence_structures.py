@@ -857,7 +857,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        return map(len, self._blocks)
+        return [len(_) for _ in self._blocks]
 
     def degree(self, p=None, subset=False):
         r"""
@@ -1813,8 +1813,8 @@ class IncidenceStructure(object):
         """
         from sage.graphs.graph import Graph
         blocks = self.blocks()
-        blocks_sets = map(frozenset,blocks)
-        g = Graph([range(self.num_blocks()),lambda x,y : len(blocks_sets[x]&blocks_sets[y])],loops = False)
+        blocks_sets = [frozenset(_) for _ in blocks]
+        g = Graph([range(self.num_blocks()), lambda x,y: len(blocks_sets[x]&blocks_sets[y])], loops = False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 
     def _spring_layout(self):
@@ -1928,7 +1928,7 @@ class IncidenceStructure(object):
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
             cx, cy = pos[Set(s)]
-            s = map(lambda x: pos[x], s)
+            s = [pos[_] for _ in s]
             s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:

@@ -1939,6 +1939,8 @@ def Sierpinski3Graph(n, prefix=None):
 
     All vertices but 3 have valence 3.
 
+    This is the same as HanoiTowerGraph(3,n).
+
     INPUT:
 
     - `n` -- an integer

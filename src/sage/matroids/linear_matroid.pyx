@@ -3559,18 +3559,23 @@ cdef class BinaryMatroid(LinearMatroid):
         Decide if ``self`` is a binary matroid.
 
         INPUT:
-            - ``randomized_tests`` -- (default = 1).
+
+        - ``randomized_tests`` -- (default = 1). Ignored.
 
         OUTPUT:
-            A Boolean.
-    
+
+        A Boolean.
+
         ALGORITHM:
-            ``self`` is a BinaryMatroid, so just return ``True``.
-    
-        ..SEEALSO:
+
+        ``self`` is a BinaryMatroid, so just return ``True``.
+
+        .. SEEALSO:
+
             :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
-    
+
         EXAMPLES::
+
             sage: N = matroids.named_matroids.Fano()
             sage: N.is_binary()
             True
@@ -5830,18 +5835,23 @@ cdef class RegularMatroid(LinearMatroid):
         Decide if ``self`` is a binary matroid.
 
         INPUT:
-            - ``randomized_tests`` -- (default = 1).
+
+        - ``randomized_tests`` -- (default = 1). Ignored.
 
         OUTPUT:
-            A Boolean.
-    
+
+        A Boolean.
+
         ALGORITHM:
-            ``self`` is a RegularMatroid, so just return ``True``.
-    
-        ..SEEALSO:
+
+        ``self`` is a RegularMatroid, so just return ``True``.
+
+        .. SEEALSO::
+        
             :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
-    
+
         EXAMPLES::
+
             sage: N = matroids.named_matroids.R10()
             sage: N.is_binary()
             True

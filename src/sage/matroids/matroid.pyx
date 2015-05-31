@@ -4613,15 +4613,18 @@ cdef class Matroid(SageObject):
         r"""
         Return a binary matroid M so that relative to a fixed basis `B`,
         `X` is a basis of self if and only if `X` is a basis of `M` 
-        for all subsets `X` of the ground set such that `|X\B|<=1`.
+        for all subsets `X` of the ground set such that `|X\B|\leq 1`.
 
         INPUT:
-            - ``basis`` -- (optional), a set 
+
+        - ``basis`` -- (optional), a set. The basis `B` as above. 
 
         OUTPUT:
-            A BinaryMatroid
+
+        A BinaryMatroid.
 
         EXAMPLES::
+
             sage: N = matroids.named_matroids.Fano()
             sage: M = N._local_binary_matroid()
             sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
@@ -4652,20 +4655,26 @@ cdef class Matroid(SageObject):
         Decide if ``self`` is a binary matroid.
 
         INPUT:
-            - ``randomized_tests`` -- (default = 1), an integer.
+
+        - ``randomized_tests`` -- (default = 1), an integer. The number of times a certain
+        necessary condition for being binary is tested, using randomization.
 
         OUTPUT:
-            A Boolean.
-        
+
+        - A Boolean.
+
         ALGORITHM:
+        
             First, compare the binary matroids local to two random bases. If these matroids are not 
-            isomorphic, return False. This test is performed ``randomized_tests`` times.
+            isomorphic, return ``False``. This test is performed ``randomized_tests`` times.
             Next, test if a binary matroid local to some basis is isomorphic to ``self``.
-        
-        ..SEEALSO:
+
+        .. SEEALSO::
+
             :meth:`M._local_binary_matroid() <sage.matroids.matroid.Matroid._local_binary_matroid>`
-        
+
         EXAMPLES::
+
             sage: N = matroids.named_matroids.Fano()
             sage: N.is_binary()
             True

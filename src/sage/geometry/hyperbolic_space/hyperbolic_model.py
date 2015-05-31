@@ -65,10 +65,6 @@ and isometries in hyperbolic space::
     False
     sage: U.boundary_point_in_model(2)
     True
-
-.. TODO::
-
-    Implement a category for metric spaces.
 """
 
 #***********************************************************************

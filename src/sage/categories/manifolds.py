@@ -22,9 +22,9 @@ class Manifolds(Category_singleton):
     r"""
     The category of manifolds over any field.
 
-    Let `k` be a field. A `k`-*manifold* `M`  of dimension `d` is a
-    second countable Hausdorff space such that the neighborhood of
-    any point `x \in M` is homeomorphic to `k^b` for some `b \leq d`.
+    Let `k` be a topological field. A `d`-dimensional `k`-*manifold* `M`
+    is a second countable Hausdorff space such that the neighborhood of
+    any point `x \in M` is homeomorphic to `k^d`.
 
     EXAMPLES::
 
@@ -71,6 +71,13 @@ class Manifolds(Category_singleton):
         def dimension(self):
             """
             Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: M = Manifolds().example()
+                sage: M.dimension()
+                3
             """
 
     class SubcategoryMethods:

@@ -8,7 +8,7 @@ Graphs
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-#from sage.misc.abstract_method import abstract_method
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.simplicial_complexes import SimplicialComplexes
@@ -39,9 +39,42 @@ class Graphs(Category_singleton):
         return [SimplicialComplexes()]
 
     class ParentMethods:
+        @abstract_method
+        def vertices(self):
+            """
+            Return the vertices of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.graphs import Graphs
+                sage: C = Graphs().example()
+                sage: C.vertices()
+                [0, 1, 2, 3, 4]
+            """
+
+        @abstract_method
+        def edges(self):
+            """
+            Return the edges of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.graphs import Graphs
+                sage: C = Graphs().example()
+                sage: C.edges()
+                [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
+            """
+
         def dimension(self):
             """
             Return the dimension of ``self`` as a CW complex.
+
+            EXAMPLES::
+
+                sage: from sage.categories.graphs import Graphs
+                sage: C = Graphs().example()
+                sage: C.dimension()
+                1
             """
             if self.edges():
                 return 1
@@ -50,12 +83,26 @@ class Graphs(Category_singleton):
         def facets(self):
             """
             Return the facets of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.graphs import Graphs
+                sage: C = Graphs().example()
+                sage: C.facets()
+                [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
             """
             return self.edges()
 
         def faces(self):
             """
             Return the faces of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.graphs import Graphs
+                sage: C = Graphs().example()
+                sage: sorted(C.faces(), key=lambda x: (x.dimension(), x.value))
+                [0, 1, 2, 3, 4, (0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
             """
             return set(self.edges()).union(self.vertices())
 

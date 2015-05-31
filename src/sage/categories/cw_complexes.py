@@ -50,7 +50,7 @@ class CWComplexes(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.cw_complexes import CWComplexes
-            sage: CWComplexes()
+            sage: CWComplexes() # indirect doctest
             Category of CW complexes
         """
         return "CW complexes"
@@ -110,12 +110,22 @@ class CWComplexes(Category_singleton):
     class Finite(CategoryWithAxiom):
         """
         Category of finite CW complexes.
+
+        A finite CW complex is a CW complex with a finite number of cells.
         """
         def extra_super_categories(self):
             """
             Return the extra super categories of ``self``.
 
             A finite CW complex is a compact finite-dimensional CW complex.
+
+            EXAMPLES::
+
+                sage: from sage.categories.cw_complexes import CWComplexes
+                sage: C = CWComplexes().Finite()
+                sage: C.extra_super_categories()
+                [Category of finite dimensional CW complexes,
+                 Category of compact topological spaces]
             """
             return [CWComplexes().FiniteDimensional(), Sets().Topological().Compact()]
 
@@ -124,8 +134,16 @@ class CWComplexes(Category_singleton):
             def dimension(self):
                 """
                 Return the dimension of ``self``.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.cw_complexes import CWComplexes
+                    sage: X = CWComplexes().example()
+                    sage: X.dimension()
+                    2
                 """
-                return max(c.dimension() for c in self.cells())
+                C = self.cells()
+                return max(c.dimension() for d in C.keys() for c in C[d])
 
     def Compact_extra_super_categories(self):
         """
@@ -140,23 +158,54 @@ class CWComplexes(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.cw_complexes import CWComplexes
-            sage: CWComplexes().Compact()
+            sage: CWComplexes().Compact() # indirect doctest
             Category of finite finite dimensional CW complexes
             sage: CWComplexes().Compact() is CWComplexes().Finite()
             True
         """
         return (Sets().Finite(),)
 
+    class ElementMethods:
+        @abstract_method
+        def dimension(self):
+            """
+            Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.cw_complexes import CWComplexes
+                sage: X = CWComplexes().example()
+                sage: X.an_element().dimension()
+                2
+            """
+
     class ParentMethods:
         @abstract_method
         def dimension(self):
             """
             Return the dimension of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.cw_complexes import CWComplexes
+                sage: X = CWComplexes().example()
+                sage: X.dimension()
+                2
             """
 
         @abstract_method(optional=True)
         def cells(self):
             """
             Return the cells of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.cw_complexes import CWComplexes
+                sage: X = CWComplexes().example()
+                sage: C = X.cells()
+                sage: sorted((d, C[d]) for d in C.keys())
+                [(0, (0-cell v,)),
+                 (1, (0-cell e1, 0-cell e2)),
+                 (2, (2-cell f,))]
             """
 

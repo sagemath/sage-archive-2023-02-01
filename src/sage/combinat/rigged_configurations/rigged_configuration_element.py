@@ -448,7 +448,7 @@ class RiggedConfigurationElement(ClonableArray):
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         s = repr(self[0]).splitlines()
         ret = AsciiArt(s, baseline=baseline(s))
         for tableau in self[1:]:

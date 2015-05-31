@@ -500,7 +500,7 @@ class SkewPartition(CombinatorialElement):
             [ ###, ##,  ##,  #,   #, #,  #,  #,   # ]
             sage: SkewPartitions.global_options.reset()
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self.diagram().splitlines())
 
     def inner(self):

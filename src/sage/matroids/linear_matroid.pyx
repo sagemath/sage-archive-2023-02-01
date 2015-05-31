@@ -3552,6 +3552,31 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         return True
 
+    # representability
+    
+    cpdef is_binary(self, randomized_tests = 1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+            - ``randomized_tests`` -- (default = 1).
+
+        OUTPUT:
+            A Boolean.
+    
+        ALGORITHM:
+            ``self`` is a BinaryMatroid, so just return ``True``.
+    
+        ..SEEALSO:
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+    
+        EXAMPLES::
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_binary()
+            True
+        """
+        return True
+    
     def __copy__(self):
         """
         Create a shallow copy.
@@ -5798,6 +5823,31 @@ cdef class RegularMatroid(LinearMatroid):
         CR = M.cross_ratios()
         return CR.issubset(set([1]))
 
+    # representation
+    
+    cpdef is_binary(self, randomized_tests = 1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+            - ``randomized_tests`` -- (default = 1).
+
+        OUTPUT:
+            A Boolean.
+    
+        ALGORITHM:
+            ``self`` is a RegularMatroid, so just return ``True``.
+    
+        ..SEEALSO:
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+    
+        EXAMPLES::
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_binary()
+            True
+        """
+        return True
+    
     # Copying, loading, saving
 
     def __copy__(self):

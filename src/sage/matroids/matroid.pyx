@@ -4611,14 +4611,14 @@ cdef class Matroid(SageObject):
 
     cpdef _local_binary_matroid(self, basis = None):
         r"""
-        Return a binary matroid M so that relative to a fixed basis B,
-        X is a basis of self if and only if X is a basis of M 
-        for all subsets X of the ground set such that |X\B|<=1.
+        Return a binary matroid M so that relative to a fixed basis `B`,
+        `X` is a basis of self if and only if `X` is a basis of `M` 
+        for all subsets `X` of the ground set such that `|X\B|<=1`.
 
-        INPUT::
-            - ``basis``, a set (optional)
+        INPUT:
+            - ``basis`` -- (optional), a set 
 
-        OUTPUT::
+        OUTPUT:
             A BinaryMatroid
 
         EXAMPLES::
@@ -4649,14 +4649,22 @@ cdef class Matroid(SageObject):
 
     cpdef is_binary(self, randomized_tests = 1):
         r"""
-        Test if self is a binary matroid.
+        Decide if ``self`` is a binary matroid.
 
-        INPUT::
-            - ``randomized_tests``, number of randomized tests executed before rigorous test (default = 1).
+        INPUT:
+            - ``randomized_tests`` -- (default = 1), an integer.
 
-        OUTPUT::
+        OUTPUT:
             A Boolean.
-
+        
+        ALGORITHM:
+            First, compare the binary matroids local to two random bases. If these matroids are not 
+            isomorphic, return False. This test is performed ``randomized_tests`` times.
+            Next, test if a binary matroid local to some basis is isomorphic to ``self``.
+        
+        ..SEEALSO:
+            :meth:`M._local_binary_matroid() <sage.matroids.matroid.Matroid._local_binary_matroid>`
+        
         EXAMPLES::
             sage: N = matroids.named_matroids.Fano()
             sage: N.is_binary()
@@ -4665,8 +4673,6 @@ cdef class Matroid(SageObject):
             sage: N.is_binary()
             False
         """
-        if type(self) == BinaryMatroid:
-            return True
         M = self._local_binary_matroid()
         m = {e:e for e in self.groundset()} 
         if randomized_tests > 0: 
@@ -4675,7 +4681,7 @@ cdef class Matroid(SageObject):
                 shuffle(E)
                 B = self.max_weight_independent(E) 
                 N = self._local_binary_matroid(B)
-                if not M.is_field_isomorphism(N, m): # if self is binary, then M and N are isomorphic to self
+                if not M.is_field_isomorphism(N, m): 
                     return False
                 M = N
         return self.is_isomorphism(M, m)

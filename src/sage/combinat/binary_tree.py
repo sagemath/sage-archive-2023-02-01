@@ -1507,20 +1507,18 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [      / \  ]
             [     o   o ]
             sage: ascii_art(list(b.in_order_traversal_iter()))
-            [                                       ]
-            [ , o, ,   _o_        o      o      o   ]
+            [ , o, ,   _o_    , , o, ,   o  , , o,  ]
             [         /   \             / \         ]
             [        o     o           o   o        ]
             [             / \                       ]
-            [            o   o, ,  , ,      , ,  ,  ]
+            [            o   o                      ]
             sage: ascii_art(filter(lambda node: node.label() is not None,
             ....:     b.canonical_labelling().in_order_traversal_iter()))
-            [                           ]
-            [ 1,   _2_      3    4    5 ]
+            [ 1,   _2_    , 3,   4  , 5 ]
             [     /   \         / \     ]
             [    1     4       3   5    ]
             [         / \               ]
-            [        3   5,  ,      ,   ]
+            [        3   5              ]
 
             sage: list(BinaryTree(None).in_order_traversal_iter())
             [.]
@@ -2413,11 +2411,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b1 = BinaryTree([[],[[],[]]])
             sage: b2 = BinaryTree([[None, []],[]])
             sage: ascii_art((b1, b2, b1/b2))
-            (   _o_        _o_      _o_           )
+            (   _o_    ,   _o_  ,   _o_           )
             (  /   \      /   \    /   \          )
             ( o     o    o     o  o     o_        )
             (      / \    \            /  \       )
-            (     o   o,   o    ,     o    o      )
+            (     o   o    o          o    o      )
             (                               \     )
             (                               _o_   )
             (                              /   \  )
@@ -2509,9 +2507,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b1 = BinaryTree([[],[]])
             sage: b2 = BinaryTree([None,[]])
             sage: ascii_art((b1, b2, b1 \ b2))
-            (   o    o        _o_   )
+            (   o  , o  ,     _o_   )
             (  / \    \      /   \  )
-            ( o   o,   o,   o     o )
+            ( o   o    o    o     o )
             (              / \      )
             (             o   o     )
 
@@ -2771,11 +2769,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BinaryTree([[[[],[]],[[],[]]], []]).is_full()
             True
             sage: ascii_art(filter(lambda bt: bt.is_full(), BinaryTrees(5)))
-            [   _o_          _o_   ]
+            [   _o_    ,     _o_   ]
             [  /   \        /   \  ]
             [ o     o      o     o ]
             [      / \    / \      ]
-            [     o   o, o   o     ]
+            [     o   o  o   o     ]
         """
         if self.is_empty():
             return True

@@ -154,9 +154,8 @@ class SetShuffleProduct(SageObject):
             sage: ascii_art(SetShuffleProduct([[BinaryTree()], [BinaryTree([]), BinaryTree([[],[]])]],
             ....: [[1,4]]))
             Set shuffle product of:
-            [       [          ] ]
             [       [ o,   o   ] ]
-            [       [     / \  ] ]     [ [      ] ]
+            [       [     / \  ] ]
             [ [  ], [    o   o ] ] and [ [ 1, 4 ] ]
 
         """
@@ -292,14 +291,13 @@ class ShuffleProduct(SageObject):
             sage: from sage.combinat.shuffle import ShuffleProduct
             sage: ascii_art(ShuffleProduct([1,2,3],[4,5]))
             Shuffle product of:
-            [         ]     [      ]
             [ 1, 2, 3 ] and [ 4, 5 ]
             sage: B = BinaryTree
             sage: ascii_art(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])]))
             Shuffle product of:
                              [     __o__   ]
-            [          ]     [    /     \  ]
+                             [    /     \  ]
             [ o,   o   ]     [   o       o ]
             [     / \  ]     [  / \     /  ]
             [    o   o ] and [ o   o   o   ]
@@ -324,20 +322,17 @@ class ShuffleProduct(SageObject):
             sage: B = BinaryTree
             sage: ascii_art(list(ShuffleProduct([B([]), B([[],[]])],
             ....:   [B([[[],[]],[[],None]])])))
-            [ [                       ]                             [
-            [ [ o,   o        __o__   ]  [     __o__    o    o   ]  [ o,     __o__      o
-            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \    / \
-            [ [    o   o,   o       o ]  [   o       o     o   o ]  [      o       o  o   o
+            [ [ o,   o  ,     __o__   ]  [     __o__  , o,   o   ]  [ o,     __o__  , 
+            [ [     / \      /     \  ]  [    /     \       / \  ]  [       /     \   
+            [ [    o   o    o       o ]  [   o       o     o   o ]  [      o       o 
             [ [            / \     /  ]  [  / \     /            ]  [     / \     /
-            [ [           o   o   o   ], [ o   o   o  ,  ,       ], [    o   o   o  ,
+            [ [           o   o   o   ], [ o   o   o             ], [    o   o   o   
             <BLANKLINE>
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-             ] ]
-
+               o   ] ]
+              / \  ] ]
+             o   o ] ]
+                   ] ]
+                   ] ]
         """
 
         ############ Gray code #############

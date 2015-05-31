@@ -2739,9 +2739,9 @@ def bell_polynomial(n, k):
         for part, count in p.to_exp_dict().iteritems():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
-        coefficient = factorial(n) / (factorial_product * power_factorial_product)
+        coefficient = factorial(n) // (factorial_product * power_factorial_product)
         result += coefficient * prod([vars[i - 1] for i in p])
-    return R(result)
+    return result
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

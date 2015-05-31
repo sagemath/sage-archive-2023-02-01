@@ -324,12 +324,11 @@ class GroupDivisibleDesign(IncidenceStructure):
             sage: GDD = GroupDivisibleDesign(40,groups,TD); GDD
             Group Divisible Design on 40 points of type 10^4
         """
-        from string import join
         group_sizes = map(len, self._groups)
 
         gdd_type = ["{}^{}".format(s,group_sizes.count(s))
                     for s in sorted(set(group_sizes))]
-        gdd_type = join(gdd_type,".")
+        gdd_type = ".".join(gdd_type)
 
         if not gdd_type:
             gdd_type = "1^0"

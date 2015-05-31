@@ -165,8 +165,37 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations
+
+    def _div_(self, other):
+        r"""
+        Divide this growth element by another one.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`GenericGrowthElement`.
+
+        OUTPUT:
+
+        An instance of :class:`GenericGrowthElement`.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus, it can be
+            assumed that this element, as well as ``other`` are of the same
+            type. The output will have this type.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: e1 = P(raw_element=2)
+            sage: e2 = e1._div_(P.gen()); e2
+            x
+            sage: e2 == e1 / P.gen()
+            True
         """
-        raise NotImplementedError('Only implemented in concrete realizations')
+        return self._mul_(~other)
+
 
 
     def __eq__(self, other):
@@ -864,32 +893,6 @@ class MonomialGrowthElement(GenericGrowthElement):
         return cls(self.parent(), -self.exponent)
 
 
-    def _div_(self, other):
-        r"""
-        Divide two asymptotic power growth elements from the same
-        parent by subtracting their exponents.
-
-        INPUT:
-
-        - ``other`` -- the asymptotic growth element which ``self``
-          is divided by.
-
-        OUTPUT:
-
-        The result of the division of ``self`` by ``other``.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: e1 = P(raw_element=2)
-            sage: e1._div_(P.gen())
-            x
-            sage: e1._div_(P.gen()) == e1 / P.gen()
-            True
-        """
-        cls = self.__class__
-        return cls(self.parent(), self.exponent - other.exponent)
 
 
     def __pow__(self, power):

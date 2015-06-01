@@ -1822,7 +1822,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Check that :trac:`18457` is fixed::
 
-            sage: R.<x> = GF(5)[]
+            sage: R.<x> = PolynomialRing(GF(5), sparse=True)
             sage: (1+x)^(5^10) # used to hang forever
             x^9765625 + 1
         """

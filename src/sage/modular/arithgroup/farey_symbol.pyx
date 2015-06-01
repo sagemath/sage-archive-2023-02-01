@@ -320,7 +320,7 @@ cdef class Farey:
             sage: F.word_problem(g, output = 'syllables')
             ((3, 1), (10, 2), (8, -1), (5, 1))
 
-        TESTS ::
+        TESTS::
 
         Check that problem with forgotten generator is fixed.
 

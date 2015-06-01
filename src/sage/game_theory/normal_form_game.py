@@ -1383,6 +1383,19 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: [[[round(float(p), 6) for p in str] for str in eq] for eq in enumeration_eqs] == [[[round(float(p), 6) for p in str] for str in eq] for eq in LCP_eqs]  # optional - gambit
             True
 
+        Also, not specifying a valid solver would lead to an error::
+
+            sage: A = matrix.identity(2)
+            sage: g = NormalFormGame([A])
+            sage: g.obtain_nash(algorithm="invalid")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'
+            sage: g.obtain_nash(algorithm="lp-invalid")
+            Traceback (most recent call last):
+            ...
+            ValueError: 'solver' should be set to 'GLPK', 'Coin', 'CPLEX', 'CVXOPT', 'Gurobi', 'PPL' or None (in which case the default one is used).
+
         """
         if len(self.players) > 2:
             raise NotImplementedError("Nash equilibrium for games with more "
@@ -1424,6 +1437,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
+
+        raise ValueError("""'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'""")
 
     def _solve_lrs(self, maximization=True):
         r"""

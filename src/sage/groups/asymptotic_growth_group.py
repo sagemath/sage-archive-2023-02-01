@@ -889,8 +889,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: a * b * a  # indirect doctest
             x^7
         """
-        cls = self.__class__
-        return cls(self.parent(), self.exponent + other.exponent)
+        return self.parent()(raw_element=self.exponent + other.exponent)
 
 
     def __invert__(self):
@@ -915,8 +914,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        cls = self.__class__
-        return cls(self.parent(), -self.exponent)
+        return self.parent()(raw_element=-self.exponent)
 
 
     def __pow__(self, power):
@@ -949,8 +947,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         new_exponent = self.exponent * power
         try:
-            cls = self.__class__
-            return cls(self.parent(), new_exponent)
+            return self.parent()(raw_element=new_exponent)
         except (ValueError, TypeError):
             pass
 

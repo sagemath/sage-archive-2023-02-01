@@ -803,7 +803,7 @@ def _semistable_reducible_primes(E):
 
         # Next, we turn K into relative number field over F.
 
-        K = K.relativize(F.embeddings(K)[0], K.variable_name()*2)
+        K = K.relativize(F.embeddings(K)[0], K.variable_name()+'0')
         E = E.change_ring(K.structure()[1])
 
         ## We try to find a nontrivial divisibility condition. ##

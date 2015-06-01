@@ -418,7 +418,7 @@ def HughesPlane(n2, check=True):
     plane of order `n2`.
     For each `a \in N \backslash GF(n)`  or `a = 1`, we find the line L(a) which is the
     set of points satisfying `x + a \circ y + z = 0`. Then we construct a set 
-    of lines for each a : {`{A^k * L(a) | 0 \subseteq k \subseteq n^2 + n}`} 
+    of lines for each a : {`{A^k * L(a) | 0 \leq k \leq n^2 + n}`} 
 
     REFERENCES:
 

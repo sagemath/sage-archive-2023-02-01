@@ -868,6 +868,10 @@ class NormalFormGame(SageObject, MutableMapping):
         r"""
         Creates a Gambit game from a ``NormalFormGame`` object
 
+        INPUT:
+        - ``as_integer`` - Boolean value which states whether the gambit representation should have
+                           the payoffs represented as integers or decimals.
+
         TESTS::
 
             sage: from gambit import Game
@@ -887,6 +891,24 @@ class NormalFormGame(SageObject, MutableMapping):
             { "" 1, -1 }
             { "" 1, -1 }
             { "" 2.5, -2.5 }
+            }
+            1 2 3 4
+            <BLANKLINE>
+
+            sage: gg = g._as_gambit_game(as_integer=True) # optional - gambit
+            sage: gg # optional - gambit
+            NFG 1 R "" { "1" "2" }
+            <BLANKLINE>
+            { { "1" "2" }
+            { "1" "2" }
+            }
+            ""
+            <BLANKLINE>
+            {
+            { "" 2, -2 }
+            { "" 1, -1 }
+            { "" 1, -1 }
+            { "" 2, -2 }
             }
             1 2 3 4
             <BLANKLINE>
@@ -913,6 +935,24 @@ class NormalFormGame(SageObject, MutableMapping):
             1 2 3 4
             <BLANKLINE>
 
+            sage: gg = g._as_gambit_game(as_integer = True) # optional - gambit
+            sage: gg # optional - gambit
+            NFG 1 R "" { "1" "2" }
+            <BLANKLINE>
+            { { "1" "2" }
+            { "1" "2" }
+            }
+            ""
+            <BLANKLINE>
+            {
+            { "" 2, 3 }
+            { "" 1, 5 }
+            { "" 1, 2 }
+            { "" 2, 4 }
+            }
+            1 2 3 4
+            <BLANKLINE>
+           
         """
         from decimal import Decimal
         strategy_sizes = [p.num_strategies for p in self.players]

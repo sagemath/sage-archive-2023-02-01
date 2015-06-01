@@ -1922,15 +1922,24 @@ class DirichletGroup_class(WithEqualityById, Parent):
             False
         """
         from sage.categories.groups import Groups
-        Parent.__init__(self, zeta.parent(), category=Groups().Commutative())
+        category = Groups().Commutative()
+        base_ring = zeta.parent()
+        if base_ring.is_integral_domain() or base_ring.is_finite():
+            # The group of n-th roots of unity in the base ring is
+            # finite, and hence this Dirichlet group is finite too.
+            # In particular, it is finitely generated; the added
+            # FinitelyGenerated() here means that the group has a
+            # distinguished set of generators.
+            category = category.Finite().FinitelyGenerated()
+        Parent.__init__(self, base_ring, category=category)
         self._zeta = zeta
         self._zeta_order = rings.Integer(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
-        a = zeta.parent()(1)
+        a = base_ring.one()
         v = {a:0}
         w = [a]
-        if is_ComplexField(zeta.parent()):
+        if is_ComplexField(base_ring):
             for i in range(1, self._zeta_order):
                 a = a * zeta
                 a._set_multiplicative_order(zeta_order/arith.GCD(zeta_order, i))
@@ -2359,7 +2368,7 @@ class DirichletGroup_class(WithEqualityById, Parent):
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
              Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -zeta4]
         """
-        return list(self)
+        return self._list_from_iterator_cached()
 
     def modulus(self):
         """

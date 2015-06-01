@@ -1825,6 +1825,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = PolynomialRing(GF(5), sparse=True)
             sage: (1+x)^(5^10) # used to hang forever
             x^9765625 + 1
+            sage: S.<t> = GF(3)[]
+            sage: R1.<x> = PolynomialRing(S, sparse=True)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+            sage: R2.<x> = PolynomialRing(S, sparse=False)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+
+        Check that the algorithm used is indeed correct::
+            sage: from sage.structure.element import generic_power
+            sage: R.<x> = PolynomialRing(GF(17), sparse=True)
+            sage: for d in [17, 264, 516]:
+            ....:     assert((1+x)^d == generic_power(1+x,d))
         """
         if type(right) is not Integer:
             try:
@@ -1849,19 +1862,54 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(v, check=False)
         if right > 20: # no gain below
             p = self.parent().characteristic()
-            if (p > 2 and p <= right or p == 2 and right > 40) and self.base_ring().is_field(): # characteristic 2 is special
-                q, r = right.quo_rem(p)
+            # characteristic 2 is special
+            if p > 2 and p <= right and (self.base_ring().is_field() or p.is_prime()):
                 x = self.parent().gen()
-                if self.parent().base_ring().is_finite():
-                    return self.subs({x:x**(q*p)}) * self**r
-                if self.parent().is_sparse():
-                    c = self.dict()
-                    for key in c.keys():
-                        c[key] = c[key]**(q*p)
+                one = self.parent().one()
+                ret = one
+                e = 1
+                q = right
+                sparse = self.parent().is_sparse()
+                finite = self.parent().base_ring().is_finite()
+                if finite:
+                    if sparse:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                d = self.dict()
+                                tmp = self.parent()({e*k:d[k] for k in d})
+                                ret *= generic_power(tmp, r, one=one)
+                            e *= p
+                    else:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                c = self.coefficients(sparse=False)
+                                tmp = [0] * (e*len(c))
+                                for i in range(len(c)):
+                                    tmp[e*i] = c[i]
+                                ret *= generic_power(self.parent()(tmp), r, one=one)
+                            e *= p
                 else:
-                    c = [cc**(q*p) for cc in self.coefficients()]
-                tmp = self.parent()(c, check=False)
-                return tmp.subs({x:x**(q*p)}) * self**r
+                    if sparse:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                d = self.dict()
+                                tmp = self.parent()({e*k : d[k]**e for k in d})
+                                ret *= generic_power(tmp, r, one=one)
+                            e *= p
+                    else:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                c = self.coefficients(sparse=False)
+                                tmp = [0] * (e*len(c)-e+1)
+                                for i in range(len(c)):
+                                    tmp[e*i] = c[i]**e
+                                ret *= generic_power(self.parent()(tmp), r, one=one)
+                            e *= p
+                return ret
 
         return generic_power(self,right)
 

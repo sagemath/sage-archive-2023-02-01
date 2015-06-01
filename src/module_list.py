@@ -13,7 +13,7 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
+if 'SAGE_BLAS' in os.environ:
     BLAS=os.environ['SAGE_BLAS']
     BLAS2=os.environ['SAGE_BLAS']
 elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
@@ -1417,6 +1417,15 @@ ext_modules = [
     Extension('sage.quadratic_forms.ternary',
               sources = ['sage/quadratic_forms/ternary.pyx']),
 
+    ###############################
+    ##
+    ## sage.quivers
+    ##
+    ###############################
+
+    Extension('sage.quivers.paths',
+              sources = ['sage/quivers/paths.pyx']),
+
     ################################
     ##
     ## sage.repl
@@ -1458,6 +1467,13 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
+
+    OptionalExtension("sage.rings.complex_ball_acb",
+                      ["sage/rings/complex_ball_acb.pyx"],
+                      libraries=['arb', 'mpfi', 'mpfr'],
+                      include_dirs=[SAGE_INC + '/flint'],
+                      depends=flint_depends,
+                      package='arb'),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],

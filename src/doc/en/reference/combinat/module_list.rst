@@ -61,6 +61,7 @@ Comprehensive Module list
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/infinity_crystals
+    sage/combinat/crystals/infinity_path_model
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
@@ -266,6 +267,7 @@ Comprehensive Module list
     sage/combinat/sf/sf
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
+    sage/combinat/shard_order
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type

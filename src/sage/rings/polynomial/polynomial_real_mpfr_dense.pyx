@@ -562,6 +562,8 @@ cdef class PolynomialRealDense(Polynomial):
     @coerce_binop
     def quo_rem(self, PolynomialRealDense other):
         """
+        Return the quotient with remainder of ``self`` by ``other``.
+
         EXAMPLES::
 
             sage: from sage.rings.polynomial.polynomial_real_mpfr_dense import PolynomialRealDense
@@ -585,9 +587,25 @@ cdef class PolynomialRealDense(Polynomial):
             sage: q, r = f.quo_rem(g)
             sage: g*q + r == f
             True
+
+        TESTS:
+
+        Check that :trac:`18467` is fixed::
+
+            sage: S.<x> = RR[]
+            sage: z = S.zero()
+            sage: z.degree()
+            -1
+            sage: q, r = z.quo_rem(x)
+            sage: q.degree()
+            -1
         """
         if other._degree < 0:
-            raise ZeroDivisionError, "other must be nonzero"
+            raise ZeroDivisionError("other must be nonzero")
+        elif other._degree == 0:
+            return self * ~other[0], self._parent.zero()
+        elif other._degree > self._degree:
+            return self._parent.zero(), self
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef PolynomialRealDense q, r
         cdef Py_ssize_t i, j

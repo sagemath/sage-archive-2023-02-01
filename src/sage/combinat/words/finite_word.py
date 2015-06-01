@@ -4281,8 +4281,7 @@ class FiniteWord_class(Word_class):
         """
         idx = 0
         tab = {}
-        ret = map(lambda w: tab.setdefault(w, len(tab)) + 1, \
-                                self._return_words_list(fact))
+        ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
         return Word(ret)
 

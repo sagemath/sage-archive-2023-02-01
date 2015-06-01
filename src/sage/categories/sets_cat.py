@@ -2265,7 +2265,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 Test that this parent with realizations is
                 properly implemented.
 
-                INPUT::
+                INPUT:
 
                 - ``options`` -- any keyword arguments accepted
                   by :meth:`_tester`

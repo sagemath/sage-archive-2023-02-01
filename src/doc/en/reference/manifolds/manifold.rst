@@ -11,3 +11,5 @@ Topological manifolds
    sage/manifolds/subset
 
    sage/manifolds/chart
+
+   sage/manifolds/coord_func

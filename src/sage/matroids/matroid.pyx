@@ -4809,10 +4809,6 @@ cdef class Matroid(SageObject):
         if self.rank() <= 2:
             return True
         # Step 2: Find a separating B-fundamental cocircuit Y
-
-        cand_cocircuits = frozenset([self.fundamental_cocircuit(basis, e) for e in basis])
-        fund_cocircuits = set(fund_cocircuits & cand_cocircuits)
-
         separating = False
         while fund_cocircuits:
             Y = fund_cocircuits.pop()
@@ -4865,8 +4861,13 @@ cdef class Matroid(SageObject):
         # Step 4: Apply algorithm recursively
         for B, M in Y_components.iteritems():
             N = M.simplify()
-            cocirc = frozenset([x.intersection(N.groundset()) for x in fund_cocircuits])
-            if not N._is_3connected_beta(basis.intersection(B.union(Y)),cocirc):
+            nbasis = basis.intersection(B.union(Y))
+            # find set of fundamental cocircuit that might be separating
+            cocirc = set([M.fundamental_cocircuit(nbasis,e) for e in nbasis])
+            cocirc &= fund_cocircuits
+            fund_cocircuits -= cocirc
+            cocirc = set([x.intersection(N.groundset()) for x in cocirc])
+            if not N._is_3connected_beta(nbasis,cocirc):
                 return False
         return True
 

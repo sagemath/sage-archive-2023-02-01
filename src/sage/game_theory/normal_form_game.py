@@ -1568,6 +1568,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A])
             sage: g._solve_LP()
             [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: g._solve_LP('gambit') # optional - gambit
+            [[(0.5, 0.5), (0.5, 0.5)]]
             sage: g._solve_LP('Coin') # optional - cbc
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: g._solve_LP('PPL') # optional - PPL
@@ -1577,8 +1579,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = g._solve_LP()
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: ne = g._solve_LP('gambit') # optional - gambit
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
             sage: ne = g._solve_LP('Coin') # optional - cbc
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
             sage: g._solve_LP('PPL') # optional - PPL
             [[(2/3, 1/3), (2/3, 1/3)]]

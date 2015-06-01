@@ -300,6 +300,21 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
         echo "Found local metadata for $PKG_NAME"
 
+        # Warning for experimental packages
+        if [ `cat "$PKG_SCRIPTS/type"` == "experimental" ]; then
+            echo # The following message appears twice in this file
+            echo "=========================== WARNING ==========================="
+            echo "You are about to download and install an experimental package."
+            echo "This probably won't work at all for you! There is no guarantee"
+            echo "that it will build correctly, or behave as expected."
+            echo "Use at your own risk!"
+            echo "==============================================================="
+            read -p "Are you sure you want to continue [Y/n]? " answer
+            case "$answer" in
+                n*|N*) exit 0;;
+            esac
+        fi
+
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally
             if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
@@ -394,16 +409,20 @@ if [ ! -f "$PKG_SRC" ]; then
                         # Warn and ask the user if downloading an
                         # experimental or archive package.
                         if [ $repo = experimental ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an experimental package."
-                            echo "This probably won't work at all for you! There is no guarantee that it"
-                            echo "has ever been built correctly! Use at your own risk!"
+                            echo # The following message appears twice in this file
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an experimental package."
+                            echo "This probably won't work at all for you! There is no guarantee"
+                            echo "that it will build correctly, or behave as expected."
+                            echo "Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         elif [ $repo = archive ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an archived package."
-                            echo "This means the package is likely to be outdated and it probably won't"
-                            echo "work at all for you! Use at your own risk!"
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an archived package."
+                            echo "This means the package is likely to be outdated and it probably"
+                            echo "won't work at all for you! Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         else
                             ask_download=no

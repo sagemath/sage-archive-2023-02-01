@@ -870,6 +870,34 @@ class Magmas(Category_singleton):
             import operator
             return OperationTable(self, operation=operator.mul, names=names, elements=elements)
 
+        def magma_closure_iter(self, I, predicate=lambda x:True, return_word=False):
+            index_list = range(len(I))
+            if hasattr(self,'one'):
+                elements = [ (self.one(),[]) ]
+            else:
+                elements = [ (I[i],[i]) for i in index_list if predicate(I[i]) ]
+            elements_set = set( x[0] for x in elements )
+            done = 0
+
+            for x,word in elements:
+                if return_word:
+                    yield x, word
+                else:
+                    yield x
+            while done < len(elements):
+                x,word = elements[done]
+                for i in index_list:
+                    y = self.product(x,I[i])
+                    if predicate(y) and y not in elements_set:
+                        elements.append((y,word+[i]))
+                        elements_set.add(y)
+                        if return_word:
+                            yield elements[-1]
+                        else:
+                            yield y
+                done+=1
+            return
+
     class ElementMethods:
 
         def __mul__(self, right):

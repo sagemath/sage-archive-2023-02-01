@@ -854,7 +854,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
-        from sage.rings.integer_ring import ZZ
+        from sage.rings.integer import Integer
 
         if self.exponent == 0:
             return '1'
@@ -862,7 +862,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             return self.parent()._var_
         elif self.exponent == -1:
             return '1/' + self.parent()._var_
-        elif self.exponent in ZZ and self.exponent > 0:
+        elif isinstance(self.exponent, (Integer, int)) and self.exponent > 0:
             return self.parent()._var_ + '^' + str(self.exponent)
         else:
             return self.parent()._var_ + '^(' + str(self.exponent) + ')'

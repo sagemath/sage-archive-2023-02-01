@@ -245,14 +245,13 @@ class DocTestController(SageObject):
                 # we replace the 'optional' tag by all optional packages
                 if 'optional' in options.optional:
                     from sage.misc.package import _package_lists_from_sage_output
-                    from string import join
                     options.optional.discard('optional')
                     options.optional.update(_package_lists_from_sage_output('optional',local=True)[0])
 
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
-                        raise ValueError('invalid optional tag %s'%repr(o))
+                        raise ValueError('invalid optional tag {!r}'.format(o))
 
         self.options = options
         self.files = args
@@ -986,6 +985,14 @@ class DocTestController(SageObject):
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass
+
+            if opt.optional:
+                if opt.optional is True:
+                    print_optional = "all"
+                else:
+                    print_optional = ", ".join(sorted(opt.optional))
+                self.log("Optional tags: " + print_optional)
+
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()

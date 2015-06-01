@@ -1276,6 +1276,10 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: cg = NormalFormGame([A])
             sage: cg.obtain_nash(algorithm='lp-glpk')
             [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: cg.obtain_nash(algorithm='lp-Coin') # optional - cbc
+            [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: cg.obtain_nash(algorithm='lp-PPL') # optional - PPL
+            [[(1/2, 1/2), (1/2, 1/2)]]
             sage: cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
             [[(0.5, 0.5), (0.5, 0.5)]]
             sage: A = matrix([[2, 1], [1, 3]])
@@ -1283,6 +1287,11 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = cg.obtain_nash(algorithm='lp-glpk')
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: ne = cg.obtain_nash(algorithm='lp-Coin') # optional - Coin
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: cg.obtain_nash(algorithm='lp-PPL') # optional - PPL
+            [[(2/3, 1/3), (2/3, 1/3)]]
             sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
@@ -1494,11 +1503,20 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A])
             sage: g._solve_LP()
             [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: g._solve_LP('Coin') # optional - cbc
+            [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: g._solve_LP('PPL') # optional - PPL
+            [[(1/2, 1/2), (1/2, 1/2)]]
             sage: A = matrix([[2, 1], [1, 3]])
             sage: g = NormalFormGame([A])
             sage: ne = g._solve_LP()
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: ne = g._solve_LP('Coin') # optional - cbc
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: g._solve_LP('PPL') # optional - PPL
+            [[(2/3, 1/3), (2/3, 1/3)]]
 
         An exception is raised if the input game is not constant sum::
 

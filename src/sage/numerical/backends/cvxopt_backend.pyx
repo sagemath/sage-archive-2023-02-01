@@ -80,6 +80,8 @@ cdef class CVXOPTBackend(GenericBackend):
 
         This amounts to adding a new column to the matrix. By default,
         the variable is both positive and real.
+        Variable types are always continuous, and thus the parameters
+        ``binary``, ``integer'', and ``continuous'' have no effect. 
 
         INPUT:
 
@@ -89,9 +91,9 @@ cdef class CVXOPTBackend(GenericBackend):
 
         - ``binary`` - ``True`` if the variable is binary (default: ``False``).
 
-        - ``continuous`` - ``True`` if the variable is binary (default: ``True``).
+        - ``continuous`` - ``True`` if the variable is continuous (default: ``True``).
 
-        - ``integer`` - ``True`` if the variable is binary (default: ``False``).
+        - ``integer`` - ``True`` if the variable is integer (default: ``False``).
 
         - ``obj`` - (optional) coefficient of this variable in the objective function (default: 0.0)
 
@@ -113,15 +115,15 @@ cdef class CVXOPTBackend(GenericBackend):
             1
             sage: p.add_variable(lower_bound=-2.0, integer=True)
             2
-            sage: p.add_variable(continuous=True, integer=True)       # optional - CVXOPT
-            Traceback (most recent call last):
-            ...
-            ValueError: ...
+            sage: p.add_variable(continuous=True, integer=True)
+            3 
             sage: p.add_variable(name='x',obj=1.0)
-            3
+            4
             sage: p.col_name(3)
+            'x_3'
+            sage: p.col_name(4)
             'x'
-            sage: p.objective_coefficient(3)
+            sage: p.objective_coefficient(4)
             1.00000000000000
         """
         if obj == None:
@@ -797,6 +799,7 @@ cdef class CVXOPTBackend(GenericBackend):
     cpdef bint is_variable_binary(self, int index):
         """
         Test whether the given variable is of binary type.
+        CVXOPT does not allow integer variables, so this is a bit moot.
 
         INPUT:
 
@@ -810,9 +813,12 @@ cdef class CVXOPTBackend(GenericBackend):
             0
             sage: p.add_variable()
             0
-            sage: p.set_variable_type(0,0)                         # optional - CVXOPT
-            sage: p.is_variable_binary(0)                          # optional - CVXOPT
-            True
+            sage: p.set_variable_type(0,0)
+            Traceback (most recent call last):
+            ...
+            Exception: ...
+            sage: p.is_variable_binary(0)
+            False 
 
         """
         return False
@@ -820,28 +826,7 @@ cdef class CVXOPTBackend(GenericBackend):
     cpdef bint is_variable_integer(self, int index):
         """
         Test whether the given variable is of integer type.
-
-        INPUT:
-
-        - ``index`` (integer) -- the variable's id
-
-        EXAMPLE::
-
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CVXOPT")  # optional - CVXOPT
-            sage: p.ncols()                                       # optional - CVXOPT
-            0
-            sage: p.add_variable()                                 # optional - CVXOPT
-            1
-            sage: p.set_variable_type(0,1)                         # optional - CVXOPT
-            sage: p.is_variable_integer(0)                         # optional - CVXOPT
-            True
-        """
-        return False
-
-    cpdef bint is_variable_continuous(self, int index):
-        """
-        Test whether the given variable is of continuous/real type.
+        CVXOPT does not allow integer variables, so this is a bit moot.
 
         INPUT:
 
@@ -855,11 +840,41 @@ cdef class CVXOPTBackend(GenericBackend):
             0
             sage: p.add_variable()
             0
-            sage: p.is_variable_continuous(0)                      # optional - CVXOPT
+            sage: p.set_variable_type(0,-1)
+            sage: p.set_variable_type(0,1)
+            Traceback (most recent call last):
+            ...
+            Exception: ...
+            sage: p.is_variable_integer(0)
+            False 
+        """
+        return False
+
+    cpdef bint is_variable_continuous(self, int index):
+        """
+        Test whether the given variable is of continuous/real type.
+        CVXOPT does not allow integer variables, so this is a bit moot.
+
+        INPUT:
+
+        - ``index`` (integer) -- the variable's id
+
+        EXAMPLE::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "CVXOPT")
+            sage: p.ncols()
+            0
+            sage: p.add_variable()
+            0
+            sage: p.is_variable_continuous(0)
             True
-            sage: p.set_variable_type(0,1)                         # optional - CVXOPT
-            sage: p.is_variable_continuous(0)                      # optional - CVXOPT
-            False
+            sage: p.set_variable_type(0,1)
+            Traceback (most recent call last):
+            ...
+            Exception: ...
+            sage: p.is_variable_continuous(0)
+            True            
 
         """
         return True

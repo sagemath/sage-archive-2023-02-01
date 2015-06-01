@@ -241,6 +241,14 @@ class DocTestController(SageObject):
                 options.optional = True
             else:
                 options.optional = set(s.split(','))
+
+                # we replace the 'optional' tag by all optional packages
+                if 'optional' in options.optional:
+                    from sage.misc.package import _package_lists_from_sage_output
+                    from string import join
+                    options.optional.discard('optional')
+                    options.optional.update(_package_lists_from_sage_output('optional',local=True)[0])
+
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):

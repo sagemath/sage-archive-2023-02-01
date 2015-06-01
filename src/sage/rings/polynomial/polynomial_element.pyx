@@ -1849,7 +1849,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(v, check=False)
         if right > 20: # no gain below
             p = self.parent().characteristic()
-            if p > 2 and p <= right or p == 2 and right > 40: # characteristic 2 is special
+            if (p > 2 and p <= right or p == 2 and right > 40) and self.base_ring().is_field(): # characteristic 2 is special
                 q, r = right.quo_rem(p)
                 x = self.parent().gen()
                 if self.parent().base_ring().is_finite():

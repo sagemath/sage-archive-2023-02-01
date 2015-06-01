@@ -1480,6 +1480,8 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")
+        if Game is None:
+            raise NotImplementedError("gambit is not installed")
         g = self._as_gambit_game()
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)

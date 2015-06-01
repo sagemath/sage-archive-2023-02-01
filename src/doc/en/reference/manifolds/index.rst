@@ -15,6 +15,8 @@ More documentation (in particular example worksheets) can be found
 
    manifold
 
+   sage/manifolds/utilities
+
 .. include:: ../footer.txt
 
 

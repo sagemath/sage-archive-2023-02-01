@@ -40,8 +40,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.misc.latex import latex
-from sage.manifolds.chart import Chart
 
 class CoordFunction(SageObject):
     r"""
@@ -74,6 +72,27 @@ class CoordFunction(SageObject):
     # ----------------------------------------------------------------
     # Methods that do not need to be re-implemented by derived classes
     # ----------------------------------------------------------------
+
+    def chart(self):
+        r"""
+        Return the chart w.r.t. which the coordinate function is defined.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.chart.Chart`
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(1+x+y^2)
+            sage: f.chart()
+            Chart (M, (x, y))
+            sage: f.chart() is X
+            True
+
+        """
+        return self._chart
 
     #~ def scalar_field(self, name=None, latex_name=None):
         #~ r"""
@@ -330,7 +349,7 @@ class CoordFunction(SageObject):
         - an exact copy of ``self``
 
         """
-        return NotImplementedError("CoordFunction.__pos__ not implemented")
+        raise NotImplementedError("CoordFunction.__pos__ not implemented")
 
     def __neg__(self):
         r"""
@@ -341,7 +360,7 @@ class CoordFunction(SageObject):
         - the opposite of the coordinate function ``self``
 
         """
-        return NotImplementedError("CoordFunction.__neg__ not implemented")
+        raise NotImplementedError("CoordFunction.__neg__ not implemented")
 
     def __invert__(self):
         r"""
@@ -357,7 +376,7 @@ class CoordFunction(SageObject):
         - the inverse of the coordinate function ``self``
 
         """
-        return NotImplementedError("CoordFunction.__invert__ not implemented")
+        raise NotImplementedError("CoordFunction.__invert__ not implemented")
 
     def __add__(self, other):
         r"""
@@ -373,7 +392,7 @@ class CoordFunction(SageObject):
           ``other``
 
         """
-        return NotImplementedError("CoordFunction.__add__ not implemented")
+        raise NotImplementedError("CoordFunction.__add__ not implemented")
 
     def __sub__(self, other):
         r"""
@@ -389,7 +408,7 @@ class CoordFunction(SageObject):
           ``self``
 
         """
-        return NotImplementedError("CoordFunction.__sub__ not implemented")
+        raise NotImplementedError("CoordFunction.__sub__ not implemented")
 
     def __mul__(self, other):
         r"""
@@ -405,7 +424,7 @@ class CoordFunction(SageObject):
           ``other``
 
         """
-        return NotImplementedError("CoordFunction.__mul__ not implemented")
+        raise NotImplementedError("CoordFunction.__mul__ not implemented")
 
     def __div__(self, other):
         r"""
@@ -421,7 +440,7 @@ class CoordFunction(SageObject):
           ``other``
 
         """
-        return NotImplementedError("CoordFunction.__div__ not implemented")
+        raise NotImplementedError("CoordFunction.__div__ not implemented")
 
     def exp(self):
         r"""
@@ -433,7 +452,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.exp not implemented")
+        raise NotImplementedError("CoordFunction.exp not implemented")
 
 
     def log(self, base=None):
@@ -451,7 +470,7 @@ class CoordFunction(SageObject):
           function and `a` is the base
 
         """
-        return NotImplementedError("CoordFunction.log not implemented")
+        raise NotImplementedError("CoordFunction.log not implemented")
 
 
     def __pow__(self, exponent):
@@ -468,7 +487,7 @@ class CoordFunction(SageObject):
           function and `a` is the exponent
 
         """
-        return NotImplementedError("CoordFunction.__pow__ not implemented")
+        raise NotImplementedError("CoordFunction.__pow__ not implemented")
 
 
     def sqrt(self):
@@ -481,7 +500,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sqrt not implemented")
+        raise NotImplementedError("CoordFunction.sqrt not implemented")
 
     def cos(self):
         r"""
@@ -493,7 +512,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.cos not implemented")
+        raise NotImplementedError("CoordFunction.cos not implemented")
 
     def sin(self):
         r"""
@@ -505,7 +524,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sin not implemented")
+        raise NotImplementedError("CoordFunction.sin not implemented")
 
     def tan(self):
         r"""
@@ -517,7 +536,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.tan not implemented")
+        raise NotImplementedError("CoordFunction.tan not implemented")
 
     def arccos(self):
         r"""
@@ -529,7 +548,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arccos not implemented")
+        raise NotImplementedError("CoordFunction.arccos not implemented")
 
     def arcsin(self):
         r"""
@@ -541,7 +560,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arcsin not implemented")
+        raise NotImplementedError("CoordFunction.arcsin not implemented")
 
     def arctan(self):
         r"""
@@ -553,7 +572,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arctan not implemented")
+        raise NotImplementedError("CoordFunction.arctan not implemented")
 
     def cosh(self):
         r"""
@@ -565,7 +584,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.cosh not implemented")
+        raise NotImplementedError("CoordFunction.cosh not implemented")
 
     def sinh(self):
         r"""
@@ -577,7 +596,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sinh not implemented")
+        raise NotImplementedError("CoordFunction.sinh not implemented")
 
     def tanh(self):
         r"""
@@ -589,7 +608,7 @@ class CoordFunction(SageObject):
           function.
 
         """
-        return NotImplementedError("CoordFunction.tanh not implemented")
+        raise NotImplementedError("CoordFunction.tanh not implemented")
 
     def arccosh(self):
         r"""
@@ -601,7 +620,7 @@ class CoordFunction(SageObject):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arccosh not implemented")
+        raise NotImplementedError("CoordFunction.arccosh not implemented")
 
     def arcsinh(self):
         r"""
@@ -613,7 +632,7 @@ class CoordFunction(SageObject):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arcsinh not implemented")
+        raise NotImplementedError("CoordFunction.arcsinh not implemented")
 
     def arctanh(self):
         r"""
@@ -625,7 +644,7 @@ class CoordFunction(SageObject):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arctanh not implemented")
+        raise NotImplementedError("CoordFunction.arctanh not implemented")
 
 
 #*****************************************************************************
@@ -659,8 +678,6 @@ class MultiCoordFunction(SageObject):
 
     """
     def __init__(self, chart, size):
-        if not isinstance(chart, Chart):
-            raise TypeError("The argument must be a chart.")
         self._chart = chart
         self._nc = len(self._chart._xx)  # number of coordinates
         self._nf = size        # number of functions
@@ -676,6 +693,7 @@ class MultiCoordFunction(SageObject):
         r"""
         LaTeX representation of the object.
         """
+        from sage.misc.latex import latex
         return latex(self._functions)
 
     def __eq__(self, other):

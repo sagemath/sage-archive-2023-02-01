@@ -40,7 +40,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.symbolic.ring import SR
+from sage.structure.element import RingElement
+from sage.misc.latex import latex
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
+from sage.manifolds.utilities import ExpressionNice, simplify_chain_real, \
+                                     simplify_chain_generic
 
 class CoordFunctionSymb(CoordFunction):
     r"""
@@ -73,12 +77,22 @@ class CoordFunctionSymb(CoordFunction):
     nice_output = True # static flag for textbook-like output instead of the
                        # Pynac output for derivatives
 
+    omit_fargs  = False # static flag to govern whether or not
+                        # the arguments of symbolic functions are printed
+
     def __init__(self, chart, expression):
         r"""
         Construct a coordinate function.
         """
-        CoordFunction.__init__(self, chart)
+        self._chart = chart
+        self._nc = len(chart[:])    # number of coordinates
         self._express = SR(expression)
+        # Definition of the simplification chain to be applied in
+        # symbolic calculus:
+        if self._chart.manifold().base_field() == 'real':
+            self._simplify = simplify_chain_real
+        else:
+            self._simplify = simplify_chain_generic
 
     # -------------------------------------------------------------
     # Methods to be implemented by derived classes of CoordFunction
@@ -88,7 +102,7 @@ class CoordFunctionSymb(CoordFunction):
         r"""
         String representation of the object.
         """
-        if FunctionChart.nice_output:
+        if CoordFunctionSymb.nice_output:
             return str(ExpressionNice(self._express))
         else:
             return str(self._express)
@@ -97,13 +111,21 @@ class CoordFunctionSymb(CoordFunction):
         r"""
         LaTeX representation of the object.
         """
-        raise NotImplementedError("CoordFunction._latex_ not implemented")
+        if CoordFunctionSymb.nice_output:
+            return latex(ExpressionNice(self._express))
+        else:
+            return latex(self._express)
 
     def display(self):
         r"""
         Display the function in arrow notation.
         """
-        raise NotImplementedError("CoordFunction.display not implemented")
+        from sage.tensor.modules.format_utilities import FormattedExpansion
+        resu_txt = str((self._chart)[:]) + ' |--> ' + \
+                   str(ExpressionNice(self._express))
+        resu_latex = latex(self._chart[:]) + r' \mapsto' + \
+                     latex(ExpressionNice(self._express))
+        return FormattedExpansion(resu_txt, resu_latex)
 
     def __call__(self, *coords, **options):
         r"""
@@ -113,8 +135,8 @@ class CoordFunctionSymb(CoordFunction):
 
         - ``*coords`` -- list of coordinates `(x^1,...,x^n)` where the
           function `f` is to be evaluated
-        - ``**options`` -- options to control the computation (e.g.
-          simplification options)
+        - ``**options`` -- allows to pass ``simplify=False`` to disable the
+          call of the simplification chain on the result
 
         OUTPUT:
 
@@ -122,14 +144,49 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        raise NotImplementedError("CoordFunction.__call__ not implemented")
+        #!# This should be the Python 2.7 form:
+        # substitutions = {self._chart._xx[j]: coords[j] for j in
+        #                                                      range(self._nc)}
+        #
+        # Here we use a form compatible with Python 2.6:
+        substitutions = dict([(self._chart._xx[j], coords[j]) for j in
+                                                              range(self._nc)])
+        resu = self._express.subs(substitutions)
+        if 'simplify' in options:
+            if options['simplify']:
+                return self._simplify(resu)
+            else:
+                return resu
+        else:
+            return self._simplify(resu)
 
     def is_zero(self):
         r"""
         Return ``True`` if the function is zero and ``False`` otherwise.
 
+        EXAMPLES:
+
+        Coordinate functions associated to a 2-dimensional chart::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(x^2+3*y+1)
+            sage: f.is_zero()
+            False
+            sage: f == 0
+            False
+            sage: g = X.function_symb(0)
+            sage: g.is_zero()
+            True
+            sage: g == 0
+            True
+            sage: X.zero_function().is_zero()
+            True
+            sage: X.zero_function() == 0
+            True
+
         """
-        raise NotImplementedError("CoordFunction.is_zero not implemented")
+        return self._express.is_zero()
 
     def __eq__(self, other):
         r"""
@@ -143,8 +200,40 @@ class CoordFunctionSymb(CoordFunction):
 
         - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
 
+        TESTS:
+
+        Coordinate functions associated to a 2-dimensional chart::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(x+y^2)
+            sage: g = X.function_symb(x+y^2)
+            sage: f.__eq__(g)
+            True
+            sage: f == g
+            True
+            sage: f.__eq__(1)
+            False
+            sage: h = X.function_symb(1)
+            sage: h.__eq__(1)
+            True
+            sage: h.__eq__(f)
+            False
+            sage: h.__eq__(0)
+            False
+            sage: X.function_symb(0).__eq__(0)
+            True
+            sage: X.zero_function().__eq__(0)
+            True
+
         """
-        raise NotImplementedError("CoordFunction.__eq__ not implemented")
+        if isinstance(other, CoordFunctionSymb):
+            if other._chart != self._chart:
+                return False
+            else:
+                return bool(other._express == self._express)
+        else:
+            return bool(self._express == other)
 
     def __pos__(self):
         r"""
@@ -154,8 +243,22 @@ class CoordFunctionSymb(CoordFunction):
 
         - an exact copy of ``self``
 
+        TESTS:
+
+        Coordinate functions associated to a 2-dimensional chart::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(x+y^2)
+            sage: g = +f; g
+            y^2 + x
+            sage: type(g)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: g == f
+            True
+
         """
-        return NotImplementedError("CoordFunction.__pos__ not implemented")
+        return CoordFunctionSymb(self._chart, self._express)
 
     def __neg__(self):
         r"""
@@ -165,8 +268,22 @@ class CoordFunctionSymb(CoordFunction):
 
         - the opposite of the coordinate function ``self``
 
+        TESTS:
+
+        Coordinate functions associated to a 2-dimensional chart::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(x+y^2)
+            sage: g = -f; g
+            -y^2 - x
+            sage: type(g)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: -g == f
+            True
+
         """
-        return NotImplementedError("CoordFunction.__neg__ not implemented")
+        return CoordFunctionSymb(self._chart, self._simplify(-self._express))
 
     def __invert__(self):
         r"""
@@ -181,8 +298,24 @@ class CoordFunctionSymb(CoordFunction):
 
         - the inverse of the coordinate function ``self``
 
+        TESTS:
+
+        Coordinate functions associated to a 2-dimensional chart::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(1+x^2+y^2)
+            sage: g = f.__invert__(); g
+            1/(x^2 + y^2 + 1)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: g == ~f
+            True
+            sage: g.__invert__() == f
+            True
+
         """
-        return NotImplementedError("CoordFunction.__invert__ not implemented")
+        return CoordFunctionSymb(self._chart,
+                                 self._simplify(SR(1) / self._express))
 
     def __add__(self, other):
         r"""
@@ -197,8 +330,42 @@ class CoordFunctionSymb(CoordFunction):
         - coordinate function resulting from the addition of ``self`` and
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(x+y^2)
+            sage: g = X.function_symb(x+1)
+            sage: s = f.__add__(g); s.display()
+            (x, y) |--> y^2 + 2*x + 1
+            sage: type(s)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: f.__add__(0).display()
+            (x, y) |--> y^2 + x
+            sage: f.__add__(1).display()
+            (x, y) |--> y^2 + x + 1
+            sage: f.__add__(pi).display()
+            (x, y) |--> pi + y^2 + x
+            sage: f.__add__(x).display()
+            (x, y) |--> y^2 + 2*x
+            sage: f.__add__(-f).display()
+            (x, y) |--> 0
+
         """
-        return NotImplementedError("CoordFunction.__add__ not implemented")
+        if isinstance(other, CoordFunctionSymb):
+            if other._chart != self._chart:
+                raise ValueError("two coordinate functions not defined on " +
+                                 "the same chart cannot be added")
+            res = self._simplify(self._express + other._express)
+        elif isinstance(other, (int, RingElement)):
+            res = self._simplify(self._express + other)
+        else:
+            # addition to a numerical coord. function shall fall in this case
+            return other.__radd__(self)
+        if res == 0:
+            return self._chart._zero_function
+        else:
+            return CoordFunctionSymb(self._chart, res)
 
     def __sub__(self, other):
         r"""
@@ -214,7 +381,7 @@ class CoordFunctionSymb(CoordFunction):
           ``self``
 
         """
-        return NotImplementedError("CoordFunction.__sub__ not implemented")
+        raise NotImplementedError("CoordFunction.__sub__ not implemented")
 
     def __mul__(self, other):
         r"""
@@ -230,7 +397,7 @@ class CoordFunctionSymb(CoordFunction):
           ``other``
 
         """
-        return NotImplementedError("CoordFunction.__mul__ not implemented")
+        raise NotImplementedError("CoordFunction.__mul__ not implemented")
 
     def __div__(self, other):
         r"""
@@ -246,7 +413,7 @@ class CoordFunctionSymb(CoordFunction):
           ``other``
 
         """
-        return NotImplementedError("CoordFunction.__div__ not implemented")
+        raise NotImplementedError("CoordFunction.__div__ not implemented")
 
     def exp(self):
         r"""
@@ -258,7 +425,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.exp not implemented")
+        raise NotImplementedError("CoordFunction.exp not implemented")
 
 
     def log(self, base=None):
@@ -276,7 +443,7 @@ class CoordFunctionSymb(CoordFunction):
           function and `a` is the base
 
         """
-        return NotImplementedError("CoordFunction.log not implemented")
+        raise NotImplementedError("CoordFunction.log not implemented")
 
 
     def __pow__(self, exponent):
@@ -293,7 +460,7 @@ class CoordFunctionSymb(CoordFunction):
           function and `a` is the exponent
 
         """
-        return NotImplementedError("CoordFunction.__pow__ not implemented")
+        raise NotImplementedError("CoordFunction.__pow__ not implemented")
 
 
     def sqrt(self):
@@ -306,7 +473,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sqrt not implemented")
+        raise NotImplementedError("CoordFunction.sqrt not implemented")
 
     def cos(self):
         r"""
@@ -318,7 +485,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.cos not implemented")
+        raise NotImplementedError("CoordFunction.cos not implemented")
 
     def sin(self):
         r"""
@@ -330,7 +497,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sin not implemented")
+        raise NotImplementedError("CoordFunction.sin not implemented")
 
     def tan(self):
         r"""
@@ -342,7 +509,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.tan not implemented")
+        raise NotImplementedError("CoordFunction.tan not implemented")
 
     def arccos(self):
         r"""
@@ -354,7 +521,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arccos not implemented")
+        raise NotImplementedError("CoordFunction.arccos not implemented")
 
     def arcsin(self):
         r"""
@@ -366,7 +533,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arcsin not implemented")
+        raise NotImplementedError("CoordFunction.arcsin not implemented")
 
     def arctan(self):
         r"""
@@ -378,7 +545,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.arctan not implemented")
+        raise NotImplementedError("CoordFunction.arctan not implemented")
 
     def cosh(self):
         r"""
@@ -390,7 +557,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.cosh not implemented")
+        raise NotImplementedError("CoordFunction.cosh not implemented")
 
     def sinh(self):
         r"""
@@ -402,7 +569,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.sinh not implemented")
+        raise NotImplementedError("CoordFunction.sinh not implemented")
 
     def tanh(self):
         r"""
@@ -414,7 +581,7 @@ class CoordFunctionSymb(CoordFunction):
           function.
 
         """
-        return NotImplementedError("CoordFunction.tanh not implemented")
+        raise NotImplementedError("CoordFunction.tanh not implemented")
 
     def arccosh(self):
         r"""
@@ -426,7 +593,7 @@ class CoordFunctionSymb(CoordFunction):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arccosh not implemented")
+        raise NotImplementedError("CoordFunction.arccosh not implemented")
 
     def arcsinh(self):
         r"""
@@ -438,7 +605,7 @@ class CoordFunctionSymb(CoordFunction):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arcsinh not implemented")
+        raise NotImplementedError("CoordFunction.arcsinh not implemented")
 
     def arctanh(self):
         r"""
@@ -450,12 +617,12 @@ class CoordFunctionSymb(CoordFunction):
           coordinate function.
 
         """
-        return NotImplementedError("CoordFunction.arctanh not implemented")
+        raise NotImplementedError("CoordFunction.arctanh not implemented")
 
 
 #*****************************************************************************
 
-class MultiCoordFunction(SageObject):
+class MultiCoordFunctionSymb(MultiCoordFunction):
     r"""
     Base class for multi-coordinate functions
 

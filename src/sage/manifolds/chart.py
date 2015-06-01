@@ -39,6 +39,7 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
+from sage.manifolds.coord_func_symb import CoordFunctionSymb
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -306,7 +307,7 @@ class Chart(UniqueRepresentation, SageObject):
                                 # subsets of self._domain, with the
                                 # subsets as keys
         # The null function of the coordinates:
-        #*# self._zero_function = ZeroFunctionChart(self)
+        self._zero_function = CoordFunctionSymb(self, 0)
         # Expression in self of the zero scalar fields of open sets containing
         # the domain of self:
         for dom in self._domain._supersets:
@@ -452,6 +453,23 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         return self._domain
+
+    def manifold(self):
+        r"""
+        Return the manifold on which the chart is defined.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: U = M.open_subset('U')
+            sage: X.<x,y> = U.chart()
+            sage: X.manifold()
+            2-dimensional topological manifold M
+            sage: X.domain()
+            Open subset U of the 2-dimensional topological manifold M
+
+        """
+        return self._manifold
 
     def add_restrictions(self, restrictions):
         r"""
@@ -755,6 +773,98 @@ class Chart(UniqueRepresentation, SageObject):
         if not isinstance(transformations, (tuple, list)):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
+
+    def function_symb(self, expression):
+        r"""
+        Define a symbolic function of the coordinates to the base field.
+
+        If the current chart lies in the atlas of a `n`-dimensional manifold
+        over a topological field `K`, a *coordinate function* is a map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & f(x^1,\ldots, x^n),
+            \end{array}
+
+        where `V` is the chart codomain.
+
+        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``expression`` -- the coordinate expression of the function
+
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+          representing the coordinate function `f`
+
+        EXAMPLE:
+
+        Function of two coordinates::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function_symb(sin(x*y))
+            sage: f
+            sin(x*y)
+            sage: type(f)
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: f.display()
+            (x, y) |--> sin(x*y)
+            sage: f(2,3)
+            sin(6)
+
+        """
+        from sage.manifolds.coord_func_symb import CoordFunctionSymb
+        return CoordFunctionSymb(self, expression)
+
+    def zero_function(self):
+        r"""
+        Return the zero function of the coordinates.
+
+        If the current chart lies in the atlas of a `n`-dimensional manifold
+        over a topological field `K`, the zero coordinate function is the map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & 0,
+            \end{array}
+
+        where `V` is the chart codomain.
+
+        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        for a complete documentation.
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+          representing the zero coordinate function `f`.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: X.zero_function()
+            0
+            sage: X.zero_function().display()
+            (x, y) |--> 0
+            sage: type(X.zero_function())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+
+        The result is cached::
+
+            sage: X.zero_function() is X.zero_function()
+            True
+
+        """
+        return self._zero_function
 
 
 #*****************************************************************************
@@ -1095,7 +1205,7 @@ class RealChart(Chart):
                                 # subsets of self._domain, with the
                                 # subsets as keys
         # The null function of the coordinates:
-        #*# self._zero_function = ZeroFunctionChart(self)
+        self._zero_function = CoordFunctionSymb(self, 0)
         # Expression in self of the zero scalar fields of open sets containing
         # the domain of self:
         for dom in self._domain._supersets:

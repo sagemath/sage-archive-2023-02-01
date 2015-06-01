@@ -846,6 +846,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^5
             sage: P(x^(1/2))  # indirect doctest
             x^(1/2)
+
+        TESTS::
+
+            sage: P(x^-1)  # indirect doctest
+            1/x
+            sage: P(x^-42)  # indirect doctest
+            x^(-42)
         """
         from sage.rings.integer_ring import ZZ
 
@@ -853,7 +860,9 @@ class MonomialGrowthElement(GenericGrowthElement):
             return '1'
         elif self.exponent == 1:
             return self.parent()._var_
-        elif self.exponent in ZZ:
+        elif self.exponent == -1:
+            return '1/' + self.parent()._var_
+        elif self.exponent in ZZ and self.exponent > 0:
             return self.parent()._var_ + '^' + str(self.exponent)
         else:
             return self.parent()._var_ + '^(' + str(self.exponent) + ')'
@@ -910,7 +919,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
-            x^-2
+            x^(-2)
             sage: e2 == ~e1
             True
         """
@@ -1176,7 +1185,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(x)  # indirect doctest
             x
             sage: P(x^-333)  # indirect doctest
-            x^-333
+            x^(-333)
             sage: P(log(x)^2)  # indirect doctest
             Traceback (most recent call last):
             ...

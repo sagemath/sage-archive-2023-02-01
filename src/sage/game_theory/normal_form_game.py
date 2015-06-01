@@ -994,11 +994,19 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.is_constant_sum()
             False
         """
+        import sys
         if len(self.players) > 2:
             return False
         m1, m2 = self.payoff_matrices()
         c = m1 + m2
-        return c.numpy().max() == c.numpy().min()
+        t = c[0,0]
+
+        for row in c:
+            for i in row:
+                if abs(t - i) > sys.float_info.epsilon:
+                    return False
+
+        return True
 
     def payoff_matrices(self):
         r"""

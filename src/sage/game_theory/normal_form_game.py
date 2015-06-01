@@ -864,13 +864,16 @@ class NormalFormGame(SageObject, MutableMapping):
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
 
-    def _as_gambit_game(self, as_integer=False):
+    def _as_gambit_game(self, as_integer=False, maximization=True):
         r"""
         Creates a Gambit game from a ``NormalFormGame`` object
 
         INPUT:
         - ``as_integer`` - Boolean value which states whether the gambit representation should have
                            the payoffs represented as integers or decimals.
+
+        - ``maximization`` - Whether a player is trying to maximize their
+                             utility or minimize it.
 
         TESTS::
 
@@ -957,13 +960,18 @@ class NormalFormGame(SageObject, MutableMapping):
         from decimal import Decimal
         strategy_sizes = [p.num_strategies for p in self.players]
         g = Game.new_table(strategy_sizes)
+
+        sgn = 1
+        if not maximization:
+            sgn = -1
+
         for strategy_profile in self.utilities:
             if as_integer:
-                g[strategy_profile][0] = int(self.utilities[strategy_profile][0])
-                g[strategy_profile][1] = int(self.utilities[strategy_profile][1])
+                g[strategy_profile][0] = sgn * int(self.utilities[strategy_profile][0])
+                g[strategy_profile][1] = sgn * int(self.utilities[strategy_profile][1])
             else:
-                g[strategy_profile][0] = Decimal(float(self.utilities[strategy_profile][0]))
-                g[strategy_profile][1] = Decimal(float(self.utilities[strategy_profile][1]))
+                g[strategy_profile][0] = sgn * Decimal(float(self.utilities[strategy_profile][0]))
+                g[strategy_profile][1] = sgn * Decimal(float(self.utilities[strategy_profile][1]))
         return g
 
     def is_constant_sum(self):
@@ -1521,7 +1529,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_LCP(maximization=True) # optional - gambit
             [[(0.0, 1.0), (0.0, 1.0)]]
         """
-        g = self._as_gambit_game()
+        g = self._as_gambit_game(maximization)
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
@@ -1540,9 +1548,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A])
             sage: g._solve_gambit_LP() # optional - gambit
             [[(0.5, 0.5), (0.5, 0.5)]]
+            sage: g = NormalFormGame([A,A])
+            sage: g._solve_gambit_LP() # optional - gambit
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Method only valid for constant-sum games.
         """
-        if not self.is_constant_sum():
-            raise ValueError("Input game needs to be a two player constant sum game")
         if Game is None:
             raise NotImplementedError("gambit is not installed")
         g = self._as_gambit_game()

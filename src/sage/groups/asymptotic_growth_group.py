@@ -44,7 +44,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     - ``parent`` -- a :class:`GenericGrowthGroup`.
 
-    - ``raw_element`` -- an element from the base ring of the parent.
+    - ``raw_element`` -- an element from the base of the parent.
 
     EXAMPLES::
 
@@ -573,14 +573,14 @@ class GenericGrowthGroup(
 
     def le(self, left, right):
         r"""
-        Return if the growth element ``left`` is at most (less than or
-        equal to) the growth element ``right``.
+        Return if the growth of ``left`` is at most (less than or
+        equal to) the growth of ``right``.
 
         INPUT:
 
-        - ``left`` -- an element.
+        - ``left`` -- a growth element.
 
-        - ``right`` -- an element.
+        - ``right`` -- a growth element.
 
         OUTPUT:
 
@@ -590,13 +590,6 @@ class GenericGrowthGroup(
 
             This function uses the coercion model to find a common
             parent for the two operands.
-
-        Return whether the asymptotic order of magnitude of `x` is less
-        than or equal to the asymptotic order of magnitude of `y`.
-
-        INPUT:
-
-        - ``x``, ``y`` -- elements of ``self``.
 
         EXAMPLES::
 
@@ -764,11 +757,11 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G1 = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: G2 = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(G1._coerce_map_from_(G2))
+            sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
+            sage: bool(G_ZZ._coerce_map_from_(G_QQ))
             False
-            sage: bool(G2._coerce_map_from_(G1))
+            sage: bool(G_QQ._coerce_map_from_(G_ZZ))
             True
         """
         if isinstance(S, GenericGrowthGroup):
@@ -797,7 +790,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-        sage: e1 = P(x=1); e1
+        sage: e1 = P(1); e1
         1
         sage: e2 = P(raw_element=2); e2
         x^2
@@ -826,7 +819,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _repr_(self):
         r"""
-        A representation string for this abstract generic element.
+        A representation string for this monomial growth element.
 
         INPUT:
 
@@ -840,7 +833,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: P(x=1)._repr_()
+            sage: P(1)._repr_()
             '1'
             sage: P(x^5)  # indirect doctest
             x^5

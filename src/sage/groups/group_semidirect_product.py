@@ -3,6 +3,7 @@ from sage.categories.groups import Groups
 from sage.sets.cartesian_product import CartesianProduct
 from sage.misc.cachefunc import cached_method
 
+
 class GroupSemidirectProductElement(CartesianProduct.Element):
     r"""
     Element class for :class:`GroupSemidirectProduct`.
@@ -71,7 +72,6 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             t[-2*alpha[1]] * s1*s2
             sage: g.to_opposite().parent()
             Semidirect product of Multiplicative form of Root lattice of the Root system of type ['A', 2] acted upon by Weyl Group of type ['A', 2] (as a matrix group acting on the root lattice)
-
         """
         par = self.parent()
         Gop = par.opposite_semidirect_product()
@@ -81,20 +81,20 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             return Gop((par._twist(g,h),g))
         return Gop((h,par._twist(~h,g)))
 
-class GroupSemidirectProduct(CartesianProduct):
 
+class GroupSemidirectProduct(CartesianProduct):
     r"""
     Returns the semidirect product of the groups ``G`` and ``H`` using the homomorphism ``twist``.
 
     INPUT:
 
-        - ``G`` and ``H`` -- multiplicative groups
-        - ``twist`` -- (default: None) a group homomorphism (see below)
-        - ``act_to_right`` -- True or False (default: True)
-        - ``prefix0`` -- (default: None) optional string
-        - ``prefix1`` -- (default: None) optional string
-        - ``print_tuple`` -- True or False (default: False)
-        - ``category`` -- A category (default: Groups())
+    - ``G`` and ``H`` -- multiplicative groups
+    - ``twist`` -- (default: None) a group homomorphism (see below)
+    - ``act_to_right`` -- True or False (default: True)
+    - ``prefix0`` -- (default: None) optional string
+    - ``prefix1`` -- (default: None) optional string
+    - ``print_tuple`` -- True or False (default: False)
+    - ``category`` -- A category (default: Groups())
 
     If ``act_to_right`` is True, ``twist`` is an element of ``Hom(G, Aut(H))``. Syntactically
     ``twist(g,h)`` is in ``H`` for all `g\in G` and `h\in H`.
@@ -103,7 +103,6 @@ class GroupSemidirectProduct(CartesianProduct):
     If ``prefix0`` (resp. ``prefixl``) is not None then it is used as a wrapper for
     printing elements of ``G`` (resp. ``H``). If ``print_tuple`` is True then elements are printed
     in the style `(g,h)` and otherwise in the style `g * h`.
-
 
     EXAMPLES::
 
@@ -145,13 +144,13 @@ class GroupSemidirectProduct(CartesianProduct):
             error = "The semidirect product construction for groups is implemented only for multiplicative groups"
             if x in CommutativeAdditiveGroups():
                 error = error + ". Please change the commutative additive group %s into a multiplicative group using the functor sage.groups.group_exp.GroupExp"%x
-            raise TypeError, error
+            raise TypeError(error)
 
         check_implemented_group(G)
         check_implemented_group(H)
 
         if twist is None:
-            self._twist = lambda g,h: h # use the trivial twist
+            self._twist = lambda g, h: h  # use the trivial twist
         else:
             self._twist = twist
 
@@ -159,7 +158,7 @@ class GroupSemidirectProduct(CartesianProduct):
         self._prefix1 = prefix1
         self._print_tuple = print_tuple
         self._category = category
-        CartesianProduct.__init__(self, (G,H), category=category)
+        CartesianProduct.__init__(self, (G, H), category=category)
 
     def act_to_right(self):
         return self._act_to_right
@@ -170,11 +169,11 @@ class GroupSemidirectProduct(CartesianProduct):
             act_string = "acting on"
         else:
             act_string = "acted upon by"
-        return "Semidirect product of %s %s %s"%(cartesian_factors[0],act_string, cartesian_factors[1])
+        return "Semidirect product of %s %s %s" % (cartesian_factors[0], act_string, cartesian_factors[1])
 
     def _element_constructor_(self, x):
         def type_error():
-            raise TypeError, "%s cannot be converted into an element of %s"%(x,self)
+            raise TypeError("%s cannot be converted into an element of %s" % (x, self))
 
         if isinstance(x, self.element_class) and x.parent() == self:
             return x
@@ -233,7 +232,6 @@ class GroupSemidirectProduct(CartesianProduct):
             True
 
         """
-
         return GroupSemidirectProduct(self.cartesian_factors()[1], self.cartesian_factors()[0], twist=self._twist, act_to_right = not self.act_to_right(), prefix0 = self._prefix1, prefix1 = self._prefix0, print_tuple = self._print_tuple, category=self._category)
 
 GroupSemidirectProduct.Element = GroupSemidirectProductElement

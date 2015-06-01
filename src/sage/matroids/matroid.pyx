@@ -1,3 +1,4 @@
+# cython: profile=True
 # -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
@@ -4735,6 +4736,7 @@ cdef class Matroid(SageObject):
             return True, None
         else:
             return True
+
     cpdef is_3connected_beta(self, separation=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
@@ -4787,43 +4789,44 @@ cdef class Matroid(SageObject):
         """
         # The 5 stages of the algorithm
         # Stage 0, special cases
-        if (self.size() <= 1 or
-            self.is_isomorphic(sage.matroids.catalog.Uniform(1,2)) or
-            self.is_isomorphic(sage.matroids.catalog.Uniform(1,3)) or
-            self.is_isomorphic(sage.matroids.catalog.Uniform(2,3))):
+        if self.size() <= 1:
             return True
-        if not (self.is_simple() and self.is_cosimple() and self.is_connected()):
-        #    print "Fail step 0"
+        if self.size() <= 3 and self.full_rank()==1 and not self.loops():
+            return True
+        if self.size() <= 3 and self.full_corank()==1 and not self.coloops():
+            return True
+        # testing loop and coloop are fast operations, hence apply them first
+        if self.loops() or self.coloops():
             return False
+        if not (self.is_connected() and self.is_simple() and self.is_cosimple()):
+            return False
+        basis = self.basis()
+        fund_cocircuits = [self.fundamental_cocircuit(basis, e) for e in basis]
+        return self._is_3connected_beta(self.basis(), fund_cocircuits, separation)
+
+    cpdef _is_3connected_beta(self, basis, fund_cocircuits, separation=False):
         # Step 1: base case
         if self.rank() <= 2:
             return True
-
         # Step 2: Find a separating B-fundamental cocircuit Y
-        basis = self.basis()
-        # print "basis", basis
         separating = False
-        for e in basis:
-            Y = self.fundamental_cocircuit(basis, e)
-            # Y is separating if M\Y is not connected
-            if not self.delete(Y).is_connected():
-                # print "Y", Y
+        while fund_cocircuits:
+            Y = fund_cocircuits.pop()
+            if not self.delete(Y).is_connected(): # O(r(M)|E|) time.
                 separating = True
                 break
-        if not separating :
+        if not separating:
             return True
 
         # Step 3: Check the avoidance graph of Y
         N = self.delete(Y)
         bridges = N.components()
-        # print "N",N
-        # print "bridges", bridges
-        Y_components = []
+        Y_components = {}
         B_segments   = []
         for B in bridges:
             # M is a Y-component if M/ (E\(B union Y))
             M = self.contract(self.groundset().difference(B.union(Y)))
-            Y_components.append(M)
+            Y_components[B] = M
             s = set(M.groundset().copy())
             parallel_classes = []
             while len(s)>0:
@@ -4833,9 +4836,8 @@ cdef class Matroid(SageObject):
                     if M.is_circuit([e,f]):
                         parallel_class.add(f)
                 s -= parallel_class
-                parallel_classes.append(parallel_class)
-            B_segments.append(parallel_classes)
-        # print B_segments
+                parallel_classes.append(frozenset(parallel_class))
+            B_segments.append(frozenset(parallel_classes))
         # build the avoidance graph
         d = {}
         for i in range(len(B_segments)):
@@ -4851,14 +4853,14 @@ cdef class Matroid(SageObject):
                     if not avoid:
                         d[i].append(j)
         G = Graph(d);
-        # print G
         if not G.is_connected():
-        #    print "Fail Step 3"
             return False
         # Step 4: Apply algorithm recursively
-        for M in Y_components:
-            if not M.simplify().is_3connected_beta():
-        #        print "Fail step 4"
+        for B, M in Y_components.iteritems():
+            N = M.simplify()
+            cocirc = [x for x in fund_cocircuits if N.groundset() >= x]
+            fund_cocircuits = [x for x in fund_cocircuits if not (N.groundset() >= x)]
+            if not N._is_3connected_beta(basis.intersection(B.union(Y)),cocirc):
                 return False
         return True
 

@@ -34,6 +34,7 @@
 #include <vector>
 #include <list>
 #include <memory>
+#include <bits/algorithmfwd.h>
 
 namespace GiNaC {
 
@@ -373,21 +374,22 @@ protected:
 	ex conjugate() const
 	{
 		STLT *newcont = nullptr;
-		for (auto i=this->seq.begin(); i!=this->seq.end(); ++i) {
+		for (const auto & elem : this->seq) {
+			const ex conj = elem.conjugate();
 			if (newcont) {
-				newcont->push_back(i->conjugate());
+				newcont->push_back(conj);
 				continue;
 			}
-			ex x = i->conjugate();
-			if (are_ex_trivially_equal(x, *i)) {
+			if (are_ex_trivially_equal(conj, elem)) {
 				continue;
 			}
 			newcont = new STLT;
 			this->reserve(*newcont, this->seq.size());
-			for (auto j=this->seq.begin(); j!=i; ++j) {
-				newcont->push_back(*j);
+			for (const auto & elem2 : this->seq) {
+				if (&elem2 != &elem)
+					newcont->push_back(elem2);
 			}
-			newcont->push_back(x);
+			newcont->push_back(conj);
 		}
 		if (newcont) {
 			ex result = thiscontainer(*newcont);
@@ -626,14 +628,14 @@ bool container<C>::is_equal_same_type(const basic & other) const
 	if (this->seq.size() != o.seq.size())
 		return false;
 
-	auto it1 = this->seq.begin(), it1end = this->seq.end(), it2 = o.seq.begin();
-	while (it1 != it1end) {
-		if (!it1->is_equal(*it2))
-			return false;
-		++it1; ++it2;
-	}
+        auto it1 = this->seq.begin(), it1end = this->seq.end(), it2 = o.seq.begin();
+        while (it1 != it1end) {
+                if (!it1->is_equal(*it2))
+                        return false;
+                ++it1; ++it2;
+       }
 
-	return true;
+       return true;
 }
 
 /** Add element at front. */

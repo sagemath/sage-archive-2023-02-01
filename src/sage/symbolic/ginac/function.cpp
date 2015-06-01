@@ -577,13 +577,12 @@ function::function(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 	if (n.find_string("name", s)) {
 		unsigned int ser = 0;
 		unsigned int nargs = seq.size();
-		std::vector<function_options>::const_iterator i = registered_functions().begin(), iend = registered_functions().end();
-		while (i != iend) {
-			if (s == i->name && nargs == i->nparams) {
+                for (const auto & elem : registered_functions()) {
+			if (s == elem.name && nargs == elem.nparams) {
 				serial = ser;
 				return;
 			}
-			++i; ++ser;
+			++ser;
 		}
 		// if the name is not already in the registry, we are
 		// unarchiving a SymbolicFunction without any custom methods
@@ -842,11 +841,8 @@ ex function::evalf(int level, PyObject* kwds) const
 	else {
 		eseq.reserve(seq.size());
 		--level;
-		auto it = seq.begin(), itend = seq.end();
-		while (it != itend) {
-			eseq.push_back(it->evalf(level, kwds));
-			++it;
-		}
+                for (const auto & elem : seq)
+			eseq.push_back(elem.evalf(level, kwds));
 	}
 
 	if (opt.evalf_f==nullptr) {
@@ -1480,12 +1476,10 @@ unsigned function::register_new(function_options const & opt)
  *  Throws exception if function was not found. */
 unsigned function::find_function(const std::string &name, unsigned nparams)
 {
-	std::vector<function_options>::const_iterator i = function::registered_functions().begin(), end = function::registered_functions().end();
 	unsigned serial = 0;
-	while (i != end) {
-		if (i->get_name() == name && i->get_nparams() == nparams)
+        for (const auto & elem : registered_functions()) {
+		if (elem.get_name() == name && elem.get_nparams() == nparams)
 			return serial;
-		++i;
 		++serial;
 	}
 	throw (std::runtime_error("no function '" + name + "' with " + ToString(nparams) + " parameters defined"));

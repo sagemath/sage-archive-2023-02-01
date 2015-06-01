@@ -156,17 +156,17 @@ void class_info<OPT>::dump_hierarchy(bool verbose)
 
 	// Identify children for all nodes and find the root
 	tree_node *root = NULL;
-	for (typename std::vector<tree_node>::iterator i = tree.begin(); i != tree.end(); ++i) {
-		class_info *p = i->info->get_parent();
+	for (const auto & elem : tree) {
+		class_info *p = elem.info->get_parent();
 		if (p) {
-			for (typename std::vector<tree_node>::iterator j = tree.begin(); j != tree.end(); ++j) {
-				if (j->info == p) {
-					j->add_child(&*i);
+			for (const auto & elem1 : tree) {
+				if (elem1.info == p) {
+					elem1.add_child(&elem);
 					break;
 				}
 			}
 		} else
-			root = &*i;
+			root = &elem;
 	}
 
 	// Print hierarchy tree starting at the root

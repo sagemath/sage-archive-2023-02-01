@@ -377,13 +377,13 @@ ex basic::collect(const ex & s, bool distributed) const
 
 			exmap cmap;
 			cmap[_ex1] = _ex0;
-			for (const_iterator xi=x.begin(); xi!=x.end(); ++xi) {
+                        for (const auto & xelem : x) {
 				ex key = _ex1;
-				ex pre_coeff = *xi;
-				for (const auto & elem : l) {
-					int cexp = pre_coeff.degree(elem);
-					pre_coeff = pre_coeff.coeff(elem, cexp);
-					key *= pow(elem, cexp);
+                                ex pre_coeff = xelem;
+				for (const auto & lelem : l) {
+					int cexp = pre_coeff.degree(lelem);
+					pre_coeff = pre_coeff.coeff(lelem, cexp);
+					key *= pow(lelem, cexp);
 				}
 				auto ci = cmap.find(key);
 				if (ci != cmap.end())
@@ -393,8 +393,8 @@ ex basic::collect(const ex & s, bool distributed) const
 			}
 
 			exvector resv;
-			for (exmap::const_iterator mi=cmap.begin(); mi != cmap.end(); ++mi)
-				resv.push_back((mi->first)*(mi->second));
+                        for (const auto & elem : cmap)
+				resv.push_back((elem.first) * (elem.second));
 			return (new add(resv))->setflag(status_flags::dynallocated);
 
 		} else {
@@ -608,10 +608,10 @@ ex basic::subs_one_level(const exmap & m, unsigned options) const
 			return it->second;
 		return thisex;
 	} else {
-		for (it = m.begin(); it != m.end(); ++it) {
+                for (const auto & elem : m) {
 			lst repl_lst;
-			if (match(ex_to<basic>(it->first), repl_lst))
-				return it->second.subs(repl_lst, options | subs_options::no_pattern); // avoid infinite recursion when re-substituting the wildcards
+			if (match(ex_to<basic>(elem.first), repl_lst))
+				return elem.second.subs(repl_lst, options | subs_options::no_pattern); // avoid infinite recursion when re-substituting the wildcards
 		}
 	}
 

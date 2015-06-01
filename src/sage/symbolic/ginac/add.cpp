@@ -333,21 +333,19 @@ ex add::coeff(const ex & s, int n) const
 	bool nonscalar = false;
 
 	// Calculate sum of coefficients in each term
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		ex restcoeff = i->rest.coeff(s, n);
+        for (const auto & elem : seq) {
+		ex restcoeff = elem.rest.coeff(s, n);
  		if (!restcoeff.is_zero()) {
  			if (do_clifford) {
  				if (clifford_max_label(restcoeff) == -1) {
- 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(ncmul(restcoeff, dirac_ONE(rl)), i->coeff));
+ 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
 				} else {
- 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(restcoeff, i->coeff));
+ 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
 					nonscalar = true;
  				}
 			}
-			coeffseq->push_back(combine_ex_with_coeff_to_pair(restcoeff, i->coeff));
+			coeffseq->push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
 		}
-		++i;
 	}
 
 	return (new add(std::move(nonscalar ? coeffseq_cliff : coeffseq),
@@ -371,13 +369,11 @@ ex add::eval(int level) const
 	}
 	
 #ifdef DO_GINAC_ASSERT
-	epvector::const_iterator i = seq.begin(), end = seq.end();
-	while (i != end) {
-		GINAC_ASSERT(!is_exactly_a<add>(i->rest));
-		if (is_exactly_a<numeric>(i->rest))
+        for (const auto & elem : seq) {
+		GINAC_ASSERT(!is_exactly_a<add>(elem.rest));
+		if (is_exactly_a<numeric>(elem.rest))
 			dbgprint();
-		GINAC_ASSERT(!is_exactly_a<numeric>(i->rest));
-		++i;
+		GINAC_ASSERT(!is_exactly_a<numeric>(elem.rest));
 	}
 #endif // def DO_GINAC_ASSERT
 	
@@ -388,9 +384,9 @@ ex add::eval(int level) const
 	}
 		
 	// handle infinity
-	for (auto i = seq.begin(); i != seq.end(); i++)
-		if (unlikely(is_exactly_a<infinity>(i->rest)))
-			return eval_infinity(i);
+        for (auto i = seq.begin(); i != seq.end(); i++)
+                if (unlikely(is_exactly_a<infinity>(i->rest)))
+                        return eval_infinity(i);
 
 	/** Perform automatic term rewriting rules */
 	int seq_size = seq.size();
@@ -407,18 +403,18 @@ ex add::eval(int level) const
 	// if any terms in the sum still are purely numeric, then they are more
 	// appropriately collected into the overall coefficient
 	int terms_to_collect = 0;
-	for (auto j = seq.begin(); j != seq.end(); j++)
-		if (unlikely(is_a<numeric>(j->rest)))
+	for (const auto & elem : seq)
+		if (unlikely(is_a<numeric>(elem.rest)))
 			++terms_to_collect;
 	if (terms_to_collect) {
 		std::unique_ptr<epvector> s(new epvector);
 		s->reserve(seq_size - terms_to_collect);
 		numeric oc = *_num0_p;
-		for (auto j = seq.begin(); j != seq.end(); j++)
-			if (unlikely(is_a<numeric>(j->rest)))
-				oc = oc.add((ex_to<numeric>(j->rest)).mul(ex_to<numeric>(j->coeff)));
+                for (const auto & elem : seq)
+			if (unlikely(is_a<numeric>(elem.rest)))
+				oc = oc.add((ex_to<numeric>(elem.rest)).mul(ex_to<numeric>(elem.coeff)));
 			else
-				s->push_back(*j);
+				s->push_back(elem);
 		return (new add(std::move(s), ex_to<numeric>(overall_coeff).add_dyn(oc)))
 		        ->setflag(status_flags::dynallocated);
 	}
@@ -466,9 +462,8 @@ ex add::evalm() const
 	bool first_term = true;
 	matrix sum;
 
-	auto it = seq.begin(), itend = seq.end();
-	while (it != itend) {
-		const ex &m = recombine_pair_to_ex(*it).evalm();
+	for (const auto & elem : seq) {
+		const ex &m = recombine_pair_to_ex(elem).evalm();
 		s->push_back(split_ex_to_pair(m));
 		if (is_a<matrix>(m)) {
 			if (first_term) {
@@ -478,7 +473,6 @@ ex add::evalm() const
 				sum = sum.add(ex_to<matrix>(m));
 		} else
 			all_matrices = false;
-		++it;
 	}
 
 	if (all_matrices)
@@ -569,11 +563,8 @@ ex add::derivative(const symbol & y) const
 	// Only differentiate the "rest" parts of the expairs. This is faster
 	// than the default implementation in basic::derivative() although
 	// if performs the same function (differentiate each term).
-	auto i = seq.begin(), end = seq.end();
-	while (i != end) {
-		s->push_back(combine_ex_with_coeff_to_pair(i->rest.diff(y), i->coeff));
-		++i;
-	}
+	for (const auto & elem : seq)
+		s->push_back(combine_ex_with_coeff_to_pair(elem.rest.diff(y), elem.coeff));
 	return (new add(std::move(s), _ex0))->setflag(status_flags::dynallocated);
 }
 

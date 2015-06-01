@@ -659,19 +659,19 @@ ex power::eval(int level) const
 
                                 if (canonicalizable && (icont != *_num1_p)) {
                                         const add& addref = ex_to<add>(ebasis);
-                                        add newadd = addref;
-                                        newadd.setflag(status_flags::dynallocated);
-                                        newadd.clearflag(status_flags::hash_calculated);
-                                        newadd.overall_coeff = ex_to<numeric>(newadd.overall_coeff).div_dyn(icont);
-                                        newadd.seq_sorted.resize(0);
-                                        for (auto & elem : newadd.seq)
+                                        auto  addp = new add(addref);
+                                        addp->setflag(status_flags::dynallocated);
+                                        addp->clearflag(status_flags::hash_calculated);
+                                        addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
+                                        addp->seq_sorted.resize(0);
+                                        for (auto & elem : addp->seq)
                                                 elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont);
 
                                         const numeric c = icont.power(num_exponent);
                                         if (likely(c != *_num1_p))
-                                                return (new mul(power(newadd, num_exponent), c))->setflag(status_flags::dynallocated);
+                                                return (new mul(power(*addp, num_exponent), c))->setflag(status_flags::dynallocated);
                                         else
-                                                return power(newadd, num_exponent);
+                                                return power(*addp, num_exponent);
                                 }
                         }
                 }
@@ -798,11 +798,14 @@ ex power::subs(const exmap & m, unsigned options) const
 	if (!(options & subs_options::algebraic))
 		return subs_one_level(m, options);
 
-	for (auto it = m.begin(); it != m.end(); ++it) {
+        for (const auto & elem : m) {
 		int nummatches = std::numeric_limits<int>::max();
 		lst repls;
-		if (tryfactsubs(*this, it->first, nummatches, repls))
-			return (ex_to<basic>((*this) * power(it->second.subs(ex(repls), subs_options::no_pattern) / it->first.subs(ex(repls), subs_options::no_pattern), nummatches))).subs_one_level(m, options);
+		if (tryfactsubs(*this, elem.first, nummatches, repls))
+			return (ex_to<basic>((*this) * power(elem.second.subs(ex(repls),
+                                subs_options::no_pattern) / elem.first.subs(ex(repls),
+                                subs_options::no_pattern),
+                                nummatches))).subs_one_level(m, options);
 	}
 
 	return subs_one_level(m, options);
@@ -954,21 +957,18 @@ ex power::expand(unsigned options) const
 		epvector powseq;
 		prodseq.reserve(m.seq.size() + 1);
 		powseq.reserve(m.seq.size() + 1);
-		auto last = m.seq.end();
-		auto cit = m.seq.begin();
 		bool possign = true;
 
 		// search for positive/negative factors
-		while (cit!=last) {
-			ex e=m.recombine_pair_to_ex(*cit);
+                for (const auto & elem : m.seq) {
+			const ex& e = m.recombine_pair_to_ex(elem);
 			if (e.info(info_flags::positive))
 				prodseq.push_back(pow(e, exponent).expand(options));
 			else if (e.info(info_flags::negative)) {
 				prodseq.push_back(pow(-e, exponent).expand(options));
 				possign = !possign;
 			} else
-				powseq.push_back(*cit);
-			++cit;
+				powseq.push_back(elem);
 		}
 
 		// take care on the numeric coefficient
@@ -999,12 +999,8 @@ ex power::expand(unsigned options) const
 		const add &a = ex_to<add>(expanded_exponent);
 		exvector distrseq;
 		distrseq.reserve(a.seq.size() + 1);
-		auto last = a.seq.end();
-		auto cit = a.seq.begin();
-		while (cit!=last) {
-			distrseq.push_back(power(expanded_basis, a.recombine_pair_to_ex(*cit)));
-			++cit;
-		}
+                for (const auto & elem : a.seq)
+			distrseq.push_back(power(expanded_basis, a.recombine_pair_to_ex(elem)));
 		
 		// Make sure that e.g. (x+y)^(2+a) expands the (x+y)^2 factor
 		if (ex_to<numeric>(a.overall_coeff).is_integer()) {
@@ -1201,11 +1197,8 @@ ex power::expand_add_2(const add & a, unsigned options) const
 	
 	// second part: add terms coming from overall_factor (if != 0)
 	if (!a.overall_coeff.is_zero()) {
-		auto i = a.seq.begin(), end = a.seq.end();
-		while (i != end) {
-			sum.push_back(a.combine_pair_with_coeff_to_pair(*i, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
-			++i;
-		}
+                for (const auto & elem : a.seq)
+			sum.push_back(a.combine_pair_with_coeff_to_pair(elem, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));
 		sum.push_back(expair(ex_to<numeric>(a.overall_coeff).power_dyn(*_num2_p),_ex1));
 	}
 	
@@ -1244,17 +1237,14 @@ ex power::expand_mul(const mul & m, const numeric & n, unsigned options, bool fr
 	distrseq.reserve(m.seq.size());
 	bool need_reexpand = false;
 
-	auto last = m.seq.end();
-	auto cit = m.seq.begin();
-	while (cit!=last) {
-		expair p = m.combine_pair_with_coeff_to_pair(*cit, n);
-		if (from_expand && is_exactly_a<add>(cit->rest) && ex_to<numeric>(p.coeff).is_pos_integer()) {
+        for (const auto & elem : m.seq) {
+		expair p = m.combine_pair_with_coeff_to_pair(elem, n);
+		if (from_expand && is_exactly_a<add>(elem.rest) && ex_to<numeric>(p.coeff).is_pos_integer()) {
 			// this happens when e.g. (a+b)^(1/2) gets squared and
 			// the resulting product needs to be reexpanded
 			need_reexpand = true;
 		}
 		distrseq.push_back(p);
-		++cit;
 	}
 
 	const mul & result = static_cast<const mul &>((new mul(distrseq, ex_to<numeric>(m.overall_coeff).power_dyn(n)))->setflag(status_flags::dynallocated));

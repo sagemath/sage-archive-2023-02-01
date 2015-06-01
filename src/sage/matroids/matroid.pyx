@@ -4801,7 +4801,7 @@ cdef class Matroid(SageObject):
         if not (self.is_connected() and self.is_simple() and self.is_cosimple()):
             return False
         basis = self.basis()
-        fund_cocircuits = [self.fundamental_cocircuit(basis, e) for e in basis]
+        fund_cocircuits = set([self.fundamental_cocircuit(basis, e) for e in basis])
         return self._is_3connected_beta(self.basis(), fund_cocircuits, separation)
 
     cpdef _is_3connected_beta(self, basis, fund_cocircuits, separation=False):
@@ -4809,6 +4809,10 @@ cdef class Matroid(SageObject):
         if self.rank() <= 2:
             return True
         # Step 2: Find a separating B-fundamental cocircuit Y
+
+        cand_cocircuits = frozenset([self.fundamental_cocircuit(basis, e) for e in basis])
+        fund_cocircuits = set(fund_cocircuits & cand_cocircuits)
+
         separating = False
         while fund_cocircuits:
             Y = fund_cocircuits.pop()
@@ -4847,8 +4851,11 @@ cdef class Matroid(SageObject):
                     # avoidance check
                     avoid = False
                     for S in B_segments[i]:
-                        if Y.difference(S) in B_segments[j]:
-                            avoid = True
+                        for T in B_segments[j]:
+                            if Y.difference(S) <= T:
+                                avoid = True
+                                break
+                        if avoid:
                             break
                     if not avoid:
                         d[i].append(j)
@@ -4858,8 +4865,7 @@ cdef class Matroid(SageObject):
         # Step 4: Apply algorithm recursively
         for B, M in Y_components.iteritems():
             N = M.simplify()
-            cocirc = [x for x in fund_cocircuits if N.groundset() >= x]
-            fund_cocircuits = [x for x in fund_cocircuits if not (N.groundset() >= x)]
+            cocirc = frozenset([x.intersection(N.groundset()) for x in fund_cocircuits])
             if not N._is_3connected_beta(basis.intersection(B.union(Y)),cocirc):
                 return False
         return True

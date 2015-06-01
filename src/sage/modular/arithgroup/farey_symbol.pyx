@@ -254,9 +254,37 @@ cdef class Farey:
 
     @cached_method
     def _get_dict_of_generators(self):
-        E = SL2Z([-1,0,0,-1])
+        r"""
+        Obtain a dict indexed by the generators.
+
+        OUTPUT:
+
+        A dict of key-value pairs (g,i+1) and (-g,i+1) (the latter one -I belongs to self),
+        where the i-th generator is g.
+
+        EXAMPLES::
+
+            sage: G = Gamma1(30)
+            sage: F = G.farey_symbol()
+            sage: dict_gens = F._get_dict_of_generators()
+            sage: g = F.generators()[5]
+            sage: dict_gens[g] # Note that the answer is 1-based.
+            6
+
+        The dict also contains -g if -I belongs to the arithmetic group::
+
+            sage: G = Gamma0(20)
+            sage: F = G.farey_symbol()
+            sage: dict_gens = F._get_dict_of_generators()
+            sage: E = G([-1,0,0,-1])
+            sage: h = F.generators()[7] * E
+            sage: dict_gens[h]
+            8
+        """
         ans = {g:i+1 for i,g in enumerate(self.generators())}
-        ans.update({(g * E):i+1 for i,g in enumerate(self.generators())})
+        E = SL2Z([-1,0,0,-1])
+        if E in self.group:
+            ans.update({(g * E):i+1 for i,g in enumerate(self.generators())})
         return ans
 
     def word_problem(self, M, output = 'standard'):
@@ -320,9 +348,9 @@ cdef class Farey:
             sage: F.word_problem(g, output = 'syllables')
             ((3, 1), (10, 2), (8, -1), (5, 1))
 
-        TESTS::
+        TESTS:
 
-        Check that problem with forgotten generator is fixed.
+        Check that problem with forgotten generator is fixed::
 
             sage: G = Gamma0(10)
             sage: F = G.farey_symbol()

@@ -111,12 +111,12 @@ cdef class CVXOPTBackend(GenericBackend):
             0
             sage: p.ncols()
             1
-            sage: p.add_variable(binary=True)
+            sage: p.add_variable()
             1
-            sage: p.add_variable(lower_bound=-2.0, integer=True)
+            sage: p.add_variable(lower_bound=-2.0)
             2
-            sage: p.add_variable(continuous=True, integer=True)
-            3 
+            sage: p.add_variable(continuous=True)
+            3
             sage: p.add_variable(name='x',obj=1.0)
             4
             sage: p.col_name(3)
@@ -125,9 +125,22 @@ cdef class CVXOPTBackend(GenericBackend):
             'x'
             sage: p.objective_coefficient(4)
             1.00000000000000
+
+        TESTS::
+
+            sage: p.add_variable(integer=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: CVXOPT only supports continuous variables
+            sage: p.add_variable(binary=True)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: CVXOPT only supports continuous variables
         """
         if obj == None:
             obj = 0.0
+        if binary or integer:
+            raise RuntimeError("CVXOPT only supports continuous variables")
         self.G_matrix.append([0 for i in range(self.nrows())])
         self.col_lower_bound.append(lower_bound)
         self.col_upper_bound.append(upper_bound)

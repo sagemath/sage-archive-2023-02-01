@@ -481,7 +481,16 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: (Category of rings,) is not a subcategory of Join of Category of groups and Category of posets
+
+        ::
+
+            sage: G = agg.GenericGrowthGroup('42')
+            Traceback (most recent call last):
+            ...
+            TypeError: 42 is not a valid base
         """
+        if not hasattr(base, 'an_element'):
+            raise TypeError('%s is not a valid base' % (base,))
         from sage.categories.groups import Groups
         from sage.categories.posets import Posets
 
@@ -1073,13 +1082,20 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Monomial Growth Group in y over Integer Ring
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
             Monomial Growth Group in log(x) over Rational Field
+
+        TESTS::
+
+            sage: agg.MonomialGrowthGroup('x', ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: x is not a valid base
         """
         if not var:
             raise ValueError('Empty var is not allowed.')
         if var[0] in '0123456789=+-*/^%':
             # This restriction is mainly for optical reasons on the
             # representation. Feel free to relax this if needed.
-            raise ValueError('The inapproproate variable name %s.' % (var,))
+            raise ValueError('The variable name %s is inappropriate.' % (var,))
         self._var_ = var
 
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)

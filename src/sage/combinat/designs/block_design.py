@@ -304,15 +304,20 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
 
     # the line at infinity "z = 0"
     blcks.append(range(n2,n2+n+1))
-
+    if check:
+        from designs_pyx import is_projective_plane
+        if not is_projective_plane(blcks):
+            raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
     return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, check=check)
 
 def random_q3_minus_one_matrix(K):
     r"""
     Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
+    
+    Intended to be used in `HughesPlane`
 
     EXAMPLES::
-
+        sage: from sage.combinat.designs.block_design import random_q3_minus_one_matrix
         sage: m = random_q3_minus_one_matrix(GF(3))
         sage: m.multiplicative_order() == 3**3 - 1
         True
@@ -353,6 +358,8 @@ def normalize_hughes_plane_point(p,K,q):
     r"""
     Return the normalized form of point (x,y,z).
 
+    Intended to be used in `HughesPlane`.
+
     For all integer k non-zero, (x,y,z)k refers to the same point.
 
     For the normalized form, the last non-zero coordinate must be 1.
@@ -369,20 +376,20 @@ def normalize_hughes_plane_point(p,K,q):
     List of the coordinates from the normalized form of p
 
     EXAMPLE::
-
+        sage: from sage.combinat.designs.block_design import normalize_hughes_plane_point
         sage: K=FiniteField(9,'x')
         sage: p=(K('x'),K('x+1'),K('x'))
         sage: normalize_hughes_plane_point(p,K,9)
-        [1, x, 1]
+        (1, x, 1)
         sage: q=vector((K('x'),K('x'),K('x')))
         sage: normalize_hughes_plane_point(q,K,9)
-        [1, 1, 1]
+        (1, 1, 1)
         sage: s=(K('2*x+2'), K(0), K(0))
         sage: normalize_hughes_plane_point(s,K,9)
-        [1, 0, 0]
+        (1, 0, 0)
         sage: t=[K('2*x'),K(1),K(0)]
         sage: normalize_hughes_plane_point(t,K,9)
-        [2*x, 1, 0]
+        (2*x, 1, 0)
 
     """        
     for i in [2,1,0]:
@@ -395,37 +402,95 @@ def normalize_hughes_plane_point(p,K,q):
             else:
                 return ((p[0] * k)**q,(p[1]*k)**q,(p[2]*k)**q)
         
-def HughesPlane(n2):
+def HughesPlane(n2, check=True):
     r"""
     Return Hughes projective plane of order `n2`.
 
     For p an odd prime.
-    If kernel K of order p^n coincides with the center of a nearfiekd N.
-    The construction of a Hughes plane is based on N of order p^2n.
-    For more information, look at :wikipedia:`Hughes_plane`.
-    
+    If kernel K of order `p^n` coincides with the center of a nearfield N.
+    The construction of a Hughes plane is based on N of order `p^2n`.
+    Here, we define the multiplication on the nearfield N by:
+        `x \circ y = x . y`      if y is a square in K
+
+        `x \circ y = x^q . y`    if y is not a square in K 
+    For each matrix in GL(3, GF(n)) such that `A^{n^2 + n + 1} = kI`, but no
+    smaller power of A has this property, we can construct the same Hughes
+    plane of order `n2`.
+    For each `a \in N \backslash GF(n)`  or `a = 1`, we find the line L(a) which is the
+    set of points satisfying `x + a \circ y + z = 0`. Then we construct a set 
+    of lines for each a : {`{A^k * L(a) | 0 \subseteq k \subseteq n^2 + n}`} 
+
+    REFERENCES:
+
+    .. [a] Hughes Plane from wikipedia,
+    :wikipedia:`Hughes_plane`.
+
+    .. [b] A class of non-Desarguesian projective planes,
+    http://cms.math.ca/cjm/v9/p378 (in 'The Canadian Journal of Mathematics'
+    by Daniel R. Hughes)
+
     INPUT:
 
     - ``n2`` -- an integer which must be an odd square
 
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
+
     EXAMPLES::
     
-        sage: HughesPlane(9)
-        Incidence structure with 91 points and 91 blocks
-        sage: HughesPlane(9).is_projective_plane()
+        sage: H = designs.HughesPlane(9)
+        sage: from sage.combinat.designs.designs_pyx import is_projective_plane
+        sage: is_projective_plane(H.blocks())
         True
 
-        sage: HughesPlane(5)
+        # We want to show that Hughes planes are non-desarguesian planes
+        # We choose two triangles (0, 1, 10) and (57, 70, 59)
+        sage: H.blocks()[0]; H.blocks()[23]
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 81]
+        [2, 13, 23, 35, 36, 46, 57, 70, 78, 87]
+        sage: 2 in H.blocks()[0] and 2 in H.blocks()[23]
+        True
+        sage: H.blocks()[11]; H.blocks()[58]
+        [1, 10, 19, 28, 37, 46, 55, 64, 73, 90]
+        [6, 12, 22, 29, 44, 45, 59, 70, 73, 88]
+        sage: 73 in H.blocks()[11] and 73 in H.blocks()[58]
+        True
+        sage: H.blocks()[2]; H.blocks()[87]
+        [0, 10, 20, 30, 40, 50, 60, 70, 80, 89]
+        [54, 55, 56, 57, 58, 59, 60, 61, 62, 81]
+        sage: 60 in H.blocks()[2] and 60 in H.blocks()[87]
+        True
+        sage: H.blocks()[27]
+        [2, 17, 18, 32, 43, 48, 60, 67, 73, 85]
+
+        # Sides of the triangles meet at aligned points
+        # HughesPlane(9) is a non-desarguesian projective plane
+        
+        sage: H.blocks()[9]; H.blocks()[16]; H.blocks()[2]
+        [0, 17, 25, 29, 37, 49, 57, 69, 77, 82]
+        [1, 15, 26, 31, 41, 48, 56, 70, 72, 82]
+        [0, 10, 20, 30, 40, 50, 60, 70, 80, 89]
+        sage: for p in H.blocks()[9]:
+        ....:     if p in H.blocks()[16] and p in H.blocks()[2]:
+        ....:         print p
+        ....: 
+
+        # Lines through vertices are not concurrent
+
+        sage: designs.HughesPlane(5)
         Traceback (most recent call last):
         ...
         EmptySetError: No Hughes plane of non-square order exists.
 
-        sage: HughesPlane(16)
+        sage: designs.HughesPlane(16)
         Traceback (most recent call last):
         ...
         EmptySetError: No Hughes plane of even order exists.
 
     """
+    
     if not n2.is_square():
         raise EmptySetError("No Hughes plane of non-square order exists.")
     if n2%2 == 0:
@@ -456,6 +521,10 @@ def HughesPlane(n2):
             for i in range(n2 + n):
                 l = [A*j for j in l]
                 blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
+    if check:
+        from designs_pyx import is_projective_plane
+        if not is_projective_plane(blcks):
+            raise RuntimeError('There is a problem in the function HughesPlane')
     return IncidenceStructure(n2**2+n2+1, blcks, name="Hughes projective plane of order %d"%n2)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):

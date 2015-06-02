@@ -523,7 +523,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             [word: , word: 0, word: 01]
 
             sage: W = ComplexReflectionGroup((1,1,4))
-            sage: sorted([ w.reduced_word() for w in W.conjugacy_classes_representatives() ])
+            sage: sorted([ w.reduced_word() for w in W.conjugacy_classes_representatives() ]) # random
             [word: , word: 0, word: 01, word: 012, word: 20]
 
             sage: W = ComplexReflectionGroup((3,1,2))
@@ -926,9 +926,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             sage: W = ComplexReflectionGroup((3,1,2))
             sage: W.fundamental_invariants()
-
-            sage: W = ComplexReflectionGroup(31)
-            sage: W.fundamental_invariants()
+            [x0^3 + x1^3, x0^3*x1^3]
         """
         from sage.rings.polynomial.all import PolynomialRing
 

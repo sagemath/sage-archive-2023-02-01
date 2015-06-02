@@ -37,6 +37,28 @@ from sage.sets.cartesian_product import CartesianProductPosets
 class CartesianProductGrowthGroups(CartesianProductPosets):
     r"""
     A cartesian product of growth groups.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+        sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: C = cartesian_product([P, L], order='lex'); C
+        Growth Group x^QQ * log(x)^ZZ
+        sage: C.an_element()
+        x^(1/2) * log(x)
+
+    ::
+
+        sage: Px = agg.MonomialGrowthGroup(QQ, 'x')
+        sage: Lx = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: Cx = cartesian_product([Px, Lx], order='lex')
+        sage: Py = agg.MonomialGrowthGroup(QQ, 'y')
+        sage: C = cartesian_product([Cx, Py], order='components'); C
+        Growth Group x^QQ * log(x)^ZZ * y^QQ
+        sage: C.an_element()
+        x^(1/2) * log(x) * y^(1/2)
+
     .. SEEALSO:
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,

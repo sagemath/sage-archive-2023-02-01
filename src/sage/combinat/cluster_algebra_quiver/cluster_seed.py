@@ -609,9 +609,9 @@ class ClusterSeed(SageObject):
         r"""
         Returns the ``k``-th *d-vector* of ``self``. This is the exponent vector
         of the denominator of the ``k``-th cluster variable.
-    
+
         EXAMPLES::
-    
+
             sage: S = ClusterSeed(['A',3])
             sage: S.mutate([2,1,2])
             sage: [ S.d_vector(k) for k in range(3) ]
@@ -627,17 +627,16 @@ class ClusterSeed(SageObject):
         r"""
         Returns the matrix of all *d-vectors* of ``self``.  This is the matrix
         having as columns the exponent vectors of the denominator of the cluster
-        variables of ``self``.. 
-    
+        variables of ``self``.
+
         EXAMPLES::
-    
+
             sage: S = ClusterSeed(['A',3])
             sage: S.mutate([2,1,2])
             sage: S.d_matrix()
             [-1  0  0]
             [ 0  1  1]
             [ 0  1  0]
-    
         """
         from sage.matrix.all import matrix
         D = [ self.d_vector(i) for i in range(self._n) ]

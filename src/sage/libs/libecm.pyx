@@ -80,8 +80,15 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
         sage: N = 2^167 - 1
         sage: factor(N)
         2349023 * 79638304766856507377778616296087448490695649
-        sage: ecmfactor(N, 2e5)
-        (True, 2349023)
+        sage: ecmfactor(N, 2e5)  # random
+        (True, 2349023, 1473308225)
+
+    If a factor was found, we can reproduce the factorization with the same
+    sigma value::
+
+        sage: N = 2^167 - 1
+        sage: ecmfactor(N, 2e5, sigma=1473308225)
+        (True, 2349023, 1473308225)
 
     With a smaller B1 bound, we may or may not succeed::
 
@@ -105,17 +112,17 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
         sage: factor(N)
         359 * 1433 * 1489459109360039866456940197095433721664951999121
         sage: ecmfactor(N, 1e3)  # random
-        (True, 514447)
+        (True, 514447, 3475102204)
 
     We can ask for verbose output::
 
         sage: N = 12^97 - 1
         sage: factor(N)
         11 * 43570062353753446053455610056679740005056966111842089407838902783209959981593077811330507328327968191581
-        sage: ecmfactor(N, 100, verbose=True)
+        sage: ecmfactor(N, 100, verbose=True) # random
         Performing one curve with B1=100
         Found factor in step 1: 11
-        (True, 11)
+        (True, 11, 1123096328)
         sage: ecmfactor(N/11, 100, verbose=True)
         Performing one curve with B1=100
         Found no factor.
@@ -133,8 +140,8 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
 
     Some special cases::
 
-        sage: ecmfactor(1, 100)
-        (True, 1)
+        sage: ecmfactor(1, 100) # random
+        (True, 1, 2635457271)
         sage: ecmfactor(0, 100)
         Traceback (most recent call last):
         ...
@@ -143,6 +150,7 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
     cdef mpz_t n, f
     cdef int res
     cdef Integer sage_int_f, sage_int_number, sage_int_sigma
+    cdef ecm_params q
 
     sage_int_f = Integer(0)
     sage_int_number = Integer(number)

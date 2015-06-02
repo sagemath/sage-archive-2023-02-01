@@ -3,6 +3,7 @@ Coxeter Groups
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
+#                2015    Christian Stump <christian.stump at gmail.com
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -870,7 +871,6 @@ class CoxeterGroups(Category_singleton):
                     return i
             return None
 
-
         def descents(self, side = 'right', index_set=None, positive=False):
             """
             INPUT:
@@ -1009,6 +1009,12 @@ v            EXAMPLES::
 
         #def lex_min_reduced_word(w):
         #    return list(reversed((w.inverse()).reduced_word()))
+
+        def support(self):
+            return set(self.reduced_word())
+
+        def has_full_support(self):
+            return self.support() == set(self.parent().index_set())
 
         def reduced_words(self):
             r"""
@@ -1932,6 +1938,52 @@ v            EXAMPLES::
             return [ self.apply_simple_reflection(i, side=side)
                      for i in self.descents(side=side, index_set = index_set, positive = positive) ]
 
+
+        def coxeter_sorting_word(self,c):
+            if hasattr(c,"reduced_word"):
+                c = c.reduced_word()
+            elif not isinstance(c,list):
+                c = list(c)
+            n = self.parent().rank()
+            pi = self
+            l = pi.length()
+            i = 0
+            sorting_word = []
+            while l > 0:
+                s = c[i]
+                if pi.has_left_descent(s):
+                    pi = pi.apply_simple_reflection_left(s)
+                    l -= 1
+                    sorting_word.append(s)
+                i += 1
+                if i == n:
+                    i = 0
+            return sorting_word
+
+        def is_coxeter_sortable(self,c,sorting_word=None):
+            if hasattr(c,"reduced_word"):
+                c = c.reduced_word()
+            elif not isinstance(c,list):
+                c = list(c)
+            if sorting_word is None:
+                sorting_word = self.coxeter_sorting_word(c)
+            n = len(c)
+            containment_list = [ True ]*n
+            l = 0
+            i = 0
+            while l < len(sorting_word):
+                s = c[i]
+                t = sorting_word[l]
+                if s == t:
+                    l += 1
+                    if not containment_list[s]:
+                        return False
+                else:
+                    containment_list[s] = False
+                i += 1
+                if i == n:
+                    i = 0
+            return True
 
         def apply_demazure_product(self, element, side = 'right', length_increasing = True):
             r"""

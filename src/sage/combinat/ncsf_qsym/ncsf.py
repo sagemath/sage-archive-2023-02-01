@@ -4767,8 +4767,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: S(dQS[1,3,1])
             S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
             sage: s = SymmetricFunctions(QQ).s()
-            sage: s(dQS([2,1,3,1]).to_symmetric_function())
-            s[3, 2, 1, 1]
+            sage: s(S(dQS([2,1,3])).to_symmetric_function())
+            s[3, 2, 1]
         """
 
         def __init__(self, NCSF):
@@ -4933,6 +4933,35 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 [0 0 0 1]
             """
             return self.realization_of().dual().Quasisymmetric_Schur()
+
+        def to_symmetric_function_on_basis(self, I):
+            r"""
+            The commutative image of a dual quasi-symmetric Schur element
+
+            The commutative image of a basis element is obtained by sorting
+            the indexing composition of the basis element.
+
+            INPUT:
+
+            - ``I`` -- a composition
+
+            OUTPUT:
+
+            - The commutative image of the dual quasi-Schur basis element
+              indexed by ``I``. The result is the Schur symmetric function
+              indexed by the partition obtained by sorting ``I``.
+
+            EXAMPLES::
+
+                sage: dQS=NonCommutativeSymmetricFunctions(QQ).dQS()
+                sage: dQS.to_symmetric_function_on_basis([2,1,3])
+                s[3, 2, 1]
+                sage: dQS.to_symmetric_function_on_basis([])
+                s[]
+            """
+            from sage.combinat.sf.sf import SymmetricFunctions
+            s = SymmetricFunctions(self.base_ring()).s()
+            return s[Partition(sorted(I,reverse=True))]
 
     dQS = dualQuasisymmetric_Schur
 

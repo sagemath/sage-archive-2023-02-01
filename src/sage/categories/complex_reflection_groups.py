@@ -719,27 +719,6 @@ class ComplexReflectionGroups(Category_singleton):
                 Returns the codegrees of ``self``, as a list.
                 """
 
-            def coxeter_number(self):
-                r"""
-                Returns the Coxeter number of a well-generated, irreducible reflection group. This is defined to be the
-                order of a regular element in ``self``, and is equal to the highest degree of self.
-
-                EXAMPLES::
-
-                    sage: W = ComplexReflectionGroup((1,1,3))
-                    sage: W.coxeter_number()
-                    3
-
-                    sage: W = ComplexReflectionGroup((4,1,3))
-                    sage: W.coxeter_number()
-                    12
-
-                    sage: W = ComplexReflectionGroup((4,4,3))
-                    sage: W.coxeter_number()
-                    8
-                """
-                return max(self.degrees())
-
             def nr_simple_reflections(self):
                 r"""
                 Returns the number of reflections simple of ``self``.
@@ -1053,6 +1032,21 @@ class ComplexReflectionGroups(Category_singleton):
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
                 return ComplexReflectionGroup((4,2,3))
 
+            class ParentMethods:
+                def coxeter_number(self):
+                    r"""
+                    Returns the Coxeter number of an irreducible
+                    reflection group. This is defined as the below
+                    expression.
+
+                    EXAMPLES::
+
+                        sage: W = ComplexReflectionGroup(31)
+                        sage: W.coxeter_number()
+                        30
+                    """
+                    return ( self.nr_reflecting_hyperplanes() + self.nr_reflections() ) / self.rank()
+
 class WellGeneratedComplexReflectionGroups(Category_singleton):
 
     def super_categories(self):
@@ -1122,8 +1116,10 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
 
                 def coxeter_number(self):
                     r"""
-                    Returns the Coxeter number of a well-generated, irreducible reflection group. This is defined to be the
-                    order of a regular element in ``self``, and is equal to the highest degree of self.
+                    Returns the Coxeter number of a well-generated,
+                    irreducible reflection group. This is defined to be
+                    the order of a regular element in ``self``, and is
+                    equal to the highest degree of self.
 
                     EXAMPLES::
 
@@ -1230,7 +1226,6 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
                     """
                     return self.fuss_catalan_number(1,positive=positive)
 
-        # needs to be moved to cartesian product: class CartesianProduct(CategoryWithAxiom):
         class ParentMethods:
             def fuss_catalan_number(self,m):
                 return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )

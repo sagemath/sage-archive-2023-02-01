@@ -111,12 +111,12 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
         self._rank = self._gap_group.rank.sage()
         if len(generators) == self._rank:
             category = WellGeneratedComplexReflectionGroups().Finite()
-            if len(self._type) == 1:
-                category = category.Irreducible()
             if all(str(W_comp).find('CoxeterGroup') >= 0 for W_comp in W_components):
                 category = Category.join([category,CoxeterGroups()])
         else:
-            category = ComplexReflectionGroups()
+            category = ComplexReflectionGroups().Finite()
+        if len(self._type) == 1:
+            category = category.Irreducible()
 
         category = Category.join([category,PermutationGroups()]).Finite()
 
@@ -923,8 +923,25 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             sage: W = ComplexReflectionGroup((1,1,3))
             sage: W.fundamental_invariants()
             [-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2]
+
+            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W.fundamental_invariants()
+
+            sage: W = ComplexReflectionGroup(31)
+            sage: W.fundamental_invariants()
         """
         from sage.rings.polynomial.all import PolynomialRing
+
+        I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
+        P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])
+        x = P.gens()
+        for i in range(len(I)):
+            I[i] = I[i].replace('^','**')
+            for j in range(len(x)):
+                I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
+            I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")
+        I = [ eval(p) for p in I ]
+        return I
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
         P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])

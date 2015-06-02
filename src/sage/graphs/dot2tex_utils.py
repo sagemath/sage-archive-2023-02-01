@@ -27,9 +27,9 @@ def have_dot2tex():
         import dot2tex
         # Test for this required feature from dot2tex 2.8.7
         return dot2tex.dot2tex("graph {}", format = "positions") == {}
-    except Exception:
+    except (Exception, SystemExit):
         return False
-    return True
+
 
 def assert_have_dot2tex():
     """

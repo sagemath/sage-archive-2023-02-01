@@ -15499,7 +15499,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = digraphs.ButterflyGraph(2)
-            sage: g.layout_graphviz() # optional - dot2tex, graphviz
+            sage: g.layout_graphviz()  # optional - dot2tex graphviz
             {('...', ...): [...,...],
              ('...', ...): [...,...],
              ('...', ...): [...,...],
@@ -15512,7 +15512,7 @@ class GenericGraph(GenericGraph_pyx):
              ('...', ...): [...,...],
              ('...', ...): [...,...],
              ('...', ...): [...,...]}
-            sage: g.plot(layout = "graphviz") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz")  # optional - dot2tex graphviz
 
         Note: the actual coordinates are not deterministic
 
@@ -15520,12 +15520,12 @@ class GenericGraph(GenericGraph_pyx):
         ``dot`` layout program. One may specify an alternative layout
         program::
 
-            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "dot")    # optional - dot2tex graphviz
+            sage: g.plot(layout = "graphviz", prog = "neato")  # optional - dot2tex graphviz
+            sage: g.plot(layout = "graphviz", prog = "twopi")  # optional - dot2tex graphviz
+            sage: g.plot(layout = "graphviz", prog = "fdp")    # optional - dot2tex graphviz
             sage: g = graphs.BalancedTree(5,2)
-            sage: g.plot(layout = "graphviz", prog = "circo") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "circo")  # optional - dot2tex graphviz
 
         TODO: put here some cool examples showcasing graphviz features.
 

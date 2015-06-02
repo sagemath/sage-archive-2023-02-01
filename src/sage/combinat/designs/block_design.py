@@ -60,6 +60,7 @@ from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
 from sage.matrix.matrix_space import MatrixSpace
 
+
 BlockDesign = IncidenceStructure
 
 ###  utility functions  -------------------------------------------------------
@@ -253,13 +254,13 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     EXAMPLES::
 
         sage: designs.DesarguesianProjectivePlaneDesign(2)
-        Incidence structure with 7 points and 7 blocks
+        (7,3,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(3)
-        Incidence structure with 13 points and 13 blocks
+        (13,4,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(4)
-        Incidence structure with 21 points and 21 blocks
+        (21,5,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(5)
-        Incidence structure with 31 points and 31 blocks
+        (31,6,1)-Balanced Incomplete Block Design
         sage: designs.DesarguesianProjectivePlaneDesign(6)
         Traceback (most recent call last):
         ...
@@ -308,7 +309,8 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         from designs_pyx import is_projective_plane
         if not is_projective_plane(blcks):
             raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
-    return BlockDesign(n2+n+1, blcks, name="Desarguesian projective plane of order %d"%n, check=check)
+    from bibd import BalancedIncompleteBlockDesign
+    return BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
 
 def random_q3_minus_one_matrix(K):
     r"""
@@ -440,10 +442,9 @@ def HughesPlane(n2, check=True):
 
     EXAMPLES::
     
-        sage: H = designs.HughesPlane(9)
-        sage: from sage.combinat.designs.designs_pyx import is_projective_plane
-        sage: is_projective_plane(H.blocks())
-        True
+        sage: H = designs.HughesPlane(9)     
+        sage: H
+        (91,10,1)-Balanced Incomplete Block Design
 
         # We want to show that Hughes planes are non-desarguesian planes
         # We choose two triangles (0, 1, 10) and (57, 70, 59)
@@ -521,11 +522,8 @@ def HughesPlane(n2, check=True):
             for i in range(n2 + n):
                 l = [A*j for j in l]
                 blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
-    if check:
-        from designs_pyx import is_projective_plane
-        if not is_projective_plane(blcks):
-            raise RuntimeError('There is a problem in the function HughesPlane')
-    return IncidenceStructure(n2**2+n2+1, blcks, name="Hughes projective plane of order %d"%n2)
+    from bibd import BalancedIncompleteBlockDesign
+    return BalancedIncompleteBlockDesign(n2**2+n2+1, blcks, check=check)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""
@@ -611,13 +609,13 @@ def projective_plane(n, check=True, existence=False):
     EXAMPLES::
 
         sage: designs.projective_plane(2)
-        Incidence structure with 7 points and 7 blocks
+        (7,3,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(3)
-        Incidence structure with 13 points and 13 blocks
+        (13,4,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(4)
-        Incidence structure with 21 points and 21 blocks
+        (21,5,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(5)
-        Incidence structure with 31 points and 31 blocks
+        (31,6,1)-Balanced Incomplete Block Design
         sage: designs.projective_plane(6)
         Traceback (most recent call last):
         ...

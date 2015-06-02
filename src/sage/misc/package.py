@@ -206,14 +206,19 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
     - ``package_type`` (string) -- one of `"standard"`, `"optional"` or
       `"experimental"`
 
-    - ``version`` (boolean) -- whether to return the version of each package.
+    - ``version`` (boolean) -- whether to return the version of each (installed)
+      package.
 
     - ``local`` (boolean) -- only query local data (no internet needed)
 
     OUTPUT:
 
-    A pair of list ``(installed,not_installed)`` with the corresponding
-    packages' name.
+    When ``version=False``, the function returns a pair of list
+    ``(installed,not_installed)`` with the corresponding packages' name.
+
+    When ``version=True``, the elements of each list are not package names but
+    pairs ``(package_name,package_version)`` where ``version`` is a string
+    representing the version of each package that is installed.
 
     EXAMPLE::
 
@@ -227,6 +232,14 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
         sage: bool(not_installed)
         False
         sage: 'glpk' in installed
+        True
+
+    Same, with a version number::
+
+        sage: installed, not_installed = _package_lists_from_sage_output('standard',local=True,version=True)
+        sage: bool(not_installed)
+        False
+        sage: any(x[0] == 'glpk' and type(x[1]) == str and '4.55' <= x[1] for x in installed)
         True
     """
     if package_type not in ['standard','optional','experimental']:

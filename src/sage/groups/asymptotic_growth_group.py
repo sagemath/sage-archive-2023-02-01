@@ -578,9 +578,9 @@ class GenericGrowthGroup(
 
         INPUT:
 
-        - ``left`` -- a growth element.
+        - ``left`` -- an element.
 
-        - ``right`` -- a growth element.
+        - ``right`` -- an element.
 
         OUTPUT:
 
@@ -1094,7 +1094,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if var[0] in '0123456789=+-*/^%':
             # This restriction is mainly for optical reasons on the
             # representation. Feel free to relax this if needed.
-            raise ValueError('The variable name %s is inappropriate.' % (var,))
+            raise ValueError("The variable name '%s' is inappropriate." %
+                             (var,))
         self._var_ = var
 
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)

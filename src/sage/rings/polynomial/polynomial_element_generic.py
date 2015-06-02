@@ -530,6 +530,67 @@ class Polynomial_generic_sparse(Polynomial):
         output.__normalize()
         return output
 
+    def _cmp_(self, other):
+        """
+        Compare this polynomial and other.
+
+        Polynomials are first compared by degree, then in dictionary order
+        starting with the coefficient of largest degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: 3*x^100 - 12 > 12*x + 5
+            True
+            sage: 3*x^100 - 12 > 3*x^100 - x^50 + 5
+            True
+            sage: 3*x^100 - 12 < 3*x^100 - x^50 + 5
+            False
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(QQ, sparse=True)
+            sage: 2*x^2^500 > x^2^500
+            True
+        """
+        d1 = self.__coeffs
+        d2 = other.__coeffs
+        keys1 = reversed(sorted(d1.keys()))
+        keys2 = reversed(sorted(d2.keys()))
+        try:
+            deg1 = keys1.next()
+        except StopIteration:
+            deg1 = -1
+        try:
+            deg2 = keys2.next()
+        except StopIteration:
+            deg2 = -1
+        if deg1 < 0  and deg2 < 0: return 0
+        c = cmp (deg1, deg2)
+        if c: return c
+        c = cmp(d1[deg1],d2[deg2])
+        if c: return c
+        exponents = zip(keys1, keys2)
+        for k1, k2 in exponents:
+            c = cmp (k1, k2)
+            if c > 0:
+                if d1[k1] > 0:   return c
+                elif d1[k1] < 0: return -c
+            elif c < 0:
+                if d2[k2] > 0:   return c
+                elif d2[k2] < 0: return -c
+            c = cmp (d1[k1], d2[k2])
+            if c: return c
+        c = cmp(len(d1), len(d2))
+        n = len(exponents)
+        if c > 0:
+            if d1[keys1[n]] > 0: return c
+            elif d1[keys1[n]] < 0: return -c
+        elif c < 0:
+            if d2[keys2[n]] > 0: return c
+            elif d2[keys2[n]] < 0: return -c
+        return 0
+
     def shift(self, n):
         r"""
         Returns this polynomial multiplied by the power `x^n`. If `n` is negative,

@@ -196,7 +196,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
             for w,word in _iterator_tracking_words(self):
                 if w._reduced_word is None:
-                    w._reduced_word = Word( inv_dict[i] for i in word )
+                    w._reduced_word = [inv_dict[i] for i in word]
                 self._elements.append(w)
                 yield w
 
@@ -1074,6 +1074,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
                 gens = [ W.simple_reflection(i) for i in W.index_set() ]
                 word = gap_factorization(self,gens,inv_dict)
+                self._reduced_word = Word(word)
+            elif isinstance(self._reduced_word, list):
                 self._reduced_word = Word(word)
             return self._reduced_word
 

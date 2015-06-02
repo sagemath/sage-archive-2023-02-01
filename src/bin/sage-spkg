@@ -301,7 +301,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         echo "Found local metadata for $PKG_NAME"
 
         # Warning for experimental packages
-        if [ `cat "$PKG_SCRIPTS/type"` == "experimental" ]; then
+        if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
             echo # The following message appears twice in this file
             echo "=========================== WARNING ==========================="
             echo "You are about to download and install an experimental package."

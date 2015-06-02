@@ -655,6 +655,39 @@ class CoxeterGroups(Category_singleton):
             return CoxeterMatrixGroup(self.coxeter_matrix(),
                                       index_set=self.index_set())
 
+        def coxeter_matrix(self):
+            from sage.rings.integer_ring import ZZ
+            from sage.matrix.all import MatrixSpace
+
+            S = self.simple_reflections()
+            I = self.index_set()
+            I_inv = self._index_set
+            n = self.rank()
+            MS = MatrixSpace(ZZ, n)
+            m = MS(0)
+            for i in I:
+                for j in I:
+                    m[I_inv[i],I_inv[j]] = (S[i]*S[j]).order()
+            return m
+
+        def cartan_matrix(self):
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.universal_cyclotomic_field.all import UCF
+            from sage.symbolic.constants import pi
+            from sage.functions.trig import cos
+
+            if self.is_crystallographic():
+                R = ZZ
+            else:
+                R = UCF
+                print "not yet working properly for not crystallographic groups!"
+            m = self.coxeter_matrix()
+            m = m.base_extend(R)
+            for i in range(m.ncols()):
+                for j in range(m.ncols()):
+                    m[i,j] = -2*cos(pi/m[i,j])
+            return m
+
         def elements_of_length(self, n):
             r"""
             Return all elements of length `n`.
@@ -2082,6 +2115,52 @@ v            EXAMPLES::
                         return False
                 else:
                     containment_list[i] = False
+                i += 1
+                if i == n:
+                    i = 0
+            return True
+
+        def coxeter_sorting_word(self,c):
+            if hasattr(c,"reduced_word"):
+                c = c.reduced_word()
+            elif not isinstance(c,list):
+                c = list(c)
+            n = self.parent().rank()
+            pi = self
+            l = pi.length()
+            i = 0
+            sorting_word = []
+            while l > 0:
+                s = c[i]
+                if pi.has_left_descent(s):
+                    pi = pi.apply_simple_reflection_left(s)
+                    l -= 1
+                    sorting_word.append(s)
+                i += 1
+                if i == n:
+                    i = 0
+            return sorting_word
+
+        def is_coxeter_sortable(self,c,sorting_word=None):
+            if hasattr(c,"reduced_word"):
+                c = c.reduced_word()
+            elif not isinstance(c,list):
+                c = list(c)
+            if sorting_word is None:
+                sorting_word = self.coxeter_sorting_word(c)
+            n = len(c)
+            containment_list = [ True ]*n
+            l = 0
+            i = 0
+            while l < len(sorting_word):
+                s = c[i]
+                t = sorting_word[l]
+                if s == t:
+                    l += 1
+                    if not containment_list[s]:
+                        return False
+                else:
+                    containment_list[s] = False
                 i += 1
                 if i == n:
                     i = 0

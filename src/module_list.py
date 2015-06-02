@@ -234,10 +234,7 @@ ext_modules = [
               sources=['sage/sets/finite_set_map_cy.pyx']),
 
     Extension('sage.combinat.partitions',
-              sources = ['sage/combinat/partitions.pyx',
-                         'sage/combinat/partitions_c.cc'],
-              depends = ['sage/combinat/partitions_c.h'],
-              language='c++'),
+              sources = ['sage/combinat/partitions.pyx']),
 
     Extension('sage.combinat.words.word_datatypes',
             sources=['sage/combinat/words/word_datatypes.pyx']),

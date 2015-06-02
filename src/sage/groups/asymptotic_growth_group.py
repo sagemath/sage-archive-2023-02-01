@@ -489,7 +489,7 @@ class GenericGrowthGroup(
             ...
             TypeError: 42 is not a valid base
         """
-        if not hasattr(base, 'an_element'):
+        if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base' % (base,))
         from sage.categories.groups import Groups
         from sage.categories.posets import Posets

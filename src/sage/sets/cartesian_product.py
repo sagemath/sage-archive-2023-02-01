@@ -357,3 +357,107 @@ class CartesianProductPosets(CartesianProduct):
         """
         return self._le_(left, right)
 
+
+    def le_lex(self, left, right):
+        r"""
+        Tests if ``left`` is lexicographically smaller or equal
+        to ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: P = Poset((srange(2), lambda left, right: left <= right))
+            sage: P.CartesianProduct = sage.sets.cartesian_product.CartesianProductPosets
+            sage: Q = cartesian_product((P, P), order='lex')
+            sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
+            sage: for a in T:
+            ....:     for b in T:
+            ....:         assert(Q.le(a, b) == (a <= b))
+            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            (0, 0) <= (0, 0) = True
+            (0, 0) <= (1, 1) = True
+            (0, 0) <= (0, 1) = True
+            (0, 0) <= (1, 0) = True
+            (1, 1) <= (0, 0) = False
+            (1, 1) <= (1, 1) = True
+            (1, 1) <= (0, 1) = False
+            (1, 1) <= (1, 0) = False
+            (0, 1) <= (0, 0) = False
+            (0, 1) <= (1, 1) = True
+            (0, 1) <= (0, 1) = True
+            (0, 1) <= (1, 0) = True
+            (1, 0) <= (0, 0) = False
+            (1, 0) <= (1, 1) = True
+            (1, 0) <= (0, 1) = False
+            (1, 0) <= (1, 0) = True
+        """
+        for l, r, S in \
+                zip(left.value, right.value, self.cartesian_factors()):
+            if l == r:
+                continue
+            if S.le(l, r):
+                return True
+            if S.le(r, l):
+                return False
+        return True  # equal
+
+
+    def le_components(self, left, right):
+        r"""
+        Tests if ``left`` is component-wise smaller or equal
+        to ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        The comparison is ``True`` if the result of the
+        comparision in each component is ``True``.
+
+        EXAMPLES::
+
+            sage: P = Poset((srange(2), lambda left, right: left <= right))
+            sage: P.CartesianProduct = sage.sets.cartesian_product.CartesianProductPosets
+            sage: Q = cartesian_product((P, P), order='components')
+            sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
+            sage: for a in T:
+            ....:     for b in T:
+            ....:         assert(Q.le(a, b) == (a <= b))
+            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            (0, 0) <= (0, 0) = True
+            (0, 0) <= (1, 1) = True
+            (0, 0) <= (0, 1) = True
+            (0, 0) <= (1, 0) = True
+            (1, 1) <= (0, 0) = False
+            (1, 1) <= (1, 1) = True
+            (1, 1) <= (0, 1) = False
+            (1, 1) <= (1, 0) = False
+            (0, 1) <= (0, 0) = False
+            (0, 1) <= (1, 1) = True
+            (0, 1) <= (0, 1) = True
+            (0, 1) <= (1, 0) = False
+            (1, 0) <= (0, 0) = False
+            (1, 0) <= (1, 1) = True
+            (1, 0) <= (0, 1) = False
+            (1, 0) <= (1, 0) = True
+        """
+        return all(
+            S.le(l, r)
+            for l, r, S in
+            zip(left.value, right.value, self.cartesian_factors()))
+

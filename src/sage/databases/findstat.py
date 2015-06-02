@@ -153,6 +153,14 @@ AUTHORS:
 Classes and methods
 -------------------
 """
+#*****************************************************************************
+#       Copyright (C) 2015 Martin Rubey <martin.rubey@tuwien.ac.at>,
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
 from sage.structure.sage_object import SageObject
@@ -284,7 +292,7 @@ FINDSTAT_NEWSTATISTIC_FORM_FORMAT = '<input type="hidden" name="%s" value="%s" /
 FINDSTAT_NEWSTATISTIC_FORM_FOOTER = '</form>'
 
 ######################################################################
-class FindStat():
+class FindStat(SageObject):
     r"""
     The Combinatorial Statistic Finder.
 
@@ -723,7 +731,7 @@ class FindStatStatistic(SageObject):
             raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
 
     def __eq__(self, other):
-        """Returns ``True`` if ``self`` is equal to ``other`` and ``False``
+        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -773,31 +781,6 @@ class FindStatStatistic(SageObject):
         else:
             return False
 
-    def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
-
-        INPUT:
-
-        - ``other`` -- a FindStat query, i.e., instance of
-          :class:`FindStatStatistic`..
-
-        OUTPUT:
-
-        A boolean.
-
-        SEEALSO:
-
-        :meth:`__eq__`
-
-        EXAMPLES::
-
-            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
-            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
-            sage: r1 != r2                                                      # optional -- internet
-            True
-
-        """
-        return not self.__eq__(other)
 
     ######################################################################
     # query = "ID"
@@ -1664,7 +1647,7 @@ class FindStatCollection(SageObject):
                         initialize_with(id, c)
                         bad = False
                         break
-                except:
+                except TypeError:
                     # examples are
                     # graphs:
                     # TypeError: cannot compare graph to non-graph (<class 'sage.combinat.permutation.Permutations'>)
@@ -1700,19 +1683,6 @@ class FindStatCollection(SageObject):
             False
         """
         return self.id() == other.id()
-
-    def __ne__(self, other):
-        """
-        TESTS::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Permutations") != FindStatCollection("Permutations")          # optional -- internet
-            False
-
-            sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")    # optional -- internet
-            True
-        """
-        return not self.__eq__(other)
 
     def in_range(self, element):
         r"""

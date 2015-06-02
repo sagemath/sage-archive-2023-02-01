@@ -69,6 +69,7 @@ if args['remote'] and args['category']!='installed':
     f.close()
 
     if '<' in packages_list_remote:
+        print(packages_list_remote)
         raise RuntimeError("There was an error while downloading the list of packages")
 
     remote = dict(pkgname_split(p) for p in packages_list_remote.split('\n'))
@@ -79,10 +80,12 @@ if args['remote'] and args['category']!='installed':
 # installed
 if args['category'] == 'installed':
     if args['version']:
-        for p in sorted(installed):
-            if args['dump']:
+        if args['dump']:
+            for p in sorted(installed):
                 print(p+" "+installed[p])
-            else:
+        else:
+            print("{:.<40} {}\n".format("[package] ","[version]"))
+            for p in sorted(installed):
                 print("{:.<40} {}".format(p,installed[p]))
     else:
         for p in sorted(installed):
@@ -91,6 +94,13 @@ if args['category'] == 'installed':
 # Any other categories
 else:
     if args['version']:
+        # Display the columns' name
+        if not args['dump']:
+            if remote:
+                print("{:.<40} {} ({})\n".format("[package] ","[latest version]","[installed version]"))
+            else:
+                print("{:.<40} {}".format("[package] ","[installed version]"))
+
         for p in sorted(set(local).union(remote)):
             line = [p]
             if remote:

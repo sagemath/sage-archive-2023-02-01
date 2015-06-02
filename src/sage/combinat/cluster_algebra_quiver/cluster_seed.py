@@ -605,6 +605,24 @@ class ClusterSeed(SageObject):
             raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
         return matrix( [ self.g_vector(k,ignore_coefficients=ignore_coefficients) for k in range(self._n) ] ).transpose()
 
+    def d_vector(self, k):
+        r"""
+        Returns the ``k``-th *d-vector* of ``self``. This is the exponent vector
+        of the denominator of the ``k``-th cluster variable.
+    
+        EXAMPLES::
+    
+            sage: S = ClusterSeed(['A',3])
+            sage: S.mutate([2,1,2])
+            sage: [ S.d_vector(k) for k in range(3) ]
+            [(-1, 0, 0), (0, 1, 1), (0, 1, 0)]
+        """
+        from sage.modules.free_module_element import vector
+        f = self.cluster_variable(k)
+        if f in self._R.gens():
+            return -vector(f.numerator().monomials()[0].exponents()[0][:self._n])
+        return vector(f.denominator().monomials()[0].exponents()[0][:self._n])
+
     def c_vector(self,k,ignore_coefficients=False):
         r"""
         Returns the ``k``-th *c-vector* of ``self``. It is obtained as the

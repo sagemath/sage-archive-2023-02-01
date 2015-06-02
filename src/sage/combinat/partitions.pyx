@@ -16,7 +16,7 @@ AUTHOR:
 
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#       Copyright (C) 2007 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2007 Jonathan Bober <jwbober@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -308,7 +308,7 @@ class CartesianProductPosets(CartesianProduct):
 
       - ``'components'`` -- an element is less or equal to another
         element, if less or equal is true for all its components
-        (cartesian factors).
+        (cartesian projections).
 
       - a function ``order_le(left, right)``, which performs the comparison.
 

@@ -10,7 +10,9 @@ This file contains some utility functions for the interface with dot2tex
 
 import re
 from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_function
 
+@cached_function
 def have_dot2tex():
     """
     Returns whether ``dot2tex`` >= 2.8.7 and graphviz are installed

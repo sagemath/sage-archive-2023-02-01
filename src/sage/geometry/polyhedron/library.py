@@ -36,6 +36,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.simplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.snub_cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
@@ -62,15 +63,16 @@ REFERENCES:
 
 import itertools
 
-from sage.rings.all import Integer, ZZ, RR, QQ, RDF, AA, QQbar
+from sage.rings.all import ZZ, QQ, RDF, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
-
 from constructor import Polyhedron
-
 from sage.graphs.digraph import DiGraph
+from sage.rings.polynomial.polynomial_ring import polygen
+from sage.combinat.permutation import Permutation
+
 
 def zero_sum_projection(d):
     r"""
@@ -315,8 +317,8 @@ class Polytopes():
         """
         Return an icosahedron with edge length 1.
 
-        The icosahedron is one of the Platonic sold. It has 20 faces and is dual
-        to the :meth:`dodecahedron`.
+        The icosahedron is one of the Platonic solid. It has 20 faces
+        and is dual to the :meth:`dodecahedron`.
 
         INPUT:
 
@@ -804,6 +806,64 @@ class Polytopes():
         v = [[0, 0, -1], [0, 0, 1], [1, 0, 0],
              [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ)
+
+    def snub_cube(self, exact=True):
+        """
+        Return a snub cube.
+
+        The snub cube is an Archimedean solid. It has 24 vertices and 38 faces.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        If ``exact=True``, the coefficients will belong to the number
+        field defined by `x^3+x^2+x-1` and if ``exact=False`` it will
+        be the real double field.
+
+        EXAMPLES::
+
+            sage: sc = polytopes.snub_cube()
+            sage: sc.f_vector()
+            (1, 24, 60, 38, 1)
+            sage: sc.volume()
+            ?
+
+        Its non exact version::
+
+            sage: sc = polytopes.snub_cube(exact=False)
+            sage: sc.base_ring()
+            Real Double Field
+            sage: sc.f_vector()
+            (1, 24, 60, 38, 1)
+        """
+        if exact:
+            from sage.rings.number_field.number_field import NumberField
+            x = polygen(QQ, 'x')
+            K = NumberField(x ** 3 + x ** 2 + x - 1, 'z', embedding=RDF(0.543))
+            z = K.gen()
+            base_ring = K
+        else:
+            base_ring = RDF
+            tsqr33 = 3 * base_ring(33).sqrt()
+            z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
+
+        verts = []
+        z2 = z ** 2
+        A3 = AlternatingGroup(3)
+        for e in [-1, 1]:
+            for f in [-1, 1]:
+                for g in [-1, 1]:
+                    if e * f * g == -1:
+                        v = [e, f * z, g * z2]
+                        for p in A3:
+                            verts += [p(v)]
+                    else:
+                        v = [f * z, e, g * z2]
+                        for p in A3:
+                            verts += [p(v)]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
 
     def buckyball(self, exact=True, base_ring=None):
         """

@@ -50,6 +50,13 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
     def _repr_short_(self):
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
 
+    class Element(CartesianProductPosets.Element):
+        def _repr_(self):
+            r"""
+            """
+            return ' * '.join(repr(v) for v in self.value)
+
+
 CartesianProductGrowthGroups.CartesianProduct = CartesianProductGrowthGroups
 
 

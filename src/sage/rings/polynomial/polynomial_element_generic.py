@@ -532,7 +532,7 @@ class Polynomial_generic_sparse(Polynomial):
 
     def _cmp_(self, other):
         """
-        Compare this polynomial and other.
+        Compare this polynomial with other.
 
         Polynomials are first compared by degree, then in dictionary order
         starting with the coefficient of largest degree.
@@ -546,6 +546,10 @@ class Polynomial_generic_sparse(Polynomial):
             True
             sage: 3*x^100 - 12 < 3*x^100 - x^50 + 5
             False
+            sage: x^100 + x^10 - 1 < x^100 + x^10
+            True
+            sage: x^100 < x^100 - x^10
+            False
 
         TESTS::
 
@@ -555,40 +559,33 @@ class Polynomial_generic_sparse(Polynomial):
         """
         d1 = self.__coeffs
         d2 = other.__coeffs
-        keys1 = reversed(sorted(d1.keys()))
-        keys2 = reversed(sorted(d2.keys()))
-        try:
-            deg1 = keys1.next()
-        except StopIteration:
-            deg1 = -1
-        try:
-            deg2 = keys2.next()
-        except StopIteration:
-            deg2 = -1
-        if deg1 < 0  and deg2 < 0: return 0
-        c = cmp (deg1, deg2)
+        keys1 = list(reversed(sorted(d1.keys())))
+        keys2 = list(reversed(sorted(d2.keys())))
+        n1 = len(keys1)
+        n2 = len(keys2)
+        if n1 == 0 and n2 == 0: return 0
+        elif n1 == 0: return -1
+        elif n2 == 0: return 1
+
+        c = cmp(keys1[0], keys2[0])
         if c: return c
-        c = cmp(d1[deg1],d2[deg2])
+        c = cmp(d1[keys1[0]],d2[keys2[0]])
         if c: return c
-        exponents = zip(keys1, keys2)
-        for k1, k2 in exponents:
-            c = cmp (k1, k2)
+
+        for k1, k2 in zip(keys1[1:], keys2[1:]):
+            c = cmp(k1, k2)
             if c > 0:
-                if d1[k1] > 0:   return c
-                elif d1[k1] < 0: return -c
+                c1 = cmp(d1[k1], 0)
+                if c1: return c1
             elif c < 0:
-                if d2[k2] > 0:   return c
-                elif d2[k2] < 0: return -c
+                c1 = cmp(0, d2[k2])
+                if c1: return c1
             c = cmp (d1[k1], d2[k2])
             if c: return c
-        c = cmp(len(d1), len(d2))
-        n = len(exponents)
-        if c > 0:
-            if d1[keys1[n]] > 0: return c
-            elif d1[keys1[n]] < 0: return -c
-        elif c < 0:
-            if d2[keys2[n]] > 0: return c
-            elif d2[keys2[n]] < 0: return -c
+
+        c = cmp(n1, n2)
+        if c > 0: return cmp(d1[keys1[n2]], 0)
+        elif c < 0: return cmp(0, d2[keys2[n1]])
         return 0
 
     def shift(self, n):

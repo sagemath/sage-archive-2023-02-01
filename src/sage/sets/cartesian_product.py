@@ -319,3 +319,41 @@ class CartesianProductPosets(CartesianProduct):
         super(CartesianProductPosets, self).__init__(
             sets, category, **kwargs)
 
+
+    def le(self, left, right):
+        r"""
+        Tests if ``left`` is smaller or equal to ``right``.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method uses the order defined on creation of this
+            cartesian product. See :class:`CartesianProductPosets`
+
+        EXAMPLES::
+
+            sage: QQ.CartesianProduct = sage.sets.cartesian_product.CartesianProductPosets
+            sage: def le_sum(left, right):
+            ....:     return (sum(left) < sum(right) or
+            ....:             sum(left) == sum(right) and left[0] <= right[0])
+            sage: C = cartesian_product((QQ, QQ), order=le_sum)
+            sage: C.le(C((1/3, 2)), C((2, 1/3)))
+            True
+            sage: C.le(C((2, 1/3)), C((1/3, 2)))
+            False
+            sage: C.le(C((1/3, 2)), C((2, 2)))
+            True
+            sage: C.le(C((2, 2)), C((1/3, 2)))
+            False
+        """
+        return self._le_(left, right)
+

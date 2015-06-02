@@ -287,6 +287,8 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     .. [LumStein] A. Lum, W. Stein. Verification of the Birch and
        Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
        Multiplication (unpublished)
+    .. [LawsonWuthrich] T. Lawson and C. Wuthrich, Vanishing of some Galois
+       cohomology groups for elliptic curves, http://arxiv.org/abs/1505.02940
     .. [Mazur] B. Mazur. Modular curves and the Eisenstein ideal. Inst.
        Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
     .. [Rubin] K. Rubin. The "main conjectures" of Iwasawa theory for
@@ -305,14 +307,14 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: EllipticCurve('11a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 5} by Kolyvagin.
-        Kolyvagin's bound for p = 5 applies by Lawson - Wuthrich
+        Kolyvagin's bound for p = 5 applies by Lawson-Wuthrich
         True for p = 5 by Kolyvagin bound
         []
 
         sage: EllipticCurve('14a').prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
-        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
+        Kolyvagin's bound for p = 3 applies by Lawson-Wuthrich
         True for p = 3 by Kolyvagin bound
         []
 
@@ -327,7 +329,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3, 5} by Kolyvagin.
-        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
+        Kolyvagin's bound for p = 3 applies by Lawson-Wuthrich
         True for p = 3 by Kolyvagin bound
         Remaining primes:
         p = 5: reducible, not surjective, additive, divides a Tamagawa number
@@ -357,7 +359,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 3} by Kolyvagin.
-        Kolyvagin's bound for p = 3 applies by Lawson - Wuthrich
+        Kolyvagin's bound for p = 3 applies by Lawson-Wuthrich
         True for p = 3 by Kolyvagin bound
         []
 
@@ -680,21 +682,19 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
     # Stein et al replaced
     for p in BSD.primes:
         # the lemma about the vanishing of H^1 is false in Stein et al for p=5 and 11
-        # here is the correction from Lawson-Wuthrich
+        # here is the correction from Lawson-Wuthrich. Especially Theorem 14 in
+        # [LawsonWuthrich] above.
         if p in kolyvagin_primes or p == 2 or D_K % p == 0: continue
         crit_lw = False
-        if galrep.is_irreducible(p):
-            crit_lw = True
         if p > 11 or p == 7 :
             crit_lw = True
         elif p == 11:
             if BSD.N != 121 or BSD.curve.label() != "121c2":
                 crit_lw = True
+        elif galrep.is_irreducible(p):
+            crit_lw = True
         else:
-            phis = [phi for phi in flatten(BSD.curve.isogeny_class().isogenies())
-                        if phi != 0 and
-                           phi.degree() == p and
-                           phi.domain().is_isomorphic(BSD.curve) ]
+            phis = BSD.curve.isogenies_prime_degree(p)
             if len(phis) != 1:
                 crit_lw = True
             else:
@@ -708,7 +708,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                         crite_lw = True
         if crit_lw:
             if verbosity > 0:
-                print 'Kolyvagin\'s bound for p = %d applies by Lawson - Wuthrich'%p
+                print 'Kolyvagin\'s bound for p = %d applies by Lawson-Wuthrich'%p
             kolyvagin_primes.append(p)
             if p in BSD.proof:
                 BSD.proof[p].append('Lawson-Wuthrich')

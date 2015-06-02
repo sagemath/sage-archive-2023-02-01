@@ -2044,6 +2044,10 @@ v            EXAMPLES::
                    [2, 0, 1, 2, 0]
                    sage: w.is_coxeter_sortable(c)
                    True
+                   sage: W = CoxeterGroup(['A',3])
+                   sage: c = W.from_reduced_word([1,2,3])
+                   sage: len([w for w in W if w.is_coxeter_sortable(c)]) # number of c-sortable elements in A_3 (Catalan number)
+                   14
             """
             if hasattr(c,"reduced_word"):
                 c = c.reduced_word()
@@ -2060,10 +2064,10 @@ v            EXAMPLES::
                 t = sorting_word[l]
                 if s == t:
                     l += 1
-                    if not containment_list[s]:
+                    if not containment_list[i]:
                         return False
                 else:
-                    containment_list[s] = False
+                    containment_list[i] = False
                 i += 1
                 if i == n:
                     i = 0

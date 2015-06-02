@@ -435,10 +435,10 @@ class CoxeterGroups(Category_singleton):
         @cached_method
         def rank(self):
             r"""
-                Return the rank of self.
-                
+                Return the rank of ``self``.
+
                 EXAMPLES::
-                
+
                     sage: W = CoxeterGroups().example()
                     sage: W.rank()
                     3
@@ -1025,10 +1025,10 @@ v            EXAMPLES::
 
         def support(self):
             r"""
-                Return the support of self, that is the simple reflections that appear in the reduced expressions of self.
-                
+                Return the support of ``self``, that is the simple reflections that appear in the reduced expressions of ``self``.
+
                 EXAMPLES::
-                
+
                     sage: W = CoxeterGroups().example()
                     sage: w = W.from_reduced_word([1,2,1])
                     sage: w.support()
@@ -1038,10 +1038,13 @@ v            EXAMPLES::
 
         def has_full_support(self):
             r"""
-                Return whether self has full support.
-                
+                Return whether ``self`` has full support.
+
+                An element is said to have full support if its support contains
+                all simple reflections.
+
                 EXAMPLES::
-                
+
                     sage: W = CoxeterGroups().example()
                     sage: w = W.from_reduced_word([1,2,1])
                     sage: w.has_full_support()
@@ -1976,15 +1979,16 @@ v            EXAMPLES::
 
         def coxeter_sorting_word(self,c):
             r"""
-                Return the ``c``-sorting word of self.
+                Return the ``c``-sorting word of ``self``.
+
                 For a Coxeter element `c` and an element `w`, the `c`-sorting word of `w` is the lexicographic minimal reduced expression of `w` in the infinite word `c^\infty`.
-                
+
                 INPUT:
-                
+
                 - ``c``-- a Coxeter element.
-                
+
                 OUTPUT: the ``c``-sorting word of self.
-                
+
                 EXAMPLES::
 
                     sage: W = CoxeterGroups().example()
@@ -2015,18 +2019,19 @@ v            EXAMPLES::
 
         def is_coxeter_sortable(self,c,sorting_word=None):
             r"""
-               Return whether self is ``c``-sortable.
+               Return whether ``self`` is ``c``-sortable.
+
                Given a Coxeter element `c`, an element `w` is `c`-sortable if its `c`-sorting word decomposes into a sequence of weakly decreasing subwords of `c`.
-               
+
                INPUT:
-               
-               - ``c`` -- a Coxeter element
-               - ``sorting_word`` -- sorting word (default: None) used to not recompute the ``c``-sorting word if already computed
-               
-               OUPUT: is self ``c``-sortable
-               
+
+               - ``c`` -- a Coxeter element.
+               - ``sorting_word`` -- sorting word (default: None) used to not recompute the ``c``-sorting word if already computed.
+
+               OUPUT: is ``self`` ``c``-sortable
+
                EXAMPLES::
-               
+
                    sage: W = CoxeterGroups().example()
                    sage: c = W.from_reduced_word([0,2,1])
                    sage: w = W.from_reduced_word([1,2,1,0,1])

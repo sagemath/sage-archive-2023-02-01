@@ -4,6 +4,7 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
+- Daniel Krenn (2015-06): cartesian products for posets with different orders
 
 """
 #*****************************************************************************
@@ -289,6 +290,47 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
 class CartesianProductPosets(CartesianProduct):
     r"""
+    A class implementing cartesian products of posets (and elements
+    thereof). Compared to :class:`CartesianProduct` you are able to
+    specify an order for comparison of the elements.
+
+    INPUT:
+
+    - ``sets`` -- a tuple of parents.
+
+    - ``category`` -- a subcategory of
+      ``Sets().CartesianProducts() & Posets()``.
+
+    - ``order`` -- a string or function specifing an order less or equal.
+      It can be one of the following:
+
+      - ``'lex'`` -- elements are ordered lexicographically.
+
+      - ``'components'`` -- an element is less or equal to another
+        element, if less or equal is true for all its components
+        (cartesian factors).
+
+      - a function ``order_le(left, right)``, which performs the comparison.
+
+    Other keyword arguments (``kwargs``) are passed to the constructor
+    of :class:`CartesianProduct`.
+
+    EXAMPLES::
+
+        sage: P = Poset((srange(3), lambda left, right: left <= right))
+        sage: P.CartesianProduct = sage.sets.cartesian_product.CartesianProductPosets
+        sage: Cl = cartesian_product((P, P), order='lex')
+        sage: Cl((1, 1)) <= Cl((2, 0))
+        True
+        sage: Cc = cartesian_product((P, P), order='components')
+        sage: Cc((1, 1)) <= Cc((2, 0))
+        False
+        sage: def le_sum(left, right):
+        ....:     return (sum(left) < sum(right) or
+        ....:             sum(left) == sum(right) and left[0] <= right[0])
+        sage: Cs = cartesian_product((P, P), order=le_sum)
+        sage: Cs((1, 1)) <= Cs((2, 0))
+        True
 
     .. SEEALSO:
 

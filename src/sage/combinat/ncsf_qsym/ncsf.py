@@ -41,6 +41,7 @@ from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
@@ -4708,17 +4709,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     class dualQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
         r"""
-        The basis of NCSF dual to the Quasisymmetric_Schur basis of QSym.
+        The basis of NCSF dual to the Quasisymmetric-Schur basis of QSym.
 
         The 
         :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
         functions are defined in [QSCHUR]_ (see also
-        Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra of
-        non-commutative symmetric functions is defined by the following formula.
+        Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra
+        of non-commutative symmetric functions is defined by the following
+        formula:
 
         .. MATH::
 
-            R_\alpha = \sum_{T} dQS_{shape(T)}
+            R_\alpha = \sum_{T} dQS_{shape(T)},
 
         where the sum is over all standard composition tableaux with
         descent composition equal to `\alpha`.
@@ -4728,10 +4730,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            s_\lambda = \sum_{sort(\alpha) = \lambda} QS_\alpha
+            s_\lambda = \sum_{sort(\alpha) = \lambda} QS_\alpha.
 
-        As a consequence the commutative image of a dualQuasisymmetric_Schur element
-        in the algebra of symmetric functions (the map defined in the method
+        As a consequence the commutative image of a dual
+        Quasisymmetric-Schur element in the algebra of symmetric functions
+        (the map defined in the method
         :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`)
         is equal to the Schur function indexed by the decreasing sort of the
         indexing composition.
@@ -4812,7 +4815,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def _to_complete_transition_matrix(self, n):
             r"""
-            A matrix representing the transition coefficients to the complete basis
+            A matrix representing the transition coefficients to
+            the complete basis along with the ordering.
 
             INPUT:
 
@@ -4820,13 +4824,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - a square matrix
+            - a pair of a square matrix and the ordered list of compositions
 
             EXAMPLES::
 
                 sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
                 sage: dQS = NCSF.dQS()
-                sage: dQS._to_complete_transition_matrix(4)
+                sage: dQS._to_complete_transition_matrix(4)[0]
                 [ 1  0  0  0  0  0  0  0]
                 [-1  1  0  0  0  0  0  0]
                 [-1  0  1  0  0  0  0  0]
@@ -4837,15 +4841,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 [-1  1  1  1 -1 -1 -1  1]
             """
             if n == 0:
-                return matrix([[]])
-            return matrix([[number_of_SSRCT(al,be) for be in compositions_order(n)]
-                for al in compositions_order(n)]).inverse()
+                return (matrix([[]]), [])
+            CO = compositions_order(n)
+            # ZZ is faster than over QQ for inverting a matrix
+            from sage.rings.all import ZZ
+            MS = MatrixSpace(ZZ, len(CO))
+            return (MS([[number_of_SSRCT(al,be) for be in CO] for al in CO]).inverse(),
+                    CO)
 
         @cached_method
         def _to_complete_on_basis(self, comp):
             r"""
-            The expansion of the dualQuasisymmetric_Schur basis element indexed
-            by ``comp`` in the complete basis.
+            The expansion of the dual Quasisymmetric-Schur basis element
+            indexed by ``comp`` in the complete basis.
 
             INPUT:
 
@@ -4864,16 +4872,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             """
             if not comp._list:
                 return self.one()
-            comps = compositions_order(comp.size())
-            T = self._to_complete_transition_matrix(comp.size())
-            return self._S.sum_of_terms( zip(comps, T[comps.index(comp)]),
-                                      distinct=True )
+            T, comps = self._to_complete_transition_matrix(comp.size())
+            i = comps.index(comp)
+            return self._S._from_dict({c: T[i,j] for j,c in enumerate(comps)
+                                       if T[i,j] != 0},
+                                      remove_zeros=False)
 
         @cached_method
         def _from_complete_on_basis(self, comp_content):
             r"""
             Return the expansion of a complete basis element in the
-            dualQuasisymmetric_Schur basis.
+            dual Quasisymmetric-Schur basis.
 
             INPUT:
 
@@ -4881,9 +4890,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - The expansion in the dualQuasisymmetric_Schur basis of the basis
-              element of the complete basis indexed by the composition
-              ``comp_content``.
+            - the expansion in the dual Quasisymmetric-Schur basis of
+              the basis element of the complete basis indexed by the
+              composition ``comp_content``
 
             EXAMPLES::
 
@@ -4901,7 +4910,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def dual(self):
             r"""
-            The dual basis to the dualQuasisymmetric_Schur basis of NCSF.
+            The dual basis to the dual Quasisymmetric-Schur basis of NCSF.
 
             The basis returned is the
             :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
@@ -4909,7 +4918,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - the Quasisymmetric_Schur basis of the quasi-symmetric functions.
+            - the Quasisymmetric-Schur basis of the quasi-symmetric functions
 
             EXAMPLES::
 

@@ -65,6 +65,7 @@ from sage.categories.realizations import Category_realization_of_parent
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux
@@ -2622,7 +2623,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def _from_monomial_transition_matrix(self, n):
             r"""
-            A matrix representing the transition coefficients to the complete basis
+            A matrix representing the transition coefficients to
+            the complete basis and the ordering of compositions.
 
             INPUT:
 
@@ -2630,12 +2632,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - a square matrix
+            - a pair of a square matrix and the ordered list of compositions
 
             EXAMPLES::
 
                 sage: QS = QuasiSymmetricFunctions(QQ).QS()
-                sage: QS._from_monomial_transition_matrix(4)
+                sage: QS._from_monomial_transition_matrix(4)[0]
                 [ 1 -1 -1  0  1  1  1 -1]
                 [ 0  1  0  0 -1 -1  0  1]
                 [ 0  0  1 -1  0  0 -1  1]
@@ -2646,9 +2648,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 [ 0  0  0  0  0  0  0  1]
             """
             if n == 0:
-                return matrix([[]])
-            return matrix([[number_of_SSRCT(al,be) for al in compositions_order(n)]
-                for be in compositions_order(n)]).inverse()
+                return (matrix([[]]), [])
+            CO = compositions_order(n)
+            # ZZ is faster than over QQ for inverting a matrix
+            from sage.rings.all import ZZ
+            MS = MatrixSpace(ZZ, len(CO))
+            return (MS([[number_of_SSRCT(al,be) for al in CO] for be in CO]).inverse(),
+                    CO)
 
         @cached_method
         def _from_monomial_on_basis(self, comp):
@@ -2677,10 +2683,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             comp = Composition(comp)
             if not comp._list:
                 return self.one()
-            comps = compositions_order(comp.size())
-            T = self._from_monomial_transition_matrix(comp.size())
-            return self.sum_of_terms( zip(comps, T[comps.index(comp)]),
-                                      distinct=True )
+            T, comps = self._from_monomial_transition_matrix(comp.size())
+            i = comps.index(comp)
+            return self._from_dict({c: T[i,j] for j,c in enumerate(comps)
+                                    if T[i,j] != 0},
+                                   remove_zeros=False)
 
         @cached_method
         def _to_monomial_on_basis(self, comp_shape):
@@ -2707,7 +2714,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 2*M[1, 1, 1, 1, 1] + 2*M[1, 1, 2, 1] + M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1]
             """
             M = self.realization_of().Monomial()
-            if len(comp_shape)==0:
+            if not comp_shape:
                 return M([])
             return M.sum_of_terms(((comp_content,
                     number_of_SSRCT(comp_content, comp_shape))

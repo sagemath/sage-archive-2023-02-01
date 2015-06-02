@@ -22,6 +22,7 @@ from sage.functions.other import factorial
 from sage.misc.cachefunc import cached_function
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux
+from sage.rings.all import ZZ
 
 
 # The following might call for defining a morphism from ``structure
@@ -289,30 +290,37 @@ def number_of_SSRCT(content_comp, shape_comp):
         1
         sage: number_of_SSRCT(Composition([1,1,2,2]), Composition([3,3]))
         2
-        sage: all(CompositionTableaux(be).cardinality()==
-        ....:    sum(number_of_SSRCT(al,be)*binomial(4,len(al)) for al in
-        ....:    Compositions(4)) for be in Compositions(4))
+        sage: all(CompositionTableaux(be).cardinality()
+        ....:     == sum(number_of_SSRCT(al,be)*binomial(4,len(al))
+        ....:            for al in Compositions(4))
+        ....:     for be in Compositions(4))
         True
     """
     if len(content_comp) == 1:
         if len(shape_comp) == 1:
-            return 1
+            return ZZ.one()
         else:
-            return 0
-    s = 0
-    cond = lambda al,be: all(al[j]<=be[j] and not any(k in range(al[i],be[i]+1)
-        for k in range(al[j],be[j]) for i in range(j)) for j in range(len(be)))
+            return ZZ.zero()
+    s = ZZ.zero()
+    cond = lambda al,be: all(al[j] <= be_val
+                             and not any(al[i] <= k and k <= be[i]
+                                         for k in range(al[j], be_val)
+                                         for i in range(j))
+                             for j, be_val in enumerate(be))
     C = Compositions(content_comp.size()-content_comp[0],
-            inner = [1]*len(shape_comp), outer = list(shape_comp))
+                     inner=[1]*len(shape_comp),
+                     outer=list(shape_comp))
     for x in C:
-        if cond(x,shape_comp):
-            s+=number_of_SSRCT(Composition(content_comp[1:]), x)
-    if shape_comp[0]<=content_comp[0]:
-        C = Compositions(content_comp.size()-content_comp[0], inner =
-            [min(shape_comp[i],shape_comp[0]+1) for i in
-            range(1,len(shape_comp))], outer = shape_comp[1:])
+        if cond(x, shape_comp):
+            s += number_of_SSRCT(Composition(content_comp[1:]), x)
+    if shape_comp[0] <= content_comp[0]:
+        C = Compositions(content_comp.size()-content_comp[0],
+                         inner=[min(val, shape_comp[0]+1)
+                                for val in shape_comp[1:]],
+                         outer=shape_comp[1:])
+        Comps = Compositions()
         for x in C:
-            if cond([shape_comp[0]]+list(x),shape_comp):
-                s+=number_of_SSRCT(Composition(content_comp[1:]), x)
+            if cond([shape_comp[0]]+list(x), shape_comp):
+                s += number_of_SSRCT(Comps(content_comp[1:]), x)
     return s
 

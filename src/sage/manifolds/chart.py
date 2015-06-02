@@ -774,11 +774,11 @@ class Chart(UniqueRepresentation, SageObject):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
 
-    def function_symb(self, expression):
+    def function(self, expression):
         r"""
-        Define a symbolic function of the coordinates to the base field.
+        Define a coordinate function to the base field.
 
-        If the current chart lies in the atlas of a `n`-dimensional manifold
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
         over a topological field `K`, a *coordinate function* is a map
 
         .. MATH::
@@ -788,28 +788,41 @@ class Chart(UniqueRepresentation, SageObject):
                   &  (x^1,\ldots, x^n) & \longmapsto & f(x^1,\ldots, x^n),
             \end{array}
 
-        where `V` is the chart codomain.
+        where `V` is the chart codomain and `(x^1,\ldots, x^n)` are the
+        chart coordinates.
 
-        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        The coordinate function can be either a symbolic one or a numerical
+        one, depending on the parameter ``expression`` (see below).
+
+        See :class:`~sage.manifolds.coord_func.CoordFunction`
+        and :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`
         for a complete documentation.
 
         INPUT:
 
-        - ``expression`` -- the coordinate expression of the function
+        - ``expression`` -- material defining the coordinate function; it can
+          be either:
+
+          - a symbolic expression involving the chart coordinates, to represent
+            `f(x^1,\ldots, x^n)`
+          - a string representing the name of a file where the data
+            to construct a numerical coordinate function is stored
 
         OUTPUT:
 
-        - instance of class
-          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
-          representing the coordinate function `f`
+        - instance of a subclass of the base class
+          :class:`~sage.manifolds.coord_func.CoordFunction`
+          representing the coordinate function `f`; this is
+          :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` if
+          if  ``expression`` is a symbolic expression.
 
-        EXAMPLE:
+        EXAMPLES:
 
-        Function of two coordinates::
+        A symbolic coordinate function::
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(sin(x*y))
+            sage: f = X.function(sin(x*y))
             sage: f
             sin(x*y)
             sage: type(f)
@@ -821,7 +834,11 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         from sage.manifolds.coord_func_symb import CoordFunctionSymb
-        return CoordFunctionSymb(self, expression)
+        if isinstance(expression, str):
+            raise NotImplementedError("numerical coordinate function not " +
+                                      "implemented yet")
+        else:
+            return CoordFunctionSymb(self, expression)
 
     def zero_function(self):
         r"""
@@ -2088,6 +2105,12 @@ class CoordChange(SageObject):
             \left\{\begin{array}{lcl} x & = & r \cos\left({\phi}\right) \\
              y & = & r \sin\left({\phi}\right) \end{array}\right.
 
+        A shortcut is ``disp()``::
+
+            sage: spher_to_cart.disp()
+            x = r*cos(ph)
+            y = r*sin(ph)
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -2112,4 +2135,6 @@ class CoordChange(SageObject):
         if n2 > 1:
             rlatex += r"\right."
         return FormattedExpansion(rtxt, rlatex)
+
+    disp = display
 

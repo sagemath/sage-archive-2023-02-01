@@ -85,7 +85,7 @@ class CoordFunction(SageObject):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(1+x+y^2)
+            sage: f = X.function(1+x+y^2)
             sage: f.chart()
             Chart (M, (x, y))
             sage: f.chart() is X
@@ -299,6 +299,8 @@ class CoordFunction(SageObject):
         """
         raise NotImplementedError("CoordFunction.display not implemented")
 
+    disp = display
+
     def __call__(self, *coords, **options):
         r"""
         Computes the value of the function at specified coordinates.
@@ -324,6 +326,26 @@ class CoordFunction(SageObject):
 
         """
         raise NotImplementedError("CoordFunction.is_zero not implemented")
+
+    def diff(self, coord):
+        r"""
+        Partial derivative with respect to a coordinate.
+
+        INPUT:
+
+        - ``coord`` -- either the coordinate `x^i` with respect
+          to which the derivative of the coordinate function `f` is to be
+          taken, or the index `i` labelling this coordinate (with the
+          index convention defined on the chart domain via the parameter
+          ``start_index``)
+
+        OUTPUT:
+
+        - instance of :class:`CoordFunction` representing the partial
+          derivative `\frac{\partial f}{\partial x^i}`
+
+        """
+        raise NotImplementedError("CoordFunction.diff not implemented")
 
     def __eq__(self, other):
         r"""
@@ -651,11 +673,11 @@ class CoordFunction(SageObject):
 
 class MultiCoordFunction(SageObject):
     r"""
-    Base class for multi-coordinate functions
+    Multi-coordinate function.
 
-    If `(U,\varphi)` is a chart on a topological manifold `M` of dimension `n`
-    over a topological field `K`,  a *multi-coordinate function* associated to
-    `(U,\varphi)` is a map
+    If `n` and `m` are two positive integers and `(U,\varphi)` is a chart on
+    a topological manifold `M` of dimension `n` over a topological field `K`,
+    a *multi-coordinate function* associated to `(U,\varphi)` is a map
 
     .. MATH::
 
@@ -667,14 +689,15 @@ class MultiCoordFunction(SageObject):
 
     where `V` is the codomain of `\varphi`. In other words, `f` is a
     `K^m`-valued function of the coordinates associated to the chart
-    `(U,\varphi)`. Each components `f_i` (`1\leq i \leq m`) is a coordinate
+    `(U,\varphi)`. Each component `f_i` (`1\leq i \leq m`) is a coordinate
     function and is therefore stored as an instance of
     :class:`~sage.manifolds.coord_func.CoordFunction`.
 
     INPUT:
 
     - ``chart`` -- the chart `(U, \varphi)`
-    - ``size`` -- the integer `m`
+    - ``*expressions`` -- the list of the coordinate expressions of the `m`
+      functions `f_i` (`1\leq i \leq m`)
 
     """
     def __init__(self, chart, size):

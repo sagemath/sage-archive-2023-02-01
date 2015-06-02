@@ -305,7 +305,7 @@ class TopManifold(TopManifoldSubset):
         - any object in the category of fields (see
           :class:`~sage.categories.fields.Fields`) for more general manifolds
 
-    - ``start_index`` -- (default: 0) integer; lower bound of the range of
+    - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart.
     - ``category`` -- (default: ``None``) to specify the categeory; the
@@ -455,7 +455,7 @@ class TopManifold(TopManifoldSubset):
                 raise TypeError("the argument 'field' must be a field")
         self._field = field
         if not isinstance(start_index, (int, Integer)):
-            raise TypeError("the start index must be an integer")
+            raise TypeError("the starting index must be an integer")
         self._sindex = start_index
         if category is None:
             category = Sets()
@@ -733,19 +733,45 @@ class TopManifold(TopManifoldSubset):
         """
         return self._field
 
+    def start_index(self):
+        r"""
+        Return the first value of the index range used on the manifold.
+
+        This is the parameter ``start_index`` passed at the construction of
+        the manifold.
+
+        OUTPUT:
+
+        - the integer `i_0` such that all indices of indexed objects on the
+          manifold range from `i_0` to `i_0 + n - 1`, where `n` is the
+          manifold's dimension.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(3, 'M')
+            sage: M.start_index()
+            0
+            sage: M = TopManifold(3, 'M', start_index=1)
+            sage: M.start_index()
+            1
+
+        """
+        return self._sindex
+
     def irange(self, start=None):
         r"""
         Single index generator.
 
         INPUT:
 
-        - ``start`` -- (default: ``None``) initial value of the index; if none is
-          provided, ``self._sindex`` is assumed
+        - ``start`` -- (default: ``None``) initial value `i_0` of the index; if
+          none is provided, the value returned by :meth:`start_index()` is
+          assumed.
 
         OUTPUT:
 
-        - an iterable index, starting from ``start`` and ending at
-          ``self._sindex + self._dim -1``
+        - an iterable index, starting from `i_0` and ending at
+          `i_0 + n - 1`, where `n` is the manifold's dimension.
 
         EXAMPLES:
 
@@ -774,6 +800,11 @@ class TopManifold(TopManifoldSubset):
             ...      print i,
             ...
             2 3 4
+
+        In general, one has always::
+
+            sage: M.irange().next() == M.start_index()
+            True
 
         """
         si = self._sindex

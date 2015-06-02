@@ -457,7 +457,7 @@ class ExpressionNice(Expression):
             d = d.replace(o, res)
 
         from sage.manifolds.coord_func_symb import CoordFunctionSymb
-        if CoordFunctionSymb.omit_fargs:
+        if CoordFunctionSymb._omit_fargs:
 
             list_f = []
             list_functions(self, list_f)
@@ -627,7 +627,7 @@ class ExpressionNice(Expression):
 
         # if omit_function_args(True):
         from sage.manifolds.coord_func_symb import CoordFunctionSymb
-        if CoordFunctionSymb.omit_fargs:
+        if CoordFunctionSymb._omit_fargs:
 
             list_f = []
             list_functions(self, list_f)
@@ -777,7 +777,7 @@ def nice_derivatives(status):
         sage: M = TopManifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: g = function('g', x, y)
-        sage: f = X.function_symb(diff(g, x) + diff(g, y))
+        sage: f = X.function(diff(g, x) + diff(g, y))
         sage: f
         d(g)/dx + d(g)/dy
         sage: latex(f)
@@ -803,7 +803,7 @@ def nice_derivatives(status):
     from sage.manifolds.coord_func_symb import CoordFunctionSymb
     if not isinstance(status, bool):
         raise TypeError("the argument must be a boolean")
-    CoordFunctionSymb.nice_output = status
+    CoordFunctionSymb._nice_output = status
 
 
 def omit_function_args(status):
@@ -838,5 +838,5 @@ def omit_function_args(status):
     from sage.manifolds.coord_func_symb import CoordFunctionSymb
     if not isinstance(status, bool):
         raise TypeError("the argument must be a boolean")
-    CoordFunctionSymb.omit_fargs = status
+    CoordFunctionSymb._omit_fargs = status
 

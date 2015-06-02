@@ -21,9 +21,6 @@ to the chart* `(U,\varphi)` is a function
 This module implements symbolic coordinate functions via the class
 :class:`CoordFunctionSymb`.
 
-The class :class:`MultiCoordFunctionSymb` implements `K^m`-valued
-functions of the coordinates of a chart.
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
@@ -72,13 +69,197 @@ class CoordFunctionSymb(CoordFunction):
     - ``expression`` -- a symbolic expression representing `f(x^1,\ldots,x^n)`,
       where `(x^1,\ldots,x^n)` are the coordinates of the chart `(U, \varphi)`
 
+    EXAMPLES:
+
+    A symbolic coordinate function associated with a 2-dimensional chart::
+
+        sage: M = TopManifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: f = X.function(x^2+3*y+1)
+        sage: type(f)
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        sage: f.display()
+        (x, y) |--> x^2 + 3*y + 1
+        sage: f(x,y)
+        x^2 + 3*y + 1
+
+    The symbolic expression is returned when asking the direct display of
+    the function::
+
+        sage: f
+        x^2 + 3*y + 1
+        sage: latex(f)
+        x^{2} + 3 \, y + 1
+
+    A similar output is obtained by means of the method :meth:`expr`::
+
+        sage: f.expr()
+        x^2 + 3*y + 1
+
+    The value of the function at specified coordinates is obtained by means
+    of the standard parentheses notation::
+
+        sage: f(2,-1)
+        2
+        sage: var('a b')
+        (a, b)
+        sage: f(a,b)
+        a^2 + 3*b + 1
+
+    An unspecified coordinate function::
+
+        sage: g = X.function(function('G', x, y))
+        sage: g
+        G(x, y)
+        sage: g.display()
+        (x, y) |--> G(x, y)
+        sage: g.expr()
+        G(x, y)
+        sage: g(2,3)
+        G(2, 3)
+
+    Coordinate functions can be compared to other values::
+
+        sage: f = X.function(x^2+3*y+1)
+        sage: f == 2
+        False
+        sage: f == x^2 + 3*y + 1
+        True
+        sage: g = X.function(x*y)
+        sage: f == g
+        False
+        sage: h = X.function(x^2+3*y+1)
+        sage: f == h
+        True
+
+    .. RUBRIC:: Differences between ``CoordFunctionSymb`` and callable symbolic
+      expressions
+
+    Callable symbolic expressions are defined directly from symbolic
+    expressions of the coordinates::
+
+        sage: f0(x,y) = x^2 + 3*y + 1
+        sage: type(f0)
+        <type 'sage.symbolic.expression.Expression'>
+        sage: f0
+        (x, y) |--> x^2 + 3*y + 1
+        sage: f0(x,y)
+        x^2 + 3*y + 1
+
+    To get an output similar to that of ``f0`` for the coordinate function
+    ``f``, we must use the method :meth:`display`::
+
+        sage: f
+        x^2 + 3*y + 1
+        sage: f.display()
+        (x, y) |--> x^2 + 3*y + 1
+        sage: f(x,y)
+        x^2 + 3*y + 1
+
+    More importantly, instances of :class:`CoordFunctionSymb` differ from
+    callable symbolic expression by the automatic simplifications in all
+    operations. For instance, adding the two callable symbolic expressions::
+
+        sage: f0(x,y,z) = cos(x)^2 ; g0(x,y,z) = sin(x)^2
+
+    results in::
+
+        sage: f0 + g0
+        (x, y, z) |--> cos(x)^2 + sin(x)^2
+
+    To get 1,  one has to call
+    :meth:`~sage.symbolic.expression.Expression.simplify_trig`::
+
+        sage: (f0 + g0).simplify_trig()
+        (x, y, z) |--> 1
+
+    On the contrary, the sum of the corresponding :class:`CoordFunctionSymb`
+    instances is automatically simplified (see
+    :func:`~sage.manifolds.utilities.simplify_chain_real`
+    and :func:`~sage.manifolds.utilities.simplify_chain_generic` for details)::
+
+        sage: f = X.function(cos(x)^2) ; g = X.function(sin(x)^2)
+        sage: f + g
+        1
+
+    Another difference regards the display of partial derivatives: for callable
+    symbolic functions, it relies on Pynac notation ``D[0]``, ``D[1]``, etc.::
+
+        sage: g = function('g', x, y)
+        sage: f0(x,y) = diff(g, x) + diff(g, y)
+        sage: f0
+        (x, y) |--> D[0](g)(x, y) + D[1](g)(x, y)
+
+    while for coordinate functions, the display is more "textbook" like::
+
+        sage: f = X.function(diff(g, x) + diff(g, y))
+        sage: f
+        d(g)/dx + d(g)/dy
+
+    The difference is even more dramatic on LaTeX outputs::
+
+        sage: latex(f0)
+        \left( x, y \right) \ {\mapsto} \ D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+        sage: latex(f)
+        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
+
+    Note that this regards only the display of coordinate functions:
+    internally, the Pynac notation is still used, as we can check by asking
+    for the symbolic expression stored in `f`::
+
+        sage: f.expr()
+        D[0](g)(x, y) + D[1](g)(x, y)
+
+    One can switch to Pynac notation via the command
+    :func:`~sage.manifolds.utilities.nice_derivatives`::
+
+        sage: nice_derivatives(False)
+        sage: latex(f)
+        D[0]\left(g\right)\left(x, y\right) + D[1]\left(g\right)\left(x, y\right)
+        sage: nice_derivatives(True)
+        sage: latex(f)
+        \frac{\partial\,g}{\partial x} + \frac{\partial\,g}{\partial y}
+
+    Another difference between :class:`CoordFunctionSymb` and
+    callable symbolic expression is the possibility to switch off the display
+    of the arguments of unspecified functions. Consider for instance::
+
+        sage: f = X.function(function('u', x, y) * function('v', x, y))
+        sage: f
+        u(x, y)*v(x, y)
+        sage: f0(x,y) = function('u', x, y) * function('v', x, y)
+        sage: f0
+        (x, y) |--> u(x, y)*v(x, y)
+
+    If there is a clear understanding that `u` and `v` are functions of
+    `(x,y)`, the explicit mention of the latter can be cumbersome in lengthy
+    tensor expressions. We can switch it off by::
+
+        sage: omit_function_args(True)
+        sage: f
+        u*v
+
+    Note that neither the callable symbolic expression ``f0`` nor the internal
+    expression of ``f`` is affected by the above command::
+
+        sage: f0
+        (x, y) |--> u(x, y)*v(x, y)
+        sage: f.expr()
+        u(x, y)*v(x, y)
+
+    We revert to the default behavior by::
+
+        sage: omit_function_args(False)
+        sage: f
+        u(x, y)*v(x, y)
+
     """
 
-    nice_output = True # static flag for textbook-like output instead of the
-                       # Pynac output for derivatives
+    _nice_output = True # static flag for textbook-like output instead of the
+                        # Pynac output for derivatives
 
-    omit_fargs  = False # static flag to govern whether or not
-                        # the arguments of symbolic functions are printed
+    _omit_fargs  = False # static flag to govern whether or not
+                         # the arguments of symbolic functions are printed
 
     def __init__(self, chart, expression):
         r"""
@@ -90,7 +271,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(1+x*y); f
+            sage: f = X.function(1+x*y); f
             x*y + 1
             sage: type(f)
             <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
@@ -100,7 +281,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: N = TopManifold(2, 'N', field='complex')
             sage: Y.<z,w> = N.chart()
-            sage: g = Y.function_symb(i*z + 2*w); g
+            sage: g = Y.function(i*z + 2*w); g
             2*w + I*z
             sage: TestSuite(g).run()
 
@@ -114,6 +295,9 @@ class CoordFunctionSymb(CoordFunction):
             self._simplify = simplify_chain_real
         else:
             self._simplify = simplify_chain_generic
+        # Derived quantities:
+        self._der = None  # list of partial derivatives (to be set by diff()
+                          # and unset by del_derived())
 
     # -------------------------------------------------------------
     # Methods to be implemented by derived classes of CoordFunction
@@ -127,7 +311,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(1+x*y)
+            sage: f = X.function(1+x*y)
             sage: f._repr_()
             'x*y + 1'
             sage: repr(f)  # indirect doctest
@@ -136,7 +320,7 @@ class CoordFunctionSymb(CoordFunction):
             x*y + 1
 
         """
-        if CoordFunctionSymb.nice_output:
+        if CoordFunctionSymb._nice_output:
             return str(ExpressionNice(self._express))
         else:
             return str(self._express)
@@ -149,14 +333,14 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(cos(x*y/2))
+            sage: f = X.function(cos(x*y/2))
             sage: f._latex_()
             \cos\left(\frac{1}{2} \, x y\right)
             sage: latex(f)  # indirect doctest
             \cos\left(\frac{1}{2} \, x y\right)
 
         """
-        if CoordFunctionSymb.nice_output:
+        if CoordFunctionSymb._nice_output:
             return latex(ExpressionNice(self._express))
         else:
             return latex(self._express)
@@ -165,17 +349,27 @@ class CoordFunctionSymb(CoordFunction):
         r"""
         Display the function in arrow notation.
 
-        EXAMPLES::
+        The output is either text-formatted (console mode) or LaTeX-formatted
+        (notebook mode).
+
+        EXAMPLES:
+
+        Coordinate function on a 2-dimensional manifold::
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(cos(x*y/2))
+            sage: f = X.function(cos(x*y/2))
             sage: f.display()
             (x, y) |--> cos(1/2*x*y)
             sage: latex(f.display())
             \left(x, y\right) \mapsto \cos\left(\frac{1}{2} \, x y\right)
 
-        ::
+        A shortcut is ``disp()``::
+
+            sage: f.disp()
+            (x, y) |--> cos(1/2*x*y)
+
+        Display of the zero function::
 
             sage: X.zero_function().display()
             (x, y) |--> 0
@@ -187,6 +381,8 @@ class CoordFunctionSymb(CoordFunction):
         resu_latex = latex(self._chart[:]) + r' \mapsto' + \
                      latex(ExpressionNice(self._express))
         return FormattedExpansion(resu_txt, resu_latex)
+
+    disp = display
 
     def __call__(self, *coords, **options):
         r"""
@@ -203,6 +399,26 @@ class CoordFunctionSymb(CoordFunction):
 
         - the value `f(x^1,...,x^n)`, where `f` is the current coordinate
           function.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(sin(x*y))
+            sage: f.__call__(-2, 3)
+            -sin(6)
+            sage: f(-2, 3)
+            -sin(6)
+            sage: var('a b')
+            (a, b)
+            sage: f.__call__(a, b)
+            sin(a*b)
+            sage: f(a,b)
+            sin(a*b)
+            sage: f.__call__(pi, 1)
+            0
+            sage: f.__call__(pi, 1/2)
+            1
 
         """
         #!# This should be the Python 2.7 form:
@@ -231,12 +447,12 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x^2+3*y+1)
+            sage: f = X.function(x^2+3*y+1)
             sage: f.is_zero()
             False
             sage: f == 0
             False
-            sage: g = X.function_symb(0)
+            sage: g = X.function(0)
             sage: g.is_zero()
             True
             sage: g == 0
@@ -248,6 +464,75 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         return self._express.is_zero()
+
+    def diff(self, coord):
+        r"""
+        Partial derivative with respect to a coordinate.
+
+        INPUT:
+
+        - ``coord`` -- either the coordinate `x^i` with respect
+          to which the derivative of the coordinate function `f` is to be
+          taken, or the index `i` labelling this coordinate (with the
+          index convention defined on the chart domain via the parameter
+          ``start_index``)
+
+        OUTPUT:
+
+        - instance of :class:`CoordFunctionSymb` representing the partial
+          derivative `\frac{\partial f}{\partial x^i}`
+
+        EXAMPLES:
+
+        Partial derivatives of a 2-dimensional coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1); f
+            x^2 + 3*y + 1
+            sage: f.diff(x)
+            2*x
+            sage: f.diff(y)
+            3
+
+        Each partial derivatives is itself a coordinate function::
+
+            sage: type(f.diff(x))
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+
+        An index can be used instead of the coordinate symbol::
+
+            sage: f.diff(0)
+            2*x
+            sage: f.diff(1)
+            3
+
+        The index range depends on the convention used on the chart's domain::
+
+            sage: M = TopManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
+            sage: f.diff(1)
+            2*x
+            sage: f.diff(2)
+            3
+
+        """
+        from sage.calculus.functional import diff
+        from sage.rings.integer import Integer
+        if self._der is None:
+            # the list of partial derivatives has to be updated
+            self._der = [CoordFunctionSymb(self._chart,
+                                           self._simplify(diff(self._express,
+                                                               xx)))
+                         for xx in self._chart[:]]
+        if isinstance(coord, (int, Integer)):
+            # NB: for efficiency, we access directly to the "private" attributes
+            # of other classes. A more conventional OOP writing would be
+            #  return self._der[coord - self._chart.domain().start_index()]
+            return self._der[coord - self._chart._domain._sindex]
+        else:
+            return self._der[self._chart[:].index(coord)]
 
     def __eq__(self, other):
         r"""
@@ -267,22 +552,22 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y^2)
-            sage: g = X.function_symb(x+y^2)
+            sage: f = X.function(x+y^2)
+            sage: g = X.function(x+y^2)
             sage: f.__eq__(g)
             True
             sage: f == g
             True
             sage: f.__eq__(1)
             False
-            sage: h = X.function_symb(1)
+            sage: h = X.function(1)
             sage: h.__eq__(1)
             True
             sage: h.__eq__(f)
             False
             sage: h.__eq__(0)
             False
-            sage: X.function_symb(0).__eq__(0)
+            sage: X.function(0).__eq__(0)
             True
             sage: X.zero_function().__eq__(0)
             True
@@ -310,7 +595,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y^2)
+            sage: f = X.function(x+y^2)
             sage: g = +f; g
             y^2 + x
             sage: type(g)
@@ -335,7 +620,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y^2)
+            sage: f = X.function(x+y^2)
             sage: g = -f; g
             -y^2 - x
             sage: type(g)
@@ -365,7 +650,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(1+x^2+y^2)
+            sage: f = X.function(1+x^2+y^2)
             sage: g = f.__invert__(); g
             1/(x^2 + y^2 + 1)
             sage: type(g)
@@ -396,8 +681,8 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y^2)
-            sage: g = X.function_symb(x+1)
+            sage: f = X.function(x+y^2)
+            sage: g = X.function(x+1)
             sage: s = f.__add__(g); s.display()
             (x, y) |--> y^2 + 2*x + 1
             sage: type(s)
@@ -450,8 +735,8 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y^2)
-            sage: g = X.function_symb(x+1)
+            sage: f = X.function(x+y^2)
+            sage: g = X.function(x+1)
             sage: s = f.__sub__(g); s.display()
             (x, y) |--> y^2 - 1
             sage: type(s)
@@ -506,8 +791,8 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
-            sage: g = X.function_symb(x-y)
+            sage: f = X.function(x+y)
+            sage: g = X.function(x-y)
             sage: s = f.__mul__(g); s.display()
             (x, y) |--> x^2 - y^2
             sage: type(s)
@@ -561,8 +846,8 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
-            sage: g = X.function_symb(1+x^2+y^2)
+            sage: f = X.function(x+y)
+            sage: g = X.function(1+x^2+y^2)
             sage: s = f.__div__(g); s.display()
             (x, y) |--> (x + y)/(x^2 + y^2 + 1)
             sage: type(s)
@@ -619,7 +904,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
+            sage: f = X.function(x+y)
             sage: f.exp()
             e^(x + y)
             sage: exp(f) # equivalent to f.exp()
@@ -651,7 +936,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
+            sage: f = X.function(x+y)
             sage: f.log()
             log(x + y)
             sage: log(f) # equivalent to f.log()
@@ -684,7 +969,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
+            sage: f = X.function(x+y)
             sage: f.__pow__(3)
             x^3 + 3*x^2*y + 3*x*y^2 + y^3
             sage: f^3  # equivalent to f.__pow__(3)
@@ -715,7 +1000,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x+y)
+            sage: f = X.function(x+y)
             sage: f.sqrt()
             sqrt(x + y)
             sage: sqrt(f)  # equivalent to f.sqrt()
@@ -742,7 +1027,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.cos()
             cos(x*y)
             sage: cos(f)  # equivalent to f.cos()
@@ -769,7 +1054,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.sin()
             sin(x*y)
             sage: sin(f)  # equivalent to f.sin()
@@ -796,7 +1081,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.tan()
             sin(x*y)/cos(x*y)
             sage: tan(f)  # equivalent to f.tan()
@@ -823,7 +1108,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arccos()
             arccos(x*y)
             sage: arccos(f)  # equivalent to f.arccos()
@@ -852,7 +1137,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arcsin()
             arcsin(x*y)
             sage: arcsin(f)  # equivalent to f.arcsin()
@@ -881,7 +1166,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arctan()
             arctan(x*y)
             sage: arctan(f)  # equivalent to f.arctan()
@@ -910,7 +1195,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.cosh()
             cosh(x*y)
             sage: cosh(f)  # equivalent to f.cosh()
@@ -937,7 +1222,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.sinh()
             sinh(x*y)
             sage: sinh(f)  # equivalent to f.sinh()
@@ -964,7 +1249,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.tanh()
             sinh(x*y)/cosh(x*y)
             sage: tanh(f)  # equivalent to f.tanh()
@@ -991,7 +1276,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arccosh()
             arccosh(x*y)
             sage: arccosh(f)  # equivalent to f.arccosh()
@@ -1000,7 +1285,7 @@ class CoordFunctionSymb(CoordFunction):
             arccosh(x*y)
             sage: arccosh(f).display()
             (x, y) |--> arccosh(x*y)
-            sage: arccosh(X.function_symb(1)) == X.zero_function()
+            sage: arccosh(X.function(1)) == X.zero_function()
             True
 
         """
@@ -1020,7 +1305,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arcsinh()
             arcsinh(x*y)
             sage: arcsinh(f)  # equivalent to f.arcsinh()
@@ -1049,7 +1334,7 @@ class CoordFunctionSymb(CoordFunction):
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = X.function_symb(x*y)
+            sage: f = X.function(x*y)
             sage: f.arctanh()
             arctanh(x*y)
             sage: arctanh(f)  # equivalent to f.arctanh()
@@ -1065,126 +1350,255 @@ class CoordFunctionSymb(CoordFunction):
         return CoordFunctionSymb(self._chart,
                                  self._simplify(self._express.arctanh()))
 
+    # -------------------------------------
+    # Methods specific to CoordFunctionSymb
+    # -------------------------------------
 
-#*****************************************************************************
-
-class MultiCoordFunctionSymb(MultiCoordFunction):
-    r"""
-    Base class for multi-coordinate functions
-
-    If `(U,\varphi)` is a chart on a topological manifold `M` of dimension `n`
-    over a topological field `K`,  a *multi-coordinate function* associated to
-    `(U,\varphi)` is a map
-
-    .. MATH::
-
-        \begin{array}{llcl}
-        f:& V \subset K^n & \longrightarrow & K^m \\
-          & (x^1,\ldots,x^n) & \longmapsto & (f_1(x^1,\ldots,x^n),\ldots,
-            f_m(x^1,\ldots,x^n)) ,
-        \end{array}
-
-    where `V` is the codomain of `\varphi`. In other words, `f` is a
-    `K^m`-valued function of the coordinates associated to the chart
-    `(U,\varphi)`. Each components `f_i` (`1\leq i \leq m`) is a coordinate
-    function and is therefore stored as an instance of
-    :class:`~sage.manifolds.coord_func.CoordFunction`.
-
-    INPUT:
-
-    - ``chart`` -- the chart `(U, \varphi)`
-    - ``size`` -- the integer `m`
-
-    """
-    def __init__(self, chart, size):
-        if not isinstance(chart, Chart):
-            raise TypeError("The argument must be a chart.")
-        self._chart = chart
-        self._nc = len(self._chart._xx)  # number of coordinates
-        self._nf = size        # number of functions
-        self._functions = None # to be set be derived classes
-
-    def _repr_(self):
+    def expr(self):
         r"""
-        String representation of the object.
-        """
-        return "Functions {} on the {}".format(self._functions, self._chart)
-
-    def _latex_(self):
-        r"""
-        LaTeX representation of the object.
-        """
-        return latex(self._functions)
-
-    def __eq__(self, other):
-        r"""
-        Comparison (equality) operator.
-
-        INPUT:
-
-        - ``other`` -- another instance of :class:`MultiCoordFunction`
+        Return the symbolic expression representing the image of the coordinate
+        function.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
+        - symbolic expression, involving the chart coordinates (instance of
+          :class:`sage.symbolic.expression.Expression`)
+
+        EXAMPLES:
+
+        Coordinate function of a 2-dimensional manifold::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
+            sage: f.expr()
+            x^2 + 3*y + 1
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+
+        The method :meth:`expr` is useful for accessing to all the
+        symbolic expression functionalities in Sage; for instance::
+
+            sage: var('a')
+            a
+            sage: f = X.function(a*x*y); f.display()
+            (x, y) |--> a*x*y
+            sage: f.expr()
+            a*x*y
+            sage: f.expr().subs(a=2)
+            2*x*y
+
+        Note that for substituting the value of a coordinate, the function call
+        can be used as well::
+
+            sage: f(x,3)
+            3*a*x
+            sage: bool( f(x,3) == f.expr().subs(y=3) )
+            True
 
         """
-        if not isinstance(other, MultiCoordFunction):
-            return False
-        if other._chart != self._chart:
-            return False
-        if other._nf != self._nf:
-            return False
-        for i in range(self._nf):
-            if other._functions[i] != self._functions[i]:
-                return False
-        return True
+        return self._express
 
-    def __ne__(self, other):
+    def _del_derived(self):
         r"""
-        Inequality operator.
+        Delete the derived quantities
+        """
+        self._der = None  # reset of the partial derivatives
 
-        INPUT:
+    def simplify(self):
+        r"""
+        Simplify the coordinate expression of the function.
 
-        - ``other`` -- another instance of :class:`MultiCoordFunction`
+        For details about the employed chain of simplifications, see
+        :func:`~sage.manifolds.utilities.simplify_chain_real` for coordinate
+        functions on real manifolds and
+        :func:`~sage.manifolds.utilities.simplify_chain_generic` for the
+        generic case.
 
         OUTPUT:
 
-        - True if ``self`` is different from ``other``,  or False otherwise
+        - the coordinate function, with its expression simplified.
+
+        EXAMPLES:
+
+        Simplification of a 2-dimension coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
+            sage: f.display()
+            (x, y) |--> cos(x)^2 + sin(x)^2 + sqrt(x^2)
+            sage: f.simplify()
+            abs(x) + 1
+
+        The method ``simplify()`` has changed the expression of ``f``::
+
+            sage: f.display()
+            (x, y) |--> abs(x) + 1
+
+        Another example::
+
+            sage: f = X.function((x^2-1)/(x+1))
+            sage: f
+            (x^2 - 1)/(x + 1)
+            sage: f.simplify()
+            x - 1
+
+        Examples taking into account the declared range of a coordinate::
+
+            sage: M =  TopManifold(2, 'M_1')
+            sage: X.<x,y> = M.chart('x:(0,+oo) y')
+            sage: f = X.function(sqrt(x^2))
+            sage: f
+            sqrt(x^2)
+            sage: f.simplify()
+            x
+
+        ::
+
+            sage: forget()  # to clear the previous assumption on x
+            sage: M =  TopManifold(2, 'M_2')
+            sage: X.<x,y> = M.chart('x:(-oo,0) y')
+            sage: f = X.function(sqrt(x^2))
+            sage: f
+            sqrt(x^2)
+            sage: f.simplify()
+            -x
 
         """
-        return not self.__eq__(other)
+        self._express = self._simplify(self._express)
+        self._del_derived()
+        return self
 
-    def __getitem__(self, index):
+    def factor(self):
         r"""
-        Return a specified function of the set represented by ``self``.
-
-        INPUT:
-
-        -- ``index`` -- index `i` of the function (`0\leq i \leq m-1`)
-
-        OUTPUT
-
-        -- instance of :class:`CoordFunction` representing the function
-
-        """
-        return self._functions[index]
-
-    def __call__(self, *coords, **options):
-        r"""
-        Compute the values of the functions at specified coordinates.
-
-        INPUT:
-
-        - ``*coords`` -- list of coordinates where the functions are to be
-          evaluated
-        - ``**options`` -- allows to pass ``simplify=False`` to disable the
-          call of the simplification chain on the result
+        Factorize the coordinate expression of the function.
 
         OUTPUT:
 
-        - the values of the `m` functions.
+        - the coordinate function, with its expression factorized.
+
+        EXAMPLES:
+
+        Factorization of a 2-dimensional coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2 + 2*x*y + y^2)
+            sage: f.display()
+            (x, y) |--> x^2 + 2*x*y + y^2
+            sage: f.factor()
+            (x + y)^2
+
+        The method ``factor()`` has changed the expression of ``f``::
+
+            sage: f.display()
+            (x, y) |--> (x + y)^2
 
         """
-        return tuple( self._functions[i](*coords, **options) for i in
-                                                              range(self._nf) )
+        self._express = self._express.factor()
+        self._del_derived()
+        return self
+
+    def expand(self):
+        r"""
+        Expand the coordinate expression of the function.
+
+        OUTPUT:
+
+        - the coordinate function, with its expression expanded.
+
+        EXAMPLES:
+
+        Expanding a 2-dimensional coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function((x - y)^2)
+            sage: f.display()
+            (x, y) |--> (x - y)^2
+            sage: f.expand()
+            x^2 - 2*x*y + y^2
+
+        The method ``expand()`` has changed the expression of ``f``::
+
+            sage: f.display()
+            (x, y) |--> x^2 - 2*x*y + y^2
+
+        """
+        self._express = self._express.expand()
+        self._del_derived()
+        return self
+
+    def collect(self, s):
+        r"""
+        Collect the coefficients of `s` in the expression of the coordinate
+        function into a group.
+
+        INPUT:
+
+        - ``s`` -- the symbol whose coefficients will be collected.
+
+        OUTPUT:
+
+        - the coordinate function, with the coefficients of ``s`` grouped in
+          its expression.
+
+        EXAMPLES:
+
+        Action on a 2-dimensional coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2*y + x*y + (x*y)^2)
+            sage: f.display()
+            (x, y) |--> x^2*y^2 + x^2*y + x*y
+            sage: f.collect(y)
+            x^2*y^2 + (x^2 + x)*y
+
+        The method ``collect()`` has changed the expression of ``f``::
+
+            sage: f.display()
+            (x, y) |--> x^2*y^2 + (x^2 + x)*y
+
+        """
+        self._express = self._express.collect(s)
+        self._del_derived()
+        return self
+
+    def collect_common_factors(self):
+        r"""
+        Collect common factors in the expression of the coordinate
+        function.
+
+        This method does not perform a full factorization but only looks
+        for factors which are already explicitly present.
+
+        OUTPUT:
+
+        - the coordinate function, with the common factors collected in
+          its expression.
+
+        EXAMPLES:
+
+        Action on a 2-dimensional coordinate function::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x/(x^2*y + x*y))
+            sage: f.display()
+            (x, y) |--> x/(x^2*y + x*y)
+            sage: f.collect_common_factors()
+            1/((x + 1)*y)
+
+
+        The method ``collect_common_factors()`` has changed the expression
+        of ``f``::
+
+            sage: f.display()
+            (x, y) |--> 1/((x + 1)*y)
+
+        """
+        self._express = self._express.collect_common_factors()
+        self._del_derived()
+        return self

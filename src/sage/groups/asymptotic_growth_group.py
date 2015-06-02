@@ -548,6 +548,28 @@ class GenericGrowthGroup(
 
 
     def _repr_short_(self):
+        r"""
+        A short (shorter than :meth:`._repr_`) representation string
+        for this abstract growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        .. NOTE::
+
+            This is used in :class:`CartesianProductGrowthGroups`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GenericGrowthGroup(QQ)._repr_short_()
+            'GenericGrowthGroup(Rational Field)'
+        """
         return 'GenericGrowthGroup(%s)' % (self.base(),)
 
 
@@ -1152,8 +1174,35 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
 
     def _repr_short_(self):
+        r"""
+        A short (shorter than :meth:`._repr_`) representation string
+        for this monomial growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        .. NOTE::
+
+            This is used in :class:`CartesianProductGrowthGroups`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.MonomialGrowthGroup(ZZ, 'a')._repr_short_()
+            'a^ZZ'
+            sage: agg.MonomialGrowthGroup(QQ, 'a')._repr_short_()
+            'a^QQ'
+            sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
+            'a^(Univariate Polynomial Ring in x over Rational Field)'
+        """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
+
         base = self.base()
         if base == ZZ:
             repr_base = 'ZZ'
@@ -1163,6 +1212,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             repr_base = repr(base)
         if ' ' in repr_base:
             repr_base = '(' + repr_base + ')'
+
         return '%s^%s' % (self._var_, repr_base)
 
 

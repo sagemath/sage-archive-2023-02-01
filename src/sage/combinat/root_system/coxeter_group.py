@@ -123,7 +123,7 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
 
         sage: W = groups.misc.CoxeterGroup(["H",3])
     """
-    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", None]:
+    if implementation not in ["permutation", "matrix", "coxeter3", "reflection", "chevie", None]:
         raise ValueError("invalid type implementation")
 
     try:
@@ -150,6 +150,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         if cartan_type.is_crystallographic():
             return WeylGroup(cartan_type)
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
+    elif implementation == "chevie":
+        from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+        return CoxeterGroupChevie(data, index_set=index_set)
 
     raise NotImplementedError("Coxeter group of type {} as {} group not implemented".format(cartan_type, implementation))
 

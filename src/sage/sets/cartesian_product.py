@@ -285,3 +285,37 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 1
             """
             return iter(self.value)
+
+
+class CartesianProductPosets(CartesianProduct):
+    r"""
+
+    .. SEEALSO:
+
+        :class:`CartesianProduct`
+    """
+
+    def __init__(self, sets, category, order, **kwargs):
+        r"""
+        See :class:`CartesianProductPosets` for details,
+
+        TESTS::
+
+            sage: P = Poset((srange(3), lambda left, right: left <= right))
+            sage: P.CartesianProduct = sage.sets.cartesian_product.CartesianProductPosets
+            sage: Cl = cartesian_product((P, P), order='notexisting')
+            Traceback (most recent call last):
+            ...
+            ValueError: No order 'notexisting' known.
+        """
+        if isinstance(order, str):
+            try:
+                self._le_ = getattr(self, 'le_' + order)
+            except AttributeError:
+                raise ValueError("No order '%s' known." % (order,))
+        else:
+            self._le_ = order
+
+        super(CartesianProductPosets, self).__init__(
+            sets, category, **kwargs)
+

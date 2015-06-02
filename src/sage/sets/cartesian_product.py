@@ -52,7 +52,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     .. automethod:: _cartesian_product_of_elements
     """
-    def __init__(self, sets, category, flatten=False):
+    def __init__(self, sets, category, flatten=False, **kwargs):
         r"""
         INPUT:
 
@@ -61,6 +61,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
          - ``flatten`` -- a boolean (default: ``False``)
 
         ``flatten`` is current ignored, and reserved for future use.
+
+        No other keyword arguments (``kwargs``) are accepted.
 
         TESTS::
 
@@ -71,7 +73,14 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: C.an_element()
             (1/2, 1, 1)
             sage: TestSuite(C).run()
+            sage: cartesian_product([ZZ, ZZ], blub=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: unknown parameters: blub
         """
+        if kwargs:
+            raise TypeError('unknown parameters: %s' %
+                            ', '.join(str(k) for k in kwargs.iterkeys()))
         self._sets = tuple(sets)
         Parent.__init__(self, category=category)
 

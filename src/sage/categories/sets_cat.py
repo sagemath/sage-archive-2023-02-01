@@ -1418,9 +1418,6 @@ class Sets(Category_singleton):
             """
             category = kwargs.pop('category', None)
             extra_category = kwargs.pop('extra_category', None)
-            if kwargs:
-                raise TypeError('unknown parameters: %s' %
-                                ', '.join(str(k) for k in kwargs.iterkeys()))
 
             category = category or cartesian_product.category_from_parents(parents)
             if extra_category:
@@ -1428,7 +1425,7 @@ class Sets(Category_singleton):
                     category = tuple(category) + (extra_category,)
                 else:
                     category = category & extra_category
-            return parents[0].CartesianProduct(parents, category=category)
+            return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
         def algebra(self, base_ring, category=None):
             """

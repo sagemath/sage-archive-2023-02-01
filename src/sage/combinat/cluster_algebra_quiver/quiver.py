@@ -1056,6 +1056,78 @@ class ClusterQuiver(SageObject):
         else:
             return Q
 
+
+    def first_sink(self):
+        r"""
+        Returns the first vertex that is a sink
+        
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.first_sink()
+            0
+        """
+        sinks = self.digraph().sinks()
+        
+        if len(sinks) > 0:
+            return sinks[0]
+        return None
+    
+    
+    def sinks(self):
+        r"""
+        Returns all vertices that are sinks
+        
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.sinks()
+            [0, 2]
+            
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.sinks()
+            [3]
+        """
+        return self.digraph().sinks()
+
+    def first_source(self):
+        r"""
+        Returns the first vertex that is a source
+        
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.first_source()
+            1
+        """
+        sources = self.digraph().sources()
+
+        if len(sources) > 0:
+            return sources[0]
+        return None
+    
+    def sources(self):
+        r"""
+        Returns all vertices that are sources
+        
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.sources()
+            []
+            
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.sources()
+            [1]
+        """
+        return self.digraph().sources()
+    
     def mutate(self, data, inplace=True):
         """
         Mutates ``self`` at a sequence of vertices.
@@ -1116,10 +1188,24 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.
         """
+        
         n = self._n
         m = self._m
         dg = self._digraph
         V = range(n)
+        
+        # If we get a string, execute as a function
+        if isinstance(data, str):
+            data = getattr(self, data)()
+       
+        # If we get a function, execute it
+        if hasattr(data, '__call__'):
+            # function should return either integer or sequence
+            data = data(self)
+
+        if data is None:
+            raise ValueError('Not mutating: No vertices given.')
+        
 
         if data in V:
             seq = [data]

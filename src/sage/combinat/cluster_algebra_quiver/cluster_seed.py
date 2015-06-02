@@ -32,6 +32,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
+from sage.misc.misc import exists
 
 class ClusterSeed(SageObject):
     r"""
@@ -747,7 +748,113 @@ class ClusterSeed(SageObject):
             False
         """
         return self.quiver().is_bipartite(return_bipartition=return_bipartition)
+    
+    def green_vertices(self):
+        r"""
+        Returns list of green vertices. A vertex is defined to be green if its c-vector
+            has all non-positive entries. More information on green vertices can be found
+            at :arxiv:`1205.2050`
+            
+        EXAMPLES::
+        
+            sage: ClusterSeed(['A',3]).principal_extension().green_vertices()
+            [0, 1, 2]
+            
+            sage: ClusterSeed(['A',[3,3],1]).principal_extension().green_vertices()
+            [0, 1, 2, 3, 4, 5]
+        """
+        
+        # Make sure we have a principle extension
+        if not self._is_principal:
+            raise ValueError("Must be a principal extension to grab the vertices.")
+            
+        # Go through each vector and return the ones which have no negative entry
+        return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
+    
+    def first_green_vertex(self):
+        r"""
+        Returns first green vertex. A vertex is defined to be green if its c-vector 
+            has all non-positive entries. More information on green vertices can be found
+            at :arxiv:`1205.2050`
+        
+        EXAMPLES::
+        
+            sage: ClusterSeed(['A',3]).principal_extension().first_green_vertex()
+            0
+            
+            sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_green_vertex()
+            0
+        """
+        # Make sure we have a principle extension
+        if not self._is_principal:
+            raise ValueError("Must be a principal extension to grab the vertices.")
+        
+        # Go through each vector
+        for i in range(self._n):
+            # and return the one which has no negative entry
+            if not exists(self.c_vector(i), lambda k : k < 0)[0]:
+                return i
+        
+        
+        return None
+         
+    def red_vertices(self):
+        r"""
+        Returns list of red vertices. A vertex is defined to be red if its c-vector
+            has all non-negative entries. More information on red vertices can be found
+            at :arxiv:`1205.2050`
+            
+        EXAMPLES::
+        
+            sage: ClusterSeed(['A',3]).principal_extension().red_vertices()
+            []
+            
+            sage: ClusterSeed(['A',[3,3],1]).principal_extension().red_vertices()
+            []
+            
+            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
+            sage: Q.mutate(1);
+            sage: Q.red_vertices()
+            [1]
 
+        """
+        # Make sure we have a principle extension
+        if not self._is_principal:
+            raise ValueError("Must be a principle extension to grab the vertices.")
+        
+        # Go through each vector and return the ones which have no positive entry
+        return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
+    
+    def first_red_vertex(self):
+        r"""
+        Returns first red vertex. A vertex is defined to be red if its c-vector
+            has all non-negative entries. More information on red vertices can be found
+            at :arxiv:`1205.2050`
+            
+        EXAMPLES::
+        
+            sage: ClusterSeed(['A',3]).principal_extension().first_red_vertex()
+            
+            sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_red_vertex()
+            
+            sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
+            sage: Q.mutate(1);
+            sage: Q.first_red_vertex()
+            1
+
+        """
+        # Make sure we have a principle extension
+        if not self._is_principal:
+            raise ValueError("Must be a principal extension to grab the vertices.")
+        
+        # Go through each vector
+        for i in range(self._n):
+            # and return the ones which have no negative entry
+            if not exists(self.c_vector(i), lambda k : k > 0)[0]:
+                return i
+        
+        return None
+    
     def mutate(self, sequence, inplace=True):
         r"""
         Mutates ``self`` at a vertex or a sequence of vertices.
@@ -795,14 +902,51 @@ class ClusterSeed(SageObject):
             sage: T = S.mutate(0,inplace=False)
             sage: S == T
             False
+            
+            sage: Q = ClusterSeed(['A',3]);Q.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+
+            sage: Q.mutate('first_sink');Q.b_matrix()
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -1  0]
+
+            sage: def last_vertex(self): return self._n - 1
+            sage: Q.mutate(last_vertex); Q.b_matrix()
+            [ 0 -1  0]
+            [ 1  0 -1]
+            [ 0  1  0]
+
         """
         if inplace:
             seed = self
         else:
             seed = ClusterSeed( self )
 
+        # If we get a string, execute as a function
+        if isinstance(sequence, str):
+            if sequence is 'green':
+                sequence = self.first_green_vertex()
+            elif sequence is 'red':
+                sequence = self.first_red_vertex()
+            else:
+                sequence = getattr(self.quiver(), sequence)()
+       
+        # If we get a function, execute it
+        if hasattr(sequence, '__call__'):
+            # function should return either integer or sequence
+            sequence = sequence(seed)
+
+        if sequence is None:
+            raise ValueError('Not mutating: No vertices given.')
+            
+        
         n, m = seed._n, seed._m
         V = range(n)
+        
+        
 
         if sequence in V:
             seq = [sequence]

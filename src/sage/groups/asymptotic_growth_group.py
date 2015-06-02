@@ -1199,6 +1199,22 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert x^12 + O(x^17).
+
+        ::
+
+            sage: R.<w,x> = PolynomialRing(ZZ)
+            sage: P(x^4242)  # indirect doctest
+            x^4242
+            sage: P(w^4242)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert w^4242.
+
+        ::
+
+            sage: PSR.<w,x> = PowerSeriesRing(ZZ)
+            sage: P(x^7)  # indirect doctest
+            x^7
         """
         if data == 1:
             return self.base().zero()
@@ -1212,6 +1228,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         from sage.symbolic.ring import SR
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+        from sage.rings.polynomial.multi_polynomial_ring_generic import \
+            MPolynomialRing_generic
         from sage.rings.power_series_ring import PowerSeriesRing_generic
         import operator
         if P is SR:
@@ -1219,13 +1237,17 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 base, exponent = data.operands()
                 if str(base) == self._var_:
                     return exponent
-        elif isinstance(P, PolynomialRing_general):
-            if data.is_monomial() and str(data.parent().gen()) == self._var_:
-                return data.valuation()
+        elif isinstance(P, (PolynomialRing_general, MPolynomialRing_generic)):
+            if data.is_monomial() and len(data.variables()) == 1:
+                if self._var_ == str(data.variables()[0]):
+                    return data.degree()
         elif isinstance(P, PowerSeriesRing_generic):
-            if data.is_monomial() and str(data) == str(data.truncate()) \
-                    and str(data.parent().gen()) == self._var_:
-                return data.valuation()
+            if hasattr(data, 'variables') and len(data.variables()) > 1:
+                pass
+            elif data.is_monomial():
+                if str(data) == str(data.truncate()):  # see trac ticket 18595
+                    if self._var_ in (str(var) for var in P.gens()):
+                        return data.degree()
 
 
     def _coerce_map_from_(self, S):

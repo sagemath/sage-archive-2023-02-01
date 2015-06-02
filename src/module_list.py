@@ -85,7 +85,7 @@ polybori_major_version = '0.8'
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
 library_order_list = ["csage",
-    "singular", "ec",
+    "singular", "ec", "ecm",
     "linboxsage", "ntl", "iml", "linbox", "givaro",
     "gsl", "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",

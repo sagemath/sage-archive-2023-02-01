@@ -46,12 +46,12 @@ installed = dict(pkgname_split(pkgname)
                  for pkgname in os.listdir(SAGE_SPKG_INST))
 
 # new-style packages
-local_non_filtered = os.listdir(SAGE_ROOT+"/build/pkgs/")
+local_non_filtered = os.listdir(os.path.join(SAGE_ROOT, "build", "pkgs"))
 local = {}
 for p in local_non_filtered:
-    with open(SAGE_ROOT+"/build/pkgs/"+p+"/package-version.txt") as f:
+    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "package-version.txt")) as f:
         version = f.read().strip()
-    with open(SAGE_ROOT+"/build/pkgs/"+p+"/type") as f:
+    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "type")) as f:
         if f.read().strip() == args['category']:
             local[p] = version
 

@@ -623,6 +623,26 @@ class ClusterSeed(SageObject):
             return -vector(f.numerator().monomials()[0].exponents()[0][:self._n])
         return vector(f.denominator().monomials()[0].exponents()[0][:self._n])
 
+    def d_matrix(self):
+        r"""
+        Returns the matrix of all *d-vectors* of ``self``.  This is the matrix
+        having as columns the exponent vectors of the denominator of the cluster
+        variables of ``self``.. 
+    
+        EXAMPLES::
+    
+            sage: S = ClusterSeed(['A',3])
+            sage: S.mutate([2,1,2])
+            sage: S.d_matrix()
+            [-1  0  0]
+            [ 0  1  1]
+            [ 0  1  0]
+    
+        """
+        from sage.matrix.all import matrix
+        D = [ self.d_vector(i) for i in range(self._n) ]
+        return matrix(D).transpose()
+
     def c_vector(self,k,ignore_coefficients=False):
         r"""
         Returns the ``k``-th *c-vector* of ``self``. It is obtained as the

@@ -244,7 +244,17 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: P = PerfectMatching([(1,3),(2,5),(4,6)])
-            sage: latex(P)  # indirect doctest; optional - dot2tex
+            sage: latex(P)  # optional - dot2tex; random
+            \begin{tikzpicture}
+            ...
+            \end{tikzpicture}
+
+        TESTS:
+
+        Above we added ``random`` since warnings might be displayed
+        once. The second time, there should be no warnings::
+
+            sage: print P._latex_()  # optional - dot2tex
             \begin{tikzpicture}
             ...
             \end{tikzpicture}

@@ -30,6 +30,8 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :func:`algebras.Quaternion
   <sage.algebras.quatalg.quaternion_algebra.QuaternionAlgebraFactory>`
+- :class:`algebras.RationalCherednik
+  <sage.algebras.rational_cherednik_algebra.RationalCherednikAlgebra>`
 - :class:`algebras.Schur <sage.algebras.schur_algebra.SchurAlgebra>`
 - :class:`algebras.Shuffle <sage.algebras.shuffle_algebra.ShuffleAlgebra>`
 - :class:`algebras.Steenrod
@@ -53,6 +55,7 @@ lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
+lazy_import('sage.algebras.rational_cherednik_algebra', 'RationalCherednikAlgebra', 'RationalCherednik')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion

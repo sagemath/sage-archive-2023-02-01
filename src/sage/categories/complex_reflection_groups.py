@@ -12,7 +12,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
-from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_with_axiom import CategoryWithAxiom, axiom
 from sage.categories.groups import Groups
 
 class ComplexReflectionGroups(Category_singleton):
@@ -35,17 +35,23 @@ class ComplexReflectionGroups(Category_singleton):
         sage: ComplexReflectionGroups().super_categories()
         [Category of groups]
         sage: ComplexReflectionGroups().all_super_categories()
-        [Category of complex reflection groups, Category of groups,
-         Category of monoids, Category of semigroups,
-         Category of magmas, Category of sets,
-         Category of sets with partial maps, Category of objects]
+        [Category of complex reflection groups,
+         Category of groups,
+         Category of monoids,
+         Category of semigroups,
+         Category of inverse unital magmas,
+         Category of unital magmas,
+         Category of magmas,
+         Category of sets,
+         Category of sets with partial maps,
+         Category of objects]
 
     Let us consider an example of a reflection group::
 
         sage: W = ComplexReflectionGroups().example(); W
-        Irreducible finite complex reflection group of rank 3 and type (3,1,3)
+        Irreducible finite complex reflection group of rank 3 and type G(3,1,3)
 
-    P is in the category of sets::
+    W is in the category of sets::
 
         sage: W in ComplexReflectionGroups()
         True
@@ -68,6 +74,10 @@ class ComplexReflectionGroups(Category_singleton):
         """
         return [Groups()]
 
+    class SubcategoryMethods:
+        Finite = axiom("Finite")
+        Irreducible = axiom("Irreducible")
+
     def example(self):
         r"""
         Returns an example of a complex reflection group.
@@ -75,7 +85,7 @@ class ComplexReflectionGroups(Category_singleton):
         EXAMPLES::
 
             sage: ComplexReflectionGroups().example()
-            Irreducible finite complex reflection group of rank 3 and type (3,1,3)
+            Irreducible finite complex reflection group of rank 3 and type G(3,1,3)
         """
         from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
         return ComplexReflectionGroup((3,1,3))
@@ -86,6 +96,10 @@ class ComplexReflectionGroups(Category_singleton):
         def index_set(self):
             r"""
             Returns the index set of the simple reflections of ``self``.
+
+            EXAMPLES::
+
+                tba
             """
 
         def simple_reflection(self, i):
@@ -93,6 +107,9 @@ class ComplexReflectionGroups(Category_singleton):
             Returns the `i`-th simple reflection of ``self``.
 
             For `i` in `1,\dots,\ell`, this gives the `i`-th simple reflection of ``self``.
+            EXAMPLES::
+
+                tba
             """
             return self.one().apply_simple_reflection(i)
 
@@ -100,6 +117,9 @@ class ComplexReflectionGroups(Category_singleton):
         def hyperplane_index_set(self):
             r"""
             Returns the index set of the reflection hyperplanes of ``self``.
+            EXAMPLES::
+
+                tba
             """
 
         @abstract_method(optional=True)
@@ -109,12 +129,18 @@ class ComplexReflectionGroups(Category_singleton):
             destinguished reflections, see :meth:`distinguished_reflections`.
 
             For `i` in `1,\dots,N^*`, this gives the `i`-th distinguished reflection of ``self``.
+            EXAMPLES::
+
+                tba
             """
 
         @abstract_method(optional=True)
         def reflection_index_set(self):
             r"""
             Returns the index set of the reflections of ``self``.
+            EXAMPLES::
+
+                tba
             """
 
         @abstract_method(optional=True)
@@ -123,6 +149,9 @@ class ComplexReflectionGroups(Category_singleton):
             Returns the `i`-th reflection of ``self``.
 
             For `i` in `1,\dots,N`, this gives the `i`-th reflection of ``self``.
+            EXAMPLES::
+
+                tba
             """
 
         @cached_method
@@ -155,20 +184,35 @@ class ComplexReflectionGroups(Category_singleton):
            EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
-                sage: W.distinguished_reflections()
-                Finite family {0: (1,4)(2,3)(5,6), 1: (1,3)(2,5)(4,6), 2: (1,5)(2,4)(3,6)}
+                sage: distinguished_reflections = W.distinguished_reflections()
+                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                0 (1,4)(2,3)(5,6)
+                1 (1,3)(2,5)(4,6)
+                2 (1,5)(2,4)(3,6)
 
                 sage: W = ComplexReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
-                sage: W.distinguished_reflections()
-                Finite family {'a': (1,4)(2,3)(5,6), 'c': (1,5)(2,4)(3,6), 'b': (1,3)(2,5)(4,6)}
+                sage: distinguished_reflections = W.distinguished_reflections()
+                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                a (1,4)(2,3)(5,6)
+                b (1,3)(2,5)(4,6)
+                c (1,5)(2,4)(3,6)
 
                 sage: W = ComplexReflectionGroup((3,1,1))
-                sage: W.distinguished_reflections()
-                Finite family {0: (1,2,3)}
+                sage: distinguished_reflections = W.distinguished_reflections()
+                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                0 (1,2,3)
 
                 sage: W = ComplexReflectionGroup((1,1,3),(3,1,2))
-                sage: W.distinguished_reflections()
-                Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 5: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28), 6: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 7: (1,7)(2,6)(5,8)}
+                sage: distinguished_reflections = W.distinguished_reflections()
+                sage: for index in sorted(distinguished_reflections.keys()): print index, distinguished_reflections[index]
+                0 (1,6)(2,5)(7,8)
+                1 (1,5)(2,7)(6,8)
+                2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
+                3 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
+                4 (1,7)(2,6)(5,8)
+                5 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
+                6 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
+                7 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
             """
             from sage.sets.family import Family
             return Family(self.hyperplane_index_set(), self.distinguished_reflection)
@@ -182,20 +226,38 @@ class ComplexReflectionGroups(Category_singleton):
            EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3))
-                sage: W.reflections()
-                Finite family {0: (1,4)(2,3)(5,6), 1: (1,3)(2,5)(4,6), 2: (1,5)(2,4)(3,6)}
+                sage: reflections = W.reflections()
+                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                0 (1,4)(2,3)(5,6)
+                1 (1,3)(2,5)(4,6)
+                2 (1,5)(2,4)(3,6)
 
                 sage: W = ComplexReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
-                sage: W.reflections()
-                Finite family {'a': (1,4)(2,3)(5,6), 'c': (1,5)(2,4)(3,6), 'b': (1,3)(2,5)(4,6)}
+                sage: reflections = W.reflections()
+                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                a (1,4)(2,3)(5,6)
+                b (1,3)(2,5)(4,6)
+                c (1,5)(2,4)(3,6)
 
                 sage: W = ComplexReflectionGroup((3,1,1))
-                sage: W.reflections()
-                Finite family {0: (1,2,3), 1: (1,3,2)}
+                sage: reflections = W.reflections()
+                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                0 (1,2,3)
+                1 (1,3,2)
 
                 sage: W = ComplexReflectionGroup((1,1,3),(3,1,2))
-                sage: W.reflections()
-                Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 5: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28), 6: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 7: (1,7)(2,6)(5,8), 8: (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28), 9: (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)}
+                sage: reflections = W.reflections()
+                sage: for index in sorted(reflections.keys()): print index, reflections[index]
+                0 (1,6)(2,5)(7,8)
+                1 (1,5)(2,7)(6,8)
+                2 (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30)
+                3 (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30)
+                4 (1,7)(2,6)(5,8)
+                5 (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26)
+                6 (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
+                7 (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
+                8 (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28)
+                9 (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)
             """
             from sage.sets.family import Family
             return Family(self.reflection_index_set(), self.reflection)
@@ -216,7 +278,7 @@ class ComplexReflectionGroups(Category_singleton):
 
                 sage: W=ComplexReflectionGroups().example()
                 sage: W
-                Irreducible finite complex reflection group of rank 3 and type (3,1,3)
+                Irreducible finite complex reflection group of rank 3 and type G(3,1,3)
                 sage: W.an_element() # random
                 (1,3)(2,5)(4,6)
             """
@@ -253,7 +315,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,4)); W
-                Irreducible finite complex reflection group of rank 3 and type (1,1,4)
+                Irreducible finite complex reflection group of rank 3 and type A3
                 sage: W.from_word([0,1,0,1,0,1])
                 ()
 
@@ -264,10 +326,10 @@ class ComplexReflectionGroups(Category_singleton):
                 word: 012
 
                 sage: W.from_word([0,1,2], word_type='all').reduced_word_in_reflections()
-                word: 420
+                word: 012
 
                 sage: W.from_word([0,1,2]).reduced_word_in_reflections()
-                word: 420
+                word: 012
             """
             if word_type == 'simple':
                 f = self.one().apply_simple_reflections
@@ -427,14 +489,14 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,4)); W
-                Irreducible finite complex reflection group of rank 3 and type (1,1,4)
+                Irreducible finite complex reflection group of rank 3 and type A3
                 sage: [ t.is_reflection() for t in W.reflections() ]
                 [True, True, True, True, True, True]
                 sage: len( [ t for t in W.reflections() if t.is_reflection() ] )
                 6
 
                 sage: W = ComplexReflectionGroup((2,1,3)); W
-                Irreducible finite complex reflection group of rank 3 and type (2,1,3)
+                Irreducible finite complex reflection group of rank 3 and type B3
                 sage: [ t.is_reflection() for t in W.reflections() ]
                 [True, True, True, True, True, True, True, True, True]
                 sage: len( [t for t in W.reflections() if t.is_reflection() ] )
@@ -457,7 +519,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3)); W
-                Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                Irreducible finite complex reflection group of rank 2 and type A2
                 sage: W.one().apply_simple_reflections([0])
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_simple_reflections([1])
@@ -505,7 +567,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3)); W
-                Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                Irreducible finite complex reflection group of rank 2 and type A2
                 sage: W.one().apply_distinguished_reflections([0])
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_distinguished_reflections([1])
@@ -553,7 +615,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = ComplexReflectionGroup((1,1,3)); W
-                Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                Irreducible finite complex reflection group of rank 2 and type A2
                 sage: W.one().apply_reflections([0])
                 (1,4)(2,3)(5,6)
                 sage: W.one().apply_reflections([1])
@@ -585,23 +647,31 @@ class ComplexReflectionGroups(Category_singleton):
             sage: ComplexReflectionGroups().Finite()
             Category of finite complex reflection groups
             sage: ComplexReflectionGroups().Finite().super_categories()
-            [Category of complex reflection groups, Category of finite groups]
+            [Category of finite groups, Category of complex reflection groups]
             sage: ComplexReflectionGroups().Finite().all_super_categories()
-            [Category of finite complex reflection groups, Category of complex reflection groups,
-            Category of finite groups, Category of groups, Category of finite monoids,
-            Category of monoids, Category of finite semigroups, Category of semigroups,
-            Category of magmas, Category of finite enumerated sets, Category of enumerated sets,
-            Category of finite sets, Category of sets,
-            Category of sets with partial maps, Category of objects]
-            
+            [Category of finite complex reflection groups,
+             Category of finite groups,
+             Category of finite monoids,
+             Category of complex reflection groups,
+             Category of groups,
+             Category of monoids,
+             Category of finite semigroups,
+             Category of semigroups,
+             Category of inverse unital magmas,
+             Category of unital magmas,
+             Category of magmas,
+             Category of finite sets,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
 
         Let us consider an example of a finite reflection group::
 
             sage: W = ComplexReflectionGroups().Finite().example(); W
-            Finite complex reflection group of rank 4 and type (1,1,3) x (2,1,2)
+            Reducible finite complex reflection group of rank 4 and type A2 x B2
 
             sage: W.reflections()
-            Finite family {0: (1,8)(2,5)(9,12), 1: (1,5)(2,9)(8,12), 2: (3,10)(4,7)(11,14), 3: (3,6)(4,11)(10,13), 4: (4,14)(6,13)(7,11), 5: (3,13)(6,10)(7,14), 6: (1,9)(2,8)(5,12)}
+            Finite family {0: (1,8)(2,5)(9,12), 1: (1,5)(2,9)(8,12), 2: (3,10)(4,7)(11,14), 3: (3,6)(4,11)(10,13), 4: (1,9)(2,8)(5,12), 5: (4,14)(6,13)(7,11), 6: (3,13)(6,10)(7,14)}
 
         P is in the category of sets::
 
@@ -618,7 +688,7 @@ class ComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: ComplexReflectionGroups().Finite().example()
-                Finite complex reflection group of rank 4 and type (1,1,3) x (2,1,2)
+                Reducible finite complex reflection group of rank 4 and type A2 x B2
             """
             from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
             return ComplexReflectionGroup((1,1,3),(2,1,2))
@@ -669,7 +739,6 @@ class ComplexReflectionGroups(Category_singleton):
                     8
                 """
                 return max(self.degrees())
-
 
             def nr_simple_reflections(self):
                 r"""
@@ -801,12 +870,12 @@ class ComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: W = ComplexReflectionGroup((1,1,3)); W
-                    Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                    Irreducible finite complex reflection group of rank 2 and type A2
                     sage: W.is_irreducible()
                     True
 
                     sage: W = ComplexReflectionGroup((1,1,3),(2,1,3)); W
-                    Finite complex reflection group of rank 5 and type (1,1,3) x (2,1,3)
+                    Reducible finite complex reflection group of rank 5 and type A2 x B3
                     sage: W.is_irreducible()
                     False
                 """
@@ -819,12 +888,12 @@ class ComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: W = ComplexReflectionGroup((1,1,3)); W
-                    Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                    Irreducible finite complex reflection group of rank 2 and type A2
                     sage: W.is_reducible()
                     False
 
                     sage: W = ComplexReflectionGroup((1,1,3),(2,1,3)); W
-                    Finite complex reflection group of rank 5 and type (1,1,3) x (2,1,3)
+                    Reducible finite complex reflection group of rank 5 and type A2 x B3
                     sage: W.is_reducible()
                     True
                 """
@@ -954,17 +1023,17 @@ class ComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: W = ComplexReflectionGroup((1,1,3)); W
-                    Irreducible finite complex reflection group of rank 2 and type (1,1,3)
+                    Irreducible finite complex reflection group of rank 2 and type A2
                     sage: [ t.character_value() for t in W ]
                     [2, 0, 0, -1, -1, 0]
 
                     sage: W = ComplexReflectionGroup((2,1,2)); W
-                    Irreducible finite complex reflection group of rank 2 and type (2,1,2)
+                    Irreducible finite complex reflection group of rank 2 and type B2
                     sage: [ t.character_value() for t in W ]
                     [2, 0, 0, 0, 0, 0, 0, -2]
 
                     sage: W = ComplexReflectionGroup((3,1,2)); W
-                    Irreducible finite complex reflection group of rank 2 and type (3,1,2)
+                    Irreducible finite complex reflection group of rank 2 and type G(3,1,2)
                     sage: [ t.character_value() for t in W ]
                     [2, -E(3)^2, 0, -E(3), 0, 0, 0, 0, 0, -E(3)^2, 0, 0, 2*E(3), -E(3), 0, -1, -1, 2*E(3)^2]
                 """
@@ -979,7 +1048,7 @@ class ComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: ComplexReflectionGroups().Finite().Irreducible().example()
-                    Irreducible finite complex reflection group of rank 3 and type (4,2,3)
+                    Irreducible finite complex reflection group of rank 3 and type G(4,2,3)
                 """
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
                 return ComplexReflectionGroup((4,2,3))
@@ -989,6 +1058,10 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
     def super_categories(self):
         return [ComplexReflectionGroups()]
 
+    class SubcategoryMethods:
+        Finite = axiom("Finite")
+        Irreducible = axiom("Irreducible")
+
     def example(self):
         r"""
         Returns an example of a well-generated complex reflection group.
@@ -996,7 +1069,7 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
         EXAMPLES::
 
             sage: WellGeneratedComplexReflectionGroups().example()
-            Finite complex reflection group of rank 4 and type (1,1,3) x (2,1,2)
+            Reducible finite complex reflection group of rank 4 and type A2 x B2
         """
         from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
         return ComplexReflectionGroup((1,1,3),(2,1,2))
@@ -1006,7 +1079,7 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
         Let us consider an example of a finite complex reflection group::
 
             sage: W = WellGeneratedComplexReflectionGroups().Finite().example(); W
-            Finite complex reflection group of rank 4 and type (1,1,3) x (3,1,2)
+            Reducible finite complex reflection group of rank 4 and type A2 x G(3,1,2)
 
         P is in the category of finite complex reflection groups::
 
@@ -1026,7 +1099,7 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
             EXAMPLES::
 
                 sage: WellGeneratedComplexReflectionGroups().Finite().example()
-                Finite complex reflection group of rank 4 and type (1,1,3) x (3,1,2)
+                Reducible finite complex reflection group of rank 4 and type A2 x G(3,1,2)
             """
             from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
             return ComplexReflectionGroup((1,1,3),(3,1,2))
@@ -1040,7 +1113,7 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
                 EXAMPLES::
 
                     sage: WellGeneratedComplexReflectionGroups().Finite().Irreducible().example()
-                    Irreducible finite complex reflection group of rank 3 and type (4,1,3)
+                    Irreducible finite complex reflection group of rank 3 and type G(4,1,3)
                 """
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
                 return ComplexReflectionGroup((4,1,3))
@@ -1133,36 +1206,35 @@ class WellGeneratedComplexReflectionGroups(Category_singleton):
                     return ret
 
                 def catalan_number(self,positive=False):
+                    r"""
+                    Returns the Catalan number associated to ``self``. It is given by the product
+                    of the Catalan numbers of the irreducible components of ``self``. For an
+                    irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
+                    where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
+
+                    REMARKS:
+
+                    - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
+                    - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+
+                    EXAMPLES::
+
+                        sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [2,3,4,5] ]
+                        [2, 5, 14, 42]
+
+                        sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [2,3,4,5] ]
+                        [6, 20, 70, 252]
+
+                        sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
+                        [4, 14, 50, 182]
+                    """
                     return self.fuss_catalan_number(1,positive=positive)
 
         # needs to be moved to cartesian product: class CartesianProduct(CategoryWithAxiom):
         class ParentMethods:
-
             def fuss_catalan_number(self,m):
                 return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
 
             def catalan_number(self):
-                r"""
-                Returns the Catalan number associated to ``self``. It is given by the product
-                of the Catalan numbers of the irreducible components of ``self``. For an
-                irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
-                where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
-
-                REMARKS:
-
-                - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
-                - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
-
-                EXAMPLES::
-
-                    sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [2,3,4,5] ]
-                    [2, 5, 14, 42]
-
-                    sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [2,3,4,5] ]
-                    [6, 20, 70, 252]
-
-                    sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
-                    [4, 14, 50, 182]
-                """
                 return self.fuss_catalan_number(1)
 

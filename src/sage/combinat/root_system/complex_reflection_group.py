@@ -110,15 +110,15 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         self._rank = self._gap_group.rank.sage()
         if len(generators) == self._rank:
-            category = WellGeneratedComplexReflectionGroups()
+            category = WellGeneratedComplexReflectionGroups().Finite()
+            if len(self._type) == 1:
+                category = category.Irreducible()
             if all(str(W_comp).find('CoxeterGroup') >= 0 for W_comp in W_components):
                 category = Category.join([category,CoxeterGroups()])
         else:
             category = ComplexReflectionGroups()
 
         category = Category.join([category,PermutationGroups()]).Finite()
-        #if len(self._type) == 1:
-            #category = category.Irreducible()
 
         PermutationGroup_generic.__init__(self, gens = generators, canonicalize=False, category = category)
 

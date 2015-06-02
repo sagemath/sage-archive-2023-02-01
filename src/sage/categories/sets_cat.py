@@ -1383,6 +1383,10 @@ class Sets(Category_singleton):
               added to the cartesian product additionally to the
               categories obtained from the parents.
 
+            - other keyword arguments will passed on to the class used
+              for this cartesian product (see also
+              :class:`~sage.sets.cartesian_product.CartesianProduct`).
+
             OUTPUT:
 
             The cartesian product.
@@ -1411,10 +1415,21 @@ class Sets(Category_singleton):
 
                 sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
                 Category of sets
-                sage: cartesian_product([ZZ, ZZ], blub=None).category()
-                Traceback (most recent call last)
-                ...
-                TypeError: unknown parameters: blub
+                sage: cartesian_product([ZZ, ZZ]).category()
+                Join of
+                Category of rings and
+                Category of Cartesian products of distributive magmas and additive magmas and
+                Category of Cartesian products of monoids and
+                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of enumerated sets
+                sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
+                Join of
+                Category of rings and
+                Category of Cartesian products of distributive magmas and additive magmas and
+                Category of Cartesian products of monoids and
+                Category of Cartesian products of commutative additive groups and
+                Category of posets and
+                Category of Cartesian products of enumerated sets
             """
             category = kwargs.pop('category', None)
             extra_category = kwargs.pop('extra_category', None)

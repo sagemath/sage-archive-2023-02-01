@@ -66,15 +66,72 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
     """
 
     def _repr_(self):
+        r"""
+        A representation string for this cartesian product of growth groups.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+            sage: cartesian_product([P, L], order='lex')._repr_()
+            'Growth Group x^QQ * log(x)^ZZ'
+        """
         return 'Growth Group ' + self._repr_short_()
 
 
     def _repr_short_(self):
+        r"""
+        A short (shorter than :meth:`._repr_`) representation string
+        for this cartesian product of growth groups.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+            sage: cartesian_product([P, L], order='lex')._repr_short_()
+            'x^QQ * log(x)^ZZ'
+        """
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
+
 
     class Element(CartesianProductPosets.Element):
         def _repr_(self):
             r"""
+            A representation string for this cartesian product element.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A string.
+
+            EXAMPLES::
+
+                sage: import sage.groups.asymptotic_growth_group as agg
+                sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+                sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+                sage: cartesian_product([P, L], order='lex').an_element()._repr_()
+                'x^(1/2) * log(x)'
             """
             return ' * '.join(repr(v) for v in self.value)
 
@@ -579,6 +636,28 @@ class GenericGrowthGroup(
 
 
     def _repr_short_(self):
+        r"""
+        A short (shorter than :meth:`._repr_`) representation string
+        for this abstract growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        .. NOTE::
+
+            This is used in :class:`CartesianProductGrowthGroups`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GenericGrowthGroup(QQ)._repr_short_()
+            'GenericGrowthGroup(Rational Field)'
+        """
         return 'GenericGrowthGroup(%s)' % (self.base(),)
 
 
@@ -1184,17 +1263,46 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
 
     def _repr_short_(self):
+        r"""
+        A short (shorter than :meth:`._repr_`) representation string
+        for this monomial growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        .. NOTE::
+
+            This is used in :class:`CartesianProductGrowthGroups`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.MonomialGrowthGroup(ZZ, 'a')._repr_short_()
+            'a^ZZ'
+            sage: agg.MonomialGrowthGroup(QQ, 'a')._repr_short_()
+            'a^QQ'
+            sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
+            'a^(Univariate Polynomial Ring in x over Rational Field)'
+        """
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
+
         base = self.base()
         if base == ZZ:
             repr_base = 'ZZ'
         elif base == QQ:
             repr_base = 'QQ'
         else:
-            repr_base == repr(base)
+            repr_base = repr(base)
+
         if ' ' in repr_base:
             repr_base = '(' + repr_base + ')'
+
         return '%s^%s' % (self._var_, repr_base)
 
 

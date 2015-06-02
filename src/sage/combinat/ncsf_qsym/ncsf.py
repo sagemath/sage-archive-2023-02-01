@@ -37,9 +37,12 @@ from sage.combinat.composition import Compositions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsf_qsym.generic_basis_code import BasesOfQSymOrNCSF
 from sage.combinat.ncsf_qsym.combinatorics import (coeff_pi, coeff_lp,
-        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT)
+        coeff_sp, coeff_ell, m_to_s_stat, number_of_fCT, number_of_SSRCT, compositions_order)
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
+from sage.matrix.constructor import matrix
+from sage.categories.morphism import SetMorphism
+from sage.categories.homset import Hom
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -359,19 +362,23 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     NCSF has some additional bases which appear in the literature::
 
-        sage: Monomial        = NCSF.Monomial()
-        sage: Immaculate      = NCSF.Immaculate()
+        sage: Monomial                 = NCSF.Monomial()
+        sage: Immaculate               = NCSF.Immaculate()
+        sage: dualQuasisymmetric_Schur = NCSF.dualQuasisymmetric_Schur()
 
     The :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Monomial`
     basis was introduced in [Tev2007]_ and the
     :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Immaculate`
-    basis was introduced in [BBSSZ2012]_.  Refer to the documentation for their
-    use and definition.
+    basis was introduced in [BBSSZ2012]_.  The
+    :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
+    were defined in [QSCHUR]_ and the dual basis is implemented here as
+    :class:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.dualQuasisymmetric_Schur`.
+    Refer to the documentation for the use and definition of these bases.
 
     .. TODO::
 
-        - Implement fundamental, forgotten, quasi-Schur dual, and
-          simple (coming from the simple modules of `HS_n`) bases.
+        - implement fundamental, forgotten, and simple (coming
+          from the simple modules of HS_n) bases.
 
     We revert back to the original name from our custom short name NCSF::
 
@@ -4613,6 +4620,25 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                      for comp_shape in Compositions(sum(comp_content)) ),
                                    distinct=True )
 
+        def dual(self):
+            r"""
+            Return the dual basis to the Immaculate basis of NCSF.
+
+            The basis returned is the dualImmaculate basis of QSym.
+
+            OUTPUT:
+
+            - The dualImmaculate basis of the quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: I=NonCommutativeSymmetricFunctions(QQ).Immaculate()
+                sage: I.dual()
+                Quasisymmetric functions over the Rational Field in the dualImmaculate
+                basis
+            """
+            return self.realization_of().dual().dualImmaculate()
+
         class Element(CombinatorialFreeModule.Element):
             """
             An element in the Immaculate basis.
@@ -4679,4 +4705,225 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return P.sum_of_terms( (C([n] + list(m)), c) for m,c in self )
 
     I = Immaculate
+
+    class dualQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+        r"""
+        The basis of NCSF dual to the Quasisymmetric_Schur basis of QSym.
+
+        The 
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
+        functions are defined in [QSCHUR]_ (see also
+        Definition 5.1.1 of [LMvW13]_).  The dual basis in the algebra of
+        non-commutative symmetric functions is defined by the following formula.
+
+        .. MATH::
+
+            R_\alpha = \sum_{T} dQS_{shape(T)}
+
+        where the sum is over all standard composition tableaux with
+        descent composition equal to `\alpha`.
+        The
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
+        basis `QS_\alpha` has the property that
+
+        .. MATH::
+
+            s_\lambda = \sum_{sort(\alpha) = \lambda} QS_\alpha
+
+        As a consequence the commutative image of a dualQuasisymmetric_Schur element
+        in the algebra of symmetric functions (the map defined in the method
+        :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_symmetric_function`)
+        is equal to the Schur function indexed by the decreasing sort of the
+        indexing composition.
+
+        .. SEEALSO::
+
+            :class:`~sage.combinat.composition_tableau.CompositionTableaux`,
+            :class:`~sage.combinat.composition_tableau.CompositionTableau`.
+
+        EXAMPLES::
+
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: dQS = NCSF.dQS()
+            sage: dQS([1,3,2])*dQS([1])
+            dQS[1, 2, 4] + dQS[1, 3, 2, 1] + dQS[1, 3, 3] + dQS[3, 2, 2]
+            sage: dQS([1])*dQS([1,3,2])
+            dQS[1, 1, 3, 2] + dQS[1, 3, 3] + dQS[1, 4, 2] + dQS[2, 3, 2]
+            sage: dQS([1,3])*dQS([1,1])
+            dQS[1, 3, 1, 1] + dQS[1, 4, 1] + dQS[3, 2, 1] + dQS[4, 2]
+            sage: dQS([3,1])*dQS([2,1])
+            dQS[1, 1, 4, 1] + dQS[1, 4, 2] + dQS[1, 5, 1] + dQS[2, 4, 1] + dQS[3, 1,
+            2, 1] + dQS[3, 2, 2] + dQS[3, 3, 1] + dQS[4, 3] + dQS[5, 2]
+            sage: dQS([1,1]).coproduct()
+            dQS[] # dQS[1, 1] + dQS[1] # dQS[1] + dQS[1, 1] # dQS[]
+            sage: dQS([3,3]).coproduct().monomial_coefficients()[(Composition([1,2]),Composition([1,2]))]
+            -1
+            sage: S = NCSF.complete()
+            sage: dQS(S[1,3,1])
+            dQS[1, 3, 1] + dQS[1, 4] + dQS[3, 2] + dQS[4, 1] + dQS[5]
+            sage: S(dQS[1,3,1])
+            S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s(dQS([2,1,3,1]).to_symmetric_function())
+            s[3, 2, 1, 1]
+        """
+
+        def __init__(self, NCSF):
+            r"""
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: S = NCSF.complete()
+                sage: dQS = NCSF.dualQuasisymmetric_Schur()
+                sage: dQS(S(dQS.an_element())) == dQS.an_element()
+                True
+                sage: S(dQS(S.an_element())) == S.an_element()
+                True
+                sage: TestSuite(dQS).run() # long time
+            """
+            CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
+                                             prefix='dQS', bracket=False,
+                                             category=NCSF.Bases())
+            category = self.category()
+            self._S = self.realization_of().complete()
+            to_S = self.module_morphism(
+                    on_basis = self._to_complete_on_basis,
+                    codomain = self._S,
+                    category = category)
+            to_S.register_as_coercion()
+
+            from_S = self._S.module_morphism(
+                        on_basis = self._from_complete_on_basis,
+                        codomain = self,
+                        category = category)
+            from_S.register_as_coercion()
+
+        def _realization_name(self):
+            r"""
+            TESTS::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._realization_name()
+                'dual Quasisymmetric-Schur'
+            """
+            return "dual Quasisymmetric-Schur"
+
+        @cached_method
+        def _to_complete_transition_matrix(self, n):
+            r"""
+            A matrix representing the transition coefficients to the complete basis
+
+            INPUT:
+
+            - ``n`` -- an integer
+
+            OUTPUT:
+
+            - a square matrix
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._to_complete_transition_matrix(4)
+                [ 1  0  0  0  0  0  0  0]
+                [-1  1  0  0  0  0  0  0]
+                [-1  0  1  0  0  0  0  0]
+                [ 0  0 -1  1  0  0  0  0]
+                [ 1 -1  0 -1  1  0  0  0]
+                [ 1 -1  0 -1  0  1  0  0]
+                [ 1  0 -1 -1  0  0  1  0]
+                [-1  1  1  1 -1 -1 -1  1]
+            """
+            if n == 0:
+                return matrix([[]])
+            return matrix([[number_of_SSRCT(al,be) for be in compositions_order(n)]
+                for al in compositions_order(n)]).inverse()
+
+        @cached_method
+        def _to_complete_on_basis(self, comp):
+            r"""
+            The expansion of the dualQuasisymmetric_Schur basis element indexed
+            by ``comp`` in the complete basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the complete basis
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dQS = NCSF.dQS()
+                sage: dQS._to_complete_on_basis(Composition([1,3,1]))
+                S[1, 3, 1] - S[3, 2] - S[4, 1] + S[5]
+            """
+            if not comp._list:
+                return self.one()
+            comps = compositions_order(comp.size())
+            T = self._to_complete_transition_matrix(comp.size())
+            return self._S.sum_of_terms( zip(comps, T[comps.index(comp)]),
+                                      distinct=True )
+
+        @cached_method
+        def _from_complete_on_basis(self, comp_content):
+            r"""
+            Return the expansion of a complete basis element in the
+            dualQuasisymmetric_Schur basis.
+
+            INPUT:
+
+            - ``comp_content`` -- a composition
+
+            OUTPUT:
+
+            - The expansion in the dualQuasisymmetric_Schur basis of the basis
+              element of the complete basis indexed by the composition
+              ``comp_content``.
+
+            EXAMPLES::
+
+                sage: dQS=NonCommutativeSymmetricFunctions(QQ).dQS()
+                sage: dQS._from_complete_on_basis(Composition([]))
+                dQS[]
+                sage: dQS._from_complete_on_basis(Composition([2,1,1]))
+                dQS[1, 3] + dQS[2, 1, 1] + dQS[2, 2] + dQS[3, 1] + dQS[4]
+            """
+            if not comp_content._list:
+                return self([])
+            return self.sum_of_terms( ( (comp_shape, number_of_SSRCT(comp_content, comp_shape))
+                                     for comp_shape in Compositions(sum(comp_content)) ),
+                                   distinct=True )
+
+        def dual(self):
+            r"""
+            The dual basis to the dualQuasisymmetric_Schur basis of NCSF.
+
+            The basis returned is the
+            :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
+            basis of QSym.
+
+            OUTPUT:
+
+            - the Quasisymmetric_Schur basis of the quasi-symmetric functions.
+
+            EXAMPLES::
+
+                sage: dQS=NonCommutativeSymmetricFunctions(QQ).dualQuasisymmetric_Schur()
+                sage: dQS.dual()
+                Quasisymmetric functions over the Rational Field in the Quasisymmetric
+                Schur basis
+                sage: dQS.duality_pairing_matrix(dQS.dual(),3)
+                [1 0 0 0]
+                [0 1 0 0]
+                [0 0 1 0]
+                [0 0 0 1]
+            """
+            return self.realization_of().dual().Quasisymmetric_Schur()
+
+    dQS = dualQuasisymmetric_Schur
 

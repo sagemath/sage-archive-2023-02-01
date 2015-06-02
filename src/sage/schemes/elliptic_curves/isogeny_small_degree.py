@@ -1907,6 +1907,13 @@ def isogenies_prime_degree_general(E, l):
         [Isogeny of degree 43 from Elliptic Curve defined by y^2 + y = x^3 + x^2 + 42*x + 42 over Finite Field of size 43 to Elliptic Curve defined by y^2 + y = x^3 + x^2 + 36 over Finite Field of size 43]
         [Isogeny of degree 47 from Elliptic Curve defined by y^2 + y = x^3 + x^2 + 46*x + 46 over Finite Field of size 47 to Elliptic Curve defined by y^2 + y = x^3 + x^2 + 42*x + 34 over Finite Field of size 47]
 
+    See :trac:`18589`: the following example took 20s before, now only 4s::
+
+        sage: from sage.schemes.elliptic_curves.isogeny_small_degree import isogenies_prime_degree_general
+        sage: K.<i> = QuadraticField(-1)
+        sage: E = EllipticCurve(K,[0,0,0,1,0])
+        sage: [phi.codomain().ainvs() for phi in E.isogenies_prime_degree(37)] # long time
+        [(0, 0, 0, -840*i + 1081, 0), (0, 0, 0, 840*i + 1081, 0)]
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
@@ -1916,7 +1923,33 @@ def isogenies_prime_degree_general(E, l):
         return isogenies_3(E)
 
     psi_l = E.division_polynomial(l)
-    factors = [h for h,e in psi_l.factor() if (l-1)/2 % h.degree() == 0]
+
+    # Every kernel polynomial is a product of irreducible factors of
+    # the division polynomial of the same degree, where this degree is
+    # a divisor of (l-1)/2, so we keep only such factors:
+
+    factors = [h for h,e in psi_l.factor() if (l-1)//2 % h.degree() == 0]
+
+    # Special case 1: if there is just one relevant irreducible factor,
+    # then it must have degree (l-1)/2, and it must be a kernel poly;
+    # then we do not need to check, which saves a lot of time.
+
+    if len(factors)==1:
+        h = factors[0]
+        return [E.isogeny(h)]
+
+    # Special case 2: more than one relevant irreducible factor, but
+    # their degrees add up to (l-1)/2.  Then their product is a kernel
+    # poly.
+
+    from sage.misc.all import prod
+    if sum([h.degree() for h in factors]) == (l-1)//2:
+        h = prod(factors)
+        return [E.isogeny(h)]
+
+    # General case: look for products of factors which can be kernel
+    # polynomials:
+
     a = _least_semi_primitive(l)
     m = E.multiplication_by_m(a, x_only=True)
     F = psi_l.parent()
@@ -1936,7 +1969,7 @@ def isogenies_prime_degree_general(E, l):
             S.append(g)
             if g in factors:
                 factors.remove(g)
-        if mult(S[-1]) == f:
+        if len(S)==1 or (mult(S[-1]) == f):
             ker.append(prod(S))
     return [E.isogeny(k) for k in ker]
 

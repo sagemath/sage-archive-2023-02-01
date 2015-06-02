@@ -547,6 +547,10 @@ class GenericGrowthGroup(
         return 'Generic Growth Group over %s' % (self.base(),)
 
 
+    def _repr_short_(self):
+        return 'GenericGrowthGroup(%s)' % (self.base(),)
+
+
     def __hash__(self):
         r"""
         Return the hash of this group.
@@ -1145,6 +1149,21 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             'Monomial Growth Group in v_107 over Rational Field'
         """
         return 'Monomial Growth Group in %s over %s' % (self._var_, self.base())
+
+
+    def _repr_short_(self):
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        base = self.base()
+        if base == ZZ:
+            repr_base = 'ZZ'
+        elif base == QQ:
+            repr_base = 'QQ'
+        else:
+            repr_base = repr(base)
+        if ' ' in repr_base:
+            repr_base = '(' + repr_base + ')'
+        return '%s^%s' % (self._var_, repr_base)
 
 
     def __hash__(self):

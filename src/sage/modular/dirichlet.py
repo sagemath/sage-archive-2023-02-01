@@ -1424,24 +1424,36 @@ class DirichletCharacter(MultiplicativeGroupElement):
             Cyclotomic Field of order 4 and degree 2
             sage: (e^12).minimize_base_ring().base_ring()
             Rational Field
+
+        TESTS:
+
+        Check that :trac:`18479` is fixed::
+
+            sage: f = Newforms(Gamma1(25), names='a')[1]
+            sage: eps = f.character()
+            sage: eps.minimize_base_ring() == eps
+            True
+
         """
-        if isinstance(self.base_ring(),rings.RationalField):
+        R = self.base_ring()
+        if R.is_prime_field():
+            return self
+        p = R.characteristic()
+
+        if p:
+            K = rings.IntegerModRing(p)
+        elif self.order() <= 2:
+            K = rings.QQ
+        elif (isinstance(R, number_field.NumberField_generic)
+              and arith.euler_phi(self.order()) < R.degree()):
+            K = rings.CyclotomicField(self.order())
+        else:
             return self
 
-        if self.is_trivial() and self.base_ring().characteristic() == 0:
-            return self.change_ring(rings.QQ)
-
-        if isinstance(self.base_ring(),number_field.NumberField_generic):
-            if self.order() <= 2:
-                return self.change_ring(rings.RationalField())
-            if arith.euler_phi(self.order()) == self.base_ring().degree():
-                return self
-            K = rings.CyclotomicField(self.order())
+        try:
             return self.change_ring(K)
-
-        #raise NotImplementedError, "minimize_base_ring is currently " + \
-        #      "only implemented when the base ring is a number field."
-        return self
+        except (TypeError, ValueError, ArithmeticError):
+            return self
 
     def modulus(self):
         """

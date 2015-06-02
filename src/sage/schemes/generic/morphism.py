@@ -1181,11 +1181,11 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         returns the ith poly with self[i]
 
-        INPUT::
+        INPUT:
 
-        - ``i``- integer
+        - ``i``-- integer
 
-        OTUPUT::
+        OUTPUT:
 
         - element of the coordinate ring of the domain
 

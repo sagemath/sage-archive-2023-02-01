@@ -17,6 +17,14 @@ General Infrastructure
 Programming Utilities
 ---------------------
 
+Python 2 and 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/misc/six
+
 Special Base Classes, Decorators, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -95,6 +103,7 @@ Warnings
 
    sage/misc/stopgap
    sage/misc/superseded
+
 
 Miscellaneous Useful Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

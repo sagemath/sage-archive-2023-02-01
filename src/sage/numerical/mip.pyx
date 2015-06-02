@@ -220,7 +220,6 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 from copy import copy
 from sage.structure.parent cimport Parent

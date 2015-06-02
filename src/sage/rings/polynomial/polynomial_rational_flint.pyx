@@ -74,6 +74,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     Internally, we represent rational polynomial as the quotient of an integer
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
+
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
     """
 
     ###########################################################################
@@ -654,7 +661,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Comparisons                                                             #
     ###########################################################################
 
-    def is_zero(self):
+    cpdef bint is_zero(self):
         """
         Returns whether or not self is the zero polynomial.
 
@@ -667,7 +674,27 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R(0).is_zero()
             True
         """
-        return bool(fmpq_poly_is_zero(self.__poly))
+        return fmpq_poly_is_zero(self.__poly)
+
+    cpdef bint is_one(self):
+        r"""
+        Returns whether or not this polynomial is one.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: R([0,1]).is_one()
+            False
+            sage: R([1]).is_one()
+            True
+            sage: R([0]).is_one()
+            False
+            sage: R([-1]).is_one()
+            False
+            sage: R([1,1]).is_one()
+            False
+        """
+        return fmpq_poly_is_one(self.__poly)
 
     def __nonzero__(self):
         """
@@ -991,6 +1018,43 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         if do_sig: sig_str("FLINT exception")
         fmpq_poly_mul(res.__poly, self.__poly, op2.__poly)
+        if do_sig: sig_off()
+        return res
+
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
+        r"""
+        Truncated multiplication.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: p1 = 1/2 - 3*x + 2/7*x**3
+            sage: p2 = x + 2/5*x**5 + x**7
+            sage: p1._mul_trunc_(p2, 5)
+            2/7*x^4 - 3*x^2 + 1/2*x
+            sage: (p1*p2).truncate(5)
+            2/7*x^4 - 3*x^2 + 1/2*x
+
+            sage: p1._mul_trunc_(p2, 1)
+            0
+            sage: p1._mul_trunc_(p2, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be > 0
+
+        ALGORITHM:
+
+        Call the FLINT method ``fmpq_poly_mullow``.
+        """
+        cdef Polynomial_rational_flint op2 = <Polynomial_rational_flint> right
+        cdef Polynomial_rational_flint res = self._new()
+        cdef bint do_sig = _do_sig(self.__poly) or _do_sig(op2.__poly)
+
+        if n <= 0:
+            raise ValueError("n must be > 0")
+
+        if do_sig: sig_str("FLINT exception")
+        fmpq_poly_mullow(res.__poly, self.__poly, op2.__poly, n)
         if do_sig: sig_off()
         return res
 

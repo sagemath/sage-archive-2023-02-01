@@ -502,7 +502,7 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
     its set of translates `\{B_i \cdot g; i \in \{1,\ldots,b\}, g \in G\}` is a
     `(v,k,\lambda)`-BIBD where `v` is the cardinality of `G`.
 
-    INPUT::
+    INPUT:
 
     - ``G`` - a finite additive Abelian group
 

@@ -28,6 +28,7 @@ AUTHORS:
 
 from cpython.int cimport *
 from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement

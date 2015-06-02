@@ -508,7 +508,7 @@ class TypeSpace(SageObject):
              True
          """
          A = self.t_space.ambient()
-         g = map(ZZ, g)
+         g = [ZZ(_) for _ in g]
          p = self.prime()
          assert g[2] % p == 0
          gg = lift_ramified(g, p, self.u(), self.tame_level())
@@ -575,7 +575,7 @@ class TypeSpace(SageObject):
         gens = self._group_gens()
         gensconj = [[x[0], ainv*x[1], a*x[2], x[3]] for x in gens]
         rgens = [self._rho_s(x) for x in gens]
-        rgensinv = map(operator.inv, rgens)
+        rgensinv = [operator.inv(_) for _ in rgens]
         rgensconj = [self._rho_s(x) for x in gensconj]
 
         rows = []
@@ -655,7 +655,7 @@ class TypeSpace(SageObject):
 
         p = self.prime()
         f = p**self.u()
-        g = map(ZZ, g)
+        g = [ZZ(_) for _ in g]
         d = (g[0]*g[3] - g[2]*g[1])
 
         # g is in S(K_0) (easy case)

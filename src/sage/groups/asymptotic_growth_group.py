@@ -17,6 +17,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
+- Daniel Krenn (2015-06-02): cartesian products
 """
 
 #*****************************************************************************
@@ -31,6 +32,20 @@ AUTHORS:
 #*****************************************************************************
 
 import sage
+
+from sage.sets.cartesian_product import CartesianProductPosets
+class CartesianProductGrowthGroups(CartesianProductPosets):
+    r"""
+    A cartesian product of growth groups.
+    .. SEEALSO:
+
+        :class:`~sage.sets.cartesian_product.CartesianProduct`,
+        :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
+    """
+
+
+CartesianProductGrowthGroups.CartesianProduct = CartesianProductGrowthGroups
+
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
@@ -767,6 +782,9 @@ class GenericGrowthGroup(
         if isinstance(S, GenericGrowthGroup):
             if self.base().has_coerce_map_from(S.base()):
                 return True
+
+
+    CartesianProduct = CartesianProductGrowthGroups
 
 
 class MonomialGrowthElement(GenericGrowthElement):

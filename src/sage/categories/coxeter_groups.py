@@ -2036,7 +2036,7 @@ v            EXAMPLES::
                    False
                    sage: w = W.from_reduced_word([0,2,1,0,2])
                    sage: w.coxeter_sorting_word(c)
-                   [0, 2, 1, 0, 2]
+                   [2, 0, 1, 2, 0]
                    sage: w.is_coxeter_sortable(c)
                    True
             """

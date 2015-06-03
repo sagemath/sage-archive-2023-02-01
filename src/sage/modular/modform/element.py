@@ -796,7 +796,7 @@ class ModularForm_abstract(ModuleElement):
         C = rings.ComplexField(prec)
         emb = self.base_ring().embeddings(C)[conjugate]
 
-        w = self.atkin_lehner_eigenvalue(N, embedding=emb)
+        w = self.atkin_lehner_eigenvalue(N, embedding=emb) * rings.RR(N)**(1 - rings.QQ(l)/2)
         e = C.gen()**l * w
 
         if self.q_expansion()[0] == 0:
@@ -1081,13 +1081,17 @@ class Newform(ModularForm_abstract):
             sage: N.modular_symbols(0)
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
             sage: M = N.modular_symbols(0)              
-            sage: v = N.modsym_eigenspace(1); v
-            (0, 1, -1, 1, 0)
-            sage: v in M.free_module()
+            sage: V = N.modsym_eigenspace(1); V
+            Vector space of degree 5 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 0  1 -1  1  0]
+            sage: V.0 in M.free_module()
             True
-            sage: v=N.modsym_eigenspace(-1)
-            (0, 0, 0, 1, -1/2)
-            sage: v in M.free_module()
+            sage: V=N.modsym_eigenspace(-1); V
+            Vector space of degree 5 and dimension 1 over Rational Field
+            Basis matrix:
+            [   0    0    0    1 -1/2]
+            sage: V.0 in M.free_module()
             True
         """
         M = self.modular_symbols(sign=0)
@@ -1176,7 +1180,7 @@ class Newform(ModularForm_abstract):
     def _atkin_lehner_action_from_qexp(self, Q, embedding=None):
         """
         Return the result of the Atkin-Lehner operator `W_Q` on
-        ``self``.
+        ``self``, using a formula based on q-expansions.
 
         INPUT:
 
@@ -1203,18 +1207,18 @@ class Newform(ModularForm_abstract):
 
             sage: f = Newforms(Gamma0(18), 4)[0]; f
             q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6)
-            sage: f._atkin_lehner_action_prime_power(2)
+            sage: f._atkin_lehner_action_from_qexp(2)
             (-2, q + 2*q^2 + 4*q^4 - 6*q^5 + O(q^6))
-            sage: f._atkin_lehner_action_prime_power(9)
+            sage: f._atkin_lehner_action_from_qexp(9)
             Traceback (most recent call last):
             ...
-            NotImplementedError: action of W_Q is not implemented for general newforms with a_Q(f) = 0
+            ValueError: a_Q must be nonzero
 
         An example with odd weight::
 
             sage: f = Newforms(Gamma1(15), 3, names='a')[2]; f
             q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6)
-            sage: f._atkin_lehner_action_prime_power(5)
+            sage: f._atkin_lehner_action_from_qexp(5)
             (-a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
 
         """
@@ -1237,15 +1241,48 @@ class Newform(ModularForm_abstract):
         return Q**(self.weight() - 2) * g / a_Q, f_star
 
     def _atkin_lehner_action_from_modsym(self, d, embedding=None):
+        r"""
+        Return the result of the Atkin-Lehner operator `W_Q` on
+        ``self``, using a formula based on q-expansions.
 
+        INPUT:
+
+        - ``self`` -- a newform `f`
+
+        - ``Q`` -- a prime power exactly dividing the level of ``self``
+
+        - ``embedding`` -- (optional) embedding of the coefficient
+          field of `f` into a field containing the relevant Gauss sums
+
+        OUTPUT:
+
+        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is a scalar
+        such that `W_Q f = w f^*`.  The parent of `w` is the codomain of
+        ``embedding`` if specified, otherwise it is (a suitable extension of)
+        the coefficient field of `f`.
+
+        .. NOTE::
+            
+            This algorithm only works if the character of `f` is trivial at
+            `Q`, so `f^* = f`. Nonetheless we return the pair `(w, f)` for
+            consistency.
+
+        EXAMPLES::
+
+            sage: F = Newforms(Gamma1(15), 3, names='a')[2]
+            sage: F._atkin_lehner_action_from_modsym(5)
+            (-a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
+            sage: _ == F._atkin_lehner_action_from_qexp(5)
+            True
+        """
         if d.gcd(self.character().conductor()) != 1:
-            raise ValueError("character must be nontrivial at d")
+            raise ValueError("character must be trivial at d")
         X = self.modsym_eigenspace(sign=0)
         A = self.modular_symbols(sign=0).ambient()
         W = A.atkin_lehner_operator(d).matrix().base_extend(self.hecke_eigenvalue_field()).restrict(X)
 
         if not W.is_scalar():
-            raise ArithmeticError("Atkin--Lehner matrix not scalar")
+            raise ArithmeticError("Something wrong: Atkin--Lehner matrix not scalar")
 
         w = W[0,0] / (self.character().primitive_character()(d))
         if embedding is not None:

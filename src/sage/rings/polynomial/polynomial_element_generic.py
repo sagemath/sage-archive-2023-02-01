@@ -40,6 +40,7 @@ from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.integer import Integer
 
 
 class Polynomial_generic_sparse(Polynomial):
@@ -650,6 +651,33 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    def reverse(self, degree=None):
+        """
+        Return this polynomial but with the coefficients reversed.
+
+        If an optional degree argument is given the coefficient list will be
+        truncated or zero padded as necessary and the reverse polynomial will
+        have the specified degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^4 + 2*x^2^100
+            sage: p.reverse()
+            x^1267650600228229401496703205372 + 2
+            sage: p.reverse(10)
+            x^6
+        """
+        if degree is None:
+            degree = self.degree()
+        if not isinstance(degree, int) and not isinstance(degree, Integer):
+            raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
+        d = {}
+        for k in self.__coeffs.keys():
+            deg = degree - k
+            if deg >= 0:
+                d[deg] = self.__coeffs[k]
+        return self.parent()(d)
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

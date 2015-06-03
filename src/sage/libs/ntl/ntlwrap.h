@@ -1,5 +1,5 @@
-#ifndef SAGE_NTL_WRAP_H
-#define SAGE_NTL_WRAP_H
+#ifndef SAGE_NTLWRAP_H
+#define SAGE_NTLWRAP_H
 
 #ifdef __cplusplus
 #include <NTL/ZZ.h>

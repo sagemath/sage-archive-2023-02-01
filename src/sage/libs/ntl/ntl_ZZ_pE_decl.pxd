@@ -2,7 +2,7 @@ from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_c
 from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### ZZ_pE_c
     ctypedef struct ZZ_pE_c "struct ZZ_pE":
         pass

@@ -16,7 +16,7 @@ from sage.libs.ntl.ntl_ZZ_pE_decl cimport *
 from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 
-cdef extern from "sage/libs/ntl/ntl_wrap.h":
+cdef extern from "sage/libs/ntl/ntlwrap.h":
     long NTL_OVFBND
     bint NTL_OVERFLOW(long, long, long)
 

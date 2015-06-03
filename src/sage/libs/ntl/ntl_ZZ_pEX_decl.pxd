@@ -5,7 +5,7 @@ from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_c
 from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport vec_ZZ_p_c
 from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport vec_ZZ_pE_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### ZZ_pEX_c
     ctypedef struct ZZ_pEX_c "struct ZZ_pEX":
         void *rep

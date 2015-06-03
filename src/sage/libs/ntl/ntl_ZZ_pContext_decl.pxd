@@ -1,6 +1,6 @@
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 
-cdef extern from "sage/libs/ntl/ntl_wrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct ZZ_pContext_c "struct ZZ_pContext":
         void (*restore)()
 

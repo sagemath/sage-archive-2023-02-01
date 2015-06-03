@@ -502,14 +502,19 @@ def HughesPlane(q2, check=True):
         Traceback (most recent call last):
         ...
         EmptySetError: No Hughes plane of even order exists.
+
+    Check that it works for non-prime `q`::
+
+        sage: designs.HughesPlane(3**4)    # not tested - 10 secs
+        (6643,82,1)-Balanced Incomplete Block Design
     """
     if not q2.is_square():
         raise EmptySetError("No Hughes plane of non-square order exists.")
     if q2%2 == 0:
         raise EmptySetError("No Hughes plane of even order exists.")
     q = q2.sqrt()
-    K = FiniteField(q2, 'x')
-    F = FiniteField(q, 'y')
+    K = FiniteField(q2, prefix='x', conway=True)
+    F = FiniteField(q, prefix='y', conway=True)
     A = q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()

@@ -4409,6 +4409,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_unit()
             False
 
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: c = x^2^100 + 1
+            sage: c.is_unit()
+            False
+
         EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
         polynomial ring in one variable. Then
         `f=\sum a_i x^i \in A[x]` is a unit if and only if
@@ -4416,8 +4425,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         nilpotent.
         """
         if self.degree() > 0:
-            for i in range(1,self.degree()+1):
-                if not self[i].is_nilpotent():
+            try:
+                if self._parent.base_ring().is_integral_domain():
+                    return False
+            except NotImplementedError:
+                pass
+            for c in self.coefficients()[1:]:
+                if not c.is_nilpotent():
                     return False
         return self[0].is_unit()
 

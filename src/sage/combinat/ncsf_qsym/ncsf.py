@@ -511,22 +511,24 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class ParentMethods:
 
-            def to_symmetric_function_by_coercion(self, elt):
+            def to_symmetric_function_on_basis(self, I):
                 r"""
-                Morphism to the algebra of symmetric functions.
+                The image of the basis element indexed by ``I`` under the map
+                to the symmetric functions.
 
-                This is constructed by coercion to the complete basis.
+                This default implementation does a change of basis and
+                computes the image in the complete basis.
 
                 INPUT:
 
-                - ``elt`` - an element of the basis
+                - ``I`` -- a composition
 
                 OUTPUT:
 
-                - The module morphism extended algebraically by sending
-                  the complete generators in non-commutative symmetric
-                  functions to the complete generators in the symmetric
-                  functions.
+                - The image of the non-commutative basis element of
+                  ``self`` indexed by the composition ``I`` under the map from
+                  non-commutative symmetric functions to the symmetric
+                  functions. This will be a symmetric function.
 
                 EXAMPLES::
 
@@ -537,13 +539,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: I.to_symmetric_function(I[1,2])
                     0
                     sage: Phi = N.Phi()
-                    sage: Phi.to_symmetric_function_by_coercion(Phi[3,1,2])==Phi.to_symmetric_function(Phi[3,1,2])
+                    sage: Phi.to_symmetric_function_on_basis([3,1,2])==Phi.to_symmetric_function(Phi[3,1,2])
                     True
-                    sage: Phi.to_symmetric_function_by_coercion(Phi[[]])
+                    sage: Phi.to_symmetric_function_on_basis([])
                     h[]
                 """
-                S = self.realization_of().a_realization()
-                return S.to_symmetric_function(S(elt))
+                S = self.realization_of().complete()
+                return S.to_symmetric_function(S(self[I]))
 
             @lazy_attribute
             def to_symmetric_function(self):
@@ -573,11 +575,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: Phi.to_symmetric_function(Phi[1,3])
                     h[1, 1, 1, 1] - 3*h[2, 1, 1] + 3*h[3, 1]
                 """
-                if hasattr(self, 'to_symmetric_function_on_basis'):
-                    on_basis = self.to_symmetric_function_on_basis
-                    codom = on_basis([]).parent()
-                    return self.module_morphism(on_basis, codomain=codom)
-                return self.to_symmetric_function_by_coercion
+                on_basis = self.to_symmetric_function_on_basis
+                codom = on_basis([]).parent()
+                return self.module_morphism(on_basis, codomain=codom)
 
             def to_ncsym_on_basis(self, I):
                 r"""

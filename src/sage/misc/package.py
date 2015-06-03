@@ -216,9 +216,13 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
     When ``version=False``, the function returns a pair of list
     ``(installed,not_installed)`` with the corresponding packages' name.
 
-    When ``version=True``, the elements of each list are not package names but
-    pairs ``(package_name,package_version)`` where ``version`` is a string
-    representing the version of each package that is installed.
+    When ``version=True``, the elements of each list are not package
+    names but either pairs ``(package_name, installed_version)`` or
+    triples ``(package_name, latest_version, installed_version)``,
+    depending on whether ``local`` is ``True`` or ``False``. Here,
+    ``latest_version`` is a string representing the version of the
+    package available on the Sage package server, while
+    ``installed_version`` is the version that is actually installed.
 
     EXAMPLE::
 
@@ -257,11 +261,10 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
     if version:
         for line in X:
             line = line.split(' ')
-            name,version = line[0],line[1]
-            if is_package_installed(name):
-                installed.append((name,version))
+            if is_package_installed(line[0]):
+                installed.append(tuple(line))
             else:
-                not_installed.append((name,version))
+                not_installed.append(tuple(line))
     else:
         for name in X:
             if is_package_installed(name):

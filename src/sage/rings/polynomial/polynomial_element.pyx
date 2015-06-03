@@ -6814,16 +6814,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.norm(int(2))
             2.00000000000000
 
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100 + 1).norm(1)
+            2.00000000000000
+
         AUTHORS:
 
         - Didier Deshommes
-
         - William Stein: fix bugs, add definition, etc.
         """
         if p <= 0 :
             raise ValueError("The degree of the norm must be positive")
 
-        coeffs = self.coefficients(sparse=False)
+        coeffs = self.coefficients()
         if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 

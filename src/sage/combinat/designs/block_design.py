@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Block designs
 
@@ -15,10 +16,15 @@ REFERENCES:
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
+.. [Hu57] Daniel R. Hughes, "A class of non-Desarguesian projective planes",
+   The Canadian Journal of Mathematics (1957), http://cms.math.ca/cjm/v9/p378
+
 .. [We07] Charles Weibel, "Survey of Non-Desarguesian planes" (2007), notices of
    the AMS, vol. 54 num. 10, pages 1294--1303
 
 AUTHORS:
+
+- Quentin Honoré (2015): construction of Hughes plane :trac:`18527`
 
 - Vincent Delecroix (2014): rewrite the part on projective planes :trac:`16281`
 
@@ -30,7 +36,7 @@ AUTHORS:
 
 .. TODO::
 
-    Implement finite non-Desarguesian plane as in [We07]_ and
+    Implement more finite non-Desarguesian plane as in [We07]_ and
     :wikipedia:`Non-Desarguesian_plane`.
 
 Functions and methods
@@ -405,47 +411,40 @@ def HughesPlane(q2, check=True):
     r"""
     Return the Hughes projective plane of order ``q2``.
 
-    AUTHORS:
+    Let `q` be an odd prime, the Hughes plane of order `q^2` is a finite
+    projective plane of order `q^2` introduced by D. Hughes in [Hu57]_. Its
+    construction is as follows.
 
-    - Quentin Honore (2015): initial version
-
-    Let q be an odd prime, the Hughes plane of order ``q2`` is a finite
-    projective plane introduced by Daniel R. Hughes and which is not
-    Desarguesian.
-
-    We work on the elements of the field `GF(q2)` and we define
-    a new multiplication:
+    Let `K = GF(q^2)` be a finite field with `q^2` elements and `F = GF(q)
+    \subset K` be its unique subfield with `q` elements. We define a twisted
+    multiplication on `K` as
 
     .. MATH::
 
         x \circ y =
         \begin{cases}
-        x.y & \text{if y is a square in K}\\
-        x^q.y & \text{if y is not a square in K}\\
+        x\ y & \text{if y is a square in K}\\
+        x^q\ y & \text{otherwise}
         \end{cases}
 
-    For each matrix in GL(3, GF(q)) such that `A^{q^2 + q + 1} = kI`, but no
-    smaller power of A has this property, we can construct the same Hughes
-    plane of order ``q2``.
-    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line
-    L(a) which is the set of points satisfying `x + a \circ y + z = 0`.
-    Then we construct a set of lines for each a :
+    The points of the Hughes plane are the triples `(x, y, z)` of points in `K^3
+    \backslash \{0,0,0\}` up to the equivalence relation `(x,y,z) \sim (x \circ
+    k, y \circ k, z \circ k)` where `k \in K`.
 
-    .. MATH::
+    For `a = 1` or `a \in (K \backslash F)` we define a block `L(a)` as the set of
+    triples `(x,y,z)` so that `x + a \circ y + z = 0`. The rest of the blocks
+    are obtained by letting act the group `GL(3, F)` by its standard action.
 
-        {A^k * L(a) | 0 \leq k \leq q^2 + q}
+    For more information, see :wikipedia:`Hughes_plane` and [We07].
 
-    REFERENCES:
+    .. SEEALSO::
 
-    .. [a] Hughes Plane from wikipedia,
-    :wikipedia:`Hughes_plane`.
-
-    .. [b] Daniel R. Hughes, A class of non-Desarguesian projective planes,
-    http://cms.math.ca/cjm/v9/p378 (in 'The Canadian Journal of Mathematics')
+        :func:`DesarguesianProjectivePlaneDesign` to build the Desarguesian
+        projective planes
 
     INPUT:
 
-    - ``q2`` -- an integer which must be an odd square
+    - ``q2`` -- an even power of an odd prime number
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -525,15 +524,14 @@ def HughesPlane(q2, check=True):
     V = VectorSpace(K, 3)
     zero = K.zero()
     one = K.one()
-    # Construct the points (x,y,z) of the projective plane, (x,y,z)=(xk,yk,zk)
     points = [(x, y, one) for x in m for y in m] + \
              [(x, one, zero) for x in m] + \
              [(one, zero, zero)]
     relabel = {tuple(p):i for i,p in enumerate(points)}
     blcks = []
-    # Find the first line satisfying x+ay+z=0
     for a in m:
         if a not in F or a == 1:
+            # build L(a)
             aa = ~a
             l = []
             l.append(V((-a, one, zero)))
@@ -542,7 +540,7 @@ def HughesPlane(q2, check=True):
                 if not y.is_square():
                     y *= aa**(q-1)
                 l.append(V((x, y, one)))
-            # We can now deduce the other lines from these ones
+            # compute the orbit of L(a)
             blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
             for i in range(q2 + q):
                 l = [A*j for j in l]

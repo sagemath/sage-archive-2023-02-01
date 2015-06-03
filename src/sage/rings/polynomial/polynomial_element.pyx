@@ -4688,17 +4688,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: n must be at least 0
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100 + x^8 - 1).padded_list(10)
+            [-1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         """
-        v = self.list()
         if n is None:
-            return v
+            return self.list()
         if n < 0:
             raise ValueError("n must be at least 0")
-        if len(v) < n:
+        if self.degree() < n:
+            v = self.list()
             z = self._parent.base_ring().zero()
             return v + [z]*(n - len(v))
         else:
-            return v[:int(n)]
+            return self[:int(n)].padded_list(n)
 
     def coeffs(self):
         r"""

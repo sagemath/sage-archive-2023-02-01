@@ -4442,9 +4442,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polynomial ring in one variable. Then
         `f=\sum a_i x^i \in A[x]` is nilpotent if and only if
         every `a_i` is nilpotent.
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(Zmod(4), sparse=True)
+            sage: (2*x^2^100 + 2).is_nilpotent()
+            True
         """
-        for i in range(self.degree()+1):
-            if not self[i].is_nilpotent():
+        for c in self.coefficients():
+            if not c.is_nilpotent():
                 return False
         return True
 

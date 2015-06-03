@@ -4613,7 +4613,7 @@ cdef class Matroid(SageObject):
         r"""
         Return a binary matroid M so that relative to a fixed basis `B`,
         `X` is a basis of self if and only if `X` is a basis of `M` 
-        for all subsets `X` of the ground set such that `|X\B|\leq 1`.
+        for all subsets `X` of the ground set such that `|X\setminus B|\leq 1`.
 
         INPUT:
 

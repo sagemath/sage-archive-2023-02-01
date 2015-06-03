@@ -929,6 +929,11 @@ ext_modules = [
     ##
     ###################################
 
+    Extension('sage.libs.ntl.convert',
+              sources = ["sage/libs/ntl/convert.pyx"],
+              libraries = ["ntl", "gmp", "gmpxx"],
+              language='c++'),
+
     Extension('sage.libs.ntl.error',
               sources = ["sage/libs/ntl/error.pyx"],
               libraries = ["ntl", "gmp", "gmpxx"],
@@ -1106,13 +1111,13 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
-              libraries = ['linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
+              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
               extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"]
                     + m4ri_extra_compile_args + givaro_extra_compile_args),
 

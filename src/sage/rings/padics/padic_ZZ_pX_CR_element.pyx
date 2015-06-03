@@ -39,7 +39,7 @@ element contains the following data:
   kinds of problems arise if you try to mix moduli.
   ``ZZ_pX_conv_modulus`` gives a semi-safe way to convert between
   different moduli without having to pass through ``ZZX`` (see
-  ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntl_wrap.cpp``)
+  ``sage/libs/ntl/decl.pxi`` and ``c_lib/src/ntlwrap.cpp``)
 
 - ``prime_pow`` (some subclass of ``PowComputer_ZZ_pX``) -- a class,
   identical among all elements with the same parent, holding common

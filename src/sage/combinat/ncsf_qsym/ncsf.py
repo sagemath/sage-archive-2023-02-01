@@ -44,6 +44,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
+from sage.combinat.sf.sf import SymmetricFunctions
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -510,7 +511,42 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class ParentMethods:
 
-            def to_symmetric_function(self, elt):
+            def to_symmetric_function_by_coercion(self, elt):
+                r"""
+                Morphism to the algebra of symmetric functions.
+
+                This is constructed by coercion to the complete basis.
+
+                INPUT:
+
+                - ``elt`` - an element of the basis
+
+                OUTPUT:
+
+                - The module morphism extended algebraically by sending
+                  the complete generators in non-commutative symmetric
+                  functions to the complete generators in the symmetric
+                  functions.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: I = N.Immaculate()
+                    sage: I.to_symmetric_function(I[1,3])
+                    -h[2, 2] + h[3, 1]
+                    sage: I.to_symmetric_function(I[1,2])
+                    0
+                    sage: Phi = N.Phi()
+                    sage: Phi.to_symmetric_function_by_coercion(Phi[3,1,2])==Phi.to_symmetric_function(Phi[3,1,2])
+                    True
+                    sage: Phi.to_symmetric_function_by_coercion(Phi[[]])
+                    h[]
+                """
+                S = self.realization_of().a_realization()
+                return S.to_symmetric_function(S(elt))
+
+            @lazy_attribute
+            def to_symmetric_function(self):
                 r"""
                 Morphism to the algebra of symmetric functions.
 
@@ -539,10 +575,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 """
                 if hasattr(self, 'to_symmetric_function_on_basis'):
                     on_basis = self.to_symmetric_function_on_basis
-                    return sum(c*on_basis(I) for (I,c) in elt)
-                S = self.realization_of().a_realization()
-                on_basis = S.to_symmetric_function_on_basis
-                return sum(c*on_basis(I) for (I,c) in S(elt))
+                    codom = on_basis([]).parent()
+                    return self.module_morphism(on_basis, codomain=codom)
+                return self.to_symmetric_function_by_coercion
 
             def to_ncsym_on_basis(self, I):
                 r"""
@@ -1968,6 +2003,67 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 from sage.combinat.ncsf_qsym.generic_basis_code import AlgebraMorphism
                 return AlgebraMorphism(self, on_generators, **keywords)
 
+            def to_symmetric_function_on_generators( self, i ):
+                r"""
+                Morphism of the generators to symmetric functions.
+
+                This is constructed by coercion to the complete basis
+                and applying the morphism.
+
+                OUTPUT:
+
+                - The module morphism from the basis ``self`` to the symmetric
+                  functions which corresponds to taking a commutative image.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: Phi = N.Phi()
+                    sage: Phi.to_symmetric_function_on_generators(3)
+                    h[1, 1, 1] - 3*h[2, 1] + 3*h[3]
+                    sage: Phi.to_symmetric_function_on_generators(0)
+                    h[]
+                    sage: Psi = N.Psi()
+                    sage: Psi.to_symmetric_function_on_generators(3)
+                    h[1, 1, 1] - 3*h[2, 1] + 3*h[3]
+                    sage: L = N.elementary()
+                    sage: L.to_symmetric_function_on_generators(3)
+                    h[1, 1, 1] - 2*h[2, 1] + h[3]
+                """
+                S = self.realization_of().a_realization()
+                if not i:
+                    return S.to_symmetric_function_on_generators(0)
+                return S.to_symmetric_function(S(self([i])))
+
+            @lazy_attribute
+            def to_symmetric_function(self):
+                r"""
+                Morphism to the algebra of symmetric functions.
+
+                This is constructed by extending the algebra morphism
+                by the image of the generators.
+
+                OUTPUT:
+
+                - The module morphism from the basis ``self`` to the symmetric
+                  functions which corresponds to taking a commutative image.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: S = N.complete()
+                    sage: S.to_symmetric_function(S[1,3])
+                    h[3, 1]
+                    sage: Phi = N.Phi()
+                    sage: Phi.to_symmetric_function(Phi[1,3])
+                    h[1, 1, 1, 1] - 3*h[2, 1, 1] + 3*h[3, 1]
+                    sage: Psi = N.Psi()
+                    sage: Psi.to_symmetric_function(Psi[1,3])
+                    h[1, 1, 1, 1] - 3*h[2, 1, 1] + 3*h[3, 1]
+                """
+                codom = self.to_symmetric_function_on_generators(1).parent()
+                return self.algebra_morphism(self.to_symmetric_function_on_generators, codomain = codom)
+
             @lazy_attribute
             def antipode(self):
                 r"""
@@ -2450,11 +2546,36 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: R.to_symmetric_function_on_basis(Composition([]))
                 s[]
             """
-            from sage.combinat.sf.sf import SymmetricFunctions
             s = SymmetricFunctions(self.base_ring()).schur()
             if not I._list:
                 return s([])
             return s(I.to_skew_partition())
+
+        @lazy_attribute
+        def to_symmetric_function(self):
+            r"""
+            Morphism to the algebra of symmetric functions.
+
+            This is constructed by extending the computation on the ribbon
+            basis by linearity.
+
+            OUTPUT:
+
+            - The module morphism from the basis ``self`` to the symmetric
+              functions which corresponds to taking a commutative image.
+
+            EXAMPLES::
+
+                sage: N = NonCommutativeSymmetricFunctions(QQ)
+                sage: R = N.ribbon()
+                sage: x = R.an_element(); x
+                2*R[] + 2*R[1] + 3*R[1, 1]
+                sage: R.to_symmetric_function(x)
+                2*s[] + 2*s[1] + 3*s[1, 1]
+            """
+            codom = SymmetricFunctions(self.base_ring()).schur()
+            on_basis = self.to_symmetric_function_on_basis
+            return self.module_morphism(on_basis, codomain=codom)
 
         class Element(CombinatorialFreeModule.Element):
 
@@ -2778,32 +2899,34 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             IM = IntegerMatrices(I, J)
             return self.sum_of_monomials(IM.to_composition(m) for m in IM)
 
-        def to_symmetric_function_on_basis(self, I):
+        def to_symmetric_function_on_generators( self, i ):
             r"""
-            The commutative image of a complete non-commutative symmetric function basis
-            element. This is obtained by sorting the composition.
+            The commutative image of a complete generator.
+
+            The commutative image of a generator for the complete
+            non-commutative symmetric function is the complete
+            symmetric function generator.
 
             INPUT:
 
-            - ``I`` -- a composition
+            - ``i`` -- a non-negative integer
 
             OUTPUT:
 
-            - The commutative image of the complete basis element indexed by
-              ``I``. The result is the complete symmetric function indexed by
-              the partition obtained by sorting ``I``.
+            - The commutative image of the complete generator indexed by
+              ``i``. The result is the complete symmetric function indexed by
+              ``i``.
 
             EXAMPLES::
 
                 sage: S=NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S.to_symmetric_function_on_basis([2,1,3])
-                h[3, 2, 1]
-                sage: S.to_symmetric_function_on_basis([])
+                sage: S.to_symmetric_function_on_generators(3)
+                h[3]
+                sage: S.to_symmetric_function_on_generators(0)
                 h[]
             """
-            from sage.combinat.sf.sf import SymmetricFunctions
             h = SymmetricFunctions(self.base_ring()).homogeneous()
-            return h[Partition(sorted(I,reverse=True))]
+            return h([i])
 
         def _to_symmetric_group_algebra_on_basis(self, I):
             r"""
@@ -4925,7 +5048,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: dQS.to_symmetric_function_on_basis([])
                 s[]
             """
-            from sage.combinat.sf.sf import SymmetricFunctions
             s = SymmetricFunctions(self.base_ring()).s()
             return s[Partition(sorted(I,reverse=True))]
 

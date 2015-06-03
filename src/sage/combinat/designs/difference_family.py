@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Difference families
 
@@ -15,14 +16,25 @@ It defines the following functions:
 
     :func:`is_difference_family` | Check if the input is a (``k``, ``l``)-difference family.
     :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
+    :func:`radical_difference_family` | Return a radical difference family.
+    :func:`radical_difference_set` | Return a radical difference set.
     :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
-    :func:`df_q_6_1` | Return a difference set with parameter `k=6` on a finite field.
-    :func:`radical_difference_set` | Return a radical difference set
-    :func:`radical_difference_family` | Return a radical difference family
+    :func:`df_q_6_1` | Return a difference family with parameter `k=6` on a finite field.
+    :func:`one_radical_difference_family` | Return a radical difference family using an exhaustive search.
     :func:`twin_prime_powers_difference_set` | Return a twin prime powers difference family.
-    :func:`wilson_1972_difference_family` | Return a radical difference family on a finite field following a construction of Wilson.
 
 REFERENCES:
+
+.. [BJL99-1] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. I."
+   Second edition. Encyclopedia of Mathematics and its Applications, 69. Cambridge
+   University Press, (1999).
+
+.. [BLJ99-2] T. Beth, D. Jungnickel, H. Lenz "Design theory Vol. II."
+   Second edition. Encyclopedia of Mathematics and its Applications, 78. Cambridge
+   University Press, (1999).
+
+.. [Bo39] R. C. Bose, "On the construction of balanced incomplete block
+   designs", Ann. Eugenics, vol. 9, (1939), 353--399.
 
 .. [Bu95] M. Buratti "On simple radical difference families", J. of
    Combinatorial Designs, vol. 3, no. 2 (1995)
@@ -488,14 +500,47 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
          a^3 + a^2 + a + 1,
          a^3 + a^2 + a + 1]
 
-        sage: for (v,k,l) in [(3,2,1), (7,3,1), (7,4,2), (11,5,2), (11,6,3),
-        ....:                 (13,4,1), (16,6,2), (19,9,4), (19,10,5)]:
-        ....:
-        ....:     assert radical_difference_set(GF(v,'a'), k, l, existence=True), "pb with v={} k={} l={}".format(v,k,l)
+        sage: for k in range(2,50):
+        ....:     for l in reversed(divisors(k*(k-1))):
+        ....:         v = k*(k-1)//l + 1
+        ....:         if is_prime_power(v) and radical_difference_set(GF(v,'a'),k,l,existence=True):
+        ....:             _ = radical_difference_set(GF(v,'a'),k,l)
+        ....:             print "{:3} {:3} {:3}".format(v,k,l)
+          3   2   1
+          4   3   2
+          7   3   1
+          5   4   3
+          7   4   2
+         13   4   1
+         11   5   2
+          7   6   5
+         11   6   3
+         16   6   2
+          8   7   6
+          9   8   7
+         19   9   4
+         37   9   2
+         73   9   1
+         11  10   9
+         19  10   5
+         23  11   5
+         13  12  11
+         23  12   6
+         27  13   6
+         27  14   7
+         16  15  14
+         31  15   7
+        ...
+         41  40  39
+         79  40  20
+         83  41  20
+         43  42  41
+         83  42  21
+         47  46  45
+         49  48  47
+        197  49  12
     """
     v = K.cardinality()
-    one = K.one()
-    x = K.multiplicative_generator()
 
     if l*(v-1) != k*(k-1):
         if existence:
@@ -506,209 +551,299 @@ def radical_difference_set(K, k, l=1, existence=False, check=True):
     if (v-1) == k:
         if existence:
             return True
-        return K.cyclotomic_cosets(x, [one])
+        add_zero = False
 
     # q = 3 mod 4
     elif v%4 == 3 and k == (v-1)//2:
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**2, [one])
+        add_zero = False
 
     # q = 3 mod 4
     elif v%4 == 3 and k == (v+1)//2:
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**2, [one])
-        D[0].insert(0, K.zero())
+        add_zero = True
 
     # q = 4t^2 + 1, t odd
     elif v%8 == 5 and k == (v-1)//4 and arith.is_square((v-1)//4):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**4, [one])
+        add_zero = False
 
     # q = 4t^2 + 9, t odd
     elif v%8 == 5 and k == (v+3)//4 and arith.is_square((v-9)//4):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**4, [one])
-        D[0].insert(0,K.zero())
+        add_zero = True
 
-    # one case with k-1 = (v-1)/3
+    # exceptional case 1
     elif (v,k,l) == (16,6,2):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**3, [one])
-        D[0].insert(0,K.zero())
+        add_zero = True
 
-    # one case with k = (v-1)/8
+    # exceptional case 2
     elif (v,k,l) == (73,9,1):
         if existence:
             return True
-        D = K.cyclotomic_cosets(x**8, [one])
+        add_zero = False
 
+    # are there more ??
     else:
-        if existence:
-            return Unknown
-        raise NotImplementedError("no radical difference set is "
-                "implemented for the parameters (v,k,l) = ({},{},{}".format(v,k,l))
+        x = K.multiplicative_generator()
+        D = K.cyclotomic_cosets(x**((v-1)//k), [K.one()])
+        if is_difference_family(K, D, v, k, l):
+            print "**  You found a new example of radical difference set **\n"\
+                  "**  for the parameters (v,k,l)=({},{},{}).            **\n"\
+                  "**  Please contact sage-devel@googlegroups.com        **\n".format(v,k,l)
+            if existence:
+                return True
+            add_zero = False
+
+        else:
+            D = K.cyclotomic_cosets(x**((v-1)//(k-1)), [K.one()])
+            D[0].insert(0,K.zero())
+            if is_difference_family(K, D, v, k, l):
+                print "**  You found a new example of radical difference set **\n"\
+                      "**  for the parameters (v,k,l)=({},{},{}).            **\n"\
+                      "**  Please contact sage-devel@googlegroups.com        **\n".format(v,k,l)
+                if existence:
+                    return True
+                add_zero = True
+
+            elif existence:
+                return False
+            else:
+                raise EmptySetError("no radical difference set exist "
+                        "for the parameters (v,k,l) = ({},{},{}".format(v,k,l))
+
+    x = K.multiplicative_generator()
+    if add_zero:
+        r = x**((v-1)//(k-1))
+        D = K.cyclotomic_cosets(r, [K.one()])
+        D[0].insert(0, K.zero())
+    else:
+        r = x**((v-1)//k)
+        D = K.cyclotomic_cosets(r, [K.one()])
 
     if check and not is_difference_family(K, D, v, k, l):
-        raise RuntimeError("Sage tried to build a cyclotomic coset with "
+        raise RuntimeError("Sage tried to build a radical difference set with "
                 "parameters ({},{},{}) but it seems that it failed! Please "
                 "e-mail sage-devel@googlegroups.com".format(v,k,l))
 
     return D
 
-def wilson_1972_difference_family(K, k, existence=False, check=True):
+def one_cyclic_tiling(A,n):
     r"""
-    Wilson construction of difference families on finite field.
-    
-    The construction appears in [Wi72]_.
-
-    INPUT:
-
-    - ``K`` -- a finite field
-
-    - ``k`` -- an integer such that `k(k-1)` divides `v-1` where `v` is the
-      cardinality of the finite field `K`
-
-    - ``existence`` -- if ``True`` then return either ``True`` if the
-      construction is possible or ``False`` if it can not.
-
-    - ``check`` -- boolean (default: ``True``) whether to check that the output
-      is valid. This should not be needed, but it guarantee that the output is
-      correct. It might be faster to set it to ``False``.
+    Given a subset ``A`` of the cyclic additive group `G = Z / nZ` return
+    another subset `B` so that `A + B = G` and `|A| |B| = n` (i.e. any element
+    of `G` is uniquely expressed as a sum `a+b` with `a` in `A` and `b` in `B`).
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.difference_family import wilson_1972_difference_family
+        sage: from sage.combinat.designs.difference_family import one_cyclic_tiling
+        sage: tile = [0,2,4]
+        sage: m = one_cyclic_tiling(tile,6); m
+        [0, 3]
+        sage: sorted((i+j)%6 for i in tile for j in m)
+        [0, 1, 2, 3, 4, 5]
 
-        sage: wilson_1972_difference_family(GF(13),4)
+        sage: def print_tiling(tile, translat, n):
+        ....:     for x in translat:
+        ....:         print ''.join('X' if (i-x)%n in tile else '.' for i in range(n))
+
+        sage: tile = [0, 1, 2, 7]
+        sage: m = one_cyclic_tiling(tile, 12)
+        sage: print_tiling(tile, m, 12)
+        XXX....X....
+        ....XXX....X
+        ...X....XXX.
+
+        sage: tile = [0, 1, 5]
+        sage: m = one_cyclic_tiling(tile, 12)
+        sage: print_tiling(tile, m, 12)
+        XX...X......
+        ...XX...X...
+        ......XX...X
+        ..X......XX.
+
+        sage: tile = [0, 2]
+        sage: m = one_cyclic_tiling(tile, 8)
+        sage: print_tiling(tile, m, 8)
+        X.X.....
+        ....X.X.
+        .X.X....
+        .....X.X
+
+    ALGORITHM:
+
+    Uses dancing links :mod:`sage.combinat.dlx`
+    """
+    # we first try a naive approach which correspond to what Wilson used in his
+    # 1972 article
+    n = int(n)
+    d = len(A)
+    if len(set(a%d for a in A)) == d:
+        return [i*d for i in range(n//d)]
+
+    # next, we consider an exhaustive search
+    from sage.combinat.dlx import DLXMatrix
+
+    rows = []
+    for i in range(n):
+        rows.append([i+1, [(i+a)%n+1 for a in A]])
+    M = DLXMatrix(rows)
+    for c in M:
+        return [i-1 for i in c]
+
+def one_radical_difference_family(K, k):
+    r"""
+    Search for a radical difference family on ``K`` using dancing links
+    algorithm.
+
+    For the definition of radical difference family, see
+    :func:`radical_difference_family`. Here, we consider only radical difference
+    family with `\lambda = 1`.
+
+    INPUT:
+
+    - ``K`` -- a finite field of cardinality `q`.
+
+    - ``k`` -- a positive integer so that `k(k-1)` divides `q-1`.
+
+    OUTPUT:
+
+    Either a difference family or ``None`` if it does not exist.
+
+    ALGORITHM:
+
+    The existence of a radical difference family is equivalent to a one
+    dimensional tiling (or packing) problem in a cyclic group. This subsequent
+    problem is solved by a call to the function :func:`one_cyclic_tiling`.
+
+        Let `K^*` be the multiplicative group of the finite field `K`. A radical
+        family has the form `\mathcal B = \{x_1 B, \ldots, x_k B\}`, where
+        `B=\{x:x^{k}=1\}` (for `k` odd) or `B=\{x:x^{k-1}=1\}\cup \{0\}` (for
+        `k` even). Equivalently, `K^*` decomposes as:
+
+        .. MATH::
+
+            K^* = \Delta (x_1 B) \cup ... \cup \Delta (x_k B) = x_1 \Delta B \cup ... \cup x_k \Delta B
+
+        We observe that `C=B\backslash 0` is a subgroup of the (cyclic) group
+        `K^*`, that can thus be generated by some element `r`. Furthermore, we
+        observe that `\Delta B` is always a union of cosets of `\pm C` (which is
+        twice larger than `C`).
+
+        .. MATH::
+
+            \begin{array}{llll}
+            (k\text{ odd} ) & \Delta B &= \{r^i-r^j:r^i\neq r^j\} &= \pm C\cdot \{r^i-1: 0 < i \leq m\}\\
+            (k\text{ even}) & \Delta B &= \{r^i-r^j:r^i\neq r^j\}\cup C &= \pm C\cdot \{r^i-1: 0 < i < m\}\cup \pm C
+            \end{array}
+
+        where
+
+        .. MATH::
+
+            (k\text{ odd})\ m = (k-1)/2 \quad \text{and} \quad (k\text{ even})\ m = k/2.
+
+        Consequently, `\mathcal B = \{x_1 B, \ldots, x_k B\}` is a radical
+        difference family if and only if `\{x_1 (\Delta B/(\pm C)), \ldots, x_k
+        (\Delta B/(\pm C))\}` is a partition of the cyclic group `K^*/(\pm C)`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import (
+        ....:    one_radical_difference_family,
+        ....:    is_difference_family)
+
+        sage: one_radical_difference_family(GF(13),4)
         [[0, 1, 3, 9]]
 
-        sage: wilson_1972_difference_family(GF(337), 7, existence=True)
+    The parameters that appear in [Bu95]_::
+
+        sage: df = one_radical_difference_family(GF(449), 8); df
+        [[0, 1, 18, 25, 176, 324, 359, 444],
+         [0, 9, 88, 162, 222, 225, 237, 404],
+         [0, 11, 140, 198, 275, 357, 394, 421],
+         [0, 40, 102, 249, 271, 305, 388, 441],
+         [0, 49, 80, 93, 161, 204, 327, 433],
+         [0, 70, 99, 197, 230, 362, 403, 435],
+         [0, 121, 141, 193, 293, 331, 335, 382],
+         [0, 191, 285, 295, 321, 371, 390, 392]]
+        sage: is_difference_family(GF(449), df, 449, 8, 1)
         True
-
-        sage: from itertools import ifilter, count
-        sage: ppap = lambda k,r: ifilter(is_prime_power, (k*i+r for i in count(1)))
-
-
-        sage: it4 = ppap(4*3,1)
-        sage: for _ in range(7):
-        ....:     v = next(it4)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 4, existence=True)
-        ....:     print "v = {}: {}".format(v, existence)
-        v = 13: True
-        v = 25: True
-        v = 37: False
-        v = 49: True
-        v = 61: False
-        v = 73: True
-        v = 97: True
-
-        sage: it5 = ppap(5*4,1)
-        sage: for _ in range(7):
-        ....:     v = next(it5)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 5, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  41: True
-        v =  61: True
-        v =  81: False
-        v = 101: False
-        v = 121: False
-        v = 181: False
-        v = 241: True
-
-        sage: it6 = ppap(6*5,1)
-        sage: for _ in range(7):
-        ....:     v = next(it6)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 6, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  31: False
-        v =  61: False
-        v = 121: False
-        v = 151: False
-        v = 181: True
-        v = 211: True
-        v = 241: True
-
-        sage: it7 = ppap(7*6,1)
-        sage: for _ in range(7):
-        ....:     v = next(it7)
-        ....:     existence = wilson_1972_difference_family(GF(v,'a'), 7, existence=True)
-        ....:     print "v = {:3}: {}".format(v, existence)
-        v =  43: False
-        v = 127: False
-        v = 169: False
-        v = 211: False
-        v = 337: True
-        v = 379: False
-        v = 421: True
     """
-    v = K.cardinality()
-    zero = K.zero()
-    one = K.one()
+    q = K.cardinality()
     x = K.multiplicative_generator()
+
     e = k*(k-1)
+    if q%e != 1:
+        raise ValueError("q%e is not 1")
 
-    if (v-1) % e != 0:
-        if existence:
-            return False
-        raise EmptySetError("In the wilson construction, k(k-1) must divide (v-1) but k={} and v={}".format(k,v))
-
-    t = (v-1) // (k*(k-1))
-
+    # We define A by (see the function's documentation):
+    # ΔB = C.A
     if k%2 == 1:
         m = (k-1) // 2
-        r = x ** ((v-1) // k)     # k-th root of unity
-        xx = x ** m
-        A = set(r**i - one for i in range(1,m+1))
+        r = x ** ((q-1) // k)     # k-th root of unity
+        A = [r**i - 1 for i in range(1,m+1)]
     else:
         m = k // 2
-        r = x ** ((v-1) // (k-1)) # (k-1)-th root of unity
-        xx = x ** m
-        A = set(r**i - one for i in range(1,m))
-        A.add(one)
+        r = x ** ((q-1) // (k-1)) # (k-1)-th root of unity
+        A = [r**i - 1 for i in range(1,m)]
+        A.append(K.one())
 
-    # now, we check whether the elements of A belong to distinct cosets modulo
-    # H^m where H = K \ {0}
-    AA = set(y/x for x in A for y in A if x != y)
-    xxi = one
-    for i in range((v-1)/m):
-        if xxi in AA:
-                if existence:
-                    return False
-                raise EmptySetError("In the Wilson construction with v={} "
-                "and k={}, the roots of unity fail to belong to distinct "
-                "cosets modulo H^m")
-        xxi *= xx
-    
-    if existence:
-        return True
+    # instead of the complicated multiplicative group K^*/(±C) we use the
+    # discrete logarithm to convert everything into the additive group Z/cZ
+    c = m * (q-1) // e # cardinal of ±C
+    from sage.groups.generic import discrete_log
+    logA = [discrete_log(a,x)%c for a in A]
 
-    D = K.cyclotomic_cosets(r, [xx**i for i in xrange(t)])
+    # if two elments of A are equal modulo c then no tiling is possible
+    if len(set(logA)) != m:
+        return None
+
+    # brute force
+    tiling = one_cyclic_tiling(logA, c)
+    if tiling is None:
+        return None
+
+    D = K.cyclotomic_cosets(r, [x**i for i in tiling])
     if k%2 == 0:
         for d in D:
-            d.insert(0, zero)
-
-    if check and not is_difference_family(K,D,v,k,1):
-        raise RuntimeError("Wilson construction of difference family "
-                           "failed with parameters v={} and k={}. "
-                           "Please contact sage-devel@googlegroups.com".format(v,k))
-
+            d.insert(K.zero(),0)
     return D
-
 
 def radical_difference_family(K, k, l=1, existence=False, check=True):
     r"""
     Return a ``(v,k,l)``-radical difference family.
 
-    Let `K` be a finite field. A *radical difference family* is a difference
-    family on `K` whose blocks are made of either cyclotomic cosets or
-    cyclotomic cosets together with `0`. The terminology comes from
-    M. Buratti article [Bu95]_ but the constructions go back to R. Wilson
-    [Wi72]_.
+    Let fix an integer `k` and a prime power `q = t k(k-1) + 1`. Let `K` be a
+    field of cardinality `q`. A `(q,k,1)`-difference family is *radical* if
+    its base blocks are either: a coset of the `k`-th root of unity for `k` odd
+    or a coset of `k-1`-th root of unity and `0` if `k` is even (the number `t`
+    is the number of blocks of that difference family).
+
+    The terminology comes from M. Buratti article [Bu95]_ but the first
+    constructions go back to R. Wilson [Wi72]_.
+
+    INPUT:
+
+    - ``K`` - a finite field
+
+    - ``k`` -- positive integer, the size of the blocks
+
+    - ``l`` -- the `\lambda` parameter (default to `1`)
+
+    - ``existence`` -- if ``True``, then return either ``True`` if Sage knows
+      how to build such design, ``Unknown`` if it does not and ``False`` if it
+      knows that the design does not exist.
+
+    - ``check`` -- boolean (default: ``True``). If ``True`` then the result of
+      the computation is checked before being returned. This should not be
+      needed but ensures that the output is correct.
 
     EXAMPLES::
 
@@ -733,9 +868,26 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
          [111, 123, 155, 181, 273],
          [156, 209, 224, 264, 271]]
 
-    .. TODO:
-
-        Implement the more general Buratti construction from [Bu95]_
+        sage: for k in range(5,10):
+        ....:     print "k = {}".format(k)
+        ....:     for q in range(k*(k-1)+1, 2000, k*(k-1)):
+        ....:          if is_prime_power(q):
+        ....:              K = GF(q,'a')
+        ....:              if radical_difference_family(K, k, existence=True):
+        ....:                  print q,
+        ....:                  _ = radical_difference_family(K,k)
+        ....:     print
+        k = 5
+        41 61 81 241 281 401 421 601 641 661 701 761 821 881 1181 1201 1301 1321
+        1361 1381 1481 1601 1681 1801 1901
+        k = 6
+        181 211 241 631 691 1531 1831 1861
+        k = 7
+        337 421 463 883 1723
+        k = 8
+        449 1009
+        k = 9
+        73 1153 1873
     """
     v = K.cardinality()
     x = K.multiplicative_generator()
@@ -761,18 +913,15 @@ def radical_difference_family(K, k, l=1, existence=False, check=True):
             return Unknown
         raise NotImplementedError("No radical families implemented for l > 2")
 
-    # Wilson (1972), Theorem 9 and 10
-    elif wilson_1972_difference_family(K,k,existence=True):
-        if existence:
-            return True
-        D = wilson_1972_difference_family(K,k,check=False)
-
-    elif existence:
-      return Unknown
-
     else:
-      raise NotImplementedError("Sage does not know how to build a radical "
-               "difference family with parameters v={} and k={}".format(v,k))
+        D = one_radical_difference_family(K,k)
+        if D is None:
+            if existence:
+                return False
+            raise EmptySetError("No such difference family")
+        elif existence:
+            return True
+
 
     if check and not is_difference_family(K, D, v, k, l):
         raise RuntimeError("radical_difference_family produced a wrong "
@@ -863,7 +1012,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
 
     - ``existence`` -- if ``True``, then return either ``True`` if Sage knows
       how to build such design, ``Unknown`` if it does not and ``False`` if it
-      knows that the design does not exist..
+      knows that the design does not exist.
 
     - ``explain_construction`` -- instead of returning a difference family,
       returns a string that explains the construction used.
@@ -884,14 +1033,15 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         sage: G
         Finite Field of size 73
         sage: D
-        [[0, 1, 8, 64],
-         [0, 2, 16, 55],
-         [0, 3, 24, 46],
-         [0, 25, 54, 67],
-         [0, 35, 50, 61],
-         [0, 36, 41, 69]]
+        [[0, 1, 5, 18],
+         [0, 3, 15, 54],
+         [0, 9, 45, 16],
+         [0, 27, 62, 48],
+         [0, 8, 40, 71],
+         [0, 24, 47, 67]]
+
         sage: print designs.difference_family(73, 4, explain_construction=True)
-        Radical difference family on a finite field
+        The database contains a (73,4)-evenly distributed set
 
         sage: G,D = designs.difference_family(15,7,3)
         sage: G
@@ -929,9 +1079,9 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         sage: for q in islice(prime_power_mod(1,42), 60):
         ....:     l7[designs.difference_family(q,7,existence=True)].append(q)
         sage: l7[True]
-        [337, 421, 463, 883, 1723, 3067, 3319, 3529, 3823, 3907, 4621, 4957, 5167]
+        [169, 337, 379, 421, 463, 547, 631, 673, 757, 841, 883, 967, ...,  4621, 4957, 5167]
         sage: l7[Unknown]
-        [43, 127, 169, 211, ..., 4999, 5041, 5209]
+        [43, 127, 211, 2017, 2143, 2269, 2311, 2437, 2521, 2647, ..., 4999, 5041, 5209]
         sage: l7[False]
         []
 
@@ -986,7 +1136,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         55: (3,1), (9,4)
         57: (3,1), (7,3), (8,1)
         59: (2,1)
-        61: (2,1), (3,1), (3,2), (4,3), (5,1), (5,4), (6,2), (6,3), (6,5)
+        61: (2,1), (3,1), (3,2), (4,1), (4,3), (5,1), (5,4), (6,2), (6,3), (6,5)
         63: (3,1)
         64: (3,2), (4,1), (7,2), (7,6), (9,8)
         65: (5,1)
@@ -1035,13 +1185,19 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
         ....:     v = p*(p+2); k = (v-1)/2;  lmbda = (k-1)/2
         ....:     G,D = designs.difference_family(v,k,lmbda)
 
-    Check the database:
+    Check the database::
 
-        sage: from sage.combinat.designs.database import DF
+        sage: from sage.combinat.designs.database import DF,EDS
         sage: for v,k,l in DF:
+        ....:     assert designs.difference_family(v,k,l,existence=True) is True
         ....:     df = designs.difference_family(v,k,l,check=True)
 
-    Check a failing construction (:trac:`17528`):
+        sage: for k in EDS:
+        ....:     for v in EDS[k]:
+        ....:         assert designs.difference_family(v,k,1,existence=True) is True
+        ....:         df = designs.difference_family(v,k,1,check=True)
+
+    Check a failing construction (:trac:`17528`)::
 
         sage: designs.difference_family(9,3)
         Traceback (most recent call last):
@@ -1056,7 +1212,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
     """
     from block_design import are_hyperplanes_in_projective_geometry_parameters
 
-    from database import DF
+    from database import DF, EDS
 
     if (v,k,l) in DF:
         if existence:
@@ -1081,6 +1237,29 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
                     "family in the database... Please contact "
                     "sage-devel@googlegroups.com".format(v,k,l))
 
+        return G,df
+
+    elif l == 1 and k in EDS and v in EDS[k]:
+        if existence:
+            return True
+        elif explain_construction:
+            return "The database contains a ({},{})-evenly distributed set".format(v,k)
+
+        from sage.rings.finite_rings.constructor import GF
+        poly,B = EDS[k][v]
+        if poly is None:  # q is prime
+            K = G = GF(v)
+        else:
+            K = G = GF(v,'a',modulus=poly)
+
+        B = map(K,B)
+        e = k*(k-1)/2
+        xe = G.multiplicative_generator()**e
+        df = [[xe**j*b for b in B] for j in range((v-1)/(2*e))]
+        if check and not is_difference_family(G, df, v=v, k=k, l=l):
+            raise RuntimeError("There is an invalid ({},{})-evenly distributed "
+                     "set in the database... Please contact "
+                     "sage-devel@googlegroups.com".format(v,k,l))
         return G,df
 
     e = k*(k-1)

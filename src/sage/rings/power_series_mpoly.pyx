@@ -1,6 +1,5 @@
 # NOT ready to be used -- possibly should be deleted.
 
-include "sage/ext/stdsage.pxi"
 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement

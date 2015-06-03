@@ -80,17 +80,14 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     extension modules::
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [])
+        sage: from sage.misc.sageinspect import loadable_module_extension
         sage: for f in stale_iter:
-        ....:     if f.endswith('.so'): continue
+        ....:     if f.endswith(loadable_module_extension()): continue
         ....:     print('Found stale file: ' + f)
     """
     PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
-    import sys
-    if sys.platform == 'cygwin':
-        LIBEXT = 'dll'
-    else:
-        LIBEXT = 'so'
-    CEXTMOD_EXTS = (os.path.extsep + LIBEXT,)
+    from sage.misc.sageinspect import loadable_module_extension
+    CEXTMOD_EXTS = (loadable_module_extension(),)
     INIT_FILES= map(lambda x: '__init__' + x, PYMOD_EXTS)
 
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])

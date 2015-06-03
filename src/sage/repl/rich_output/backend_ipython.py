@@ -121,6 +121,32 @@ class BackendIPythonCommandline(BackendIPython):
         IPython command line
     """
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        The default for the commandline is to not plot graphs since
+        the launching of an external viewer is considered too
+        disruptive.
+
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(supplemental_plot='never')
+
     def _repr_(self):
         """
         Return a string representation
@@ -425,7 +451,8 @@ class BackendIPythonNotebook(BackendIPython):
         return set([
             OutputPlainText, OutputAsciiArt, OutputLatex,
             OutputImagePng, OutputImageJpg,
-            OutputImageSvg, OutputImagePdf, 
+            OutputImageSvg, OutputImagePdf,
+            OutputSceneJmol,
         ])
 
     def displayhook(self, plain_text, rich_output):
@@ -486,6 +513,12 @@ class BackendIPythonNotebook(BackendIPython):
             return ({u'image/png':  rich_output.png.get(),
                      u'text/plain': plain_text.text.get(),
             }, {})
+        elif isinstance(rich_output, OutputSceneJmol):
+            from sage.repl.display.jsmol_iframe import JSMolHtml
+            jsmol = JSMolHtml(rich_output, height=500)
+            return ({u'text/html':  jsmol.iframe(),
+                     u'text/plain': plain_text.text.get(),
+            }, {})            
         else:
             raise TypeError('rich_output type not supported')
 

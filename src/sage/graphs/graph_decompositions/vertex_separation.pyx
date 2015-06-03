@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 r"""
 Vertex separation
 
@@ -270,7 +271,6 @@ Methods
 """
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'fast_digraph.pyx'
 from libc.stdint cimport uint8_t, int8_t

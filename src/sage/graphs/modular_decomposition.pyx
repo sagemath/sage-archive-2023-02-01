@@ -2,6 +2,11 @@ r"""
 Modular decomposition
 """
 
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+
+from libc.string cimport memset
+
 #####################################################
 # The following code is mainly a Cythonized
 # copy of code found in src/random.c and src/dm.c

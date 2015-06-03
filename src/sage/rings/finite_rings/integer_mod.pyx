@@ -74,11 +74,9 @@ from cpython.int cimport *
 from cpython.list cimport *
 from cpython.ref cimport *
 
-cdef extern from "math.h":
-    double log(double)
-    int ceil(double)
+from libc.math cimport log, ceil
 
-from sage.libs.gmp.pylong cimport mpz_get_pyintlong
+from sage.libs.gmp.all cimport *
 
 import operator
 
@@ -1821,7 +1819,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
                 mpz_fdiv_q_2exp(x.value, self.value, -k)
             return x
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -2271,7 +2269,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         EXAMPLES::
 
@@ -3143,7 +3141,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self.ivalue
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         EXAMPLES::
 
@@ -3850,7 +3848,8 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     # lift p-adically using Newton iteration
     # this is done to higher precision than necessary except at the last step
     one_half = ~(a._new_c_from_long(2))
-    for i from 0 <= i <  ceil(log(e)/log(2)) - val/2:
+    cdef int n = <int>ceil(log(e)/log(2)) - val//2
+    for i in range(n):
         x = (x+unit/x) * one_half
 
     # multiply in powers of p (if any)

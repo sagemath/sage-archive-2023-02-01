@@ -70,10 +70,9 @@ def kill_spawned_jobs(verbose=False):
     for L in open(file).readlines():
         i = L.find(' ')
         pid = L[:i].strip()
-        cmd = L[i+1:].strip()
         try:
             if verbose:
-                print "Killing spawned job %s"%pid
+                print "Killing spawned job %s" % pid
             os.killpg(int(pid), 9)
         except OSError:
             pass

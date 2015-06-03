@@ -1017,8 +1017,16 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
          eigenvectors, if computed by hand, will have only integer
          entries.
 
-    -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
-       See more detailed documentation below.
+    -  ``*args, **kwds`` - arguments and keywords to describe additional 
+       properties. See more detailed documentation below.
+
+    .. warning::
+
+        Matrices generated are not uniformly distributed. For unimodular
+        matrices over finite field this function does not even generate
+        all of them: for example ``Matrix.random(GF(3), 2)`` never
+        generates ``[[2,0],[0,2]]``. This function is made for
+        teaching purposes.
 
     .. warning::
 
@@ -1031,13 +1039,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
     .. note::
 
-        When constructing matrices with random entries and no additional properties
-        (i.e. when ``algorithm='randomize'``), most of the randomness
-        is controlled by the ``random_element`` method for elements of the
-        base ring of the matrix, so the documentation of that method may be
-        relevant or useful.  Also, the default is to not create zero entries,
-        unless the ``density`` keyword is set to something strictly less
-        than one.
+        When constructing matrices with random entries and no
+        additional properties (i.e. when ``algorithm='randomize'``),
+        most of the randomness is controlled by the ``random_element``
+        method for elements of the base ring of the matrix, so the
+        documentation of that method may be relevant or useful.  Also,
+        the default is to not create zero entries, unless the
+        ``density`` keyword is set to something strictly less than
+        one.
 
     EXAMPLES:
 
@@ -3355,7 +3364,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
         else:
             if rank==1:  # would be better just to have a special generator...
                tries = 0
-               while max(map(abs,matrix.list()))>=upper_bound:
+               while max(map(abs,matrix.list())) >= upper_bound:
                   matrix = random_rref_matrix(parent, rank)
                   tries += 1
                   if tries > max_tries: # to prevent endless attempts
@@ -3377,7 +3386,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
                         matrix_copy=matrix.with_added_multiple_of_row(row_index,matrix.pivot_rows()[pivots],randint(-5,5))
                         tries += 1
                         # Range for scalar multiples determined experimentally.
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    if max(map(abs,matrix_copy.list())) < upper_bound:
                     # Continue if the the largest entry after a row operation is within the bound.
                         matrix=matrix_copy
                         row_index+=1
@@ -3390,7 +3399,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
             if rows>1:
                 while row1<1:
                     matrix_copy=matrix.with_added_multiple_of_row(0,randint(1,rows-1),randint(-3,3))
-                    if max(map(abs,matrix_copy.list()))<upper_bound:
+                    if max(map(abs,matrix_copy.list())) < upper_bound:
                         matrix=matrix_copy
                         row1+=1
     # If the matrix generated over a different ring, random elements from the designated ring are used as and
@@ -3903,7 +3912,7 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
     size_check=0
     for check in range(len(dimensions)):
         size_check=size_check+dimensions[check]
-    if not map(lambda x: x in ZZ, eigenvalues)==[True]*len(eigenvalues):
+    if not [x in ZZ for x in eigenvalues]==[True]*len(eigenvalues):
         raise TypeError("eigenvalues must be integers.")
     if size!=size_check:
         raise ValueError("the size of the matrix must equal the sum of the dimensions.")

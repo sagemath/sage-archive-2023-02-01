@@ -2,6 +2,7 @@
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
 
 AUTHOR:
+
 - Yann Laigle-Chapuy (2010-01) initial implementation
 """
 
@@ -384,7 +385,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         EXAMPLE::
 

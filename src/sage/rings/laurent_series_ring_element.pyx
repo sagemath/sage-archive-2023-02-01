@@ -69,7 +69,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Algebra
 
 from sage.misc.derivative import multi_derivative
 
-include "sage/ext/stdsage.pxi"
 
 def is_LaurentSeries(x):
     return isinstance(x, LaurentSeries)
@@ -911,7 +910,7 @@ cdef class LaurentSeries(AlgebraElement):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element right_r) except -2:
+    cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
 

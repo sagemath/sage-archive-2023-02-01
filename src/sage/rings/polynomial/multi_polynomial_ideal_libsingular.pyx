@@ -57,7 +57,6 @@ Two examples from the Mathematica documentation (done in Sage):
 #*****************************************************************************
 
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.libs.singular.decl cimport tHomog, number, IDELEMS, p_Copy, rChangeCurrRing

@@ -1,3 +1,4 @@
+# distutils: libraries = gmp
 """
 Low-level memory allocation functions
 
@@ -31,6 +32,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "sage/ext/interrupt.pxi"
 
 cdef extern from "Python.h":
     # Declare as returning void without except value

@@ -33,6 +33,9 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.misc.long cimport pyobject_to_long
+
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.structure.element import coerce_binop
@@ -64,6 +67,13 @@ cdef extern from "flint/flint.h":
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
     A dense polynomial over the integers, implemented via FLINT.
+
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
     """
 
     def __cinit__(self):
@@ -823,6 +833,36 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
+        r"""
+        Truncated multiplication
+
+        .. SEEALSO:
+
+            :meth:`_mul_` for standard multiplication
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: p1 = 1 + x + x**2 + x**4
+            sage: p2 = -2 + 3*x**2 + 5*x**4
+            sage: p1._mul_trunc_(p2, 4)
+            3*x^3 + x^2 - 2*x - 2
+            sage: (p1*p2).truncate(4)
+            3*x^3 + x^2 - 2*x - 2
+            sage: p1._mul_trunc_(p2, 6)
+            5*x^5 + 6*x^4 + 3*x^3 + x^2 - 2*x - 2
+        """
+        if n <= 0:
+            raise ValueError("length must be > 0")
+
+        cdef Polynomial_integer_dense_flint x = self._new()
+        sig_on()
+        fmpz_poly_mullow(x.__poly, self.__poly,
+                    (<Polynomial_integer_dense_flint>right).__poly,
+                    n)
+        sig_off()
+        return x
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         r"""
@@ -861,7 +901,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return x
 
-    def __pow__(Polynomial_integer_dense_flint self, int exp, ignored):
+    def __pow__(Polynomial_integer_dense_flint self, exp, ignored):
         """
 
         EXAMPLES::
@@ -889,15 +929,28 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: negative exponent in power of zero
+
+        Check that :trac:`18278` is fixed::
+
+            sage: R.<x> = ZZ[]
+            sage: x^(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: rational is not an integer
+            sage: x^(2^100)
+            Traceback (most recent call last):
+            ...
+            OverflowError: Sage Integer too large to convert to C long
         """
-        cdef long nn = exp
         cdef Polynomial_integer_dense_flint res = self._new()
+        cdef long nn = pyobject_to_long(exp)
+
         if self.is_zero():
             if exp == 0:
                 fmpz_poly_set_coeff_si(res.__poly, 0, 1)
                 return res
             elif exp < 0:
-                raise ZeroDivisionError, "negative exponent in power of zero"
+                raise ZeroDivisionError("negative exponent in power of zero")
             else:
                 return res
         if exp < 0:
@@ -908,7 +961,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         else:
             if self is self._parent.gen():
                 sig_on()
-                fmpz_poly_set_coeff_ui(res.__poly, exp, 1)
+                fmpz_poly_set_coeff_ui(res.__poly, nn, 1)
                 sig_off()
             else:
                 sig_on()

@@ -173,31 +173,13 @@ class FreeSemigroup(UniqueRepresentation, Parent):
 
     TESTS::
 
-        sage: TestSuite(S).run(verbose = True)
-        running ._test_an_element() . . . pass
-        running ._test_associativity() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
+        sage: TestSuite(S).run()
     """
     def __init__(self, alphabet=('a','b','c','d')):
         r"""
         The free semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``alphabet`` -- a tuple of strings: the generators of the semigroup
 
@@ -214,7 +196,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
 
         """
         self.alphabet = alphabet
-        Parent.__init__(self, category = Semigroups())
+        Parent.__init__(self, category = Semigroups().FinitelyGenerated())
 
     def _repr_(self):
         r"""
@@ -274,7 +256,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         r"""
         Construct an element of this semigroup from the data ``x``.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- a string
 
@@ -439,11 +421,11 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         r"""
         Lift the element ``x`` into the ambient semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of ``self``.
 
-        OUTPUT::
+        OUTPUT:
 
         - an element of ``self.ambient()``.
 
@@ -510,11 +492,11 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         r"""
         Returns the retract ``x`` onto an element of this semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of the ambient semigroup (``self.ambient()``).
 
-        OUTPUT::
+        OUTPUT:
 
         - an element of ``self``.
 

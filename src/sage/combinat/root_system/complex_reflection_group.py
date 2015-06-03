@@ -1076,7 +1076,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 word = gap_factorization(self,gens,inv_dict)
                 self._reduced_word = Word(word)
             elif isinstance(self._reduced_word, list):
-                self._reduced_word = Word(word)
+                self._reduced_word = Word(self._reduced_word)
             return self._reduced_word
 
         @cached_in_parent_method

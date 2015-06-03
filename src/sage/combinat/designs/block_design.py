@@ -349,11 +349,12 @@ def q3_minus_one_matrix(K):
         else:
             return M([0,0,-a,1,0,-b,0,1,-c])
 
+    m = M()
+    m[1,0] = m[2,1] = K.one()
     while True:
-        a = K._random_nonzero_element()
-        b = K.random_element()
-        c = K.random_element()
-        m = M([0,0,-a,1,0,-b,0,1,-c])
+        m[0,2] = K._random_nonzero_element()
+        m[1,2] = K.random_element()
+        m[2,2] = K.random_element()
         if m.multiplicative_order() == q**3 - 1:
             return m
 

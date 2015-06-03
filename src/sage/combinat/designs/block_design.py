@@ -404,19 +404,31 @@ def HughesPlane(n2, check=True):
     r"""
     Return the Hughes projective plane of order `n2`.
 
-    TO-BE-CHANGEDFor p an odd prime.
-    If kernel K of order `p^n` coincides with the center of a nearfield N.
-    The construction of a Hughes plane is based on N of order `p^2n`.
-    Here, we define the multiplication on the nearfield N by:
-        `x \circ y = x . y`      if y is a square in K
+    For p an odd prime.
+    The Hughes plane of order pis a finite projective plane introduced by 
+    Daniel R. Hughes and which is not Desarguesian.
 
-        `x \circ y = x^q . y`    if y is not a square in K 
+    We work on the elements of the field `GF(n2)` and we define 
+    a new multiplication:
+
+    .. MATH::
+
+        x \circ y =
+        \begin{cases}
+        x.y & \text{if y is a square in K}\\
+        x^q.y & \text{if y is not a square in K}\\
+        \end{cases}
+ 
     For each matrix in GL(3, GF(n)) such that `A^{n^2 + n + 1} = kI`, but no
     smaller power of A has this property, we can construct the same Hughes
     plane of order `n2`.
-    For each `a \in N \backslash GF(n)`  or `a = 1`, we find the line L(a) which is the
-    set of points satisfying `x + a \circ y + z = 0`. Then we construct a set 
-    of lines for each a : {`{A^k * L(a) | 0 \leq k \leq n^2 + n}`} 
+    For each `a \in N \backslash GF(n)`  or `a = 1`, we find the line L(a) 
+    which is the set of points satisfying `x + a \circ y + z = 0`. 
+    Then we construct a set of lines for each a : 
+    
+    .. MATH::
+        
+        {A^k * L(a) | 0 \leq k \leq n^2 + n}
 
     REFERENCES:
 
@@ -445,8 +457,8 @@ def HughesPlane(n2, check=True):
     We prove in the following computations that the Desarguesian plane ``H`` is
     not Desarguesian. Let us consider the two triangles `(0,1,10)` and `(57, 70,
     59)`. We show that the intersection points `D_{0,1} \cap D_{57,70}`,
-    `D_{1,10} \cap D_{70,59}` and `D_{10,0} \cap D_{59,57}` are all distinct
-    while the intersection points TO-BE-CHANGED are the same::
+    `D_{1,10} \cap D_{70,59}` and `D_{10,0} \cap D_{59,57}` are on the same line
+    while `D_{0,70}`, `D_{1,59}` and `D_{10,57}` are not concurrent::
 
         sage: blocks = H.blocks()
         sage: line = lambda p,q: (b for b in blocks if p in b and q in b).next()
@@ -465,21 +477,16 @@ def HughesPlane(n2, check=True):
         sage: set(b_10_0).intersection(b_59_57)
         {60}
 
-        TO-BE-CHANGED
-        # Sides of the triangles meet at aligned points
-        # HughesPlane(9) is a non-desarguesian projective plane
-        TO-BE-CHANGED 
-        sage: H.blocks()[9]; H.blocks()[16]; H.blocks()[2]
-        [0, 17, 25, 29, 37, 49, 57, 69, 77, 82]
-        [1, 15, 26, 31, 41, 48, 56, 70, 72, 82]
-        [0, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-        sage: for p in H.blocks()[9]:
-        ....:     if p in H.blocks()[16] and p in H.blocks()[2]:
-        ....:         print p
-        ....: 
-        TO-BE-CHANGED
-        # Lines through vertices are not concurrent
-        TO-BE-CHANGED
+        sage: line(2, 73) == line(73, 60)
+        True
+
+        sage: b_0_57 = line(0, 57)
+        sage: b_1_70 = line(1, 70)
+        sage: b_10_59 = line(10, 59)
+
+        sage: set(b_0_57).intersection(b_1_70
+        ) == set(b_1_70).intersection(b_10_59)
+        False
 
     TESTS:
 

@@ -4665,9 +4665,9 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
         
-            First, compare the binary matroids local to two random bases. If these matroids are not 
-            isomorphic, return ``False``. This test is performed ``randomized_tests`` times.
-            Next, test if a binary matroid local to some basis is isomorphic to ``self``.
+        First, compare the binary matroids local to two random bases. If these matroids are not 
+        isomorphic, return ``False``. This test is performed ``randomized_tests`` times.
+        Next, test if a binary matroid local to some basis is isomorphic to ``self``.
 
         .. SEEALSO::
 

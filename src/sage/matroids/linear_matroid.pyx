@@ -3570,7 +3570,7 @@ cdef class BinaryMatroid(LinearMatroid):
 
         ``self`` is a BinaryMatroid, so just return ``True``.
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
 

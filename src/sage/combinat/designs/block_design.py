@@ -312,7 +312,7 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     from bibd import BalancedIncompleteBlockDesign
     return BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
 
-def random_q3_minus_one_matrix(K):
+def q3_minus_one_matrix(K):
     r"""
     Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
 
@@ -320,20 +320,20 @@ def random_q3_minus_one_matrix(K):
 
     EXAMPLES::
 
-        sage: from sage.combinat.designs.block_design import random_q3_minus_one_matrix
-        sage: m = random_q3_minus_one_matrix(GF(3))
+        sage: from sage.combinat.designs.block_design import q3_minus_one_matrix
+        sage: m = q3_minus_one_matrix(GF(3))
         sage: m.multiplicative_order() == 3**3 - 1
         True
 
-        sage: m = random_q3_minus_one_matrix(GF(4,'a'))
+        sage: m = q3_minus_one_matrix(GF(4,'a'))
         sage: m.multiplicative_order() == 4**3 - 1
         True
 
-        sage: m = random_q3_minus_one_matrix(GF(5))
+        sage: m = q3_minus_one_matrix(GF(5))
         sage: m.multiplicative_order() == 5**3 - 1
         True
 
-        sage: m = random_q3_minus_one_matrix(GF(9,'a'))
+        sage: m = q3_minus_one_matrix(GF(9,'a'))
         sage: m.multiplicative_order() == 9**3 - 1
         True
     """
@@ -509,7 +509,7 @@ def HughesPlane(q2, check=True):
     q = q2.sqrt()
     K = FiniteField(q2, 'x')
     F = FiniteField(q, 'y')
-    A = random_q3_minus_one_matrix(F)
+    A = q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()
     V = VectorSpace(K, 3)

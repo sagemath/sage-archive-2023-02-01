@@ -783,6 +783,21 @@ class Polynomial_generic_sparse(Polynomial):
                 d[deg] = self.__coeffs[k]
         return self.parent()(d)
 
+    def truncate(self, n):
+        """
+        Return the polynomial of degree `< n` equal to `self` modulo `x^n`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^11 + x^10 + 1).truncate(11)
+            x^10 + 1
+            sage: (x^2^500 + x^2^100 + 1).truncate(2^101)
+            x^1267650600228229401496703205376 + 1
+        """
+        return self[:n]
+
+
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)

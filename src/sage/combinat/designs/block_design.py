@@ -400,15 +400,15 @@ def normalize_hughes_plane_point(p, q):
             else:
                 return ((p[0] * k)**q,(p[1]*k)**q,(p[2]*k)**q)
 
-def HughesPlane(n2, check=True):
+def HughesPlane(q2, check=True):
     r"""
     Return the Hughes projective plane of order `n2`.
 
-    For p an odd prime.
-    The Hughes plane of order pis a finite projective plane introduced by 
+    For q an odd prime.
+    The Hughes plane of order q2 is a finite projective plane introduced by 
     Daniel R. Hughes and which is not Desarguesian.
 
-    We work on the elements of the field `GF(n2)` and we define 
+    We work on the elements of the field `GF(q2)` and we define 
     a new multiplication:
 
     .. MATH::
@@ -419,29 +419,28 @@ def HughesPlane(n2, check=True):
         x^q.y & \text{if y is not a square in K}\\
         \end{cases}
  
-    For each matrix in GL(3, GF(n)) such that `A^{n^2 + n + 1} = kI`, but no
+    For each matrix in GL(3, GF(n)) such that `A^{q^2 + q + 1} = kI`, but no
     smaller power of A has this property, we can construct the same Hughes
-    plane of order `n2`.
-    For each `a \in N \backslash GF(n)`  or `a = 1`, we find the line L(a) 
+    plane of order `q2`.
+    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line L(a) 
     which is the set of points satisfying `x + a \circ y + z = 0`. 
     Then we construct a set of lines for each a : 
     
     .. MATH::
         
-        {A^k * L(a) | 0 \leq k \leq n^2 + n}
+        {A^k * L(a) | 0 \leq k \leq q^2 + q}
 
     REFERENCES:
 
     .. [a] Hughes Plane from wikipedia,
     :wikipedia:`Hughes_plane`.
 
-    .. [b] A class of non-Desarguesian projective planes,
-    http://cms.math.ca/cjm/v9/p378 (in 'The Canadian Journal of Mathematics'
-    by Daniel R. Hughes)
+    .. [b] Daniel R. Hughes, A class of non-Desarguesian projective planes,
+    http://cms.math.ca/cjm/v9/p378 (in 'The Canadian Journal of Mathematics')
 
     INPUT:
 
-    - ``n2`` -- an integer which must be an odd square
+    - ``q2`` -- an integer which must be an odd square
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -484,8 +483,9 @@ def HughesPlane(n2, check=True):
         sage: b_1_70 = line(1, 70)
         sage: b_10_59 = line(10, 59)
 
-        sage: set(b_0_57).intersection(b_1_70
-        ) == set(b_1_70).intersection(b_10_59)
+        sage: p = set(b_0_57).intersection(b_1_70)
+        sage: q = set(b_1_70).intersection(b_10_59)
+        sage: p == q
         False
 
     TESTS:
@@ -502,38 +502,38 @@ def HughesPlane(n2, check=True):
         ...
         EmptySetError: No Hughes plane of even order exists.
     """
-    if not n2.is_square():
+    if not q2.is_square():
         raise EmptySetError("No Hughes plane of non-square order exists.")
-    if n2%2 == 0:
+    if q2%2 == 0:
         raise EmptySetError("No Hughes plane of even order exists.")
-    n = n2.sqrt()
-    K = FiniteField(n2, 'x')
-    F = FiniteField(n, 'y')
+    q = q2.sqrt()
+    K = FiniteField(q2, 'x')
+    F = FiniteField(q, 'y')
     A = random_q3_minus_one_matrix(F)
     A = A.change_ring(K)
     m = K.list()
     V = VectorSpace(K, 3)
     # Construct the points (x,y,z) of the projective plane, (x,y,z)=(xk,yk,zk)
-    points=[[x,y,K(1)] for x in m for y in m]+[[x,K(1),K(0)] for x in m]+[[K(1),K(0),K(0)]]
-    relabel={tuple(p):i for i,p in enumerate(points)}
+    points = [[x,y,K(1)] for x in m for y in m]+[[x,K(1),K(0)] for x in m]+[[K(1),K(0),K(0)]]
+    relabel = {tuple(p):i for i,p in enumerate(points)}
     blcks = []
     # Find the first line satisfying x+ay+z=0
     for a in m:
         if a not in F or a == 1:
-            l=[]
+            l = []
             l.append(V((-a,K(1),K(0))))
             for x in m:
                 if ((~a)*(-x-K(1))).is_square():
                     l.append(V((x,(~a)*(-x-K(1)),K(1))))
                 else:
-                    l.append(V((x,(~a) **n * (-x-K(1)),K(1))))
+                    l.append(V((x,(~a) **q * (-x-K(1)),K(1))))
             # We can now deduce the other lines from these ones
-            blcks.append([relabel[normalize_hughes_plane_point(p,n)] for p in l])
-            for i in range(n2 + n):
+            blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
+            for i in range(q2 + q):
                 l = [A*j for j in l]
-                blcks.append([relabel[normalize_hughes_plane_point(p,n)] for p in l])
+                blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
     from bibd import BalancedIncompleteBlockDesign
-    return BalancedIncompleteBlockDesign(n2**2+n2+1, blcks, check=check)
+    return BalancedIncompleteBlockDesign(q2**2+q2+1, blcks, check=check)
 
 def projective_plane_to_OA(pplane, pt=None, check=True):
     r"""

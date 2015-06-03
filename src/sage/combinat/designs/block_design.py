@@ -316,9 +316,10 @@ def random_q3_minus_one_matrix(K):
     r"""
     Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
     
-    Intended to be used in `HughesPlane`
+    This function is used in :func:`HughesPlane`
 
     EXAMPLES::
+
         sage: from sage.combinat.designs.block_design import random_q3_minus_one_matrix
         sage: m = random_q3_minus_one_matrix(GF(3))
         sage: m.multiplicative_order() == 3**3 - 1
@@ -356,59 +357,54 @@ def random_q3_minus_one_matrix(K):
         if m.multiplicative_order() == q**3 - 1:
             return m
 
-def normalize_hughes_plane_point(p,K,q):
+def normalize_hughes_plane_point(p, q):
     r"""
-    Return the normalized form of point (x,y,z).
+    Return the normalized form of point ``p`` as a 3-tuple.
 
-    Intended to be used in `HughesPlane`.
+    In the Hughes projective plane over the finite field `K`, all triples `(xk,
+    yk, zk)` with `k \in K` represent the same point (where the multiplication
+    is over the nearfield built from `K`). This function chooses a canonical
+    representative among them.
 
-    For all integer k non-zero, (x,y,z)k refers to the same point.
-
-    For the normalized form, the last non-zero coordinate must be 1.
+    This function is used in :func:`HughesPlane`.
 
     INPUT:
     
     - ``p`` - point with the coordinates (x,y,z) (a list, a vector, a tuple...)
 
-    - ``K```- a finite field (coordinates x,y,z are elements of K)
+    - ``q`` - cardinality of the underlying finite field
 
-    - ``q`` - cardinality of K
+    EXAMPLES::
 
-    OUTPUT:
-    List of the coordinates from the normalized form of p
-
-    EXAMPLE::
         sage: from sage.combinat.designs.block_design import normalize_hughes_plane_point
-        sage: K=FiniteField(9,'x')
-        sage: p=(K('x'),K('x+1'),K('x'))
-        sage: normalize_hughes_plane_point(p,K,9)
+        sage: K = FiniteField(9,'x')
+        sage: x = K.gen()
+        sage: normalize_hughes_plane_point((x, x+1, x), 9)
         (1, x, 1)
-        sage: q=vector((K('x'),K('x'),K('x')))
-        sage: normalize_hughes_plane_point(q,K,9)
+        sage: normalize_hughes_plane_point(vector((x,x,x)), 9)
         (1, 1, 1)
-        sage: s=(K('2*x+2'), K(0), K(0))
-        sage: normalize_hughes_plane_point(s,K,9)
+        sage: zero = K.zero()
+        sage: normalize_hughes_plane_point((2*x+2, zero, zero), 9)
         (1, 0, 0)
-        sage: t=[K('2*x'),K(1),K(0)]
-        sage: normalize_hughes_plane_point(t,K,9)
+        sage: one = K.one()
+        sage: normalize_hughes_plane_point((2*x, one, zero), 9)
         (2*x, 1, 0)
-
     """        
     for i in [2,1,0]:
         if p[i].is_one():
             return tuple(p)
         elif not p[i].is_zero():
-            k=~p[i]
+            k = ~p[i]
             if k.is_square():
                 return (p[0] * k,p[1] * k,p[2] * k)
             else:
                 return ((p[0] * k)**q,(p[1]*k)**q,(p[2]*k)**q)
-        
+
 def HughesPlane(n2, check=True):
     r"""
-    Return Hughes projective plane of order `n2`.
+    Return the Hughes projective plane of order `n2`.
 
-    For p an odd prime.
+    TO-BE-CHANGEDFor p an odd prime.
     If kernel K of order `p^n` coincides with the center of a nearfield N.
     The construction of a Hughes plane is based on N of order `p^2n`.
     Here, we define the multiplication on the nearfield N by:
@@ -446,29 +442,33 @@ def HughesPlane(n2, check=True):
         sage: H
         (91,10,1)-Balanced Incomplete Block Design
 
-        # We want to show that Hughes planes are non-desarguesian planes
-        # We choose two triangles (0, 1, 10) and (57, 70, 59)
-        sage: H.blocks()[0]; H.blocks()[23]
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 81]
-        [2, 13, 23, 35, 36, 46, 57, 70, 78, 87]
-        sage: 2 in H.blocks()[0] and 2 in H.blocks()[23]
-        True
-        sage: H.blocks()[11]; H.blocks()[58]
-        [1, 10, 19, 28, 37, 46, 55, 64, 73, 90]
-        [6, 12, 22, 29, 44, 45, 59, 70, 73, 88]
-        sage: 73 in H.blocks()[11] and 73 in H.blocks()[58]
-        True
-        sage: H.blocks()[2]; H.blocks()[87]
-        [0, 10, 20, 30, 40, 50, 60, 70, 80, 89]
-        [54, 55, 56, 57, 58, 59, 60, 61, 62, 81]
-        sage: 60 in H.blocks()[2] and 60 in H.blocks()[87]
-        True
-        sage: H.blocks()[27]
-        [2, 17, 18, 32, 43, 48, 60, 67, 73, 85]
+    We prove in the following computations that the Desarguesian plane ``H`` is
+    not Desarguesian. Let us consider the two triangles `(0,1,10)` and `(57, 70,
+    59)`. We show that the intersection points `D_{0,1} \cap D_{57,70}`,
+    `D_{1,10} \cap D_{70,59}` and `D_{10,0} \cap D_{59,57}` are all distinct
+    while the intersection points TO-BE-CHANGED are the same::
 
+        sage: blocks = H.blocks()
+        sage: line = lambda p,q: (b for b in blocks if p in b and q in b).next()
+
+        sage: b_0_1 = line(0, 1)
+        sage: b_1_10 = line(1, 10)
+        sage: b_10_0 = line(10, 0)
+        sage: b_57_70 = line(57, 70)
+        sage: b_70_59 = line(70, 59)
+        sage: b_59_57 = line(59, 57)
+
+        sage: set(b_0_1).intersection(b_57_70)
+        {2}
+        sage: set(b_1_10).intersection(b_70_59)
+        {73}
+        sage: set(b_10_0).intersection(b_59_57)
+        {60}
+
+        TO-BE-CHANGED
         # Sides of the triangles meet at aligned points
         # HughesPlane(9) is a non-desarguesian projective plane
-        
+        TO-BE-CHANGED 
         sage: H.blocks()[9]; H.blocks()[16]; H.blocks()[2]
         [0, 17, 25, 29, 37, 49, 57, 69, 77, 82]
         [1, 15, 26, 31, 41, 48, 56, 70, 72, 82]
@@ -477,8 +477,13 @@ def HughesPlane(n2, check=True):
         ....:     if p in H.blocks()[16] and p in H.blocks()[2]:
         ....:         print p
         ....: 
-
+        TO-BE-CHANGED
         # Lines through vertices are not concurrent
+        TO-BE-CHANGED
+
+    TESTS:
+
+    Some wrong input::
 
         sage: designs.HughesPlane(5)
         Traceback (most recent call last):
@@ -489,9 +494,7 @@ def HughesPlane(n2, check=True):
         Traceback (most recent call last):
         ...
         EmptySetError: No Hughes plane of even order exists.
-
     """
-    
     if not n2.is_square():
         raise EmptySetError("No Hughes plane of non-square order exists.")
     if n2%2 == 0:
@@ -518,10 +521,10 @@ def HughesPlane(n2, check=True):
                 else:
                     l.append(V((x,(~a) **n * (-x-K(1)),K(1))))
             # We can now deduce the other lines from these ones
-            blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
+            blcks.append([relabel[normalize_hughes_plane_point(p,n)] for p in l])
             for i in range(n2 + n):
                 l = [A*j for j in l]
-                blcks.append([relabel[normalize_hughes_plane_point(p,K,n)] for p in l])
+                blcks.append([relabel[normalize_hughes_plane_point(p,n)] for p in l])
     from bibd import BalancedIncompleteBlockDesign
     return BalancedIncompleteBlockDesign(n2**2+n2+1, blcks, check=check)
 

@@ -1350,8 +1350,22 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: cg.obtain_nash(algorithm='lp-PPL')
             [[(2/3, 1/3), (2/3, 1/3)]]
             sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
-            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
             [[[0.666667, 0.333333], [0.666667, 0.333333]]]
+            sage: A = matrix([[1, 2, 1], [1, 1, 2], [2, 1, 1]])
+            sage: B = matrix([[2, 1, 2], [2, 2, 1], [1, 2, 2]])
+            sage: cg = NormalFormGame([A, B])
+            sage: ne = cg.obtain_nash(algorithm='lp-glpk')
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne]
+            [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
+            sage: ne = cg.obtain_nash(algorithm='lp-Coin') # optional - cbc
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - cbc
+            [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
+            sage: cg.obtain_nash(algorithm='lp-PPL')
+            [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
+            sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
+            sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
+            [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
 
         Running the constant-sum solver on a game which isn't a constant sum game
         generates a ``ValueError``::
@@ -1529,7 +1543,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_gambit_LP(self):
+    def _solve_gambit_LP(self, maximization=True):
         r"""
         Solves a constant sum NormalFormGame using Gambit's LP implementation
 
@@ -1551,12 +1565,12 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if Game is None:
             raise NotImplementedError("gambit is not installed")
-        g = self._as_gambit_game()
+        g = self._as_gambit_game(maximization = maximization)
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_LP(self, solver='glpk'):
+    def _solve_LP(self, solver='glpk', maximization=True):
         r"""
         Solves a constant sum NormalFormGame using the specified LP solver.
 
@@ -1566,6 +1580,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
           * ``'gambit'`` - This uses the solver included within the gambit library to
             create and solve the LP.
+
           * For further possible values see :class:`MixedIntegerLinearProgram`
 
         EXAMPLES::
@@ -1607,14 +1622,18 @@ class NormalFormGame(SageObject, MutableMapping):
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")
         if solver == 'gambit':
-            return self._solve_gambit_LP()
+            return self._solve_gambit_LP(maximization)
+
+        sgn = 1
+        if not maximization:
+            sgn = -1
 
         strategy_sizes = [p.num_strategies for p in self.players]
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         y = p.new_variable(nonnegative=True)
         v = p.new_variable(nonnegative=False)
-        p.add_constraint(self.payoff_matrices()[0] * y - v[0] <= 0)
+        p.add_constraint(sgn * self.payoff_matrices()[0] * y - v[0] <= 0)
         p.add_constraint(matrix([[1] * strategy_sizes[0]]) * y == 1)
         p.set_objective(v[0])
         p.solve()
@@ -1623,7 +1642,7 @@ class NormalFormGame(SageObject, MutableMapping):
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         x = p.new_variable(nonnegative=True)
         u = p.new_variable(nonnegative=False)
-        p.add_constraint(-self.payoff_matrices()[0].T * x - u[0] <= 0)
+        p.add_constraint(sgn * -self.payoff_matrices()[0].T * x - u[0] <= 0)
         p.add_constraint(matrix([[1] * strategy_sizes[1]]) * x == 1)
         p.set_objective(u[0])
         p.solve()

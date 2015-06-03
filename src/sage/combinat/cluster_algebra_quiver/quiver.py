@@ -1059,8 +1059,8 @@ class ClusterQuiver(SageObject):
 
     def first_sink(self):
         r"""
-        Returns the first vertex that is a sink
-        
+        Return the first vertex of ``self`` that is a sink
+
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5]);
@@ -1069,23 +1069,23 @@ class ClusterQuiver(SageObject):
             0
         """
         sinks = self.digraph().sinks()
-        
+
         if len(sinks) > 0:
             return sinks[0]
         return None
-    
-    
+
+
     def sinks(self):
         r"""
-        Returns all vertices that are sinks
-        
+        Return all vertices of ``self`` that are sinks
+
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5]);
             sage: Q.mutate([1,2,4,3,2]);
             sage: Q.sinks()
             [0, 2]
-            
+
             sage: Q = ClusterQuiver(['A',5])
             sage: Q.mutate([2,1,3,4,2])
             sage: Q.sinks()
@@ -1095,8 +1095,8 @@ class ClusterQuiver(SageObject):
 
     def first_source(self):
         r"""
-        Returns the first vertex that is a source
-        
+        Return the first vertex of ``self`` that is a source
+
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5])
@@ -1109,25 +1109,25 @@ class ClusterQuiver(SageObject):
         if len(sources) > 0:
             return sources[0]
         return None
-    
+
     def sources(self):
         r"""
-        Returns all vertices that are sources
-        
+        Returns all vertices of ``self`` that are sources
+
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5]);
             sage: Q.mutate([1,2,4,3,2]);
             sage: Q.sources()
             []
-            
+
             sage: Q = ClusterQuiver(['A',5])
             sage: Q.mutate([2,1,3,4,2])
             sage: Q.sources()
             [1]
         """
         return self.digraph().sources()
-    
+
     def mutate(self, data, inplace=True):
         """
         Mutates ``self`` at a sequence of vertices.
@@ -1188,16 +1188,16 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.
         """
-        
+
         n = self._n
         m = self._m
         dg = self._digraph
         V = range(n)
-        
+
         # If we get a string, execute as a function
         if isinstance(data, str):
             data = getattr(self, data)()
-       
+
         # If we get a function, execute it
         if hasattr(data, '__call__'):
             # function should return either integer or sequence
@@ -1205,7 +1205,7 @@ class ClusterQuiver(SageObject):
 
         if data is None:
             raise ValueError('Not mutating: No vertices given.')
-        
+
 
         if data in V:
             seq = [data]
@@ -1672,20 +1672,20 @@ class ClusterQuiver(SageObject):
             return is_finite, path
         else:
             return is_finite
-    
+
     def number_of_edges(self):
         r"""
-        Returns the total number of edges on the quiver
-        
-        Note: This only works with non-valued quivers. If used on a non-valued quiver then the positive value is taken to be the number of edges added
-        
-        
+        Return the total number of edges on the quiver
+
+        Note: This only works with non-valued quivers. If used on a
+        non-valued quiver then the positive value is taken to be the number of edges added
+
         """
-        
+
         digraph_edges = self.digraph().edges()
-        
+
         total_edges = 0
         for edge in digraph_edges:
             total_edges += edge[2][0]
-            
+
         return total_edges

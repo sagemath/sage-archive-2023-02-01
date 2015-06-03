@@ -12,6 +12,13 @@ AUTHORS:
 - Gregg Musiker
 - Christian Stump
 
+
+REFERENCES:
+
+..[BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
+   *On Maximal Green Sequences*
+   :arxiv:1205.2050
+
 .. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
 
@@ -748,70 +755,81 @@ class ClusterSeed(SageObject):
             False
         """
         return self.quiver().is_bipartite(return_bipartition=return_bipartition)
-    
+
     def green_vertices(self):
         r"""
-        Returns list of green vertices. A vertex is defined to be green if its c-vector
-            has all non-positive entries. More information on green vertices can be found
-            at :arxiv:`1205.2050`
-            
+        Return the list of green vertices of ``self``.
+
+        A vertex is defined to be green if its c-vector has all non-positive
+        entries. More information on green vertices can be found at [BDP2013]_
+
+        OUTPUT:
+
+        The green vertices as a list of integers.
+
         EXAMPLES::
-        
+
             sage: ClusterSeed(['A',3]).principal_extension().green_vertices()
             [0, 1, 2]
-            
+
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().green_vertices()
             [0, 1, 2, 3, 4, 5]
         """
-        
+
         # Make sure we have a principle extension
         if not self._is_principal:
             raise ValueError("Must be a principal extension to grab the vertices.")
-            
+
         # Go through each vector and return the ones which have no negative entry
         return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
-    
+
     def first_green_vertex(self):
         r"""
-        Returns first green vertex. A vertex is defined to be green if its c-vector 
-            has all non-positive entries. More information on green vertices can be found
-            at :arxiv:`1205.2050`
-        
+        Return the first green vertex of ``self``.
+
+        A vertex is defined to be green if its c-vector has all non-positive entries.
+        More information on green vertices can be found at [BDP2013]_
+
         EXAMPLES::
-        
+
             sage: ClusterSeed(['A',3]).principal_extension().first_green_vertex()
             0
-            
+
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_green_vertex()
             0
         """
         # Make sure we have a principle extension
         if not self._is_principal:
             raise ValueError("Must be a principal extension to grab the vertices.")
-        
+
         # Go through each vector
         for i in range(self._n):
             # and return the one which has no negative entry
             if not exists(self.c_vector(i), lambda k : k < 0)[0]:
                 return i
-        
-        
+
+
         return None
-         
+
     def red_vertices(self):
         r"""
-        Returns list of red vertices. A vertex is defined to be red if its c-vector
-            has all non-negative entries. More information on red vertices can be found
-            at :arxiv:`1205.2050`
-            
+        Return the list of red vertices of ``self``.
+
+        A vertex is defined to be red if its c-vector has all non-negative entries.
+        More information on red vertices can be found at [BDP2013]_.
+
+        OUTPUT:
+
+        The red vertices as a list of integers.
+
         EXAMPLES::
-        
+
             sage: ClusterSeed(['A',3]).principal_extension().red_vertices()
             []
-            
+
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().red_vertices()
             []
-            
+
             sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
             sage: Q.mutate(1);
             sage: Q.red_vertices()
@@ -821,22 +839,23 @@ class ClusterSeed(SageObject):
         # Make sure we have a principle extension
         if not self._is_principal:
             raise ValueError("Must be a principle extension to grab the vertices.")
-        
+
         # Go through each vector and return the ones which have no positive entry
         return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
-    
+
     def first_red_vertex(self):
         r"""
-        Returns first red vertex. A vertex is defined to be red if its c-vector
-            has all non-negative entries. More information on red vertices can be found
-            at :arxiv:`1205.2050`
-            
+        Return the first red vertex of ``self``.
+
+        A vertex is defined to be red if its c-vector has all non-negative entries.
+        More information on red vertices can be found at [BDP2013]_.
+
         EXAMPLES::
-        
+
             sage: ClusterSeed(['A',3]).principal_extension().first_red_vertex()
-            
+
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_red_vertex()
-            
+
             sage: Q = ClusterSeed(['A',[3,3],1]).principal_extension();
             sage: Q.mutate(1);
             sage: Q.first_red_vertex()
@@ -846,22 +865,28 @@ class ClusterSeed(SageObject):
         # Make sure we have a principle extension
         if not self._is_principal:
             raise ValueError("Must be a principal extension to grab the vertices.")
-        
+
         # Go through each vector
         for i in range(self._n):
             # and return the ones which have no negative entry
             if not exists(self.c_vector(i), lambda k : k > 0)[0]:
                 return i
-        
+
         return None
-    
+
     def urban_renewals(self):
         r"""
-        Returns a list of urban renewal vertices. An urban renewal vertex is one in which there are two arrows 
-            pointing toward the vertex and two arrows pointing away.
-        
+        Return the list of the urban renewal vertices of ``self``.
+
+        An urban renewal vertex is one in which there are two arrows pointing
+        toward the vertex and two arrows pointing away.
+
+        OUTPUT:
+
+        A list of vertices (as integers)
+
         EXAMPLES::
-        
+
             sage: G = ClusterSeed(['GR',[4,9]]); G.urban_renewals()
             [5, 6]
         """
@@ -869,34 +894,48 @@ class ClusterSeed(SageObject):
         for i in range(self._n):
             if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
                 vertices.append(i)
-                
+
         return vertices
-    
+
     def first_urban_renewal(self):
         r"""
-        Returns the first urban renewal vertex. An urban renewal vertex is one in which there are two arrows
-            pointing toward the vertex and two arrows pointing away.
-            
+        Return the first urban renewal vertex.
+
+        An urban renewal vertex is one in which there are two arrows pointing
+        toward the vertex and two arrows pointing away.
+
         EXAMPLES::
-        
+
             sage: G = ClusterSeed(['GR',[4,9]]); G.first_urban_renewal()
             5
         """
         for i in range(self._n):
             if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
                 return i
-        
+
         return None
-    
+
     def mutate(self, sequence, inplace=True):
         r"""
         Mutates ``self`` at a vertex or a sequence of vertices.
 
         INPUT:
 
-        - ``sequence`` -- a vertex of self, an iterator of vertices of self, a function which takes in the ClusterSeed and returns a vertex or an iterator of vertices,
-            or one of the following options: first_source, sources, first_sink, sinks, green, red, urban_renewal, all_urban_renewals
+        - ``sequence`` -- a vertex of ``self``, an iterator of vertices of ``self``,
+          a function which takes in the ClusterSeed and returns a vertex or an iterator of vertices,
+          or a string representing a type of vertices to mutate.
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
+
+        Possible values for vertex types in ``sequence`` are:
+
+        - ``"first_source"``: mutates at first found source vertex,
+        - ``"sources"``: mutates at all sources,
+        - ``"first_sink"``: mutates at first sink,
+        - ``"sinks"``: mutates at all sink vertices,
+        - ``"green"``: mutates at the first green vertex,
+        - ``"red"``: mutates at the first red vertex,
+        - ``"urban_renewal"`` or ``"urban"``: mutates at first urban renewal vertex,
+        - ``"all_urban_renewals"`` or ``"all_urban"``: mutates at all urban renewal vertices.
 
         EXAMPLES::
 
@@ -936,7 +975,7 @@ class ClusterSeed(SageObject):
             sage: T = S.mutate(0,inplace=False)
             sage: S == T
             False
-            
+
             sage: Q = ClusterSeed(['A',3]);Q.b_matrix()
             [ 0  1  0]
             [-1  0 -1]
@@ -971,7 +1010,7 @@ class ClusterSeed(SageObject):
                 sequence = self.urban_renewals()
             else:
                 sequence = getattr(self.quiver(), sequence)()
-       
+
         # If we get a function, execute it
         if hasattr(sequence, '__call__'):
             # function should return either integer or sequence
@@ -979,12 +1018,12 @@ class ClusterSeed(SageObject):
 
         if sequence is None:
             raise ValueError('Not mutating: No vertices given.')
-            
-        
+
+
         n, m = seed._n, seed._m
         V = range(n)
-        
-        
+
+
 
         if sequence in V:
             seq = [sequence]
@@ -1076,29 +1115,35 @@ class ClusterSeed(SageObject):
     def mutation_analysis(self, options=['all']):
         r"""
         Runs an analysis of all potential mutation options. Note that this might take a long time on large seeds.
-        
+
         Notes: Edges are only returned if we have a non-valued quiver. Green and red vertices are only returned if the cluster is principal.
-        
+
         INPUT:
 
-        - ``options`` -- (default: ['all']) Options include::
+        - ``options`` -- (default: ['all']) a list of mutation options.
 
-            * all - All options below
-            * edges - Number of edges (works with skew-symmetric quivers)
-            * edge_diff - Edges added/deleted (works with skew-symmetric quivers)
-            * green_vertices - List of green vertices (works with principals)
-            * green_vertices_diff - Green vertices added/removed (works with principals)
-            * red_vertices - List of red vertices (works with principals)
-            * red_vertices_diff - Red vertices added/removed (works with principals)
-            * urban_renewals - List of urban renewal vertices
-            * urban_renewals_diff - Urban renewal vertices added/removed
-            * sources - List of source vertices
-            * sources_diff - Source vertices added/removed
-            * sinks - List of sink vertices
-            * sinks_diff - Sink vertices added/removed
-            
+        Posssible options are:
+
+        - ``"all"`` - All options below
+        - ``"edges"`` - Number of edges (works with skew-symmetric quivers)
+        - ``"edge_diff"`` - Edges added/deleted (works with skew-symmetric quivers)
+        - ``"green_vertices"`` - List of green vertices (works with principals)
+        - ``"green_vertices_diff"`` - Green vertices added/removed (works with principals)
+        - ``"red_vertices"`` - List of red vertices (works with principals)
+        - ``"red_vertices_diff"`` - Red vertices added/removed (works with principals)
+        - ``"urban_renewals"`` - List of urban renewal vertices
+        - ``"urban_renewals_diff"`` - Urban renewal vertices added/removed
+        - ``"sources"`` - List of source vertices
+        - ``"sources_diff"`` - Source vertices added/removed
+        - ``"sinks"`` - List of sink vertices
+        - ``"sinks_diff"`` - Sink vertices added/removed
+
+        OUTPUT:
+
+        TODO
+
         EXAMPLES::
-        
+
             sage: B = [[0, 4, 0, -1],[-4,0, 3, 0],[0, -3, 0, 1],[1, 0, -1, 0]]
             sage: S = ClusterSeed(matrix(B))
             sage: S.mutate([2,3,1,2,1,3,0,2])
@@ -1136,7 +1181,7 @@ class ClusterSeed(SageObject):
               'urban_renewals': [],
               'urban_renewals_diff': {'added': [], 'removed': []}}}
         """
-        
+
         # setup our initial information for differences later on
         if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
             initial_edges = self.quiver().number_of_edges()
@@ -1150,22 +1195,22 @@ class ClusterSeed(SageObject):
             initial_sources = self.quiver().sources()
         if 'sinks_diff' in options or 'all' in options:
             initial_sinks = self.quiver().sinks()
-        
-        
+
+
         #instantiate our dictionary
         analysis = {}
         for i in xrange(self._n):
             #instantiate our dictionary
             analysis[i] = {}
-            
+
             #run mutations not in place as we just want an analysis
             current_mutation = self.mutate(i,inplace=False)
-            
+
             if 'edges' in options or ('all' in options and self._M.is_skew_symmetric()):
                 analysis[i]['edges'] = current_mutation.quiver().number_of_edges()
             if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
                 analysis[i]['edge_diff'] = current_mutation.quiver().number_of_edges() - initial_edges
-                
+
             if 'green_vertices' in options or ('all' in options and self._is_principal):
                 analysis[i]['green_vertices'] = current_mutation.green_vertices()
             if 'green_vertices_diff' in options or ('all' in options and self._is_principal):
@@ -1173,7 +1218,7 @@ class ClusterSeed(SageObject):
                 new_green_vertices = current_mutation.green_vertices()
                 analysis[i]['green_vertices_diff']['added'] = list(set(new_green_vertices) - set(initial_green_vertices))
                 analysis[i]['green_vertices_diff']['removed'] = list(set(initial_green_vertices) - set(new_green_vertices))
-                
+
             if 'red_vertices' in options or ('all' in options and self._is_principal):
                 analysis[i]['red_vertices'] = current_mutation.red_vertices()
             if 'red_vertices_diff' in options or ('all' in options and self._is_principal):
@@ -1181,7 +1226,7 @@ class ClusterSeed(SageObject):
                 new_red_vertices = current_mutation.red_vertices()
                 analysis[i]['red_vertices_diff']['added'] = list(set(new_red_vertices) - set(initial_red_vertices))
                 analysis[i]['red_vertices_diff']['removed'] = list(set(initial_red_vertices) - set(new_red_vertices))
-                
+
             if 'urban_renewals' in options or 'all' in options:
                 analysis[i]['urban_renewals'] = current_mutation.urban_renewals()
             if 'urban_renewals_diff' in options or 'all' in options:
@@ -1189,7 +1234,7 @@ class ClusterSeed(SageObject):
                 new_urban_renewals = current_mutation.urban_renewals()
                 analysis[i]['urban_renewals_diff']['added'] = list(set(new_urban_renewals) - set(initial_urban_renewals))
                 analysis[i]['urban_renewals_diff']['removed'] = list(set(initial_urban_renewals) - set(new_urban_renewals))
-                
+
             if 'sources' in options or 'all' in options:
                 analysis[i]['sources'] = current_mutation.quiver().sources()
             if 'sources_diff' in options or 'all' in options:
@@ -1197,7 +1242,7 @@ class ClusterSeed(SageObject):
                 new_sources = current_mutation.quiver().sources()
                 analysis[i]['sources_diff']['added'] = list(set(new_sources) - set(initial_sources))
                 analysis[i]['sources_diff']['removed'] = list(set(initial_sources) - set(new_sources))
-                
+
             if 'sinks' in options or 'all' in options:
                 analysis[i]['sinks'] = current_mutation.quiver().sinks()
             if 'sinks_diff' in options or 'all' in options:
@@ -1205,9 +1250,9 @@ class ClusterSeed(SageObject):
                 new_sinks = current_mutation.quiver().sinks()
                 analysis[i]['sinks_diff']['added'] = list(set(new_sinks) - set(initial_sinks))
                 analysis[i]['sinks_diff']['removed'] = list(set(initial_sinks) - set(new_sinks))
-            
+
         return analysis
-        
+
     def exchangeable_part(self):
         r"""
         Returns the restriction to the principal part (i.e. the exchangeable variables) of ``self``.

@@ -421,13 +421,9 @@ class CoordFunctionSymb(CoordFunction):
             1
 
         """
-        #!# This should be the Python 2.7 form:
-        # substitutions = {self._chart._xx[j]: coords[j] for j in
-        #                                                      range(self._nc)}
-        #
-        # Here we use a form compatible with Python 2.6:
-        substitutions = dict([(self._chart._xx[j], coords[j]) for j in
-                                                              range(self._nc)])
+        if len(coords) != self._nc:
+            raise ValueError("bad number of coordinates")
+        substitutions = dict(zip(self._chart._xx, coords))
         resu = self._express.subs(substitutions)
         if 'simplify' in options:
             if options['simplify']:
@@ -1402,6 +1398,20 @@ class CoordFunctionSymb(CoordFunction):
     def _del_derived(self):
         r"""
         Delete the derived quantities
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(cos(x*y))
+            sage: f._der
+            sage: f.diff(x)
+            -y*sin(x*y)
+            sage: f._der
+            [-y*sin(x*y), -x*sin(x*y)]
+            sage: f._del_derived()
+            sage: f._der
+
         """
         self._der = None  # reset of the partial derivatives
 

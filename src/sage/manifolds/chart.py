@@ -625,7 +625,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         n = len(coordinates)
-        if n != self._manifold._dim:
+        if n != self._domain._dim:
             return False
         if 'parameters' in kwds:
             parameters = kwds['parameters']
@@ -633,8 +633,7 @@ class Chart(UniqueRepresentation, SageObject):
             parameters = None
         # Check of restrictions:
         if self._restrictions != []:
-            substitutions = dict([(self._xx[j], coordinates[j]) for j in
-                                                                    range(n)])
+            substitutions = dict(zip(self._xx, coordinates))
             if parameters:
                 substitutions.update(parameters)
             for restrict in self._restrictions:
@@ -882,6 +881,60 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         return self._zero_function
+
+
+    def multifunction(self, *expressions):
+        r"""
+        Define a coordinate function to some Cartesian power of the base field.
+
+        If `n` and `m` are two positive integers and `(U,\varphi)` is a chart on
+        a topological manifold `M` of dimension `n` over a topological field `K`,
+        a *multi-coordinate function* associated to `(U,\varphi)` is a map
+
+        .. MATH::
+
+            \begin{array}{llcl}
+            f:& V \subset K^n & \longrightarrow & K^m \\
+              & (x^1,\ldots,x^n) & \longmapsto & (f_1(x^1,\ldots,x^n),\ldots,
+                f_m(x^1,\ldots,x^n)) ,
+            \end{array}
+
+        where `V` is the codomain of `\varphi`. In other words, `f` is a
+        `K^m`-valued function of the coordinates associated to the chart
+        `(U,\varphi)`.
+
+        See :class:`~sage.manifolds.coord_func.MultiCoordFunction` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``expressions`` -- list (or tuple) of `m` elements to construct the
+          coordinate functions `f_i` (`1\leq i \leq m`); for
+          symbolic coordinate functions, this must be symbolic expressions
+          involving the chart coordinates, while for numerical coordinate
+          functions, this must be data file names
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.coord_func.MultiCoordFunction`
+          representing `f`
+
+        EXAMPLE:
+
+        Function of two coordinates with values in `\RR^3`::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x+y, sin(x*y), x^2 + 3*y); f
+            Coordinate functions (x + y, sin(x*y), x^2 + 3*y) on the Chart (M, (x, y))
+            sage: type(f)
+            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            sage: f(2,3)
+            (5, sin(6), 13)
+
+        """
+        from sage.manifolds.coord_func import MultiCoordFunction
+        return MultiCoordFunction(self, expressions)
 
 
 #*****************************************************************************
@@ -1653,8 +1706,7 @@ class RealChart(Chart):
                     return False
         # Check of additional restrictions:
         if self._restrictions != []:
-            substitutions = dict([(self._xx[j], coordinates[j]) for j in
-                                                                    range(n)])
+            substitutions = dict(zip(self._xx, coordinates))
             if parameters:
                 substitutions.update(parameters)
             for restrict in self._restrictions:

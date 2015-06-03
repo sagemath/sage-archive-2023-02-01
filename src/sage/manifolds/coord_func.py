@@ -22,7 +22,7 @@ Coordinate functions are implemented by derived classes of the abstract base
 class :class:`CoordFunction`.
 
 The class :class:`MultiCoordFunction` implements `K^m`-valued functions of the
-coordinates of a chart.
+coordinates of a chart, with $m$ a positive integer.
 
 AUTHORS:
 
@@ -40,6 +40,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.misc.latex import latex
 
 class CoordFunction(SageObject):
     r"""
@@ -673,7 +674,7 @@ class CoordFunction(SageObject):
 
 class MultiCoordFunction(SageObject):
     r"""
-    Multi-coordinate function.
+    Coordinate function to some Cartesian power of the base field.
 
     If `n` and `m` are two positive integers and `(U,\varphi)` is a chart on
     a topological manifold `M` of dimension `n` over a topological field `K`,
@@ -696,27 +697,131 @@ class MultiCoordFunction(SageObject):
     INPUT:
 
     - ``chart`` -- the chart `(U, \varphi)`
-    - ``*expressions`` -- the list of the coordinate expressions of the `m`
-      functions `f_i` (`1\leq i \leq m`)
+    - ``expressions`` -- list (or tuple) of length `m` of elements to
+      construct the coordinate functions `f_i` (`1\leq i \leq m`); for
+      symbolic coordinate functions, this must be symbolic expressions
+      involving the chart coordinates, while for numerical coordinate functions,
+      this must be data file names
+
+    EXAMPLES:
+
+    A function `f: V\subset \RR^2 \longrightarrow \RR^3`::
+
+        sage: M = TopManifold(2, 'M')
+        sage: X.<x,y> = M.chart()
+        sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y)); f
+        Coordinate functions (x - y, x*y, cos(x)*e^y) on the Chart (M, (x, y))
+        sage: type(f)
+        <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+        sage: f(x,y)
+        (x - y, x*y, cos(x)*e^y)
+        sage: latex(f)
+        \left(x - y, x y, \cos\left(x\right) e^{y}\right)
+
+    Each real-valued function `f_i` (`1\leq i \leq m`) composing `f` can be
+    accessed via the square-bracket operator, by providing `i-1` as an
+    argument::
+
+        sage: f[0]
+        x - y
+        sage: f[1]
+        x*y
+        sage: f[2]
+        cos(x)*e^y
+
+    Each ``f[i-1]`` is an instance of
+    :class:`~sage.manifolds.coord_func.CoordFunction`::
+
+        sage: isinstance(f[0], sage.manifolds.coord_func.CoordFunction)
+        True
+
+    In the present case, ``f[i-1]`` belongs to the subclass
+    :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb`::
+
+        sage: type(f[0])
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        sage: f[0].display()
+        (x, y) |--> x - y
+
+    An instance of class :class:`MultiCoordFunction` can represent a
+    real-valued function (case `m=1`), although one should
+    rather employ the class :class:`~sage.manifolds.coord_func.CoordFunction`
+    for this purpose::
+
+
+        sage: g = X.multifunction(x*y^2)
+        sage: g(x,y)
+        (x*y^2,)
+
+    Evaluating the functions at specified coordinates::
+
+        sage: f(1,2)
+        (-1, 2, cos(1)*e^2)
+        sage: var('a b')
+        (a, b)
+        sage: f(a,b)
+        (a - b, a*b, cos(a)*e^b)
+        sage: g(1,2)
+        (4,)
 
     """
-    def __init__(self, chart, size):
+    def __init__(self, chart, expressions):
+        r"""
+        Construct a multi-coordinate function.
+
+        TESTS::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.multifunction(x+y+z, x*y*z); f
+            Coordinate functions (x + y + z, x*y*z) on the Chart (M, (x, y, z))
+            sage: type(f)
+            <class 'sage.manifolds.coord_func.MultiCoordFunction'>
+            sage: TestSuite(f).run()
+
+        """
         self._chart = chart
-        self._nc = len(self._chart._xx)  # number of coordinates
-        self._nf = size        # number of functions
-        self._functions = None # to be set be derived classes
+        self._nc = len(self._chart._xx)   # number of coordinates
+        self._nf = len(expressions)       # number of functions
+        self._functions = tuple(chart.function(express)
+                                for express in expressions)
+        # Derived quantities:
+        self._jacob = None
+        self._jacob_det = None
 
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
+            sage: f._repr_()
+            'Coordinate functions (x - y, x*y, cos(x)*e^y) on the Chart (M, (x, y))'
+            sage: repr(f)  # indirect doctest
+            'Coordinate functions (x - y, x*y, cos(x)*e^y) on the Chart (M, (x, y))'
+
         """
-        return "Functions {} on the {}".format(self._functions, self._chart)
+        return "Coordinate functions {} on the {}".format(self._functions,
+                                                          self._chart)
 
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
+            sage: f._latex_()
+            \left(x - y, x y, \cos\left(x\right) e^{y}\right)
+            sage: latex(f)  # indirect doctest
+            \left(x - y, x y, \cos\left(x\right) e^{y}\right)
+
         """
-        from sage.misc.latex import latex
         return latex(self._functions)
 
     def __eq__(self, other):
@@ -729,7 +834,23 @@ class MultiCoordFunction(SageObject):
 
         OUTPUT:
 
-        - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
+        - ``True`` if ``self`` is equal to ``other``, ``False`` otherwise
+
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x*y))
+            sage: f == X.multifunction(x-y, x*y)
+            False
+            sage: f == X.multifunction(x-y, x*y, 2)
+            False
+            sage: f == X.multifunction(x-y, x*y, cos(y*x))
+            True
+            sage: Y.<u,v> = M.chart()
+            sage: f == Y.multifunction(u-v, u*v, cos(u*v))
+            False
 
         """
         if not isinstance(other, MultiCoordFunction):
@@ -753,7 +874,20 @@ class MultiCoordFunction(SageObject):
 
         OUTPUT:
 
-        - True if ``self`` is different from ``other``,  or False otherwise
+        - ``True`` if ``self`` is different from ``other``, ``False``
+          otherwise
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x*y))
+            sage: f != X.multifunction(x-y, x*y)
+            True
+            sage: f != X.multifunction(x, y, 2)
+            True
+            sage: f != X.multifunction(x-y, x*y, cos(x*y))
+            False
 
         """
         return not self.__eq__(other)
@@ -770,6 +904,20 @@ class MultiCoordFunction(SageObject):
 
         -- instance of :class:`CoordFunction` representing the function
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x*y))
+            sage: f.__getitem__(0)
+            x - y
+            sage: f.__getitem__(1)
+            x*y
+            sage: f.__getitem__(2)
+            cos(x*y)
+            sage: f[0], f[1], f[2]
+            (x - y, x*y, cos(x*y))
+
         """
         return self._functions[index]
 
@@ -781,13 +929,85 @@ class MultiCoordFunction(SageObject):
 
         - ``*coords`` -- list of coordinates where the functions are to be
           evaluated
-        - ``**options`` -- allows to pass ``simplify=False`` to disable the
-          call of the simplification chain on the result
+        - ``**options`` -- allows to pass some options, like
+          ``simplify=False`` to disable simplification for symbolic
+          coordinate functions
 
         OUTPUT:
 
-        - the values of the `m` functions.
+        - tuple containing the values of the `m` functions.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x*y))
+            sage: f.__call__(2,3)
+            (-1, 6, cos(6))
+            sage: f(2,3)
+            (-1, 6, cos(6))
+            sage: f.__call__(x,y)
+            (x - y, x*y, cos(x*y))
 
         """
-        return tuple( self._functions[i](*coords, **options) for i in
-                                                              range(self._nf) )
+        return tuple(func(*coords, **options) for func in self._functions)
+
+
+    def jacobian(self):
+        r"""
+        Return the Jacobian matrix of the system of coordinate functions.
+
+        ``jacobian()`` is a 2-dimensional array of size `m\times n`
+        where `m` is the number of functions and `n` the number of coordinates,
+        the generic element being `J_{ij} = \frac{\partial f_i}{\partial x^j}`
+        with `1\leq i \leq m` (row index) and `1\leq j \leq n` (column index).
+
+        Each `J_{ij}` is an instance of :class:`CoordFunction`.
+
+        OUTPUT:
+
+        - Jacobian matrix as a 2-dimensional array ``J`` of coordinate functions,
+          ``J[i-1][j-1]`` being `J_{ij} = \frac{\partial f_i}{\partial x^j}`
+          for `1\leq i \leq m` and `1\leq j \leq n`
+
+        EXAMPLES:
+
+        Jacobian of a set of 3 functions of 2 coordinates::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
+            sage: f.jacobian()
+            [[1, -1], [y, x], [-y^3*sin(x), 3*y^2*cos(x)]]
+
+        Each element of the result is a coordinate function::
+
+            sage: type(f.jacobian()[2][0])
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: f.jacobian()[2][0].display()
+            (x, y) |--> -y^3*sin(x)
+
+        Test of the computation::
+
+            sage: [[f.jacobian()[i][j] == f[i].diff(j) for j in range(2)] for i in range(3)]
+            [[True, True], [True, True], [True, True]]
+
+        Test with ``start_index=1``::
+
+            sage: M = TopManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
+            sage: f.jacobian()
+            [[1, -1], [y, x], [-y^3*sin(x), 3*y^2*cos(x)]]
+            sage: [[f.jacobian()[i][j] == f[i].diff(j+1) for j in range(2)]  # note the j+1
+            ....:                                         for i in range(3)]
+            [[True, True], [True, True], [True, True]]
+
+        """
+        from sage.matrix.constructor import matrix
+        if self._jacob is None:
+            xx = self._chart[:]  # coordinates x^j
+            self._jacob = [[ self._functions[i].diff(xx[j])
+                          for j in range(self._nc) ] for i in range(self._nf) ]
+        return self._jacob
+

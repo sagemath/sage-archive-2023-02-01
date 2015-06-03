@@ -403,11 +403,15 @@ def normalize_hughes_plane_point(p, q):
 
 def HughesPlane(q2, check=True):
     r"""
-    Return the Hughes projective plane of order `n2`.
+    Return the Hughes projective plane of order ``q2``.
 
-    For q an odd prime.
-    The Hughes plane of order q2 is a finite projective plane introduced by
-    Daniel R. Hughes and which is not Desarguesian.
+    AUTHORS:
+
+    - Quentin Honore (2015): initial version
+
+    Let q be an odd prime, the Hughes plane of order ``q2`` is a finite 
+    projective plane introduced by Daniel R. Hughes and which is not 
+    Desarguesian.
 
     We work on the elements of the field `GF(q2)` and we define
     a new multiplication:
@@ -420,11 +424,11 @@ def HughesPlane(q2, check=True):
         x^q.y & \text{if y is not a square in K}\\
         \end{cases}
 
-    For each matrix in GL(3, GF(n)) such that `A^{q^2 + q + 1} = kI`, but no
+    For each matrix in GL(3, GF(q)) such that `A^{q^2 + q + 1} = kI`, but no
     smaller power of A has this property, we can construct the same Hughes
-    plane of order `q2`.
-    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line L(a)
-    which is the set of points satisfying `x + a \circ y + z = 0`.
+    plane of order ``q2``.
+    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line 
+    L(a) which is the set of points satisfying `x + a \circ y + z = 0`.
     Then we construct a set of lines for each a :
 
     .. MATH::

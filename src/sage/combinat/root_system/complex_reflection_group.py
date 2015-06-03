@@ -28,7 +28,7 @@ from sage.misc.all import prod, add
 from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
 from sage.categories.category import Category
 from sage.categories.permutation_groups import PermutationGroups
-from sage.categories.complex_reflection_groups import ComplexReflectionGroups, WellGeneratedComplexReflectionGroups
+from sage.categories.complex_reflection_groups import ComplexReflectionGroups
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -110,7 +110,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         self._rank = self._gap_group.rank.sage()
         if len(generators) == self._rank:
-            category = WellGeneratedComplexReflectionGroups().Finite()
+            category = ComplexReflectionGroups().Finite().WellGenerated()
             if all(str(W_comp).find('CoxeterGroup') >= 0 for W_comp in W_components):
                 category = Category.join([category,CoxeterGroups()])
         else:

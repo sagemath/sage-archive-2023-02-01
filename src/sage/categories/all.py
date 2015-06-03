@@ -117,7 +117,7 @@ from graded_bialgebras_with_basis    import GradedBialgebrasWithBasis
 from graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 
 # ComplexReflectionGroups
-from complex_reflection_groups import ComplexReflectionGroups, WellGeneratedComplexReflectionGroups
+from complex_reflection_groups import ComplexReflectionGroups
 
 # Coxeter groups
 from coxeter_groups import CoxeterGroups

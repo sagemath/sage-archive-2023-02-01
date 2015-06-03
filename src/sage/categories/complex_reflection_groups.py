@@ -77,6 +77,7 @@ class ComplexReflectionGroups(Category_singleton):
     class SubcategoryMethods:
         Finite = axiom("Finite")
         Irreducible = axiom("Irreducible")
+        WellGenerated = axiom("WellGenerated")
 
     def example(self):
         r"""
@@ -906,10 +907,7 @@ class ComplexReflectionGroups(Category_singleton):
                     sage: W.is_well_generated()
                     True
                 """
-                if self in WellGeneratedComplexReflectionGroups():
-                    return True
-                else:
-                    return self.nr_simple_reflections() == self.rank()
+                return self.nr_simple_reflections() == self.rank()
 
             def is_real(self):
                 r"""
@@ -1047,189 +1045,171 @@ class ComplexReflectionGroups(Category_singleton):
                     """
                     return ( self.nr_reflecting_hyperplanes() + self.nr_reflections() ) / self.rank()
 
-class WellGeneratedComplexReflectionGroups(Category_singleton):
-
-    def super_categories(self):
-        return [ComplexReflectionGroups()]
-
-    class SubcategoryMethods:
-        Finite = axiom("Finite")
-        Irreducible = axiom("Irreducible")
-
-    def example(self):
-        r"""
-        Returns an example of a well-generated complex reflection group.
-
-        EXAMPLES::
-
-            sage: WellGeneratedComplexReflectionGroups().example()
-            Reducible finite complex reflection group of rank 4 and type A2 x B2
-        """
-        from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
-        return ComplexReflectionGroup((1,1,3),(2,1,2))
-
-    class Finite(CategoryWithAxiom):
-        r"""
-        Let us consider an example of a finite complex reflection group::
-
-            sage: W = WellGeneratedComplexReflectionGroups().Finite().example(); W
-            Reducible finite complex reflection group of rank 4 and type A2 x G(3,1,2)
-
-        P is in the category of finite complex reflection groups::
-
-            sage: W in WellGeneratedComplexReflectionGroups().Finite()
-            True
-
-        TESTS::
-
-            sage: TestSuite(W).run()
-            sage: TestSuite(WellGeneratedComplexReflectionGroups().Finite()).run()
-
-        """
-        def example(self):
+        class WellGenerated(CategoryWithAxiom):
             r"""
-            Returns an example of a well-generated finite complex reflection group.
+            Let us consider an example of a finite complex reflection group::
 
-            EXAMPLES::
-
-                sage: WellGeneratedComplexReflectionGroups().Finite().example()
+                sage: W = ComplexReflectionGroups().Finite().WellGenerated().example(); W
                 Reducible finite complex reflection group of rank 4 and type A2 x G(3,1,2)
-            """
-            from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
-            return ComplexReflectionGroup((1,1,3),(3,1,2))
 
-        class Irreducible(CategoryWithAxiom):
+            P is in the category of finite complex reflection groups::
+
+                sage: W in ComplexReflectionGroups().Finite().WellGenerated()
+                True
+
+            TESTS::
+
+                sage: TestSuite(W).run()
+                sage: TestSuite(ComplexReflectionGroups().Finite().WellGenerated()).run()
+
+            """
 
             def example(self):
                 r"""
-                Returns an example of an irreducible well-generated finite complex reflection group.
+                Returns an example of a well-generated finite complex reflection group.
 
                 EXAMPLES::
 
-                    sage: WellGeneratedComplexReflectionGroups().Finite().Irreducible().example()
-                    Irreducible finite complex reflection group of rank 3 and type G(4,1,3)
+                    sage: ComplexReflectionGroups().Finite().WellGenerated().example()
+                    Reducible finite complex reflection group of rank 4 and type A2 x G(3,1,2)
                 """
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
-                return ComplexReflectionGroup((4,1,3))
+                return ComplexReflectionGroup((1,1,3),(3,1,2))
+
+            # how do I do that?
+            #def _test_well_generated(self):
+                #return self.is_well_generated()
+
+            class Irreducible(CategoryWithAxiom):
+
+                def example(self):
+                    r"""
+                    Returns an example of an irreducible well-generated finite complex reflection group.
+
+                    EXAMPLES::
+
+                        sage: ComplexReflectionGroups().Finite().WellGenerated().Irreducible().example()
+                        Irreducible finite complex reflection group of rank 3 and type G(4,1,3)
+                    """
+                    from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
+                    return ComplexReflectionGroup((4,1,3))
+
+                class ParentMethods:
+                    def coxeter_number(self):
+                        r"""
+                        Returns the Coxeter number of a well-generated,
+                        irreducible reflection group. This is defined to be
+                        the order of a regular element in ``self``, and is
+                        equal to the highest degree of self.
+
+                        EXAMPLES::
+
+                            sage: W = ComplexReflectionGroup((1,1,3))
+                            sage: W.coxeter_number()
+                            3
+
+                            sage: W = ComplexReflectionGroup((4,1,3))
+                            sage: W.coxeter_number()
+                            12
+
+                            sage: W = ComplexReflectionGroup((4,4,3))
+                            sage: W.coxeter_number()
+                            8
+                        """
+                        return max(self.degrees())
+
+                    def number_of_reflections_of_full_support(self):
+                        n = self.rank()
+                        h = self.coxeter_number()
+                        l = self.cardinality()
+                        codegrees = self.codegrees()[1:]
+                        return n*h/l * prod( codeg for codeg in codegrees )
+
+                    @cached_method
+                    def fuss_catalan_number(self,m,positive=False,polynomial=False):
+                        r"""
+                        Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
+                        of the m-th Fuss-Catalan numbers of the irreducible components of ``self``. For an
+                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
+                        where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
+
+                        REMARKS:
+
+                        - For the symmetric group `S_n`, it reduces to the Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
+                        - The Fuss-Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+
+                        EXAMPLES::
+
+                            sage: W = ComplexReflectionGroup((1,1,3))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [5, 12, 22]
+
+                            sage: W = ComplexReflectionGroup((1,1,4))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [14, 55, 140]
+
+                            sage: W = ComplexReflectionGroup((1,1,5))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [42, 273, 969]
+
+                            sage: W = ComplexReflectionGroup((2,1,2))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [6, 15, 28]
+
+                            sage: W = ComplexReflectionGroup((2,1,3))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [20, 84, 220]
+
+                            sage: W = ComplexReflectionGroup((2,1,4))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [70, 495, 1820]
+                        """
+                        from sage.rings.all import ZZ
+                        from sage.combinat.q_analogues import q_int
+                        assert m in ZZ and m > 0, "%s is not a positive integer."%m
+                        h = self.coxeter_number()
+                        if polynomial:
+                            f = lambda n: q_int(n)
+                        else:
+                            f = lambda n: n
+                        if positive:
+                            num = prod( f(codeg + m*h) for codeg in self.codegrees() if m > 0 or codeg > 0 )
+                        else:
+                            num = prod( f(deg + m*h) for deg in self.degrees() )
+                        den = prod( f(deg) for deg in self.degrees() )
+                        ret = num / den
+                        if ret in ZZ:
+                            ret = ZZ(ret)
+                        return ret
+
+                    def catalan_number(self,positive=False):
+                        r"""
+                        Returns the Catalan number associated to ``self``. It is given by the product
+                        of the Catalan numbers of the irreducible components of ``self``. For an
+                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
+                        where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
+
+                        REMARKS:
+
+                        - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
+                        - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+
+                        EXAMPLES::
+
+                            sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [2,3,4,5] ]
+                            [2, 5, 14, 42]
+
+                            sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [2,3,4,5] ]
+                            [6, 20, 70, 252]
+
+                            sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
+                            [4, 14, 50, 182]
+                        """
+                        return self.fuss_catalan_number(1,positive=positive)
 
             class ParentMethods:
+                def fuss_catalan_number(self,m):
+                    return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
 
-                def coxeter_number(self):
-                    r"""
-                    Returns the Coxeter number of a well-generated,
-                    irreducible reflection group. This is defined to be
-                    the order of a regular element in ``self``, and is
-                    equal to the highest degree of self.
-
-                    EXAMPLES::
-
-                        sage: W = ComplexReflectionGroup((1,1,3))
-                        sage: W.coxeter_number()
-                        3
-
-                        sage: W = ComplexReflectionGroup((4,1,3))
-                        sage: W.coxeter_number()
-                        12
-
-                        sage: W = ComplexReflectionGroup((4,4,3))
-                        sage: W.coxeter_number()
-                        8
-                    """
-                    return max(self.degrees())
-
-                def number_of_reflections_of_full_support(self):
-                    n = self.rank()
-                    h = self.coxeter_number()
-                    l = self.cardinality()
-                    codegrees = self.codegrees()[1:]
-                    return n*h/l * prod( codeg for codeg in codegrees )
-
-                @cached_method
-                def fuss_catalan_number(self,m,positive=False,polynomial=False):
-                    r"""
-                    Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
-                    of the m-th Fuss-Catalan numbers of the irreducible components of ``self``. For an
-                    irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
-                    where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
-
-                    REMARKS:
-
-                    - For the symmetric group `S_n`, it reduces to the Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
-                    - The Fuss-Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
-
-                    EXAMPLES::
-
-                        sage: W = ComplexReflectionGroup((1,1,3))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [5, 12, 22]
-
-                        sage: W = ComplexReflectionGroup((1,1,4))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [14, 55, 140]
-
-                        sage: W = ComplexReflectionGroup((1,1,5))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [42, 273, 969]
-
-                        sage: W = ComplexReflectionGroup((2,1,2))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [6, 15, 28]
-
-                        sage: W = ComplexReflectionGroup((2,1,3))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [20, 84, 220]
-
-                        sage: W = ComplexReflectionGroup((2,1,4))
-                        sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                        [70, 495, 1820]
-                    """
-                    from sage.rings.all import ZZ
-                    from sage.combinat.q_analogues import q_int
-                    assert m in ZZ and m > 0, "%s is not a positive integer."%m
-                    h = self.coxeter_number()
-                    if polynomial:
-                        f = lambda n: q_int(n)
-                    else:
-                        f = lambda n: n
-                    if positive:
-                        num = prod( f(codeg + m*h) for codeg in self.codegrees() if m > 0 or codeg > 0 )
-                    else:
-                        num = prod( f(deg + m*h) for deg in self.degrees() )
-                    den = prod( f(deg) for deg in self.degrees() )
-                    ret = num / den
-                    if ret in ZZ:
-                        ret = ZZ(ret)
-                    return ret
-
-                def catalan_number(self,positive=False):
-                    r"""
-                    Returns the Catalan number associated to ``self``. It is given by the product
-                    of the Catalan numbers of the irreducible components of ``self``. For an
-                    irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
-                    where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
-
-                    REMARKS:
-
-                    - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
-                    - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
-
-                    EXAMPLES::
-
-                        sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [2,3,4,5] ]
-                        [2, 5, 14, 42]
-
-                        sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [2,3,4,5] ]
-                        [6, 20, 70, 252]
-
-                        sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
-                        [4, 14, 50, 182]
-                    """
-                    return self.fuss_catalan_number(1,positive=positive)
-
-        class ParentMethods:
-            def fuss_catalan_number(self,m):
-                return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
-
-            def catalan_number(self):
-                return self.fuss_catalan_number(1)
-
+                def catalan_number(self):
+                    return self.fuss_catalan_number(1)

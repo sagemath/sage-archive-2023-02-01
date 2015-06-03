@@ -510,45 +510,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class ParentMethods:
 
-            def to_symmetric_function_on_basis(self, I):
+            def to_symmetric_function(self, elt):
                 r"""
-                The image of the basis element indexed by ``I`` under the map
-                to the symmetric functions.
+                Morphism to the algebra of symmetric functions.
 
-                This default implementation does a change of basis and
-                computes the image in the complete basis.
-
-                INPUT:
-
-                - ``I`` -- a composition
-
-                OUTPUT:
-
-                - The image of the non-commutative basis element of
-                  ``self`` indexed by the composition ``I`` under the map from
-                  non-commutative symmetric functions to the symmetric
-                  functions. This will be a symmetric function.
-
-                EXAMPLES::
-
-                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                    sage: S.to_symmetric_function(S[2,1])
-                    h[2, 1]
-                    sage: R = NonCommutativeSymmetricFunctions(QQ).R()
-                    sage: R.to_symmetric_function_on_basis(Composition([2,1]))
-                    s[2, 1]
-                """
-                S = self.realization_of().complete()
-                return S.to_symmetric_function(S(self[I]))
-
-            @lazy_attribute
-            def to_symmetric_function(self):
-                r"""
-                Morphism of ``self`` to the algebra of symmetric functions.
-
-                This is constructed by extending the method
-                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Complete.to_ncsym_on_basis`
-                linearly.
+                This is constructed by extending the computation on the basis
+                or by coercion to the complete basis.
 
                 OUTPUT:
 
@@ -569,14 +536,13 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: Phi = N.Phi()
                     sage: Phi.to_symmetric_function(Phi[1,3])
                     h[1, 1, 1, 1] - 3*h[2, 1, 1] + 3*h[3, 1]
-                    sage: R.to_symmetric_function
-                    Generic morphism:
-                      From: Non-Commutative Symmetric Functions over the Rational Field in the Ribbon basis
-                      To:   Symmetric Functions over Rational Field in the Schur basis
                 """
-                on_basis = self.to_symmetric_function_on_basis
-                codomain = on_basis(self.one_basis()).parent()
-                return self.module_morphism(on_basis=on_basis, codomain=codomain)
+                if hasattr(self, 'to_symmetric_function_on_basis'):
+                    on_basis = self.to_symmetric_function_on_basis
+                    return sum(c*on_basis(I) for (I,c) in elt)
+                S = self.realization_of().a_realization()
+                on_basis = S.to_symmetric_function_on_basis
+                return sum(c*on_basis(I) for (I,c) in S(elt))
 
             def to_ncsym_on_basis(self, I):
                 r"""

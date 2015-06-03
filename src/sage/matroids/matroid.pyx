@@ -4830,10 +4830,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-            The greedy algorithm. If a weight function is given, then sort the elements 
-            of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
-            lists its elements. Then greedily select elements if they are coindependent of
-            all that was selected before.
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are coindependent of
+        all that was selected before.
 
         EXAMPLES::
 

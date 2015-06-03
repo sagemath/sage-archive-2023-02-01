@@ -1025,33 +1025,38 @@ v            EXAMPLES::
 
         def support(self):
             r"""
-                Return the support of ``self``, that is the simple reflections that appear in the reduced expressions of ``self``.
+            Return the support of ``self``, that is the simple reflections that
+            appear in the reduced expressions of ``self``.
 
-                EXAMPLES::
+            OUTPUT:
 
-                    sage: W = CoxeterGroups().example()
-                    sage: w = W.from_reduced_word([1,2,1])
-                    sage: w.support()
-                    {1, 2}
+            The support of ``self`` as a set of integers
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroups().example()
+                sage: w = W.from_reduced_word([1,2,1])
+                sage: w.support()
+                {1, 2}
             """
             return set(self.reduced_word())
 
         def has_full_support(self):
             r"""
-                Return whether ``self`` has full support.
+            Return whether ``self`` has full support.
 
-                An element is said to have full support if its support contains
-                all simple reflections.
+            An element is said to have full support if its support contains
+            all simple reflections.
 
-                EXAMPLES::
+            EXAMPLES::
 
-                    sage: W = CoxeterGroups().example()
-                    sage: w = W.from_reduced_word([1,2,1])
-                    sage: w.has_full_support()
-                    False
-                    sage: w = W.from_reduced_word([1,2,1,0,1])
-                    sage: w.has_full_support()
-                    True
+                sage: W = CoxeterGroups().example()
+                sage: w = W.from_reduced_word([1,2,1])
+                sage: w.has_full_support()
+                False
+                sage: w = W.from_reduced_word([1,2,1,0,1])
+                sage: w.has_full_support()
+                True
                 """
             return self.support() == set(self.parent().index_set())
 
@@ -1979,23 +1984,27 @@ v            EXAMPLES::
 
         def coxeter_sorting_word(self,c):
             r"""
-                Return the ``c``-sorting word of ``self``.
+            Return the ``c``-sorting word of ``self``.
 
-                For a Coxeter element `c` and an element `w`, the `c`-sorting word of `w` is the lexicographic minimal reduced expression of `w` in the infinite word `c^\infty`.
+            For a Coxeter element `c` and an element `w`, the `c`-sorting
+            word of `w` is the lexicographic minimal reduced expression of
+            `w` in the infinite word `c^\infty`.
 
-                INPUT:
+            INPUT:
 
-                - ``c``-- a Coxeter element.
+            - ``c``-- a Coxeter element.
 
-                OUTPUT: the ``c``-sorting word of self.
+            OUTPUT:
 
-                EXAMPLES::
+            the ``c``-sorting word of ``self`` as a list of integers.
 
-                    sage: W = CoxeterGroups().example()
-                    sage: c = W.from_reduced_word([0,2,1])
-                    sage: w = W.from_reduced_word([1,2,1,0,1])
-                    sage: w.coxeter_sorting_word(c)
-                    [2, 1, 2, 0, 1]
+            EXAMPLES::
+
+                sage: W = CoxeterGroups().example()
+                sage: c = W.from_reduced_word([0,2,1])
+                sage: w = W.from_reduced_word([1,2,1,0,1])
+                sage: w.coxeter_sorting_word(c)
+                [2, 1, 2, 0, 1]
             """
             if hasattr(c,"reduced_word"):
                 c = c.reduced_word()
@@ -2019,35 +2028,40 @@ v            EXAMPLES::
 
         def is_coxeter_sortable(self,c,sorting_word=None):
             r"""
-               Return whether ``self`` is ``c``-sortable.
+            Return whether ``self`` is ``c``-sortable.
 
-               Given a Coxeter element `c`, an element `w` is `c`-sortable if its `c`-sorting word decomposes into a sequence of weakly decreasing subwords of `c`.
+            Given a Coxeter element `c`, an element `w` is `c`-sortable if
+            its `c`-sorting word decomposes into a sequence of weakly
+            decreasing subwords of `c`.
 
-               INPUT:
+            INPUT:
 
-               - ``c`` -- a Coxeter element.
-               - ``sorting_word`` -- sorting word (default: None) used to not recompute the ``c``-sorting word if already computed.
+            - ``c`` -- a Coxeter element.
+            - ``sorting_word`` -- sorting word (default: None) used to
+              not recompute the ``c``-sorting word if already computed.
 
-               OUPUT: is ``self`` ``c``-sortable
+            OUTPUT:
 
-               EXAMPLES::
+            is ``self`` ``c``-sortable
 
-                   sage: W = CoxeterGroups().example()
-                   sage: c = W.from_reduced_word([0,2,1])
-                   sage: w = W.from_reduced_word([1,2,1,0,1])
-                   sage: w.coxeter_sorting_word(c)
-                   [2, 1, 2, 0, 1]
-                   sage: w.is_coxeter_sortable(c)
-                   False
-                   sage: w = W.from_reduced_word([0,2,1,0,2])
-                   sage: w.coxeter_sorting_word(c)
-                   [2, 0, 1, 2, 0]
-                   sage: w.is_coxeter_sortable(c)
-                   True
-                   sage: W = CoxeterGroup(['A',3])
-                   sage: c = W.from_reduced_word([1,2,3])
-                   sage: len([w for w in W if w.is_coxeter_sortable(c)]) # number of c-sortable elements in A_3 (Catalan number)
-                   14
+            EXAMPLES::
+
+                sage: W = CoxeterGroups().example()
+                sage: c = W.from_reduced_word([0,2,1])
+                sage: w = W.from_reduced_word([1,2,1,0,1])
+                sage: w.coxeter_sorting_word(c)
+                [2, 1, 2, 0, 1]
+                sage: w.is_coxeter_sortable(c)
+                False
+                sage: w = W.from_reduced_word([0,2,1,0,2])
+                sage: w.coxeter_sorting_word(c)
+                [2, 0, 1, 2, 0]
+                sage: w.is_coxeter_sortable(c)
+                True
+                sage: W = CoxeterGroup(['A',3])
+                sage: c = W.from_reduced_word([1,2,3])
+                sage: len([w for w in W if w.is_coxeter_sortable(c)]) # number of c-sortable elements in A_3 (Catalan number)
+                14
             """
             if hasattr(c,"reduced_word"):
                 c = c.reduced_word()

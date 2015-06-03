@@ -1076,10 +1076,6 @@ class ComplexReflectionGroups(Category_singleton):
                 from sage.combinat.root_system.complex_reflection_group import ComplexReflectionGroup
                 return ComplexReflectionGroup((1,1,3),(3,1,2))
 
-            # how do I do that?
-            #def _test_well_generated(self):
-                #return self.is_well_generated()
-
             class Irreducible(CategoryWithAxiom):
 
                 def example(self):
@@ -1208,6 +1204,10 @@ class ComplexReflectionGroups(Category_singleton):
                         return self.fuss_catalan_number(1,positive=positive)
 
             class ParentMethods:
+                def _test_well_generated(self, **options):
+                    tester = self._tester(**options)
+                    return self.is_well_generated()
+
                 def fuss_catalan_number(self,m):
                     return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
 

@@ -3008,16 +3008,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x*t +5*t^2
             sage: f.integral(x)
             5*x*t^2 + 1/2*x^2*t
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<t> = R[]
+            sage: p = 1 + x*t + x^2 + t^2
+            sage: p.integral()
+            1/3*t^3 + 1/2*x*t^2 + (x^2 + 1)*t
+            sage: p.integral(x)
+            x*t^2 + 1/2*x^2*t + 1/3*x^3 + x
         """
-        if var is not None and var != self._parent.gen():
-            # call integral() recursively on coefficients
-            return self._parent([coeff.integral(var) for coeff in self.list()])
-        cdef Py_ssize_t n, degree = self.degree()
-        R = self.parent()
+        R = self._parent
         Q = (self.constant_coefficient()/1).parent()
+        S = R.change_ring(Q)
+        if var is not None and var != R.gen():
+            # call integral() recursively on coefficients
+            return S([coeff.integral(var) for coeff in self.list()])
+        cdef Py_ssize_t n, degree = self.degree()
         coeffs = self.list()
         v = [0] + [coeffs[n]/(n+1) for n from 0 <= n <= degree]
-        S = R.change_ring(Q)
         return S(v)
 
     def dict(self):

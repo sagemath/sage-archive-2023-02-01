@@ -1395,10 +1395,10 @@ ex mul::expand(unsigned options) const
 				// in the presence of asymptotically good sorting:
 				const add& add1 = (sizedifference<0 ? ex_to<add>(last_expanded) : ex_to<add>(elem.rest));
 				const add& add2 = (sizedifference<0 ? ex_to<add>(elem.rest) : ex_to<add>(last_expanded));
-				const epvector::const_iterator add1begin = add1.seq.begin();
-				const epvector::const_iterator add1end   = add1.seq.end();
-				const epvector::const_iterator add2begin = add2.seq.begin();
-				const epvector::const_iterator add2end   = add2.seq.end();
+				const auto& add1begin = add1.seq.begin();
+				const auto& add1end   = add1.seq.end();
+				const auto& add2begin = add2.seq.begin();
+				const auto& add2end   = add2.seq.end();
 				epvector distrseq;
 				distrseq.reserve(add1.seq.size()+add2.seq.size());
 
@@ -1551,7 +1551,7 @@ const epvector & mul::get_sorted_seq() const
  *  pointer, if sequence is unchanged. */
 std::unique_ptr<epvector> mul::expandchildren(unsigned options) const
 {
-	const epvector::const_iterator last = seq.end();
+	const auto& last = seq.end();
 	auto cit = seq.begin();
 	while (cit!=last) {
 		const ex & factor = recombine_pair_to_ex(*cit);

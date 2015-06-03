@@ -713,8 +713,9 @@ void expairseq::printseq(const print_context & c, char delim,
 {
 	if (this_precedence <= upper_precedence)
 		c.s << "(";
-	epvector::const_iterator it, it_last = seq.end() - 1;
-	for (it=seq.begin(); it!=it_last; ++it) {
+        auto it = seq.begin();
+        auto it_last = seq.end() - 1;
+        for (; it != it_last; ++it) {
 		printpair(c, *it, this_precedence);
 		c.s << delim;
 	}
@@ -1088,8 +1089,6 @@ void expairseq::construct_from_epvector(const epvector &v, bool do_index_renamin
  *  It cares for associativity as well as for special handling of numerics. */
 void expairseq::make_flat(const exvector &v, bool do_hold)
 {
-	exvector::const_iterator cit;
-	
 	// count number of operands which are of same expairseq derived type
 	// and their cumulative number of operands
 	int nexpairseqs = 0;
@@ -1136,8 +1135,6 @@ void expairseq::make_flat(const exvector &v, bool do_hold)
  *  It cares for associativity as well as for special handling of numerics. */
 void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 {
-	epvector::const_iterator cit;
-	
 	// count number of operands which are of same expairseq derived type
 	// and their cumulative number of operands
 	int nexpairseqs = 0;
@@ -1595,8 +1592,8 @@ bool expairseq::is_canonical() const
  *  if no members were changed. */
 std::unique_ptr<epvector> expairseq::expandchildren(unsigned options) const
 {
-	const epvector::const_iterator last = seq.end();
 	auto cit = seq.begin();
+	auto last = seq.end();
 	while (cit!=last) {
 		const ex &expanded_ex = cit->rest.expand(options);
 		if (!are_ex_trivially_equal(cit->rest,expanded_ex)) {

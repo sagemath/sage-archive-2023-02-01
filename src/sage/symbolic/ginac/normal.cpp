@@ -156,12 +156,10 @@ typedef std::vector<sym_desc> sym_desc_vec;
 // Add symbol the sym_desc_vec (used internally by get_symbol_stats())
 static void add_symbol(const ex &s, sym_desc_vec &v)
 {
-	sym_desc_vec::const_iterator it = v.begin(), itend = v.end();
-	while (it != itend) {
-		if (it->sym.is_equal(s))  // If it's already in there, don't add it a second time
+	for (const auto& elem : v)
+		if (elem.sym.is_equal(s))  // If it's already in there, don't add it a second time
 			return;
-		++it;
-	}
+
 	sym_desc d;
 	d.sym = s;
 	v.push_back(d);
@@ -794,10 +792,10 @@ static bool divide_in_z(const ex &a, const ex &b, ex &q, sym_desc_vec::const_ite
 
 	if (is_exactly_a<mul>(b)) {
 		ex qbar = a;
-		for (const_iterator itrb = b.begin(); itrb != b.end(); ++itrb) {
+		for (const auto& elem : b) {
 			sym_desc_vec sym_stats;
-			get_symbol_stats(a, *itrb, sym_stats);
-			if (!divide_in_z(qbar, *itrb, q, sym_stats.begin()))
+			get_symbol_stats(a, elem, sym_stats);
+			if (!divide_in_z(qbar, elem, q, sym_stats.begin()))
 				return false;
 
 			qbar = q;
@@ -1634,7 +1632,7 @@ factored_b:
 	// to the end:
 	rotate(sym_stats.begin(), vari, sym_stats.end());
 
-	sym_desc_vec::const_iterator var = sym_stats.begin();
+	auto var = sym_stats.begin();
 	const ex &x = var->sym;
 
 	// Cancel trivial common factor
@@ -1802,11 +1800,8 @@ ex sqrfree(const ex &a, const lst &l)
 	if (l.nops()==0) {
 		sym_desc_vec sdv;
 		get_symbol_stats(a, _ex0, sdv);
-		sym_desc_vec::const_iterator it = sdv.begin(), itend = sdv.end();
-		while (it != itend) {
-			args.append(it->sym);
-			++it;
-		}
+		for (const auto& elem : sdv)
+			args.append(elem.sym);
 	} else {
 		args = l;
 	}
@@ -1838,9 +1833,11 @@ ex sqrfree(const ex &a, const lst &l)
 
 	// Done with recursion, now construct the final result
 	ex result = _ex1;
-	exvector::const_iterator it = factors.begin(), itend = factors.end();
-	for (int p = 1; it!=itend; ++it, ++p)
-		result *= power(*it, p);
+        {
+        int p = 1;
+	for (const auto& elem : factors)
+		result *= power(elem, p++);
+        }
 
 	// Yun's algorithm does not account for constant factors.  (For univariate
 	// polynomials it works only in the monic case.)  We can correct this by
@@ -1949,7 +1946,7 @@ static ex replace_with_symbol(const ex & e, exmap & repl, exmap & rev_lookup)
 	ex e_replaced = e.subs(repl, subs_options::no_pattern);
 
 	// Expression already replaced? Then return the assigned symbol
-	exmap::const_iterator it = rev_lookup.find(e_replaced);
+	auto it = rev_lookup.find(e_replaced);
 	if (it != rev_lookup.end())
 		return it->second;
 
@@ -1973,9 +1970,9 @@ static ex replace_with_symbol(const ex & e, exmap & repl)
 	ex e_replaced = e.subs(repl, subs_options::no_pattern);
 
 	// Expression already replaced? Then return the assigned symbol
-	for (exmap::const_iterator it = repl.begin(); it != repl.end(); ++it)
-		if (it->second.is_equal(e_replaced))
-			return it->first;
+	for (const auto& elem : repl)
+		if (elem.second.is_equal(e_replaced))
+			return elem.first;
 
 	// Otherwise create new symbol and add to list, taking care that the
 	// replacement expression doesn't itself contain symbols from repl,
@@ -2137,8 +2134,8 @@ ex add::normal(exmap & repl, exmap & rev_lookup, int level) const
 //std::clog << "add::normal uses " << nums.size() << " summands:\n";
 
 	// Add fractions sequentially
-	exvector::const_iterator num_it = nums.begin(), num_itend = nums.end();
-	exvector::const_iterator den_it = dens.begin(), den_itend = dens.end();
+	auto num_it = nums.begin(), num_itend = nums.end();
+	auto den_it = dens.begin(), den_itend = dens.end();
 //std::clog << " num = " << *num_it << ", den = " << *den_it << std::endl;
 	ex num = *num_it++, den = *den_it++;
 	while (num_it != num_itend) {
@@ -2388,8 +2385,8 @@ ex ex::to_rational(lst & repl_lst) const
 
 	// Convert exmap back to lst
 	repl_lst.remove_all();
-	for (exmap::const_iterator it = m.begin(); it != m.end(); ++it)
-		repl_lst.append(it->first == it->second);
+	for (const auto& elem : m)
+		repl_lst.append(elem.first == elem.second);
 
 	return ret;
 }
@@ -2411,8 +2408,8 @@ ex ex::to_polynomial(lst & repl_lst) const
 
 	// Convert exmap back to lst
 	repl_lst.remove_all();
-	for (exmap::const_iterator it = m.begin(); it != m.end(); ++it)
-		repl_lst.append(it->first == it->second);
+	for (const auto& elem : m)
+		repl_lst.append(elem.first == elem.second);
 
 	return ret;
 }

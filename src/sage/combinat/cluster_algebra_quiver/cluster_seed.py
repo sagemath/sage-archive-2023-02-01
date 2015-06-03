@@ -855,13 +855,49 @@ class ClusterSeed(SageObject):
         
         return None
     
+    def urban_renewals(self):
+        r"""
+        Returns a list of urban renewal vertices. An urban renewal vertex is one in which there are two arrows 
+            pointing toward the vertex and two arrows pointing away.
+        
+        EXAMPLES::
+        
+            sage: G = ClusterSeed(['GR',[4,9]]); G.urban_renewals()
+            [5, 6]
+        """
+        vertices = []
+        for i in range(self._n):
+            if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
+                vertices.append(i)
+                
+        if len(vertices) is 0:
+            vertices = None
+        return vertices
+    
+    def first_urban_renewal(self):
+        r"""
+        Returns the first urban renewal vertex. An urban renewal vertex is one in which there are two arrows
+            pointing toward the vertex and two arrows pointing away.
+            
+        EXAMPLES::
+        
+            sage: G = ClusterSeed(['GR',[4,9]]); G.urban_renewal()
+            5
+        """
+        for i in range(self._n):
+            if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
+                return i
+        
+        return None
+    
     def mutate(self, sequence, inplace=True):
         r"""
         Mutates ``self`` at a vertex or a sequence of vertices.
 
         INPUT:
 
-        - ``sequence`` -- a vertex of self or an iterator of vertices of self.
+        - ``sequence`` -- a vertex of self, an iterator of vertices of self, a function which takes in the ClusterSeed and returns a vertex or an iterator of vertices,
+            or one of the following options: source, sink, green, red, urban_renewal
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
         EXAMPLES::
@@ -931,6 +967,10 @@ class ClusterSeed(SageObject):
                 sequence = self.first_green_vertex()
             elif sequence is 'red':
                 sequence = self.first_red_vertex()
+            elif sequence is 'urban' or sequence is 'urban_renewal':
+                sequence = self.first_urban_renewal()
+            elif sequence is 'all_urbans' or sequence is 'all_urban_renewals':
+                sequence = self.urban_renewals()
             else:
                 sequence = getattr(self.quiver(), sequence)()
        

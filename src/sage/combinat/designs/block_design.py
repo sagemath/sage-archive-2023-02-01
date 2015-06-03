@@ -89,7 +89,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
     r"""
     Return ``True`` if the parameters ``(v,k,lmbda)`` are the one of hyperplanes in
     a (finite Desarguesian) projective space.
-    
+
     In other words, test whether there exists a prime power ``q`` and an integer
     ``d`` greater than two such that:
 
@@ -315,7 +315,7 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
 def random_q3_minus_one_matrix(K):
     r"""
     Return a companion matrix in `GL(3, K)` whose multiplicative order is `q^3 - 1`.
-    
+
     This function is used in :func:`HughesPlane`
 
     EXAMPLES::
@@ -369,7 +369,7 @@ def normalize_hughes_plane_point(p, q):
     This function is used in :func:`HughesPlane`.
 
     INPUT:
-    
+
     - ``p`` - point with the coordinates (x,y,z) (a list, a vector, a tuple...)
 
     - ``q`` - cardinality of the underlying finite field
@@ -389,7 +389,7 @@ def normalize_hughes_plane_point(p, q):
         sage: one = K.one()
         sage: normalize_hughes_plane_point((2*x, one, zero), 9)
         (2*x, 1, 0)
-    """        
+    """
     for i in [2,1,0]:
         if p[i].is_one():
             return tuple(p)
@@ -405,10 +405,10 @@ def HughesPlane(q2, check=True):
     Return the Hughes projective plane of order `n2`.
 
     For q an odd prime.
-    The Hughes plane of order q2 is a finite projective plane introduced by 
+    The Hughes plane of order q2 is a finite projective plane introduced by
     Daniel R. Hughes and which is not Desarguesian.
 
-    We work on the elements of the field `GF(q2)` and we define 
+    We work on the elements of the field `GF(q2)` and we define
     a new multiplication:
 
     .. MATH::
@@ -418,16 +418,16 @@ def HughesPlane(q2, check=True):
         x.y & \text{if y is a square in K}\\
         x^q.y & \text{if y is not a square in K}\\
         \end{cases}
- 
+
     For each matrix in GL(3, GF(n)) such that `A^{q^2 + q + 1} = kI`, but no
     smaller power of A has this property, we can construct the same Hughes
     plane of order `q2`.
-    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line L(a) 
-    which is the set of points satisfying `x + a \circ y + z = 0`. 
-    Then we construct a set of lines for each a : 
-    
+    For each `a \in GF(q2) \backslash GF(q)`  or `a = 1`, we find the line L(a)
+    which is the set of points satisfying `x + a \circ y + z = 0`.
+    Then we construct a set of lines for each a :
+
     .. MATH::
-        
+
         {A^k * L(a) | 0 \leq k \leq q^2 + q}
 
     REFERENCES:
@@ -448,8 +448,8 @@ def HughesPlane(q2, check=True):
       ``True`` by default.
 
     EXAMPLES::
-    
-        sage: H = designs.HughesPlane(9)     
+
+        sage: H = designs.HughesPlane(9)
         sage: H
         (91,10,1)-Balanced Incomplete Block Design
 
@@ -798,7 +798,7 @@ def HadamardDesign(n):
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
     We verify that `NJ = 5J` for this design. ::
-     
+
         sage: D = designs.HadamardDesign(11); N = D.incidence_matrix()
         sage: J = matrix(ZZ, 11, 11, [1]*11*11); N*J
         [5 5 5 5 5 5 5 5 5 5 5]

@@ -870,8 +870,6 @@ class ClusterSeed(SageObject):
             if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
                 vertices.append(i)
                 
-        if len(vertices) is 0:
-            vertices = None
         return vertices
     
     def first_urban_renewal(self):
@@ -881,7 +879,7 @@ class ClusterSeed(SageObject):
             
         EXAMPLES::
         
-            sage: G = ClusterSeed(['GR',[4,9]]); G.urban_renewal()
+            sage: G = ClusterSeed(['GR',[4,9]]); G.first_urban_renewal()
             5
         """
         for i in range(self._n):
@@ -1075,6 +1073,141 @@ class ClusterSeed(SageObject):
         else:
             raise ValueError('The parameter `return_output` can only be `seed`, `matrix`, or `var`.')
 
+    def mutation_analysis(self, options=['all']):
+        r"""
+        Runs an analysis of all potential mutation options. Note that this might take a long time on large seeds.
+        
+        Notes: Edges are only returned if we have a non-valued quiver. Green and red vertices are only returned if the cluster is principal.
+        
+        INPUT:
+
+        - ``options`` -- (default: ['all']) Options include::
+
+            * all - All options below
+            * edges - Number of edges (works with skew-symmetric quivers)
+            * edge_diff - Edges added/deleted (works with skew-symmetric quivers)
+            * green_vertices - List of green vertices (works with principals)
+            * green_vertices_diff - Green vertices added/removed (works with principals)
+            * red_vertices - List of red vertices (works with principals)
+            * red_vertices_diff - Red vertices added/removed (works with principals)
+            * urban_renewals - List of urban renewal vertices
+            * urban_renewals_diff - Urban renewal vertices added/removed
+            * sources - List of source vertices
+            * sources_diff - Source vertices added/removed
+            * sinks - List of sink vertices
+            * sinks_diff - Sink vertices added/removed
+            
+        EXAMPLES::
+        
+            sage: B = [[0, 4, 0, -1],[-4,0, 3, 0],[0, -3, 0, 1],[1, 0, -1, 0]]
+            sage: S = ClusterSeed(matrix(B))
+            sage: S.mutate([2,3,1,2,1,3,0,2])
+            sage: S.mutation_analysis()
+            {0: {'edge_diff': 6,
+              'edges': 13,
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [2]},
+              'sources': [],
+              'sources_diff': {'added': [], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}},
+             1: {'edge_diff': 2,
+              'edges': 9,
+              'sinks': [2],
+              'sinks_diff': {'added': [], 'removed': []},
+              'sources': [],
+              'sources_diff': {'added': [], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}},
+             2: {'edge_diff': 0,
+              'edges': 7,
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [2]},
+              'sources': [2],
+              'sources_diff': {'added': [2], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}},
+             3: {'edge_diff': -1,
+              'edges': 6,
+              'sinks': [2],
+              'sinks_diff': {'added': [], 'removed': []},
+              'sources': [1],
+              'sources_diff': {'added': [1], 'removed': []},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}}}
+        """
+        
+        # setup our initial information for differences later on
+        if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
+            initial_edges = self.quiver().number_of_edges()
+        if 'green_vertices_diff' in options or ('all' in options and self._is_principal):
+            initial_green_vertices = self.green_vertices()
+        if 'red_vertices_diff' in options or ('all' in options and self._is_principal):
+            initial_red_vertices = self.red_vertices()
+        if 'urban_renewals_diff' in options or 'all' in options:
+            initial_urban_renewals= self.urban_renewals()
+        if 'sources_diff' in options or 'all' in options:
+            initial_sources = self.quiver().sources()
+        if 'sinks_diff' in options or 'all' in options:
+            initial_sinks = self.quiver().sinks()
+        
+        
+        #instantiate our dictionary
+        analysis = {}
+        for i in xrange(self._n):
+            #instantiate our dictionary
+            analysis[i] = {}
+            
+            #run mutations not in place as we just want an analysis
+            current_mutation = self.mutate(i,inplace=False)
+            
+            if 'edges' in options or ('all' in options and self._M.is_skew_symmetric()):
+                analysis[i]['edges'] = current_mutation.quiver().number_of_edges()
+            if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
+                analysis[i]['edge_diff'] = current_mutation.quiver().number_of_edges() - initial_edges
+                
+            if 'green_vertices' in options or ('all' in options and self._is_principal):
+                analysis[i]['green_vertices'] = current_mutation.green_vertices()
+            if 'green_vertices_diff' in options or ('all' in options and self._is_principal):
+                analysis[i]['green_vertices_diff'] = {}
+                new_green_vertices = current_mutation.green_vertices()
+                analysis[i]['green_vertices_diff']['added'] = list(set(new_green_vertices) - set(initial_green_vertices))
+                analysis[i]['green_vertices_diff']['removed'] = list(set(initial_green_vertices) - set(new_green_vertices))
+                
+            if 'red_vertices' in options or ('all' in options and self._is_principal):
+                analysis[i]['red_vertices'] = current_mutation.red_vertices()
+            if 'red_vertices_diff' in options or ('all' in options and self._is_principal):
+                analysis[i]['red_vertices_diff'] = {}
+                new_red_vertices = current_mutation.red_vertices()
+                analysis[i]['red_vertices_diff']['added'] = list(set(new_red_vertices) - set(initial_red_vertices))
+                analysis[i]['red_vertices_diff']['removed'] = list(set(initial_red_vertices) - set(new_red_vertices))
+                
+            if 'urban_renewals' in options or 'all' in options:
+                analysis[i]['urban_renewals'] = current_mutation.urban_renewals()
+            if 'urban_renewals_diff' in options or 'all' in options:
+                analysis[i]['urban_renewals_diff'] = {}
+                new_urban_renewals = current_mutation.urban_renewals()
+                analysis[i]['urban_renewals_diff']['added'] = list(set(new_urban_renewals) - set(initial_urban_renewals))
+                analysis[i]['urban_renewals_diff']['removed'] = list(set(initial_urban_renewals) - set(new_urban_renewals))
+                
+            if 'sources' in options or 'all' in options:
+                analysis[i]['sources'] = current_mutation.quiver().sources()
+            if 'sources_diff' in options or 'all' in options:
+                analysis[i]['sources_diff'] = {}
+                new_sources = current_mutation.quiver().sources()
+                analysis[i]['sources_diff']['added'] = list(set(new_sources) - set(initial_sources))
+                analysis[i]['sources_diff']['removed'] = list(set(initial_sources) - set(new_sources))
+                
+            if 'sinks' in options or 'all' in options:
+                analysis[i]['sinks'] = current_mutation.quiver().sinks()
+            if 'sinks_diff' in options or 'all' in options:
+                analysis[i]['sinks_diff'] = {}
+                new_sinks = current_mutation.quiver().sinks()
+                analysis[i]['sinks_diff']['added'] = list(set(new_sinks) - set(initial_sinks))
+                analysis[i]['sinks_diff']['removed'] = list(set(initial_sinks) - set(new_sinks))
+            
+        return analysis
+        
     def exchangeable_part(self):
         r"""
         Returns the restriction to the principal part (i.e. the exchangeable variables) of ``self``.

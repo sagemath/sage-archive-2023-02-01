@@ -1672,3 +1672,20 @@ class ClusterQuiver(SageObject):
             return is_finite, path
         else:
             return is_finite
+    
+    def number_of_edges(self):
+        r"""
+        Returns the total number of edges on the quiver
+        
+        Note: This only works with non-valued quivers. If used on a non-valued quiver then the positive value is taken to be the number of edges added
+        
+        
+        """
+        
+        digraph_edges = self.digraph().edges()
+        
+        total_edges = 0
+        for edge in digraph_edges:
+            total_edges += edge[2][0]
+            
+        return total_edges

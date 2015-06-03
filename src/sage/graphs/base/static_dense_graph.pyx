@@ -16,6 +16,9 @@ It is all based on the binary matrix data structure described in
 structure. The only difference is that it differentiates the rows (the vertices)
 instead of storing the whole data in a long bitset, and we can use that.
 
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
+
 Index
 -----
 

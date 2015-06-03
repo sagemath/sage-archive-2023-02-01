@@ -881,11 +881,17 @@ class Polytopes():
         return Polyhedron(vertices=verts)
 
     def permutahedron(self, n, project=False):
-        """
-        Return the standard permutahedron of (1,...,n)
+        """Return the standard permutahedron of (1,...,n)
 
-        The premutahedron (or permutohedron) is the convex hull of the
-        permutations of `\{1,\ldots,n\}` seen as vectors.
+        The permutahedron (or permutohedron) is the convex hull of the
+        permutations of `\{1,\ldots,n\}` seen as vectors. The edges
+        between the permutations correspond to multiplication on the
+        right by an elementary transposition in the
+        :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
+
+        If we take the graph in which the vertices correspond to
+        vertices of the polyhedron, and edges to edges, we get the
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`.
 
         INPUT:
 
@@ -912,6 +918,12 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: perm4.plot()
             Graphics3d Object
+            sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
+            True
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
         """
         verts = list(itertools.permutations(range(1,n+1)))
         if project: verts = project_points(*verts)

@@ -1669,7 +1669,7 @@ class qepcad_formula_factory:
         """
         formulas = map(self.atomic, formulas)
         formulas = map(self.atomic, formulas)
-        formula_strs = map(repr, formulas)
+        formula_strs = [repr(_) for _ in formulas]
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars

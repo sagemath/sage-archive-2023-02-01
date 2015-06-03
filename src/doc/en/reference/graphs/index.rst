@@ -35,6 +35,7 @@ Low-level implementation
 .. toctree::
    :maxdepth: 1
 
+   sage/graphs/base/overview
    sage/graphs/base/c_graph
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
@@ -87,5 +88,6 @@ Libraries of algorithms
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
    sage/graphs/tutte_polynomial
+   sage/graphs/generic_graph_pyx
 
 .. include:: ../footer.txt

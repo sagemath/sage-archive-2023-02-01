@@ -480,9 +480,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         if not is_valid_permutation(self.perm, vn):
             raise ValueError, "Invalid permutation vector: %s" % v
 
-    def __cinit__(self, g = None, parent = None, check = True):
-        self.perm = NULL
-
     def __dealloc__(self):
         if self.perm is not NULL and self.perm is not self.perm_buf:
             sage_free(self.perm)
@@ -622,9 +619,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         return self.cycles()[i]
 
-    def __cmp__(PermutationGroupElement self, PermutationGroupElement right):
+    cpdef int _cmp_(self, Element other) except -2:
         """
-        Compare group elements self and right.
+        Compare group elements ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -650,7 +647,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         TESTS:
 
-        Verify that we fixed bug #5537::
+        Verify that we fixed bug :trac:`5537`::
 
             sage: h = PermutationGroupElement('(1,3,2)')
             sage: k = PermutationGroupElement('(1,2,3),(4,5)')
@@ -660,21 +657,19 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             True
         """
         cdef int i
-        cdef int swap = 1
-        if right.n < self.n:
-            self, right = right, self
-            swap = -1
-        for i from 0 <= i < self.n:
+        cdef PermutationGroupElement right = <PermutationGroupElement>other
+        for i in range(self.n):  # Equal parents, so self.n == other.n
             if self.perm[i] < right.perm[i]:
-                return -swap
+                return -1
             elif self.perm[i] > right.perm[i]:
-                return swap
-        for i from self.n <= i < right.n:
-            if i < right.perm[i]:
-                return -swap
-            elif i > right.perm[i]:
-                return swap
+                return 1
         return 0
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
 
     def __call__(self, i):
         """

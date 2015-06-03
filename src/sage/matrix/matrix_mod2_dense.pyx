@@ -268,7 +268,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mzd_write_bit(self._entries,i,j, R(entries[k]))
                 k = k + 1
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
+    def __richcmp__(Matrix self, right, int op):
         """
         Compares ``self`` with ``right``. While equality and
         inequality are clearly defined, ``<`` and ``>`` are not.  For
@@ -286,10 +286,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLE::
 
-            sage: A = random_matrix(GF(2),2,2)
-            sage: B = random_matrix(GF(2),3,3)
-            sage: A < B
-            True
             sage: A = MatrixSpace(GF(2),3,3).one()
             sage: B = copy(MatrixSpace(GF(2),3,3).one())
             sage: B[0,1] = 1
@@ -588,7 +584,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * def _pickle
     #   * def _unpickle
     #   * cdef _mul_
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
@@ -1498,7 +1494,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A.subdivide(*self.subdivisions())
         return A
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         if self._nrows == 0 or self._ncols == 0:
             return 0
         return mzd_cmp(self._entries, (<Matrix_mod2_dense>right)._entries)

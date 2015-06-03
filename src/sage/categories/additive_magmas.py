@@ -683,7 +683,7 @@ class AdditiveMagmas(Category_singleton):
                 Test that ``self.zero()`` is an element of self and
                 is neutral for the addition.
 
-                INPUT::
+                INPUT:
 
                 - ``options`` -- any keyword arguments accepted
                   by :meth:`_tester`
@@ -757,6 +757,37 @@ class AdditiveMagmas(Category_singleton):
                 deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
 
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
+
+                Since this set is an additive magma it has a zero element and
+                hence is not empty. This method thus always returns ``False``.
+
+                EXAMPLES::
+
+                    sage: A = AdditiveAbelianGroup([3,3])
+                    sage: A in AdditiveMagmas()
+                    True
+                    sage: A.is_empty()
+                    False
+
+                    sage: B = CommutativeAdditiveMonoids().example()
+                    sage: B.is_empty()
+                    False
+
+                TESTS:
+
+                We check that the method `is_empty` is inherited from this
+                category in both examples above::
+
+                    sage: A.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                    sage: B.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                """
+                return False
+
         class ElementMethods:
             # TODO: merge with the implementation in Element which currently
             # overrides this one, and further requires self.parent()(0) to work.
@@ -827,11 +858,32 @@ class AdditiveMagmas(Category_singleton):
                     sage: a - b
                     B['a'] - B['b']
                 """
-                if have_same_parent(left, right) and hasattr(left, "_sub_"):
+                if have_same_parent(left, right):
                     return left._sub_(right)
                 from sage.structure.element import get_coercion_model
                 import operator
                 return get_coercion_model().bin_op(left, right, operator.sub)
+
+            def _sub_(left, right):
+                r"""
+                Default implementation of difference.
+
+                EXAMPLES::
+
+                    sage: F = CombinatorialFreeModule(QQ, ['a','b'])
+                    sage: a,b = F.basis()
+                    sage: a - b
+                    B['a'] - B['b']
+
+                TESTS:
+
+                Check that :trac:`18275` is fixed::
+
+                    sage: C = GF(5).cartesian_product(GF(5))
+                    sage: C.one() - C.one()
+                    (0, 0)
+                """
+                return left._add_(-right)
 
             def __neg__(self):
                 """

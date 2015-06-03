@@ -443,22 +443,22 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
     def __cmp__(self, other):
         r"""
-        Compare self to other. Eta products compare first according to
-        their levels, then according to their rdicts.
+        Compare self to other. Eta products are compared according to
+        their rdicts.
 
         EXAMPLES::
 
             sage: EtaProduct(2, {2:24,1:-24}) == 1
             False
-            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:24, 1:-24})
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:-24, 2:24})
             True
-            sage: EtaProduct(2, {2:24, 1:-24}) == EtaProduct(4, {2:24, 1:-24})
+            sage: EtaProduct(6, {1:-24, 2:24}) == EtaProduct(6, {1:24, 2:-24})
             False
-            sage: EtaProduct(2, {2:24, 1:-24}) < EtaProduct(4, {2:48, 1:-48})
+            sage: EtaProduct(6, {1:-24, 2:24}) < EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24})
             True
+            sage: EtaProduct(6, {1:-24, 2:24, 3:24, 6:-24}) < EtaProduct(6, {1:-24, 2:24})
+            False
         """
-        if not isinstance(other, EtaGroupElement):
-            return cmp(type(self), type(other))
         return (cmp(self.level(), other.level()) or cmp(self._rdict, other._rdict))
 
     def _short_repr(self):

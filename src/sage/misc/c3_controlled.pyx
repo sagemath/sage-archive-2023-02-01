@@ -1,5 +1,5 @@
 """
-The ``C3`` algorithm, under control of a total order.
+The C3 algorithm, under control of a total order
 
 Abstract
 ========

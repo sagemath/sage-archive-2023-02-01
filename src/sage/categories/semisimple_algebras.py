@@ -9,10 +9,11 @@ Semisimple Algebras
 #******************************************************************************
 
 from sage.misc.bindable_class import BoundClass
-from category_types import Category_over_base_ring
-from algebras import Algebras
 from sage.misc.cachefunc import cached_method
-import operator
+from sage.misc.lazy_import import LazyImport
+from category_types import Category_over_base_ring
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from algebras import Algebras
 
 class SemisimpleAlgebras(Category_over_base_ring):
     """
@@ -91,7 +92,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
 
             - ``keywords`` -- for compatibility; ignored.
 
-            OUTPUT: the empty list since this algebra is semisimple
+            OUTPUT: the empty list since this algebra is semisimple.
 
             EXAMPLES::
 
@@ -105,3 +106,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
                 'sage.categories.finite_dimensional_algebras_with_basis'
             """
             return []
+
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+
+        WithBasis = LazyImport('sage.categories.finite_dimensional_semisimple_algebras_with_basis', 'FiniteDimensionalSemisimpleAlgebrasWithBasis')

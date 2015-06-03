@@ -897,7 +897,7 @@ class ClusterSeed(SageObject):
         INPUT:
 
         - ``sequence`` -- a vertex of self, an iterator of vertices of self, a function which takes in the ClusterSeed and returns a vertex or an iterator of vertices,
-            or one of the following options: source, sink, green, red, urban_renewal
+            or one of the following options: first_source, sources, first_sink, sinks, green, red, urban_renewal, all_urban_renewals
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
         EXAMPLES::

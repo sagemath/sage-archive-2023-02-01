@@ -13,7 +13,7 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
+if 'SAGE_BLAS' in os.environ:
     BLAS=os.environ['SAGE_BLAS']
     BLAS2=os.environ['SAGE_BLAS']
 elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
@@ -85,7 +85,7 @@ polybori_major_version = '0.8'
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
 library_order_list = [
-    "singular", "ec",
+    "singular", "ec", "ecm",
     "linboxsage", "ntl", "iml", "linbox", "givaro",
     "gsl", "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",
     "arb", "mpfi", "mpfr", "mpc", "gmp", "gmpxx",
@@ -234,10 +234,7 @@ ext_modules = [
               sources=['sage/sets/finite_set_map_cy.pyx']),
 
     Extension('sage.combinat.partitions',
-              sources = ['sage/combinat/partitions.pyx',
-                         'sage/combinat/partitions_c.cc'],
-              depends = ['sage/combinat/partitions_c.h'],
-              language='c++'),
+              sources = ['sage/combinat/partitions.pyx']),
 
     Extension('sage.combinat.words.word_datatypes',
             sources=['sage/combinat/words/word_datatypes.pyx']),
@@ -1422,6 +1419,15 @@ ext_modules = [
     Extension('sage.quadratic_forms.ternary',
               sources = ['sage/quadratic_forms/ternary.pyx']),
 
+    ###############################
+    ##
+    ## sage.quivers
+    ##
+    ###############################
+
+    Extension('sage.quivers.paths',
+              sources = ['sage/quivers/paths.pyx']),
+
     ################################
     ##
     ## sage.repl
@@ -1463,6 +1469,13 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
+
+    OptionalExtension("sage.rings.complex_ball_acb",
+                      ["sage/rings/complex_ball_acb.pyx"],
+                      libraries=['arb', 'mpfi', 'mpfr'],
+                      include_dirs=[SAGE_INC + '/flint'],
+                      depends=flint_depends,
+                      package='arb'),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],

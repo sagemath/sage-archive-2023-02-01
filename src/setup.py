@@ -1,11 +1,8 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import os, sys, time, errno, platform, subprocess, glob
 from distutils.core import setup
-
-# Make sure stdout doesn't buffer output, otherwise output
-# like "Cythonizing foo.pyx" appears in the wrong order.
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 #########################################################
 ### List of Extensions
@@ -88,7 +85,7 @@ class CompileRecorder(object):
             else:
                 res = self._f(*args)
         except Exception as ex:
-            print ex
+            print(ex)
             res = ex
         t = time.time() - t
 
@@ -176,7 +173,7 @@ def run_command(cmd):
     OUTPUT:
         prints cmd to the console and then runs os.system
     """
-    print cmd
+    print(cmd)
     return os.system(cmd)
 
 def apply_pair(p):
@@ -221,7 +218,7 @@ def process_command_results(result_values):
     error = None
     for r in result_values:
         if r:
-            print "Error running command, failed with status %s."%r
+            print("Error running command, failed with status %s."%r)
             if not keep_going:
                 sys.exit(1)
             error = r
@@ -263,9 +260,9 @@ def execute_list_of_commands(command_list):
             return "1 %s"%noun
         return "%i %ss"%(n,noun)
 
-    print "Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread"))
+    print("Executing %s (using %s)"%(plural(len(command_list),"command"), plural(nthreads,"thread")))
     execute_list_of_commands_in_parallel(command_list, nthreads)
-    print "Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t)
+    print("Time to execute %s: %.2f seconds."%(plural(len(command_list),"command"), time.time() - t))
 
 
 ########################################################################
@@ -288,7 +285,6 @@ def execute_list_of_commands(command_list):
 
 from distutils.command.build_ext import build_ext
 from distutils.dep_util import newer_group
-from types import ListType, TupleType
 from distutils import log
 
 class sage_build_ext(build_ext):
@@ -298,14 +294,14 @@ class sage_build_ext(build_ext):
         from distutils.debug import DEBUG
 
         if DEBUG:
-            print "self.compiler.compiler:"
-            print self.compiler.compiler
-            print "self.compiler.compiler_cxx:"
-            print self.compiler.compiler_cxx # currently not used
-            print "self.compiler.compiler_so:"
-            print self.compiler.compiler_so
-            print "self.compiler.linker_so:"
-            print self.compiler.linker_so
+            print("self.compiler.compiler:")
+            print(self.compiler.compiler)
+            print("self.compiler.compiler_cxx:")
+            print(self.compiler.compiler_cxx) # currently not used
+            print("self.compiler.compiler_so:")
+            print(self.compiler.compiler_so)
+            print("self.compiler.linker_so:")
+            print(self.compiler.linker_so)
             # There are further interesting variables...
 
 
@@ -343,8 +339,8 @@ class sage_build_ext(build_ext):
                         ldso_cmd[i] = "-L"+sage_libdir
 
         if DEBUG:
-            print "self.compiler.linker_so (after fixing library dirs):"
-            print self.compiler.linker_so
+            print("self.compiler.linker_so (after fixing library dirs):")
+            print(self.compiler.linker_so)
 
 
         # First, sanity-check the 'extensions' list
@@ -361,11 +357,11 @@ class sage_build_ext(build_ext):
 
         execute_list_of_commands(compile_commands)
 
-        print "Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t)
+        print("Total time spent compiling C/C++ extensions: %.2f seconds." % (time.time() - t))
 
     def prepare_extension(self, ext):
         sources = ext.sources
-        if sources is None or type(sources) not in (ListType, TupleType):
+        if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(("in 'ext_modules' option (extension '%s'), " +
                    "'sources' must be present and must be " +
                    "a list of source filenames") % ext.name)
@@ -563,22 +559,22 @@ def run_cythonize():
     open(version_file, 'w').write(version_stamp)
 
 
-print "Updating Cython code...."
+print("Updating Cython code....")
 t = time.time()
 run_cythonize()
-print "Finished Cythonizing, time: %.2f seconds." % (time.time() - t)
+print("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################
 ### Discovering Python Sources
 #########################################################
 
-print "Discovering Python source code...."
+print("Discovering Python source code....")
 t = time.time()
 from sage_setup.find import find_python_sources
 python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
-print "Discovered Python source, time: %.2f seconds." % (time.time() - t)
+print("Discovered Python source, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################

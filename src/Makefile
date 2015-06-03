@@ -3,7 +3,7 @@
 all: sage
 
 sage: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
-	python setup.py install
+	python -u setup.py install
 
 clean:
 	@echo "Deleting Sage library build artifacts..."

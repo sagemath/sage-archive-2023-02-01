@@ -115,6 +115,7 @@ $(INST)/sage: \
 		 $(INST)/$(RATPOINTS) \
 		 $(INST)/$(READLINE) \
 		 $(INST)/$(SINGULAR) \
+		 $(INST)/$(SIX) \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZN_POLY)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \

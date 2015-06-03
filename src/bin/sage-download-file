@@ -11,6 +11,7 @@
 import contextlib
 import os
 import sys
+import re
 
 try:
     # Python 3
@@ -256,53 +257,31 @@ class FileNotMirroredError(Exception):
     pass
 
 
-class Tarball(object):
-    
-    def __init__(self, tarball_name):
-        """
-        A (third-party downloadable) tarball
+class Package(object):
 
-        INPUT:
-
-        - ``name`` - string. The full filename (``foo-1.3.tar.bz2``)
-          of a tarball on the Sage mirror network.
-        """
-        self.filename = tarball_name
-        self.base, self.verson, self.ext = self._parse_name(tarball_name)
+    def __init__(self, package_name):
+        self.name = package_name
         self._init_checksum()
+        self._init_version()
+        
+    @classmethod
+    def all(cls):
+        base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
+        for subdir in os.listdir(base):
+            path = os.path.join(base, subdir) 
+            if not os.path.isdir(path):
+                continue
+            yield cls(subdir)
 
     @property
-    def package(self):
-        """
-        Return the package name (the subdirectory of ``build/pkgs/``)
-        """
-        return self.base.lower()
-
-    @property
-    def upstream_fqn(self):
-        """
-        The fully-qualified (including directory) file name in the upstream directory.
-        """
-        return os.path.join(SAGE_DISTFILES, self.filename)
-
-    def _parse_name(self, name):
-        """
-        Parse the tarball name into base, version, and extension
-        """
-        import re
-        regex = re.compile('(?P<base>(?:[^-]|-(?!\d))*)-(?P<version>.*)\.(?P<ext>tar.*|zip|tgz)')
-        match = regex.match(name)
-        if match is None:
-            raise ValueError('tarball name must be of the form source-x.y.z.[tar.*|zip|tgz]')
-        return match.groups()
-
+    def path(self):
+        return os.path.join(SAGE_ROOT, 'build', 'pkgs', self.name)
+            
     def _init_checksum(self):
         """
         Load the checksums from the appropriate ``checksums.ini`` file
         """
-        import re
-        pkg_dir = os.path.join(SAGE_ROOT, 'build', 'pkgs', self.package)
-        checksums_ini = os.path.join(pkg_dir, 'checksums.ini')
+        checksums_ini = os.path.join(self.path, 'checksums.ini')
         assignment = re.compile('(?P<var>[a-zA-Z0-9]*)=(?P<value>.*)')
         result = dict()
         with open(checksums_ini, 'rt') as f:
@@ -316,7 +295,50 @@ class Tarball(object):
         self.sha1 = result['sha1']
         self.cksum = result['cksum']
         self.sha1 = result['sha1']
+        self.tarball_pattern = result['tarball']
         
+    VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
+    
+    def _init_version(self):
+        with open(os.path.join(self.path, 'package-version.txt')) as f:
+            package_version = f.read().strip()
+        match = self.VERSION_PATCHLEVEL.match(package_version)
+        if match is None:
+            self.version = package_version
+            self.patchlevel = -1
+        else:
+            self.version = match.group('version')
+            self.patchlevel = match.group('patchlevel')
+        self.tarball = self.tarball_pattern.replace('VERSION', self.version)
+        
+        
+class Tarball(object):
+    
+    def __init__(self, tarball_name):
+        """
+        A (third-party downloadable) tarball
+
+        INPUT:
+
+        - ``name`` - string. The full filename (``foo-1.3.tar.bz2``)
+          of a tarball on the Sage mirror network.
+        """
+        self.filename = tarball_name
+        self.package = None
+        for pkg in Package.all():
+            if pkg.tarball == tarball_name:
+                self.package = pkg
+        if self.package is None:
+            raise ValueError('tarball {0} is not referenced by any Sage package'
+                             .format(tarball_name))
+            
+    @property
+    def upstream_fqn(self):
+        """
+        The fully-qualified (including directory) file name in the upstream directory.
+        """
+        return os.path.join(SAGE_DISTFILES, self.filename)
+
     def _compute_hash(self, algorithm):
         with open(self.upstream_fqn, 'rb') as f:
             while True:
@@ -339,7 +361,7 @@ class Tarball(object):
         Test whether the checksum of the downloaded file is correct.
         """
         sha1 = self._compute_sha1()
-        return sha1 == self.sha1
+        return sha1 == self.package.sha1
 
     def download(self, mirror_list):
         """
@@ -356,7 +378,7 @@ class Tarball(object):
                 os.remove(destination)
         successful_download = False
         for mirror in mirror_list:
-            url = mirror + '/'.join(['spkg', 'upstream', self.package, self.filename])
+            url = mirror + '/'.join(['spkg', 'upstream', self.package.name, self.filename])
             print(url)
             try:
                 http_download(url, self.upstream_fqn)

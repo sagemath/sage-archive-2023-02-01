@@ -1842,7 +1842,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 pos += 1
 
             if pos == length:
-                yield map(half, ret_part[:])
+                yield [half(_) for _ in ret_part[:]]
                 pos -= 1
 
     def to_virtual(self, rc):

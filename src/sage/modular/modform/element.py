@@ -35,7 +35,7 @@ from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
 from sage.rings.arith import lcm
 from sage.structure.element import get_coercion_model
-
+from sage.misc.cachefunc import cached_method
 
 def is_ModularFormElement(x):
     """
@@ -939,6 +939,11 @@ class Newform(ModularForm_abstract):
             q - q^2 - 2*q^3 + q^4 + O(q^6)
             sage: Newforms(14,2)[0].abelian_variety()
             Newform abelian subvariety 14a of dimension 1 of J0(14)
+            sage: Newforms(1, 12)[0].abelian_variety()
+            Traceback (most recent call last):
+            ...
+            TypeError: f must have weight 2
+
         """
         try:
             return self.__abelian_variety
@@ -1020,6 +1025,7 @@ class Newform(ModularForm_abstract):
         S = self.parent()
         return S(self.q_expansion(S.sturm_bound()))
 
+    @cached_method
     def modular_symbols(self, sign=0):
         """
         Return the subspace with the specified sign of the space of
@@ -1034,6 +1040,51 @@ class Newform(ModularForm_abstract):
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 11 for Gamma_0(18) of weight 4 with sign 1 over Rational Field
         """
         return self.__modsym_space.modular_symbols_of_sign(sign)
+
+    @cached_method
+    def modsym_eigenspace(self, sign=0):
+        r"""
+        Returns a submodule of dimension 1 or 2 of the ambient space of the
+        sign 0 modular symbols space associated to self, base-extended to the
+        Hecke eigenvalue field, which is an eigenspace for the Hecke operators
+        with the same eigenvalues as this newform, *and* is an eigenspace for
+        the star involution of the appropriate sign if the sign is not 0.
+        
+        EXAMPLES::
+        
+            sage: N = Newform("37a")
+            sage: N.modular_symbols(0)
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: M = N.modular_symbols(0)              
+            sage: v = N.modsym_eigenspace(1); v
+            (0, 1, -1, 1, 0)
+            sage: v in M.free_module()
+            True
+            sage: v=N.modsym_eigenspace(-1)
+            (0, 0, 0, 1, -1/2)
+            sage: v in M.free_module()
+            True
+        """
+        M = self.modular_symbols(sign=0)
+        if sign != 0:
+            Ms = M.sign_submodule(sign)
+        else:
+            Ms = M
+        # silly thing: can't do Ms.eigenvector(), even when Ms is simple,
+        # because it can't be relied on to choose the coefficient fields
+        # consistently
+        A = M.ambient()
+        X = Ms.free_module().base_extend(self.hecke_eigenvalue_field())
+        p = rings.ZZ(2)
+        r = ((sign == 0 and 2) or 1)
+        while X.rank() > r:
+            if p > M.sturm_bound(): raise ArithmeticError, "Can't get here!"
+            X = (A.hecke_matrix(p) - self[p]).kernel_on(X)
+            p = p.next_prime()
+
+        # should really return a modular symbol submodule object, but these are
+        # not implemented over non-minimal base rings
+        return X
 
     def _defining_modular_symbols(self):
         """
@@ -1093,7 +1144,11 @@ class Newform(ModularForm_abstract):
         """
         return self._defining_modular_symbols().q_eigenform_character(self._name())
 
-    def _atkin_lehner_action_prime_power(self, Q, embedding=None):
+    ###########################
+    # Atkin--Lehner operators #
+    ###########################
+
+    def _atkin_lehner_action_from_qexp(self, Q, embedding=None):
         """
         Return the result of the Atkin-Lehner operator `W_Q` on
         ``self``.
@@ -1109,15 +1164,15 @@ class Newform(ModularForm_abstract):
 
         OUTPUT:
 
-        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w`
-        is a scalar such that `W_Q f = w f^*`.  The parent of `w` is
-        the codomain of ``embedding`` if specified, otherwise it is
-        (a suitable extension of) the coefficient field of `f`.
+        A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is a scalar
+        such that `W_Q f = w f^*`.  The parent of `w` is the codomain of
+        ``embedding`` if specified, otherwise it is (a suitable extension of)
+        the coefficient field of `f`.
 
         .. NOTE::
 
             This method assumes that the `Q`-th coefficient in the
-            `q`-expansion of ``self`` is non-zero.
+            `q`-expansion of ``self`` is non-zero. 
 
         TESTS::
 
@@ -1139,10 +1194,12 @@ class Newform(ModularForm_abstract):
 
         """
         a_Q = self[Q]
-        if not a_Q:
-            raise NotImplementedError("action of W_Q is not implemented for general newforms with a_Q(f) = 0")
         epsilon = self.character()
         eps_Q = [eps for eps in epsilon.decomposition() if eps.modulus() == Q][0]
+
+        if not a_Q:
+            raise ValueError("a_Q must be nonzero")
+
         f_star = self.twist(~eps_Q, level=self.level())
         if embedding is not None:
             a_Q = embedding(a_Q)
@@ -1153,6 +1210,22 @@ class Newform(ModularForm_abstract):
             # eps_Q is primitive of conductor d
             g = eps_Q.gauss_sum()
         return Q**(self.weight() - 2) * g / a_Q, f_star
+
+    def _atkin_lehner_action_from_modsym(self, d, embedding=None):
+
+        if d.gcd(self.character().conductor()) != 1:
+            raise ValueError("character must be nontrivial at d")
+        X = self.modsym_eigenspace(sign=0)
+        A = self.modular_symbols(sign=0).ambient()
+        W = A.atkin_lehner_operator(d).matrix().base_extend(self.hecke_eigenvalue_field()).restrict(X)
+
+        if not W.is_scalar():
+            raise ArithmeticError("Atkin--Lehner matrix not scalar")
+
+        w = W[0,0] / (self.character().primitive_character()(d))
+        if embedding is not None:
+            w = embedding(w)
+        return w, self
 
     def atkin_lehner_action(self, d, embedding=None):
         """
@@ -1237,26 +1310,19 @@ class Newform(ModularForm_abstract):
             ValueError: d (= 2) does not divide the level (= 11)
 
         """
+        # normalise d
+        d = rings.ZZ(d)
+        N = self.level()
+        if not d.divides(N):
+            raise ValueError('d (= {}) does not divide the level (= {})'.format(d, N))
+        d = N // N.prime_to_m_part(d)
+
         if d == 1:
             w = self.base_ring().one()
             if embedding is not None:
                 w = embedding(w)
             return w, self
-        try:
-            W = self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()
-        except (ArithmeticError, ValueError):
-            pass
-        else:
-            if W.is_scalar():
-                w = W[0,0].conjugate()
-                if embedding is not None:
-                    w = embedding(w)
-                return w, self
-        d = rings.Integer(d)
-        N = self.level()
-        if not d.divides(N):
-            raise ValueError('d (= {}) does not divide the level (= {})'.format(d, N))
-        d = N // N.prime_to_m_part(d)
+        
         q, e = d.factor()[0]
         Q = q**e
         M = d // Q
@@ -1264,8 +1330,15 @@ class Newform(ModularForm_abstract):
         eps = eps_Q(M)
         if embedding is not None:
             eps = embedding(eps)
+            
         eta0, g0 = self.atkin_lehner_action(M, embedding)
-        eta1, g1 = g0._atkin_lehner_action_prime_power(Q, embedding)
+        if self[Q]:
+            eta1, g1 = g0._atkin_lehner_action_from_qexp(Q, embedding)
+        elif eps_Q.is_trivial():
+            eta1, g1 = g0._atkin_lehner_action_from_modsym(Q, embedding)
+        else:
+            raise NotImplementedError("Unable to determine local constant at prime %s" % q)
+
         return eps * eta0 * eta1, g1
 
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):

@@ -224,6 +224,52 @@ class Polynomial_generic_sparse(Polynomial):
             del d[-1]
         return P(d)
 
+    def integral(self, var=None):
+        """
+        Return the integral of this polynomial.
+
+        By default, the integration variable is the variable of the
+        polynomial.
+
+        Otherwise, the integration variable is the optional parameter ``var``
+
+        .. NOTE::
+
+            The integral is always chosen so the constant term is 0.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (1 + 3*x^10 - 2*x^100).integral()
+            -2/101*x^101 + 3/11*x^11 + x
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100).integral()
+            1/1267650600228229401496703205377*x^1267650600228229401496703205377
+
+        Check the correctness when the base ring is a polynomial ring::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: S.<t> = PolynomialRing(R, sparse=True)
+            sage: (x*t+1).integral()
+            1/2*x*t^2 + t
+            sage: (x*t+1).integral(x)
+            1/2*x^2*t + x
+        """
+        P = self.parent()
+        F = (self.constant_coefficient()/1).parent()
+        Q = P.change_ring(F)
+
+        if var is not None and var != self.parent().gen():
+            return Q({k:self.__coeffs[k].integral(var) for k in self.__coeffs.keys()})
+
+        d = { k+1:self.__coeffs[k]/(k+1) for k in self.__coeffs.keys()}
+        return Q(d)
+
     def _dict_unsafe(self):
         """
         Return unsafe access to the underlying dictionary of coefficients.

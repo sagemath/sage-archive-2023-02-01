@@ -519,20 +519,25 @@ def HughesPlane(q2, check=True):
     A = A.change_ring(K)
     m = K.list()
     V = VectorSpace(K, 3)
+    zero = K.zero()
+    one = K.one()
     # Construct the points (x,y,z) of the projective plane, (x,y,z)=(xk,yk,zk)
-    points = [[x,y,K(1)] for x in m for y in m]+[[x,K(1),K(0)] for x in m]+[[K(1),K(0),K(0)]]
+    points = [(x, y, one) for x in m for y in m] + \
+             [(x, one, zero) for x in m] + \
+             [(one, zero, zero)]
     relabel = {tuple(p):i for i,p in enumerate(points)}
     blcks = []
     # Find the first line satisfying x+ay+z=0
     for a in m:
         if a not in F or a == 1:
+            aa = ~a
             l = []
-            l.append(V((-a,K(1),K(0))))
+            l.append(V((-a, one, zero)))
             for x in m:
-                if ((~a)*(-x-K(1))).is_square():
-                    l.append(V((x,(~a)*(-x-K(1)),K(1))))
-                else:
-                    l.append(V((x,(~a) **q * (-x-K(1)),K(1))))
+                y = - aa * (x+one)
+                if not y.is_square():
+                    y *= aa**(q-1)
+                l.append(V((x, y, one)))
             # We can now deduce the other lines from these ones
             blcks.append([relabel[normalize_hughes_plane_point(p,q)] for p in l])
             for i in range(q2 + q):

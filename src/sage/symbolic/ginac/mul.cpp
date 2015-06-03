@@ -103,14 +103,14 @@ mul::mul(const epvector & v, const ex & oc, bool do_index_renaming)
 	GINAC_ASSERT(is_canonical());
 }
 
-mul::mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming)
-{
-	tinfo_key = &mul::tinfo_static;
-	GINAC_ASSERT(vp.get()!=0);
-	overall_coeff = oc;
-	construct_from_epvector(*vp, do_index_renaming);
-	GINAC_ASSERT(is_canonical());
-}
+//mul::mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming)
+//{
+//	tinfo_key = &mul::tinfo_static;
+//	GINAC_ASSERT(vp.get()!=0);
+//	overall_coeff = oc;
+//	construct_from_epvector(*vp, do_index_renaming);
+//	GINAC_ASSERT(is_canonical());
+//}
 
 mul::mul(const ex & lh, const ex & mh, const ex & rh)
 {
@@ -140,11 +140,11 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 {
 	const numeric & num_coeff = ex_to<numeric>(coeff_ex);
 	std::stringstream tstream;
-	print_context* tcontext_p;
+	std::unique_ptr<print_context> tcontext_p;
 	if (latex)
-		tcontext_p = new print_latex(tstream, c.options);
+		tcontext_p.reset(new print_latex(tstream, c.options));
 	else
-		tcontext_p = new print_dflt(tstream, c.options);
+		tcontext_p.reset(new print_dflt(tstream, c.options));
 	//print_context tcontext(tstream, c.options);
 	num_coeff.print(*tcontext_p, 0);
 	std::string coeffstr = tstream.str();
@@ -193,7 +193,6 @@ void mul::print_overall_coeff(const ex coeff_ex, const print_context & c,
 		}
 		c.s << mul_sym;
 	}
-	delete tcontext_p;
 }
 
 /*
@@ -286,8 +285,7 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 				//print_numer = coeff_numer.mul(*_num_1_p);
 			} else {
 				std::stringstream tstream;
-				print_context* tcontext_p;
-                                tcontext_p = new print_latex(tstream, c.options);
+				std::unique_ptr<print_context> tcontext_p(new print_latex(tstream, c.options));
 				coeff_numer.print(*tcontext_p, 0);
 				if (tstream.peek() == '-') {
 					c.s<<"-";
@@ -296,7 +294,6 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 				} /*else {
 					const numeric &print_numer = coeff_numer;
 				}*/
-				delete tcontext_p;
 			}
 
 			numeric print_numer = negate ? coeff_numer.mul(*_num_1_p) : coeff_numer;
@@ -642,7 +639,7 @@ ex mul::eval(int level) const
 	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
 	if (evaled_seqp.get()) {
 		// do more evaluation later
-		return (new mul(std::move(evaled_seqp), overall_coeff))->
+		return (new mul(*evaled_seqp, overall_coeff))->
 		           setflag(status_flags::dynallocated);
 	}
 	
@@ -704,11 +701,11 @@ ex mul::eval(int level) const
 	           ex_to<numeric>((*seq.begin()).coeff).is_equal(*_num1_p)) {
 		// *(+(x,y,...);c) -> +(*(x,c),*(y,c),...) (c numeric(), no powers of +())
 		const add & addref = ex_to<add>((*seq.begin()).rest);
-		std::unique_ptr<epvector> distrseq(new epvector);
-		distrseq->reserve(addref.seq.size());
+		epvector distrseq;
+		distrseq.reserve(addref.seq.size());
                 for (const auto & elem : addref.seq)
-			distrseq->push_back(addref.combine_pair_with_coeff_to_pair(elem, overall_coeff));
-		return (new add(std::move(distrseq),
+			distrseq.push_back(addref.combine_pair_with_coeff_to_pair(elem, overall_coeff));
+		return (new add(distrseq,
 		                ex_to<numeric>(addref.overall_coeff).
 		                mul_dyn(ex_to<numeric>(overall_coeff)))
 		       )->setflag(status_flags::dynallocated | status_flags::evaluated);
@@ -719,7 +716,7 @@ ex mul::eval(int level) const
 		auto last = seq.end();
 		auto i = seq.begin();
 		auto j = seq.begin();
-		std::unique_ptr<epvector> s(new epvector);
+		epvector s;
 		numeric oc = *_num1_p;
 		bool something_changed = false;
 		while (i!=last) {
@@ -750,12 +747,12 @@ ex mul::eval(int level) const
 			}
 
 			if (! something_changed) {
-				s->reserve(seq_size);
+				s.reserve(seq_size);
 				something_changed = true;
 			}
 
 			while ((j!=i) && (j!=last)) {
-				s->push_back(*j);
+				s.push_back(*j);
 				++j;
 			}
 
@@ -771,7 +768,7 @@ ex mul::eval(int level) const
 
 			// divide add by the number in place to save at least 2 .eval() calls
 			const add& addref = ex_to<add>(i->rest);
-			auto  primitive = new add(addref);
+			auto primitive = new add(addref);
 			primitive->setflag(status_flags::dynallocated);
 			primitive->clearflag(status_flags::hash_calculated);
 			primitive->overall_coeff = ex_to<numeric>(primitive->overall_coeff).div_dyn(c);
@@ -779,20 +776,20 @@ ex mul::eval(int level) const
 			for (auto & elem : primitive->seq)
 				elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(c);
 
-			s->push_back(expair(*primitive, _ex1));
+			s.push_back(expair(*primitive, _ex1));
 
 			++i;
 			++j;
 		}
 		if (something_changed) {
 			while (j!=last) {
-				s->push_back(*j);
+				s.push_back(*j);
 				++j;
 			}
-			if (s->empty()) {
+			if (s.empty()) {
 				return ex_to<numeric>(overall_coeff).mul_dyn(oc);
 			}
-			return (new mul(std::move(s), ex_to<numeric>(overall_coeff).mul_dyn(oc))
+			return (new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc))
 			       )->setflag(status_flags::dynallocated);
 		}
 	}
@@ -806,14 +803,14 @@ ex mul::eval_exponentials() const
 {
 	ex exp_arg = _ex0;
 	numeric oc = *_num1_p;
-	std::unique_ptr<epvector> s(new epvector);
-	s->reserve(seq.size());
+	epvector s;
+	s.reserve(seq.size());
 
 	for (const auto & elem : seq) {
 		const numeric & num_coeff = ex_to<numeric>(elem.coeff);
 		const bool simplifyable_exp = is_ex_the_function(elem.rest, exp) and num_coeff.is_integer();
 		if (likely(not simplifyable_exp))
-			s->push_back(elem);
+			s.push_back(elem);
 		else
 			exp_arg += elem.rest.op(0) * num_coeff;
 	}
@@ -822,9 +819,9 @@ ex mul::eval_exponentials() const
 	if (is_a<numeric>(new_exp))
 		oc = oc.mul(ex_to<numeric>(new_exp));
 	else
-		s->push_back(expair(new_exp, _ex1));
+		s.push_back(expair(new_exp, _ex1));
 
-	mul * result = new mul(std::move(s), ex_to<numeric>(overall_coeff).mul_dyn(oc));
+	mul * result = new mul(s, ex_to<numeric>(overall_coeff).mul_dyn(oc));
 	return result->setflag(status_flags::dynallocated);
 }
 
@@ -852,14 +849,14 @@ ex mul::evalf(int level, PyObject* parent) const
 	if (level==-max_recursion_level)
 		throw(std::runtime_error("max recursion level reached"));
 	
-	std::unique_ptr<epvector> s(new epvector);
-	s->reserve(seq.size());
+	epvector s;
+	s.reserve(seq.size());
 
 	--level;
         for (const auto & elem : seq)
-		s->push_back(combine_ex_with_coeff_to_pair(
+		s.push_back(combine_ex_with_coeff_to_pair(
                 elem.rest.evalf(level, parent), elem.coeff));
-	return mul(std::move(s), overall_coeff.evalf(level, parent));
+	return mul(s, overall_coeff.evalf(level, parent));
 }
 
 void mul::find_real_imag(ex & rp, ex & ip) const
@@ -907,18 +904,18 @@ ex mul::evalm() const
 	// Evaluate children first, look whether there are any matrices at all
 	// (there can be either no matrices or one matrix; if there were more
 	// than one matrix, it would be a non-commutative product)
-	std::unique_ptr<epvector> s(new epvector);
-	s->reserve(seq.size());
+	epvector s;
+	s.reserve(seq.size());
 
 	bool have_matrix = false;
 	epvector::iterator the_matrix;
 
         for (const auto & elem : seq) {
 		const ex &m = recombine_pair_to_ex(elem).evalm();
-		s->push_back(split_ex_to_pair(m));
+		s.push_back(split_ex_to_pair(m));
 		if (is_a<matrix>(m)) {
 			have_matrix = true;
-			the_matrix = s->end() - 1;
+			the_matrix = s.end() - 1;
 		}
 	}
 
@@ -927,12 +924,12 @@ ex mul::evalm() const
 		// The product contained a matrix. We will multiply all other factors
 		// into that matrix.
 		matrix m = ex_to<matrix>(the_matrix->rest);
-		s->erase(the_matrix);
-		ex scalar = (new mul(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
+		s.erase(the_matrix);
+		ex scalar = (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
 		return m.mul_scalar(scalar);
 
 	} else
-		return (new mul(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
+		return (new mul(s, overall_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex mul::eval_ncmul(const exvector & v) const
@@ -1109,7 +1106,7 @@ ex mul::conjugate() const
 {
 	// The base class' method is wrong here because we have to be careful at
 	// branch cuts. power::conjugate takes care of that already, so use it.
-	epvector *newepv = nullptr;
+	std::unique_ptr<epvector> newepv(nullptr);
         for (auto i=seq.begin(); i!=seq.end(); ++i) {
 		if (newepv) {
 			newepv->push_back(split_ex_to_pair(recombine_pair_to_ex(*i).conjugate()));
@@ -1120,7 +1117,7 @@ ex mul::conjugate() const
 		if (c.is_equal(x)) {
 			continue;
 		}
-		newepv = new epvector;
+		newepv.reset(new epvector);
 		newepv->reserve(seq.size());
 		for (auto j=seq.begin(); j!=i; ++j) {
 			newepv->push_back(*j);
@@ -1132,7 +1129,6 @@ ex mul::conjugate() const
 		return *this;
 	}
 	ex result = thisexpairseq(newepv ? *newepv : seq, x);
-	delete newepv;
 	return result;
 }
 
@@ -1238,7 +1234,7 @@ ex mul::thisexpairseq(const epvector & v, const ex & oc, bool do_index_renaming)
 
 ex mul::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming) const
 {
-	return (new mul(std::move(vp), oc, do_index_renaming))->setflag(status_flags::dynallocated);
+	return (new mul(*vp, oc, do_index_renaming))->setflag(status_flags::dynallocated);
 }
 
 expair mul::split_ex_to_pair(const ex & e) const

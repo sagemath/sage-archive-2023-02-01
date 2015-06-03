@@ -374,13 +374,12 @@ epvector* conjugateepvector(const epvector& epv)
 
 ex expairseq::conjugate() const
 {
-	epvector* newepv = conjugateepvector(seq);
+	std::unique_ptr<epvector> newepv(conjugateepvector(seq));
 	ex x = overall_coeff.conjugate();
 	if (!newepv && are_ex_trivially_equal(x, overall_coeff)) {
 		return *this;
 	}
 	ex result = thisexpairseq(newepv ? *newepv : seq, x);
-	delete newepv;
 	return result;
 }
 

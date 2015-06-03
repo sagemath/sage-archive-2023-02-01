@@ -95,14 +95,14 @@ add::add(const epvector & v, const ex & oc)
 	GINAC_ASSERT(is_canonical());
 }
 
-add::add(std::unique_ptr<epvector> vp, const ex & oc)
-{
-	tinfo_key = &add::tinfo_static;
-	GINAC_ASSERT(vp.get()!=0);
-	overall_coeff = oc;
-	construct_from_epvector(*vp);
-	GINAC_ASSERT(is_canonical());
-}
+//add::add(std::unique_ptr<epvector> vp, const ex & oc)
+//{
+//	tinfo_key = &add::tinfo_static;
+//	GINAC_ASSERT(vp.get()!=0);
+//	overall_coeff = oc;
+//	construct_from_epvector(*vp);
+//	GINAC_ASSERT(is_canonical());
+//}
 
 //////////
 // archiving
@@ -131,11 +131,11 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 	// Then proceed with the remaining factors
 	for (const auto & elem : sorted_seq) {
 		std::stringstream tstream;
-		print_context *tcontext_p;
+		std::unique_ptr<print_context> tcontext_p;
 		if (latex) {
-			tcontext_p = new print_latex(tstream, c.options);
+			tcontext_p.reset(new print_latex(tstream, c.options));
 		} else {
-			tcontext_p = new print_dflt(tstream, c.options);
+			tcontext_p.reset(new print_dflt(tstream, c.options));
 		}
 		mul(elem.rest, elem.coeff).print(*tcontext_p, precedence());
 
@@ -149,18 +149,17 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 			first = false;
 		}
 		tstream.get(*(c.s.rdbuf()));
-		delete tcontext_p;
 	}
 
 	// Finally print the "overall" numeric coefficient, if present.
 	// This is just the constant coefficient. 
 	if (!(ex_to<numeric>(overall_coeff)).is_zero()) {
 		std::stringstream tstream;
-		print_context *tcontext_p;
+		std::unique_ptr<print_context> tcontext_p;
 		if (latex) {
-			tcontext_p = new print_latex(tstream, c.options);
+			tcontext_p.reset(new print_latex(tstream, c.options));
 		} else {
-			tcontext_p = new print_dflt(tstream, c.options);
+			tcontext_p.reset(new print_dflt(tstream, c.options));
 		}
 		overall_coeff.print(*tcontext_p, 0);
 		if (!first) {
@@ -172,7 +171,6 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 		}
 
 		tstream.get(*(c.s.rdbuf()));
-		delete tcontext_p;
 	}
 
 	if (precedence() <= level) {
@@ -326,8 +324,8 @@ int add::ldegree(const ex & s) const
 
 ex add::coeff(const ex & s, int n) const
 {
-	std::unique_ptr<epvector> coeffseq(new epvector);
-	std::unique_ptr<epvector> coeffseq_cliff(new epvector);
+	epvector coeffseq;
+	epvector coeffseq_cliff;
 	int rl = clifford_max_label(s);
 	bool do_clifford = (rl != -1);
 	bool nonscalar = false;
@@ -338,17 +336,17 @@ ex add::coeff(const ex & s, int n) const
  		if (!restcoeff.is_zero()) {
  			if (do_clifford) {
  				if (clifford_max_label(restcoeff) == -1) {
- 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
+ 					coeffseq_cliff.push_back(combine_ex_with_coeff_to_pair(ncmul(restcoeff, dirac_ONE(rl)), elem.coeff));
 				} else {
- 					coeffseq_cliff->push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
+ 					coeffseq_cliff.push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
 					nonscalar = true;
  				}
 			}
-			coeffseq->push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
+			coeffseq.push_back(combine_ex_with_coeff_to_pair(restcoeff, elem.coeff));
 		}
 	}
 
-	return (new add(std::move(nonscalar ? coeffseq_cliff : coeffseq),
+	return (new add(nonscalar ? coeffseq_cliff : coeffseq,
 	                n==0 ? overall_coeff : _ex0))->setflag(status_flags::dynallocated);
 }
 
@@ -364,7 +362,7 @@ ex add::eval(int level) const
 	std::unique_ptr<epvector> evaled_seqp = evalchildren(level);
 	if (evaled_seqp.get()) {
 		// do more evaluation later
-		return (new add(std::move(evaled_seqp), overall_coeff))->
+		return (new add(*evaled_seqp, overall_coeff))->
 		       setflag(status_flags::dynallocated);
 	}
 	
@@ -407,15 +405,15 @@ ex add::eval(int level) const
 		if (unlikely(is_a<numeric>(elem.rest)))
 			++terms_to_collect;
 	if (terms_to_collect) {
-		std::unique_ptr<epvector> s(new epvector);
-		s->reserve(seq_size - terms_to_collect);
+                epvector s;
+		s.reserve(seq_size - terms_to_collect);
 		numeric oc = *_num0_p;
                 for (const auto & elem : seq)
 			if (unlikely(is_a<numeric>(elem.rest)))
 				oc = oc.add((ex_to<numeric>(elem.rest)).mul(ex_to<numeric>(elem.coeff)));
 			else
-				s->push_back(elem);
-		return (new add(std::move(s), ex_to<numeric>(overall_coeff).add_dyn(oc)))
+				s.push_back(elem);
+		return (new add(s, ex_to<numeric>(overall_coeff).add_dyn(oc)))
 		        ->setflag(status_flags::dynallocated);
 	}
 
@@ -455,8 +453,8 @@ ex add::evalm() const
 {
 	// Evaluate children first and add up all matrices. Stop if there's one
 	// term that is not a matrix.
-	std::unique_ptr<epvector> s(new epvector);
-	s->reserve(seq.size());
+	epvector s;
+	s.reserve(seq.size());
 
 	bool all_matrices = true;
 	bool first_term = true;
@@ -464,7 +462,7 @@ ex add::evalm() const
 
 	for (const auto & elem : seq) {
 		const ex &m = recombine_pair_to_ex(elem).evalm();
-		s->push_back(split_ex_to_pair(m));
+		s.push_back(split_ex_to_pair(m));
 		if (is_a<matrix>(m)) {
 			if (first_term) {
 				sum = ex_to<matrix>(m);
@@ -478,12 +476,12 @@ ex add::evalm() const
 	if (all_matrices)
 		return sum + overall_coeff;
 	else
-		return (new add(std::move(s), overall_coeff))->setflag(status_flags::dynallocated);
+		return (new add(s, overall_coeff))->setflag(status_flags::dynallocated);
 }
 
 ex add::conjugate() const
 {
-	exvector *v = nullptr;
+	std::unique_ptr<exvector> v(nullptr);
 	for (size_t i=0; i<nops(); ++i) {
 		if (v) {
 			v->push_back(op(i).conjugate());
@@ -493,7 +491,7 @@ ex add::conjugate() const
 		ex ccterm = term.conjugate();
 		if (are_ex_trivially_equal(term, ccterm))
 			continue;
-		v = new exvector;
+		v.reset(new exvector);
 		v->reserve(nops());
 		for (size_t j=0; j<i; ++j)
 			v->push_back(op(j));
@@ -501,7 +499,6 @@ ex add::conjugate() const
 	}
 	if (v) {
 		ex result = add(*v);
-		delete v;
 		return result;
 	}
 	return *this;
@@ -557,15 +554,15 @@ ex add::eval_ncmul(const exvector & v) const
  *  @see ex::diff */
 ex add::derivative(const symbol & y) const
 {
-	std::unique_ptr<epvector> s(new epvector);
-	s->reserve(seq.size());
+	epvector s;
+	s.reserve(seq.size());
 	
 	// Only differentiate the "rest" parts of the expairs. This is faster
 	// than the default implementation in basic::derivative() although
 	// if performs the same function (differentiate each term).
 	for (const auto & elem : seq)
-		s->push_back(combine_ex_with_coeff_to_pair(elem.rest.diff(y), elem.coeff));
-	return (new add(std::move(s), _ex0))->setflag(status_flags::dynallocated);
+		s.push_back(combine_ex_with_coeff_to_pair(elem.rest.diff(y), elem.coeff));
+	return (new add(s, _ex0))->setflag(status_flags::dynallocated);
 }
 
 int add::compare_same_type(const basic & other) const
@@ -595,10 +592,10 @@ ex add::thisexpairseq(const epvector & v, const ex & oc, bool) const
 	return (new add(v,oc))->setflag(status_flags::dynallocated);
 }
 
-// Note: do_index_renaming is ignored because it makes no sense for an add.
+//// Note: do_index_renaming is ignored because it makes no sense for an add.
 ex add::thisexpairseq(std::unique_ptr<epvector> vp, const ex & oc, bool) const
 {
-	return (new add(std::move(vp),oc))->setflag(status_flags::dynallocated);
+	return (new add(*vp,oc))->setflag(status_flags::dynallocated);
 }
 
 expair add::split_ex_to_pair(const ex & e) const
@@ -672,7 +669,7 @@ ex add::expand(unsigned options) const
 		return (options == 0) ? setflag(status_flags::expanded) : *this;
 	}
 
-	return (new add(std::move(vp), overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
+	return (new add(*vp, overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
 }
 
 const epvector & add::get_sorted_seq() const

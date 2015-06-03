@@ -238,7 +238,7 @@ ex matrix::subs(const exmap & mp, unsigned options) const
 /** Complex conjugate every matrix entry. */
 ex matrix::conjugate() const
 {
-	exvector * ev = nullptr;
+	std::unique_ptr<exvector> ev(nullptr);
 	for (auto i=m.begin(); i!=m.end(); ++i) {
 		ex x = i->conjugate();
 		if (ev) {
@@ -248,7 +248,7 @@ ex matrix::conjugate() const
 		if (are_ex_trivially_equal(x, *i)) {
 			continue;
 		}
-		ev = new exvector;
+		ev.reset(new exvector);
 		ev->reserve(m.size());
 		for (auto j=m.begin(); j!=i; ++j) {
 			ev->push_back(*j);
@@ -257,7 +257,6 @@ ex matrix::conjugate() const
 	}
 	if (ev) {
 		ex result = matrix(row, col, *ev);
-		delete ev;
 		return result;
 	}
 	return *this;

@@ -411,7 +411,7 @@ ex pseries::conjugate() const
 	if(!var.info(info_flags::real))
 		return conjugate_function(*this).hold();
 
-	epvector * newseq = conjugateepvector(seq);
+	std::unique_ptr<epvector> newseq(conjugateepvector(seq));
 	ex newpoint = point.conjugate();
 
 	if (!newseq && are_ex_trivially_equal(point, newpoint)) {
@@ -419,7 +419,6 @@ ex pseries::conjugate() const
 	}
 
 	ex result = (new pseries(var==newpoint, newseq ? *newseq : seq))->setflag(status_flags::dynallocated);
-	delete newseq;
 	return result;
 }
 

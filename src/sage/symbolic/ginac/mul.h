@@ -44,7 +44,7 @@ public:
 	mul(const exvector & v, bool hold=false);
 	mul(const epvector & v);
 	mul(const epvector & v, const ex & oc, bool do_index_renaming = false);
-	mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false);
+//	mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false);
 	mul(const ex & lh, const ex & mh, const ex & rh);
 	
 	// functions overriding virtual functions from base classes

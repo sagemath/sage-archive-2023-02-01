@@ -41,7 +41,7 @@ public:
 	add(const exvector & v, bool hold=false);
 	add(const epvector & v);
 	add(const epvector & v, const ex & oc);
-	add(std::unique_ptr<epvector> vp, const ex & oc);
+//	add(std::unique_ptr<epvector> vp, const ex & oc);
 	
 	// functions overriding virtual functions from base classes
 public:

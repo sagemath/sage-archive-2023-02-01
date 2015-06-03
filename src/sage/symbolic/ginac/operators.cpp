@@ -288,9 +288,8 @@ static int my_ios_index()
 // Stream format gets copied or destroyed
 static void my_ios_callback(std::ios_base::event ev, std::ios_base & s, int i)
 {
-	print_context *p = static_cast<print_context *>(s.pword(i));
+	std::unique_ptr<print_context> p(static_cast<print_context *>(s.pword(i)));
 	if (ev == std::ios_base::erase_event) {
-		delete p;
 		s.pword(i) = nullptr;
 	} else if (ev == std::ios_base::copyfmt_event && p != nullptr)
 		s.pword(i) = p->duplicate();

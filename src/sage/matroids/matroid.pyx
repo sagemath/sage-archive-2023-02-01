@@ -309,7 +309,6 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
@@ -4801,7 +4800,7 @@ cdef class Matroid(SageObject):
         if not (self.is_connected() and self.is_simple() and self.is_cosimple()):
             return False
         basis = self.basis()
-        fund_cocircuits = set([self.fundamental_cocircuit(basis, e) for e in basis])
+        fund_cocircuits = set([self._fundamental_cocircuit(basis, e) for e in basis])
         return self._is_3connected_beta(self.basis(), fund_cocircuits, separation)
 
     cpdef _is_3connected_beta(self, basis, fund_cocircuits, separation=False):
@@ -4812,31 +4811,27 @@ cdef class Matroid(SageObject):
         separating = False
         while fund_cocircuits:
             Y = fund_cocircuits.pop()
-            if not self.delete(Y).is_connected(): # O(r(M)|E|) time.
+            bridges = self.delete(Y).components()  # O(r(M)|E|) time.
+            if len(bridges)>1:
                 separating = True
                 break
         if not separating:
             return True
 
         # Step 3: Check the avoidance graph of Y
-        N = self.delete(Y)
-        bridges = N.components()
         Y_components = {}
         B_segments   = []
         for B in bridges:
             # M is a Y-component if M/ (E\(B union Y))
-            M = self.contract(self.groundset().difference(B.union(Y)))
+            M = self.contract(self.groundset() - (B | Y))
             Y_components[B] = M
             s = set(M.groundset().copy())
             parallel_classes = []
             while len(s)>0:
                 e = s.pop()
-                parallel_class = set([e])
-                for f in s:
-                    if M.is_circuit([e,f]):
-                        parallel_class.add(f)
+                parallel_class = M._closure(frozenset([e]))
                 s -= parallel_class
-                parallel_classes.append(frozenset(parallel_class))
+                parallel_classes.append(parallel_class)
             B_segments.append(frozenset(parallel_classes))
         # build the avoidance graph
         d = {}
@@ -4848,7 +4843,7 @@ cdef class Matroid(SageObject):
                     avoid = False
                     for S in B_segments[i]:
                         for T in B_segments[j]:
-                            if Y.difference(S) <= T:
+                            if Y - S <= T:
                                 avoid = True
                                 break
                         if avoid:
@@ -4861,12 +4856,12 @@ cdef class Matroid(SageObject):
         # Step 4: Apply algorithm recursively
         for B, M in Y_components.iteritems():
             N = M.simplify()
-            nbasis = basis.intersection(B.union(Y))
+            nbasis = basis & (B | Y)
             # find set of fundamental cocircuit that might be separating
             cocirc = set([M.fundamental_cocircuit(nbasis,e) for e in nbasis])
             cocirc &= fund_cocircuits
             fund_cocircuits -= cocirc
-            cocirc = set([x.intersection(N.groundset()) for x in cocirc])
+            cocirc = set([x & N.groundset() for x in cocirc])
             if not N._is_3connected_beta(nbasis,cocirc):
                 return False
         return True

@@ -869,6 +869,7 @@ class NormalFormGame(SageObject, MutableMapping):
         Creates a Gambit game from a ``NormalFormGame`` object
 
         INPUT:
+
         - ``as_integer`` - Boolean value which states whether the gambit representation should have
                            the payoffs represented as integers or decimals.
 
@@ -1440,12 +1441,6 @@ class NormalFormGame(SageObject, MutableMapping):
         if algorithm == "LCP":
             if Game is None:
                 raise NotImplementedError("gambit is not installed")
-            for strategy_profile in self.utilities:
-                payoffs = self.utilities[strategy_profile]
-                if payoffs != [int(payoffs[0]), int(payoffs[1])]:
-                    raise ValueError("""The Gambit implementation of LCP only
-                                     allows for integer valued payoffs.
-                                     Please scale your payoff matrices.""")
             return self._solve_LCP(maximization)
 
         if algorithm.startswith('lp-'):
@@ -1454,7 +1449,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
 
-        raise ValueError("""'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'""")
+        raise ValueError("'solver' should be set to 'enumeration', 'LCP', 'lp-<MILP-solver>' or 'lrs'")
 
     def _solve_lrs(self, maximization=True):
         r"""

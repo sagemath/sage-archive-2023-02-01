@@ -826,9 +826,11 @@ class CoxeterGroups(Category_singleton):
                 False
                 sage: w.has_right_descent(2)
                 True
+                sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
+                True
             """
-            return (~self).has_left_descent(i)
-        
+            return self.has_descent(i, side='right')
+
         def has_left_descent(self, i):
             """
             Returns whether `i` is a left descent of self.

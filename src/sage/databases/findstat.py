@@ -768,6 +768,8 @@ class FindStatStatistic(SageObject):
             sage: r1 == r2                                                      # optional -- internet
             False
         """
+        if (not isinstance(other, FindStatStatistic)):
+            return False
         if self._query == "ID" and other._query == "ID":
             if self._modified or other._modified:
                 return False
@@ -780,6 +782,32 @@ class FindStatStatistic(SageObject):
                 return self._data == other._data
         else:
             return False
+
+    def __ne__(self, other):
+        """Determine whether ``other`` is a different query.
+
+        INPUT:
+
+        - ``other`` -- a FindStat query, i.e., instance of
+          :class:`FindStatStatistic`..
+
+        OUTPUT:
+
+        A boolean.
+
+        SEEALSO:
+
+        :meth:`__eq__`
+
+        EXAMPLES::
+
+            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
+            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
+            sage: r1 != r2                                                      # optional -- internet
+            True
+
+        """
+        return not self.__eq__(other)
 
 
     ######################################################################
@@ -846,6 +874,18 @@ class FindStatStatistic(SageObject):
         Expects that ``_data`` is a list of pairs of the form (list
         of objects, list of values), each containing as many values
         as objects, and that ``_collection`` is appropriately set.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: from sage.databases.findstat import FindStatStatistic
+            sage: query = {dw:dw.area() for dw in DyckWords(4)}
+            sage: data = [([key], [value]) for (key, value) in query.iteritems()]
+            sage: first_terms = [(key, value) for (key, value) in query.iteritems()]
+            sage: collection = FindStatCollection(data[0][0][0])                                                                     # optional -- internet
+            sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values()   # optional -- internet
+            0: (St000012: The area of a Dyck path., [], 14)
+
 
         """
         self._query = "data"
@@ -1636,7 +1676,7 @@ class FindStatCollection(SageObject):
             # find collection given an object or a constructor
 
             # unfortunately, we cannot test with
-            # isinstance(_, SageObject), since this is True for
+            # isinstance(_, SageObject), since this is not True for
             # CartanType.
 
             # TODO: entry == c[4] will work rarely because c[4] might be a function!
@@ -1682,7 +1722,22 @@ class FindStatCollection(SageObject):
             sage: FindStatCollection("Permutations") == FindStatCollection("Integer Partitions")    # optional -- internet
             False
         """
+        if (not isinstance(other, FindStatCollection)):
+            return False
         return self.id() == other.id()
+
+    def __ne__(self, other):
+        """
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Permutations") != FindStatCollection("Permutations")          # optional -- internet
+            False
+
+            sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")    # optional -- internet
+            True
+        """
+        return not self.__eq__(other)
 
     def in_range(self, element):
         r"""
@@ -1994,6 +2049,8 @@ class FindStatMap(SageObject):
             sage: FindStatMap(62) == FindStatMap(71)                            # optional -- internet
             False
         """
+        if (not isinstance(other, FindStatMap)):
+            return False
         return self.id() == other.id()
 
     def __ne__(self, other):
@@ -2008,7 +2065,6 @@ class FindStatMap(SageObject):
             True
         """
         return not self.__eq__(other)
-
 
     def name(self):
         r"""

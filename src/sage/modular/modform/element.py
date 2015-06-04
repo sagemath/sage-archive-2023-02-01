@@ -821,7 +821,7 @@ class ModularForm_abstract(ModuleElement):
             invb = 1/b
             coeffs = (invb*c for c in coeffs)
 
-        s = 'coeff = %s;'% map(emb, coeffs)
+        s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)

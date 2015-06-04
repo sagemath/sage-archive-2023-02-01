@@ -652,7 +652,7 @@ class Color(object):
         if isinstance(color, Color):
             color = color._rgb
         if isinstance(color, (list, tuple)) and len(color) == 3:
-            color = map(float, color)
+            color = [float(_) for _ in color]
             return Color(rgbcolor([(1 - fraction) * a + fraction * b
                                    for a, b in zip(self._rgb, color)]))
         raise TypeError("%s must be a Color or float-convertible 3-tuple/list" % (color, ))

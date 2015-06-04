@@ -36,6 +36,13 @@ try:
 except OSError:
     pass
 
+
+def printflush(x):
+    """Print ``x`` and flush output"""
+    print(x)
+    sys.stdout.flush()
+
+
 def http_error_default(url, fp, errcode, errmsg, headers):
     """
     Callback for the URLopener to raise an exception on HTTP errors
@@ -49,7 +56,7 @@ class ProgressBar(object):
     Progress bar as urllib reporthook
     """
 
-    def __init__(self, length=60):
+    def __init__(self, length=70):
         self.length = length
         self.progress = 0
         self.stream = sys.stderr
@@ -116,7 +123,7 @@ def http_download(url, destination=None, progress=True, ignore_errors=False):
             filename, info = opener.retrieve(url, destination, progress_bar)
         except IOError as err:
             progress_bar.error_stop()
-            print(err)
+            printflush(err)
             if not ignore_errors:
                 raise
         else:
@@ -140,7 +147,8 @@ class MirrorList(object):
         self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
         self.verbose = verbose
         if self.must_refresh():
-            if self.verbose: print('Downloading the Sage mirror list')
+            if self.verbose:
+                printflush('Downloading the Sage mirror list')
             with contextlib.closing(urllib.urlopen(self.URL)) as f:
                 mirror_list = f.read()
             self.mirrors = self._load(mirror_list)
@@ -183,7 +191,8 @@ class MirrorList(object):
         """
         timed_mirrors = []
         import time, socket
-        if self.verbose: print('Searching fastest mirror')
+        if self.verbose:
+            printflush('Searching fastest mirror')
         timeout = 1
         for mirror in self.mirrors:
             if not mirror.startswith('http'):
@@ -197,14 +206,15 @@ class MirrorList(object):
                 sock.close()
             except (IOError, socket.error, socket.timeout):
                 continue
-                if verbose: print(str('ERROR').rjust(5) + '    ' + mirror)
             result = time.time() - time_before
             result_ms = int(1000 * result)
-            if self.verbose: print(str(result_ms).rjust(5) + 'ms: ' + mirror)
+            if self.verbose:
+                printflush(str(result_ms).rjust(5) + 'ms: ' + mirror)
             timed_mirrors.append((result, mirror))
         timed_mirrors.sort()
         self.mirrors = [m[1] for m in timed_mirrors]
-        if self.verbose: print('Fastest mirror: ' + self.fastest)
+        if self.verbose:
+            printflush('Fastest mirror: ' + self.fastest)
 
     @property
     def fastest(self):
@@ -363,7 +373,7 @@ class Tarball(object):
         sha1 = self._compute_sha1()
         return sha1 == self.package.sha1
 
-    def download(self, mirror_list):
+    def download(self):
         """
         Download the tarball to the upstream directory.
         """
@@ -374,12 +384,14 @@ class Tarball(object):
                 return
             else:
                 # Garbage in the upstream directory? Delete and re-download
-                print('Invalid checksum for cached file {destination}'.format(destination=destination))
+                print('Invalid checksum for cached file {destination}, deleting'
+                      .format(destination=destination))
                 os.remove(destination)
         successful_download = False
-        for mirror in mirror_list:
+        print('Attempting to download package {0} from mirrors'.format(self.filename))
+        for mirror in MirrorList():
             url = mirror + '/'.join(['spkg', 'upstream', self.package.name, self.filename])
-            print(url)
+            printflush(url)
             try:
                 http_download(url, self.upstream_fqn)
                 successful_download = True
@@ -441,8 +453,7 @@ if __name__ == '__main__':
         http_download(url, destination, progress=progress, ignore_errors=True)
     else:
         # url is a tarball name
-        mirror_list = MirrorList()
         tarball = Tarball(url)
-        tarball.download(mirror_list)
+        tarball.download()
         if destination is not None:
             tarball.save_as(destination)

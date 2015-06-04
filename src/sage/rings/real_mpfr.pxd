@@ -1,9 +1,11 @@
 from sage.libs.mpfr cimport *
 
-include 'sage/libs/pari/decl.pxi'
-
 cimport sage.rings.ring
 cimport sage.structure.element
+
+cdef extern from "pari/pari.h":
+    ctypedef long* GEN
+
 
 cdef class RealNumber(sage.structure.element.RingElement)  # forward decl
 

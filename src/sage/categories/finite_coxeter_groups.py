@@ -283,20 +283,131 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             INPUT:
 
-            - ``c`` -- a standard Coxeter element in ``self``
+            - ``c`` -- a standard Coxeter element in ``self`` (as a tuple, or as an element of ``self``)
             - ``side`` -- "left", "right", or "twosided" (default: "right")
             - ``facade`` -- a boolean (default: False)
-
-            Returns the left (resp. right) Cambrian lattice, which is the
+            
+            Return the left (resp. right) Cambrian lattice, which is the
             sublattice of the weak lattice containing all
             ``c``-sortable elements.
-
+            
             EXAMPLES::
+                
+                sage: CoxeterGroup(["A", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 5 elements
 
-                tba
+                sage: CoxeterGroup(["B", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 6 elements
+
+                sage: CoxeterGroup(["G", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 8 elements
+
             """
             from sage.combinat.posets.lattices import LatticePoset
             return LatticePoset(self.weak_lattice(side=side,facade=facade).subposet( [ w for w in self if w.is_coxeter_sortable(c) ] ))
+        
+        def inversion_sequence(self, word):
+            """
+            INPUT:
+            
+            - ``word`` -- a word in the simple generators of ``self``
+            
+            Return the inversion sequence corresponding to ``word``.  If
+            ``word``=`[w_0,w_1,...w_k]`, then the output is `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
+            
+            EXAMPLES::
+                
+                sage: CoxeterGroup(["A", 2]).inversion_sequence([1,2,1])
+                [
+                [-1  1]  [ 0 -1]  [ 1  0]
+                [ 0  1], [-1  0], [ 1 -1]
+                ]
+                
+                sage: [t.reduced_word() for t in CoxeterGroup(["A",3]).inversion_sequence([2,1,3,2,1,3])]
+                [[2], [1, 2, 1], [2, 3, 2], [1, 2, 3, 2, 1], [3], [1]]
+            
+            """
+            return [self.from_reduced_word(word[:i+1]+list(reversed(word[:i]))) for i in range(len(word))]
+        
+        def reflections_from_w0(self):
+            """
+            Return the reflections of ``self`` using the inversion set of ``w_0``.
+            
+            EXAMPLES::
+                
+                sage: WeylGroup(['A',2]).reflections_from_w0()
+                [
+                [0 1 0]  [0 0 1]  [1 0 0]
+                [1 0 0]  [0 1 0]  [0 0 1]
+                [0 0 1], [1 0 0], [0 1 0]
+                ]
+				
+				sage: WeylGroup(['A',3]).reflections_from_w0()
+				[
+				[-1  1  0]  [ 0 -1  1]  [ 1  0  0]  [ 0  0 -1]  [ 1  0  0]  [ 1  0  0]
+				[ 0  1  0]  [-1  0  1]  [ 1 -1  1]  [-1  1 -1]  [ 1  0 -1]  [ 0  1  0]
+				[ 0  0  1], [ 0  0  1], [ 0  0  1], [-1  0  0], [ 1 -1  0], [ 0  1 -1]
+				]
+            
+            """
+            return self.long_element().inversions_as_reflections()
+        
+        @cached_method
+        def m_cambrian_lattice(self, c, m = 1):
+            """
+            INPUT:
+            
+            - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
+            - ``m`` -- a positive integer (default: 1)
+            
+            Returns the m-Cambrian lattice on delta sequences.
+            
+            EXAMPLES::
+                
+				sage: CoxeterGroup(["A",2]).m_cambrian_lattice((1,2))
+				Finite poset containing 5 elements
+
+                sage: CoxeterGroup(["A",2]).m_Cambrian_Lattice([1,2],2)
+                Finite poset containing 12 elements	
+            
+            """
+            from sage.combinat.posets.posets import Poset
+            from sage.combinat.posets.lattices import LatticePoset
+            if hasattr(c,"reduced_word"):
+               c = c.reduced_word()
+            elif not isinstance(c,list):
+               c = list(c)
+            inv_woc = self.inversion_sequence(self.long_element().coxeter_sorting_word(c))
+            S = self.simple_reflections()
+            T = self.reflections_from_w0()
+            Twords = {t:t.reduced_word() for t in T}#PhiP=T
+            id = sorted([[s,0] for s in S])
+            elements = []
+            covers = []
+            new = [id]
+            while new != []:
+                for new_element in new:
+                    new.remove(new_element)
+                    elements.append(new_element)
+                    for t in new_element:
+                        if t[1]<m:
+                            cov_element = [s for s in new_element if s!=t]
+                            cov_element.append([t[0],t[1]+1])
+                            for t_conj in [[i,t[1]] for i in inv_woc[inv_woc.index(t[0]):]]+[[i,t[1]+1] for i in inv_woc[:inv_woc.index(t[0])]]:
+                                if t_conj in cov_element:
+                                    cov_element.remove(t_conj)
+                                    tmp = t[0]*t_conj[0]*t[0]
+                                    invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
+                                    plus_or_minus = invs.count(tmp)
+                                    if plus_or_minus % 2 == 1:
+                                        cov_element.append([tmp,t_conj[1]])
+                                    else:
+                                        cov_element.append([tmp,t_conj[1]-1])
+                            cov_element = sorted(cov_element)
+                            if cov_element not in elements and cov_element not in new:
+                                new.append(cov_element)
+                            covers.append([tuple(map(tuple,new_element)),tuple(map(tuple,cov_element))])
+            return LatticePoset([[tuple(map(tuple,e)) for e in elements],covers],cover_relations=True)
 
     class ElementMethods:
 

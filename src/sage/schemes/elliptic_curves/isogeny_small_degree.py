@@ -1949,7 +1949,7 @@ def isogenies_prime_degree_general(E, l):
     # a divisor of (l-1)/2, so we keep only such factors:
 
     l2 = (l-1)//2
-    factors = [h for h,e in psi_l.factor() if l2 % h.degree() == 0]
+    factors = [h for h,e in psi_l.factor()]
     factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
                               for d in l2.divisors()])
 
@@ -1963,6 +1963,11 @@ def isogenies_prime_degree_general(E, l):
     for d in factors_by_degree.keys():
         if d*len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
+
+    # Exit now if all factors have been used already:
+
+    if not factors_by_degree:
+        return [E.isogeny(k) for k in ker]
 
     # In general we look for products of factors of the same degree d
     # which can be kernel polynomials

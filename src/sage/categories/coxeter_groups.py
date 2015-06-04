@@ -888,7 +888,7 @@ class CoxeterGroups(Category_singleton):
                 'sage.categories.coxeter_groups'
             """
             return (~self).has_right_descent(i)
-        
+
         def first_descent(self, side = 'right', index_set=None, positive=False):
             """
             Returns the first left (resp. right) descent of self, as

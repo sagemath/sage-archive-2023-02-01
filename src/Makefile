@@ -6,7 +6,7 @@ all:
 	$(MAKE) sage
 
 sage: sage/libs/pari/auto_gen.pxi sage/ext/interpreters/__init__.py
-	python setup.py install
+	python -u setup.py install
 
 csage:
 	cd c_lib && scons -Q install
@@ -24,7 +24,8 @@ clean:
 
 
 # Auto-generated files
-sage/libs/pari/auto_gen.pxi: $(SAGE_LOCAL)/share/pari/pari.desc sage_setup/autogen/pari/*.py
+sage/libs/pari/auto_gen.pxi: $(SAGE_LOCAL)/share/pari/pari.desc \
+        sage/libs/pari/decl.pxi sage_setup/autogen/pari/*.py
 	python -c "from sage_setup.autogen.pari import rebuild; rebuild()"
 
 sage/ext/interpreters/__init__.py: sage_setup/autogen/interpreters.py

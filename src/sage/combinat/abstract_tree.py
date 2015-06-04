@@ -66,8 +66,6 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-from functools import reduce
-
 
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
 # inherit from SageObject to be able to inherit from Element or a subclass
@@ -1163,12 +1161,7 @@ class AbstractTree(object):
                   . the matrix
                   . and the edges
                 """
-                name = reduce(
-                    lambda x, y: x + y,
-                    map(
-                        lambda x: chr(ord(x) + 49),
-                        list(str(num[0]))),
-                    "")
+                name = "".join((chr(ord(x) + 49) for x in str(num[0])))
                 node = cmd + name
                 nodes.append((name,
                     (str(self.label()) if hasattr(self, "label") else ""))
@@ -1917,7 +1910,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def shape(self):
         """
-        Returns the unlabelled tree associated to ``self``
+        Return the unlabelled tree associated to ``self``.
 
         EXAMPLES::
 
@@ -1926,6 +1919,11 @@ class AbstractLabelledTree(AbstractTree):
 
             sage: LabelledBinaryTree([[],[[],[]]], label = 25).shape()
             [[., .], [[., .], [., .]]]
+
+            sage: LRT = LabelledRootedTree
+            sage: tb = LRT([],label='b')
+            sage: LRT([tb, tb], label='a').shape()
+            [[], []]
 
         TESTS::
 

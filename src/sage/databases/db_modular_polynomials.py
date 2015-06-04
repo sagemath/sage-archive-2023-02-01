@@ -141,7 +141,7 @@ class DedekindEtaModularPolynomialDatabase(ModularPolynomialDatabase):
 class DedekindEtaModularCorrespondenceDatabase(ModularCorrespondenceDatabase):
     """
     The database of modular correspondences in $X_0(p) \times X_0(p)$, where
-    the model of the curves $X_0(p) = \PP^1$ are specified by quotients of
+    the model of the curves $X_0(p) = \Bold{P}^1$ are specified by quotients of
     Dedekind's eta function.
     """
     def __init__(self):

@@ -816,8 +816,8 @@ class CombinatorialFreeModuleElement(Element):
 
         .. NOTE::
 
-            #13406: the current implementation has been optimized, at
-            #the price of breaking the encapsulation for FreeModule
+            :trac:`13406`: the current implementation has been optimized, at
+            the price of breaking the encapsulation for FreeModule
             elements creation, with the following use case as metric,
             on a 2008' Macbook Pro::
 
@@ -874,7 +874,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: F.get_action(F, operator.mul, False)
 
         This also works when a coercion of the coefficient is needed, for
-        example with polynomials or fraction fields #8832::
+        example with polynomials or fraction fields (:trac:`8832`)::
 
             sage: P.<q> = QQ['q']
             sage: V = CombinatorialFreeModule(P, Permutations())

@@ -78,7 +78,7 @@ def _MOLS_from_string(s,k):
     for i,l in enumerate(s.split()):
         l = [ord(x) - 97 for x in l]
         matrices[i%k].append(l)
-    return map(Matrix, matrices)
+    return [Matrix(_) for _ in matrices]
 
 def MOLS_10_2():
     r"""

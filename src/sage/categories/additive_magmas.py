@@ -683,7 +683,7 @@ class AdditiveMagmas(Category_singleton):
                 Test that ``self.zero()`` is an element of self and
                 is neutral for the addition.
 
-                INPUT::
+                INPUT:
 
                 - ``options`` -- any keyword arguments accepted
                   by :meth:`_tester`
@@ -756,6 +756,37 @@ class AdditiveMagmas(Category_singleton):
                 from sage.misc.superseded import deprecation
                 deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
                 return self.zero()
+
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
+
+                Since this set is an additive magma it has a zero element and
+                hence is not empty. This method thus always returns ``False``.
+
+                EXAMPLES::
+
+                    sage: A = AdditiveAbelianGroup([3,3])
+                    sage: A in AdditiveMagmas()
+                    True
+                    sage: A.is_empty()
+                    False
+
+                    sage: B = CommutativeAdditiveMonoids().example()
+                    sage: B.is_empty()
+                    False
+
+                TESTS:
+
+                We check that the method `is_empty` is inherited from this
+                category in both examples above::
+
+                    sage: A.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                    sage: B.is_empty.__module__
+                    'sage.categories.additive_magmas'
+                """
+                return False
 
         class ElementMethods:
             # TODO: merge with the implementation in Element which currently

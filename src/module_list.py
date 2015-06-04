@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
 
@@ -12,7 +13,7 @@ SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
 ## Choose cblas library -- note -- make sure to update sage/misc/cython.py
 ## if you change this!!
-if os.environ.has_key('SAGE_BLAS'):
+if 'SAGE_BLAS' in os.environ:
     BLAS=os.environ['SAGE_BLAS']
     BLAS2=os.environ['SAGE_BLAS']
 elif os.path.exists('%s/lib/libatlas.so'%os.environ['SAGE_LOCAL']):
@@ -32,7 +33,7 @@ else:
 
 
 #########################################################
-### Commonly used definitions
+### Commonly used definitions and aliases
 #########################################################
 
 flint_depends = [SAGE_INC + '/flint/flint.h']
@@ -40,6 +41,8 @@ singular_depends = [SAGE_INC + '/libsingular.h']
 givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
+
+aliases = dict(INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"))
 
 #########################################################
 ### M4RI flags
@@ -275,7 +278,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('*', ['sage/ext/*.pyx']),
+    Extension('*', ['sage/ext/**/*.pyx']),
 
     ################################
     ##
@@ -389,6 +392,9 @@ ext_modules = [
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx'],
               libraries = ['gmp']),
+
+    Extension('sage.graphs.base.graph_backends',
+              sources = ['sage/graphs/base/graph_backends.pyx']),
 
     Extension('sage.graphs.base.static_dense_graph',
               sources = ['sage/graphs/base/static_dense_graph.pyx'],
@@ -1419,6 +1425,15 @@ ext_modules = [
     Extension('sage.quadratic_forms.ternary',
               sources = ['sage/quadratic_forms/ternary.pyx']),
 
+    ###############################
+    ##
+    ## sage.quivers
+    ##
+    ###############################
+
+    Extension('sage.quivers.paths',
+              sources = ['sage/quivers/paths.pyx']),
+
     ################################
     ##
     ## sage.repl
@@ -1460,6 +1475,13 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++',
               include_dirs = ['sage/libs/ntl/']),
+
+    OptionalExtension("sage.rings.complex_ball_acb",
+                      ["sage/rings/complex_ball_acb.pyx"],
+                      libraries=['arb', 'mpfi', 'mpfr'],
+                      include_dirs=[SAGE_INC + '/flint'],
+                      depends=flint_depends,
+                      package='arb'),
 
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
@@ -1558,10 +1580,6 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
-
-    Extension('sage.rings.universal_cyclotomic_field.universal_cyclotomic_field_c',
-              sources = ['sage/rings/universal_cyclotomic_field/universal_cyclotomic_field_c.pyx'],
-              libraries = ['gmp']),
 
     ################################
     ##
@@ -2006,9 +2024,6 @@ ext_modules = [
     ## sage.tests
     ##
     ################################
-
-    Extension('sage.tests.interrupt',
-              sources = ['sage/tests/interrupt.pyx', 'sage/tests/c_lib.c']),
 
     Extension('sage.tests.stl_vector',
               sources = ['sage/tests/stl_vector.pyx'],

@@ -3863,10 +3863,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         This is 1 if the order of vanishing of the L-function L(E,s) at 1
         is even, and -1 if it is odd.
 
-        INPUT::
+        INPUT:
 
-             - `p` -- optional, default (None); if given, return the local
-                      root number at `p`
+        - `p` -- optional, default (None); if given, return the local
+          root number at `p`
 
         EXAMPLES::
 
@@ -6664,7 +6664,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
     for i in range(1,r):
         RPi[i] = RPi[i-1] + RgensN[i]
 
-    tors_points_R = map(ER, tors_points)
+    tors_points_R = [ER(_) for _ in tors_points]
     while True:
         if all([n==0 for n in ni]):
              use_t(E(0))

@@ -291,7 +291,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare left and right
         """ 

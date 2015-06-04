@@ -276,7 +276,7 @@ class Tableau(ClonableList):
         # We must verify ``t`` is a list of iterables, and also
         # normalize it to be a list of tuples.
         try:
-            t = map(tuple, t)
+            t = [tuple(_) for _ in t]
         except TypeError:
             raise ValueError("A tableau must be a list of iterables.")
 
@@ -327,7 +327,7 @@ class Tableau(ClonableList):
         ClonableList.__init__(self, parent, t)
         # This dispatches the input verification to the :meth:`check`
         # method.
-    
+
     def __eq__(self, other):
         r"""
         Check whether ``self`` is equal to ``other``.
@@ -364,7 +364,7 @@ class Tableau(ClonableList):
             return list(self) == list(other)
         else:
             return list(self) == other
-    
+
     def __ne__(self, other):
         r"""
         Check whether ``self`` is unequal to ``other``.
@@ -467,9 +467,9 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in self])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
         else:
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in reversed(self)])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
 
     def _repr_compact(self):
         """
@@ -1717,7 +1717,7 @@ class Tableau(ClonableList):
         REFERENCES:
 
         .. [Ive2012] S. Iveson,
-           *Tableaux on `k + 1`-cores, reduced words for affine 
+           *Tableaux on `k + 1`-cores, reduced words for affine
            permutations, and `k`-Schur expansions*,
            Operators on `k`-tableaux and the `k`-Littlewood-Richardson
            rule for a special case,
@@ -3812,7 +3812,7 @@ class StandardTableau(SemistandardTableau):
         #Go through and add n+1 to the end of each
         #of the rows
         for row, _ in outside_corners:
-            new_t = map(list, self)
+            new_t = [list(_) for _ in self]
             if row != len(self):
                 new_t[row] += [n+1]
             else:
@@ -4264,7 +4264,7 @@ class Tableaux(UniqueRepresentation, Parent):
             except TypeError:
                 return False
             # any list of lists of partition shape is a tableau
-            return map(len, x) in _Partitions
+            return [len(_) for _ in x] in _Partitions
         else:
             return False
 
@@ -5044,7 +5044,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             sage: 1 in SST
             False
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len,x)==self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x]==self.shape
 
     def _repr_(self):
         """
@@ -5162,6 +5162,58 @@ class SemistandardTableaux_size(SemistandardTableaux):
         return (SemistandardTableaux.__contains__(self, x)
             and sum(map(len,x)) == self.size
             and max(max(row) for row in x) <= self.max_entry)
+
+    def random_element(self):
+        r"""
+        Generate a random :class:`SemistandardTableau` with uniform probability.
+
+        The RSK algorithm gives a bijection between symmetric `k\times k` matrices
+        of nonnegative integers that sum to `n` and semistandard tableaux with size `n`
+        and maximum entry `k`.
+
+        The number of `k\times k` symmetric matrices of nonnegative integers
+        having sum of elements on the diagonal `i` and sum of elements above
+        the diagonal `j` is `\binom{k + i - 1}{k - 1}\binom{\binom{k}{2} + j - 1}{\binom{k}{2} - 1}`.
+        We first choose the sum of the elements on the diagonal randomly weighted by the
+        number of matrices having that trace.  We then create random integer vectors
+        of length `k` having that sum and use them to generate a `k\times k` diagonal matrix.
+        Then we take a random integer vector of length `\binom{k}{2}` summing to half the
+        remainder and distribute it symmetrically to the remainder of the matrix.
+
+        Applying RSK to the random symmetric matrix gives us a pair of identical
+        :class:`SemistandardTableau` of which we choose the first.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux(6).random_element() # random
+            [[1, 1, 2], [3, 5, 5]]
+            sage: SemistandardTableaux(6, max_entry=7).random_element() # random
+            [[2, 4, 4, 6, 6, 6]]
+        """
+        from sage.rings.all import ZZ
+        from sage.rings.arith import binomial
+        from sage.matrix.constructor import diagonal_matrix
+        from sage.combinat.rsk import RSK
+        kchoose2m1 = self.max_entry * (self.max_entry - 1) / 2 - 1
+        km1 = self.max_entry - 1
+        weights = [binomial(self.size - i + km1, km1) * binomial((i/2) + kchoose2m1, kchoose2m1)
+                   for i in range(0, self.size + 1, 2)]
+        randpos = ZZ.random_element(sum(weights))
+        tot = weights[0]
+        pos = 0
+        while randpos >= tot:
+            pos += 1
+            tot += weights[pos]
+        # we now have pos elements over the diagonal and n - 2 * pos on it
+        m = diagonal_matrix(IntegerVectors(self.size - 2 * pos, self.max_entry).random_element())
+        above_diagonal = IntegerVectors(pos, kchoose2m1 + 1).random_element()
+        index = 0
+        for i in range(self.max_entry - 1):
+            for j in range(i + 1, self.max_entry):
+                m[i,j] = above_diagonal[index]
+                m[j,i] = above_diagonal[index]
+                index += 1
+        return RSK(m)[0]
 
     def cardinality(self):
         """
@@ -5334,7 +5386,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SST.cardinality()
             20
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len, x) == self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """
@@ -5347,6 +5399,56 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             'Semistandard tableaux of shape [2, 1] and maximum entry 5'
         """
         return "Semistandard tableaux of shape %s and maximum entry %s" %(str(self.shape), str(self.max_entry))
+
+    def random_element(self):
+        """
+        Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
+
+        Uses the algorithm from [Krat99]_ based on the Novelli-Pak-Stoyanovskii bijection
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
+            [[1, 1], [2, 3], [3], [5]]
+            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
+            [[1, 4], [5, 5], [6], [7]]
+
+
+        REFERENCES:
+
+        .. [Krat99] C. Krattenthaler,
+           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
+           Journal of Combinatorial Theory, Series A vol 88 Issue 1 (1999), 66-92,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+        """
+        from sage.misc.prandom import randint
+        from sage.combinat.partition import Partition
+        with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
+        t = [[self.max_entry+1]*i for i in with_sentinels]
+        for i,l in enumerate(self.shape):
+            for j in range(l):
+                content = j - i
+                t[i][j] = randint(1 - content, self.max_entry)
+        conj = Partition(self.shape).conjugate()
+        for i in xrange(len(conj) - 1, -1, -1):
+            for j in xrange(conj[i] - 1, -1, -1):
+                row = j
+                col = i
+                s = t[row][col]
+                x = t[row][col + 1]
+                y = t[row + 1][col]
+                while s > x or s >= y:
+                    if x + 1 < y:
+                        t[row][col] = x + 1
+                        t[row][col + 1] = s
+                        col += 1
+                    else:
+                        t[row][col] = y - 1
+                        t[row + 1][col] = s
+                        row += 1
+                    x = t[row][col + 1]
+                    y = t[row + 1][col]
+        return SemistandardTableau([l[:c] for l,c in zip(t, self.shape)])
 
     def cardinality(self, algorithm='hook'):
         r"""
@@ -5604,8 +5706,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             True
         """
         from sage.combinat.partition import Partition
-        return x in SemistandardTableaux_shape_weight(Partition(map(len,
-            x)), self.weight)
+        return x in SemistandardTableaux_shape_weight(Partition(
+            [len(_) for _ in x]), self.weight)
 
 ########################
 # Standard Tableaux    #
@@ -5952,7 +6054,7 @@ class StandardTableaux_size(StandardTableaux):
         EXAMPLES::
 
             sage: StandardTableaux(5).random_element() # random
-            [[1, 4, 5], [2], [3]] 
+            [[1, 4, 5], [2], [3]]
             sage: StandardTableaux(0).random_element()
             []
             sage: StandardTableaux(1).random_element()
@@ -6037,7 +6139,7 @@ class StandardTableaux_shape(StandardTableaux):
             sage: 1 in StandardTableaux([2,1,1])
             False
         """
-        return StandardTableaux.__contains__(self, x) and map(len,x) == self.shape
+        return StandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """

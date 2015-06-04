@@ -931,7 +931,7 @@ cdef class RealBall(RingElement):
         cdef arf_t  tmpr
         cdef mag_t  tmpm
 
-        super(RealBall, self).__init__(parent)
+        Element.__init__(self, parent)
 
         if mid is None:
             return
@@ -1419,7 +1419,7 @@ cdef class RealBall(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
 

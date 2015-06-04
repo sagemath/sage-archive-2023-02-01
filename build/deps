@@ -27,7 +27,6 @@ all-sage: \
      $(STANDARD_PACKAGES) \
      $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
-     $(INST)/csage \
      $(EXTCODE) \
      $(SCRIPTS)
 
@@ -118,23 +117,10 @@ $(INST)/sage: \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SIX) \
 		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(ZN_POLY) \
-		 $(INST)/csage
+		 $(INST)/$(ZN_POLY)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		$(PIPE) 'time $(MAKE) sage 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log' && \
-		touch $@; \
-	fi
-
-$(INST)/csage: $(INST)/$(SCONS) \
-       $(INST)/$(SAGE_MP_LIBRARY) \
-       $(INST)/$(NTL) \
-       $(INST)/$(PARI) \
-       $(INST)/$(PYTHON) \
-       $(CSAGE_SOURCES)
-	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
-		cd $(SAGE_SRC) && source bin/sage-env && \
-		$(PIPE) 'time $(MAKE) csage 2>&1' 'tee -a $(SAGE_LOGS)/csage-$(SAGE_VERSION).log' && \
 		touch $@; \
 	fi
 

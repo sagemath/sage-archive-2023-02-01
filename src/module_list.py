@@ -84,7 +84,7 @@ polybori_major_version = '0.8'
 # listed here will be added at the end of the list (without changing
 # their relative order). There is one exception: stdc++ is always put
 # at the very end of the list.
-library_order_list = ["csage",
+library_order_list = [
     "singular", "ec", "ecm",
     "linboxsage", "ntl", "iml", "linbox", "givaro",
     "gsl", "pari", "flint", "ratpoints", "ecl", "glpk", "ppl",

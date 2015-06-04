@@ -3846,7 +3846,7 @@ cdef class TernaryMatroid(LinearMatroid):
         Bitpacked version of ``coclosure``. 
         
         This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
-        The implementation should be more efficient for BinaryMatroid, due to the fact that in this class,
+        The implementation should be more efficient for TernaryMatroid, due to the fact that in this class,
         __fundamental_cocircuit is much faster than __fundamental_circuit.
         """
         bitset_complement(R, F)
@@ -4667,7 +4667,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
         Bitpacked version of ``coclosure``. 
         
         This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
-        The implementation should be more efficient for BinaryMatroid, due to the fact that in this class,
+        The implementation should be more efficient for QuaternaryMatroid, due to the fact that in this class,
         __fundamental_cocircuit is much faster than __fundamental_circuit.
         """
         bitset_complement(R, F)

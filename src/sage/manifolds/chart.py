@@ -306,7 +306,7 @@ class Chart(UniqueRepresentation, SageObject):
                                 # subsets of self._domain, with the
                                 # subsets as keys
         # The null function of the coordinates:
-        #*# self._zero_function = ZeroFunctionChart(self)
+        #*# self._zero_function = CoordFunctionSymb(self, 0)
         # Expression in self of the zero scalar fields of open sets containing
         # the domain of self:
         for dom in self._domain._supersets:
@@ -452,6 +452,23 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         return self._domain
+
+    def manifold(self):
+        r"""
+        Return the manifold on which the chart is defined.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: U = M.open_subset('U')
+            sage: X.<x,y> = U.chart()
+            sage: X.manifold()
+            2-dimensional topological manifold M
+            sage: X.domain()
+            Open subset U of the 2-dimensional topological manifold M
+
+        """
+        return self._manifold
 
     def add_restrictions(self, restrictions):
         r"""
@@ -606,8 +623,7 @@ class Chart(UniqueRepresentation, SageObject):
             False
 
         """
-        n = len(coordinates)
-        if n != self._manifold._dim:
+        if len(coordinates) != self._domain._dim:
             return False
         if 'parameters' in kwds:
             parameters = kwds['parameters']
@@ -615,8 +631,7 @@ class Chart(UniqueRepresentation, SageObject):
             parameters = None
         # Check of restrictions:
         if self._restrictions != []:
-            substitutions = dict([(self._xx[j], coordinates[j]) for j in
-                                                                    range(n)])
+            substitutions = dict(zip(self._xx, coordinates))
             if parameters:
                 substitutions.update(parameters)
             for restrict in self._restrictions:
@@ -755,7 +770,6 @@ class Chart(UniqueRepresentation, SageObject):
         if not isinstance(transformations, (tuple, list)):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
-
 
 #*****************************************************************************
 
@@ -1095,7 +1109,7 @@ class RealChart(Chart):
                                 # subsets of self._domain, with the
                                 # subsets as keys
         # The null function of the coordinates:
-        #*# self._zero_function = ZeroFunctionChart(self)
+        #*# self._zero_function = CoordFunctionSymb(self, 0)
         # Expression in self of the zero scalar fields of open sets containing
         # the domain of self:
         for dom in self._domain._supersets:
@@ -1526,8 +1540,7 @@ class RealChart(Chart):
                     return False
         # Check of additional restrictions:
         if self._restrictions != []:
-            substitutions = dict([(self._xx[j], coordinates[j]) for j in
-                                                                    range(n)])
+            substitutions = dict(zip(self._xx, coordinates))
             if parameters:
                 substitutions.update(parameters)
             for restrict in self._restrictions:
@@ -1978,6 +1991,12 @@ class CoordChange(SageObject):
             \left\{\begin{array}{lcl} x & = & r \cos\left({\phi}\right) \\
              y & = & r \sin\left({\phi}\right) \end{array}\right.
 
+        A shortcut is ``disp()``::
+
+            sage: spher_to_cart.disp()
+            x = r*cos(ph)
+            y = r*sin(ph)
+
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
@@ -2002,4 +2021,6 @@ class CoordChange(SageObject):
         if n2 > 1:
             rlatex += r"\right."
         return FormattedExpansion(rtxt, rlatex)
+
+    disp = display
 

@@ -41,6 +41,7 @@ from sage.sets.all import Set
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 from sage.misc.misc import exists
+from random import randint
 
 class ClusterSeed(SageObject):
     r"""
@@ -920,25 +921,64 @@ class ClusterSeed(SageObject):
         r"""
         Return the vertex of the cluster polynomial with highest degree in the denominator.
         
+        OUTPUT:
+        
+        Returns an integer.
+        
         EXAMPLES::
         
             sage: B = matrix([[0,-1,0,-1,1,1],[1,0,1,0,-1,-1],[0,-1,0,-1,1,1],[1,0,1,0,-1,-1],[-1,1,-1,1,0,0],[-1,1,-1,1,0,0]])
-            sage: C = ClusterSeed(B).principal_extension()
-            sage: C.mutate([0,1,2,4,3,2,5,4,3])
+            sage: C = ClusterSeed(B).principal_extension(); C.mutate([0,1,2,4,3,2,5,4,3])
             sage: C.highest_degree_denominator()
             5
         """
         degree = 0
-        vertex_to_mutate = 0
+        vertex_to_mutate = []
         for i in list(enumerate(self.cluster())):
             vari = i[1]
             vertex = i[0]
             denom = vari.denominator()
             cur_vertex_degree = denom.degree()
+            if degree == cur_vertex_degree:
+                vertex_to_mutate.append(vertex)
             if degree < cur_vertex_degree:
                 degree = cur_vertex_degree
-                vertex_to_mutate = vertex
-        return vertex_to_mutate
+                vertex_to_mutate = [vertex]
+                
+        return_key = randint(0,len(vertex_to_mutate) - 1)
+        return vertex_to_mutate[return_key]
+    
+    def smallest_c_vector(self):
+        r"""
+        Return the vertex with the smallest c vector
+        
+        OUTPUT:
+        
+        Returns an integer.
+        
+        EXAMPLES::
+            sage: B = matrix([[0,2],[-2,0]])
+            sage: C = ClusterSeed(B).principal_extension();
+            sage: C.mutate(0)
+            sage: C.smallest_c_vector()
+            0
+
+        """
+        min_sum = infinity
+        vertex_to_mutate = []
+        
+        for i in list(enumerate(self.c_matrix().columns())):
+            col = i[1]
+            vertex=i[0]
+            cur_vertex_sum = abs(sum(col))
+            if min_sum == cur_vertex_sum:
+                vertex_to_mutate.append(vertex)
+            if min_sum > cur_vertex_sum:
+                min_sum = cur_vertex_sum
+                vertex_to_mutate = [vertex]
+        
+        return_key = randint(0,len(vertex_to_mutate) - 1)
+        return vertex_to_mutate[return_key]
     
     def mutate(self, sequence, inplace=True):
         r"""
@@ -1035,6 +1075,8 @@ class ClusterSeed(SageObject):
                 sequence = self.urban_renewals()
             elif sequence is 'highest_degree_denominator':
                 sequence = self.highest_degree_denominator()
+            elif sequence is 'smallest_c_vector':
+                sequence = self.smallest_c_vector()
             else:
                 sequence = getattr(self.quiver(), sequence)()
 

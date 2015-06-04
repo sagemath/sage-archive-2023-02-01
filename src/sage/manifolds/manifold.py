@@ -275,6 +275,8 @@ from sage.categories.sets_cat import Sets
 #*# After #18175, this should become
 # from sage.categories.manifolds import Manifolds
 from sage.manifolds.subset import TopManifoldSubset
+from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
+
 
 class TopManifold(TopManifoldSubset):
     r"""
@@ -479,9 +481,9 @@ class TopManifold(TopManifoldSubset):
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
         # algebra of scalar fields defined on self:
-        #*# self._scalar_field_algebra = ScalarFieldAlgebra(self)
+        self._scalar_field_algebra = ScalarFieldAlgebra(self)
         # the zero scalar field:
-        #*# self._zero_scalar_field = self._scalar_field_algebra.zero()
+        self._zero_scalar_field = self._scalar_field_algebra.zero()
         # the identity map on self:
         #*# self._identity_map = Hom(self, self).one()
 
@@ -1330,529 +1332,208 @@ class TopManifold(TopManifoldSubset):
             return RealChart(self, coordinates=coordinates, names=names)
         return Chart(self, coordinates=coordinates, names=names)
 
-    #~ def scalar_field_algebra(self):
-        #~ r"""
-        #~ Returns the algebra of scalar fields defined on ``self``.
-#~
-        #~ See :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
-        #~ for a complete documentation.
-#~
-        #~ OUTPUT:
-#~
-        #~ - instance of
-          #~ :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
-          #~ representing the algebra `C^\infty(U)` of all scalar fields defined
-          #~ on `U` = ``self``.
-#~
-        #~ EXAMPLE:
-#~
-        #~ Scalar algebra of a 3-dimensional open subset::
-#~
-            #~ sage: TopManifold._clear_cache_() # for doctests only
-            #~ sage: M = TopManifold(3, 'M')
-            #~ sage: U = M.open_subset('U')
-            #~ sage: CU = U.scalar_field_algebra(); CU
-            #~ algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
-            #~ sage: CU.category()
-            #~ Category of commutative algebras over Symbolic Ring
-            #~ sage: CU.zero()
-            #~ scalar field 'zero' on the open subset 'U' of the 3-dimensional manifold 'M'
-#~
-        #~ """
-        #~ return self._scalar_field_algebra
-#~
-    #~ def _Hom_(self, other, category=None):
-        #~ r"""
-        #~ Construct the set of morphisms (i.e. continuous maps)
-        #~ ``self`` --> ``other``.
-#~
-        #~ INPUT:
-#~
-        #~ - ``other`` -- an open subset of some manifold
-        #~ - ``category`` -- (default: ``None``) not used here (to ensure
-          #~ compatibility with generic hook ``_Hom_``)
-#~
-        #~ OUTPUT:
-#~
-        #~ - the homset Hom(U,V), where U is ``self`` and V is ``other``
-#~
-        #~ See class
-        #~ :class:`~sage.manifolds.manifold_homset.ManifoldHomset`
-        #~ for more documentation.
-#~
-        #~ """
-        #~ from sage.manifolds.manifold_homset import TopManifoldHomset
-        #~ return TopManifoldHomset(self, other)
-#~
-    #~ def scalar_field(self, coord_expression=None, chart=None, name=None,
-                     #~ latex_name=None):
-        #~ r"""
-        #~ Define a scalar field on the open set.
-#~
-        #~ See :class:`~sage.manifolds.scalarfield.ScalarField` for a
-        #~ complete documentation.
-#~
-        #~ INPUT:
-#~
-        #~ - ``coord_expression`` -- (default: ``None``) coordinate expression(s)
-          #~ of the scalar field; this can be either
-#~
-          #~ - a single coordinate expression; if the argument ``chart`` is
-            #~ ``'all'``, this expression is set to all the charts defined
-            #~ on the open set; otherwise, the expression is set in the
-            #~ specific chart provided by the argument ``chart``
-          #~ - a dictionary of coordinate expressions, with the charts as keys.
-#~
-          #~ If ``coord_expression`` is ``None`` or does not fully specified the
-          #~ scalar field, other coordinate expressions can be added subsequently
-          #~ by means of the methods
-          #~ :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
-          #~ :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`,
-          #~ or :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
-        #~ - ``chart`` -- (default: ``None``) chart defining the coordinates used
-          #~ in ``coord_expression`` when the latter is a single coordinate
-          #~ expression; if none is provided (default), the default chart of the
-          #~ open set is assumed. If ``chart=='all'``, ``coord_expression`` is
-          #~ assumed to be independent of the chart (constant scalar field).
-        #~ - ``name`` -- (default: ``None``) name given to the scalar field
-        #~ - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
-          #~ field; if none is provided, the LaTeX symbol is set to ``name``
-#~
-        #~ OUTPUT:
-#~
-        #~ - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          #~ representing the defined scalar field.
-#~
-        #~ EXAMPLES:
-#~
-        #~ A scalar field defined by its coordinate expression in the open
-        #~ set's default chart::
-#~
-            #~ sage: TopManifold._clear_cache_() # for doctests only
-            #~ sage: M = TopManifold(3, 'M')
-            #~ sage: U = M.open_subset('U')
-            #~ sage: c_xyz.<x,y,z> = U.chart()
-            #~ sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
-            #~ scalar field 'F' on the open subset 'U' of the 3-dimensional manifold 'M'
-            #~ sage: f.display()
-            #~ F: U --> R
-               #~ (x, y, z) |--> cos(y)*sin(x) + z
-            #~ sage: f.parent()
-            #~ algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
-            #~ sage: f in U.scalar_field_algebra()
-            #~ True
-#~
-        #~ Equivalent definition with the chart specified::
-#~
-            #~ sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
-            #~ sage: f.display()
-            #~ F: U --> R
-               #~ (x, y, z) |--> cos(y)*sin(x) + z
-#~
-        #~ Equivalent definition with a dictionary of coordinate expression(s)::
-#~
-            #~ sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
-            #~ sage: f.display()
-            #~ F: U --> R
-               #~ (x, y, z) |--> cos(y)*sin(x) + z
-#~
-        #~ See the documentation of class
-        #~ :class:`~sage.manifolds.scalarfield.ScalarField` for more
-        #~ examples.
-#~
-        #~ .. SEEALSO::
-#~
-            #~ :meth:`constant_scalar_field`, :meth:`zero_scalar_field`
-#~
-        #~ """
-        #~ if isinstance(coord_expression, dict):
-            #~ # check validity of entry
-            #~ for chart in coord_expression:
-                #~ if not chart._domain.is_subset(self):
-                    #~ raise ValueError("The " + str(chart) + " is not defined " +
-                                     #~ "on some subset of the " + str(self))
-        #~ elif coord_expression is not None and chart != 'all':
-            #~ # coord_expression is valid only in a specific chart
-            #~ if chart is None:
-                #~ chart = self._def_chart
-            #~ coord_expression = {chart: coord_expression}
-        #~ return self.scalar_field_algebra()._element_constructor_(
-                                            #~ coord_expression=coord_expression,
-                                            #~ name=name, latex_name=latex_name)
-#~
-    #~ def constant_scalar_field(self, value, name=None, latex_name=None):
-        #~ r"""
-        #~ Define a constant scalar field on the open set.
-#~
-        #~ INPUT:
-#~
-        #~ - ``value`` -- constant value of the scalar field, either a numerical
-          #~ value or a symbolic expression not involving any chart coordinates
-        #~ - ``name`` -- (default: ``None``) name given to the scalar field
-        #~ - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
-          #~ field; if none is provided, the LaTeX symbol is set to ``name``
-#~
-        #~ OUTPUT:
-#~
-        #~ - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          #~ representing the scalar field whose constant value is ``value``
-#~
-        #~ EXAMPLES:
-#~
-        #~ A constant scalar field on the 2-sphere::
-#~
-            #~ sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
-            #~ sage: U = M.open_subset('U') # complement of the North pole
-            #~ sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            #~ sage: V = M.open_subset('V') # complement of the South pole
-            #~ sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
-            #~ sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            #~ sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            #~ ....:                                intersection_name='W',
-            #~ ....:                                restrictions1= x^2+y^2!=0,
-            #~ ....:                                restrictions2= u^2+v^2!=0)
-            #~ sage: uv_to_xy = xy_to_uv.inverse()
-            #~ sage: f = M.constant_scalar_field(1); f
-            #~ scalar field on the 2-dimensional manifold 'M'
-            #~ sage: f.display()
-            #~ M --> R
-            #~ on U: (x, y) |--> 1
-            #~ on V: (u, v) |--> 1
-#~
-        #~ We have::
-#~
-            #~ sage: f.restrict(U) == U.constant_scalar_field(1)
-            #~ True
-            #~ sage: M.constant_scalar_field(0) is M.zero_scalar_field()
-            #~ True
-#~
-        #~ .. SEEALSO::
-#~
-            #~ :meth:`zero_scalar_field`
-        #~ """
-        #~ return self.scalar_field_algebra()._element_constructor_(
-                                              #~ coord_expression=value,
-                                              #~ name=name, latex_name=latex_name)
-#~
-    #~ def zero_scalar_field(self):
-        #~ r"""
-        #~ Return the zero scalar field defined on the open set.
-#~
-        #~ EXAMPLE::
-#~
-            #~ sage: TopManifold._clear_cache_() # for doctests only
-            #~ sage: M = TopManifold(2, 'M')
-            #~ sage: X.<x,y> = M.chart()
-            #~ sage: f = M.zero_scalar_field(); f
-            #~ scalar field 'zero' on the 2-dimensional manifold 'M'
-            #~ sage: f.display()
-            #~ zero: M --> R
-               #~ (x, y) |--> 0
-            #~ sage: f.parent()
-            #~ algebra of scalar fields on the 2-dimensional manifold 'M'
-            #~ sage: f is M.scalar_field_algebra().zero()
-            #~ True
-#~
-        #~ """
-        #~ return self._zero_scalar_field
-#~
-#~
-    #~ def curve(self, coord_expression, param, chart=None, name=None,
-              #~ latex_name=None):
-        #~ r"""
-        #~ Define a curve in ``self``.
-#~
-        #~ See :class:`~sage.manifolds.curve.ManifoldCurve` for details.
-#~
-        #~ INPUT:
-#~
-        #~ - ``coord_expression`` -- either
-#~
-          #~ - (i) a dictionary whose keys are charts on ``self`` and values
-            #~ the coordinate expressions (as lists or tuples) of the curve in
-            #~ the given chart
-          #~ - (ii) a single coordinate expression in a given chart on ``self``,
-            #~ the latter being provided by the argument ``chart``
-#~
-          #~ In both cases, if the dimension of the arrival manifold is 1,
-          #~ a single coordinate expression can be passed instead of a tuple with
-          #~ a single element
-        #~ - ``param`` -- a tuple of the type ``(t, t_min, t_max)``, where ``t``
-          #~ is the curve parameter used in ``coord_expression``, ``t_min`` is its
-          #~ minimal value and ``t_max`` its maximal value; if ``t_min=-Infinity``
-          #~ and ``t_max=+Infinity``, they can be omitted and ``t`` can be passed
-          #~ for ``param``, instead of the tuple ``(t, t_min, t_max)``
-        #~ - ``chart`` -- (default: ``None``) chart on ``self`` used for case (ii)
-          #~ above; if ``None`` the default chart of ``self`` is assumed.
-        #~ - ``name`` -- (default: ``None``) string; symbol given to the curve
-        #~ - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-          #~ the curve; if none is provided, ``name`` will be used
-#~
-        #~ OUTPUT:
-#~
-        #~ - instance of
-          #~ :class:`~sage.manifolds.curve.ManifoldCurve`
-#~
-        #~ EXAMPLES:
-#~
-        #~ The lemniscate of Gerono in the 2-dimensional Euclidean plane::
-#~
-            #~ sage: M = TopManifold(2, 'M')
-            #~ sage: X.<x,y> = M.chart()
-            #~ sage: R.<t> = RealLine()
-            #~ sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c'); c
-            #~ Curve 'c' in the 2-dimensional manifold 'M'
-#~
-        #~ The same definition with the coordinate expression passed as a
-        #~ dictionary::
-#~
-            #~ sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c'); c
-            #~ Curve 'c' in the 2-dimensional manifold 'M'
-#~
-        #~ An example of definition with ``t_min`` and ``t_max`` omitted: a helix
-        #~ in `\RR^3`::
-#~
-            #~ sage: R3 = TopManifold(3, 'R^3')
-            #~ sage: X.<x,y,z> = R3.chart()
-            #~ sage: c = R3.curve([cos(t), sin(t), t], t, name='c'); c
-            #~ Curve 'c' in the 3-dimensional manifold 'R^3'
-            #~ sage: c.domain() # check that t is unbounded
-            #~ field R of real numbers
-#~
-        #~ See the documentation of
-        #~ :class:`~sage.manifolds.curve.ManifoldCurve` for more
-        #~ examples.
-#~
-        #~ """
-        #~ from sage.rings.infinity import Infinity
-        #~ from sage.manifolds.smooth.manifold import RealLine
-        #~ if not isinstance(param, (tuple, list)):
-            #~ param = (param, -Infinity, Infinity)
-        #~ elif len(param) != 3:
-            #~ raise TypeError("the argument 'param' must be of the type " +
-                            #~ "(t, t_min, t_max)")
-        #~ t = param[0]
-        #~ t_min = param[1]
-        #~ t_max = param[2]
-        #~ real_field = RealLine(names=(repr(t),))
-        #~ interval = real_field.open_interval(t_min, t_max)
-        #~ curve_set = Hom(interval, self)
-        #~ if not isinstance(coord_expression, dict):
-            #~ # Turn coord_expression into a dictionary:
-            #~ if chart is None:
-                #~ chart = self._def_chart
-            #~ elif chart not in self._atlas:
-                #~ raise ValueError("the {} has not been".format(chart) +
-                                     #~ " defined on the {}".format(self))
-            #~ if isinstance(coord_expression, (tuple, list)):
-                #~ coord_expression = {chart: coord_expression}
-            #~ else:
-                #~ # case self.dim()=1
-                #~ coord_expression = {chart: (coord_expression,)}
-        #~ return curve_set(coord_expression, name=name, latex_name=latex_name)
-#~
-    #~ def continuous_mapping(self, codomain, coord_functions=None, chart1=None,
-                     #~ chart2=None, name=None, latex_name=None):
-        #~ r"""
-        #~ Define a continuous mapping between ``self`` and another
-        #~ subset (possibly on another manifold).
-#~
-        #~ See :class:`~sage.manifolds.diffmapping.DiffMapping` for a
-        #~ complete documentation.
-#~
-        #~ INPUT:
-#~
-        #~ - ``codomain`` -- mapping's codomain (the arrival manifold or some
-          #~ subset of it)
-        #~ - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
-          #~ either
-#~
-          #~ - (i) a dictionary of
-            #~ the coordinate expressions (as lists (or tuples) of the
-            #~ coordinates of the image expressed in terms of the coordinates of
-            #~ the considered point) with the pairs of charts (chart1, chart2)
-            #~ as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            #~ ``codomain``)
-          #~ - (ii) a single coordinate expression in a given pair of charts, the
-            #~ latter being provided by the arguments ``chart1`` and ``chart2``
-#~
-          #~ In both cases, if the dimension of the arrival manifold is 1,
-          #~ a single coordinate expression can be passed instead of a tuple with
-          #~ a single element
-        #~ - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          #~ on ``self`` defining the start coordinates involved in
-          #~ ``coord_functions`` for case (ii); if none is provided, the
-          #~ coordinates are assumed to refer to the default chart of ``self``
-        #~ - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          #~ on ``codomain`` defining the arrival coordinates involved in
-          #~ ``coord_functions`` for case (ii); if none is provided, the
-          #~ coordinates are assumed to refer to the default chart of ``codomain``
-        #~ - ``name`` -- (default: ``None``) name given to the differentiable
-          #~ mapping
-        #~ - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          #~ differentiable mapping; if none is provided, the LaTeX symbol is set to
-          #~ ``name``
-#~
-        #~ OUTPUT:
-#~
-        #~ - the differentiable mapping, as an instance of
-          #~ :class:`~sage.manifolds.diffmapping.DiffMapping`
-#~
-        #~ EXAMPLES:
-#~
-        #~ A mapping between an open subset of `S^2` covered by regular spherical
-        #~ coordinates and `\RR^3`::
-#~
-            #~ sage: TopManifold._clear_cache_() # for doctests only
-            #~ sage: M = TopManifold(2, 'S^2')
-            #~ sage: U = M.open_subset('U')
-            #~ sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
-            #~ sage: N = TopManifold(3, 'R^3', r'\RR^3')
-            #~ sage: c_cart.<x,y,z> = N.chart()  # Cartesian coord. on R^3
-            #~ sage: Phi = U.diff_mapping(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
-            #~ ....:                      name='Phi', latex_name=r'\Phi'); Phi
-            #~ differentiable mapping 'Phi' from the open subset 'U' of the
-             #~ 2-dimensional manifold 'S^2' to the 3-dimensional manifold 'R^3'
-#~
-        #~ The same definition, but with a dictionary with pairs of charts as
-        #~ keys (case (i) above)::
-#~
-            #~ sage: Phi1 = U.diff_mapping(N,
-            #~ ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph), cos(th))},
-            #~ ....:        name='Phi', latex_name=r'\Phi')
-            #~ sage: Phi1 == Phi
-            #~ True
-#~
-        #~ The differentiable mapping acting on a point::
-#~
-            #~ sage: p = U.point((pi/2, pi)); p
-            #~ point on 2-dimensional manifold 'S^2'
-            #~ sage: Phi(p)
-            #~ point on 3-dimensional manifold 'R^3'
-            #~ sage: Phi(p).coord(c_cart)
-            #~ (-1, 0, 0)
-            #~ sage: Phi1(p) == Phi(p)
-            #~ True
-#~
-        #~ See the documentation of class
-        #~ :class:`~sage.manifolds.diffmapping.DiffMapping` for more
-        #~ examples.
-#~
-        #~ """
-        #~ homset = Hom(self, codomain)
-        #~ if coord_functions is None:
-            #~ coord_functions = {}
-        #~ if not isinstance(coord_functions, dict):
-            #~ # Turn coord_functions into a dictionary:
-            #~ if chart1 is None:
-                #~ chart1 = self._def_chart
-            #~ elif chart1 not in self._atlas:
-                #~ raise ValueError("{} is not a chart ".format(chart1) +
-                                 #~ "defined on the {}".format(self))
-            #~ if chart2 is None:
-                #~ chart2 = codomain._def_chart
-            #~ elif chart2 not in codomain._atlas:
-                #~ raise ValueError("{} is not a chart ".format(chart2) +
-                                 #~ " defined on the {}".format(codomain))
-            #~ coord_functions = {(chart1, chart2): coord_functions}
-        #~ return homset(coord_functions, name=name, latex_name=latex_name)
-#~
-    #~ def homeomorphism(self, codomain, coord_functions=None, chart1=None,
-                       #~ chart2=None, name=None, latex_name=None):
-        #~ r"""
-        #~ Define a homeomorphism between ``self`` and another open subset
-        #~ (possibly on another manifold).
-#~
-        #~ See :class:`~sage.manifolds.diffmapping.DiffMapping` for a
-        #~ complete documentation.
-#~
-        #~ INPUT:
-#~
-        #~ - ``codomain`` -- mapping's codomain (the arrival manifold or some
-          #~ subset of it)
-        #~ - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
-          #~ either
-#~
-          #~ - (i) a dictionary of
-            #~ the coordinate expressions (as lists (or tuples) of the
-            #~ coordinates of the image expressed in terms of the coordinates of
-            #~ the considered point) with the pairs of charts (chart1, chart2)
-            #~ as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            #~ ``codomain``)
-          #~ - (ii) a single coordinate expression in a given pair of charts, the
-            #~ latter being provided by the arguments ``chart1`` and ``chart2``
-#~
-          #~ In both cases, if the dimension of the arrival manifold is 1,
-          #~ a single coordinate expression can be passed instead of a tuple with
-          #~ a single element
-        #~ - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          #~ on ``self`` defining the start coordinates involved in
-          #~ ``coord_functions`` for case (ii); if none is provided, the
-          #~ coordinates are assumed to refer to the default chart of ``self``
-        #~ - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          #~ on ``codomain`` defining the arrival coordinates involved in
-          #~ ``coord_functions`` for case (ii); if none is provided, the
-          #~ coordinates are assumed to refer to the default chart of ``codomain``
-        #~ - ``name`` -- (default: ``None``) name given to the diffeomorphism
-        #~ - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          #~ diffeomorphism; if none is provided, the LaTeX symbol is set to
-          #~ ``name``
-#~
-        #~ OUTPUT:
-#~
-        #~ - the diffeomorphism, as an instance of
-          #~ :class:`~sage.manifolds.diffmapping.DiffMapping`
-#~
-        #~ EXAMPLE:
-#~
-        #~ A diffeomorphism between two 2-dimensional subsets::
-#~
-            #~ sage: TopManifold._clear_cache_() # for doctests only
-            #~ sage: M = TopManifold(2, 'M', r'{\cal M}')
-            #~ sage: U = M.open_subset('U')
-            #~ sage: c_xv.<x,y> = U.chart(r'x:(-pi/2,+oo) y:(-pi/2,+oo)')
-            #~ sage: N = TopManifold(2, 'N', r'{\cal N}')
-            #~ sage: V = N.open_subset('V')
-            #~ sage: c_zt.<z,t> = V.chart(r'z t')
-            #~ sage: Phi = U.diffeomorphism(V, (arctan(x), arctan(y)), name='Phi',
-            #~ ....:                        latex_name=r'\Phi')
-#~
-        #~ See the documentation of class
-        #~ :class:`~sage.manifolds.diffmapping.DiffMapping` for more
-        #~ examples.
-#~
-        #~ """
-        #~ homset = Hom(self, codomain)
-        #~ if coord_functions is None:
-            #~ coord_functions = {}
-        #~ if not isinstance(coord_functions, dict):
-            #~ # Turn coord_functions into a dictionary:
-            #~ if chart1 is None:
-                #~ chart1 = self._def_chart
-            #~ elif chart1 not in self._atlas:
-                #~ raise ValueError("{} is not a chart ".format(chart1) +
-                                 #~ "defined on the {}".format(self))
-            #~ if chart2 is None:
-                #~ chart2 = codomain._def_chart
-            #~ elif chart2 not in codomain._atlas:
-                #~ raise ValueError("{} is not a chart ".format(chart2) +
-                                 #~ " defined on the {}".format(codomain))
-            #~ coord_functions = {(chart1, chart2): coord_functions}
-        #~ return homset(coord_functions, name=name, latex_name=latex_name,
-                      #~ is_diffeomorphism=True)
-#~
-    #~ def identity_map(self):
-        #~ r"""
-        #~ Identity map on ``self``.
-#~
-        #~ See :class:`~sage.manifolds.diffmapping.DiffMapping` for a
-        #~ complete documentation.
-#~
-        #~ OUTPUT:
-#~
-        #~ - the identity map, as an instance of
-          #~ :class:`~sage.manifolds.diffmapping.DiffMapping`
-#~
-        #~ """
-        #~ return self._identity_map
+    def scalar_field_algebra(self):
+        r"""
+        Returns the algebra of scalar fields defined the manifold
+
+        See :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+        for a complete documentation.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`
+          representing the algebra `C^0(U)` of all scalar fields defined
+          on `U` = ``self``.
+
+        EXAMPLE:
+
+        Scalar algebra of a 3-dimensional open subset::
+
+            sage: TopManifold._clear_cache_() # for doctests only
+            sage: M = TopManifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: CU = U.scalar_field_algebra() ; CU
+            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: CU.category()
+            Category of commutative algebras over Symbolic Ring
+            sage: CU.zero()
+            scalar field 'zero' on the open subset 'U' of the 3-dimensional manifold 'M'
+
+        """
+        return self._scalar_field_algebra
+
+    def scalar_field(self, coord_expression=None, chart=None, name=None,
+                     latex_name=None):
+        r"""
+        Define a scalar field on the manifold.
+
+        See :class:`~sage.manifolds.scalarfield.ScalarField` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``coord_expression`` -- (default: ``None``) coordinate expression(s)
+          of the scalar field; this can be either
+
+          - a single coordinate expression; if the argument ``chart`` is
+            ``'all'``, this expression is set to all the charts defined
+            on the open set; otherwise, the expression is set in the
+            specific chart provided by the argument ``chart``
+          - a dictionary of coordinate expressions, with the charts as keys.
+
+          If ``coord_expression`` is ``None`` or does not fully specified the
+          scalar field, other coordinate expressions can be added subsequently
+          by means of the methods
+          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
+          :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`,
+          or :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
+        - ``chart`` -- (default: ``None``) chart defining the coordinates used
+          in ``coord_expression`` when the latter is a single coordinate
+          expression; if none is provided (default), the default chart of the
+          open set is assumed. If ``chart=='all'``, ``coord_expression`` is
+          assumed to be independent of the chart (constant scalar field).
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
+          field; if none is provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the defined scalar field.
+
+        EXAMPLES:
+
+        A scalar field defined by its coordinate expression in the open
+        set's default chart::
+
+            sage: TopManifold._clear_cache_() # for doctests only
+            sage: M = TopManifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
+            scalar field 'F' on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+            sage: f.parent()
+            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: f in U.scalar_field_algebra()
+            True
+
+        Equivalent definition with the chart specified::
+
+            sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+
+        Equivalent definition with a dictionary of coordinate expression(s)::
+
+            sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
+            sage: f.display()
+            F: U --> R
+               (x, y, z) |--> cos(y)*sin(x) + z
+
+        See the documentation of class
+        :class:`~sage.manifolds.scalarfield.ScalarField` for more
+        examples.
+
+        .. SEEALSO::
+
+            :meth:`constant_scalar_field`, :meth:`zero_scalar_field`
+
+        """
+        if isinstance(coord_expression, dict):
+            # check validity of entry
+            for chart in coord_expression:
+                if not chart._domain.is_subset(self):
+                    raise ValueError("the {} is not defined ".formart(chart) +
+                                     "on some subset of the " + str(self))
+        elif coord_expression is not None and chart != 'all':
+            # coord_expression is valid only in a specific chart
+            if chart is None:
+                chart = self._def_chart
+            coord_expression = {chart: coord_expression}
+        return self.scalar_field_algebra()._element_constructor_(
+                                            coord_expression=coord_expression,
+                                            name=name, latex_name=latex_name)
+
+    def constant_scalar_field(self, value, name=None, latex_name=None):
+        r"""
+        Define a constant scalar field on the manifold.
+
+        INPUT:
+
+        - ``value`` -- constant value of the scalar field, either a numerical
+          value or a symbolic expression not involving any chart coordinates
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          scalar field; if none is provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the scalar field whose constant value is ``value``
+
+        EXAMPLES:
+
+        A constant scalar field on the 2-sphere::
+
+            sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W',
+            ....:                                restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: f = M.constant_scalar_field(1) ; f
+            scalar field on the 2-dimensional manifold 'M'
+            sage: f.display()
+            M --> R
+            on U: (x, y) |--> 1
+            on V: (u, v) |--> 1
+
+        We have::
+
+            sage: f.restrict(U) == U.constant_scalar_field(1)
+            True
+            sage: M.constant_scalar_field(0) is M.zero_scalar_field()
+            True
+
+        .. SEEALSO::
+
+            :meth:`zero_scalar_field`
+        """
+        return self.scalar_field_algebra()._element_constructor_(
+                                              coord_expression=value,
+                                              name=name, latex_name=latex_name)
+
+    def zero_scalar_field(self):
+        r"""
+        Return the zero scalar field defined on the manifold.
+
+        EXAMPLE::
+
+            sage: TopManifold._clear_cache_() # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.zero_scalar_field() ; f
+            scalar field 'zero' on the 2-dimensional manifold 'M'
+            sage: f.display()
+            zero: M --> R
+               (x, y) |--> 0
+            sage: f.parent()
+            algebra of scalar fields on the 2-dimensional manifold 'M'
+            sage: f is M.scalar_field_algebra().zero()
+            True
+
+        """
+        return self._zero_scalar_field
+
+
 

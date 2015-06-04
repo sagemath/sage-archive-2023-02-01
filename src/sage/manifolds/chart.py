@@ -624,8 +624,7 @@ class Chart(UniqueRepresentation, SageObject):
             False
 
         """
-        n = len(coordinates)
-        if n != self._domain._dim:
+        if len(coordinates) != self._domain._dim:
             return False
         if 'parameters' in kwds:
             parameters = kwds['parameters']
@@ -1796,10 +1795,9 @@ class CoordChange(SageObject):
                              + "must be provided")
         self._chart1 = chart1
         self._chart2 = chart2
-        #*# when MultiFunctionChart will be implemented:
-        # self._transf = MultiFunctionChart(chart1, *transformations)
-        #*# for now:
-        self._transf = transformations
+        # The coordinate transformations are implemented via the class
+        # MultiCoordFunction:
+        self._transf = chart1.multifunction(*transformations)
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
         # is added to the subset (and supersets) dictionary and the
@@ -1870,11 +1868,7 @@ class CoordChange(SageObject):
             (3, -1)
 
         """
-        #*# for now
-        substitutions = dict([(self._chart1._xx[j], coords[j]) for j in
-                                                              range(self._n1)])
-        return tuple(self._transf[i].subs(substitutions).simplify_full()
-                                                      for i in range(self._n2))
+        return self._transf(*coords)
 
     def inverse(self):
         r"""
@@ -1911,6 +1905,8 @@ class CoordChange(SageObject):
         """
         from sage.symbolic.ring import SR
         from sage.symbolic.relation import solve
+        from sage.manifolds.utilities import simplify_chain_real, \
+                                             simplify_chain_generic
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -1924,36 +1920,35 @@ class CoordChange(SageObject):
                             "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
-        coord_domain = ['real' for i in range(n2)]
+        if self._chart1.domain().base_field() == 'real':
+            coord_domain = ['real' for i in range(n2)]
+        elif self._domain.base_field() == 'complex':
+            coord_domain = ['complex' for i in range(n2)]
+        else:
+            coord_domain = None
         for i in range(n2):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'
         xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
                                                            for i in range(n2) ]
-        #*# when MultiFunctionChart will be implemented:
-        # equations = [ xp2[i] == self._transf._functions[i]._express
-        #                                                   for i in range(n2) ]
-        #*# for now:
-        equations = [ xp2[i] == self._transf[i] for i in range(n2) ]
+        equations = [ xp2[i] == self._transf._functions[i]._express
+                                                           for i in range(n2) ]
         try:
             solutions = solve(equations, *x1, solution_dict=True)
         except RuntimeError:
             raise RuntimeError("the system could not be solved; use " +
                                "set_inverse() to set the inverse manually")
-        #!# This should be the Python 2.7 form:
-        #           substitutions = {xp2[i]: x2[i] for i in range(n2)}
-        # Here we use a form compatible with Python 2.6:
-        substitutions = dict([(xp2[i], x2[i]) for i in range(n2)])
+        substitutions = dict(zip(xp2, x2))
         if len(solutions) == 1:
             x2_to_x1 = [solutions[0][x1[i]].subs(substitutions)
                                                             for i in range(n1)]
             for transf in x2_to_x1:
                 try:
-                    transf = simplify_chain(transf)
-                #*# when MultiFunctionChart will be implemented:
-                # except AttributeError:
-                #*# for now:
-                except NameError, AttributeError:
+                    if self._domain.base_field() == 'real':
+                        transf = simplify_chain_real(transf)
+                    else:
+                        transf = simplify_chain_generic(transf)
+                except AttributeError:
                     pass
         else:
             list_x2_to_x1 = []
@@ -1965,11 +1960,11 @@ class CoordChange(SageObject):
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
                 for transf in x2_to_x1:
                     try:
-                        transf = simplify_chain(transf)
-                    #*# when MultiFunctionChart will be implemented:
-                    # except AttributeError:
-                    #*# for now:
-                    except NameError, AttributeError:
+                        if self._domain.base_field() == 'real':
+                            transf = simplify_chain_real(transf)
+                        else:
+                            transf = simplify_chain_generic(transf)
+                    except AttributeError:
                         pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)
@@ -2090,10 +2085,9 @@ class CoordChange(SageObject):
             raise ValueError("composition not possible: " +
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
-        #*# after MultiFunctionChart has been implemented:
-        # transf = self(*(other._transf.expr()))
-        #*# for now:
-        transf = self(*(other._transf))
+
+        other_exprs = [other._transf[i].expr() for i in range(other._n2)]
+        transf = self._transf(*other_exprs)
         return CoordChange(other._chart1, self._chart2, *transf)
 
     def restrict(self, dom1, dom2=None):

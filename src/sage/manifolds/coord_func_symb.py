@@ -461,6 +461,38 @@ class CoordFunctionSymb(CoordFunction):
         """
         return self._express.is_zero()
 
+    def copy(self):
+        r"""
+        Return an exact copy of the object.
+
+        OUTPUT:
+
+        - an instance of :class:`CoordFunctionSymb`
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y^2)
+            sage: g = f.copy(); g
+            y^2 + x
+
+        By construction, ``g`` is identical to ``f``::
+
+            sage: type(g) == type(f)
+            True
+            sage: g == f
+            True
+
+        but it is not the same object::
+
+            sage: g is f
+            False
+
+        """
+        return CoordFunctionSymb(self._chart, self._express)
+
+
     def diff(self, coord):
         r"""
         Partial derivative with respect to a coordinate.
@@ -508,6 +540,10 @@ class CoordFunctionSymb(CoordFunction):
             sage: M = TopManifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
+            sage: f.diff(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: coordinate index out of range
             sage: f.diff(1)
             2*x
             sage: f.diff(2)
@@ -525,8 +561,11 @@ class CoordFunctionSymb(CoordFunction):
         if isinstance(coord, (int, Integer)):
             # NB: for efficiency, we access directly to the "private" attributes
             # of other classes. A more conventional OOP writing would be
-            #  return self._der[coord - self._chart.domain().start_index()]
-            return self._der[coord - self._chart._domain._sindex]
+            # coordsi = coord - self._chart.domain().start_index()
+            coordsi = coord - self._chart._domain._sindex
+            if coordsi < 0 or coordsi >= self._nc:
+                raise ValueError("coordinate index out of range")
+            return self._der[coordsi]
         else:
             return self._der[self._chart[:].index(coord)]
 
@@ -580,6 +619,8 @@ class CoordFunctionSymb(CoordFunction):
     def __pos__(self):
         r"""
         Unary plus operator.
+
+        This method is identical to :meth:`copy`.
 
         OUTPUT:
 

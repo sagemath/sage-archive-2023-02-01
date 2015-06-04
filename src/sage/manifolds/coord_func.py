@@ -328,6 +328,17 @@ class CoordFunction(SageObject):
         """
         raise NotImplementedError("CoordFunction.is_zero not implemented")
 
+    def copy(self):
+        r"""
+        Return an exact copy of the object.
+
+        OUTPUT:
+
+        - an instance of :class:`CoordFunction`
+
+        """
+        raise NotImplementedError("CoordFunction.copy not implemented")
+
     def diff(self, coord):
         r"""
         Partial derivative with respect to a coordinate.
@@ -952,7 +963,6 @@ class MultiCoordFunction(SageObject):
         """
         return tuple(func(*coords, **options) for func in self._functions)
 
-
     def jacobian(self):
         r"""
         Return the Jacobian matrix of the system of coordinate functions.
@@ -1010,4 +1020,100 @@ class MultiCoordFunction(SageObject):
             self._jacob = [[ self._functions[i].diff(xx[j])
                           for j in range(self._nc) ] for i in range(self._nf) ]
         return self._jacob
+
+    def jacobian_det(self):
+        r"""
+        Return the Jacobian determinant of the system of functions.
+
+        The number `m` of coordinate functions must equal the number `n` of
+        coordinates.
+
+        OUTPUT:
+
+        - instance of :class:`CoordFunction` representing the determinant
+
+        EXAMPLE:
+
+        Jacobian determinant of a set of 2 functions of 2 coordinates::
+
+            sage: M = TopManifold(3, 'M')
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y)
+            sage: f.jacobian_det()
+            x + y
+
+        The output of :meth:`jacobian_det` is an instance of
+        :class:`CoordFunction` and can therefore be called on specific values
+        of the coordinates, e.g. (x,y)=(1,2)::
+
+            sage: type(f.jacobian_det())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: f.jacobian_det().display()
+            (x, y) |--> x + y
+            sage: f.jacobian_det()(1,2)
+            3
+
+        The result is cached::
+
+            sage: f.jacobian_det() is f.jacobian_det()
+            True
+
+        Test::
+
+            sage: f.jacobian_det() == det(matrix([[f[i].diff(j).expr() for j in range(2)]
+            ....:                                 for i in range(2)]))
+            True
+
+        Jacobian determinant of a set of 3 functions of 3 coordinates::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: f = X.multifunction(x*y+z^2, z^2*x+y^2*z, (x*y*z)^3)
+            sage: f.jacobian_det().display()
+            (x, y, z) |--> 6*x^3*y^5*z^3 - 3*x^4*y^3*z^4 - 12*x^2*y^4*z^5 + 6*x^3*y^2*z^6
+
+        Test::
+
+            sage: f.jacobian_det() == det(matrix([[f[i].diff(j).expr() for j in range(3)]
+            ....:                                 for i in range(3)]))
+            True
+
+        """
+        def simple_determinant(aa):
+            r"""
+            Compute the determinant of a square matrix represented as an array.
+
+            This function is based on Laplace's cofactor expansion.
+            """
+            n = len(aa)
+            if n == 1:
+                return aa[0][0]
+            res = 0
+            sign = True
+            for i in range(n):
+                b = []
+                for k in range(i):
+                    r = []
+                    for l in range(1,n):
+                       r.append(aa[k][l])
+                    b.append(r)
+                for k in range(i+1,n):
+                    r = []
+                    for l in range(1,n):
+                       r.append(aa[k][l])
+                    b.append(r)
+                if sign:
+                    res += aa[i][0] * simple_determinant(b)
+                else:
+                    res -= aa[i][0] * simple_determinant(b)
+                sign = not sign
+            return res
+
+        if self._jacob_det is None:
+            if (self._nf != self._nc):
+                raise ValueError("the Jacobian matrix is not a square matrix")
+            self.jacobian() # forces the computation of self._jacob
+            self._jacob_det = simple_determinant(self._jacob)
+        return self._jacob_det
 

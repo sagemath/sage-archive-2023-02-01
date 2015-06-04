@@ -278,19 +278,16 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
         weak_lattice = weak_poset
 
-		
+        
         @cached_method
-        def cambrian_lattice(self, c, side = "right", facade = False):
+        def cambrian_lattice(self, c):
             """
             INPUT:
             
             - ``c`` -- a standard Coxeter element in ``self`` (as a tuple, or as an element of ``self``)
-            - ``side`` -- "left", "right", or "twosided" (default: "right")
-            - ``facade`` -- a boolean (default: False)
-            
-            Return the left (resp. right) Cambrian lattice, which is the
-            sublattice of the weak lattice containing all
-            ``c``-sortable elements.
+           
+            Returns the c-Cambrian lattice on delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
+            Delta sequences are certain 2-colored minimal factorizations of ``c`` into reflections. 
             
             EXAMPLES::
                 
@@ -305,8 +302,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
             """
             from sage.combinat.posets.lattices import LatticePoset
-            return LatticePoset(self.weak_lattice(side=side,facade=facade).subposet( [ w for w in self if w.is_coxeter_sortable(c) ] ))
-        
+            return self.m_cambrian_lattice(c,1)
+
         def inversion_sequence(self, word):
             """
             INPUT:
@@ -342,13 +339,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 [1 0 0]  [0 1 0]  [0 0 1]
                 [0 0 1], [1 0 0], [0 1 0]
                 ]
-				
-				sage: WeylGroup(['A',3]).reflections_from_w0()
-				[
-				[-1  1  0]  [ 0 -1  1]  [ 1  0  0]  [ 0  0 -1]  [ 1  0  0]  [ 1  0  0]
-				[ 0  1  0]  [-1  0  1]  [ 1 -1  1]  [-1  1 -1]  [ 1  0 -1]  [ 0  1  0]
-				[ 0  0  1], [ 0  0  1], [ 0  0  1], [-1  0  0], [ 1 -1  0], [ 0  1 -1]
-				]
+                
+                sage: WeylGroup(['A',3]).reflections_from_w0()
+                [
+                [-1  1  0]  [ 0 -1  1]  [ 1  0  0]  [ 0  0 -1]  [ 1  0  0]  [ 1  0  0]
+                [ 0  1  0]  [-1  0  1]  [ 1 -1  1]  [-1  1 -1]  [ 1  0 -1]  [ 0  1  0]
+                [ 0  0  1], [ 0  0  1], [ 0  0  1], [-1  0  0], [ 1 -1  0], [ 0  1 -1]
+                ]
             
             """
             return self.long_element().inversions_as_reflections()
@@ -361,15 +358,16 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
             - ``m`` -- a positive integer (default: 1)
             
-            Returns the m-Cambrian lattice on delta sequences.
+            Return the m-Cambrian lattice on ``m``-delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
+            ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections. 
             
             EXAMPLES::
                 
-				sage: CoxeterGroup(["A",2]).m_cambrian_lattice((1,2))
-				Finite poset containing 5 elements
+                sage: CoxeterGroup(["A",2]).m_cambrian_lattice((1,2))
+                Finite lattice containing 5 elements
 
-                sage: CoxeterGroup(["A",2]).m_Cambrian_Lattice([1,2],2)
-                Finite poset containing 12 elements	
+                sage: CoxeterGroup(["A",2]).m_cambrian_lattice((1,2),2)
+                Finite lattice containing 12 elements    
             
             """
             from sage.combinat.posets.posets import Poset

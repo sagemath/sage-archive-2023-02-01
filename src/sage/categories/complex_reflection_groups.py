@@ -547,7 +547,8 @@ class ComplexReflectionGroups(Category_singleton):
             ... multiplies the ``i``-th distinguished reflection to ``self``...
             """
             G = self.parent()
-            assert i in G.hyperplane_index_set()
+            if not i in G.hyperplane_index_set():
+                raise ValueError("The given index %s is not an index of a hyperplane"%i)
             if side == 'right':
                 return self * G.distinguished_reflection(i)
             else:
@@ -595,7 +596,8 @@ class ComplexReflectionGroups(Category_singleton):
             ... multiplies the ``i``-th reflection to ``self``...
             """
             G = self.parent()
-            assert i in G.reflection_index_set()
+            if i not in G.reflection_index_set():
+                raise ValueError("The given index %s is not an index of a reflection"%i)
             if side == 'right':
                 return self * G.reflection(i)
             else:

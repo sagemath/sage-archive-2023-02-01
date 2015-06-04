@@ -63,7 +63,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
         reflection_type = []
         for W_type in W_types:
             if W_type == (1,1,1):
-                raise ValueError, "The one element group is not considered a reflection group."
+                raise ValueError("The one element group is not considered a reflection group.")
             elif W_type in ZZ:
                 call_str = 'ComplexReflectionGroup(%s)'%W_type
             elif isinstance(W_type,CartanMatrix):
@@ -80,7 +80,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             W_components.append(gap3(call_str))
             X = list(W_components[-1].ReflectionType())
             if len(X) > 1:
-                raise ValueError, "Your input data %s is not valid."%W_type
+                raise ValueError("Your input data %s is not valid."%W_type)
             X = X[0]
             type_dict = dict()
             type_dict["series"] = X.series.sage()
@@ -127,19 +127,22 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
         if self._index_set is None:
             self._index_set = Family(dict( (i,i) for i in l_set))
         else:
-            assert sorted(self._index_set.values()) == l_set
+            if not sorted(self._index_set.values()) == l_set:
+                raise ValueError("The given index set (= %s ) does not have the right size"%self._index_set.values())
         self._index_set_inverse = self._index_set.inverse_family()
         Nstar_set = range(self.nr_reflecting_hyperplanes())
         if self._hyperplane_index_set is None:
             self._hyperplane_index_set = Family(dict( (i,i) for i in Nstar_set))
         else:
-            assert sorted(self._hyperplane_index_set.values()) == Nstar_set
+            if not sorted(self._hyperplane_index_set.values()) == Nstar_set:
+                raise ValueError("The given hyperplane index set (= %s ) does not have the right size"%self._index_set.values())
         self._hyperplane_index_set_inverse = self._hyperplane_index_set.inverse_family()
         N_set = range(self.nr_reflections())
         if self._reflection_index_set is None:
             self._reflection_index_set = Family(dict( (i,i) for i in N_set))
         else:
-            assert sorted(self._reflection_index_set.values()) == N_set
+            if not sorted(self._reflection_index_set.values()) == N_set:
+                raise ValueError("The given reflection index set (= %s ) does not have the right size"%self._index_set.values())
         self._reflection_index_set_inverse = self._reflection_index_set.inverse_family()
 
     def _irrcomp_repr_(self,W_type):
@@ -313,7 +316,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29)
             (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)
         """
-        assert i in self.hyperplane_index_set()
+        if i not in self.hyperplane_index_set():
+            raise ValueError("The given index %s is not an index of a reflecting hyperplane"%i)
         return self.distinguished_reflections()[i]
 
     @cached_method
@@ -385,7 +389,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             sage: W.reflection('b')
             (1,3,2)
         """
-        assert i in self.reflection_index_set()
+        if i not in self.reflection_index_set():
+            raise ValueError("The given index %s is not an index of a reflection"%i)
         return self.reflections()[i]
 
     def reflection_character(self):
@@ -507,7 +512,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                     W_str = W_type["ST"]
 
                 else:
-                    raise ValueError, "not yet implemented"
+                    raise ValueError("not yet implemented")
                 irr_comps.append( ComplexReflectionGroup(W_str) )
         return irr_comps
 
@@ -954,7 +959,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
     def set_reflection_representation(self,refl_repr):
         self.one().as_matrix.clear_cache()
         if set( refl_repr.keys() ) != set( self.index_set() ):
-            raise ValueError, "The reflection representation must be defined for the complete index set."
+            raise ValueError("The reflection representation must be defined for the complete index set.")
         self._reflection_representation = refl_repr
 
     class Element(PermutationGroupElement):
@@ -976,7 +981,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 (1,3)(2,5)(4,6)
                 (1,6,2)(3,5,4)
             """
-            assert i in self.parent().index_set()
+            if i not in self.parent().index_set():
+                raise ValueError("The given index %s is not in the index set"%i)
             gen = self.parent().gens()[self.parent()._index_set[i]]
             return self*gen
 
@@ -995,7 +1001,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 (1,5)(2,4)(3,6)
                 (1,2,6)(3,4,5)
             """
-            assert i in self.parent().index_set()
+            if i not in self.parent().index_set():
+                raise ValueError("The given index %s is not an index of a simple reflection"%i)
             gen = self.parent().gens()[self.parent()._index_set[i]]
             return gen*self
 
@@ -1364,8 +1371,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
             sage: W.a_coxeter_element().reduced_word()
             word: 0123
         """
-        assert self.is_irreducible()
-        assert self.is_well_generated()
+        if not self.is_irreducible() or not self.is_well_generated():
+            raise ValueError("This method is available for irreducible, well-generated complex reflection groups")
         inverse_index = dict([(self._index_set[i],i) for i in self._index_set.keys()])
         return self.from_word( inverse_index[i] for i in sorted(self._index_set.values()) )
 
@@ -1406,8 +1413,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             tba
         """
-        assert self.is_irreducible()
-        assert self.is_well_generated()
+        if not self.is_irreducible() or not self.is_well_generated():
+            raise ValueError("This method is available for irreducible, well-generated complex reflection groups")
         from sage.combinat.permutation import Permutations
         return set( self.from_word(w) for w in Permutations(self.index_set()) )
 
@@ -1566,7 +1573,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
                 10 True
                 010 False
             """
-            assert self.parent().is_well_generated()
+            if not self.parent().is_irreducible() or not self.parent().is_well_generated():
+                raise ValueError("This method is available for elements in irreducible, well-generated complex reflection groups")
             h = self.parent().coxeter_number()
             # to check regularity for a Coxeter number h, we get that an eigenvector is regular for free
             return any( QQ(ev).denom() == h and QQ(ev).numer() == which_primitive for ev in self.reflection_eigenvalues(test_class_repr=test_class_repr) )
@@ -1589,7 +1597,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
                 10 True
                 010 False
             """
-            assert self.parent().is_well_generated()
+            if not self.parent().is_irreducible() or not self.parent().is_well_generated():
+                raise ValueError("This method is available for elements in irreducible, well-generated complex reflection groups")
             h = self.parent().coxeter_number()
             # to check regularity for a Coxeter number h, we get that an eigenvector is regular for free
             return any( QQ(ev).denom() == h for ev in self.reflection_eigenvalues(test_class_repr=test_class_repr) )
@@ -1612,7 +1621,6 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
                 10 True
                 010 False
             """
-            assert self.parent().is_well_generated()
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
             for ev in evs:
                 ev = QQ(ev)
@@ -1682,7 +1690,7 @@ def ComplexReflectionGroup(*args,**kwds):
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
             else:
-                raise ValueError, 'The keyword %s must be a list, tuple, or dict'%index_set_kwd
+                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
 
     if len(W_types) == 1:
         cls = IrreducibleFiniteComplexReflectionGroup

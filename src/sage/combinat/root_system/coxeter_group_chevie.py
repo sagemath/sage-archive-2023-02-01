@@ -63,8 +63,8 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         cartan_types = []
         for W_type in W_types:
             W_type = CartanType(W_type)
-            assert W_type.is_finite()
-            assert W_type.is_irreducible()
+            if not W_type.is_finite() or not W_type.is_irreducible():
+                raise ValueError("The given Cartan type of a component is not irreducible and finite")
             cartan_types.append( W_type )
         if len(W_types) == 1:
             cls = IrreducibleFiniteComplexReflectionGroup
@@ -164,7 +164,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         for r in R:
             if r(i) == j:
                 return r
-        raise ValueError, "There is a bug in root_to_reflection!"
+        raise ValueError("There is a bug in root_to_reflection!")
 
     def reflection_to_positive_root(self,r):
         Phi = self.roots()
@@ -172,7 +172,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         for i in range(1,N+1):
             if r(i) == i+N:
                 return Phi[i-1]
-        raise ValueError, "There is a bug in reflection_to_positive_root!"
+        raise ValueError("There is a bug in reflection_to_positive_root!")
 
     @cached_method
     def fundamental_weights(self):
@@ -217,7 +217,8 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                 False
             """
             W = self.parent()
-            assert i in W.index_set()
+            if i not in W.hyperplane_index_set():
+                raise ValueError("The given index %s is not in the index set"%i)
             return not W._is_positive_root[self(W._index_set[i]+1)]
 
         def act_on_root(self,root):
@@ -296,7 +297,7 @@ def CoxeterGroupChevie(*args,**kwds):
             elif type(index_set) is dict:
                 kwds[index_set_kwd] = Family(index_set)
             else:
-                raise ValueError, 'The keyword %s must be a list, tuple, or dict'%index_set_kwd
+                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
 
     if len(W_types) == 1:
         cls = IrreducibleFiniteCoxeterGroupChevie

@@ -108,6 +108,7 @@ $(INST)/sage: \
 		 $(INST)/$(NTL) \
 		 $(INST)/$(NUMPY) \
 		 $(INST)/$(PARI) \
+		 $(INST)/$(PLANARITY) \
 		 $(INST)/$(POLYBORI) \
 		 $(INST)/$(PPL) \
 		 $(INST)/$(PYNAC) \

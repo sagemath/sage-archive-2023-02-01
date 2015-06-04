@@ -175,6 +175,8 @@ class FreeAbelianMonoid_class(ParentWithGens):
     """
     Free abelian monoid on `n` generators.
     """
+    Element = FreeAbelianMonoidElement
+
     def __init__(self, n, names):
         if not isinstance(n, (int, long, Integer)):
             raise TypeError("n (=%s) must be an integer."%n)

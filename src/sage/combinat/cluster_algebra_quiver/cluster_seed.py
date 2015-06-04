@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 ClusterSeed
 
@@ -15,9 +16,9 @@ AUTHORS:
 
 REFERENCES:
 
-..[BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
+.. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
    *On Maximal Green Sequences*
-   :arxiv:1205.2050
+   :arxiv:`1205.2050`
 
 .. seealso:: For mutation types of cluster seeds, see :meth:`sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`sage.combinat.cluster_algebra_quiver.quiver.ClusterQuiver`.
 """
@@ -915,6 +916,30 @@ class ClusterSeed(SageObject):
 
         return None
 
+    def highest_degree_denominator(self):
+        r"""
+        Return the vertex of the cluster polynomial with highest degree in the denominator.
+        
+        EXAMPLES::
+        
+            sage: B = matrix([[0,-1,0,-1,1,1],[1,0,1,0,-1,-1],[0,-1,0,-1,1,1],[1,0,1,0,-1,-1],[-1,1,-1,1,0,0],[-1,1,-1,1,0,0]])
+            sage: C = ClusterSeed(B).principal_extension()
+            sage: C.mutate([0,1,2,4,3,2,5,4,3])
+            sage: C.highest_degree_denominator()
+            5
+        """
+        degree = 0
+        vertex_to_mutate = 0
+        for i in list(enumerate(self.cluster())):
+            vari = i[1]
+            vertex = i[0]
+            denom = vari.denominator()
+            cur_vertex_degree = denom.degree()
+            if degree < cur_vertex_degree:
+                degree = cur_vertex_degree
+                vertex_to_mutate = vertex
+        return vertex_to_mutate
+    
     def mutate(self, sequence, inplace=True):
         r"""
         Mutates ``self`` at a vertex or a sequence of vertices.
@@ -1008,6 +1033,8 @@ class ClusterSeed(SageObject):
                 sequence = self.first_urban_renewal()
             elif sequence is 'all_urbans' or sequence is 'all_urban_renewals':
                 sequence = self.urban_renewals()
+            elif sequence is 'highest_degree_denominator':
+                sequence = self.highest_degree_denominator()
             else:
                 sequence = getattr(self.quiver(), sequence)()
 
@@ -1112,7 +1139,7 @@ class ClusterSeed(SageObject):
         else:
             raise ValueError('The parameter `return_output` can only be `seed`, `matrix`, or `var`.')
 
-    def mutation_analysis(self, options=['all']):
+    def mutation_analysis(self, options=['all'], filter=None):
         r"""
         Runs an analysis of all potential mutation options. Note that this might take a long time on large seeds.
 
@@ -1121,8 +1148,9 @@ class ClusterSeed(SageObject):
         INPUT:
 
         - ``options`` -- (default: ['all']) a list of mutation options.
+        - ``filter`` -- (default: None) A vertex or interval of vertices to limit our search to
 
-        Posssible options are:
+        Possible options are:
 
         - ``"all"`` - All options below
         - ``"edges"`` - Number of edges (works with skew-symmetric quivers)
@@ -1137,18 +1165,23 @@ class ClusterSeed(SageObject):
         - ``"sources_diff"`` - Source vertices added/removed
         - ``"sinks"`` - List of sink vertices
         - ``"sinks_diff"`` - Sink vertices added/removed
+        - ``"denominators"`` - List of all denominators of the cluster variables
 
         OUTPUT:
 
-        TODO
+        Outputs a dictionary indexed by the vertex numbers. Each vertex will itself also be a 
+        dictionary with each desired option included as a key in the dictionary. As an example
+        you would get something similar to: {0: {'edges': 1}, 1: {'edges': 2}}. This represents
+        that if you were to do a mutation at the current seed then mutating at vertex 0 would result
+        in a quiver with 1 edge and mutating at vertex 0 would result in a quiver with 2 edges.
 
         EXAMPLES::
 
             sage: B = [[0, 4, 0, -1],[-4,0, 3, 0],[0, -3, 0, 1],[1, 0, -1, 0]]
-            sage: S = ClusterSeed(matrix(B))
-            sage: S.mutate([2,3,1,2,1,3,0,2])
+            sage: S = ClusterSeed(matrix(B)); S.mutate([2,3,1,2,1,3,0,2])
             sage: S.mutation_analysis()
-            {0: {'edge_diff': 6,
+            {0: {'denominators': [x0*x3, 1, x0, 1],
+              'edge_diff': 6,
               'edges': 13,
               'sinks': [],
               'sinks_diff': {'added': [], 'removed': [2]},
@@ -1156,7 +1189,8 @@ class ClusterSeed(SageObject):
               'sources_diff': {'added': [], 'removed': []},
               'urban_renewals': [],
               'urban_renewals_diff': {'added': [], 'removed': []}},
-             1: {'edge_diff': 2,
+             1: {'denominators': [x0*x3, 1, x0, 1],
+              'edge_diff': 2,
               'edges': 9,
               'sinks': [2],
               'sinks_diff': {'added': [], 'removed': []},
@@ -1164,7 +1198,8 @@ class ClusterSeed(SageObject):
               'sources_diff': {'added': [], 'removed': []},
               'urban_renewals': [],
               'urban_renewals_diff': {'added': [], 'removed': []}},
-             2: {'edge_diff': 0,
+             2: {'denominators': [x0*x3, 1, x0, 1],
+              'edge_diff': 0,
               'edges': 7,
               'sinks': [],
               'sinks_diff': {'added': [], 'removed': [2]},
@@ -1172,7 +1207,8 @@ class ClusterSeed(SageObject):
               'sources_diff': {'added': [2], 'removed': []},
               'urban_renewals': [],
               'urban_renewals_diff': {'added': [], 'removed': []}},
-             3: {'edge_diff': -1,
+             3: {'denominators': [x0*x3, 1, x0, 1],
+              'edge_diff': -1,
               'edges': 6,
               'sinks': [2],
               'sinks_diff': {'added': [], 'removed': []},
@@ -1180,7 +1216,52 @@ class ClusterSeed(SageObject):
               'sources_diff': {'added': [1], 'removed': []},
               'urban_renewals': [],
               'urban_renewals_diff': {'added': [], 'removed': []}}}
+              
+            sage: S = ClusterSeed(['A',3]).principal_extension()
+            sage: S.mutation_analysis()
+            {0: {'denominators': [1, 1, 1],
+              'green_vertices': [1, 2],
+              'green_vertices_diff': {'added': [], 'removed': [0]},
+              'red_vertices': [0],
+              'red_vertices_diff': {'added': [0], 'removed': []},
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [1]},
+              'sources': [4, 5],
+              'sources_diff': {'added': [], 'removed': [3]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}},
+             1: {'denominators': [1, 1, 1],
+              'green_vertices': [0, 2],
+              'green_vertices_diff': {'added': [], 'removed': [1]},
+              'red_vertices': [1],
+              'red_vertices_diff': {'added': [1], 'removed': []},
+              'sinks': [0, 2, 4],
+              'sinks_diff': {'added': [0, 2, 4], 'removed': [1]},
+              'sources': [1, 3, 5],
+              'sources_diff': {'added': [1], 'removed': [4]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}},
+             2: {'denominators': [1, 1, 1],
+              'green_vertices': [0, 1],
+              'green_vertices_diff': {'added': [], 'removed': [2]},
+              'red_vertices': [2],
+              'red_vertices_diff': {'added': [2], 'removed': []},
+              'sinks': [],
+              'sinks_diff': {'added': [], 'removed': [1]},
+              'sources': [3, 4],
+              'sources_diff': {'added': [], 'removed': [5]},
+              'urban_renewals': [],
+              'urban_renewals_diff': {'added': [], 'removed': []}}}
+
+
         """
+        
+        V = xrange(self._n)
+        
+        if filter is None:
+            filter = V
+        if filter in V:
+            filter = [filter]
 
         # setup our initial information for differences later on
         if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
@@ -1199,7 +1280,7 @@ class ClusterSeed(SageObject):
 
         #instantiate our dictionary
         analysis = {}
-        for i in xrange(self._n):
+        for i in filter:
             #instantiate our dictionary
             analysis[i] = {}
 
@@ -1250,7 +1331,12 @@ class ClusterSeed(SageObject):
                 new_sinks = current_mutation.quiver().sinks()
                 analysis[i]['sinks_diff']['added'] = list(set(new_sinks) - set(initial_sinks))
                 analysis[i]['sinks_diff']['removed'] = list(set(initial_sinks) - set(new_sinks))
-
+            
+            if 'denominators' in options or 'all' in options:
+                analysis[i]['denominators'] = []
+                for vari in self.cluster():
+                    analysis[i]['denominators'].append(vari.denominator())
+            
         return analysis
 
     def exchangeable_part(self):

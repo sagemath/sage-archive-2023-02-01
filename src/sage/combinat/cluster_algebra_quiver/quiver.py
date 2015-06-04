@@ -1134,7 +1134,10 @@ class ClusterQuiver(SageObject):
 
         INPUT:
 
-        - ``sequence`` -- a vertex of ``self`` or an iterator of vertices of ``self``.
+        - ``sequence`` -- a vertex of ``self``, an iterator of vertices of ``self``,
+          a function which takes in the ClusterQuiver and returns a vertex or an iterator of vertices,
+          or a string of the parameter wanting to be called on ClusterQuiver that will return a vertex or 
+          an iterator of vertices.
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
         EXAMPLES::
@@ -1175,6 +1178,21 @@ class ClusterQuiver(SageObject):
             sage: T = Q.mutate(0,inplace=False)
             sage: Q == T
             True
+            
+            sage: Q = ClusterQuiver(['A',3]); Q.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            sage: Q.mutate('first_sink'); Q.b_matrix()
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -1  0]
+            sage: Q.mutate('first_source'); Q.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+
+
 
         TESTS::
 

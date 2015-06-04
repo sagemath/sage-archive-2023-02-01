@@ -1272,7 +1272,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             ....:     S = len(B.blocking_set())
             ....:     (S, '>', ceil(v/2-sqrt(16 * v**2 - 16 * v**2 + 16*v)/8))
             ....:     
-            (0,'>', 0)
+            (0, '>', 0)
             (1, '>', 1)
             (6, '>', 5)
             (8, '>', 6)
@@ -1289,13 +1289,12 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             (14, '>', 11)
             (16, '>', 12)
 
-            sage: p = designs.projective_plane(2)
-            sage: p.blocking_set()
+            sage: designs.balanced_incomplete_block_design(7, 3).blocking_set()
             Traceback (most recent call last):
             ...
             EmptySetError: There is no blocking set in this incidence structure.
 
-            sage: i3 = [v for v in xrange(100) if designs.balanced_incomplete_block_design(v,3,existence=True)]
+            sage: i3 = [v for v in xrange(50) if designs.balanced_incomplete_block_design(v,3,existence=True)]
             sage: i3
             [1, 3, 7, 9, 13, 15, 19, 21, 25, 27, 31, 33, 37, 39, 43, 45, 49]
             sage: for v in i3:
@@ -1327,13 +1326,12 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         Return the arc which has the highest cardinality.
 
         A n-arc in a projective plane is a set of n points, no three colinears.
-        This method is useless if `k \leq 2` in a `(v,k,\lambda)` design.
 
         For more informations : :wikipedia:`Arc_(projective_geometry)`
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: s = designs.balanced_incomplete_block_design(13, 3).arc()
+            sage: designs.balanced_incomplete_block_design(13, 3).arc()
             [1, 3, 6, 7, 9, 11]
 
             sage: designs.balanced_incomplete_block_design(7, 2).arc()

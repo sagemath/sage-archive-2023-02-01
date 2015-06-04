@@ -13,9 +13,9 @@ from sage.categories.category_with_axiom import CategoryWithAxiom
 class FiniteWeylGroups(CategoryWithAxiom):
     """
     The category of finite Weyl groups.
-
+    
     EXAMPLES::
-
+        
         sage: C = FiniteWeylGroups()
         sage: C
         Category of finite weyl groups
@@ -23,9 +23,9 @@ class FiniteWeylGroups(CategoryWithAxiom):
         [Category of finite coxeter groups, Category of weyl groups]
         sage: C.example()
         The symmetric group on {0, ..., 3}
-
+    
     TESTS::
-
+        
         sage: W = FiniteWeylGroups().example()
         sage: TestSuite(W).run(verbose = "True")
         running ._test_an_element() . . . pass
@@ -56,9 +56,56 @@ class FiniteWeylGroups(CategoryWithAxiom):
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
     """
-
+    
     class ParentMethods:
-        pass
+        
+        def m_cambrian_lattice(W,c,m):
+            """
+            INPUT:
+            
+            - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
+            - ``m`` -- a positive integer (default: 1)
+            
+            Returns the m-Cambrian lattice on delta sequences.
+            
+            EXAMPLES::
+                
+                sage: WeylGroup(["A",2]).m_cambrian_lattice((1,2))
+                Finite poset containing 5 elements
+                
+                sage: WeylGroup(["A",2]).m_Cambrian_Lattice([1,2],2)
+                Finite poset containing 12 elements
+            
+            """
+            inv_woc = [t.reflection_to_root() for t in W.inversion_sequence(W.long_element().coxeter_sorting_word(c))]
+            S = [s.reflection_to_root() for s in W.simple_reflections()]
+            PhiP = [t.reflection_to_root() for t in W.reflections().keys()]
+            id = sorted([[t,0] for t in S])
+            elements = []
+            covers = []
+            new = [id]
+            while new != []:
+                for new_element in new:
+                    new.remove(new_element)
+                    elements.append(new_element)
+                    for t in new_element:
+                        if t[1]<m:
+                            cov_element = [s for s in new_element if s!=t]
+                            cov_element.append([t[0],t[1]+1])
+                            for t_conj in [[i,t[1]] for i in inv_woc[inv_woc.index(t[0]):]]+[[i,t[1]+1] for i in inv_woc[:inv_woc.index(t[0])]]:
+                                if t_conj in cov_element:
+                                    cov_element.remove(t_conj)
+                                    tmp = t_conj[0].weyl_action(t[0].associated_reflection())
+                                    if tmp in PhiP:
+                                        cov_element.append([tmp,t_conj[1]])
+                                    else:
+                                        cov_element.append([-tmp,t_conj[1]-1])
+                            cov_element = sorted(cov_element)
+                            if cov_element not in elements and cov_element not in new:
+                                new.append(cov_element)
+                            covers.append([tuple(map(tuple,new_element)),tuple(map(tuple,cov_element))])
+            return Poset([[tuple(map(tuple,e)) for e in elements],covers],cover_relations=True)
 
+    
     class ElementMethods:
         pass

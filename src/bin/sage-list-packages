@@ -102,17 +102,15 @@ else:
                 print("{:.<40} {}".format("[package] ","[installed version]"))
 
         for p in sorted(set(local).union(remote)):
-            line = [p]
-            if remote:
-                line.append(remote.get(p,'not_found'))
+            line = [p] + [local.get(p, remote.get(p,'not_found'))]
             line.append(installed.get(p,'not_installed'))
             if args['dump']:
                 print(join(line,' '))
             else:
                 if remote:
-                    print("{:.<40} {} ({})".format(p,remote.get(p,'not found'),installed.get(p,'not installed')))
+                    print("{:.<40} {} ({})".format(*line))
                 else:
-                    print("{:.<40} {}".format(p,installed.get(p,'not installed')))
+                    print("{:.<40} {}".format(line[0], line[2]))
     else:
         for p in sorted(set(local).union(remote)):
             print(p)

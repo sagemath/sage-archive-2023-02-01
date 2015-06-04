@@ -208,7 +208,7 @@ __append_to_doc(
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
-     "SierpinskiGasket",
+     "SierpinskiGasketGraph",
      "SymplecticGraph",
      "trees",
      "triangulations",
@@ -1940,7 +1940,7 @@ class GraphGenerators():
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
-    SierpinskiGasket       = staticmethod(sage.graphs.generators.families.SierpinskiGasket)
+    SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)

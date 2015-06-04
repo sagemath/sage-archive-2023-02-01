@@ -1933,17 +1933,11 @@ def petersen_family(generate=False):
     return [Graph(x) for x in l]
 
 
-def SierpinskiGasket(n):
+def SierpinskiGasketGraph(n):
     """
     Return the Sierpinski Gasket graph of generation `n`.
 
     All vertices but 3 have valence 4.
-
-    .. WARNING::
-
-        There is another familly of graphs called Sierpinski graphs,
-        where all vertices but 3 have valence 3. They are available
-        using ``graphs.HanoiTowerGraph(3, n)``
 
     INPUT:
 
@@ -1951,7 +1945,7 @@ def SierpinskiGasket(n):
 
     OUTPUT:
 
-    a graph `S_n` with `3 (3^{n-1}-1)/2` vertices and
+    a graph `S_n` with `3 (3^{n-1}+1)/2` vertices and
     `3^n` edges, closely related to the famous Sierpinski triangle
     fractal.
 
@@ -1969,18 +1963,18 @@ def SierpinskiGasket(n):
 
     .. PLOT::
 
-        sphinx_plot(graphs.SierpinskiGasket(4).plot(vertex_labels=False))
+        sphinx_plot(graphs.SierpinskiGasketGraph(4).plot(vertex_labels=False))
 
 
     .. SEEALSO::
 
-        Another familly of graphs can be defined by joining the same
-        pairs of vertices by new edges instead of identifying them. They
-        are available using :func:`HanoiTowerGraph` with parameters (3,n).
+        There is another familly of graphs called Sierpinski graphs,
+        where all vertices but 3 have valence 3. They are available using
+        ``graphs.HanoiTowerGraph(3, n)``.
 
     EXAMPLES::
 
-        sage: s4 = graphs.SierpinskiGasket(4); s4
+        sage: s4 = graphs.SierpinskiGasketGraph(4); s4
         Graph on 42 vertices
         sage: s4.size()
         81
@@ -2018,8 +2012,9 @@ def SierpinskiGasket(n):
     dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
-    dg.set_pos({(x,y): (x+y/2,y*.75)
-                for (x,y) in dg.vertices()})
+    dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
+                for (x, y) in dg.vertices()})
+    dg.relabel()
     return dg
 
 

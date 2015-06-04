@@ -41,7 +41,6 @@
 #include "numeric.h"
 #include "power.h"
 #include "relational.h"
-#include "structure.h"
 #include "symbol.h"
 #include "pseries.h"
 #include "wildcard.h"
@@ -59,12 +58,10 @@
 #include "inifcns.h"
 #include "fderivative.h"
 #include "operators.h"
-#include "hash_map.h"
 
 #include "idx.h"
 #include "indexed.h"
 #include "tensor.h"
-#include "color.h"
 #include "clifford.h"
 
 #ifdef __MAKECINT__

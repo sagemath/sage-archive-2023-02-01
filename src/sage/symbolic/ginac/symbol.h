@@ -25,7 +25,6 @@
 
 #include "basic.h"
 #include "ex.h"
-#include "ptr.h"
 
 #include <string>
 

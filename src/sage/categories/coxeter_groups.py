@@ -812,8 +812,10 @@ class CoxeterGroups(Category_singleton):
                 False
                 sage: w.has_right_descent(2)
                 True
+				sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
+				True
             """
-            return (~self).has_left_descent(i)
+            return self.has_descent(i, side='right')
 
         def has_left_descent(self, i):
             """
@@ -840,7 +842,7 @@ class CoxeterGroups(Category_singleton):
                 sage: w.has_left_descent.__module__
                 'sage.categories.coxeter_groups'
             """
-            return self.has_descent(i, side='left')
+            return (~self).has_right_descent(i)
 
         def first_descent(self, side = 'right', index_set=None, positive=False):
             """

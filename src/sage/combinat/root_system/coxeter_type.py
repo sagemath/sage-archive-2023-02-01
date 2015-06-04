@@ -366,13 +366,14 @@ class CoxeterType(object):
         mat = self.coxeter_matrix()._matrix
         base_ring = mat.base_ring()
 
-        from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
-        if UniversalCyclotomicField.has_coerce_map_from(base_ring):
-            R = UniversalCyclotomicField()
+        from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+        UCF = UniversalCyclotomicField()
+        if UCF.has_coerce_map_from(base_ring):
+            R = UCF
         else:
             R = base_ring
         # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
-        if R is UniversalCyclotomicField():
+        if R is UCF:
             val = lambda x: (R.gen(2*x) + ~R.gen(2*x)) / R(-2) if x > -1 else R.one()*x
         else:
             from sage.functions.trig import cos

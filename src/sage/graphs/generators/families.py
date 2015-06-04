@@ -1963,9 +1963,14 @@ def SierpinskiGasket(n):
 
     The graph `S_{n+1}` is obtained from the disjoint union of
     three copies A,B,C of `S_n` by identifying pairs of vertices:
-    the top vertex of A with the bottom left vertex of B, 
+    the top vertex of A with the bottom left vertex of B,
     the bottom right vertex of B with the top vertex of C,
     and the bottom left vertex of C with the bottom right vertex of A.
+
+    .. PLOT::
+
+        sphinx_plot(graphs.SierpinskiGasket(4).plot(vertex_labels=False))
+
 
     .. SEEALSO::
 
@@ -2013,7 +2018,8 @@ def SierpinskiGasket(n):
     dg.add_edges([(tuple(a), tuple(b)) for a, b, c in tri_list])
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
-    dg.set_pos({xy: (xy[0], xy[1]) for xy in dg.vertices()})
+    dg.set_pos({(x,y): (x+y/2,y*.75)
+                for (x,y) in dg.vertices()})
     return dg
 
 

@@ -2896,9 +2896,8 @@ cdef class BinaryMatroid(LinearMatroid):
         cdef long y = bitset_first(self._inside)
         while y >= 0:
             self.__fundamental_cocircuit(self._outside, y)
-            bitset_difference(self._outside, self._outside, F)
             bitset_discard(self._outside, y)
-            if bitset_isempty(self._outside):
+            if bitset_issubset(self._outside, F):
                 bitset_add(R, y)
             y = bitset_next(self._inside, y + 1)     
            
@@ -3859,9 +3858,8 @@ cdef class TernaryMatroid(LinearMatroid):
         cdef long y = bitset_first(self._inside)
         while y >= 0:
             self.__fundamental_cocircuit(self._outside, y)
-            bitset_difference(self._outside, self._outside, F)
             bitset_discard(self._outside, y)
-            if bitset_isempty(self._outside):
+            if bitset_issubset(self._outside, F):
                 bitset_add(R, y)
             y = bitset_next(self._inside, y + 1)
         
@@ -4680,11 +4678,10 @@ cdef class QuaternaryMatroid(LinearMatroid):
         cdef long y = bitset_first(self._inside)
         while y >= 0:
             self.__fundamental_cocircuit(self._outside, y)
-            bitset_difference(self._outside, self._outside, F)
             bitset_discard(self._outside, y)
-            if bitset_isempty(self._outside):
+            if bitset_issubset(self._outside, F):
                 bitset_add(R, y)
-            y = bitset_next(self._inside, y + 1)     
+            y = bitset_next(self._inside, y + 1)
 
     cdef  __exchange_value(self, long x, long y):
         r"""

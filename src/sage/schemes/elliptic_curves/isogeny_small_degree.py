@@ -1966,7 +1966,7 @@ def isogenies_prime_degree_general(E, l):
 
     # Exit now if all factors have been used already:
 
-    if not factors_by_degree:
+    if all(factors == [] for factors in factors_by_degree.values()):
         return [E.isogeny(k) for k in ker]
 
     # In general we look for products of factors of the same degree d

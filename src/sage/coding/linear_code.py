@@ -1187,7 +1187,7 @@ class AbstractLinearCode(module.Module):
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
 
-    def __contains__(self,v):
+    def __contains__(self, v):
         r"""
         Returns True if `v` can be coerced into `self`. Otherwise, returns False.
 
@@ -1201,9 +1201,9 @@ class AbstractLinearCode(module.Module):
             sage: vector((1, 0, 0, 0, 0, 1/2, 1)) in C # indirect doctest
             False
         """
-        A = self.ambient_space()
-        C = A.subspace(self.gens())
-        return C.__contains__(v)
+        if not v in self.ambient_space() or len(v) != self.length():
+            return False
+        return self.syndrome(v) == 0
 
     def characteristic(self):
         r"""

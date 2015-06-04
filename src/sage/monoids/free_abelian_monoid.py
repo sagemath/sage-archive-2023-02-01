@@ -250,7 +250,7 @@ class FreeAbelianMonoid_class(ParentWithGens):
             raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
         x = [ 0 for j in range(n) ]
         x[int(i)] = 1
-        return FreeAbelianMonoidElement(self,x)
+        return self.Element(self,x)
 
     def ngens(self):
         """

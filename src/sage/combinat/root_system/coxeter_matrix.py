@@ -305,7 +305,7 @@ class CoxeterMatrix(CoxeterType):
             else:
                 coxeter_type = None
         if not index_set:
-            index_set = range(n)
+            index_set = tuple(range(1,n+1))
 
         raw_data = M.list()
 
@@ -1216,6 +1216,10 @@ def recognize_coxeter_type_from_matrix(coxeter_matrix):
                                     # on a degree 3 vertex.
                                     types.append(['B', l-1, 1])
                                     continue
+                                else:
+                                    return None
+                            else:
+                                return None
                         else:
                             return None
 

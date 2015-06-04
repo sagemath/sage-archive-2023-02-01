@@ -259,7 +259,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
             val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring(2)
-        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[i, j])
+        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[index_set[i], index_set[j]])
                                            for j in range(n)},
                               coerce=True, copy=True)
                 for i in range(n)]
@@ -494,7 +494,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: CoxeterGroup(W.coxeter_diagram()) is W
             True
         """
-        return self._matrix.coxeter_diagram()
+        return self._matrix.coxeter_graph()
 
     coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
 
@@ -522,7 +522,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [   0 -1/2    1    0]
             [   0 -1/2    0    1]
         """
-        return self._matrix.bilinear_form(self.base_ring())
+        return self._matrix.bilinear_form()
 
     def is_finite(self):
         """

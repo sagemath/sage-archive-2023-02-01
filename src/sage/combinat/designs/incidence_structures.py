@@ -1498,7 +1498,7 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: P = designs.DesarguesianProjectivePlaneDesign(2); P
-            Incidence structure with 7 points and 7 blocks
+            (7,3,1)-Balanced Incomplete Block Design
             sage: G = P.automorphism_group()
             sage: G.is_isomorphic(PGL(3,2))
             True

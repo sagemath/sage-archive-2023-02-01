@@ -2041,8 +2041,8 @@ v            EXAMPLES::
                 sage: w.coxeter_sorting_word(c)
                 [2, 1, 2, 0, 1]
 
-				sage: W = WyelGroup(['A',2]).long_element().coxeter_sorting_word([1,2])
-				[1,2,1]
+                sage: WeylGroup(['A',2]).long_element().coxeter_sorting_word([1,2])
+                [1, 2, 1]
             """
             if hasattr(c,"reduced_word"):
                 c = c.reduced_word()

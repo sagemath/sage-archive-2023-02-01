@@ -1122,6 +1122,62 @@ class ComplexReflectionGroups(Category_singleton):
                         return n*h/l * prod( codeg for codeg in codegrees )
 
                     @cached_method
+                    def rational_catalan_number(self,p,polynomial=False):
+                        r"""
+                        Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
+                        of the m-th Fuss-Catalan numbers of the irreducible components of ``self``. For an
+                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
+                        where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
+
+                        REMARKS:
+
+                        - For the symmetric group `S_n`, it reduces to the Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
+                        - The Fuss-Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+
+                        EXAMPLES::
+
+                            sage: W = ComplexReflectionGroup((1,1,3))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [5, 12, 22]
+
+                            sage: W = ComplexReflectionGroup((1,1,4))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [14, 55, 140]
+
+                            sage: W = ComplexReflectionGroup((1,1,5))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [42, 273, 969]
+
+                            sage: W = ComplexReflectionGroup((2,1,2))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [6, 15, 28]
+
+                            sage: W = ComplexReflectionGroup((2,1,3))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [20, 84, 220]
+
+                            sage: W = ComplexReflectionGroup((2,1,4))
+                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
+                            [70, 495, 1820]
+                        """
+                        from sage.rings.all import gcd, ZZ
+                        from sage.combinat.q_analogues import q_int
+
+                        h = self.coxeter_number()
+                        if not gcd(h,p) == 1:
+                            raise ValueError("Your given parameter p = %s is not coprime to the Coxeter number %s"%(p,h))
+
+                        if polynomial:
+                            f = lambda n: q_int(n)
+                        else:
+                            f = lambda n: n
+                        num = prod( f( p + (p*(deg-1))%h ) for deg in self.degrees() )
+                        den = prod( f(deg                ) for deg in self.degrees() )
+                        ret = num / den
+                        if ret in ZZ:
+                            ret = ZZ(ret)
+                        return ret
+
                     def fuss_catalan_number(self,m,positive=False,polynomial=False):
                         r"""
                         Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
@@ -1160,25 +1216,14 @@ class ComplexReflectionGroups(Category_singleton):
                             sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
                             [70, 495, 1820]
                         """
-                        from sage.rings.all import ZZ
-                        from sage.combinat.q_analogues import q_int
-                        assert m in ZZ and m > 0, "%s is not a positive integer."%m
                         h = self.coxeter_number()
-                        if polynomial:
-                            f = lambda n: q_int(n)
-                        else:
-                            f = lambda n: n
                         if positive:
-                            num = prod( f(codeg + m*h) for codeg in self.codegrees() if m > 0 or codeg > 0 )
+                            p = m*h-1
                         else:
-                            num = prod( f(deg + m*h) for deg in self.degrees() )
-                        den = prod( f(deg) for deg in self.degrees() )
-                        ret = num / den
-                        if ret in ZZ:
-                            ret = ZZ(ret)
-                        return ret
+                            p = m*h+1
+                        return self.rational_catalan_number(self,p,polynomial=polynomial)
 
-                    def catalan_number(self,positive=False):
+                    def catalan_number(self,positive=False,polynomial=False):
                         r"""
                         Returns the Catalan number associated to ``self``. It is given by the product
                         of the Catalan numbers of the irreducible components of ``self``. For an
@@ -1201,7 +1246,7 @@ class ComplexReflectionGroups(Category_singleton):
                             sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
                             [4, 14, 50, 182]
                         """
-                        return self.fuss_catalan_number(1,positive=positive)
+                        return self.fuss_catalan_number(1,positive=positive,polynomial=polynomial)
 
             class ParentMethods:
                 def _test_well_generated(self, **options):

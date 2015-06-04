@@ -216,12 +216,12 @@ def package_versions(package_type, local=False):
 
     For packages of the given type, return a dictionary whose entries
     are of the form ``'package': (installed, latest)``, where
-    ``installed`` is the installed version (or "not_installed") and
-    ``latest`` is the latest available version. If the package has a
-    directory in ``SAGE_ROOT/build/pkgs/``, then ``latest`` is
-    determined by the file ``package-version.txt`` in that directory.
-    If ``local`` is False, then Sage's servers are queried for package
-    information
+    ``installed`` is the installed version (or ``None`` if not
+    installed) and ``latest`` is the latest available version. If the
+    package has a directory in ``SAGE_ROOT/build/pkgs/``, then
+    ``latest`` is determined by the file ``package-version.txt`` in
+    that directory.  If ``local`` is False, then Sage's servers are
+    queried for package information
 
     EXAMPLES::
 
@@ -243,7 +243,9 @@ def package_versions(package_type, local=False):
     versions = {}
     for line in X:
         line = line.split(' ')
-        versions[line[0]] = (line[2], line[1])
+        installed = line[2]
+        if installed == 'not_installed': installed = None
+        versions[line[0]] = (installed, line[1])
     return versions
 
 def _package_lists_from_sage_output(package_type, local=False):

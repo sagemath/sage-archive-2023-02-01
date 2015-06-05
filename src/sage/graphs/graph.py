@@ -3173,9 +3173,9 @@ class Graph(GenericGraph):
 
         for v in self:
             minimum,maximum = f_bounds(v)
-            p.add_constraint(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)]), min=minimum, max=maximum)
+            p.add_constraint(p.sum( b[reorder(x,y)]*weight(l) for x,y,l in self.edges_incident(v)), min=minimum, max=maximum)
 
-        p.set_objective(p.sum([ b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()]))
+        p.set_objective(p.sum( b[reorder(x,y)]*weight(l) for x,y,l in self.edge_iterator()))
 
         try:
             p.solve(log=verbose)
@@ -3375,7 +3375,7 @@ class Graph(GenericGraph):
         outgoing = lambda u,v,variable : (1-variable) if u>v else variable
 
         for u in self:
-            p.add_constraint(p.sum([weight(u,v)*outgoing(u,v,orientation[min(u,v),max(u,v)]) for v in self.neighbors(u)])-degree['max'],max=0)
+            p.add_constraint(p.sum(weight(u,v)*outgoing(u,v,orientation[min(u,v),max(u,v)]) for v in self.neighbors(u))-degree['max'], max=0)
 
         p.set_objective(degree['max'])
 
@@ -3505,7 +3505,7 @@ class Graph(GenericGraph):
             return DiGraph()
 
         vertices = self.vertices()
-        vertices_id = dict([(x_y[1], x_y[0]) for x_y in list(enumerate(vertices))])
+        vertices_id = dict((y, x) for x,y in enumerate(vertices))
 
         b = {}
 
@@ -3884,8 +3884,8 @@ class Graph(GenericGraph):
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum([weight(self.edge_label(u, v))
-                                for u, v in d.iteritems()]) * 0.5
+                    return sum(weight(self.edge_label(u, v))
+                                for u, v in d.iteritems()) * 0.5
                 else:
                     return Integer(len(d)/2)
             else:
@@ -3900,14 +3900,14 @@ class Graph(GenericGraph):
             p = MixedIntegerLinearProgram(maximization=True, solver=solver)
             b = p.new_variable(binary = True)
             p.set_objective(
-                p.sum([weight(w) * b[min(u, v),max(u, v)]
-                     for u, v, w in g.edges()]))
+                p.sum(weight(w) * b[min(u, v),max(u, v)]
+                     for u, v, w in g.edges()))
             # for any vertex v, there is at most one edge incident to v in
             # the maximum matching
             for v in g.vertex_iterator():
                 p.add_constraint(
-                    p.sum([b[min(u, v),max(u, v)]
-                         for u in g.neighbors(v)]), max=1)
+                    p.sum(b[min(u, v),max(u, v)]
+                         for u in g.neighbors(v)), max=1)
             if value_only:
                 if use_edge_labels:
                     return p.solve(objective_only=True, log=verbose)
@@ -3996,7 +3996,7 @@ class Graph(GenericGraph):
 
         # Each vertex has an image
         for ug in self:
-            p.add_constraint(p.sum([b[ug,uh] for uh in H]) == 1)
+            p.add_constraint(p.sum(b[ug,uh] for uh in H) == 1)
 
         nonedges = H.complement().edges(labels = False)
         for ug,vg in self.edges(labels = False):
@@ -4018,7 +4018,7 @@ class Graph(GenericGraph):
                 for ug in self:
                     p.add_constraint(b[ug,uh] <= m[uh])
 
-            p.set_objective(p.sum([m[vh] for vh in H]))
+            p.set_objective(p.sum(m[vh] for vh in H))
 
         try:
             p.solve(log = verbose)
@@ -4232,9 +4232,9 @@ class Graph(GenericGraph):
             p.add_constraint( one[ reorder(u,v) ] - 2*d[u] , max = 0 )
             p.add_constraint( one[ reorder(u,v) ] - 2*d[v] , max = 0 )
 
-        p.add_constraint( p.sum([d[v] for v in g]), max = 1)
+        p.add_constraint( p.sum(d[v] for v in g), max = 1)
 
-        p.set_objective( p.sum([ one[reorder(u,v)] for u,v in g.edge_iterator(labels=False)]) )
+        p.set_objective( p.sum( one[reorder(u,v)] for u,v in g.edge_iterator(labels=False)) )
 
         obj = p.solve(log = verbose)
 
@@ -4352,12 +4352,12 @@ class Graph(GenericGraph):
             [lists[v].append(i) for v in f]
 
             # a classss has exactly one representant
-            p.add_constraint(p.sum([classss[v,i] for v in f]),max=1,min=1)
+            p.add_constraint(p.sum(classss[v,i] for v in f), max=1, min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
         # vertex_taken[v]==1 if v is the representative of some classss
 
-        [p.add_constraint(p.sum([classss[v,i] for i in lists[v]])-vertex_taken[v],max=0) for v in self.vertex_iterator()]
+        [p.add_constraint(p.sum(classss[v,i] for i in lists[v]) - vertex_taken[v], max=0) for v in self.vertex_iterator()]
 
         # Two adjacent vertices can not both be representants of a set
 
@@ -4482,7 +4482,7 @@ class Graph(GenericGraph):
         rs = p.new_variable(binary = True)
 
         for v in self:
-            p.add_constraint(p.sum([rs[h,v] for h in H]), max = 1)
+            p.add_constraint(p.sum(rs[h,v] for h in H), max = 1)
 
         # We ensure that the set of representatives of a
         # vertex h contains a tree, and thus is connected
@@ -4501,7 +4501,7 @@ class Graph(GenericGraph):
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(p.sum([edges[h,S(e)] for e in self.edges(labels=None)])-p.sum([rs[h,v] for v in self]), min=-1, max=-1)
+            p.add_constraint(p.sum(edges[h,S(e)] for e in self.edges(labels=None))-p.sum(rs[h,v] for v in self), min=-1, max=-1)
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
@@ -4512,7 +4512,7 @@ class Graph(GenericGraph):
                 p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,S((u,v))], min = 0)
 
             for v in self:
-                p.add_constraint(p.sum([r_edges[h,(u,v)] for u in self.neighbors(v)]), max = 1-epsilon)
+                p.add_constraint(p.sum(r_edges[h,(u,v)] for u in self.neighbors(v)), max = 1-epsilon)
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
@@ -4528,7 +4528,7 @@ class Graph(GenericGraph):
                 p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h1,v2], max = 0)
                 p.add_constraint(h_edges[(h2,h1),S((v1,v2))] - rs[h2,v1], max = 0)
 
-            p.add_constraint(p.sum([h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)] for e in self.edges(labels=None) ]), min = 1)
+            p.add_constraint(p.sum(h_edges[(h1,h2),S(e)] + h_edges[(h2,h1),S(e)] for e in self.edges(labels=None) ), min = 1)
 
         p.set_objective(None)
 
@@ -5780,7 +5780,7 @@ class Graph(GenericGraph):
             b = p.new_variable(binary=True)
 
             # minimizes the number of vertices in the set
-            p.set_objective(p.sum([b[v] for v in g.vertices()]))
+            p.set_objective(p.sum(b[v] for v in g.vertices()))
 
             # an edge contains at least one vertex of the minimum vertex cover
             for (u,v) in g.edges(labels=None):
@@ -5995,7 +5995,7 @@ class Graph(GenericGraph):
         number_of = [0]*(self.order() + 1)
         for x in IndependentSets(self, complement = True):
             number_of[len(x)] += 1
-        return sum([coeff*t**i for i,coeff in enumerate(number_of) if coeff])
+        return sum(coeff*t**i for i,coeff in enumerate(number_of) if coeff)
     
     ### Miscellaneous
 

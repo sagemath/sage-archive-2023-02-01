@@ -1,22 +1,21 @@
 """
 The symbolic ring
 """
-###############################################################################
-#   Sage: Open Source Mathematical Software
+
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
-
-include "sage/ext/cdefs.pxi"
+#*****************************************************************************
 
 #################################################################
 # Initialize the library
 #################################################################
-
-#initialize_ginac()
 
 from ginac cimport *
 
@@ -25,7 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
-from sage.libs.pari.pari_instance cimport PariInstance
+from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.parent_base import ParentWithBase

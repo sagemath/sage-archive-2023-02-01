@@ -94,13 +94,18 @@ class GenericTerm(MonoidElement):
 
         INPUT:
 
-        - ``other`` -- a asymptotic term from the same parent as
-          ``self``.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
         A :class:`GenericTerm` representing the product of ``self``
         and ``other``.
+
+        .. NOTE::
+
+            This method os called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from a common parent.
 
         EXAMPLES::
 
@@ -120,20 +125,24 @@ class GenericTerm(MonoidElement):
 
     def can_absorb(self, other):
         r"""
-        Check, whether the asymptotic term ``self`` is able to absorb
-        the asymptotic term ``other``. For example, an :class:`OTerm`
-        is able to *absorb* another :class:`OTerm` or an
-        :class:`ExactTerm` with lower (or equal) growth. For more
-        information see :class:`OTerm`, :class:`ExactTerm`, and
-        :class:`LTermGeneric`.
+        Check, whether this asymptotic term is able to absorb
+        the asymptotic term ``other``.
 
         INPUT:
 
-        - ``other`` -- some asymptotic term.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
         A boolean.
+
+        .. NOTE::
+
+            For example, an :class:`OTerm`
+            is able to *absorb* another :class:`OTerm` or an
+            :class:`ExactTerm` with weaker (or equal) growth. For more
+            information see :class:`OTerm`, :class:`ExactTerm`, and
+            :class:`LTermGeneric`.
 
         EXAMPLES:
 
@@ -154,7 +163,7 @@ class GenericTerm(MonoidElement):
         :class:`OTerm` is able to absorb other :class:`OTerm`,
         :class:`LTermGeneric` (and descendants thereof) as well
         as :class:`ExactTerm`, as long as the growth of the other
-        term is less than or equal to the growth of ``self``::
+        term is less than or equal to the growth of this element::
 
             sage: ot1, ot2
             (O(x), O(x^2))
@@ -175,7 +184,7 @@ class GenericTerm(MonoidElement):
 
         :class:`ExactTerm` can only absorb another
         :class:`ExactTerm` if the growth coincides with the
-        growth of ``self``::
+        growth of this element::
 
             sage: et1.can_absorb(ET(x^2, 5))
             True
@@ -184,7 +193,7 @@ class GenericTerm(MonoidElement):
 
         :class:`LTermGeneric` can absorb arbitrary other
         :class:`LTermGeneric`, and :class:`ExactTerm` whose
-        growth is less than or equal to the growth of ``self``::
+        growth is less than or equal to the growth of this element::
 
             sage: any(lt1.can_absorb(t) for t in [ot1, ot2])
             False
@@ -226,7 +235,7 @@ class GenericTerm(MonoidElement):
         INPUT:
 
         - ``other`` -- an asymptotic term that can be absorbed
-          by ``self``.
+          by this element.
 
         OUTPUT:
 
@@ -322,20 +331,24 @@ class GenericTerm(MonoidElement):
 
     def _absorb_(self, other):
         r"""
-        Absorption of ``other`` by ``self``, where ``self`` and
-        ``other`` have the same parent. This is not implemented
-        for abstract base classes, for concrete realizations
-        see :meth:`OTerm._absorb_` or :meth:`ExactTerm._absorb_`.
+        Let this element absorb ``other``.
 
         INPUT:
 
         - ``other`` -- an asymptotic term from the same parent as
-          ``self``.
+          this element.
 
         OUTPUT:
 
-        An asymptotic term representing the result of the absorption
-        of ``other`` by ``self``, or ``None``.
+        An asymptotic term or ``None``.
+
+        .. NOTE::
+
+            This is not implemented for abstract base classes. For
+            concrete realizations see :meth:`OTerm._absorb_`
+            or :meth:`ExactTerm._absorb_`.
+
+
 
         EXAMPLES:
 
@@ -362,13 +375,12 @@ class GenericTerm(MonoidElement):
 
     def __le__(self, other):
         r"""
-        Return whether the growth of the term ``self`` is less than
-        or equal to the growth of the term ``other``.
+        Return whether the growth of this term is less than
+        or equal to the growth of ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term (inherited from
-          :class:`GenericTerm`) to be compared to ``self``.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
@@ -438,17 +450,22 @@ class GenericTerm(MonoidElement):
 
     def _le_(self, other):
         r"""
-        Return whether the generic term ``self`` is of lesser or
-        equal growth as the generic term ``other`` by calling
-        :meth:`GenericTermMonoid.le`.
+        Return whether this generic term grows at most (i.e. less
+        or equal) like ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term to be compared to ``self``.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
         A boolean.
+
+        .. NOTE::
+
+            This method is called by thge coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from the same parent.
 
         EXAMPLES::
 
@@ -584,7 +601,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     def growth_group(self):
         r"""
-        Return the growth group underlying ``self``.
+        Return the growth group underlying this term monoid.
 
         INPUT:
 
@@ -592,7 +609,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
         OUTPUT:
 
-        The asymptotic growth group of ``self``.
+        An asymptotic growth group.
 
         EXAMPLES::
 
@@ -632,9 +649,21 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     def _coerce_map_from_(self, S):
         r"""
-        Another GenericTermMonoid ``S`` coerces into ``self`` if and
-        only if the growth group of ``S`` coerces into the growth
-        group of ``self``.
+        Return if ``S`` coerces into this term monoid.
+
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Another GenericTermMonoid ``S`` coerces into this term
+            monoid if and only if the growth group of ``S`` coerces
+            into the growth group of this term monoid.
 
         EXAMPLES::
 
@@ -656,18 +685,23 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     def _element_constructor_(self, x):
         r"""
-        Find the coercion of object ``x`` in ``self``.
+        Convert the given object to to this term monoid.
 
         INPUT:
 
-        - ``x`` -- either an asymptotic term to be coerced into
-          ``self``, or an asymptotic growth element used for the
-          construction of an asymptotic term in ``self`` with
-          growth ``x``.
+        - ``x`` -- an object representing the element to be
+          initialized.
 
         OUTPUT:
 
-        An element of the term monoid ``self``.
+        An element of this term monoid.
+
+        .. NOTE::
+
+            The object ``x`` is either an asymptotic term that is
+            to be coerced into this term monoid, or an asymptotic
+            growth element that is used for creating an element
+            of this term monoid.
 
         EXAMPLES::
 
@@ -703,7 +737,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     def _an_element_(self):
         r"""
-        Return an element of ``self``.
+        Return an element of this term monoid.
 
         INPUT:
 
@@ -711,28 +745,28 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
         OUTPUT:
 
-        An element of ``self``.
+        An element of this term monoid.
 
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: atm.ExactTermMonoid(MG, ZZ).an_element()  # indirect doctest
-            1 * x
             sage: atm.OTermMonoid(MG).an_element()  # indirect doctest
             O(x)
+            sage: atm.GenericTermMonoid(MG).an_element()  # indirect doctest
+            Generic Term with growth x
         """
         return self(self.growth_group().an_element())
 
-    def le(self, x, y):
+    def le(self, left, right):
         r"""
-        Return whether the growth of term `x` is less than or equal
-        to the growth of term `y`.
+        Return whether the growth of term ``left`` is less than or equal
+        to the growth of term ``right``.
 
         INPUT:
 
-        - ``x``, ``y`` -- elements of ``self``.
+        - ``left``, ``right`` -- elements of this term monoid.
 
         OUTPUT:
 
@@ -748,7 +782,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: P.le(t1,t2)
             True
         """
-        return x.growth <= y.growth
+        return left.growth <= right.growth
 
 
 class OTerm(GenericTerm):
@@ -793,7 +827,7 @@ class OTerm(GenericTerm):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as ``O(growth)``.
+        Represent this O term as ``O(growth)``.
 
         INPUT:
 
@@ -820,19 +854,25 @@ class OTerm(GenericTerm):
 
     def _absorb_(self, other):
         r"""
-        Absorption of :class:`OTerm` ``other`` by :class:`OTerm`
-        ``self``. Provided that the absorption is possible, the `O`
-        term ``self`` is the dominant `O` term, and thus the result
-        is ``self``.
+        Let this `O` term absorb another `O` term ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic `O` term from the same parent
-          as ``self``.
+        - ``other`` -- an asymptotic `O` term.
 
         OUTPUT:
 
-        The asymptotic `O` term ``self``.
+        An asymptotic `O` term.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other``
+            have the same parent.
+
+            Also, observe that the result of a "dominant" `O` term
+            absorbing another `O` term, always is the "dominant"
+            `O` term again.
 
         EXAMPLES::
 
@@ -888,27 +928,29 @@ class OTermMonoid(GenericTermMonoid):
 
     def _coerce_map_from_(self, S):
         r"""
-        In order for ``S`` to coerce into ``self``, ``S`` may be
-        an instance of the following classes:
-
-        - :class:`OTermMonoid`
-
-        - :class:`LTermGenericMonoid` or a descendant thereof
-
-        - :class:`ExactTermMonoid`
-
-        In all those cases, ``S`` coerces into ``self`` if the
-        growth group of ``S`` coerces into the growth group
-        of ``self``.
+        Return if ``S`` coerces into this term monoid.
 
         INPUT:
 
-        - ``S`` -- a parent which is tested for coercion into
-          ``self``.
+        - ``S`` -- a parent.
 
         OUTPUT:
 
         ``True`` or ``None``.
+
+        .. NOTE::
+
+            Another term monoid ``S`` coerces into this term monoid
+            if ``S`` is an instance of one of the following classes:
+
+            - :class:`OTermMonoid`
+
+            - :class:`LTermGenericMonoid` or a descendant thereof
+
+            - :class:`ExactTermMonoid`
+
+            Additionally, the growth group underlying ``S`` has to
+            coerce into the growth group of this term monoid.
 
         EXAMPLES::
 
@@ -943,8 +985,8 @@ class OTermMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as 'Asymptotic O term monoid over
-        ``growth_group``'.
+        Represent this `O` term monoid as 'Asymptotic O term monoid
+        over ``growth_group``'.
 
         INPUT:
 
@@ -1069,13 +1111,18 @@ class TermWithCoefficient(GenericTerm):
 
         INPUT:
 
-        - ``other`` -- an asymptotic term from the same parent
-          as ``self``.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
-        An asymptotic term representing the product of ``self`` and
-        ``other``.
+        An asymptotic term representing the product of this element
+        and ``other``.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` have
+            the same parent.
 
         EXAMPLES::
 
@@ -1107,18 +1154,22 @@ class TermWithCoefficient(GenericTerm):
 
     def _le_(self, other):
         r"""
-        Return whether the asymptotic term with coefficient ``self``
-        is of lesser or equal growth as the asymptotic term with
-        coefficient ``other``.
+        Return whether this asymptotic term with coefficient grows
+        at most (less or equal) like ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term with coefficient to be
-          compared to ``self``.
+        - ``other`` -- an asymptotic term with coefficient.
 
         OUTPUT:
 
         A boolean.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` are
+            from the same parent.
 
         EXAMPLES::
 
@@ -1213,8 +1264,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def base_ring(self):
         r"""
-        Return the base ring of ``self``, i.e. the ring where the
-        coefficients are from.
+        Return the base ring of this term monoid, i.e. the ring where
+        the coefficients are from.
 
         INPUT:
 
@@ -1236,11 +1287,22 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _coerce_map_from_(self, S):
         r"""
-        :class:`TermWithCoefficientMonoid` is still a generic base
-        class handling structure. Thus, ``S`` coerces into ``self``
-        if and only if the growth group and the base ring of
-        ``S`` coerce into the growth group and base ring of
-        ``self``, respectively.
+        Return if ``S`` coerces into this term monoid.
+
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Another term monoid ``S`` coerces into this exact term
+            monoid if both, the base ring as well as the growth
+            group underlying ``S`` coerce into the base ring and the
+            growth group underlying this term monoid.
 
         EXAMPLES::
 
@@ -1265,20 +1327,27 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _element_constructor_(self, x, coefficient=1):
         r"""
-        Construct a asymptotic term with coefficient.
+        Construct an asymptotic term with coefficient or convert
+        the given object ``x`` to this term monoid.
 
         INPUT:
 
-        - ``x`` -- an asymptotic term with coefficient to be coerced
-          into ``self``, or an asymptotic growth group element
-          to be used to construct an asymptotic term of ``self``.
+        - ``x`` -- a growth element or an object representing the
+          element to be initialized.
 
-        - ``coefficient`` -- an element of the ``base_ring``
-          of ``self``.
+        - ``coefficient`` -- an element of the ``base_ring``.
 
         OUTPUT:
 
-        An asymptotic term with parent ``self``.
+        An asymptotic term.
+
+        .. NOTE::
+
+            The object ``x`` is either an asymptotic term with
+            coefficient that is to be coerced into this term monoid,
+            or an asymptotic growth element that is used together
+            with ``coefficient`` in order to create an element of
+            this term monoid.
 
         EXAMPLES::
 
@@ -1297,7 +1366,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as 'Monoid for asymptotic terms with
+        Represent this term monoid as 'Monoid for asymptotic terms with
         coefficients from ``base_ring`` over
         ``growth_group``'.
 
@@ -1420,21 +1489,23 @@ class LTermGeneric(TermWithCoefficient):
 
     def _absorb_(self, other):
         r"""
-        Absorption of one `L` term ``other`` by another `L` term
-        ``self``.
+        Absorb the `L` term ``other`` by this `L` term.
 
         INPUT:
 
-        - ``other`` -- another asymptotic `L` term from the same
-          parent as ``self``.
+        - ``other`` -- an asymptotic `L` term.
 
         OUTPUT:
 
-        An asymptotic `L` term, representing the result of the
-        absorption of ``other`` by ``self``.
+        An asymptotic `L` term.
 
+        .. NOTE::
 
-        ..TODO::
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` have
+            the same parent.
+
+        .. TODO::
 
             Implement this method for specific growth parents.
 
@@ -1458,25 +1529,28 @@ class LTermGeneric(TermWithCoefficient):
 
     def _mul_(self, other):
         r"""
-        Multiplication method for asymptotic `L` terms.
+        Multiply this `L` term with ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic `L` term from the same parent
-          as ``self``.
+        - ``other`` -- an asymptotic `L` term.
 
         OUTPUT:
 
-        An asymptotic `L` term representing the product of ``self``
-        and ``other``.
+        An asymptotic `L` term.
 
         .. NOTE::
 
-            When taking the product of two asymptotic `L` terms,
-            the growth of the product is the product of the growth
-            elements of the factors, and analogue for the respective
-            coefficient. The starting point of the resulting `L`
-            term is the maximum starting point of the factors.
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` have
+            the same parent.
+
+            Furthermore, When taking the product of two asymptotic
+            `L` terms, the growth of the product is the product of
+            the growth elements of the factors, and analogue for the
+            respective coefficient. The starting point of the
+            resulting `L` term is the maximum starting point of the
+            factors.
 
         EXAMPLES::
 
@@ -1546,16 +1620,15 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     def _element_constructor_(self, x, coefficient=1, start=0):
         r"""
-        Construct a generic `L` term.
+        Construct a generic `L` term or convert the given
+        object ``x`` to this term monoid.
 
         INPUT:
 
-        - ``x`` -- an asymptotic `L` term to be coerced into
-          ``self``, or an asymptotic growth group element to be used
-           to construct a generic `L` term of ``self``.
+        - ``x`` -- a growth element or an object representing the
+          element to be initialized.
 
-        - ``coefficient`` -- an element of the ``base_ring`` of
-          ``self``.
+        - ``coefficient`` -- an element of the ``base_ring``.
 
         - ``start`` -- a real number indicating the point where
           the `L` term is valid.
@@ -1563,6 +1636,14 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
         OUTPUT:
 
         A generic `L` term.
+
+        .. NOTE::
+
+            The object ``x`` is either a `L` term that is to be
+            coerced into this term monoid, or an asymptotic growth
+            element that is used together with ``coefficient`` and
+            ``start`` in order to create an element of this term
+            monoid.
 
         EXAMPLES::
 
@@ -1615,20 +1696,22 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     def _coerce_map_from_(self, S):
         r"""
-        Another :class:`LTermGenericMonoid` or
-        :class:`ExactTermMonoid` ``S`` coerces into ``self`` if the
-        growth group of ``S`` as well as the base ring of
-        ``S`` coerce into the growth group and the base ring
-        of ``self``, respectively.
+        Return if ``S`` coerces into this term monoid.
 
         INPUT:
 
-        - ``S`` -- a parent which is tested for coercion into
-          ``self``.
+        - ``S`` -- a parent.
 
         OUTPUT:
 
-        ``True`` or ``None``.
+        A boolean.
+
+        .. NOTE::
+
+            Another term monoid ``S`` coerces into this `L` term
+            monoid if both, the base ring as well as the growth group
+            underlying ``S`` coerce into the base ring and the growth
+            group underlying this term monoid.
 
         EXAMPLES::
 
@@ -1720,7 +1803,7 @@ class ExactTerm(TermWithCoefficient):
 
     def _repr_(self):
         r"""
-        Represent the exact term ``self`` as ``coefficient *
+        Represent this exact term as ``coefficient *
         growth``.
 
         INPUT:
@@ -1745,20 +1828,21 @@ class ExactTerm(TermWithCoefficient):
 
     def _absorb_(self, other):
         r"""
-        Absorption of ``other`` by ``self``, where ``self`` and
-        ``other`` are asymptotic exact terms over the same parent.
-        For exact terms, absorption translates to adding the
-        respective coefficients. For technical reasons, we return
-        ``None`` if the resulting coefficient is `0`.
+        Let this exact term absorb another exact term ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic exact term from the same parent
-          as ``self``.
+        - ``other`` -- an exact term.
 
         OUTPUT:
 
-        An asymptotic exact term or ``None``.
+        An exact term or ``None``.
+
+        .. NOTE::
+
+            In the context of exact terms, absorption translates
+            to addition. As the coefficient `0` is not allowed,
+            ``None`` is returned if the terms cancel out.
 
         EXAMPLES::
 

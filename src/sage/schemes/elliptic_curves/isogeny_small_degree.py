@@ -38,11 +38,9 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories import homset
-
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.all import ZZ, QQ
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
 from sage.misc.cachefunc import cached_function
@@ -1972,55 +1970,43 @@ def isogenies_prime_degree_general(E, l):
     # In general we look for products of factors of the same degree d
     # which can be kernel polynomials
 
-    from sage.rings.arith import gcd
     a = _least_semi_primitive(l)
     m = E.multiplication_by_m(a, x_only=True)
-    F = psi_l.parent()
-    x = F.gen()
-    d = F(m.denominator())
-    n = F(m.numerator())
+    m_num = m.numerator()
+    m_den = m.denominator()
+    R = psi_l.parent()
 
     # This function permutes the factors of a given degree, replacing
     # the factor with roots alpha with the one whose roots are
     # m(alpha), where m(x) is the rational function giving the
-    # multiplcation-by-a map for a which generates (Z/lZ)^* / <-1>:
-    # a is a so-called semi-primitive root.
-
-    def mult(f):
-        return gcd(F(f(m(x)).numerator()),psi_l).monic()
-
-    #assert all([mult(f) in factors for f in factors])
-
-    # Equivalent function, but not faster:
-    # R2 = PolynomialRing(F.base_ring(),2,['x2','y2'])
-    # x2, y2 = R2.gens()
-    # M = n(x2)-y2*d(x2)
-    # def mult2(f):
-    #     return M.resultant(f(y2),y2)([x,0]).gcd(psi_l).monic()
-    #
-    #assert all([mult2(f) in factors for f in factors])
+    # multiplcation-by-a map on the X-coordinates.  Here, a is a
+    # generator for (Z/lZ)^* / <-1> (a so-called semi-primitive root).
+    def mult(g):
+        # Find f such that f(m) = 0 mod g
+        S = R.quotient_ring(g)
+        Sm = S(m_num) / S(m_den)
+        return Sm.charpoly('x')
 
     # kernel polynomials are the products of factors of degree d in
     # one orbit under mult, provided that the orbit has length
     # (l-1)/2d.  Otherwise the orbit will be longer.
-
     for d in factors_by_degree:
         factors = factors_by_degree[d]
-        while len(factors) > 0:
+        while factors:
             # Compute an orbit under mult:
-            f = factors[0]
-            factors.remove(f)
-            orbit = [f]
-            f = mult(f)
-            while not f==orbit[0]:
+            f0 = factors.pop(0)
+            orbit = [f0]
+            f = mult(f0)
+            while f != f0:
                 orbit.append(f)
                 factors.remove(f)
                 f = mult(f)
             # Check orbit length:
-            if d*len(orbit)==l2:
+            if d*len(orbit) == l2:
                 ker.append(prod(orbit))
 
     return [E.isogeny(k) for k in ker]
+
 
 def isogenies_prime_degree(E, l):
     """

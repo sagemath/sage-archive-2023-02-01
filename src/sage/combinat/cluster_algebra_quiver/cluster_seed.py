@@ -917,9 +917,13 @@ class ClusterSeed(SageObject):
 
         return None
 
-    def highest_degree_denominator(self):
+    def highest_degree_denominator(self, filter=None):
         r"""
         Return the vertex of the cluster polynomial with highest degree in the denominator.
+        
+        INPUT:
+        
+        - ``filter`` - Filter should be a list or iterable
         
         OUTPUT:
         
@@ -932,9 +936,13 @@ class ClusterSeed(SageObject):
             sage: C.highest_degree_denominator()
             5
         """
+        if filter is None:
+            filter = xrange(len(self.cluster()))
         degree = 0
         vertex_to_mutate = []
         for i in list(enumerate(self.cluster())):
+            if i[0] not in filter:
+                continue
             vari = i[1]
             vertex = i[0]
             denom = vari.denominator()
@@ -979,6 +987,23 @@ class ClusterSeed(SageObject):
         
         return_key = randint(0,len(vertex_to_mutate) - 1)
         return vertex_to_mutate[return_key]
+    
+    def most_decreased_after_mutation(self):
+        
+        analysis = self.mutation_analysis(['edge_diff'])
+        least_edge = infinity
+        least_vertex = []
+        for edge,edge_analysis in analysis.items():
+            if least_edge == edge_analysis['edge_diff']:
+                least_vertex.append(edge)
+            if least_edge < edge_analysis['edge_diff']:
+                least_vertex = [edge]
+        
+        # if we have one vertex, return it
+        if len(least_vertex) == 1:
+            return least_vertex[0]
+        
+        # if not then do a test based on which one currently has the highest degree
     
     def mutate(self, sequence, inplace=True):
         r"""

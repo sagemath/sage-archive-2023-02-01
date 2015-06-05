@@ -1169,11 +1169,11 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		
 		if (c.is_equal(_ex1)) {
 			if (is_exactly_a<mul>(r)) {
-				sum.push_back(expair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
-				                     _ex1));
+				sum.push_back(a.combine_ex_with_coeff_to_pair(expand_mul(ex_to<mul>(r), *_num2_p, options, true),
+				                                              _ex1));
 			} else {
-				sum.push_back(expair((new power(r,_ex2))->setflag(status_flags::dynallocated),
-				                     _ex1));
+				sum.push_back(a.combine_ex_with_coeff_to_pair((new power(r,_ex2))->setflag(status_flags::dynallocated),
+				                                              _ex1));
 			}
 		} else {
 			if (is_exactly_a<mul>(r)) {

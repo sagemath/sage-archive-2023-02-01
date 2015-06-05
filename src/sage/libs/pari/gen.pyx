@@ -7826,6 +7826,12 @@ cdef class gen(gen_auto):
             sage: f()
             [0, 0, 1.00000000000000]
 
+        Variadic closures are supported as well (:trac:`18623`)::
+
+            sage: f = pari("(v[..])->length(v)")
+            sage: f('a', f)
+            2
+
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
 
@@ -7839,7 +7845,6 @@ cdef class gen(gen_auto):
         cdef long t = typ(self.g)
         cdef gen t0
         cdef GEN result
-        cdef long arity
         cdef long nargs = len(args)
         cdef long nkwds = len(kwds)
 
@@ -7847,15 +7852,12 @@ cdef class gen(gen_auto):
         if t == t_CLOSURE:
             if nkwds > 0:
                 raise TypeError("cannot evaluate a PARI closure using keyword arguments")
-            # XXX: use undocumented internals to get arity of closure
-            # (In PARI 2.6, there is closure_arity() which does this)
-            arity = self.g[1]
-            if nargs > arity:
-                raise TypeError("PARI closure takes at most %d argument%s (%d given)"%(
-                    arity, "s" if (arity!=1) else "", nargs))
             t0 = objtogen(args)
             pari_catch_sig_on()
-            result = closure_callgenvec(self.g, t0.g)
+            if closure_is_variadic(self.g):
+                result = closure_callgen1(self.g, t0.g)
+            else:
+                result = closure_callgenvec(self.g, t0.g)
             if result == gnil:
                 P.clear_stack()
                 return None
@@ -7932,7 +7934,7 @@ cdef class gen(gen_auto):
             sage: pari('() -> 42')(1,2,3)
             Traceback (most recent call last):
             ...
-            TypeError: PARI closure takes at most 0 arguments (3 given)
+            PariError: too many parameters in user-defined function call
             sage: pari('n -> n')(n=2)
             Traceback (most recent call last):
             ...

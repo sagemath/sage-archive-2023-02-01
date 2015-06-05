@@ -56,7 +56,8 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         TESTS::
 
-            sage: W = CoxeterGroups().example()
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3])
             sage: TestSuite(W).run()
         """
         W_types = tuple( tuple( W_type ) if isinstance(W_type,(list,tuple)) else W_type for W_type in W_types )
@@ -125,7 +126,15 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            tba
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.irreducible_components()
+            [Irreducible finite Coxeter group of rank 3 and type A3,
+             Irreducible finite Coxeter group of rank 2 and type B2]
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.irreducible_components()
+            [Irreducible finite Coxeter group of rank 3 and type A3]
         """
         if self.nr_irreducible_components() == 1:
             irr_comps = [self]
@@ -139,6 +148,20 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         return irr_comps
 
     def cartan_type(self):
+        r"""
+        Return the Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.cartan_type()
+            [['A', 3], ['B', 2]]
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.cartan_type()
+            ['A', 3]
+        """
         if len(self._type) == 1:
             ct = self._type[0]
             return CartanType([ct['series'],ct['rank']])
@@ -147,16 +170,112 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
     @cached_method
     def cartan_matrix(self):
-        from sage.matrix.constructor import matrix
-        return matrix(self._gap_group.CartanMat().sage())
+        r"""
+        Return the Cartan matrix of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.cartan_matrix()
+            [ 2 -1  0  0  0]
+            [-1  2 -1  0  0]
+            [ 0 -1  2  0  0]
+            [ 0  0  0  2 -2]
+            [ 0  0  0 -1  2]
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.cartan_matrix()
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
+        """
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+        return CartanMatrix(self._gap_group.CartanMat().sage())
 
     def simple_root(self,i):
+        r"""
+        Return the simple root with index ``i``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.simple_root(0)
+            (1, 0, 0)
+        """
         return self.simple_roots()[self._index_set[i]]
 
+    def positive_roots(self):
+        r"""
+        Return the simple root with index ``i``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.positive_roots()
+                [(1, 0, 0, 0, 0),
+                 (0, 1, 0, 0, 0),
+                 (0, 0, 1, 0, 0),
+                 (0, 0, 0, 1, 0),
+                 (0, 0, 0, 0, 1),
+                 (1, 1, 0, 0, 0),
+                 (0, 1, 1, 0, 0),
+                 (0, 0, 0, 1, 1),
+                 (1, 1, 1, 0, 0),
+                 (0, 0, 0, 2, 1)]
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.positive_roots()
+            [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
+        """
+        return self.roots()[:self.nr_reflections()]
+
     def almost_positive_roots(self):
+        r"""
+        Return the almost positive roots of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.almost_positive_roots()
+                [(-1, 0, 0, 0, 0),
+                 (0, -1, 0, 0, 0),
+                 (0, 0, -1, 0, 0),
+                 (0, 0, 0, -1, 0),
+                 (0, 0, 0, 0, -1),
+                 (1, 0, 0, 0, 0),
+                 (0, 1, 0, 0, 0),
+                 (0, 0, 1, 0, 0),
+                 (0, 0, 0, 1, 0),
+                 (0, 0, 0, 0, 1),
+                 (1, 1, 0, 0, 0),
+                 (0, 1, 1, 0, 0),
+                 (0, 0, 0, 1, 1),
+                 (1, 1, 1, 0, 0),
+                 (0, 0, 0, 2, 1)]
+
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.almost_positive_roots()
+                [(-1, 0, 0),
+                 (0, -1, 0),
+                 (0, 0, -1),
+                 (1, 0, 0),
+                 (0, 1, 0),
+                 (0, 0, 1),
+                 (1, 1, 0),
+                 (0, 1, 1),
+                 (1, 1, 1)]
+        """
         return [ -beta for beta in self.simple_roots() ] + self.positive_roots()
 
     def root_to_reflection(self,root):
+        r"""
+        Return the reflection along the given ``root``.
+        """
         Phi = self.roots()
         R = self.reflections()
         i = Phi.index(root)+1
@@ -167,6 +286,9 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         raise ValueError("There is a bug in root_to_reflection!")
 
     def reflection_to_positive_root(self,r):
+        r"""
+        Return the positive root orthogonal to the given reflection.
+        """
         Phi = self.roots()
         N = len(Phi)/2
         for i in range(1,N+1):
@@ -176,6 +298,24 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
     @cached_method
     def fundamental_weights(self):
+        r"""
+        Return the fundamental weights of ``self`` in terms of the simple roots.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.fundamental_weights()
+            [(3/4, 1/2, 1/4, 0, 0),
+             (1/2, 1, 1/2, 0, 0),
+             (1/4, 1/2, 3/4, 0, 0),
+             (0, 0, 0, 1, 1/2),
+             (0, 0, 0, 1, 1)]
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.fundamental_weights()
+            [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
+        """
         m = self.cartan_matrix().transpose().inverse()
         S = self.simple_roots()
         zero = S[0] - S[0]
@@ -185,9 +325,26 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         return weights
 
     def fundamental_weight(self,i):
+        r"""
+        Return the fundamental weight with index ``i``.
+        """
         return self.fundamental_weights()[self._index_set[i]]
 
     def permutahedron(self,coefficients=None):
+        r"""
+        Return the permutahedron of ``self`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W.permutahedron()
+            A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 192 vertices
+
+            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W.permutahedron()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
+        """
         n = self.rank()
         weights = self.fundamental_weights()
         if coefficients is None:

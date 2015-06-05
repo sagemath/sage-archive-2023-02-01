@@ -68,7 +68,8 @@ class FiniteWeylGroups(CategoryWithAxiom):
             - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
             - ``m`` -- a positive integer (default: 1)
 
-            Return the m-Cambrian lattice on ``m``-delta sequences, realized on roots rather than reflections.
+            Return the m-Cambrian lattice on ``m``-delta sequences, realized on roots rather than reflections (see arXiv:1503.00710 and arXiv:math/0611106).
+            ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections.
 
             EXAMPLES::
 

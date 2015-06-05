@@ -1699,7 +1699,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return gsl_isinf(self._value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 
@@ -1722,9 +1722,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: n == RDF(1)
             False
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
         # We really need to use the correct operators, to deal
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value

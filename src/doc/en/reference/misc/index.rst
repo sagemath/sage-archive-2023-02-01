@@ -37,6 +37,7 @@ Special Base Classes, Decorators, etc.
    sage/misc/constant_function
    sage/misc/classcall_metaclass
    sage/misc/cython_metaclass
+   sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods

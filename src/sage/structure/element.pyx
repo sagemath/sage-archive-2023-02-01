@@ -165,6 +165,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
+from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -303,6 +304,7 @@ def is_Element(x):
     """
     return isinstance(x, Element)
 
+
 cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
@@ -314,6 +316,10 @@ cdef class Element(SageObject):
     .. automethod:: _cmp_
     .. automethod:: _richcmp_
     """
+    def __getmetaclass__(_):
+        from sage.misc.inherit_comparison import InheritComparisonMetaclass
+        return InheritComparisonMetaclass
+
     def __init__(self, parent):
         r"""
         INPUT:

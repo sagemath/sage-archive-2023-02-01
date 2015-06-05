@@ -677,7 +677,7 @@ both ``MyElement`` defined above and of ``P.category().element_class``::
     sage: P.element_class
     <class '__main__.MyFrac_with_category.element_class'>
     sage: type(P.element_class)
-    <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+    <class 'sage.structure.dynamic_class.DynamicInheritComparisonMetaclass'>
     sage: issubclass(P.element_class, MyElement)
     True
     sage: issubclass(P.element_class,P.category().element_class)

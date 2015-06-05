@@ -1848,7 +1848,7 @@ def isogenies_prime_degree_general(E, l):
     ALGORITHM:
 
     This algorithm factors the ``l``-division polynomial, then
-    combines its factors to otain kernels. See [KT2013]_, Chapter 3.
+    combines its factors to obtain kernels. See [KT2013]_, Chapter 3.
 
     .. note::
 
@@ -1907,6 +1907,33 @@ def isogenies_prime_degree_general(E, l):
         [Isogeny of degree 43 from Elliptic Curve defined by y^2 + y = x^3 + x^2 + 42*x + 42 over Finite Field of size 43 to Elliptic Curve defined by y^2 + y = x^3 + x^2 + 36 over Finite Field of size 43]
         [Isogeny of degree 47 from Elliptic Curve defined by y^2 + y = x^3 + x^2 + 46*x + 46 over Finite Field of size 47 to Elliptic Curve defined by y^2 + y = x^3 + x^2 + 42*x + 34 over Finite Field of size 47]
 
+    Note that not all factors of degree (l-1)/2 of the l-division
+    polynomial are kernel polynomials.  In this example, the
+    13-division polynomial factors as a product of 14 irreducible
+    factors of degree 6 each, but only two those are kernel
+    polynomials::
+
+        sage: F3 = GF(3)
+        sage: E = EllipticCurve(F3,[0,0,0,-1,0])
+        sage: Psi13 = E.division_polynomial(13)
+        sage: len([f for f,e in Psi13.factor() if f.degree()==6])
+        14
+        sage: len(E.isogenies_prime_degree(13))
+        2
+
+    Over GF(9) the other factors of degree 6 split into pairs of
+    cubics which can be rearranged to give the remaining 12 kernel
+    polynomials::
+
+        sage: len(E.change_ring(GF(3^2,'a')).isogenies_prime_degree(13))
+        14
+
+    See :trac:`18589`: the following example took 20s before, now only 4s::
+
+        sage: K.<i> = QuadraticField(-1)
+        sage: E = EllipticCurve(K,[0,0,0,1,0])
+        sage: [phi.codomain().ainvs() for phi in E.isogenies_prime_degree(37)] # long time
+        [(0, 0, 0, -840*i + 1081, 0), (0, 0, 0, 840*i + 1081, 0)]
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
@@ -1916,28 +1943,83 @@ def isogenies_prime_degree_general(E, l):
         return isogenies_3(E)
 
     psi_l = E.division_polynomial(l)
-    factors = [h for h,e in psi_l.factor() if (l-1)/2 % h.degree() == 0]
+
+    # Every kernel polynomial is a product of irreducible factors of
+    # the division polynomial of the same degree, where this degree is
+    # a divisor of (l-1)/2, so we keep only such factors:
+
+    l2 = (l-1)//2
+    factors = [h for h,e in psi_l.factor()]
+    factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
+                              for d in l2.divisors()])
+
+    ker = [] # will store all kernel polynomials found
+
+    # If for some d dividing (l-1)/2 there are exactly (l-1)/2d
+    # divisors of degree d, then their product is a kernel poly, which
+    # we add to the list and remove the factors used.
+
+    from sage.misc.all import prod
+    for d in factors_by_degree.keys():
+        if d*len(factors_by_degree[d]) == l2:
+            ker.append(prod(factors_by_degree.pop(d)))
+
+    # Exit now if all factors have been used already:
+
+    if all(factors == [] for factors in factors_by_degree.values()):
+        return [E.isogeny(k) for k in ker]
+
+    # In general we look for products of factors of the same degree d
+    # which can be kernel polynomials
+
+    from sage.rings.arith import gcd
     a = _least_semi_primitive(l)
     m = E.multiplication_by_m(a, x_only=True)
     F = psi_l.parent()
     x = F.gen()
-    ker = []
-    from sage.rings.arith import gcd
-    from sage.misc.all import prod
+    d = F(m.denominator())
+    n = F(m.numerator())
+
+    # This function permutes the factors of a given degree, replacing
+    # the factor with roots alpha with the one whose roots are
+    # m(alpha), where m(x) is the rational function giving the
+    # multiplcation-by-a map for a which generates (Z/lZ)^* / <-1>:
+    # a is a so-called semi-primitive root.
+
     def mult(f):
         return gcd(F(f(m(x)).numerator()),psi_l).monic()
-    while len(factors) > 0:
-        f = factors[0]
-        factors.remove(f)
-        d = f.degree()
-        S = [f]
-        for i in range((l-1)/(2*d)-1):
-            g = mult(S[i])
-            S.append(g)
-            if g in factors:
-                factors.remove(g)
-        if mult(S[-1]) == f:
-            ker.append(prod(S))
+
+    #assert all([mult(f) in factors for f in factors])
+
+    # Equivalent function, but not faster:
+    # R2 = PolynomialRing(F.base_ring(),2,['x2','y2'])
+    # x2, y2 = R2.gens()
+    # M = n(x2)-y2*d(x2)
+    # def mult2(f):
+    #     return M.resultant(f(y2),y2)([x,0]).gcd(psi_l).monic()
+    #
+    #assert all([mult2(f) in factors for f in factors])
+
+    # kernel polynomials are the products of factors of degree d in
+    # one orbit under mult, provided that the orbit has length
+    # (l-1)/2d.  Otherwise the orbit will be longer.
+
+    for d in factors_by_degree:
+        factors = factors_by_degree[d]
+        while len(factors) > 0:
+            # Compute an orbit under mult:
+            f = factors[0]
+            factors.remove(f)
+            orbit = [f]
+            f = mult(f)
+            while not f==orbit[0]:
+                orbit.append(f)
+                factors.remove(f)
+                f = mult(f)
+            # Check orbit length:
+            if d*len(orbit)==l2:
+                ker.append(prod(orbit))
+
     return [E.isogeny(k) for k in ker]
 
 def isogenies_prime_degree(E, l):

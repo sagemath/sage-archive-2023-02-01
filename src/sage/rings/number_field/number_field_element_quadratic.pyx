@@ -35,6 +35,9 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+
 from sage.structure.element cimport Element
 from sage.structure.sage_object cimport rich_to_bool_sgn
 

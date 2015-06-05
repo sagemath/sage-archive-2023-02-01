@@ -1143,6 +1143,7 @@ class GraphGenerators():
              19: [14, 20, 15],
              20: [17, 19, 18]}
             sage: g.plot3d(layout='spring')  # optional buckygen
+            Graphics3d Object
 
         REFERENCE:
 

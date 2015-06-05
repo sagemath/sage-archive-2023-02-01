@@ -29,7 +29,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
-from sage.misc.ascii_art import AsciiArt, empty_ascii_art
+from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -1328,7 +1328,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: ascii_art(R.one())  # indirect doctest
             1
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         try:
             if m == self.one_basis():
                 return AsciiArt(["1"])

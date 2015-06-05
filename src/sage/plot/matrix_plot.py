@@ -101,15 +101,12 @@ class MatrixPlot(GraphicPrimitive):
 
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
-            [('xmax', 3.5), ('xmin', -0.5), ('ymax', -0.5), ('ymin', 2.5)]
+            [('xmax', 3.5), ('xmin', -0.5), ('ymax', 2.5), ('ymin', -0.5)]
 
 
         """
         from sage.plot.plot import minmax_data
         limits= minmax_data(self.xrange, self.yrange, dict=True)
-        if self.options()['origin']!='lower':
-            # flip y-axis so that the picture looks correct.
-            limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
@@ -206,15 +203,21 @@ class MatrixPlot(GraphicPrimitive):
             for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options',
                         'colorbar','colorbar_options']:
                 del opts[opt]
+
             if origin=='lower':
-                subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
+                subplot.spy(self.xy_data_array.tocsr(), **opts)
             else:
-                subplot.spy(self.xy_data_array, **opts)
+                data = self.xy_data_array.tocsr().copy()
+                data.indices = -data.indices + data.shape[1] - 1
+                subplot.spy(data, **opts)
         else:
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            image=subplot.imshow(self.xy_data_array, **opts)
+            if origin == 'lower':
+                image=subplot.imshow(self.xy_data_array, **opts)
+            else:
+                image=subplot.imshow(self.xy_data_array[::-1], **opts)
 
             if options.get('colorbar', False):
                 colorbar_options = options['colorbar_options']

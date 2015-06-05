@@ -949,10 +949,10 @@ class AbstractTree(object):
         node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
 
         if self.is_empty():
-            from sage.misc.ascii_art import empty_ascii_art
+            from sage.typeset.ascii_art import empty_ascii_art
             return empty_ascii_art
 
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
             t_repr = AsciiArt( [node_to_str(self)] )
             t_repr._root = 1

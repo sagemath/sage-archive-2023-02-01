@@ -4196,7 +4196,7 @@ class NumberField_generic(number_field_base.NumberField):
             for r in f.polcompositum(g):
                 if not any(r.nfisisom(s) for s in C):
                     C.append(r)
-            C = map(R, C)
+            C = [R(_) for _ in C]
 
             q = sum(1 for r in C if r.degree() != max(m, n))
             if q == 1 and name != sv and name != ov:
@@ -6888,7 +6888,7 @@ class NumberField_absolute(NumberField_generic):
             True
 
         """
-        B = map(self, self._pari_integral_basis(v=v))
+        B = [self(_) for _ in self._pari_integral_basis(v=v)]
 
         import sage.rings.number_field.order as order
         return order.absolute_order_from_module_generators(B,

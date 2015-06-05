@@ -334,7 +334,7 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
             (/)
             <BLANKLINE>
         """
-        gamma = map(int, self._folded_ct.scaling_factors())
+        gamma = [int(_) for _ in self._folded_ct.scaling_factors()]
         sigma = self._folded_ct._orbit
         n = self._folded_ct._folding.rank()
         vindex = self._folded_ct._folding.index_set()

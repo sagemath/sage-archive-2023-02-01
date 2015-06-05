@@ -167,13 +167,15 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         I = self._cartan_type.index_set()
         P = PolynomialRing(R, 'x', len(I))
         G = P.gens()
-        alpha = RootSystem(self._cartan_type).root_lattice().simple_roots()
-        alphacheck = RootSystem(self._cartan_type).root_lattice().simple_coroots()
+        gens_dict = {a:G[i] for i,a in enumerate(I)}
+        Q = RootSystem(self._cartan_type).root_lattice()
+        alpha = Q.simple_roots()
+        alphacheck = Q.simple_coroots()
 
         def commute_w_hd(w, al): # al is given as a dictionary
             ret = P.one()
             for k in al:
-                x = sum(c * G[I.index(i)] for i,c in alpha[k].weyl_action(w))
+                x = sum(c * gens_dict[i] for i,c in alpha[k].weyl_action(w))
                 ret *= x**al[k]
             ret = ret.dict()
             for k in ret:
@@ -183,15 +185,9 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         if dl and dr:
             il = dl.keys()[0]
             ir = dr.keys()[0]
-            ac = alphacheck[il]
-            al = alpha[ir]
 
             # Compute the commutator
-            terms = [(self._weyl.one(), self._t * ac.scalar(al))]
-            for s in self._reflections:
-                p = self._reflections[s] # p[0] is the root, p[1] is the coroot
-                terms.append((s, -self._c * R(ac.scalar(p[0]) * p[1].scalar(al)
-                                              / p[1].scalar(p[0])) ))
+            terms = self._product_coroot_root(il, ir)
 
             # remove the generator from the elements
             dl[il] -= 1
@@ -221,8 +217,9 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
             #   and obtain La (Ls Rs) (Lac' Rac)
             ret = P.one()
             for k in dl:
-                x = sum(c * G[I.index(i)]
-                        for i,c in alphacheck[k].weyl_action(right[1], inverse=True))
+                x = sum(c * gens_dict[i]
+                        for i,c in alphacheck[k].weyl_action(right[1].reduced_word(),
+                                                             inverse=True))
                 ret *= x**dl[k]
             ret = ret.dict()
             w = left[1]*right[1]
@@ -238,11 +235,56 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         return self._from_dict({ (left[0] * hd, w, right[2]): c
                                  for hd, c in commute_w_hd(left[1], dr) })
 
+    @cached_method
+    def _product_coroot_root(self, i, j):
+        r"""
+        Return the product `\alpha^{\vee}_i \alpha_j`
+        """
+        Q = RootSystem(self._cartan_type).root_lattice()
+        ac = Q.simple_coroot(i)
+        al = Q.simple_root(j)
+
+        R = self.base_ring()
+        terms = [( self._weyl.one(), self._t * R(ac.scalar(al)) )]
+        for s in self._reflections:
+            p = self._reflections[s] # p[0] is the root, p[1] is the coroot
+            terms.append(( s, self._c * R(ac.scalar(p[0]) * p[1].scalar(al)
+                                           / p[1].scalar(p[0])) ))
+        return tuple(terms)
+
     def degree_on_basis(self, m):
         """
         Return the degree on the monomial indexed by ``m``.
         """
         return m[0].length() - m[2].length()
+
+    @cached_method
+    def trivial_idempotent(self):
+        """
+        Return the trivial idempotent of ``self``.
+
+        Let `e = |W|^{-1} \sum_{w \in W} w` denote the trivial idempotent.
+        We construct the spherical Cherednik algebra by `U(W) = e H(W) e`,
+        where `H(W)` is the rational Cherednik algebra.
+        """
+        coeff = self.base_ring()(~self._weyl.cardinality())
+        hd_one = self._hd.one() # root - a
+        h_one = self._h.one() # coroot - ac
+        return self._from_dict({(hd_one, w, h_one): coeff for w in self._weyl},
+                               remove_zeros=False)
+
+    @cached_method
+    def deformed_euler(self):
+        """
+        Return the element `eu_k`.
+        """
+        I = self._cartan_type.index_set()
+        G = self.algebra_generators()
+        cm = ~CartanMatrix(self._cartan_type)
+        n = len(I)
+        ac = [G['ac'+str(i)] for i in I]
+        la = [sum(cm[i,j]*G['a'+str(I[i])] for i in range(n)) for j in range(n)]
+        return self.sum(ac[i]*la[i] for i in range(n))
 
     @cached_method
     def an_element(self):

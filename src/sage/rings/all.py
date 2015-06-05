@@ -136,7 +136,7 @@ from fraction_field import FractionField
 Frac = FractionField
 
 # c-finite sequences
-from cfinite_sequence import CFiniteSequence
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \

@@ -20,10 +20,7 @@ REFERENCES:
    Characters of General Linear Groups.
    J. Math. Soc. Japan **40** (4), pp. 671--685, 1988.
 
-.. [Propp1997] James Propp,
-           *Generating Random Elements of Finite Distributive Lattices*,
-           Electron. J. Combin. 4 (1997), no. 2, The Wilf Festschrift volume,
-           Research Paper 15.
+
 """
 #*****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim@ucdavis.edu>
@@ -1050,7 +1047,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
                 break
             count = seedlist[0][1] * 2
             seedlist.insert(0, (current_randstate().long_seed(), count))
-        return upper
+        return GelfandTsetlinPattern(upper)
 
     def random_element(self):
         """
@@ -1066,7 +1063,12 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             [[5, 4, 1, 0], [5, 2, 1], [2, 1], [2]]
         """
         if self._n is not None and self._k is not None:
-            return self._cftp(0)
+            if self._strict and self._k+1 < self._n:
+                raise ValueError('Cannot sample from empty set')
+            elif self._k < 0:
+                raise ValueError('Cannot sample from empty set')
+            else:
+                return self._cftp(0)
         else:
             raise ValueError('Cannot sample from infinite set')
 

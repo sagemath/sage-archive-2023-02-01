@@ -282,12 +282,12 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         @cached_method
         def cambrian_lattice(self, c):
             """
+            Return the c-Cambrian lattice on delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
+            Delta sequences are certain 2-colored minimal factorizations of ``c`` into reflections.
+
             INPUT:
 
             - ``c`` -- a standard Coxeter element in ``self`` (as a tuple, or as an element of ``self``)
-
-            Returns the c-Cambrian lattice on delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
-            Delta sequences are certain 2-colored minimal factorizations of ``c`` into reflections.
 
             EXAMPLES::
 
@@ -306,12 +306,12 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
         def inversion_sequence(self, word):
             """
+            Return the inversion sequence corresponding to ``word``.  If
+            ``word``=`[w_0,w_1,...w_k]`, then the output is `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
+
             INPUT:
 
             - ``word`` -- a word in the simple generators of ``self``
-
-            Return the inversion sequence corresponding to ``word``.  If
-            ``word``=`[w_0,w_1,...w_k]`, then the output is `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
 
             EXAMPLES::
 
@@ -353,13 +353,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         @cached_method
         def m_cambrian_lattice(self, c, m = 1):
             """
+            Return the m-Cambrian lattice on ``m``-delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
+            ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections.
+
             INPUT:
 
             - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
             - ``m`` -- a positive integer (default: 1)
-
-            Return the m-Cambrian lattice on ``m``-delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
-            ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections.
 
             EXAMPLES::
 

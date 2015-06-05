@@ -43,7 +43,7 @@ class GenericTerm(MonoidElement):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: P = atm.GenericTermMonoid(MG)
         sage: t1, t2 = P(x), P(x^2); (t1, t2)
         (Generic Term with growth x, Generic Term with growth x^2)
@@ -67,7 +67,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(MG)
             sage: P(x^2)
             Generic Term with growth x^2
@@ -75,10 +75,10 @@ class GenericTerm(MonoidElement):
         from sage.groups.asymptotic_growth_group import GenericGrowthElement
 
         if parent is None:
-            raise ValueError("The parent must be provided")
+            raise ValueError('The parent must be provided')
         if growth is None or not isinstance(growth, GenericGrowthElement):
-            raise ValueError("The growth must be provided and must inherit "
-                             "from GenericGrowthElement")
+            raise ValueError('The growth must be provided and must inherit '
+                             'from GenericGrowthElement')
         else:
             if growth not in parent.growth_group():
                 raise ValueError("%s is not in the parent's "
@@ -106,7 +106,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(MG)
             sage: t1, t2 = P(x), P(x^2)
             sage: t1, t2
@@ -143,7 +143,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(growth_group=MG)
             sage: ET = atm.ExactTermMonoid(growth_group=MG, base_ring=QQ)
             sage: LT = atm.LTermGenericMonoid(growth_group=MG, base_ring=QQ)
@@ -194,7 +194,7 @@ class GenericTerm(MonoidElement):
             True
         """
         if not isinstance(other, GenericTerm):
-            raise TypeError("%s is not an asymptotic term" % other)
+            raise TypeError('%s is not an asymptotic term' % other)
         if isinstance(self, OTerm):
             if isinstance(other, (OTerm, LTermGeneric, ExactTerm)):
                 return other <= self
@@ -241,7 +241,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x"); x = MG_QQ.gen()
+            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x = MG_QQ.gen()
             sage: OT = atm.OTermMonoid(MG_QQ)
             sage: ET = atm.ExactTermMonoid(growth_group=MG_QQ, base_ring=QQ)
             sage: LT = atm.LTermGenericMonoid(growth_group=MG_QQ, base_ring=QQ)
@@ -305,7 +305,7 @@ class GenericTerm(MonoidElement):
         from sage.structure.element import have_same_parent
 
         if not self.can_absorb(other):
-            raise ArithmeticError("%s cannot absorb %s" % (self, other))
+            raise ArithmeticError('%s cannot absorb %s' % (self, other))
 
         if have_same_parent(self, other):
             return self._absorb_(other)
@@ -343,7 +343,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(MG)
             sage: t1, t2 = P(x), P(x^2)
 
@@ -357,7 +357,7 @@ class GenericTerm(MonoidElement):
             ...
             ArithmeticError: Generic Term with growth x^2 cannot absorb Generic Term with growth x
         """
-        raise NotImplementedError("Not implemented in abstract base classes")
+        raise NotImplementedError('Not implemented in abstract base classes')
 
 
     def __le__(self, other):
@@ -380,7 +380,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: GT = atm.GenericTermMonoid(MG)
             sage: OT = atm.OTermMonoid(MG)
             sage: ET_ZZ = atm.ExactTermMonoid(MG, ZZ)
@@ -454,7 +454,7 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: GT = atm.GenericTermMonoid(MG)
             sage: t1, t2 = GT(x^-2), GT(x^5); t1, t2
             (Generic Term with growth x^(-2), Generic Term with growth x^5)
@@ -483,14 +483,14 @@ class GenericTerm(MonoidElement):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(growth_group=MG)
             sage: P(x)._repr_()
             'Generic Term with growth x'
             sage: P(x^7)._repr_()
             'Generic Term with growth x^7'
         """
-        return "Generic Term with growth " + repr(self.growth)
+        return 'Generic Term with growth ' + repr(self.growth)
 
 
 class GenericTermMonoid(Parent, UniqueRepresentation):
@@ -521,8 +521,8 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG_x = agg.MonomialGrowthGroup(ZZ, "x"); x = MG_x.gen()
-        sage: MG_y = agg.MonomialGrowthGroup(QQ, "y"); y = MG_y.gen()
+        sage: MG_x = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG_x.gen()
+        sage: MG_y = agg.MonomialGrowthGroup(QQ, 'y'); y = MG_y.gen()
         sage: GT_x_ZZ, GT_y_QQ = atm.GenericTermMonoid(MG_x), atm.GenericTermMonoid(MG_y)
         sage: GT_x_ZZ
         Generic Term Monoid over Monomial Growth Group in x over Integer Ring
@@ -541,12 +541,12 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
         
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_x = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG_x = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: GT_x = atm.GenericTermMonoid(MG_x); GT_x
             Generic Term Monoid over Monomial Growth Group in x over Integer Ring
             sage: GT_x.growth_group()
             Monomial Growth Group in x over Integer Ring
-            sage: MG_y = agg.MonomialGrowthGroup(QQ, "y")
+            sage: MG_y = agg.MonomialGrowthGroup(QQ, 'y')
             sage: GT_y = atm.GenericTermMonoid(MG_y); GT_y
             Generic Term Monoid over Monomial Growth Group in y over Rational Field
             sage: GT_x is GT_y
@@ -571,13 +571,13 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
                 category = (category,)
             if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
                        category):
-                raise ValueError("%s is not a subcategory of %s"
+                raise ValueError('%s is not a subcategory of %s'
                                  % (category, Monoids() & Posets()))
         if growth_group is None:
             raise ValueError('Growth Group has to be specified')
         else:
             if not isinstance(growth_group, GenericGrowthGroup):
-                raise ValueError("%s does not inherit from %s"
+                raise ValueError('%s does not inherit from %s'
                                  % (growth_group, GenericGrowthGroup()))
         self._growth_group = growth_group
         super(GenericTermMonoid, self).__init__(category=category)
@@ -598,7 +598,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.ExactTermMonoid(MG, ZZ).growth_group()
             Monomial Growth Group in x over Integer Ring
         """
@@ -606,8 +606,8 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
     def _repr_(self):
         r"""
-        Represent the generic term monoid as "Generic Term Monoid
-        over `growth_group`".
+        Represent the generic term monoid as 'Generic Term Monoid
+        over `growth_group`'.
 
         INPUT:
 
@@ -624,11 +624,11 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             sage: GG = agg.GenericGrowthGroup(ZZ)
             sage: atm.GenericTermMonoid(GG)._repr_()
             'Generic Term Monoid over Generic Growth Group over Integer Ring'
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.GenericTermMonoid(growth_group=MG)._repr_()
             'Generic Term Monoid over Monomial Growth Group in x over Integer Ring'
         """
-        return "Generic Term Monoid over %s" % repr(self.growth_group())
+        return 'Generic Term Monoid over %s' % repr(self.growth_group())
 
     def _coerce_map_from_(self, S):
         r"""
@@ -640,10 +640,10 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: T_ZZ = atm.GenericTermMonoid(growth_group=MG_ZZ); T_ZZ
             Generic Term Monoid over Monomial Growth Group in x over Integer Ring
-            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x")
+            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: T_QQ = atm.GenericTermMonoid(growth_group=MG_QQ); T_QQ
             Generic Term Monoid over Monomial Growth Group in x over Rational Field
             sage: T_QQ._coerce_map_from_(T_ZZ)
@@ -673,8 +673,8 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x")
-            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x")
+            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: P_ZZ = atm.GenericTermMonoid(growth_group=MG_ZZ)
             sage: P_QQ = atm.GenericTermMonoid(growth_group=MG_QQ)
             sage: term1 = P_ZZ(MG_ZZ.gen())
@@ -692,14 +692,14 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             return self.element_class(self, x)
 
         if x is None:
-            raise ValueError("The growth of the term has to be specified!")
+            raise ValueError('The growth of the term has to be specified!')
         elif x.parent() is self:
             return x
         elif isinstance(x, GenericTerm):
             return self.element_class(self,
                                       self.growth_group().coerce(x.growth))
         else:
-            raise ValueError("Input is not an asymptotic growth element.")
+            raise ValueError('Input is not an asymptotic growth element.')
 
     def _an_element_(self):
         r"""
@@ -717,7 +717,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.ExactTermMonoid(MG, ZZ).an_element()  # indirect doctest
             1 * x
             sage: atm.OTermMonoid(MG).an_element()  # indirect doctest
@@ -742,7 +742,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(growth_group=MG)
             sage: t1, t2 = P(x), P(x^2)
             sage: P.le(t1,t2)
@@ -774,7 +774,7 @@ class OTerm(GenericTerm):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: OT = atm.OTermMonoid(MG)
         sage: t1, t2, t3 = OT(x^-7), OT(x^5), OT(x^42)
         sage: t1, t2, t3
@@ -807,7 +807,7 @@ class OTerm(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(MG)
             sage: t1, t2, t3 = OT(x), OT(x^2), OT(x^3)
             sage: t1._repr_(), t2._repr_()
@@ -815,7 +815,7 @@ class OTerm(GenericTerm):
             sage: t3
             O(x^3)
         """
-        return "O(%s)" % self.growth
+        return 'O(%s)' % self.growth
 
 
     def _absorb_(self, other):
@@ -838,7 +838,7 @@ class OTerm(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(growth_group=MG)
             sage: ot1, ot2 = OT(x), OT(x^2)
             sage: ot1.absorb(ot1)
@@ -875,8 +875,8 @@ class OTermMonoid(GenericTermMonoid):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG_x_ZZ = agg.MonomialGrowthGroup(ZZ, "x")
-        sage: MG_y_QQ = agg.MonomialGrowthGroup(QQ, "y")
+        sage: MG_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: MG_y_QQ = agg.MonomialGrowthGroup(QQ, 'y')
         sage: OT_x_ZZ = atm.OTermMonoid(MG_x_ZZ); OT_x_ZZ
         Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: OT_y_QQ = atm.OTermMonoid(MG_y_QQ); OT_y_QQ
@@ -914,8 +914,8 @@ class OTermMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x"); x_ZZ = MG_ZZ.gen()
-            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x"); x_QQ = MG_QQ.gen()
+            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
+            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
             sage: OT_ZZ = atm.OTermMonoid(MG_ZZ)
             sage: OT_QQ = atm.OTermMonoid(MG_QQ)
             sage: ET = atm.ExactTermMonoid(MG_ZZ, ZZ)
@@ -943,8 +943,8 @@ class OTermMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as "Asymptotic O term monoid over
-        ``growth_group``".
+        Represent ``self`` as 'Asymptotic O term monoid over
+        ``growth_group``'.
 
         INPUT:
 
@@ -958,11 +958,11 @@ class OTermMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: atm.OTermMonoid(MG)._repr_()
             'Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring'
         """
-        return "Asymptotic O Term Monoid over %s" % self.growth_group()
+        return 'Asymptotic O Term Monoid over %s' % self.growth_group()
 
 
 class TermWithCoefficient(GenericTerm):
@@ -988,7 +988,7 @@ class TermWithCoefficient(GenericTerm):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: CT_ZZ = atm.TermWithCoefficientMonoid(MG, ZZ)
         sage: CT_QQ = atm.TermWithCoefficientMonoid(MG, QQ)
         sage: CT_ZZ(x^2, 5)
@@ -1007,7 +1007,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: CT_ZZ = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: CT_QQ = atm.TermWithCoefficientMonoid(MG, QQ)
 
@@ -1028,10 +1028,10 @@ class TermWithCoefficient(GenericTerm):
             ValueError: 0 is not a valid coefficient
         """
         if coefficient not in parent.base_ring():
-            raise ValueError("%s is not in %s" % (coefficient,
+            raise ValueError('%s is not in %s' % (coefficient,
                                                   parent.base_ring()))
         elif coefficient == 0:
-            raise ValueError("0 is not a valid coefficient")
+            raise ValueError('0 is not a valid coefficient')
         else:
             self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
@@ -1039,8 +1039,8 @@ class TermWithCoefficient(GenericTerm):
 
     def _repr_(self):
         r"""
-        Represent the :class:`TermWithCoefficient` as "Asymptotic
-        Term with coefficient ``coefficient`` and growth ``growth``".
+        Represent the :class:`TermWithCoefficient` as 'Asymptotic
+        Term with coefficient ``coefficient`` and growth ``growth``'.
 
         INPUT:
 
@@ -1054,12 +1054,12 @@ class TermWithCoefficient(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: P(x^2, 5)._repr_()
             'Asymptotic Term with coefficient 5 and growth x^2'
         """
-        return "Asymptotic Term with coefficient %s and growth %s" % \
+        return 'Asymptotic Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
 
 
@@ -1081,7 +1081,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: CT = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: ET = atm.ExactTermMonoid(MG, ZZ)
 
@@ -1124,7 +1124,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: ET = atm.ExactTermMonoid(MG, QQ)
             sage: t1, t2, t3 = ET(x, 5), ET(x^2, 3), ET(x^2, 42)
             sage: t1 <= t2
@@ -1170,8 +1170,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x"); x_ZZ = MG_ZZ.gen()
-        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x"); x_QQ = MG_QQ.gen()
+        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
+        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
         sage: TC_ZZ = atm.TermWithCoefficientMonoid(MG_ZZ, QQ); TC_ZZ
         Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
         sage: TC_QQ = atm.TermWithCoefficientMonoid(MG_QQ, QQ); TC_QQ
@@ -1196,7 +1196,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P_ZZ = atm.TermWithCoefficientMonoid(MG, ZZ); P_ZZ
             Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
             sage: P_QQ = atm.TermWithCoefficientMonoid(MG, QQ); P_QQ
@@ -1205,7 +1205,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Join of Category of monoids and Category of posets
         """
         if base_ring is None:
-            raise ValueError("Base ring is not specified")
+            raise ValueError('Base ring is not specified')
         self._base_ring = base_ring
         super(TermWithCoefficientMonoid,
               self).__init__(growth_group=growth_group, category=category)
@@ -1228,7 +1228,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.ExactTermMonoid(MG, ZZ).base_ring()  # indirect doctest
             Integer Ring
         """
@@ -1246,8 +1246,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x")
-            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x")
+            sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: TC_ZZ = atm.TermWithCoefficientMonoid(MG_ZZ, ZZ); TC_ZZ
             Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
             sage: TC_QQ = atm.TermWithCoefficientMonoid(MG_QQ, QQ); TC_QQ
@@ -1284,7 +1284,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: t1 = P(x^2, 5); t1  # indirect doctest
             Asymptotic Term with coefficient 5 and growth x^2
@@ -1297,9 +1297,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent ``self`` as "Monoid for asymptotic terms with
+        Represent ``self`` as 'Monoid for asymptotic terms with
         coefficients from ``base_ring`` over
-        ``growth_group``".
+        ``growth_group``'.
 
         INPUT:
 
@@ -1313,12 +1313,12 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x")
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.TermWithCoefficientMonoid(MG, ZZ)._repr_()
             'Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring'
         """
-        return "Monoid for asymptotic terms with coefficients from %s " \
-               "over %s" % (self.base_ring(), self.growth_group())
+        return 'Monoid for asymptotic terms with coefficients from %s ' \
+               'over %s' % (self.base_ring(), self.growth_group())
 
 
 class LTermGeneric(TermWithCoefficient):
@@ -1328,7 +1328,7 @@ class LTermGeneric(TermWithCoefficient):
 
     .. NOTE::
 
-        When adding ("absorbing") various different `L` terms, some
+        When adding ('absorbing') various different `L` terms, some
         sort of "lifting" occurs in general. This lifting affects the
         coefficient of the resulting `L` term, and works
         differently for various growth classes. This makes different
@@ -1360,7 +1360,7 @@ class LTermGeneric(TermWithCoefficient):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: LT_ZZ = atm.LTermGenericMonoid(MG, ZZ)
         sage: LT_QQ = atm.LTermGenericMonoid(MG, QQ)
         sage: lt_ZZ, lt_QQ = LT_ZZ(x^2, 42, 42), LT_QQ(x, 12/7, 0); lt_ZZ, lt_QQ
@@ -1386,7 +1386,7 @@ class LTermGeneric(TermWithCoefficient):
         from sage.rings.real_mpfr import RR
 
         if start not in RR:
-            raise ValueError("%s is not a real number" % start)
+            raise ValueError('%s is not a real number' % start)
         else:
             self.start = start
         super(LTermGeneric, self).__init__(parent=parent, growth=growth,
@@ -1410,12 +1410,12 @@ class LTermGeneric(TermWithCoefficient):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: LT = atm.LTermGenericMonoid(MG, ZZ)
             sage: LT(x^2, 5, start=0)._repr_()
             '5 * L(x^2, 0)'
         """
-        return "%s * L(%s, %s)" % (self.coefficient, self.growth, self.start)
+        return '%s * L(%s, %s)' % (self.coefficient, self.growth, self.start)
 
 
     def _absorb_(self, other):
@@ -1442,7 +1442,7 @@ class LTermGeneric(TermWithCoefficient):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: LT = atm.LTermGenericMonoid(MG, QQ)
             sage: t1, t2 = LT(x^2, 5, 0), LT(x, 42, 5); t1, t2
             (5 * L(x^2, 0), 42 * L(x, 5))
@@ -1453,7 +1453,7 @@ class LTermGeneric(TermWithCoefficient):
             ...
             NotImplementedError: Not yet implemented
         """
-        raise NotImplementedError("Not yet implemented")
+        raise NotImplementedError('Not yet implemented')
 
 
     def _mul_(self, other):
@@ -1482,7 +1482,7 @@ class LTermGeneric(TermWithCoefficient):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: LT = atm.LTermGenericMonoid(MG, QQ)
             sage: lt1, lt2 = LT(x^2, 2, 0), LT(x^-1, 3, 5)
             sage: lt1._mul_(lt1)
@@ -1527,8 +1527,8 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x"); x_ZZ = MG_ZZ.gen()
-        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x"); x_QQ = MG_QQ.gen()
+        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
+        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
         sage: LT_ZZ = atm.LTermGenericMonoid(MG_ZZ, QQ); LT_ZZ
         Generic L Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
         sage: LT_QQ = atm.LTermGenericMonoid(MG_QQ, QQ); LT_QQ
@@ -1568,7 +1568,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: LT = atm.LTermGenericMonoid(MG, QQ)
             sage: ET = atm.ExactTermMonoid(MG, QQ)
             sage: lt, et = LT(x^3, 42/5, 3), ET(x^7, 5/9)
@@ -1589,9 +1589,9 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     def _repr_(self):
         r"""
-        Represent the generic `L` term monoid as "Generic L Term
+        Represent the generic `L` term monoid as 'Generic L Term
         Monoid with coefficients from ``base_ring`` over
-        ``growth_group``".
+        ``growth_group``'.
 
         INPUT:
 
@@ -1605,11 +1605,11 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(QQ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(QQ, 'x'); x = MG.gen()
             sage: atm.LTermGenericMonoid(MG, ZZ)._repr_()
             'Generic L Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Rational Field'
         """
-        return "Generic L Term Monoid with coefficients from %s over %s" % \
+        return 'Generic L Term Monoid with coefficients from %s over %s' % \
                (self.base_ring(), self.growth_group())
 
 
@@ -1634,7 +1634,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: LT_QQ = atm.LTermGenericMonoid(MG, QQ)
             sage: LT_ZZ = atm.LTermGenericMonoid(MG, ZZ)
             sage: ET = atm.ExactTermMonoid(MG, ZZ)
@@ -1678,7 +1678,7 @@ class ExactTerm(TermWithCoefficient):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: ET = atm.ExactTermMonoid(MG, QQ)
 
     Asymptotic exact terms may be multiplied (with the usual rules
@@ -1735,12 +1735,12 @@ class ExactTerm(TermWithCoefficient):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: ET = atm.ExactTermMonoid(MG, ZZ)
             sage: et1 = ET(x^2, 2); et1
             2 * x^2
         """
-        return "%s * %s" % (self.coefficient, self.growth)
+        return '%s * %s' % (self.coefficient, self.growth)
 
 
     def _absorb_(self, other):
@@ -1764,7 +1764,7 @@ class ExactTerm(TermWithCoefficient):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: ET = atm.ExactTermMonoid(MG, QQ)
 
         Asymptotic exact terms can absorb other asymptotic exact
@@ -1818,8 +1818,8 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, "x"); x_ZZ = MG_ZZ.gen()
-        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, "x"); x_QQ = MG_QQ.gen()
+        sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
+        sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
         sage: ET_ZZ = atm.ExactTermMonoid(MG_ZZ, ZZ); ET_ZZ
         Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
         sage: ET_QQ = atm.ExactTermMonoid(MG_QQ, QQ); ET_QQ
@@ -1834,9 +1834,9 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     def _repr_(self):
         r"""
-        Represent the asymptotic exact term monoid as "Exact Term
+        Represent the asymptotic exact term monoid as 'Exact Term
         Monoid with coefficients from ``base_ring`` over
-        ``growth_group``".
+        ``growth_group``'.
 
         INPUT:
 
@@ -1850,9 +1850,9 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, "x"); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: atm.ExactTermMonoid(MG, QQ)._repr_()
             'Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring'
         """
-        return "Exact Term Monoid with coefficients from %s over %s" % \
+        return 'Exact Term Monoid with coefficients from %s over %s' % \
                (self.base_ring(), self.growth_group())

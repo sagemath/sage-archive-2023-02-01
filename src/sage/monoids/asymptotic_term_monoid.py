@@ -551,6 +551,13 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
             Generic Term Monoid over Monomial Growth Group in y over Rational Field
             sage: GT_x is GT_y
             False
+
+        ::
+
+            sage: atm.GenericTermMonoid()
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth Group has to be specified
         """
 
         from sage.categories.monoids import Monoids
@@ -567,7 +574,7 @@ class GenericTermMonoid(Parent, UniqueRepresentation):
                 raise ValueError("%s is not a subcategory of %s"
                                  % (category, Monoids() & Posets()))
         if growth_group is None:
-            growth_group = GenericGrowthGroup()
+            raise ValueError('Growth Group has to be specified')
         else:
             if not isinstance(growth_group, GenericGrowthGroup):
                 raise ValueError("%s does not inherit from %s"

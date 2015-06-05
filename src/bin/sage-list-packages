@@ -107,10 +107,7 @@ else:
             if args['dump']:
                 print(join(line,' '))
             else:
-                if remote:
-                    print("{:.<40} {} ({})".format(*line))
-                else:
-                    print("{:.<40} {}".format(line[0], line[2]))
+                print("{:.<40} {} ({})".format(*line))
     else:
         for p in sorted(set(local).union(remote)):
             print(p)

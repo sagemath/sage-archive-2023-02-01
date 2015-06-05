@@ -1242,7 +1242,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
             sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_upper()
             [[5, 4, 3], [5, 4], [5]]
-        """f
+        """
         return [[self._row[j] for j in range(self._n - i)] for i in range(self._n)]
 
     def _cftp_lower(self):

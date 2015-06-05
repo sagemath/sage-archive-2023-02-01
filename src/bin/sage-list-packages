@@ -46,12 +46,12 @@ installed = dict(pkgname_split(pkgname)
                  for pkgname in os.listdir(SAGE_SPKG_INST))
 
 # new-style packages
-local_non_filtered = os.listdir(SAGE_ROOT+"/build/pkgs/")
+local_non_filtered = os.listdir(os.path.join(SAGE_ROOT, "build", "pkgs"))
 local = {}
 for p in local_non_filtered:
-    with open(SAGE_ROOT+"/build/pkgs/"+p+"/package-version.txt") as f:
+    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "package-version.txt")) as f:
         version = f.read().strip()
-    with open(SAGE_ROOT+"/build/pkgs/"+p+"/type") as f:
+    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "type")) as f:
         if f.read().strip() == args['category']:
             local[p] = version
 
@@ -69,6 +69,7 @@ if args['remote'] and args['category']!='installed':
     f.close()
 
     if '<' in packages_list_remote:
+        print(packages_list_remote)
         raise RuntimeError("There was an error while downloading the list of packages")
 
     remote = dict(pkgname_split(p) for p in packages_list_remote.split('\n'))
@@ -79,10 +80,12 @@ if args['remote'] and args['category']!='installed':
 # installed
 if args['category'] == 'installed':
     if args['version']:
-        for p in sorted(installed):
-            if args['dump']:
+        if args['dump']:
+            for p in sorted(installed):
                 print(p+" "+installed[p])
-            else:
+        else:
+            print("{:.<40} {}\n".format("[package] ","[version]"))
+            for p in sorted(installed):
                 print("{:.<40} {}".format(p,installed[p]))
     else:
         for p in sorted(installed):
@@ -91,18 +94,23 @@ if args['category'] == 'installed':
 # Any other categories
 else:
     if args['version']:
-        for p in sorted(set(local).union(remote)):
-            line = [p]
+        # Display the columns' name
+        if not args['dump']:
             if remote:
-                line.append(remote.get(p,'not_found'))
+                print("{:.<40} {} ({})\n".format("[package] ","[latest version]","[installed version]"))
+            else:
+                print("{:.<40} {}".format("[package] ","[installed version]"))
+
+        for p in sorted(set(local).union(remote)):
+            line = [p] + [local.get(p, remote.get(p,'not_found'))]
             line.append(installed.get(p,'not_installed'))
             if args['dump']:
                 print(join(line,' '))
             else:
                 if remote:
-                    print("{:.<40} {} ({})".format(p,remote.get(p,'not found'),installed.get(p,'not installed')))
+                    print("{:.<40} {} ({})".format(*line))
                 else:
-                    print("{:.<40} {}".format(p,installed.get(p,'not installed')))
+                    print("{:.<40} {}".format(line[0], line[2]))
     else:
         for p in sorted(set(local).union(remote)):
             print(p)

@@ -186,17 +186,69 @@ def install_package(package=None, force=False):
 
 def is_package_installed(package):
     """
-    Return true if a package starting with the given string is
-    installed.
+    Return true if ``package`` is installed.
 
     EXAMPLES::
 
         sage: is_package_installed('sage')
         True
-    """
-    return any(p.startswith(package) for p in install_package())
 
-def _package_lists_from_sage_output(package_type,version=False,local=False):
+    Giving just the beginning of the package name is not good enough::
+
+        sage: is_package_installed('matplotli')
+        False
+
+    Otherwise, installing "pillow" will cause this function to think
+    that "pil" is installed, for example.
+    """
+    return any(p.split('-')[0] == package for p in install_package())
+
+def package_versions(package_type, local=False):
+    r"""
+    Return version information for each Sage package.
+
+    INPUT:
+
+    - ``package_type`` (string) -- one of `"standard"`, `"optional"` or
+      `"experimental"`
+
+    - ``local`` (boolean) -- only query local data (no internet needed)
+
+    For packages of the given type, return a dictionary whose entries
+    are of the form ``'package': (installed, latest)``, where
+    ``installed`` is the installed version (or ``None`` if not
+    installed) and ``latest`` is the latest available version. If the
+    package has a directory in ``SAGE_ROOT/build/pkgs/``, then
+    ``latest`` is determined by the file ``package-version.txt`` in
+    that directory.  If ``local`` is False, then Sage's servers are
+    queried for package information
+
+    EXAMPLES::
+
+        sage: from sage.misc.package import package_versions
+        sage: std = package_versions('standard', local=True)
+        sage: 'gap' in std
+        True
+        sage: std['glpk'][0] >= '4.55'
+        True
+    """
+    if package_type not in ['standard','optional','experimental']:
+        raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
+
+    cmd = 'sage --{} --dump'.format(package_type)
+    if local:
+        cmd += " --local"
+    X = os.popen(cmd).read().split('\n')[:-1]
+
+    versions = {}
+    for line in X:
+        line = line.split(' ')
+        installed = line[2]
+        if installed == 'not_installed': installed = None
+        versions[line[0]] = (installed, line[1])
+    return versions
+
+def _package_lists_from_sage_output(package_type, local=False):
     r"""
     Helper function for :func:`standard_packages`, :func:`optional_packages` and
     :func:`experimental_packages`.
@@ -206,14 +258,15 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
     - ``package_type`` (string) -- one of `"standard"`, `"optional"` or
       `"experimental"`
 
-    - ``version`` (boolean) -- whether to return the version of each package.
-
     - ``local`` (boolean) -- only query local data (no internet needed)
 
     OUTPUT:
 
-    A pair of list ``(installed,not_installed)`` with the corresponding
-    packages' name.
+    The function returns a pair of lists ``(installed,not_installed)``
+    with the corresponding packages' name, sorted alphabetically. If
+    ``local`` is ``True``, then the list of all packages is downloaded
+    from the server; otherwise, the list is extracted from the
+    packages in ``SAGE_ROOT/build/pkgs/`
 
     EXAMPLE::
 
@@ -229,34 +282,16 @@ def _package_lists_from_sage_output(package_type,version=False,local=False):
         sage: 'glpk' in installed
         True
     """
-    if package_type not in ['standard','optional','experimental']:
-        raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
-
-    cmd = 'sage -{} --dump'.format(package_type)
-    if not version:
-        cmd += " --no-version"
-    if local:
-        cmd += " --local"
-    X = os.popen(cmd).read().split('\n')[:-1]
-
     installed     = []
     not_installed = []
-    if version:
-        for line in X:
-            line = line.split(' ')
-            name,version = line[0],line[1]
-            if is_package_installed(name):
-                installed.append((name,version))
-            else:
-                not_installed.append((name,version))
-    else:
-        for name in X:
-            if is_package_installed(name):
-                installed.append(name)
-            else:
-                not_installed.append(name)
+    versions = package_versions(package_type, local)
+    for p in versions:
+        if versions[p][0] != 'not_installed':
+            installed.append(p)
+        else:
+            not_installed.append(p)
 
-    return installed, not_installed
+    return sorted(installed), sorted(not_installed)
 
 def standard_packages():
     """

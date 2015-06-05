@@ -36,6 +36,7 @@ REFERENCES:
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.rings.integer import Integer
+from sage.symbolic.expression import Expression
 from sage.manifolds.coord_func import CoordFunction
 
 class ScalarField(CommutativeAlgebraElement):
@@ -541,7 +542,7 @@ class ScalarField(CommutativeAlgebraElement):
 
     """
     def __init__(self, domain, coord_expression=None, name=None,
-                 latex_name=None):
+                 latex_name=None, chart=None):
         r"""
         Construct a scalar field.
 
@@ -573,22 +574,23 @@ class ScalarField(CommutativeAlgebraElement):
         self._express = {} # dict of coordinate expressions (CoordFunction
                            # instances) with charts as keys
         if coord_expression is not None:
-            if isinstance(coord_expression, CoordFunction):
-                self._express[coord_expression.chart()] = coord_expression
-            elif isinstance(coord_expression, dict):
+            if isinstance(coord_expression, dict):
                 for chart, expression in coord_expression.iteritems():
                     if isinstance(expression, CoordFunction):
                         self._express[chart] = expression
                     else:
                         self._express[chart] = chart.function(expression)
-            elif coord_expression == 0:
-                self._is_zero = True
-                for chart in self._domain._atlas:
-                    self._express[chart] = chart.zero_function()
+            elif isinstance(coord_expression, CoordFunction):
+                self._express[coord_expression.chart()] = coord_expression
             else:
-                # coord_expression is independent of the chart (constant scalar
-                # field)
-                for chart in self._domain._atlas:
+                if chart is None:
+                    chart = self._domain.default_chart()
+                if chart == 'all':
+                    # coord_expression is the same in all charts (constant
+                    # scalar field)
+                    for ch in self._domain.atlas():
+                        self._express[ch] = ch.function(coord_expression)
+                else:
                     self._express[chart] = chart.function(coord_expression)
         self._init_derived()   # initialization of derived quantities
 
@@ -1209,13 +1211,15 @@ class ScalarField(CommutativeAlgebraElement):
             symbol = ""
         else:
             symbol = self._name + ": "
-        result._txt = symbol + self._domain._name + " --> R\n"
+        result._txt = symbol + self._domain._name + " --> " + \
+                                                self._domain._field_name + "\n"
         if self._latex_name is None:
             symbol = ""
         else:
             symbol = self._latex_name + ":"
         result._latex = r"\begin{array}{llcl} " + symbol + r"&" + \
-                     latex(self._domain) + r"& \longrightarrow & \mathbb{R} \\"
+                        latex(self._domain) + r"& \longrightarrow & " + \
+                        self._domain._field_latex_name + " \\"
         if chart is None:
             for ch in self._domain._top_charts:
                 _display_expression(self, ch, result)
@@ -1673,13 +1677,13 @@ class ScalarField(CommutativeAlgebraElement):
 
     def _lmul_(self, number):
         r"""
-        Multiplication on the left of a scalar field by a real number.
+        Multiplication on the left of a scalar field by a number.
 
         INPUT:
 
         - ``number`` -- an element of the ring on which the algebra is defined;
-          mathematically, this should be a real number; here it is a member of
-          the symbolic ring SR.
+          mathematically, this should be an element of the topological field
+          on which the manifold is constructed
 
         OUPUT:
 
@@ -1687,21 +1691,41 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         if number == 0:
-            return self._domain._zero_scalar_field
+            return self.parent().zero()
         result = self.__class__(self._domain)
+        if isinstance(number, Expression):
+            var = number.variables()  # possible symbolic variables in number
+            if var:
+                # There are symbolic variables in number
+                # Are any of them a chart coordinate ?
+                chart_var = False
+                for chart in self._express:
+                    if any(s in chart[:] for s in var):
+                        chart_var = True
+                        break
+                if chart_var:
+                    # Some symbolic variables in number are chart coordinates
+                    for chart, expr in self._express.iteritems():
+                        # The multiplication is performed only if all the
+                        # symbolic variables involved in number are chart
+                        # coordinates:
+                        if all(s in chart[:] for s in var):
+                            result._express[chart] = number * expr
+                    return result
+        # General case: the multiplication is performed on all charts:
         for chart, expr in self._express.iteritems():
             result._express[chart] = number * expr
         return result
 
     def _rmul_(self, number):
         r"""
-        Multiplication on the right of a scalar field by a real number.
+        Multiplication on the right of a scalar field by a number.
 
         INPUT:
 
         - ``number`` -- an element of the ring on which the algebra is defined;
-          mathematically, this should be a real number; here it is a member of
-          the symbolic ring SR.
+          mathematically, this should be an element of the topological field
+          on which the manifold is constructed
 
         OUPUT:
 

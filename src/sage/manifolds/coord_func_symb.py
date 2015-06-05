@@ -287,8 +287,8 @@ class CoordFunctionSymb(CoordFunction):
 
         """
         self._chart = chart
-        self._nc = len(chart[:])    # number of coordinates
-        self._express = SR(expression)
+        self._nc = len(chart[:])  # number of coordinates
+        self._express = SR(expression)  # symbolic expression enforced
         # Definition of the simplification chain to be applied in
         # symbolic calculus:
         if self._chart.manifold().base_field() == 'real':

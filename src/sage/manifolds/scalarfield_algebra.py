@@ -144,18 +144,18 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     The unit element::
 
         sage: CM.one()
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field 1 on the 2-dimensional topological manifold M
         sage: CM.one().display()
-        M --> R
+        1: M --> R
         on U: (x, y) |--> 1
         on V: (u, v) |--> 1
 
     ::
 
         sage: CW.one()
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field 1 on the Open subset W of the 2-dimensional topological manifold M
         sage: CW.one().display()
-        W --> R
+        1: W --> R
         (x, y) |--> 1
         (u, v) |--> 1
 
@@ -185,7 +185,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         True
 
     Elements can also be constructed by means of the method
-    :meth:`~sage.geometry.manifolds.domain.ManifoldOpenSubset.scalar_field` acting on
+    :meth:`~sage.manifolds.manifold.TopManifold.scalar_field` acting on
     the domain (this allows one to set the name of the scalar field at the
     construction)::
 
@@ -194,7 +194,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Algebra of scalar fields on the 2-dimensional topological manifold M
         sage: f1 == f
         True
-        sage: M.scalar_field(0, chart='all') is CM.zero()
+        sage: M.scalar_field(0, chart='all') == CM.zero()
         True
 
     The algebra `C^0(M)` coerces to `C^0(W)` since `W` is an open
@@ -379,21 +379,15 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                         category=CommutativeAlgebras(base_field))
         self._domain = domain
         self._populate_coercion_lists_()
-        self._zero = None # zero element (not constructed yet)
+        self._zero = None # zero element (to be set by method zero())
+        self._one = None  # unit element (to be set by method one())
 
     #### Methods required for any Parent
     def _element_constructor_(self, coord_expression=None, name=None,
-                              latex_name=None):
+                              latex_name=None, chart=None):
         r"""
         Construct a scalarfield
         """
-        if coord_expression == 0:
-            # construct the zero element
-            if self._zero is None:
-                self._zero = self.element_class(self._domain,
-                                                coord_expression=0,
-                                                name='zero', latex_name='0')
-            return self._zero
         if isinstance(coord_expression, ScalarField):
             if self._domain.is_subset(coord_expression._domain):
                 # restriction of the scalar field to self._domain:
@@ -412,14 +406,16 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             # generic constructor:
             resu = self.element_class(self._domain,
                                       coord_expression=coord_expression,
-                                      name=name, latex_name=latex_name)
+                                      name=name, latex_name=latex_name,
+                                      chart=chart)
         return resu
 
     def _an_element_(self):
         r"""
         Construct some element of the algebra
         """
-        return self.element_class(self._domain, coord_expression=2)
+        return self.element_class(self._domain, coord_expression=2,
+                                  chart='all')
 
 
     def _coerce_map_from_(self, other):
@@ -429,10 +425,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         if other is SR:
             return True  # coercion from the base ring (multiplication by the
                          # algebra unit, i.e. self.one())
-        elif other is ZZ:
-           return True   # important to define self(1) (for self.one())
-        elif other is QQ:
-            return True
+                         # cf. ScalarField._lmul_() for the implementation of
+                         # the coercion map
         elif isinstance(other, ScalarFieldAlgebra):
             return self._domain.is_subset(other._domain)
         else:
@@ -451,3 +445,28 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         LaTeX representation of the object.
         """
         return r"C^0 \left("  + self._domain._latex_() + r"\right)"
+
+    def zero(self):
+        r"""
+        Return the zero element of the algebra.
+        """
+        if self._zero is None:
+            coord_express = dict([(chart, chart.zero_function()) for chart
+                                                      in self._domain.atlas()])
+            self._zero = self.element_class(self._domain,
+                                            coord_expression=coord_express,
+                                            name='zero', latex_name='0')
+            self._zero._is_zero = True
+        return self._zero
+
+    def one(self):
+        r"""
+        Return the unit element of the algebra.
+        """
+        if self._one is None:
+            coord_express = dict([(chart, chart.one_function()) for chart
+                                                      in self._domain.atlas()])
+            self._one = self.element_class(self._domain,
+                                           coord_expression=coord_express,
+                                           name='1', latex_name='1')
+        return self._one

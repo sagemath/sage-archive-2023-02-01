@@ -35,6 +35,7 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import RingElement
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
@@ -242,10 +243,11 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (M, (x, y))
             sage: type(X)
             <class 'sage.manifolds.chart.Chart'>
+            sage: assumptions() # no assumptions on x,y set by X._init_coordinates
+            []
             sage: TestSuite(X).run()
 
         """
-        from sage.symbolic.ring import SR
         if not isinstance(domain, TopManifold):
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
@@ -259,27 +261,17 @@ class Chart(UniqueRepresentation, SageObject):
             coord_list = coordinates.split()
         else:
             coord_list = [coordinates]
-        n = self._manifold._dim
-        if len(coord_list) != n:
+        if len(coord_list) != self._manifold.dim():
             raise ValueError("the list of coordinates must contain " +
-                             "{} elements".format(n))
-        xx_list = [] # will contain the coordinates as Sage symbolic variables
-        for coord_field in coord_list:
-            coord_properties = coord_field.split(':')
-            coord_symb = coord_properties[0].strip() # the coordinate symbol
-            # LaTeX symbol:
-            coord_latex = None
-            for prop in coord_properties[1:]:
-                coord_latex = prop.strip()
-            # Construction of the coordinate as some Sage's symbolic variable:
-            coord_var = SR.var(coord_symb, latex_name=coord_latex)
-            xx_list.append(coord_var)
-        self._xx = tuple(xx_list)
-        # End of the treatment of the coordinates
-
+                             "{} elements".format(self._manifold.dim()))
+        # The treatment of coordinates is performed by a seperate method,
+        # _init_coordinates, which sets self._xx and
+        # which may be redefined for subclasses (for instance RealChart).
+        self._init_coordinates(coord_list)
+        #
         # Additional restrictions on the coordinates
         self._restrictions = []  # to be set with method add_restrictions()
-
+        #
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the fist defined chart
         # is considered as the default chart
@@ -308,12 +300,58 @@ class Chart(UniqueRepresentation, SageObject):
                                 # subsets as keys
         # The null function of the coordinates:
         self._zero_function = CoordFunctionSymb(self, 0)
-        # Expression in self of the zero scalar fields of open sets containing
-        # the domain of self:
+        # The "one" function of the coordinates:
+        self._one_function = CoordFunctionSymb(self, 1)
+        # Expression in self of the zero and one scalar fields of open sets
+        # containing the domain of self:
         for dom in self._domain._supersets:
             if hasattr(dom, '_zero_scalar_field'):
                 # dom is an open set
                 dom._zero_scalar_field._express[self] = self._zero_function
+            if hasattr(dom, '_one_scalar_field'):
+                # dom is an open set
+                dom._one_scalar_field._express[self] = self._one_function
+
+    def _init_coordinates(self, coord_list):
+        r"""
+        Initialization of the coordinates as symbolic variables.
+
+        This method must be redefined by derived classes in order to take
+        into account specificities (e.g. enforcing real coordinates).
+
+        INPUT:
+
+        - ``coord_list`` -- list of coordinate fields, which items in each
+          field separated by ":"; there are at most 2 items per field:
+          the coordinate name and the coordinate LaTeX symbol
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M', field='complex')
+            sage: X.<z1, z2> = M.chart()
+            sage: X._init_coordinates(['z1', 'z2'])
+            sage: X
+            Chart (M, (z1, z2))
+            sage: X._init_coordinates([r'z1:\zeta_1', r'z2:\zeta_2'])
+            sage: X
+            Chart (M, (z1, z2))
+            sage: latex(X)
+            \left(M,({\zeta_1}, {\zeta_2})\right)
+
+        """
+        xx_list = [] # will contain the coordinates as Sage symbolic variables
+        for coord_field in coord_list:
+            coord_properties = coord_field.split(':')
+            coord_symb = coord_properties[0].strip() # the coordinate symbol
+            # LaTeX symbol:
+            coord_latex = None
+            for prop in coord_properties[1:]:
+                coord_latex = prop.strip()
+            # Construction of the coordinate as some Sage's symbolic variable:
+            coord_var = SR.var(coord_symb, latex_name=coord_latex)
+            xx_list.append(coord_var)
+        self._xx = tuple(xx_list)
+
 
     def _repr_(self):
         r"""
@@ -842,7 +880,7 @@ class Chart(UniqueRepresentation, SageObject):
         r"""
         Return the zero function of the coordinates.
 
-        If the current chart lies in the atlas of a `n`-dimensional manifold
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
         over a topological field `K`, the zero coordinate function is the map
 
         .. MATH::
@@ -880,6 +918,49 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         return self._zero_function
+
+    def one_function(self):
+        r"""
+        Return the constant function of the coordinates equal to one.
+
+        If the current chart belongs to the atlas of a `n`-dimensional manifold
+        over a topological field `K`, the "one" coordinate function is the map
+
+        .. MATH::
+
+            \begin{array}{cccc}
+                f:&  V\subset K^n & \longrightarrow & K \\
+                  &  (x^1,\ldots, x^n) & \longmapsto & 1,
+            \end{array}
+
+        where `V` is the chart codomain.
+
+        See class :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+        for a complete documentation.
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.coord_func_symb.CoorFunctionSymb`
+          representing the one coordinate function `f`.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: X.one_function()
+            1
+            sage: X.one_function().display()
+            (x, y) |--> 1
+            sage: type(X.one_function())
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+
+        The result is cached::
+
+            sage: X.one_function() is X.one_function()
+            True
+
+        """
+        return self._one_function
 
 
     def multifunction(self, *expressions):
@@ -1168,34 +1249,55 @@ class RealChart(Chart):
 
         TESTS::
 
+            sage: forget()  # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
             sage: type(X)
             <class 'sage.manifolds.chart.RealChart'>
+            sage: assumptions()  # assumptions set in X._init_coordinates
+            [x is real, y is real]
             sage: TestSuite(X).run()
 
         """
-        from sage.symbolic.ring import SR
+        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+
+    def _init_coordinates(self, coord_list):
+        r"""
+        Initialization of the coordinates as symbolic variables.
+
+        This method must be redefined by derived classes in order to take
+        into account specificities (e.g. enforcing real coordinates).
+
+        INPUT:
+
+        - ``coord_list`` -- list of coordinate fields, which items in each
+          field separated by ":"; there are at most 3 items per field:
+          the coordinate name, the coordinate LaTeX symbol and the coordinate
+          range
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: X._init_coordinates(['x', 'y'])
+            sage: X
+            Chart (M, (x, y))
+            sage: latex(X)
+            \left(M,(x, y)\right)
+            sage: X.coord_range()
+            x: (-oo, +oo); y: (-oo, +oo)
+            sage: X._init_coordinates([r'x1:\xi:(0,1)', r'y1:\eta'])
+            sage: X
+            Chart (M, (x1, y1))
+            sage: latex(X)
+            \left(M,({\xi}, {\eta})\right)
+            sage: X.coord_range()
+            x1: (0, 1); y1: (-oo, +oo)
+
+        """
         from sage.symbolic.assumptions import assume
-        if not isinstance(domain, TopManifold):
-            raise TypeError("the first argument must be an open subset of " +
-                            "a topological manifold")
-        if coordinates == '':
-            for x in names:
-                coordinates += x + ' '
-        self._manifold = domain.manifold()
-        self._domain = domain
-        # Treatment of the coordinates:
-        if ' ' in coordinates:
-            coord_list = coordinates.split()
-        else:
-            coord_list = [coordinates]
-        n = self._manifold._dim
-        if len(coord_list) != n:
-            raise ValueError("the list of coordinates must contain " +
-                             "{} elements".format(n))
         xx_list = [] # will contain the coordinates as Sage symbolic variables
         bounds_list = [] # will contain the coordinate bounds
         for coord_field in coord_list:
@@ -1242,45 +1344,6 @@ class RealChart(Chart):
             bounds_list.append(((xmin, xmin_included), (xmax, xmax_included)))
         self._xx = tuple(xx_list)
         self._bounds = tuple(bounds_list)
-        # End of the treatment of the coordinates
-
-        # Additional restrictions on the coordinates
-        self._restrictions = []  # to be set with method add_restrictions()
-
-        # The chart is added to the domain's atlas, as well as to all the
-        # atlases of the domain's supersets; moreover the fist defined chart
-        # is considered as the default chart
-        for sd in self._domain._supersets:
-            # the chart is added in the top charts only if its coordinates have
-            # not been used:
-            for chart in sd._atlas:
-                if self._xx == chart._xx:
-                    break
-            else:
-                sd._top_charts.append(self)
-            sd._atlas.append(self)
-            if sd._def_chart is None:
-                sd._def_chart = self
-        # The chart is added to the list of the domain's covering charts:
-        self._domain._covering_charts.append(self)
-        # Initialization of the set of charts that are restrictions of the
-        # current chart to subsets of the chart domain:
-        self._subcharts = set([self])
-        # Initialization of the set of charts which the current chart is a
-        # restriction of:
-        self._supercharts = set([self])
-        #
-        self._dom_restrict = {} # dict. of the restrictions of self to
-                                # subsets of self._domain, with the
-                                # subsets as keys
-        # The null function of the coordinates:
-        self._zero_function = CoordFunctionSymb(self, 0)
-        # Expression in self of the zero scalar fields of open sets containing
-        # the domain of self:
-        for dom in self._domain._supersets:
-            if hasattr(dom, '_zero_scalar_field'):
-                # dom is an open set
-                dom._zero_scalar_field._express[self] = self._zero_function
 
     def coord_bounds(self, i=None):
         r"""
@@ -1312,6 +1375,8 @@ class RealChart(Chart):
 
         Some coordinate bounds on a 2-dimensional manifold::
 
+            sage: forget()  # for doctests only
+            sage: TopManifold._clear_cache_()  # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart('x y:[0,1)')
             sage: c_xy.coord_bounds(0)  # x in (-oo,+oo) (the default)

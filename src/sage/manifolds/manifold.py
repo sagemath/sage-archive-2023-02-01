@@ -255,6 +255,9 @@ REFERENCES:
 
 - J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
+- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+  Interscience Publishers (New York) (1963)
+- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005)
 
 """
 
@@ -274,9 +277,9 @@ from sage.categories.fields import Fields
 from sage.categories.sets_cat import Sets
 #*# After #18175, this should become
 # from sage.categories.manifolds import Manifolds
+from sage.misc.latex import latex
 from sage.manifolds.subset import TopManifoldSubset
 from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
-
 
 class TopManifold(TopManifoldSubset):
     r"""
@@ -452,9 +455,17 @@ class TopManifold(TopManifoldSubset):
             raise ValueError("the manifold dimension must be strictly " +
                              "positive")
         self._dim = n
-        if field not in ['real', 'complex']:
+        if field == 'real':
+            self._field_name = 'R'
+            self._field_latex_name = r'\mathbb{R}'
+        elif field == 'complex':
+            self._field_name = 'C'
+            self._field_latex_name = r'\mathbb{C}'
+        else:
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
+            self._field_name = str(field)
+            self._field_latex_name = latex(field)
         self._field = field
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
@@ -484,6 +495,8 @@ class TopManifold(TopManifoldSubset):
         self._scalar_field_algebra = ScalarFieldAlgebra(self)
         # the zero scalar field:
         self._zero_scalar_field = self._scalar_field_algebra.zero()
+        # the unit scalar field:
+        self._one_scalar_field = self._scalar_field_algebra.one()
         # the identity map on self:
         #*# self._identity_map = Hom(self, self).one()
 
@@ -1441,7 +1454,8 @@ class TopManifold(TopManifoldSubset):
 
         .. SEEALSO::
 
-            :meth:`constant_scalar_field`, :meth:`zero_scalar_field`
+            :meth:`constant_scalar_field`, :meth:`zero_scalar_field`,
+            :meth:`one_scalar_field`
 
         """
         if isinstance(coord_expression, dict):
@@ -1450,14 +1464,10 @@ class TopManifold(TopManifoldSubset):
                 if not chart._domain.is_subset(self):
                     raise ValueError("the {} is not defined ".formart(chart) +
                                      "on some subset of the " + str(self))
-        elif coord_expression is not None and chart != 'all':
-            # coord_expression is valid only in a specific chart
-            if chart is None:
-                chart = self._def_chart
-            coord_expression = {chart: coord_expression}
-        return self.scalar_field_algebra()._element_constructor_(
+        return self.scalar_field_algebra().element_class(self,
                                             coord_expression=coord_expression,
-                                            name=name, latex_name=latex_name)
+                                            name=name, latex_name=latex_name,
+                                            chart=chart)
 
     def constant_scalar_field(self, value, name=None, latex_name=None):
         r"""
@@ -1509,9 +1519,12 @@ class TopManifold(TopManifoldSubset):
 
             :meth:`zero_scalar_field`
         """
-        return self.scalar_field_algebra()._element_constructor_(
+        if value == 0:
+            return self.zero_scalar_field()
+        return self.scalar_field_algebra().element_class(self,
                                               coord_expression=value,
-                                              name=name, latex_name=latex_name)
+                                              name=name, latex_name=latex_name,
+                                              chart='all')
 
     def zero_scalar_field(self):
         r"""
@@ -1528,12 +1541,33 @@ class TopManifold(TopManifoldSubset):
             zero: M --> R
                (x, y) |--> 0
             sage: f.parent()
-            algebra of scalar fields on the 2-dimensional manifold 'M'
+            Algebra of scalar fields on the 2-dimensional topological manifold M
             sage: f is M.scalar_field_algebra().zero()
             True
 
         """
         return self._zero_scalar_field
+
+    def one_scalar_field(self):
+        r"""
+        Return the constant scalar field one defined on the manifold.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.one_scalar_field(); f
+            Scalar field 1 on the 2-dimensional topological manifold M
+            sage: f.display()
+            1: M --> R
+               (x, y) |--> 1
+            sage: f.parent()
+            Algebra of scalar fields on the 2-dimensional topological manifold M
+            sage: f is M.scalar_field_algebra().one()
+            True
+
+        """
+        return self._one_scalar_field
 
 
 

@@ -95,44 +95,44 @@ class CoordFunction(SageObject):
         """
         return self._chart
 
-    #~ def scalar_field(self, name=None, latex_name=None):
-        #~ r"""
-        #~ Construct the scalar field that has the coordinate function as
-        #~ coordinate expression.
-#~
-        #~ The domain of the scalar field is the open subset covered by the chart
-        #~ associated to the coordinate function.
-#~
-        #~ INPUT:
-#~
-        #~ - ``name`` -- (default: ``None``) name given to the scalar field
-        #~ - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the scalar
-          #~ field; if none is provided, the LaTeX symbol is set to ``name``
-#~
-        #~ OUTPUT:
-#~
-        #~ - instance of class
-          #~ :class:`~sage.manifolds.scalarfield.ScalarField`
-#~
-        #~ EXAMPLES:
-#~
-        #~ Construction of a scalar field on a 2-dimensional manifold::
-#~
-            #~ sage: M = Manifold(2, 'M')
-            #~ sage: c_xy.<x,y> = M.chart()
-            #~ sage: fc = c_xy.function(x+2*y^3)
-            #~ sage: f = fc.scalar_field() ; f
-            #~ scalar field on the 2-dimensional manifold 'M'
-            #~ sage: f.display()
-            #~ M --> R
-            #~ (x, y) |--> 2*y^3 + x
-            #~ sage: f.function_chart(c_xy) is fc
-            #~ True
-#~
-        #~ """
-        #~ return self._chart._domain.scalar_field_algebra().element_class(
-                     #~ self._chart._domain, coord_expression={self._chart: self},
-                     #~ name=name, latex_name=latex_name)
+    def scalar_field(self, name=None, latex_name=None):
+        r"""
+        Construct the scalar field that has the coordinate function as
+        coordinate expression.
+
+        The domain of the scalar field is the open subset covered by the chart
+        on which the coordinate function is defined
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the scalar field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          scalar field; if none is provided, the LaTeX symbol is set to ``name``
+
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.scalarfield.ScalarField`
+
+        EXAMPLES:
+
+        Construction of a scalar field on a 2-dimensional manifold::
+
+            sage: M = TopManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: fc = c_xy.function(x+2*y^3)
+            sage: f = fc.scalar_field() ; f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.display()
+            M --> R
+            (x, y) |--> 2*y^3 + x
+            sage: f.coord_function(c_xy) is fc
+            True
+
+        """
+        return self._chart.domain().scalar_field_algebra().element_class(
+                     self._chart._domain, coord_expression={self._chart: self},
+                     name=name, latex_name=latex_name)
 
     def __ne__(self, other):
         r"""
@@ -301,6 +301,19 @@ class CoordFunction(SageObject):
         raise NotImplementedError("CoordFunction.display not implemented")
 
     disp = display
+
+    def expr(self):
+        r"""
+        Return some data that, along with the chart, is sufficient to
+        reconstruct the object.
+
+        For a symbolic coordinate function, this returns the symbol
+        expression representing the function
+        (see
+        :meth:`sage.manifolds.coord_func_symb.CoordFunctionSymb.expr`)
+
+        """
+        raise NotImplementedError("CoordFunction.expr not implemented")
 
     def __call__(self, *coords, **options):
         r"""
@@ -834,6 +847,59 @@ class MultiCoordFunction(SageObject):
 
         """
         return latex(self._functions)
+
+    def expr(self):
+        r"""
+        Return a tuple of data, the item no. `i` begin sufficient to
+        reconstruct the coordinate function no. `i`.
+
+        In other words, if ``f`` is a multi-coordinate function, then
+        ``f.chart().multifunction(*(f.expr()))`` results in a
+        multi-coordinate function identical to ``f``.
+
+        For a symbolic multi-coordinate function, :meth:`expr` returns the
+        tuple of the symbolic expressions of the coordinate functions
+        composing the object.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
+            sage: f.expr()
+            (x - y, x*y, cos(x)*e^y)
+            sage: type(f.expr()[0])
+            <type 'sage.symbolic.expression.Expression'>
+
+        One shall always have::
+
+            sage: f.chart().multifunction(*(f.expr())) == f
+            True
+
+        """
+        return tuple(func.expr() for func in self._functions)
+
+    def chart(self):
+        r"""
+        Return the chart w.r.t. which the multi-coordinate function is defined.
+
+        OUTPUT:
+
+        - an instance of :class:`~sage.manifolds.chart.Chart`
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
+            sage: f.chart()
+            Chart (M, (x, y))
+            sage: f.chart() is X
+            True
+
+        """
+        return self._chart
+
 
     def __eq__(self, other):
         r"""

@@ -165,7 +165,7 @@ class ScalarField(CommutativeAlgebraElement):
     coordinates::
 
         sage: h = U.scalar_field(function('H', x, y), name='h') ; h
-        scalar field 'h' on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field h on the Open subset U of the 2-dimensional topological manifold M
         sage: h.display()
         h: U --> R
            (x, y) |--> H(x, y)
@@ -196,7 +196,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: f.coord_function(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
         sage: type(f.coord_function(c_uv))
-        <class 'sage.manifolds.chart.CoordFunction'>
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
         sage: f.coord_function(c_uv).display()
         (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -210,7 +210,7 @@ class ScalarField(CommutativeAlgebraElement):
     ``'all'``::
 
         sage: c = M.scalar_field(2, chart='all', name='c') ; c
-        scalar field 'c' on the 2-dimensional manifold 'M'
+        Scalar field c on the 2-dimensional topological manifold M
         sage: c.display()
         c: M --> R
         on U: (x, y) |--> 2
@@ -227,7 +227,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: var('a')
         a
         sage: c = M.constant_scalar_field(a, name='c') ; c
-        scalar field 'c' on the 2-dimensional manifold 'M'
+        Scalar field c on the 2-dimensional topological manifold M
         sage: c.display()
         c: M --> R
         on U: (x, y) |--> a
@@ -236,7 +236,7 @@ class ScalarField(CommutativeAlgebraElement):
     A special case of constant field is the zero scalar field::
 
         sage: zer = M.constant_scalar_field(0) ; zer
-        scalar field 'zero' on the 2-dimensional manifold 'M'
+        Scalar field zero on the 2-dimensional topological manifold M
         sage: zer.display()
         zero: M --> R
         on U: (x, y) |--> 0
@@ -302,7 +302,7 @@ class ScalarField(CommutativeAlgebraElement):
     Standard mathematical functions are implemented::
 
         sage: sqrt(f)
-        scalar field 'sqrt(f)' on the 2-dimensional manifold 'M'
+        Scalar field sqrt(f) on the 2-dimensional topological manifold M
         sage: sqrt(f).display()
         sqrt(f): M --> R
         on U: (x, y) |--> 1/sqrt(x^2 + y^2 + 1)
@@ -311,7 +311,7 @@ class ScalarField(CommutativeAlgebraElement):
     ::
 
         sage: tan(f)
-        scalar field 'tan(f)' on the 2-dimensional manifold 'M'
+        Scalar field tan(f) on the 2-dimensional topological manifold M
         sage: tan(f).display()
         tan(f): M --> R
         on U: (x, y) |--> sin(1/(x^2 + y^2 + 1))/cos(1/(x^2 + y^2 + 1))
@@ -323,18 +323,18 @@ class ScalarField(CommutativeAlgebraElement):
     (resp. `C^\infty(U)`)::
 
         sage: f.parent()
-        algebra of scalar fields on the 2-dimensional manifold 'M'
+        Algebra of scalar fields on the 2-dimensional topological manifold M
         sage: f.parent() is M.scalar_field_algebra()
         True
         sage: g.parent()
-        algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'M'
+        Algebra of scalar fields on the Open subset U of the 2-dimensional topological manifold M
         sage: g.parent() is U.scalar_field_algebra()
         True
 
     Consequently, scalar fields can be added::
 
         sage: s = f + c ; s
-        scalar field 'f+c' on the 2-dimensional manifold 'M'
+        Scalar field f+c on the 2-dimensional topological manifold M
         sage: s.display()
         f+c: M --> R
         on U: (x, y) |--> (a*x^2 + a*y^2 + a + 1)/(x^2 + y^2 + 1)
@@ -343,7 +343,7 @@ class ScalarField(CommutativeAlgebraElement):
     and subtracted::
 
         sage: s = f - c ; s
-        scalar field 'f-c' on the 2-dimensional manifold 'M'
+        Scalar field f-c on the 2-dimensional topological manifold M
         sage: s.display()
         f-c: M --> R
         on U: (x, y) |--> -(a*x^2 + a*y^2 + a - 1)/(x^2 + y^2 + 1)
@@ -366,7 +366,7 @@ class ScalarField(CommutativeAlgebraElement):
     field::
 
         sage: s = f + 1 ; s
-        scalar field on the 2-dimensional manifold 'M'
+        Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
@@ -374,7 +374,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: (f+1)-1 == f
         True
         sage: s = a + f ; s
-        scalar field on the 2-dimensional manifold 'M'
+        Scalar field on the 2-dimensional topological manifold M
         sage: s == c + f
         True
 
@@ -383,13 +383,13 @@ class ScalarField(CommutativeAlgebraElement):
     domain of the result is then this subset::
 
         sage: f.domain()
-        2-dimensional manifold 'M'
+        2-dimensional topological manifold M
         sage: g.domain()
-        open subset 'U' of the 2-dimensional manifold 'M'
+        Open subset U of the 2-dimensional topological manifold M
         sage: s = f + g ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.domain()
-        open subset 'U' of the 2-dimensional manifold 'M'
+        Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
@@ -418,7 +418,7 @@ class ScalarField(CommutativeAlgebraElement):
     can be multiplied by a number, either an explicit one::
 
         sage: s = 2*f ; s
-        scalar field on the 2-dimensional manifold 'M'
+        Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> 2/(x^2 + y^2 + 1)
@@ -427,7 +427,7 @@ class ScalarField(CommutativeAlgebraElement):
     or a symbolic one::
 
         sage: s = a*f ; s
-        scalar field on the 2-dimensional manifold 'M'
+        Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
@@ -448,13 +448,13 @@ class ScalarField(CommutativeAlgebraElement):
     is the pointwise multiplication of functions::
 
         sage: s = f*f ; s
-        scalar field 'f*f' on the 2-dimensional manifold 'M'
+        Scalar field f*f on the 2-dimensional topological manifold M
         sage: s.display()
         f*f: M --> R
         on U: (x, y) |--> 1/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
         on V: (u, v) |--> (u^4 + 2*u^2*v^2 + v^4)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
         sage: s = g*h ; s
-        scalar field 'g*h' on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field g*h on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         g*h: U --> R
            (x, y) |--> x*y*H(x, y)
@@ -466,9 +466,10 @@ class ScalarField(CommutativeAlgebraElement):
     `U`::
 
         sage: f.domain(), g.domain()
-        (2-dimensional manifold 'M', open subset 'U' of the 2-dimensional manifold 'M')
+        (2-dimensional topological manifold M,
+         Open subset U of the 2-dimensional topological manifold M)
         sage: s = f*g ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x*y/(x^2 + y^2 + 1)
@@ -479,19 +480,19 @@ class ScalarField(CommutativeAlgebraElement):
     Scalar fields can be divided (pointwise division)::
 
         sage: s = f/c ; s
-        scalar field 'f/c' on the 2-dimensional manifold 'M'
+        Scalar field f/c on the 2-dimensional topological manifold M
         sage: s.display()
         f/c: M --> R
         on U: (x, y) |--> 1/(a*x^2 + a*y^2 + a)
         on V: (u, v) |--> (u^2 + v^2)/(a*u^2 + a*v^2 + a)
         sage: s = g/h ; s
-        scalar field 'g/h' on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field g/h on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         g/h: U --> R
            (x, y) |--> x*y/H(x, y)
         on W: (u, v) |--> u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
@@ -503,7 +504,7 @@ class ScalarField(CommutativeAlgebraElement):
     arithmetics with symbolic expressions involving the chart coordinates::
 
         sage: s = g + x^2 - y ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x^2 + (x - 1)*y
@@ -512,7 +513,7 @@ class ScalarField(CommutativeAlgebraElement):
     ::
 
         sage: s = g*x ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x^2*y
@@ -521,13 +522,13 @@ class ScalarField(CommutativeAlgebraElement):
     ::
 
         sage: s = g/x ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> y
         on W: (u, v) |--> u*v/((u^4 + 2*u^2*v^2 + v^4)*x)
         sage: s = x/g ; s
-        scalar field on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
         U --> R
         (x, y) |--> 1/y

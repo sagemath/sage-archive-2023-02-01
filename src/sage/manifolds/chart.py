@@ -1931,8 +1931,8 @@ class CoordChange(SageObject):
                 coord_domain[i] = 'positive'
         xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
                                                            for i in range(n2) ]
-        equations = [ xp2[i] == self._transf._functions[i]._express
-                                                           for i in range(n2) ]
+        xx2 = self._transf.expr()
+        equations = [ xp2[i] == xx2[i] for i in range(n2) ]
         try:
             solutions = solve(equations, *x1, solution_dict=True)
         except RuntimeError:
@@ -2027,11 +2027,10 @@ class CoordChange(SageObject):
 
             sage: spher_to_cart.set_inverse(sqrt(x^3+y^2), atan2(y,x)) # note the x^3 typo
             Check of the inverse coordinate transformation:
-               r == sqrt(r^3*cos(ph)^3 + r^2*sin(ph)^2)
+               r == sqrt(r*cos(ph)^3 + sin(ph)^2)*r
                ph == arctan2(r*sin(ph), r*cos(ph))
                x == sqrt(x^3 + y^2)*x/sqrt(x^2 + y^2)
                y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
-            sage: # the check clearly fails
 
         """
         if 'check' in kwds:
@@ -2085,9 +2084,7 @@ class CoordChange(SageObject):
             raise ValueError("composition not possible: " +
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
-
-        other_exprs = [other._transf[i].expr() for i in range(other._n2)]
-        transf = self._transf(*other_exprs)
+        transf = self._transf(*(other._transf.expr()))
         return CoordChange(other._chart1, self._chart2, *transf)
 
     def restrict(self, dom1, dom2=None):
@@ -2121,12 +2118,8 @@ class CoordChange(SageObject):
         """
         if dom2 is None:
             dom2 = dom1
-        #*# after MultiFunctionChart has been implemented:
-        # return CoordChange(self._chart1.restrict(dom1),
-        #                   self._chart2.restrict(dom2), *(self._transf.expr()))
-        #*# for now:
         return CoordChange(self._chart1.restrict(dom1),
-                           self._chart2.restrict(dom2), *(self._transf))
+                           self._chart2.restrict(dom2), *(self._transf.expr()))
 
     def display(self):
         r"""
@@ -2162,10 +2155,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        #*# after MultiFunctionChart has been implemented:
-        # expr = self._transf.expr()
-        #*# for now:
-        expr = self._transf
+        expr = self._transf.expr()
         rtxt = ""
         if n2 == 1:
             rlatex = r"\begin{array}{lcl}"

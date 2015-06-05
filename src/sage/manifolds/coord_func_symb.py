@@ -384,6 +384,56 @@ class CoordFunctionSymb(CoordFunction):
 
     disp = display
 
+    def expr(self):
+        r"""
+        Return the symbolic expression representing the image of the coordinate
+        function.
+
+        OUTPUT:
+
+        - symbolic expression, involving the chart coordinates (instance of
+          :class:`sage.symbolic.expression.Expression`)
+
+        EXAMPLES:
+
+        Coordinate function of a 2-dimensional manifold::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x^2+3*y+1)
+            sage: f.expr()
+            x^2 + 3*y + 1
+            sage: type(f.expr())
+            <type 'sage.symbolic.expression.Expression'>
+
+        For a symbolic coordinate function, one shall always have::
+
+            sage: bool( f.expr() == f(*(f.chart()[:])) )
+            True
+
+        The method :meth:`expr` is useful for accessing to all the
+        symbolic expression functionalities in Sage; for instance::
+
+            sage: var('a')
+            a
+            sage: f = X.function(a*x*y); f.display()
+            (x, y) |--> a*x*y
+            sage: f.expr()
+            a*x*y
+            sage: f.expr().subs(a=2)
+            2*x*y
+
+        Note that for substituting the value of a coordinate, the function call
+        can be used as well::
+
+            sage: f(x,3)
+            3*a*x
+            sage: bool( f(x,3) == f.expr().subs(y=3) )
+            True
+
+        """
+        return self._express
+
     def __call__(self, *coords, **options):
         r"""
         Computes the value of the function at specified coordinates.
@@ -1390,51 +1440,6 @@ class CoordFunctionSymb(CoordFunction):
     # -------------------------------------
     # Methods specific to CoordFunctionSymb
     # -------------------------------------
-
-    def expr(self):
-        r"""
-        Return the symbolic expression representing the image of the coordinate
-        function.
-
-        OUTPUT:
-
-        - symbolic expression, involving the chart coordinates (instance of
-          :class:`sage.symbolic.expression.Expression`)
-
-        EXAMPLES:
-
-        Coordinate function of a 2-dimensional manifold::
-
-            sage: M = TopManifold(2, 'M')
-            sage: X.<x,y> = M.chart()
-            sage: f = X.function(x^2+3*y+1)
-            sage: f.expr()
-            x^2 + 3*y + 1
-            sage: type(f.expr())
-            <type 'sage.symbolic.expression.Expression'>
-
-        The method :meth:`expr` is useful for accessing to all the
-        symbolic expression functionalities in Sage; for instance::
-
-            sage: var('a')
-            a
-            sage: f = X.function(a*x*y); f.display()
-            (x, y) |--> a*x*y
-            sage: f.expr()
-            a*x*y
-            sage: f.expr().subs(a=2)
-            2*x*y
-
-        Note that for substituting the value of a coordinate, the function call
-        can be used as well::
-
-            sage: f(x,3)
-            3*a*x
-            sage: bool( f(x,3) == f.expr().subs(y=3) )
-            True
-
-        """
-        return self._express
 
     def _del_derived(self):
         r"""

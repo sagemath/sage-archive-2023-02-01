@@ -245,11 +245,17 @@ class DocTestController(SageObject):
                 # Special case to run all optional tests
                 options.optional = True
             else:
-                # we replace the 'optional' tag by all optional packages
+                # We replace the 'optional' tag by all optional
+                # packages for which the installed version matches the
+                # latest available version (this implies in particular
+                # that the package is actually installed).
                 if 'optional' in options.optional:
-                    from sage.misc.package import _package_lists_from_sage_output
                     options.optional.discard('optional')
-                    options.optional.update(_package_lists_from_sage_output('optional',local=True)[0])
+                    from sage.misc.package import package_versions
+                    optional_pkgs = package_versions("optional", local=True)
+                    for pkg, versions in optional_pkgs.items():
+                        if versions[0] == versions[1]:
+                            options.optional.add(pkg)
 
                 # Check that all tags are valid
                 for o in options.optional:

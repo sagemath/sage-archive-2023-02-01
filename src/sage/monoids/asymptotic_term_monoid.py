@@ -1325,7 +1325,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                     coerce_map_from(S.base_ring()) is not None)
 
 
-    def _element_constructor_(self, x, coefficient=1):
+    def _element_constructor_(self, x, coefficient=None):
         r"""
         Construct an asymptotic term with coefficient or convert
         the given object ``x`` to this term monoid.
@@ -1357,9 +1357,18 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: P = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: t1 = P(x^2, 5); t1  # indirect doctest
             Asymptotic Term with coefficient 5 and growth x^2
+
+        TESTS::
+
+            sage: P(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: The coefficient is not specified
         """
         if isinstance(x, TermWithCoefficient):
             return self.element_class(self, x.growth, x.coefficient)
+        elif coefficient is None:
+            raise ValueError('The coefficient is not specified')
         else:
             return self.element_class(self, x, coefficient)
 
@@ -1388,6 +1397,34 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         return 'Monoid for asymptotic terms with coefficients from %s ' \
                'over %s' % (self.base_ring(), self.growth_group())
+
+
+    def _an_element_(self):
+        r"""
+        Return an element of this term monoid with coefficient.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of this term monoid.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: atm.TermWithCoefficientMonoid(MG, ZZ).an_element()  # indirect doctest
+            Asymptotic Term with coefficient 1 and growth x
+            sage: atm.ExactTermMonoid(MG, ZZ).an_element()  # indirect doctest
+            1 * x
+            sage: atm.LTermGenericMonoid(MG, ZZ).an_element()  # indirect doctest
+            1 * L(x, 0)
+        """
+        return self(self.growth_group().an_element(),
+                    self.base_ring().an_element())
 
 
 class LTermGeneric(TermWithCoefficient):
@@ -1618,7 +1655,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
     Element = LTermGeneric
 
 
-    def _element_constructor_(self, x, coefficient=1, start=0):
+    def _element_constructor_(self, x, coefficient=None, start=0):
         r"""
         Construct a generic `L` term or convert the given
         object ``x`` to this term monoid.

@@ -915,7 +915,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
     def _toggle_markov_chain(self, chain_state, row, col, direction):
         """
-        Helper for coupling from the past. Advance the markov chain one step.
+        Helper for coupling from the past. Advance the Markov chain one step.
 
         INPUT:
 
@@ -979,7 +979,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
     def _cftp_upper(self):
         """
-        Return the largest member of the poset of Gelfand Tsetlin patterns having the given ``n`` and ``k``.
+        Return the largest member of the poset of Gelfand-Tsetlin patterns having the given ``n`` and ``k``.
 
         TESTS:
 
@@ -995,7 +995,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
     def _cftp_lower(self):
         """
-        Return the smallest member of the poset of Gelfand Tsetlin patterns having the given ``n`` and ``k``.
+        Return the smallest member of the poset of Gelfand-Tsetlin patterns having the given ``n`` and ``k``.
 
         TESTS:
 
@@ -1018,7 +1018,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
         The set of Gelfand-Tsetlin patterns can partially ordered by elementwise
         domination.  The partial order has unique maximum and minimum elements
         that are computed by the methods ``_cftp_upper`` and ``_cftp_lower``.
-        We then run the markov chain that randomly toggles each element up or
+        We then run the Markov chain that randomly toggles each element up or
         down from the past until the state reached from the upper and lower start
         points coalesce as described in [Propp1997]_.
         """
@@ -1049,7 +1049,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
 
     def random_element(self):
         """
-        Return a uniformly random GelfandTsetlinPattern
+        Return a uniformly random Gelfand-Tsetlin pattern.
 
         EXAMPLES::
 
@@ -1236,18 +1236,18 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
     def _cftp_upper(self):
         """
-        Return the largest member of the poset of Gelfand Tsetlin patterns having the given ``top_row``.
+        Return the largest member of the poset of Gelfand-Tsetlin patterns having the given ``top_row``.
 
         TESTS:
 
             sage: GelfandTsetlinPatterns(top_row = [5, 4, 3])._cftp_upper()
             [[5, 4, 3], [5, 4], [5]]
-        """
+        """f
         return [[self._row[j] for j in range(self._n - i)] for i in range(self._n)]
 
     def _cftp_lower(self):
         """
-        Return the smallest member of the poset of Gelfand Tsetlin patterns having the given ``top_row``.
+        Return the smallest member of the poset of Gelfand-Tsetlin patterns having the given ``top_row``.
 
         TESTS:
 
@@ -1258,7 +1258,7 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
     def random_element(self):
         """
-        Return a uniformly random GelfandTsetlinPattern
+        Return a uniformly random Gelfand-Tsetlin pattern with specified top row.
 
         EXAMPLES::
 

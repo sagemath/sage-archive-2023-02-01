@@ -815,7 +815,7 @@ class CoxeterGroups(Category_singleton):
                 sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
                 True
             """
-            return self.has_descent(i, side='right')
+            return (~self).has_left_descent(i)
 
         def has_left_descent(self, i):
             """

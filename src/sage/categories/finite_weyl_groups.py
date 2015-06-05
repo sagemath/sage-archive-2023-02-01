@@ -14,9 +14,9 @@ from sage.misc.cachefunc import cached_method, cached_in_parent_method
 class FiniteWeylGroups(CategoryWithAxiom):
     """
     The category of finite Weyl groups.
-    
+
     EXAMPLES::
-        
+
         sage: C = FiniteWeylGroups()
         sage: C
         Category of finite weyl groups
@@ -24,9 +24,9 @@ class FiniteWeylGroups(CategoryWithAxiom):
         [Category of finite coxeter groups, Category of weyl groups]
         sage: C.example()
         The symmetric group on {0, ..., 3}
-    
+
     TESTS::
-        
+
         sage: W = FiniteWeylGroups().example()
         sage: TestSuite(W).run(verbose = "True")
         running ._test_an_element() . . . pass
@@ -57,27 +57,27 @@ class FiniteWeylGroups(CategoryWithAxiom):
         running ._test_simple_projections() . . . pass
         running ._test_some_elements() . . . pass
     """
-    
+
     class ParentMethods:
-    
+
         @cached_method
         def m_cambrian_lattice(W,c,m):
             """
             INPUT:
-            
+
             - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
             - ``m`` -- a positive integer (default: 1)
-            
+
             Return the m-Cambrian lattice on ``m``-delta sequences, realized on roots rather than reflections.
-            
+
             EXAMPLES::
-                
+
                 sage: WeylGroup(["A",2]).m_cambrian_lattice((1,2),1)
                 Finite lattice containing 5 elements
-                
+
                 sage: WeylGroup(["A",2]).m_cambrian_lattice((1,2),2)
                 Finite lattice containing 12 elements
-            
+
             """
             from sage.combinat.posets.posets import Poset
             from sage.combinat.posets.lattices import LatticePoset
@@ -114,6 +114,6 @@ class FiniteWeylGroups(CategoryWithAxiom):
                             covers.append([tuple(map(tuple,new_element)),tuple(map(tuple,cov_element))])
             return LatticePoset([[tuple(map(tuple,e)) for e in elements],covers],cover_relations=True)
 
-    
+
     class ElementMethods:
         pass

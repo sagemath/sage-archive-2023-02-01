@@ -17,7 +17,8 @@ Interface to mwrank
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, weakref
+import os
+import weakref
 from expect import Expect
 
 instances={}
@@ -369,7 +370,7 @@ def _reduce_load_mwrank():
     """
     return mwrank
 
-import os
+
 def mwrank_console():
     """
     Start the mwrank console.

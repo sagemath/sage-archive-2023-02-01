@@ -184,8 +184,7 @@ REFERENCES:
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/python.pxi"
+from cpython.object cimport Py_EQ, Py_NE
 
 import operator
 

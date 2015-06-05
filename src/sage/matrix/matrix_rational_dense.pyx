@@ -50,11 +50,11 @@ TESTS::
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
+include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
 
-from sage.libs.gmp.types cimport mpq_t
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_mat cimport *

@@ -311,9 +311,12 @@ filtered_packages_list() {
     for DIR in $SAGE_ROOT/build/pkgs/*; do
 
         PKG_TYPE_FILE="$DIR/type"
-        PKG_TYPE=`cat $PKG_TYPE_FILE`
-        if [ $? -ne 0 ]; then
-            continue
+        if [ -f "$PKG_TYPE_FILE" ]; then
+            PKG_TYPE=`cat $PKG_TYPE_FILE`
+        else
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
+            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
+            return 1
         fi
 
         # Check consistency of 'DIR/type' file
@@ -332,6 +335,9 @@ filtered_packages_list() {
     done
 }
 
+# Check that all packages define a (valid) 'type' file, or exit
+filtered_packages_list none || exit $?
+
 echo >&5 "# All Sage packages"
 
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
@@ -344,7 +350,16 @@ cat >&5 <<EOF
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
+# Aliases for optional packages selected at build time
 EOF
+
+
+# Python version
+if [ "$SAGE_PYTHON3" = yes ]; then
+    echo >&5 'PYTHON = $(PYTHON3)'
+else
+    echo >&5 'PYTHON = $(PYTHON2)'
+fi
 
 # Sage MP library
 echo >&5 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
@@ -372,11 +387,6 @@ echo >&5
 echo >&5
 
 
-echo >&5 'CSAGE_SOURCES = \'
-for file in "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
-    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
-done
-echo >&5
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"

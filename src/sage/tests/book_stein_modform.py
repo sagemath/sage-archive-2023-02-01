@@ -338,14 +338,14 @@ sage: kronecker(177,200)
 sage: G = DirichletGroup(20)
 sage: G.galois_orbits()
 [
-[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4],
 [Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> zeta4,
-Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -zeta4],
-[Dirichlet character modulo 20 of conductor 20 mapping 11 |--> -1, 17 |--> -1]
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -1],
+[Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -zeta4,
+ Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4],
+[Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1]
 ]
 sage: G = DirichletGroup(11, QQ); G
 Group of Dirichlet characters of modulus 11 over

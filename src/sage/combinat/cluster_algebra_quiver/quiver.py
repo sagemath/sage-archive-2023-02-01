@@ -384,7 +384,7 @@ class ClusterQuiver(SageObject):
             name += ' with %s frozen vertices'%self._m
         return name
 
-    def plot(self, circular=True, center=(0,0), directed=True, mark=None, save_pos=False):
+    def plot(self, circular=True, center=(0,0), directed=True, mark=None, save_pos=False, greens=[]):
         """
         Returns the plot of the underlying digraph of ``self``.
 
@@ -420,6 +420,7 @@ class ClusterQuiver(SageObject):
         n, m = self._n, self._m
         colors = rainbow(11)
         color_dict = { colors[0]:[], colors[1]:[], colors[6]:[], colors[5]:[] }
+        
         if directed:
             dg = DiGraph( self._digraph )
         else:
@@ -449,7 +450,15 @@ class ClusterQuiver(SageObject):
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
-            partition = (range(n),range(n,n+m),[])
+            nr = range(n)
+            mr = range(n,n+m)
+            for i in greens:
+                if i < n:
+                    nr.remove(i)
+                else:
+                    mr.remove(i)
+            partition = (nr,mr,greens)
+        
         vertex_color_dict = {}
         vertex_color_dict[ colors[0] ] = partition[0]
         vertex_color_dict[ colors[6] ] = partition[1]
@@ -588,8 +597,7 @@ class ClusterQuiver(SageObject):
 
             sage: S=ClusterSeed(['A',3])
             sage: T1=S.principal_extension()
-            sage: T2=T1.principal_extension(ignore_coefficients=True)
-            sage: Q=T2.quiver()
+            sage: Q=T1.quiver()
             sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
         """
         M = self.b_matrix()

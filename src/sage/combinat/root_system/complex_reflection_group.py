@@ -1225,8 +1225,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
                 sage: W = ComplexReflectionGroup((1,1,3))
                 sage: for w in W:
-                ...       print w.reduced_word()
-                ...       print w.as_matrix()
+                ....:     print w.reduced_word()
+                ....:     print w.as_matrix()
                 [1 0]
                 [0 1]
                 0
@@ -1266,8 +1266,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
                 sage: W = ComplexReflectionGroup((1,1,3))
                 sage: for w in W:
-                ...       print w.reduced_word()
-                ...       print w.fix_space()
+                ....:     print w.reduced_word()
+                ....:     print w.fix_space()
                 <BLANKLINE>
                 Vector space of degree 2 and dimension 2 over Universal Cyclotomic Field
                 Basis matrix:

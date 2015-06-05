@@ -951,8 +951,7 @@ class ComplexReflectionGroups(Category_singleton):
                     [ 1 -1]
 
                     sage: W = ComplexReflectionGroup((2,1,2))
-                    sage: for H in W.reflecting_hyperplanes():
-                    ...       print H
+                    sage: for H in W.reflecting_hyperplanes(): print H
                     Vector space of degree 2 and dimension 1 over Rational Field
                     Basis matrix:
                     [0 1]

@@ -192,6 +192,8 @@ def is_package_installed(package):
 
         sage: is_package_installed('sage')
         True
+        sage: is_package_installed('pari')
+        True
 
     Giving just the beginning of the package name is not good enough::
 
@@ -221,21 +223,20 @@ def package_versions(package_type, local=False):
     package has a directory in ``SAGE_ROOT/build/pkgs/``, then
     ``latest`` is determined by the file ``package-version.txt`` in
     that directory.  If ``local`` is False, then Sage's servers are
-    queried for package information
+    queried for package information.
 
     EXAMPLES::
 
-        sage: from sage.misc.package import package_versions
         sage: std = package_versions('standard', local=True)
         sage: 'gap' in std
         True
-        sage: std['glpk'][0] >= '4.55'
-        True
+        sage: std['zn_poly']
+        ('0.9.p11', '0.9.p11')
     """
     if package_type not in ['standard','optional','experimental']:
         raise ValueError("'package_type' must be one of 'standard','optional','experimental'.")
 
-    cmd = 'sage --{} --dump'.format(package_type)
+    cmd = 'sage-list-packages {} --dump'.format(package_type)
     if local:
         cmd += " --local"
     X = os.popen(cmd).read().split('\n')[:-1]
@@ -286,10 +287,10 @@ def _package_lists_from_sage_output(package_type, local=False):
     not_installed = []
     versions = package_versions(package_type, local)
     for p in versions:
-        if versions[p][0] != 'not_installed':
-            installed.append(p)
-        else:
+        if versions[p][0] is None:
             not_installed.append(p)
+        else:
+            installed.append(p)
 
     return sorted(installed), sorted(not_installed)
 

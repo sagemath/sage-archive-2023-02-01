@@ -1209,9 +1209,9 @@ class ClusterSeed(SageObject):
             [0, 1, 2, 3, 4, 5]
         """
 
-        # Make sure we have a principle extension
-        if not self._is_principal:
-            raise ValueError("Must be a principal extension to grab the vertices.")
+        # Make sure we have c vectors
+        if not self._use_c_vec:
+            raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector and return the ones which have no negative entry
         return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
@@ -1231,9 +1231,9 @@ class ClusterSeed(SageObject):
             sage: ClusterSeed(['A',[3,3],1]).principal_extension().first_green_vertex()
             0
         """
-        # Make sure we have a principle extension
-        if not self._is_principal:
-            raise ValueError("Must be a principal extension to grab the vertices.")
+        # Make sure we have c vectors
+        if not self._use_c_vec:
+            raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector
         for i in range(self._n):
@@ -1269,9 +1269,9 @@ class ClusterSeed(SageObject):
             [1]
 
         """
-        # Make sure we have a principle extension
-        if not self._is_principal:
-            raise ValueError("Must be a principle extension to grab the vertices.")
+        # Make sure we have c vectors on
+        if not self._use_c_vec:
+            raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector and return the ones which have no positive entry
         return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
@@ -1295,9 +1295,9 @@ class ClusterSeed(SageObject):
             1
 
         """
-        # Make sure we have a principle extension
-        if not self._is_principal:
-            raise ValueError("Must be a principal extension to grab the vertices.")
+        # Make sure we have c vectors
+        if not self._use_c_vec:
+            raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector
         for i in range(self._n):
@@ -1371,18 +1371,35 @@ class ClusterSeed(SageObject):
             filter = xrange(len(self.cluster()))
         degree = 0
         vertex_to_mutate = []
-        for i in list(enumerate(self.cluster())):
-            if i[0] not in filter:
-                continue
-            vari = i[1]
-            vertex = i[0]
-            denom = vari.denominator()
-            cur_vertex_degree = denom.degree()
-            if degree == cur_vertex_degree:
-                vertex_to_mutate.append(vertex)
-            if degree < cur_vertex_degree:
-                degree = cur_vertex_degree
-                vertex_to_mutate = [vertex]
+        
+        # if we have d vectors use those, else see if we have clusters
+        if self._use_d_vec:
+            for i in list(enumerate(self.d_matrix2().columns())):
+                if i[0] not in filter:
+                    continue
+                col = i[1]
+                vertex = i[0]
+                cur_vertex_degree = sum(col)
+                if degree == cur_vertex_degree:
+                    vertex_to_mutate.append(vertex)
+                if degree < cur_vertex_degree:
+                    degree = cur_vertex_degree
+                    vertex_to_mutate = [vertex]
+        elif self._use_clusters:
+            for i in list(enumerate(self.cluster())):
+                if i[0] not in filter:
+                    continue
+                vari = i[1]
+                vertex = i[0]
+                denom = vari.denominator()
+                cur_vertex_degree = denom.degree()
+                if degree == cur_vertex_degree:
+                    vertex_to_mutate.append(vertex)
+                if degree < cur_vertex_degree:
+                    degree = cur_vertex_degree
+                    vertex_to_mutate = [vertex]
+
+        
                 
         return_key = randint(0,len(vertex_to_mutate) - 1)
         return vertex_to_mutate[return_key]
@@ -1536,12 +1553,12 @@ class ClusterSeed(SageObject):
                 sequence = self.first_urban_renewal()
             elif sequence is 'all_urbans' or sequence is 'all_urban_renewals':
                 sequence = self.urban_renewals()
-            elif sequence is 'highest_degree_denominator':
-                sequence = self.highest_degree_denominator()
-            elif sequence is 'smallest_c_vector':
-                sequence = self.smallest_c_vector()
-            else:
+            elif hasattr(self, sequence):
+                sequence = getattr(self, sequence)()
+            elif hasattr(self.quiver(), sequence):
                 sequence = getattr(self.quiver(), sequence)()
+            else:
+                sequence = None
 
         # If we get a function, execute it
         if hasattr(sequence, '__call__'):
@@ -1799,9 +1816,9 @@ class ClusterSeed(SageObject):
         # setup our initial information for differences later on
         if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
             initial_edges = self.quiver().number_of_edges()
-        if 'green_vertices_diff' in options or ('all' in options and self._is_principal):
+        if 'green_vertices_diff' in options or ('all' in options and self._use_c_vec):
             initial_green_vertices = self.green_vertices()
-        if 'red_vertices_diff' in options or ('all' in options and self._is_principal):
+        if 'red_vertices_diff' in options or ('all' in options and self._use_c_vec):
             initial_red_vertices = self.red_vertices()
         if 'urban_renewals_diff' in options or 'all' in options:
             initial_urban_renewals= self.urban_renewals()
@@ -1825,17 +1842,17 @@ class ClusterSeed(SageObject):
             if 'edge_diff' in options or ('all' in options and self._M.is_skew_symmetric()):
                 analysis[i]['edge_diff'] = current_mutation.quiver().number_of_edges() - initial_edges
 
-            if 'green_vertices' in options or ('all' in options and self._is_principal):
+            if 'green_vertices' in options or ('all' in options and self._use_c_vec):
                 analysis[i]['green_vertices'] = current_mutation.green_vertices()
-            if 'green_vertices_diff' in options or ('all' in options and self._is_principal):
+            if 'green_vertices_diff' in options or ('all' in options and self._use_c_vec):
                 analysis[i]['green_vertices_diff'] = {}
                 new_green_vertices = current_mutation.green_vertices()
                 analysis[i]['green_vertices_diff']['added'] = list(set(new_green_vertices) - set(initial_green_vertices))
                 analysis[i]['green_vertices_diff']['removed'] = list(set(initial_green_vertices) - set(new_green_vertices))
 
-            if 'red_vertices' in options or ('all' in options and self._is_principal):
+            if 'red_vertices' in options or ('all' in options and self._use_c_vec):
                 analysis[i]['red_vertices'] = current_mutation.red_vertices()
-            if 'red_vertices_diff' in options or ('all' in options and self._is_principal):
+            if 'red_vertices_diff' in options or ('all' in options and self._use_c_vec):
                 analysis[i]['red_vertices_diff'] = {}
                 new_red_vertices = current_mutation.red_vertices()
                 analysis[i]['red_vertices_diff']['added'] = list(set(new_red_vertices) - set(initial_red_vertices))

@@ -48,6 +48,7 @@ Comprehensive Module list
     sage/combinat/crystals/__init__
     sage/combinat/crystals/affine
     sage/combinat/crystals/affine_factorization
+    sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
     sage/combinat/crystals/catalog
@@ -61,11 +62,13 @@ Comprehensive Module list
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/infinity_crystals
+    sage/combinat/crystals/kleshchev
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
+    sage/combinat/crystals/multisegments
     sage/combinat/crystals/spins
     sage/combinat/crystals/tensor_product
     sage/combinat/cyclic_sieving_phenomenon

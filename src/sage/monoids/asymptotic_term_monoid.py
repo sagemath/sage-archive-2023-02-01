@@ -18,6 +18,7 @@ AUTHORS:
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 from sage.structure.element import MonoidElement
+from sage.structure.factory import UniqueFactory
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1977,3 +1978,102 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         """
         return 'Exact Term Monoid with coefficients from %s over %s' % \
                (self.base_ring(), self.growth_group())
+
+
+class TermMonoidFactory(UniqueFactory):
+    r"""
+    Factory for asymptotic term monoids. Generates an
+    :class:`OTermMonoid`, an :class:`ExactTermMonoid`, or
+    an `L` term monoid.
+
+    INPUT:
+
+    - ``term`` -- The kind of term that shall be created. Either
+      'exact', 'O', or 'L'.
+
+    - ``growth_group`` -- A growth group.
+
+    - ``base_ring`` -- The base ring for coefficients.
+
+    - ``start`` -- A real number representing the starting point of
+      the estimations in the definition of asymptotic `O` terms (see
+      :wikipedia:`Big_O_Notation`). Only for `L` terms.
+
+    OUTPUT:
+
+    An asymptotic term monoid.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: OT = atm.TermMonoid('O', MG); OT
+        Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
+        sage: ET = atm.TermMonoid('exact', MG, ZZ); ET
+        Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+    """
+    def create_key_and_extra_args(self, term, growth_group, base_ring=None,
+                                  **kwds):
+        r"""
+        Given the arguments and keyword, create a key that uniquely
+        determines this object.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: atm.TermMonoid.create_key_and_extra_args('O', MG)
+            (('O', Monomial Growth Group in x over Integer Ring, None), {})
+            sage: atm.TermMonoid.create_key_and_extra_args('exact', MG, ZZ)
+            (('exact', Monomial Growth Group in x over Integer Ring, Integer Ring), {})
+            sage: atm.TermMonoid.create_key_and_extra_args('L', MG, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: a base ring has to be specified
+        """
+        if term not in ['O', 'exact', 'L']:
+            raise ValueError("%s has to be either 'exact', 'O', or 'L'" % term)
+
+        from sage.groups.asymptotic_growth_group import GenericGrowthGroup
+        if not isinstance(growth_group, GenericGrowthGroup):
+            raise ValueError("%s has to be an asymptotic growth group"
+                             % growth_group)
+
+        if term == 'O':
+            if base_ring is not None:
+                raise ValueError("O term monoids do not require a base ring")
+        else:
+            if base_ring is None:
+                raise ValueError("a base ring has to be specified")
+
+        return (term, growth_group, base_ring), kwds
+
+    def create_object(self, version, key, **kwds):
+        r"""
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: atm.TermMonoid('O', MG)
+            Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
+            sage: atm.TermMonoid('exact', MG, ZZ)
+            Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+        """
+
+        term, growth_group, base_ring = key
+        if term == 'O':
+            return OTermMonoid(growth_group, **kwds)
+        elif term == 'exact':
+            return ExactTermMonoid(growth_group, base_ring, **kwds)
+        else:
+            # in this case we are generating an L term monoid. For now,
+            # just return a GenericLTermMonoid. as soon as L terms are
+            # actually implemented, L term monoids relative to the
+            # growth group have to be constructed.
+            return LTermGenericMonoid(growth_group, base_ring, **kwds)
+
+
+TermMonoid = TermMonoidFactory("TermMonoid")

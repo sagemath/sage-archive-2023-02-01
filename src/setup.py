@@ -30,14 +30,8 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
-
 # search for dependencies and add to gcc -I<path>
-import numpy
-include_dirs = [SAGE_INC,
-                SAGE_SRC,
-                os.path.join(SAGE_SRC, 'sage', 'ext'),
-                os.path.join(numpy.get_include())]
+include_dirs = sage_include_directories('buildtime')
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
@@ -561,7 +555,7 @@ def run_cythonize():
     ext_modules = cythonize(
         ext_modules,
         nthreads=int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        build_dir='build/cythonized',
+        build_dir=SAGE_CYTHONIZED,
         force=force,
         aliases=aliases,
         compiler_directives={
@@ -603,6 +597,20 @@ for output_dir in output_dirs:
     clean_install_dir(output_dir, python_packages, python_modules, ext_modules)
 print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
+#########################################################
+### Extra files to install
+#########################################################
+
+python_package_data = {}
+for package in python_packages:
+   if package == 'sage.libs.ntl':
+      python_package_data[package] = ['*.pxd', '*.pxi', '*.h', 'ntlwrap.cpp']
+   else:
+      python_package_data[package] = ['*.pxd', '*.pxi','*.h']
+
+python_data_files = [(os.path.join(SAGE_LIB, 'sage', 'ext', 'interrupt'),
+                      [os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt_api.h'),
+                       os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt.h')])]
 
 #########################################################
 ### Distutils
@@ -616,6 +624,8 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
+      package_data= python_package_data,
+      data_files  = python_data_files,
       scripts = [],
       cmdclass = { 'build_ext': sage_build_ext },
       ext_modules = ext_modules)

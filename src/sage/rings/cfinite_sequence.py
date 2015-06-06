@@ -1056,6 +1056,10 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
 
         - a CFiniteSequence, or 0 if none could be found
 
+        With the default kernel method, trailing zeroes are chopped
+        off before a guessing attempt. This may reduce the data
+        below the accepted length of six values.
+
         EXAMPLES::
 
             sage: C.<x> = CFiniteSequences(QQ)
@@ -1065,12 +1069,6 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: Sequence too short for guessing.
-
-        With the default kernel method and Pari LLL, all values are taken
-        into account, and if no o.g.f. can be found, `0` is returned::
-
-            sage: C.guess([1,0,0,0,0,1])
-            0
 
         With Berlekamp-Massey, if an odd number of values is given, the last one is dropped.
         So with an odd number of values the result may not generate the last value::
@@ -1119,6 +1117,11 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             from sage.functions.other import floor, ceil
             from numpy import trim_zeros
             l = len(sequence)
+            while l > 0 and sequence[l-1] == 0:
+                l -= 1
+            sequence = sequence[:l]
+            if l == 0:
+                return 0
             if l < 6:
                 raise ValueError('Sequence too short for guessing.')
 

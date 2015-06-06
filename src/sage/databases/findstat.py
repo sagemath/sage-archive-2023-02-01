@@ -161,6 +161,10 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.structure.element import Element
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import verbose
 from sage.structure.sage_object import SageObject
@@ -1478,238 +1482,33 @@ def _finite_irreducible_cartan_types_by_rank(n):
     return cartan_types
 
 
-class FindStatCollection(SageObject):
+class FindStatCollection(Element):
     r"""
-    The class of FindStat collections.
+    A FindStat collection.
 
     .. automethod:: __init__
     """
-    # we set up a dict of FindStat collections containing, with key
-    # being the FINDSTAT_COLLECTION_IDENTIFIER to tuples, containing in this order:
+    __metaclass__ = ClasscallMetaclass
 
-    # * the FindStat name                                        (FINDSTAT_COLLECTION_NAME)
-    # * the FindStat name plural                                 (FINDSTAT_COLLECTION_NAME_PLURAL)
-    # * url's as needed by FindStat                              (FINDSTAT_COLLECTION_NAME_WIKI)
-    # * sage element constructor
-    # * sage constructor                                         (would be parent_initializer)
-    # * list of arguments for constructor                        (FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED)
-    # * a function to check whether an object is produced by applying the constructor to some element in the list
-    # * the (FindStat) string representations of the sage object (would be element_repr)
-    # * sage constructors of the FindStat string representation  (would be element_constructor)
+    @staticmethod
+    def __classcall_private__(cls, entry):
+        """
+        Retrieve a collection from the database.
+        """
+        return FindStatCollections()(entry)
 
-    # several fields are initialised with 'None', they are updated upon the first call to this class
-    _findstat_collections = {
-        17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
-             lambda x, l: x.to_matrix().nrows() in l,
-             lambda x: str(map(list, list(x._matrix))),
-             lambda x: AlternatingSignMatrix(literal_eval(x))],
-        10: [None, None, None, BinaryTree,            BinaryTrees,             None,
-             lambda x, l: x.node_number() in l,
-             str,
-             lambda x: BinaryTree(str(x))],
-        13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
-             None,
-             lambda x, l: (x.length(), x.k()) in l,
-             lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
-             lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
-        5:  [None, None, None, DyckWord,              DyckWords,               None,
-             lambda x, l: (x.length()/2) in l,
-             lambda x: str(list(DyckWord(x))),
-             lambda x: DyckWord(literal_eval(x))],
-        22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
-             None,
-             lambda x, l: x.rank() in l,
-             str,
-             lambda x: CartanType(*literal_eval(str(x)))],
-        18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
-             None,
-             lambda x, l: any(len(x) == s and max([0] + [max(row) for row in x]) <= m for s, m in l),
-             str,
-             lambda x: GelfandTsetlinPattern(literal_eval(x))],
-        20: [None, None, None, Graph,                 graphs,
-             None,
-             lambda x, l: x.num_verts() in l,
-             lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
-             lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
-        6:  [None, None, None, Composition,           Compositions,            None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: Composition(literal_eval(x))],
-        2:  [None, None, None, Partition,             Partitions,              None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: Partition(literal_eval(x))],
-        21: [None, None, None, OrderedTree,           OrderedTrees,            None,
-             lambda x, l: x.node_number() in l,
-             str,
-             lambda x: OrderedTree(literal_eval(x))],
-        23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
-             lambda x, l: len(x) in l,
-             str,
-             lambda x: ParkingFunction(literal_eval(x))],
-        12: [None, None, None, PerfectMatching,       PerfectMatchings,        None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: PerfectMatching(literal_eval(x))],
-        1:  [None, None, None, Permutation,           Permutations,            None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: Permutation(literal_eval(x))],
-        14: [None, None, None, FinitePoset,           posets,                  None,
-             lambda x, l: x.cardinality() in l,
-             lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
-             lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
-        19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
-             None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: SemistandardTableau(literal_eval(x))],
-        9:  [None, None, None, SetPartition,          SetPartitions,           None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))],
-        7:  [None, None, None, StandardTableau,       StandardTableaux,        None,
-             lambda x, l: x.size() in l,
-             str,
-             lambda x: StandardTableau(literal_eval(x))]}
-
-    def __init__(self, entry):
-        r"""
-        Initialize a FindStat collection.
-
-        INPUT:
-
-        - a string eg. 'Dyck paths' or "DyckPaths", case-insensitve, or
-
-        - an integer designating the FindStat id of the collection, or
-
-        - a sage object belonging to a collection, or
-
-        - an iterable producing a sage object belonging to a collection.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Dyck paths")                              # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(5)                                         # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(DyckWord([1,0,1,0]))                       # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(DyckWords(2))                              # optional -- internet
-            Cc0005: Dyck paths
-
-    Objects are normalized using the method :meth:`to_string`.  This
-    method should apply to objects produced by :meth:`first_terms` as
-    well as to objects produced by :meth:`from_string`.
-
-    EXAMPLES::
-
-        sage: from sage.databases.findstat import FindStatCollection
-        sage: FindStatCollection("Permutations")                                # optional -- internet
-        Cc0001: Permutations
-
-    TESTS:
-
-    When one of these tests does not pass, there is probably a new collection to be added::
-
-        sage: cdata = FindStatCollection._findstat_collections.values()         # optional -- internet
-        sage: cl = [FindStatCollection(x[0]) for x in cdata]                    # optional -- internet
-
-    Create an object and find its collection::
-
-        sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in cl]      # optional -- internet
-        [Cc0001: Permutations,
-         Cc0002: Integer partitions,
-         Cc0005: Dyck paths,
-         Cc0006: Integer compositions,
-         Cc0007: Standard tableaux,
-         Cc0009: Set partitions,
-         Cc0010: Binary trees,
-         Cc0012: Perfect matchings,
-         Cc0013: Cores,
-         Cc0014: Posets,
-         Cc0017: Alternating sign matrices,
-         Cc0018: Gelfand-Tsetlin patterns,
-         Cc0019: Semistandard tableaux,
-         Cc0020: Graphs,
-         Cc0021: Ordered trees,
-         Cc0022: Finite Cartan types,
-         Cc0023: Parking functions]
+    def __init__(self, parent, id, c, sageconstructor_overridden):
+        """
+        Initialize ``self``.
 
         """
-        if not FindStatCollection._findstat_collections.values()[0][0]:
-            for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
-                c = FindStatCollection._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
-                c[0] = j[FINDSTAT_COLLECTION_NAME]
-                c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
-                c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-                c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+        self._id = id
+        (self._name, self._name_plural, self._url_name,
+         self._sageclass, self._sageconstructor, self._range,
+         self._in_range, self._to_str, self._from_str) = c
+        self._sageconstructor_overridden = sageconstructor_overridden
 
-        self._sageconstructor_overridden = None
-        bad = True
-        def initialize_with(id, c):
-            self._id = id
-            (self._name, self._name_plural, self._url_name,
-             self._sageclass, self._sageconstructor, self._range,
-             self._in_range, self._to_str, self._from_str) = c
-
-        if isinstance(entry, (str, unicode)):
-            # find by name in _findstat_collections
-            for (id, c) in FindStatCollection._findstat_collections.iteritems():
-                if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
-                    initialize_with(id, c)
-                    bad = False
-                    break
-
-        elif isinstance(entry, (int, Integer)):
-            # find by id in _findstat_collections
-            for (id, c) in FindStatCollection._findstat_collections.iteritems():
-                if entry == id:
-                    initialize_with(id, c)
-                    bad = False
-                    break
-        else:
-            # find collection given an object or a constructor
-
-            # unfortunately, we cannot test with
-            # isinstance(_, SageObject), since this is not True for
-            # CartanType.
-
-            # TODO: entry == c[4] will work rarely because c[4] might be a function!
-            # also, the error handling is only necessary because of this...
-            for (id, c) in FindStatCollection._findstat_collections.iteritems():
-                try:
-                    if isinstance(entry, c[3]) or entry == c[4]:
-                        initialize_with(id, c)
-                        bad = False
-                        break
-                except TypeError:
-                    # examples are
-                    # graphs:
-                    # TypeError: cannot compare graph to non-graph (<class 'sage.combinat.permutation.Permutations'>)
-                    # perfect matchings:
-                    # TypeError: descriptor 'parent' of 'sage.structure.sage_object.SageObject' object needs an argument
-                    pass
-
-            if bad:
-                # check whether entry is iterable (it's not a string!)
-                try:
-                    obj = iter(entry).next()
-                    self._sageconstructor_overridden = entry
-                    for (id, c) in FindStatCollection._findstat_collections.iteritems():
-                        if isinstance(obj, c[3]):
-                            initialize_with(id, c)
-                            bad = False
-                            break
-
-                except TypeError:
-                    pass
-        if bad:
-            raise ValueError("Could not find FindStat collection for %s." %str(entry))
+        Element.__init__(self, parent)
 
     def __eq__(self, other):
         """
@@ -1766,13 +1565,13 @@ class FindStatCollection(SageObject):
 
         TESTS::
 
-            sage: l = FindStatCollection._findstat_collections.keys()           # optional -- internet
-            sage: long = [9, 12, 14, 20]; [l.remove(e) for e in long]           # optional -- internet
-            [None, None, None, None]
-            sage: for i in l:                                                   # optional -- internet
-            ....:     c = FindStatCollection(i)
-            ....:     f = c.first_terms(lambda x: 1, max_values=10000)
-            ....:     print c, len(f), all(c.in_range(e) for e, _ in f)
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: l = FindStatCollections()                                     # optional -- internet
+            sage: long = [9, 12, 14, 20]
+            sage: for c in l:                                                   # optional -- internet
+            ....:     if c.id() not in long:
+            ....:         f = c.first_terms(lambda x: 1, max_values=10000)
+            ....:         print c, len(f), all(c.in_range(e) for e, _ in f)
             ....:
             Cc0001: Permutations 10000 True
             Cc0002: Integer partitions 270 True
@@ -1914,7 +1713,7 @@ class FindStatCollection(SageObject):
         """
         return self._from_str
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return the representation of the FindStat collection.
 
@@ -1946,51 +1745,278 @@ class FindStatCollection(SageObject):
         """
         return self._name
 
-class FindStatMap(SageObject):
+class FindStatCollections(Parent, UniqueRepresentation):
     r"""
-    The class of FindStat maps.
+    The class of FindStat collections.
 
-    .. automethod:: __init__
-    """
-    _findstat_maps = []
+    The elements of this class are combinatorial collections
+    currently in FindStat."""
 
-    def __init__(self, entry):
-        """Initialize a FindStat map.
+    # we set up a dict of FindStat collections containing, with key
+    # being the FINDSTAT_COLLECTION_IDENTIFIER to tuples, containing in this order:
+
+    # * the FindStat name                                        (FINDSTAT_COLLECTION_NAME)
+    # * the FindStat name plural                                 (FINDSTAT_COLLECTION_NAME_PLURAL)
+    # * url's as needed by FindStat                              (FINDSTAT_COLLECTION_NAME_WIKI)
+    # * sage element constructor
+    # * sage constructor                                         (would be parent_initializer)
+    # * list of arguments for constructor                        (FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED)
+    # * a function to check whether an object is produced by applying the constructor to some element in the list
+    # * the (FindStat) string representations of the sage object (would be element_repr)
+    # * sage constructors of the FindStat string representation  (would be element_constructor)
+
+    # several fields are initialised with 'None', they are updated upon the first call to this class
+    _findstat_collections = {
+        17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
+             lambda x, l: x.to_matrix().nrows() in l,
+             lambda x: str(map(list, list(x._matrix))),
+             lambda x: AlternatingSignMatrix(literal_eval(x))],
+        10: [None, None, None, BinaryTree,            BinaryTrees,             None,
+             lambda x, l: x.node_number() in l,
+             str,
+             lambda x: BinaryTree(str(x))],
+        13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
+             None,
+             lambda x, l: (x.length(), x.k()) in l,
+             lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
+             lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
+        5:  [None, None, None, DyckWord,              DyckWords,               None,
+             lambda x, l: (x.length()/2) in l,
+             lambda x: str(list(DyckWord(x))),
+             lambda x: DyckWord(literal_eval(x))],
+        22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
+             None,
+             lambda x, l: x.rank() in l,
+             str,
+             lambda x: CartanType(*literal_eval(str(x)))],
+        18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
+             None,
+             lambda x, l: any(len(x) == s and max([0] + [max(row) for row in x]) <= m for s, m in l),
+             str,
+             lambda x: GelfandTsetlinPattern(literal_eval(x))],
+        20: [None, None, None, Graph,                 graphs,
+             None,
+             lambda x, l: x.num_verts() in l,
+             lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
+             lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
+        6:  [None, None, None, Composition,           Compositions,            None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: Composition(literal_eval(x))],
+        2:  [None, None, None, Partition,             Partitions,              None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: Partition(literal_eval(x))],
+        21: [None, None, None, OrderedTree,           OrderedTrees,            None,
+             lambda x, l: x.node_number() in l,
+             str,
+             lambda x: OrderedTree(literal_eval(x))],
+        23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
+             lambda x, l: len(x) in l,
+             str,
+             lambda x: ParkingFunction(literal_eval(x))],
+        12: [None, None, None, PerfectMatching,       PerfectMatchings,        None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: PerfectMatching(literal_eval(x))],
+        1:  [None, None, None, Permutation,           Permutations,            None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: Permutation(literal_eval(x))],
+        14: [None, None, None, FinitePoset,           posets,                  None,
+             lambda x, l: x.cardinality() in l,
+             lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
+             lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
+        19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
+             None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: SemistandardTableau(literal_eval(x))],
+        9:  [None, None, None, SetPartition,          SetPartitions,           None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))],
+        7:  [None, None, None, StandardTableau,       StandardTableaux,        None,
+             lambda x, l: x.size() in l,
+             str,
+             lambda x: StandardTableau(literal_eval(x))]}
+
+    def __init__(self):
+        """
+        Fetch the collections from FindStat.
+        """
+        for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
+            c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
+            c[0] = j[FINDSTAT_COLLECTION_NAME]
+            c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
+            c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
+            c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+
+        Parent.__init__(self)
+
+    def _element_constructor_(self, entry):
+        """Initialize a FindStat collection.
 
         INPUT:
 
-        - ``entry`` -- a string containing the FindStat name of the
-          map, or an integer giving its id.
+        - a string eg. 'Dyck paths' or "DyckPaths", case-insensitve, or
+
+        - an integer designating the FindStat id of the collection, or
+
+        - a sage object belonging to a collection, or
+
+        - an iterable producing a sage object belonging to a collection.
 
         EXAMPLES::
 
-            sage: from sage.databases.findstat import FindStatMap
-            sage: FindStatMap(71)                                               # optional -- internet
-            Mp00071: descent composition
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Dyck paths")                              # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(5)                                         # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(DyckWord([1,0,1,0]))                       # optional -- internet
+            Cc0005: Dyck paths
+
+            sage: FindStatCollection(DyckWords(2))                              # optional -- internet
+            Cc0005: Dyck paths
+
+        Objects are normalized using the method :meth:`to_string`.
+        This method should apply to objects produced by
+        :meth:`first_terms` as well as to objects produced by
+        :meth:`from_string`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Permutations")                            # optional -- internet
+            Cc0001: Permutations
+
+        TESTS:
+
+        Create an object and find its collection::
+
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in FindStatCollections()]   # optional -- internet
+            [Cc0001: Permutations,
+             Cc0002: Integer partitions,
+             Cc0005: Dyck paths,
+             Cc0006: Integer compositions,
+             Cc0007: Standard tableaux,
+             Cc0009: Set partitions,
+             Cc0010: Binary trees,
+             Cc0012: Perfect matchings,
+             Cc0013: Cores,
+             Cc0014: Posets,
+             Cc0017: Alternating sign matrices,
+             Cc0018: Gelfand-Tsetlin patterns,
+             Cc0019: Semistandard tableaux,
+             Cc0020: Graphs,
+             Cc0021: Ordered trees,
+             Cc0022: Finite Cartan types,
+             Cc0023: Parking functions]
 
         """
-        if not self._findstat_maps:
-            self._findstat_maps += json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
+        if isinstance(entry, FindStatCollection):
+            return entry
 
-        bad = True
         if isinstance(entry, (str, unicode)):
-            # find by name in _findstat_maps
-            for c in FindStatMap._findstat_maps:
-                if entry.upper() == c[FINDSTAT_MAP_NAME].upper():
-                    self._map = c
-                    bad = False
-                    break
+            # find by name in _findstat_collections
+            for (id, c) in self._findstat_collections.iteritems():
+                if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
+                    return self.element_class(self, id, c, None)
 
         elif isinstance(entry, (int, Integer)):
-            # find by id in _findstat_maps
-            for c in FindStatMap._findstat_maps:
-                if entry == c[FINDSTAT_MAP_IDENTIFIER]:
-                    self._map = c
-                    bad = False
-                    break
+            # find by id in _findstat_collections
+            for (id, c) in self._findstat_collections.iteritems():
+                if entry == id:
+                    return self.element_class(self, id, c, None)
 
-        if bad:
-            raise ValueError("Could not find FindStat map for %s." %str(entry))
+        else:
+            # find collection given an object or a constructor
+
+            # unfortunately, we cannot test with
+            # isinstance(_, SageObject), since this is True for
+            # CartanType.
+
+            # TODO: entry == c[4] will work rarely because c[4] might be a function!
+            # also, the error handling is only necessary because of this...
+            for (id, c) in self._findstat_collections.iteritems():
+                try:
+                    if isinstance(entry, c[3]) or entry == c[4]:
+                        return self.element_class(self, id, c, None)
+
+                except TypeError:
+                    # examples are
+                    # graphs:
+                    # TypeError: cannot compare graph to non-graph (<class 'sage.combinat.permutation.Permutations'>)
+                    # perfect matchings:
+                    # TypeError: descriptor 'parent' of 'sage.structure.sage_object.SageObject' object needs an argument
+                    pass
+
+            # check whether entry is iterable (it's not a string!)
+            try:
+                obj = iter(entry).next()
+                for (id, c) in self._findstat_collections.iteritems():
+                    if isinstance(obj, c[3]):
+                        return self.element_class(self, id, c, entry)
+
+            except TypeError:
+                pass
+
+        raise ValueError("Could not find FindStat collection for %s." %str(entry))
+
+    def _repr_(self):
+        """
+        Return the representation of the set of FindStat collections.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: FindStatCollections()                                         # optional -- internet
+            Set of combinatorial collections used by FindStat
+        """
+        return "Set of combinatorial collections used by FindStat"
+
+    def __iter__(self):
+        """
+        Return an iterator over all FindStat collections.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: [m for m in FindStatCollections()][0]                                            # optional -- internet
+            Cc0001: Permutations
+        """
+        for c in self._findstat_collections:
+            yield FindStatCollection(c)
+
+    Element = FindStatCollection
+
+
+class FindStatMap(Element):
+    r"""
+    A FindStat map.
+
+    .. automethod:: __init__
+    """
+    __metaclass__ = ClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, entry):
+        """
+        Retrieve a map from the database.
+        """
+        return FindStatMaps()(entry)
+
+    def __init__(self, parent, entry):
+        """
+        Initialize ``self``.
+
+        """
+        self._map = entry
+        Element.__init__(self, parent)
 
     def id(self):
         r"""
@@ -2026,7 +2052,7 @@ class FindStatMap(SageObject):
         id = str(self.id())
         return 'Mp00000'[:-len(id)] + id
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return the representation of the FindStat map.
 
@@ -2173,5 +2199,84 @@ class FindStatMap(SageObject):
             descents_composition
         """
         return self._map[FINDSTAT_MAP_CODE_NAME]
+
+class FindStatMaps(Parent, UniqueRepresentation):
+    r"""
+    The class of FindStat maps.
+
+    The elements of this class are combinatorial maps currently in
+    FindStat.
+    """
+    def __init__(self):
+        """
+        Fetch the maps from FindStat.
+        """
+        self._findstat_maps = json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
+        Parent.__init__(self)
+
+    def _element_constructor_(self, entry):
+        """Initialize a FindStat map.
+
+        INPUT:
+
+        - ``entry`` -- a string containing the FindStat name of the
+          map, or an integer giving its id, or a dict containing all
+          the information.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(71)                                               # optional -- internet
+            Mp00071: descent composition
+
+        """
+        if isinstance(entry, FindStatMap):
+            return entry
+
+        elif entry in self._findstat_maps:
+            return self.element_class(self, entry)
+
+        elif isinstance(entry, (str, unicode)):
+            # find by name in _findstat_maps
+            for c in self._findstat_maps:
+                if entry.upper() == c[FINDSTAT_MAP_NAME].upper():
+                    return self.element_class(self, c)
+
+        elif isinstance(entry, (int, Integer)):
+            # find by id in _findstat_maps
+            for c in self._findstat_maps:
+                if entry == c[FINDSTAT_MAP_IDENTIFIER]:
+                    return self.element_class(self, c)
+
+        raise ValueError("Could not find FindStat map for %s." %str(entry))
+
+    def _repr_(self):
+        """
+        Return the representation of the set of FindStat maps.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMaps
+            sage: FindStatMaps()                                                # optional -- internet
+            Set of combinatorial maps used by FindStat
+        """
+        return "Set of combinatorial maps used by FindStat"
+
+    def __iter__(self):
+        """
+        Return an iterator over all FindStat maps.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMaps
+            sage: [m for m in FindStatMaps()][0]                                # optional -- internet
+            Mp00072: binary search tree: left to right
+
+        """
+        for m in self._findstat_maps:
+            yield FindStatMap(m)
+
+    Element = FindStatMap
+
 
 findstat = FindStat()

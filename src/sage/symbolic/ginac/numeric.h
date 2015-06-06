@@ -272,6 +272,7 @@ protected:
 // global constants
 
 extern numeric I;
+extern PyObject *RR, *CC;
 
 // global functions
 

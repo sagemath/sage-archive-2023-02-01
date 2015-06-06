@@ -78,7 +78,7 @@ std::cerr << "- " << long(op) << ", " << Py_REFCNT(op) << ", " << Py_TYPE(op)->t
 
 const GiNaC::numeric& to_numeric(GiNaC::ex& e)
 {
-return GiNaC::ex_to<GiNaC::numeric>(e);
+        return GiNaC::ex_to<GiNaC::numeric>(e);
 }
 
 // Call the Python function f on *this as input and return the result
@@ -218,6 +218,23 @@ void ginac_pyinit_I(PyObject* z) {
         initialized = true;
         Py_INCREF(z);
         GiNaC::I = z; // I is a global constant defined below.
+
+        PyObject* m = PyImport_ImportModule("sage.rings.real_mpfr");
+        if (!m)
+                py_error("Error importing sage.rings.real_mpfr");
+        PyObject* obj = PyObject_GetAttrString(m, "RR");
+        if (!obj)
+                py_error("Error getting RR attribute");
+        Py_INCREF(obj);
+        GiNaC::RR = obj;
+        m = PyImport_ImportModule("sage.rings.all");
+        if (!m)
+                py_error("Error importing sage.rings.real_mpfr");
+        obj = PyObject_GetAttrString(m, "CC");
+        if (!obj)
+                py_error("Error getting CC attribute");
+        Py_INCREF(obj);
+        GiNaC::CC = obj;
 }
 
 static PyObject* pyfunc_Integer = nullptr;
@@ -251,6 +268,7 @@ PyObject* Rational(const long int& n, const long int& d) {
 namespace GiNaC {
 
 numeric I;
+PyObject *RR, *CC;
 
 ///////////////////////////////////////////////////////////////////////////////
 // class numeric
@@ -2105,6 +2123,8 @@ const numeric isqrt(const numeric &x) {
 
 /** Floating point evaluation of Sage's constants. */
 ex ConstantEvalf(unsigned serial, PyObject* parent) {
+        if (parent == nullptr)
+                parent = CC;
         PyObject* x = py_funcs.py_eval_constant(serial, parent);
         if (!x) py_error("error getting digits of constant");
         return x;

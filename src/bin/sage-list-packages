@@ -96,10 +96,7 @@ else:
     if args['version']:
         # Display the columns' name
         if not args['dump']:
-            if remote:
-                print("{:.<40} {} ({})\n".format("[package] ","[latest version]","[installed version]"))
-            else:
-                print("{:.<40} {}".format("[package] ","[installed version]"))
+            print("{:.<40} {} ({})\n".format("[package] ","[latest version]","[installed version]"))
 
         for p in sorted(set(local).union(remote)):
             line = [p] + [local.get(p, remote.get(p,'not_found'))]

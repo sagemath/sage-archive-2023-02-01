@@ -17,14 +17,11 @@ AUTHORS:
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
-from sage.structure.element import MonoidElement
-from sage.structure.factory import UniqueFactory
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+import sage
 
 
-class GenericTerm(MonoidElement):
+class GenericTerm(sage.structure.element.MonoidElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and
     several properties asymptotic terms have are handled here.
@@ -511,7 +508,8 @@ class GenericTerm(MonoidElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
-class GenericTermMonoid(Parent, UniqueRepresentation):
+class GenericTermMonoid(sage.structure.parent.Parent,
+                        sage.structure.unique_representation.UniqueRepresentation):
     r"""
     Parent for generic asymptotic terms. In this class the base
     structure for asymptotic term monoids will be handled. These
@@ -1980,7 +1978,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
                (self.base_ring(), self.growth_group())
 
 
-class TermMonoidFactory(UniqueFactory):
+class TermMonoidFactory(sage.structure.factory.UniqueFactory):
     r"""
     Factory for asymptotic term monoids. Generates an
     :class:`OTermMonoid`, an :class:`ExactTermMonoid`, or

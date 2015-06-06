@@ -2542,6 +2542,82 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         cochains = self.linear_coextension_cochains(F, cosimple=cosimple, fundamentals=fundamentals)
         return self._linear_coextensions(element, cochains)
 
+    cpdef lift_representation(self, lift_function, basis = None):
+        """
+        Return a linear matroid whose cross ratios are transformed locally by the given function.
+        """
+        if basis is None:
+            basis = self.basis()
+        A, R, C = self.representation(B = basis, reduced = True, labels = True)
+        base_ring = self.base_ring()
+        target_ring = lift_function[base_ring(1)].base_ring()
+        G = sage.graphs.graph.Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
+        
+        # write the entries of (a scaled version of) A as products of cross ratios of A
+        T = G.min_spanning_tree()
+        # fix a tree of the support graph to units (= empty dict, product of 0 terms) 
+        F = {entry[2]: dict() for entry in T}
+        # each next entry has to be computed relatively to the entries that have already been determined 
+        W = set(G.edges()) - set(T)
+        H = G.subgraph(edges = T)
+        while W:
+            edge = W.pop() # TODO: incorrect choice of edge, need overall shortest path between ends in H
+            path = H.shortest_path(edge[0], edge[1])
+            entry = edge[2]
+            
+            # find a whirl (or wheel) minor fixing the entry 
+            entries = []
+            for i in range(len(path) - 1):
+                v = path[i]
+                w = path[i+1]
+                if v[1] == 0:
+                    entries.append((v[0],w[0])) 
+                else:
+                    entries.append((w[0],v[0]))
+            # compute the cross ratio of this whirl            
+            cr = A[entry]
+            div = True
+            for entry2 in entries:
+                if div:
+                    cr = cr/A[entry2]
+                else:
+                    cr = cr* A[entry2]
+                div = not div   
+            if len(path) % 4 == 1:
+                cr = -cr
+                lifted = { base_ring(-1):1, cr: 1 }
+            else:
+                lifted = { base_ring(-1):0, cr: 1 } 
+            # write the entry as a product of cross ratios
+            div = True                  
+            for entry2 in entries:
+                if div:
+                    for fund, degree in F[entry2].iteritems():
+                        if fund in lifted:
+                            lifted[fund] = lifted[fund]+ degree
+                        else:
+                            lifted[fund] = degree   
+                else:
+                    for fund, degree in F[entry2].iteritems():
+                        if fund in lifted:
+                            lifted[fund] = lifted[fund] - degree
+                        else:
+                            lifted[fund] = -degree
+                div = not div
+            lifted[base_ring(-1)]=lifted[base_ring(-1)]&1
+            # now this entry is determined as a product of cross ratios   
+            F[entry] = lifted
+            H.add_edge(edge)  
+                               
+        Z = Matrix(target_ring, A.nrows(), A.ncols())
+        # compute each entry of Z as the product of lifted cross ratios
+        for entry, lifted_entry in F.iteritems():
+            Z[entry] = target_ring(1)           
+            for f,d in lifted_entry.iteritems():
+                Z[entry] = Z[entry] * lift_function[f]^d
+                
+        return LinearMatroid(matrix = Z, groundset = R+C, reduced_representation = True)      
+
     cpdef is_valid(self):
         r"""
         Test if the data represent an actual matroid.

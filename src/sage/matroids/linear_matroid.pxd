@@ -60,6 +60,8 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     cpdef linear_extensions(self, element=*, F=*, simple=*, fundamentals=*)
     cpdef linear_coextensions(self, element=*, F=*, cosimple=*, fundamentals=*)
 
+    cpdef lift_representation(self, lift_function, basis=*)
+    
     cpdef is_valid(self)
 
 cdef class BinaryMatroid(LinearMatroid):

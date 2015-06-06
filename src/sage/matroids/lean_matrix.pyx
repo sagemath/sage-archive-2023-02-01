@@ -31,6 +31,7 @@ AUTHORS:
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/data_structures/bitset.pxi'
+from libc.string cimport memcpy, memset
 from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer

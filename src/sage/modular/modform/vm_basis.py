@@ -200,13 +200,13 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
             for j in xrange(1, i) :
                 ls[j] = ls[j] - ls[j][i]*ls[i]
 
-        return Sequence(map(lambda l: P(l.list()).add_bigoh(prec), ls[1:]),cr=True)
+        return Sequence([P(l.list()).add_bigoh(prec) for l in ls[1:]],cr=True)
     else :
         for i in xrange(1,n+1) :
             for j in xrange(i) :
                 ls[j] = ls[j] - ls[j][i]*ls[i]
 
-        return Sequence(map(lambda l: P(l.list()).add_bigoh(prec), ls), cr=True)
+        return Sequence([P(l.list()).add_bigoh(prec) for l in ls], cr=True)
 
 def _delta_poly(prec=10):
     """

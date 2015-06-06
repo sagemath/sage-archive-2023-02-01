@@ -3470,10 +3470,10 @@ def McLaughlinGraph():
     from itertools import combinations
     from sage.sets.set import Set
 
-    blocks = WittDesign(23).blocks()
-    blocks = map(Set, blocks)
+    blocks = [Set(_) for _ in WittDesign(23).blocks()]
+
     B = [b for b in blocks if 0 in b]
-    C = [b for b in blocks if not 0 in b]
+    C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
         for x in range(23):

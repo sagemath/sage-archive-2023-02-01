@@ -54,7 +54,6 @@ def make_element(parent, args):
     return parent(*args)
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 zz_p_max = NTL_SP_BOUND
 

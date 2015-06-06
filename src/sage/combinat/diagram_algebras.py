@@ -1221,10 +1221,8 @@ def is_planar(sp):
         sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = map(list, sp)
-
     #Singletons don't affect planarity
-    to_consider = [x for x in to_consider if len(x) > 1]
+    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):

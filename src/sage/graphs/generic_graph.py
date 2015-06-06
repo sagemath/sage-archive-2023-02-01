@@ -15533,7 +15533,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.plot(layout = "graphviz", prog = "circo")  # optional - dot2tex graphviz
             Graphics object consisting of 62 graphics primitives
 
-        TODO: put here some cool examples showcasing graphviz features.
+        .. TODO::
+
+            Put here some cool examples showcasing graphviz features.
 
         This requires ``graphviz`` and the ``dot2tex`` spkg. Here are
         some installation tips:
@@ -15545,8 +15547,10 @@ class GenericGraph(GenericGraph_pyx):
          - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
            and install it with ``sage -i dot2tex-2.8.?.spkg``
 
-        TODO: use the graphviz functionality of Networkx 1.0 once it
-        will be merged into Sage.
+        .. TODO::
+
+            Use the graphviz functionality of Networkx 1.0 once it
+            will be merged into Sage.
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"

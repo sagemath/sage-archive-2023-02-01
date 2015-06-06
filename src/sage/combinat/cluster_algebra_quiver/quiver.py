@@ -1638,10 +1638,8 @@ class ClusterQuiver(SageObject):
             ValueError: only makes sense for quivers of finite type
         """
         from cluster_seed import ClusterSeed
-        from cluster_seed import ClusterSeed
         from sage.geometry.fan import Fan
         from sage.geometry.cone import Cone
-        from sage.modules.free_module_element import vector
         
         if not(self.is_finite()):
             raise ValueError('only makes sense for quivers of finite type')
@@ -1691,7 +1689,6 @@ class ClusterQuiver(SageObject):
         from cluster_seed import ClusterSeed
         from sage.geometry.fan import Fan
         from sage.geometry.cone import Cone
-        from sage.modules.free_module_element import vector
 
         if not(self.is_finite()):
             raise ValueError('only supported for quivers of finite type')

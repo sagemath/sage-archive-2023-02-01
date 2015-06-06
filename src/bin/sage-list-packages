@@ -17,13 +17,18 @@ SAGE_ROOT = os.environ["SAGE_ROOT"]
 #################
 
 parser = argparse.ArgumentParser(description="List Sage's packages")
-parser.add_argument('category', choices=['standard','optional','experimental', 'installed'], metavar="category",
-                    help="The type of packages. Can be 'standard','optional','experimental' or 'installed'.")
+parser.add_argument('category', choices=['standard', 'optional',
+                                         'experimental', 'installed'],
+                    metavar="category",
+                    help="The type of packages. Can be 'standard', "
+                    "'optional', 'experimental', or 'installed'.")
 parser.add_argument('--dump', dest='dump', default=False, action='store_true',
                     help='Output computer-friendly format')
-parser.add_argument('--no-version', dest='version', default=True, action='store_false',
+parser.add_argument('--no-version', dest='version', default=True,
+                    action='store_false',
                     help='Do not display version numbers')
-parser.add_argument('--local', dest='remote', default=True, action='store_false',
+parser.add_argument('--local', dest='remote', default=True,
+                    action='store_false',
                     help='Only read local data')
 
 args = vars(parser.parse_args())
@@ -36,22 +41,24 @@ def pkgname_split(name):
     Split a pkgname to 'name,version'
     """
     pname = name.split(' ')[0]
-    pname = re.sub("(\.|-)p[0-9]+$","",pname) # strip .p0
-    pname = re.sub("(\.|-)[0-9].*","",pname)  # strip version number
-    return (pname,name[len(pname)+1:])
+    pname = re.sub("(\.|-)p[0-9]+$", "", pname) # strip .p0
+    pname = re.sub("(\.|-)[0-9].*", "", pname)  # strip version number
+    return (pname, name[len(pname)+1:])
 
 # Installed packages
-SAGE_SPKG_INST=os.path.join(os.environ["SAGE_ROOT"],'local','var','lib','sage','installed')
+SAGE_SPKG_INST=os.path.join(os.environ["SAGE_ROOT"], 'local', 'var',
+                            'lib', 'sage', 'installed')
 installed = dict(pkgname_split(pkgname)
                  for pkgname in os.listdir(SAGE_SPKG_INST))
 
 # new-style packages
-local_non_filtered = os.listdir(os.path.join(SAGE_ROOT, "build", "pkgs"))
+SAGE_PKGS = os.path.join(SAGE_ROOT, "build", "pkgs")
+local_non_filtered = os.listdir(SAGE_PKGS)
 local = {}
 for p in local_non_filtered:
-    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "package-version.txt")) as f:
+    with open(os.path.join(SAGE_PKGS, p, "package-version.txt")) as f:
         version = f.read().strip()
-    with open(os.path.join(SAGE_ROOT, "build", "pkgs", p, "type")) as f:
+    with open(os.path.join(SAGE_PKGS, p, "type")) as f:
         if f.read().strip() == args['category']:
             local[p] = version
 
@@ -59,7 +66,7 @@ for p in local_non_filtered:
 remote = {}
 if args['remote'] and args['category']!='installed':
     # Get mirror URL
-    urlexec=os.path.join(os.path.dirname(sys.argv[0]),"sage-download-file")
+    urlexec=os.path.join(os.path.dirname(sys.argv[0]), "sage-download-file")
     MIRROR_URL = os.popen(urlexec+" --print-fastest-mirror").read().strip()
 
     # Load the list of packages
@@ -84,9 +91,9 @@ if args['category'] == 'installed':
             for p in sorted(installed):
                 print(p+" "+installed[p])
         else:
-            print("{:.<40} {}\n".format("[package] ","[version]"))
+            print("{:.<40} {}\n".format("[package] ", "[version]"))
             for p in sorted(installed):
-                print("{:.<40} {}".format(p,installed[p]))
+                print("{:.<40} {}".format(p, installed[p]))
     else:
         for p in sorted(installed):
             print(p)
@@ -96,13 +103,13 @@ else:
     if args['version']:
         # Display the columns' name
         if not args['dump']:
-            print("{:.<40} {} ({})\n".format("[package] ","[latest version]","[installed version]"))
-
+            print("{:.<40} {} ({})\n".format("[package] ", "[latest version]",
+                                             "[installed version]"))
         for p in sorted(set(local).union(remote)):
-            line = [p] + [local.get(p, remote.get(p,'not_found'))]
-            line.append(installed.get(p,'not_installed'))
+            line = [p, local.get(p, remote.get(p, 'not_found')),
+                    installed.get(p, 'not_installed')]
             if args['dump']:
-                print(join(line,' '))
+                print(join(line, ' '))
             else:
                 print("{:.<40} {} ({})".format(*line))
     else:

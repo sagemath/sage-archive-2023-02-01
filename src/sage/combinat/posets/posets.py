@@ -1257,7 +1257,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
             sage: print P._latex_() #optional - dot2tex graphviz
-            <BLANKLINE>
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
@@ -1265,7 +1264,6 @@ class FinitePoset(UniqueRepresentation, Parent):
               \draw [black,->] (node_0) ..controls (6.0...bp,20.2...bp) and (6.0...bp,30.9...bp)  .. (node_1);
             %
             \end{tikzpicture}
-            <BLANKLINE>
         """
         return self.hasse_diagram()._latex_()
 

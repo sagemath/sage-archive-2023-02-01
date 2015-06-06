@@ -198,30 +198,47 @@ static ex abs_eval(const ex & arg)
 	if (arg.info(info_flags::negative) || (-arg).info(info_flags::nonnegative))
 		return -arg;
 
-	if (is_ex_the_function(arg, abs))
-		return arg;
-
-	if (is_ex_the_function(arg, exp))
-		return exp(arg.op(0).real_part());
+        if (is_exactly_a<function>(arg)) {                
+                if (is_ex_the_function(arg, abs))
+                        return arg;
+                if (is_ex_the_function(arg, exp))
+                        return exp(arg.op(0).real_part());
+                if (is_ex_the_function(arg, conjugate_function))
+                        return abs(arg.op(0));
+                if (is_ex_the_function(arg, step))
+                        return arg;
+                
+                if (not has_symbol(arg)) {
+                        const ex& value = arg.evalf();
+                        if (value.info(info_flags::real))
+                                return value > 0? arg : arg*_ex_1;
+                }
+                else
+                        return abs(arg).hold();
+        }
 
 	if (is_exactly_a<mul>(arg)) {
-                const ex& mex = ex_to<mul>(arg);
-                const int n_ops = mex.nops();
-                ex prod_re = _ex1;
-                ex prod_ir = _ex1;
-                for (int i=0; i<n_ops; ++i) {
-                        const ex& factor = mex.op(i);
-                        if (factor.info(info_flags::real) and
-                                (is_exactly_a<numeric>(factor)
-                                or is_exactly_a<constant>(factor)))
-                                prod_re *= factor;
+                ex prod = _ex1;
+                ex prod_sy = _ex1;
+                for (size_t i=0; i<arg.nops(); ++i) {
+                        const ex& factor = arg.op(i);
+                        if (has_symbol(factor))
+                                prod_sy *= factor;
+                        else if (is_exactly_a<function>(factor)) {
+                                const ex& value = factor.evalf(0, CC);
+                                if (value.info(info_flags::real))
+                                        prod *= value > 0? factor : factor*_ex_1;
+                                else
+                                        prod_sy *= factor;
+                        }
                         else
-                                prod_ir *= factor;
+                                prod *= factor.info(info_flags::real)? factor : abs(factor);
                 }
-                if (is_exactly_a<numeric>(prod_ir))
-                        return abs(prod_re) * abs(prod_ir);
-                else
-                        return abs(prod_re) * abs(prod_ir).hold();
+                if (prod.evalf(0, RR) < 0)  // according info_flags prod is real
+                        prod *= _ex_1;
+                if (not prod_sy.is_integer_one())
+                        prod *= abs(prod_sy).hold();
+                return prod;
 	}
 
 	if (is_exactly_a<power>(arg)) {
@@ -230,12 +247,6 @@ static ex abs_eval(const ex & arg)
 		if (base.info(info_flags::positive) || exponent.info(info_flags::real))
 			return pow(abs(base), exponent.real_part());
 	}
-
-	if (is_ex_the_function(arg, conjugate_function))
-		return abs(arg.op(0));
-
-	if (is_ex_the_function(arg, step))
-		return arg;
 
 	return abs(arg).hold();
 }

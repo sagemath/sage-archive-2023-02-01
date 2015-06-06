@@ -3061,6 +3061,38 @@ cdef class BinaryMatroid(LinearMatroid):
         else:
             return LinearMatroid._is_isomorphic(self, other)
 
+    
+    cpdef _is_isomorphism(self, other, morphism):
+        """
+        Test if a given bijection is an isomorphism.
+        
+        Version of is_isomorphism() that does no type checking of ``morphism``.
+
+        INPUT:
+
+        - ``other`` -- A matroid instance.
+        - ``morphism`` -- a dictionary mapping the groundset of ``self`` to
+          the groundset of ``other``
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+        
+            sage: M = matroids.named_matroids.Fano() \ ['a']
+            sage: N = matroids.named_matroids.Fano() \ ['b']
+            sage: morphism = {'b':'a', 'c':'c', 'd':'e', 'e':'d', 'f':'f', 'g':'g'}
+            sage: M._is_isomorphism(N, morphism)
+            True
+        """
+        if type(other) == BinaryMatroid:
+            return self.is_field_isomorphism(other, morphism)
+        else:
+            return LinearMatroid._is_isomorphism(self, other, morphism)
+    
+    
+        
     # invariants
     cpdef _make_invariant(self):
         """
@@ -3523,6 +3555,36 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         return True
 
+    # representability
+    
+    cpdef is_binary(self, randomized_tests = 1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default = 1). Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a BinaryMatroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_binary()
+            True
+        """
+        return True
+    
     def __copy__(self):
         """
         Create a shallow copy.
@@ -5775,6 +5837,36 @@ cdef class RegularMatroid(LinearMatroid):
         CR = M.cross_ratios()
         return CR.issubset(set([1]))
 
+    # representation
+    
+    cpdef is_binary(self, randomized_tests = 1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default = 1). Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a RegularMatroid, so just return ``True``.
+
+        .. SEEALSO::
+        
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_binary()
+            True
+        """
+        return True
+    
     # Copying, loading, saving
 
     def __copy__(self):

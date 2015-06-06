@@ -110,6 +110,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
 - Representation
+    - :meth:`local_binary_matroid() <sage.matroids.matroid.Matroid.local_binary_matroid>`
     - :meth:`is_binary() <sage.matroids.matroid.Matroid.is_binary>`
 
 - Optimization
@@ -320,7 +321,6 @@ from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
-from sage.matroids.linear_matroid cimport BinaryMatroid
 from sage.matroids.lean_matrix cimport BinaryMatrix
 from sage.misc.prandom import shuffle
 
@@ -4743,31 +4743,32 @@ cdef class Matroid(SageObject):
 
     # representability
 
-    cpdef _local_binary_matroid(self, basis = None):
+    cpdef local_binary_matroid(self, basis=None):
         r"""
-        Return a binary matroid M so that relative to a fixed basis `B`,
-        `X` is a basis of self if and only if `X` is a basis of `M` 
-        for all subsets `X` of the ground set such that `|X\setminus B|\leq 1`.
+        Return a binary matroid `M` so that relative to a fixed basis `B`,
+        `X` is a basis of ``self`` if and only if `X` is a basis of `M`
+        for all subsets `X` of the ground set such that
+        `|X \setminus B| \leq 1`.
 
         INPUT:
 
-        - ``basis`` -- (optional), a set. The basis `B` as above. 
+        - ``basis`` -- (optional) a set; the basis `B` as above
 
         OUTPUT:
 
-        A BinaryMatroid.
+        A :class:`BinaryMatroid <sage.matroids.linear_matroid.BinaryMatroid>`.
 
         EXAMPLES::
 
             sage: N = matroids.named_matroids.Fano()
-            sage: M = N._local_binary_matroid()
+            sage: M = N.local_binary_matroid()
             sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
             True
             sage: N = matroids.named_matroids.NonFano()
-            sage: M = N._local_binary_matroid()
+            sage: M = N.local_binary_matroid()
             sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
             False
-        """        
+        """
         if basis is None:
             basis = self.basis()
         basis = list(basis)
@@ -4780,32 +4781,35 @@ cdef class Matroid(SageObject):
             for e in C:
                 A.set(i,idx[e])
             i = i+1
-        return BinaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)     
+        from sage.matroids.linear_matroid import BinaryMatroid
+        return BinaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
 
 
-
-    cpdef is_binary(self, randomized_tests = 1):
+    cpdef is_binary(self, randomized_tests=1):
         r"""
         Decide if ``self`` is a binary matroid.
 
         INPUT:
 
-        - ``randomized_tests`` -- (default = 1), an integer. The number of times a certain
-        necessary condition for being binary is tested, using randomization.
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being binary is tested,
+          using randomization
 
         OUTPUT:
 
-        - A Boolean.
+        A Boolean.
 
         ALGORITHM:
-        
-        First, compare the binary matroids local to two random bases. If these matroids are not 
-        isomorphic, return ``False``. This test is performed ``randomized_tests`` times.
-        Next, test if a binary matroid local to some basis is isomorphic to ``self``.
+
+        First, compare the binary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``False``. This
+        test is performed ``randomized_tests`` times. Next, test if a
+        binary matroid local to some basis is isomorphic to ``self``.
 
         .. SEEALSO::
 
-            :meth:`M._local_binary_matroid() <sage.matroids.matroid.Matroid._local_binary_matroid>`
+            :meth:`M.local_binary_matroid()
+            <sage.matroids.matroid.Matroid.local_binary_matroid>`
 
         EXAMPLES::
 
@@ -4816,19 +4820,19 @@ cdef class Matroid(SageObject):
             sage: N.is_binary()
             False
         """
-        M = self._local_binary_matroid()
-        m = {e:e for e in self.groundset()} 
-        if randomized_tests > 0: 
+        M = self.local_binary_matroid()
+        m = {e:e for e in self.groundset()}
+        if randomized_tests > 0:
             E = list(self.groundset())
             for r in range(randomized_tests):
                 shuffle(E)
-                B = self.max_weight_independent(E) 
-                N = self._local_binary_matroid(B)
-                if not M.is_field_isomorphism(N, m): 
+                B = self.max_weight_independent(E)
+                N = self.local_binary_matroid(B)
+                if not M.is_field_isomorphism(N, m):
                     return False
                 M = N
         return self.is_isomorphism(M, m)
-            
+
     # matroid k-closed
 
     cpdef is_k_closed(self, int k):
@@ -4875,7 +4879,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  
+          ``self.groundset()``.
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4957,7 +4961,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  
+          ``self.groundset()``.
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4967,10 +4971,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        The greedy algorithm. If a weight function is given, then sort the elements 
-        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
-        lists its elements. Then greedily select elements if they are coindependent of
-        all that was selected before.
+        The greedy algorithm. If a weight function is given, then sort
+        the elements of ``X`` by decreasing weight, and otherwise use the
+        ordering in which ``X``  lists its elements. Then greedily select
+        elements if they are coindependent of all that was selected before.
 
         EXAMPLES::
 

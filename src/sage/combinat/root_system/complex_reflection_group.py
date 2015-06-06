@@ -1124,7 +1124,33 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup(4)
+                sage: for w in W:
+                ....:   print w.reduced_word(), w.length()
+                 0
+                0 1
+                1 1
+                00 2
+                01 2
+                10 2
+                11 2
+                001 3
+                010 3
+                011 3
+                100 3
+                110 3
+                0010 4
+                0011 4
+                0100 4
+                0110 4
+                1001 4
+                1100 4
+                00100 5
+                00110 5
+                01001 5
+                01100 5
+                001001 6
+                001100 6
             """
             return len( self.reduced_word() )
 
@@ -1299,7 +1325,37 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
         @cached_in_parent_method
         def reflection_eigenvalues(self,test_class_repr=True):
             r"""
-            Returns the reflection eigenvalues of ``self``.
+            Return the reflection eigenvalues of ``self``.
+
+            EXAMPLES::
+
+                sage: W = ComplexReflectionGroup(4)
+                sage: for w in W:
+                ....:     print w.reflection_eigenvalues()
+                [0, 0]
+                [1/3, 0]
+                [1/3, 0]
+                [2/3, 0]
+                [1/6, 1/2]
+                [1/6, 1/2]
+                [2/3, 0]
+                [1/4, 3/4]
+                [1/4, 3/4]
+                [1/4, 3/4]
+                [1/4, 3/4]
+                [1/4, 3/4]
+                [1/3, 0]
+                [1/2, 5/6]
+                [1/3, 0]
+                [1/2, 5/6]
+                [1/2, 5/6]
+                [1/2, 5/6]
+                [1/6, 1/2]
+                [2/3, 0]
+                [1/6, 1/2]
+                [2/3, 0]
+                [1/2, 1/2]
+                [1/4, 3/4]
             """
             return self.parent().reflection_eigenvalues(self,test_class_repr=test_class_repr)
 
@@ -1310,12 +1366,13 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup(4)
+                sage: for w in W: print w.galois_conjugates()
             """
             rk = self.parent().rank()
             M = self.as_matrix()
             L = [ UCF(x) for x in M.list() ]
-            m = lcm([ x.field_order() for x in L ])
+            m = lcm( [ x.conductor() for x in L ] )
             L_gals = [ x.galois_conjugates(m) for x in L ]
             conjugates = []
             for i in range(len(L_gals[0])):

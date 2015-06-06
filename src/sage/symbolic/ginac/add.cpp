@@ -268,8 +268,8 @@ bool add::info(unsigned inf) const
 					return false;
 			}
 			if (overall_coeff.is_zero() && (inf == info_flags::positive || inf == info_flags::posint))
-				return true;
-			return overall_coeff.info(inf);
+                                return true;
+                        return overall_coeff.info(inf);
 		}
 		case info_flags::algebraic: {
                         for (const auto & elem : seq) {

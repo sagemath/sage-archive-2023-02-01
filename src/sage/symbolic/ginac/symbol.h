@@ -161,6 +161,8 @@ template<> inline bool is_exactly_a<possymbol>(const basic & obj)
 // keep symbols unique
 const symbol & get_symbol(const std::string & s);
 
+bool has_symbol(const ex & x);
+
 } // namespace GiNaC
 
 #endif // ndef __GINAC_SYMBOL_H__

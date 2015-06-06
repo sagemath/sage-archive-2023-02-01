@@ -395,4 +395,16 @@ const symbol & get_symbol(const std::string & s)
 		return directory.insert(make_pair(s, symbol(s))).first->second;
 	}
 }
+
+bool has_symbol(const ex & x)
+{
+	if (is_exactly_a<symbol>(x))
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_symbol(x.op(i)))
+			return true;
+                
+	return false;
+}
+
 } // namespace GiNaC

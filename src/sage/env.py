@@ -97,7 +97,7 @@ _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
 _add_variable_or_fallback('SITE_PACKAGES',   site.getsitepackages())
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
 
-_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('build', 'cythonized'))
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
@@ -169,7 +169,7 @@ def sage_include_directories(phase='runtime'):
     elif phase == 'buildtime' :
         include_directories.extend([opj(SAGE_SRC), \
                                     opj(SAGE_SRC, 'sage','ext'), \
-				    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
+                                    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
     else:
         raise ValueError('phase not recognised')
         return

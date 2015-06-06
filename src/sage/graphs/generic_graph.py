@@ -15510,6 +15510,7 @@ class GenericGraph(GenericGraph_pyx):
              ('...', ...): [...,...],
              ('...', ...): [...,...]}
             sage: g.plot(layout = "graphviz") # optional - dot2tex, graphviz
+            Graphics object consisting of 29 graphics primitives
 
         Note: the actual coordinates are not deterministic
 
@@ -15518,11 +15519,16 @@ class GenericGraph(GenericGraph_pyx):
         program::
 
             sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex, graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex, graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex, graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex, graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g = graphs.BalancedTree(5,2)
             sage: g.plot(layout = "graphviz", prog = "circo") # optional - dot2tex, graphviz
+            Graphics object consisting of 62 graphics primitives
 
         TODO: put here some cool examples showcasing graphviz features.
 

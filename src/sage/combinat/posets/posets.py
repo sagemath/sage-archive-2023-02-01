@@ -1239,7 +1239,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: H.edges()
             [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
             sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
-            sage: view(H, tight_page=True) # optional - dot2tex
+            sage: view(H, tight_page=True) # not tested - dot2tex, opens external window
         """
         G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
@@ -1251,19 +1251,21 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _latex_(self):
         r"""
-        Returns a latex method for the poset.
+        Return a latex method for the poset.
 
         EXAMPLES::
 
             sage: P = Poset(([1,2], [[1,2]]), cover_relations = True)
             sage: print P._latex_() #optional - dot2tex graphviz
+            <BLANKLINE>
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
               \node (node_0) at (6.0...bp,7.0...bp) [draw,draw=none] {$1$};
-              \draw [black,<-] (node_1) ..controls (6.0...bp,31.269...bp) and (6.0...bp,20.287...bp)  .. (node_0);
+              \draw [black,->] (node_0) ..controls (6.0...bp,20.2...bp) and (6.0...bp,30.9...bp)  .. (node_1);
             %
             \end{tikzpicture}
+            <BLANKLINE>
         """
         return self.hasse_diagram()._latex_()
 

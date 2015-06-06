@@ -1261,7 +1261,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
               \node (node_0) at (6.0...bp,7.0...bp) [draw,draw=none] {$1$};
-              \draw [black,->] (node_0) ..controls (6.0...bp,20.2...bp) and (6.0...bp,30.9...bp)  .. (node_1);
+              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
             %
             \end{tikzpicture}
         """

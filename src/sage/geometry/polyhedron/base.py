@@ -2700,7 +2700,7 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: Cube = polytopes.n_cube(3)
+            sage: Cube = polytopes.hypercube(3)
             sage: vertex_trunc = Cube.face_truncation(Cube.faces(0)[0])
             sage: vertex_trunc.f_vector()
             (1, 10, 15, 7, 1)

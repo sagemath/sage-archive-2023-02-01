@@ -1987,10 +1987,10 @@ class CoordChange(SageObject):
         #  correct solution even when chart2 = chart1):
         if self._chart1.domain().base_field() == 'real':
             coord_domain = ['real' for i in range(n2)]
-        elif self._domain.base_field() == 'complex':
+        elif self._chart1.domain().base_field() == 'complex':
             coord_domain = ['complex' for i in range(n2)]
         else:
-            coord_domain = None
+            coord_domain = [None for i in range(n2)]
         for i in range(n2):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'

@@ -455,17 +455,9 @@ class TopManifold(TopManifoldSubset):
             raise ValueError("the manifold dimension must be strictly " +
                              "positive")
         self._dim = n
-        if field == 'real':
-            self._field_name = 'R'
-            self._field_latex_name = r'\mathbb{R}'
-        elif field == 'complex':
-            self._field_name = 'C'
-            self._field_latex_name = r'\mathbb{C}'
-        else:
+        if field not in ['real', 'complex']:
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
-            self._field_name = str(field)
-            self._field_latex_name = latex(field)
         self._field = field
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
@@ -1367,11 +1359,11 @@ class TopManifold(TopManifoldSubset):
             sage: M = TopManifold(3, 'M')
             sage: U = M.open_subset('U')
             sage: CU = U.scalar_field_algebra() ; CU
-            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: CU.category()
             Category of commutative algebras over Symbolic Ring
             sage: CU.zero()
-            scalar field 'zero' on the open subset 'U' of the 3-dimensional manifold 'M'
+            Scalar field zero on the Open subset U of the 3-dimensional topological manifold M
 
         """
         return self._scalar_field_algebra
@@ -1425,12 +1417,12 @@ class TopManifold(TopManifoldSubset):
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
             sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
-            scalar field 'F' on the open subset 'U' of the 3-dimensional manifold 'M'
+            Scalar field F on the Open subset U of the 3-dimensional topological manifold M
             sage: f.display()
             F: U --> R
                (x, y, z) |--> cos(y)*sin(x) + z
             sage: f.parent()
-            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: f in U.scalar_field_algebra()
             True
 
@@ -1501,23 +1493,23 @@ class TopManifold(TopManifoldSubset):
             ....:                                restrictions1= x^2+y^2!=0,
             ....:                                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: f = M.constant_scalar_field(1) ; f
-            scalar field on the 2-dimensional manifold 'M'
+            sage: f = M.constant_scalar_field(-1) ; f
+            Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
             M --> R
-            on U: (x, y) |--> 1
-            on V: (u, v) |--> 1
+            on U: (x, y) |--> -1
+            on V: (u, v) |--> -1
 
         We have::
 
-            sage: f.restrict(U) == U.constant_scalar_field(1)
+            sage: f.restrict(U) == U.constant_scalar_field(-1)
             True
             sage: M.constant_scalar_field(0) is M.zero_scalar_field()
             True
 
         .. SEEALSO::
 
-            :meth:`zero_scalar_field`
+            :meth:`zero_scalar_field`, :meth:`one_scalar_field`
         """
         if value == 0:
             return self.zero_scalar_field()
@@ -1536,7 +1528,7 @@ class TopManifold(TopManifoldSubset):
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.zero_scalar_field() ; f
-            scalar field 'zero' on the 2-dimensional manifold 'M'
+            Scalar field zero on the 2-dimensional topological manifold M
             sage: f.display()
             zero: M --> R
                (x, y) |--> 0
@@ -1568,6 +1560,3 @@ class TopManifold(TopManifoldSubset):
 
         """
         return self._one_scalar_field
-
-
-

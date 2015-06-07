@@ -8,11 +8,6 @@ is meant a continuous function `U\rightarrow K`.
 `C^0(U)` is an algebra over `K`, whose ring product is the pointwise
 multiplication of `K`-valued functions, which is clearly commutative.
 
-If `K = \RR` or `K = \CC`, the field `K` over which the
-albegra `C^0(U)` is constructed,
-is represented by Sage's Symbolic Ring SR, since there is no exact
-representation of `\RR` nor `\CC` in Sage.
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
@@ -52,7 +47,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     If `M` is a topological manifold over a topological field `K` and `U`
     an open subset of `M`, the commutative algebra of scalar fields on `U`
-    is a the set `C^0(U)` of all continuous map `U\rightarrow K`.
+    is the set `C^0(U)` of all continuous maps `U\rightarrow K`.
     `C^0(U)` is an algebra over `K`, whose ring product is the pointwise
     multiplication of `K`-valued functions, which is clearly commutative.
 
@@ -105,7 +100,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: CW.base_ring()
         Symbolic Ring
 
-    The elements of `C^0(M)` are scalar fields on M::
+    The elements of `C^0(M)` are scalar fields on `M`::
 
         sage: CM.an_element()
         Scalar field on the 2-dimensional topological manifold M
@@ -114,7 +109,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         on U: (x, y) |--> 2
         on V: (u, v) |--> 2
 
-    Those of `C^0(W)` are scalar fields on W::
+    Those of `C^0(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
         Scalar field on the Open subset W of the 2-dimensional topological manifold M
@@ -205,7 +200,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     The reverse is of course false::
 
-        sage: CM.has_coerce_map_from(W)
+        sage: CM.has_coerce_map_from(CW)
         False
 
     The coercion map is nothing but the restriction to `W` of scalar fields
@@ -235,17 +230,9 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         (x, y) |--> 2*arctan(x^2 + y^2)
         (u, v) |--> pi - 2*arctan(u^2 + v^2)
 
-    Other coercions are those from the rational field, leading to constant
-    scalar fields::
-
-        sage: h = CM(2/3) ; h
-        Scalar field on the 2-dimensional topological manifold M
-        sage: h.display()
-        M --> R
-        on U: (x, y) |--> 2/3
-        on V: (u, v) |--> 2/3
-
-    and those from the Symbolic Ring, also leading to constant scalar fields::
+    Other coercions are those from the Symbolic Ring, leading to constant
+    scalar fields (if the symbolic expression does not involve any chart
+    coordinate)::
 
         sage: h = CM(pi*sqrt(2)) ; h
         Scalar field on the 2-dimensional topological manifold M

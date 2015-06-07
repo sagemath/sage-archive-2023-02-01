@@ -37,7 +37,7 @@ from sage.sets.family import Family
 
 
 class CoxeterMatrix(CoxeterType):
-    """
+    r"""
     A Coxeter matrix.
 
     .. TODO::
@@ -95,7 +95,7 @@ class CoxeterMatrix(CoxeterType):
         [ 3  1  4]
         [-1  4  1]
 
-    It is possible to give a number `\leq -1` to represent an infinite label
+    It is possible to give a number `\leq -1` to represent an infinite label::
 
         sage: CoxeterMatrix([[1,-1],[-1,1]])
         [ 1 -1]
@@ -109,7 +109,7 @@ class CoxeterMatrix(CoxeterType):
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
-        """
+        r"""
         A Coxeter matrix can we created via a graph, a Coxeter type, or
         a matrix.
 
@@ -430,8 +430,7 @@ class CoxeterMatrix(CoxeterType):
         Here the ``higher_rank`` term denotes non-finite, non-affine, 
         Coxeter groups (including hyperbolic types).
 
-        .. TODO:: Implement the hyperbolic and compact hyperbolic in the
-        samples.
+        .. TODO:: Implement the hyperbolic and compact hyperbolic in the samples.
 
         EXAMPLES::
 
@@ -791,6 +790,20 @@ class CoxeterMatrix(CoxeterType):
         Return the bilinear form of ``self``.
 
         EXAMPLES::
+
+            sage: CoxeterType(['A', 2, 1]).bilinear_form()
+            [   1 -1/2 -1/2]
+            [-1/2    1 -1/2]
+            [-1/2 -1/2    1]
+            sage: CoxeterType(['H', 3]).bilinear_form()
+            [                      1                    -1/2                       0]
+            [                   -1/2                       1 1/2*E(5)^2 + 1/2*E(5)^3]
+            [                      0 1/2*E(5)^2 + 1/2*E(5)^3                       1]
+            sage: C = CoxeterMatrix([[1,-1,-1],[-1,1,-1],[-1,-1,1]])
+            sage: C.bilinear_form()
+            [ 1 -1 -1]
+            [-1  1 -1]
+            [-1 -1  1]
         """
 
         return CoxeterType.bilinear_form(self)

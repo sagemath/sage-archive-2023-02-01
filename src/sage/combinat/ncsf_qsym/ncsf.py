@@ -2547,35 +2547,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 s[]
             """
             s = SymmetricFunctions(self.base_ring()).schur()
-            if not I._list:
+            if not I:
                 return s([])
             return s(I.to_skew_partition())
-
-        @lazy_attribute
-        def to_symmetric_function(self):
-            r"""
-            Morphism to the algebra of symmetric functions.
-
-            This is constructed by extending the computation on the ribbon
-            basis by linearity.
-
-            OUTPUT:
-
-            - The module morphism from the basis ``self`` to the symmetric
-              functions which corresponds to taking a commutative image.
-
-            EXAMPLES::
-
-                sage: N = NonCommutativeSymmetricFunctions(QQ)
-                sage: R = N.ribbon()
-                sage: x = R.an_element(); x
-                2*R[] + 2*R[1] + 3*R[1, 1]
-                sage: R.to_symmetric_function(x)
-                2*s[] + 2*s[1] + 3*s[1, 1]
-            """
-            codom = SymmetricFunctions(self.base_ring()).schur()
-            on_basis = self.to_symmetric_function_on_basis
-            return self.module_morphism(on_basis, codomain=codom)
 
         class Element(CombinatorialFreeModule.Element):
 

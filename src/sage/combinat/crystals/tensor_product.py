@@ -731,31 +731,6 @@ class TensorProductOfCrystals(CrystalOfWords):
             crystalElements = reversed(crystalElements)
         return self.element_class(self, list(crystalElements))
 
-    @cached_method
-    def weight_lattice_realization(self):
-        r"""
-        Return the weight lattice realization used to express weights.
-
-        The weight lattice realization is the common parent which all
-        weight lattice realizations of the crystals of ``self`` coerce
-        into.
-
-        EXAMPLES::
-
-            sage: B = crystals.elementary.B(['A',4], 2)
-            sage: B.weight_lattice_realization()
-            Root lattice of the Root system of type ['A', 4]
-            sage: T = crystals.infinity.Tableaux(['A',4])
-            sage: T.weight_lattice_realization()
-            Ambient space of the Root system of type ['A', 4]
-            sage: TP = crystals.TensorProduct(B, T)
-            sage: TP.weight_lattice_realization()
-            Ambient space of the Root system of type ['A', 4]
-        """
-        cm = get_coercion_model()
-        return cm.common_parent(*[crystal.weight_lattice_realization()
-                                  for crystal in self.crystals])
-
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
     Tensor product of crystals with a generating set.
@@ -868,6 +843,31 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
             9
         """
         return self.cartesian_product.cardinality()
+
+    @cached_method
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.B(['A',4], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['A', 4]
+            sage: T = crystals.infinity.Tableaux(['A',4])
+            sage: T.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+            sage: TP = crystals.TensorProduct(B, T)
+            sage: TP.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
 
 class TensorProductOfCrystalsElement(ImmutableListWithParent):
     r"""

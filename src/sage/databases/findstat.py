@@ -166,8 +166,11 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import verbose
+
+from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
+
+from sage.misc.misc import verbose
 from sage.rings.integer import Integer
 from sage.databases.oeis import FancyTuple
 
@@ -1481,7 +1484,6 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
-
 class FindStatCollection(Element):
     r"""
     A FindStat collection.
@@ -1499,8 +1501,7 @@ class FindStatCollection(Element):
 
     def __init__(self, parent, id, c, sageconstructor_overridden):
         """
-        Initialize ``self``.
-
+        Initialize the collection.
         """
         self._id = id
         (self._name, self._name_plural, self._url_name,
@@ -1509,6 +1510,20 @@ class FindStatCollection(Element):
         self._sageconstructor_overridden = sageconstructor_overridden
 
         Element.__init__(self, parent)
+
+    def __reduce__(self):
+        """Return a function and its arguments needed to create this
+        collection.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: c = FindStatCollection("Permutations")                        # optional -- internet
+            sage: loads(dumps(c)) == c                                          # optional -- internet
+            True
+
+        """
+        return (FindStatCollection, (self.id(),))
 
     def __cmp__(self, other):
         """
@@ -1844,6 +1859,12 @@ class FindStatCollections(Parent, UniqueRepresentation):
     def __init__(self):
         """
         Fetch the collections from FindStat.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: C = FindStatCollections()                                     # optional -- internet
+            sage: TestSuite(C).run()                                            # optional -- internet
         """
         for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
             c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
@@ -1852,7 +1873,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
             c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
 
-        Parent.__init__(self)
+        Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, entry):
         """Initialize a FindStat collection.
@@ -2012,11 +2033,24 @@ class FindStatMap(Element):
 
     def __init__(self, parent, entry):
         """
-        Initialize ``self``.
-
+        Initialize the map.
         """
         self._map = entry
         Element.__init__(self, parent)
+
+    def __reduce__(self):
+        """Return a function and its arguments needed to create this
+        map.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: c = FindStatMap(62)                                           # optional -- internet
+            sage: loads(dumps(c)) == c                                          # optional -- internet
+            True
+
+        """
+        return (FindStatMap, (self.id(),))
 
     def id(self):
         r"""
@@ -2206,10 +2240,31 @@ class FindStatMaps(Parent, UniqueRepresentation):
 
     The elements of this class are combinatorial maps currently in
     FindStat.
+
+    EXAMPLES:
+
+    We can print a nice list of maps currently in FindStat, sorted by
+    domain and codomain::
+
+        sage: from sage.databases.findstat import FindStatMap, FindStatMaps
+        sage: for m in sorted(FindStatMaps(), key=lambda m: (m.domain(), m.codomain)):    # optional -- internet,random
+        ....:     print m.domain().name().ljust(30), m.codomain().name().ljust(30), m.name()
+        ....:
+        Permutation                    Standard tableau               Robinson-Schensted insertion tableau
+        Permutation                    Integer partition              Robinson-Schensted tableau shape
+        Permutation                    Binary tree                    to increasing tree
+        ...
+
     """
     def __init__(self):
         """
-        Fetch the maps from FindStat.
+        Fetch all the maps from FindStat.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMaps
+            sage: M = FindStatMaps()                                            # optional -- internet
+            sage: TestSuite(M).run()                                            # optional -- internet
         """
         self._findstat_maps = json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
         Parent.__init__(self)

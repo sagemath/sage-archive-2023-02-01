@@ -562,6 +562,56 @@ class FiniteWord_class(Word_class):
             w[k] = n+1 - w[k]
         return parent(w, check=False)
 
+    def foata_bijection(self):
+        r"""
+        Return word ``self`` under the Foata bijection.
+
+        The Foata bijection `\phi` is a bijection on the set of words
+        of given content. It can be defined by induction on the size
+        of the word: Given a word `w_1 w_2 \cdots w_n`, start with
+        `\phi(w_1) = w_1`. At the `i`-th step, if
+        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
+        `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
+        the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
+        as follows. If `w_{i+1} \ge v_i`, place a vertical line to the right
+        of each `v_k` for which `w_{i+1} \ge v_k`. Otherwise, if
+        `w_{i+1} < v_i`, place a vertical line to the right of each `v_k`
+        for which `w_{i+1} < v_k`. In either case, place a vertical line at
+        the start of the word as well. Now, within each block between
+        vertical lines, cyclically shift the entries one place to the
+        right.
+
+        For instance, to compute `\phi([4,1,5,4,2,2,3])`, the sequence of
+        words is
+
+        * `4`,
+        * `|4|1 \to 41`,
+        * `|4|1|5 \to 415`,
+        * `|415|4 \to 5414`,
+        * `|5|4|14|2 \to 54412`,
+        * `|5441|2|2 \to 154422`,
+        * `|1|5442|2|3 \to 1254423`.
+
+        So `\phi([4,1,5,4,2,2,3]) = [1,2,5,4,4,2,3]`.
+
+        See also :func:`~sage.combinat.permutation.Permutation.foata_biject`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,2,2,1,1,1])
+            sage: w.foata_bijection()
+            word: 112221
+            sage: w = Word([2,2,1,2,2,2,1,1,2,1])
+            sage: w.foata_bijection()
+            word: 2122212211
+            sage: w = Word([4,1,5,4,2,2,3])
+            sage: w.foata_bijection()
+            word: 1254423
+        """
+        s = self.standard_permutation()
+        weight = [self.count(i) for i in range(1,max(self)+1)]
+        return (s.foata_bijection()).de_standardize(weight)
+
     def is_empty(self):
         r"""
         Returns True if the length of self is zero, and False otherwise.

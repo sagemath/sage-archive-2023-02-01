@@ -2379,6 +2379,47 @@ class Permutation(CombinatorialElement):
             M = M_prime
         return Permutations()(M)
 
+    def de_standardize(self, weight):
+        r"""
+        Return destandardization of ``self`` with respect to ``weight``.
+
+        INPUT:
+
+        - ``weight`` -- list or tuple of nonnegative integers that add to `n` if ``self``
+          is a permutation in `S_n`.
+
+        Let `weight = (w_1,w_2,\ldots,w_\ell)`. Then this methods looks for an increasing
+        sequence of `1,2,\ldots, w_1` and labels all letters in it by 1, then an increasing
+        sequence of `w_1+1,w_1+2,\ldots,w_1+w_2` and labels all these letters by 2, etc..
+        If an increasing sequence for the specified ``weight`` does not exist, an error is
+        returned. The output is a word ``w`` with evaluation ``weight`` such that
+        ``w.standard_permutation()`` is ``self``.
+
+        EXAMPLES::
+
+            sage: p = Permutation([1,2,5,3,6,4])
+            sage: p.de_standardize([3,1,2])
+            word: 113132
+            sage: p = Permutation([2,1,3])
+            sage: p.de_standardize([2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Standardization with weight [2, 1] is not possible!
+        """
+        ides = [i+1 for i in self.idescents()]
+        partial = [0]
+        for a in weight:
+            partial.append(partial[-1]+a)
+        if not set(ides).issubset(set(partial)):
+            raise ValueError("Standardization with weight {} is not possible!".format(weight))
+        q = self.inverse()
+        s = [0]*len(self)
+        for i in range(1,len(partial)):
+            for j in range(partial[i-1],partial[i]):
+                s[q[j]-1] = i
+        from sage.combinat.words.word import Word
+        return Word(s)
+
     def to_lehmer_code(self):
         r"""
         Return the Lehmer code of the permutation ``self``.

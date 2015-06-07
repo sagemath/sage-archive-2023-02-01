@@ -450,7 +450,6 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             sage: 'cas_setup' in c             # optional - giac
             True
         """
-        bs = chr(8)*len(s)
         if self._expect is None:
             self._start()
         E = self._expect
@@ -803,11 +802,9 @@ class GiacElement(ExpectElement):
             sage: type(_)            # optional - giac
             <type 'float'>
         """
-        M = self.parent()
-        return float(giac.eval('evalf(%s)'%self.name()))
+        return float(giac.eval('evalf(%s)' % self.name()))
 
-
-    def unapply(self,var):
+    def unapply(self, var):
         """
         Creates a Giac function in the given arguments from a Giac symbol.
 
@@ -1009,14 +1006,13 @@ class GiacElement(ExpectElement):
             sage: parent(Z)                                      # optional - giac
             Full MatrixSpace of 4 by 4 dense matrices over Multivariate Polynomial Ring in x, y over Rational Field
         """
-        P = self.parent()
         v = self.dim()
         n = int(v[0])
         m = int(v[1])
 
         from sage.matrix.matrix_space import MatrixSpace
         M = MatrixSpace(R, n, m)
-        entries = [[R(self[r,c]) for c in range(m)] for r in range(n)]
+        entries = [[R(self[r, c]) for c in range(m)] for r in range(n)]
         return M(entries)
 
 
@@ -1140,7 +1136,6 @@ def reduce_load_Giac():
     return giac
 
 
-import os
 def giac_console():
     """
     Spawn a new Giac command-line session.

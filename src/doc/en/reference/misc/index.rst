@@ -17,6 +17,14 @@ General Infrastructure
 Programming Utilities
 ---------------------
 
+Python 2 and 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/misc/six
+
 Special Base Classes, Decorators, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -28,16 +36,18 @@ Special Base Classes, Decorators, etc.
    sage/misc/decorators
    sage/misc/constant_function
    sage/misc/classcall_metaclass
+   sage/misc/cython_metaclass
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
 
-Lists and Iteration
-~~~~~~~~~~~~~~~~~~~
+Lists and Iteration, etc.
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 1
 
+   sage/misc/callable_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools
@@ -93,6 +103,7 @@ Warnings
 
    sage/misc/stopgap
    sage/misc/superseded
+
 
 Miscellaneous Useful Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

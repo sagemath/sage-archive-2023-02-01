@@ -13,9 +13,11 @@ for graph algorithms whose main operation is to *list the out-neighbours of a
 vertex* (which is precisely what BFS, DFS, distance computations and the
 flow-related stuff waste their life on).
 
-The code contained in this module is written C-style. While Sage needs a class
-for static graphs (not available today, i.e. 2012-01-13) it is not what we try
-to address here. The purpose is efficiency and simplicity.
+The code contained in this module is written C-style. The purpose is efficiency
+and simplicity.
+
+For an overview of graph data structures in sage, see
+:mod:`~sage.graphs.base.overview`.
 
 Author:
 
@@ -161,6 +163,7 @@ cimport cpython
 from sage.graphs.base.c_graph cimport CGraph
 from libc.stdint cimport INT32_MAX
 from static_sparse_backend cimport StaticSparseCGraph
+from static_sparse_backend cimport StaticSparseBackend
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""
@@ -516,7 +519,7 @@ def triangles_count(G):
     # g is a copy of G. If G is internally a static sparse graph, we use it.
     cdef short_digraph g
     G = G.copy(immutable=True)
-    g[0] = (<StaticSparseCGraph?> (G._backend._cg)).g[0]
+    g[0] = (<StaticSparseCGraph> (<StaticSparseBackend> G._backend)._cg).g[0]
 
     cdef uint64_t count = 0
     cdef uint32_t u,v,i

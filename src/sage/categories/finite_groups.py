@@ -10,6 +10,7 @@ FiniteGroups
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.algebra_functor import AlgebrasCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class FiniteGroups(CategoryWithAxiom):
     r"""

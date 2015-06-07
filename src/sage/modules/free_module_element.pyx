@@ -1616,7 +1616,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
             3.077384885394063
-            sage: v.norm(pi/2)
+            sage: v.norm(pi/2)    #abs tol 1e-15
             4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
@@ -1668,7 +1668,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -4532,7 +4532,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare two sparse free module elements.
 

@@ -54,6 +54,7 @@ import operator
 import sage.structure.element
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.structure.sage_object cimport rich_to_bool
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
 include 'pari_err.pxi'
@@ -66,6 +67,7 @@ cimport cython
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 
 from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
@@ -1054,7 +1056,7 @@ cdef class gen(gen_auto):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
 
@@ -1123,14 +1125,14 @@ cdef class gen(gen_auto):
         elif op == 3:  # !=
             r = (gequal(x, y) == 0)
         else:
-            r = left._rich_to_bool(op, gcmp(x, y))
+            r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
 
     def __cmp__(left, right):
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare ``left`` and ``right``.
 
@@ -8259,11 +8261,14 @@ cdef class gen(gen_auto):
         INPUT:
 
         - ``self`` -- a quadratic form
+
         - ``b`` -- a bound on vector norm (finds minimal non-zero
-          vectors if b=0)
+          vectors if b is ``None``)
+
         - ``m`` -- maximum number of vectors to return.  If ``None``
           (default), return all vectors of norm at most B
-        - flag (optional) --
+
+        - ``flag`` (optional) --
 
            - 0: default;
            - 1: return only the first minimal vector found (ignore ``max``);
@@ -8303,7 +8308,7 @@ cdef class gen(gen_auto):
 
         All vectors of minimal norm::
 
-             sage: pari(A).qfminim(0).python()
+             sage: pari(A).qfminim().python()
              [
                    [-5 -2  1]
                    [ 1  1  0]
@@ -9248,7 +9253,7 @@ cdef class gen(gen_auto):
         With flag=1, compute the pair P(z) and P'(z)::
 
             sage: E.ellwp(1, flag=1)
-            [13.9658695257485, 50.5619893875144]
+            [13.9658695257485, 50.5619300880073]
         """
         cdef gen t0 = objtogen(z)
         cdef GEN g0 = t0.g

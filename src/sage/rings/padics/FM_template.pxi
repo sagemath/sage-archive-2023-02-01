@@ -94,7 +94,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: R = ZpFM(5); R(6) * R(7) #indirect doctest
             2 + 3*5 + 5^2 + O(5^20)
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow

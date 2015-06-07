@@ -36,6 +36,7 @@ from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer
 from sage.libs.pari.all import pari
 from sage.symbolic.function cimport BuiltinFunction
+from sage.libs.gmp.mpz cimport *
 
 cdef extern from "pari/pari.h":
     cdef void NEXT_PRIME_VIADIFF(uint32_t, uint8_t *)

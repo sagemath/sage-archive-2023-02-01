@@ -348,7 +348,7 @@ def rgbcolor(c, space='rgb'):
     elif isinstance(c, (list, tuple)):
         if len(c) != 3:
             raise ValueError("color list or tuple '%s' must have 3 entries, one for each RGB, HSV, HLS, or HSL channel" % (c, ))
-        c = map(mod_one, list(c))
+        c = [mod_one(_) for _ in list(c)]
         if space == 'rgb':
             return tuple(c)
         elif space == 'hsv':
@@ -1399,7 +1399,7 @@ def get_cmap(cmap):
         return cm.__dict__[cmap]
 
     elif isinstance(cmap, (list, tuple)):
-        cmap = map(rgbcolor, cmap)
+        cmap = [rgbcolor(_) for _ in cmap]
         return ListedColormap(cmap)
 
 

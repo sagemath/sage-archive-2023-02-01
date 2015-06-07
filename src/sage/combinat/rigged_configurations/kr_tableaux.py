@@ -318,9 +318,10 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             [[2], [3]]
         """
         index_set = self._cartan_type.classical().index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return RecursivelyEnumeratedSet(self.module_generators,
+                    lambda x: [x.f(i) for i in index_set],
+                    structure=None).naive_search_iterator()
 
     def module_generator(self, i=None, **options):
         r"""

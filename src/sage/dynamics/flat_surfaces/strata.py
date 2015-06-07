@@ -990,7 +990,7 @@ class AbelianStratum(SageObject):
             sage: AbelianStratum(1,1,1,1).connected_components()
             [H_c(1, 1, 1, 1)]
         """
-        return map(lambda x: x(self), self._cc)
+        return [x(self) for x in self._cc]
 
     def is_connected(self):
         r"""

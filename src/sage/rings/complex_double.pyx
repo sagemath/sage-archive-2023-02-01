@@ -183,11 +183,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: cmp(CDF, CDF)
             0
         """
-        return (<Parent>left)._richcmp_helper(right, op)
-
-    cdef int _cmp_c_impl(left, Parent right) except -2:
-        # There is only one CDF.
-        return cmp(type(left),type(right))
+        return (<Parent>left)._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -264,7 +260,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return r"\Bold{C}"
 
-    def _cmp_(self, x):
+    cpdef int _cmp_(self, x) except -2:
         """
         Compare ``x`` to ``self``.
 
@@ -812,7 +808,7 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
         imaginary parts.
@@ -1071,7 +1067,7 @@ cdef class ComplexDoubleElement(FieldElement):
             0.6666666666666666*I
             sage: a = CDF(2,-3); a # indirect doctest
             2.0 - 3.0*I
-            sage: a^2
+            sage: a^2   # abs tol 4e-15
             -5.0 - 12.0*I
             sage: (1/CDF(0,0)).__repr__()
             'NaN + NaN*I'
@@ -1483,7 +1479,7 @@ cdef class ComplexDoubleElement(FieldElement):
             1.6741492280355401 + 0.8959774761298381*I
             sage: b^2  # rel tol 1e-15
             2.0 + 3.0*I
-            sage: a^(1/2)
+            sage: a^(1/2)   # abs tol 1e-16
             1.6741492280355401 + 0.895977476129838*I
 
         We compute the square root of -1::
@@ -1682,7 +1678,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).exp()
+            sage: CDF(1,1).exp()  # abs tol 4e-16
             1.4686939399158851 + 2.2873552871788423*I
 
         We numerically verify a famous identity to the precision of a double::
@@ -1791,7 +1787,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).cos()
+            sage: CDF(1,1).cos()   # abs tol 1e-16
             0.8337300251311491 - 0.9888977057628651*I
         """
         return self._new_c(gsl_complex_cos(self._complex))
@@ -1965,7 +1961,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: CDF(1,1).cosh()
+            sage: CDF(1,1).cosh()  # abs tol 1e-16
             0.8337300251311491 + 0.9888977057628651*I
         """
         return self._new_c(gsl_complex_cosh(self._complex))
@@ -2394,7 +2390,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
+            sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z   # abs tol 1e-16
             0.5 + 0.8660254037844387*I
             sage: p = z.algdep(5); p
             x^3 + 1

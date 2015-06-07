@@ -353,7 +353,7 @@ cdef class FpTElement(RingElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
         but it is an ordering, and it is consistent between runs.  It has

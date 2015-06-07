@@ -1,3 +1,7 @@
+# distutils: libraries = gsl
+
+"Pynac interface"
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -6,8 +10,6 @@
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
-
-# distutils: libraries = gsl
 
 cdef extern from "pynac_cc.h":
     long double sage_logl(long double)
@@ -177,11 +179,11 @@ cdef public GEx pyExpression_to_ex(object res) except *:
     functions back to C++ level.
     """
     if res is None:
-        raise TypeError, "function returned None, expected return value of type sage.symbolic.expression.Expression"
+        raise TypeError("function returned None, expected return value of type sage.symbolic.expression.Expression")
     try:
         t = ring.SR.coerce(res)
     except TypeError as err:
-        raise TypeError, "function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
+        raise TypeError("function did not return a symbolic expression or an element that can be coerced into a symbolic expression")
     return (<Expression>t)._gobj
 
 cdef public object paramset_to_PyTuple(const_paramset_ref s):
@@ -403,10 +405,10 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
 
     EXAMPLES::
 
@@ -464,7 +466,7 @@ cdef public stdstring* py_print_function(unsigned id, object args) except +:
     return string_from_pystr(py_print_function_pystring(id, args))
 
 def py_latex_function_pystring(id, args, fname_paren=False):
-    """
+    r"""
     Return a string with the latex representation of the symbolic function
     specified by the given id applied to args.
 
@@ -561,12 +563,10 @@ cdef public stdstring* py_print_fderivative(unsigned id, object params,
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
-
-
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
     """
     ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
     fstr = py_print_function_pystring(id, args, True)
@@ -625,7 +625,7 @@ cdef public stdstring* py_latex_fderivative(unsigned id, object params,
     return string_from_pystr(py_res)
 
 def py_latex_fderivative_for_doctests(id, params, args):
-    """
+    r"""
     Used internally for writing doctests for certain cdef'd functions.
 
     EXAMPLES::
@@ -796,9 +796,11 @@ def test_binomial(n, k):
     binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result.
 
     INPUT:
-        n, k -- integers, with k >= 0.
+
+    - n, k -- integers, with k >= 0.
 
     OUTPUT:
+
         integer
 
     EXAMPLES::
@@ -1334,17 +1336,19 @@ def py_factorial_py(x):
 cdef public object py_doublefactorial(object x) except +:
     n = Integer(x)
     if n < -1:
-        raise ValueError, "argument must be >= -1"
+        raise ValueError("argument must be >= -1")
     from sage.misc.misc_c import prod  # fast balanced product
     return prod([n - 2*i for i in range(n//2)])
 
 def doublefactorial(n):
     """
     The double factorial combinatorial function:
+
         n!! == n * (n-2) * (n-4) * ... * ({1|2}) with 0!! == (-1)!! == 1.
 
     INPUT:
-        n -- an integer > = 1
+
+    - n -- an integer > = 1
 
     EXAMPLES::
 
@@ -1652,7 +1656,7 @@ cdef public object py_atan2(object x, object y) except +:
         if sgn_x > 0:
             return 0
         elif x == 0:
-            raise ValueError, "arctan2(0,0) undefined"
+            raise ValueError("arctan2(0,0) undefined")
         else:
             return pi_n
 

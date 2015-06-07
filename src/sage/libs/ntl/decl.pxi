@@ -1,4 +1,3 @@
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
 cdef extern from "ccobject.h":

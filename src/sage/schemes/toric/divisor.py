@@ -173,7 +173,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
-from sage.misc.all import latex, flatten, prod
+from sage.misc.all import cached_method, flatten, latex, prod
 from sage.modules.all import vector
 from sage.modules.free_module import (FreeModule_ambient_field,
                                       FreeModule_ambient_pid)
@@ -297,6 +297,7 @@ class ToricDivisorGroup(DivisorGroup_generic):
         """
         return self.scheme().fan().nrays()
 
+    @cached_method
     def gens(self):
         r"""
         Return the generators of the divisor group.
@@ -308,12 +309,9 @@ class ToricDivisorGroup(DivisorGroup_generic):
             sage: TDiv.gens()
             (V(x), V(y), V(z))
         """
-        # Note: self._gens is originally incorrectly set by the parent class
-        if self._gens is None:
-            one = self.base_ring().one()
-            self._gens = tuple(ToricDivisor_generic([(one, c)], self)
-                               for c in self.scheme().gens())
-        return self._gens
+        one = self.base_ring().one()
+        return tuple(ToricDivisor_generic([(one, c)], self)
+                     for c in self.scheme().gens())
 
     def gen(self,i):
         r"""

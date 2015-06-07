@@ -1218,9 +1218,9 @@ class RElement(ExpectElement):
             sage: d['DATA']['coefficients']['DATA'][1]
             2
         """
-        parent = self.parent()
-        rx = parent(x)
-        return parent.new("%s ~ %s"%(self.name(), rx.name()))
+        par = self.parent()
+        rx = par(x)
+        return par.new("%s ~ %s" % (self.name(), rx.name()))
 
     stat_model = tilde
 

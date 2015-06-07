@@ -137,10 +137,12 @@ import operator
 import sys
 
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.long cimport pyobject_to_long
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_allocarray
+from sage.ext.memory cimport check_malloc, check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -168,6 +170,9 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import canonical_coercion, coerce_binop
+
+cdef extern from *:
+    int unlikely(int) nogil  # Defined by Cython
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
@@ -322,7 +327,7 @@ cdef _digits_internal(mpz_t v,l,int offset,int power_index,power_list,digits):
         mpz_clear(mpz_quot)
         mpz_clear(mpz_res)
 
-from sage.structure.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject, rich_to_bool_sgn
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement, Element
 from sage.structure.element import  bin_op
 from sage.structure.coerce_exceptions import CoercionException
@@ -907,14 +912,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 c = -mpz_cmp_d((<Integer>right).value, d)
             else:
                 return (<sage.structure.element.Element>left)._richcmp(right, op)
-        return (<sage.structure.element.Element>left)._rich_to_bool(op, c)
+        return rich_to_bool_sgn(op, c)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
-        cdef int i
-        i = mpz_cmp((<Integer>left).value, (<Integer>right).value)
-        if i < 0: return -1
-        elif i == 0: return 0
-        else: return 1
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
+        cdef int c
+        c = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        return (c > 0) - (c < 0)
 
     def __copy__(self):
         """
@@ -1043,14 +1046,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef size_t n
         cdef char *s
         n = mpz_sizeinbase(self.value, base) + 2
-        s = <char *>PyMem_Malloc(n)
-        if s == NULL:
-            raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."
+        s = <char*>check_malloc(n)
         sig_on()
         mpz_get_str(s, base, self.value)
         sig_off()
         k = <object> PyString_FromString(s)
-        PyMem_Free(s)
+        sage_free(s)
         return k
 
     def __format__(self, *args, **kwargs):
@@ -1866,7 +1867,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^x
             sage: 2^1.5              # real number
             2.82842712474619
-            sage: 2^float(1.5)       # python float
+            sage: 2^float(1.5)       # python float  abs tol 3e-16
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
@@ -1893,7 +1894,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^t
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError:
+            'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+            object cannot be interpreted as an index
             sage: int(3)^-3
             1/27
             sage: type(int(3)^2)
@@ -1916,7 +1919,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             s = parent_c(n)(self)
             return s**n
@@ -3981,9 +3984,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # we need (at most) log_2(#factors) concurrent sub-products
         cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
-        cdef mpz_t* sub_prods = <mpz_t*>sage_malloc(prod_count * sizeof(mpz_t))
-        if sub_prods == NULL:
-            raise MemoryError
+        cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
 
@@ -4122,7 +4123,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
         """
         return True
-        
+
     def is_integer(self):
         """
         Returns ``True`` as they are integers
@@ -5111,7 +5112,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def next_prime(self, proof=None):
         r"""
-        Returns the next prime after self.
+        Return the next prime after self.
+
+        This method calls the PARI ``nextprime`` function.
 
         INPUT:
 
@@ -5145,6 +5148,191 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         while not p._pseudoprime_is_prime(proof):
             p = Integer(p._pari_().nextprime(True))
         return p
+
+    def previous_prime(self, proof=None):
+        r"""
+        Returns the previous prime before self.
+
+        This method calls the PARI ``precprime`` function.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        .. SEEALSO:
+
+            - :meth:`next_prime`
+
+        EXAMPLES::
+
+            sage: 10.previous_prime()
+            7
+            sage: 7.previous_prime()
+            5
+            sage: 14376485.previous_prime()
+            14376463
+
+            sage: 2.previous_prime()
+            Traceback (most recent call last):
+            ...
+            ValueError: no prime less than 2
+
+        An example using ``proof=False``, which is way faster since it does not
+        need a primality proof::
+
+            sage: b = (2^1024).previous_prime(proof=False)
+            sage: 2^1024 - b
+            105
+        """
+        if mpz_cmp_ui(self.value, 2) <= 0:
+            raise ValueError("no prime less than 2")
+        cdef Integer p = self-1
+        p = Integer(p._pari_().precprime())
+        while not p._pseudoprime_is_prime(proof):
+            mpz_sub_ui(p.value, p.value, 1)
+            p = Integer(p._pari_().precprime())
+        return p
+
+    def next_prime_power(self, proof=None):
+        r"""
+        Return the next prime power after self.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        ALGORITHM:
+
+        The algorithm is naive. It computes the next power of 2 and go through
+        the odd numbers calling :meth:`is_prime_power`.
+
+        .. SEEALSO::
+
+            - :meth:`previous_prime_power`
+            - :meth:`is_prime_power`
+            - :meth:`next_prime`
+            - :meth:`previous_prime`
+
+        EXAMPLES::
+
+            sage: (-1).next_prime_power()
+            2
+            sage: 2.next_prime_power()
+            3
+            sage: 103.next_prime_power()
+            107
+            sage: 107.next_prime_power()
+            109
+            sage: 2044.next_prime_power()
+            2048
+
+        TESTS::
+
+            sage: [(2**k-1).next_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).next_prime_power() for k in range(10)]
+            [2, 3, 5, 9, 17, 37, 67, 131, 257, 521]
+
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(2**256).next_prime_power()
+            ....:     m = n.next_prime_power().previous_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
+        """
+        if mpz_cmp_ui(self.value, 2) < 0:
+            return smallInteger(2)
+
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(self.value,2)
+        cdef Integer n = PY_NEW(Integer)
+
+        mpz_add_ui(n.value, self.value, 1 if mpz_even_p(self.value) else 2)
+
+        while not mpz_tstbit(n.value, bit_index):
+            if n.is_prime_power(proof=proof):
+                return n
+            mpz_add_ui(n.value, n.value, 2)
+
+        # return the power of 2 we just skipped
+        mpz_sub_ui(n.value, n.value, 1)
+        return n
+
+    def previous_prime_power(self, proof=None):
+        r"""
+        Return the previous prime power before self.
+
+        INPUT:
+
+        - ``proof`` - if ``True`` ensure that the returned value is the next
+          prime power and if set to ``False`` uses probabilistic methods
+          (i.e. the result is not guaranteed). By default it uses global
+          configuration variables to determine which alternative to use (see
+          :mod:`proof.arithmetic` or :mod:`sage.structure.proof`).
+
+        ALGORITHM:
+
+        The algorithm is naive. It computes the previous power of 2 and go
+        through the odd numbers calling the method :meth:`is_prime_power`.
+
+        .. SEEALSO::
+
+            - :meth:`next_prime_power`
+            - :meth:`is_prime_power`
+            - :meth:`previous_prime`
+            - :meth:`next_prime`
+
+        EXAMPLES::
+
+            sage: 3.previous_prime_power()
+            2
+            sage: 103.previous_prime_power()
+            101
+            sage: 107.previous_prime_power()
+            103
+            sage: 2044.previous_prime_power()
+            2039
+
+            sage: 2.previous_prime_power()
+            Traceback (most recent call last):
+            ...
+            ValueError: no prime power less than 2
+
+        TESTS::
+
+            sage: [(2**k+1).previous_prime_power() for k in range(1,10)]
+            [2, 4, 8, 16, 32, 64, 128, 256, 512]
+            sage: [(2**k).previous_prime_power() for k in range(2, 10)]
+            [3, 7, 13, 31, 61, 127, 251, 509]
+
+            sage: for _ in range(10):
+            ....:     n = ZZ.random_element(3,2**256).previous_prime_power()
+            ....:     m = n.previous_prime_power().next_prime_power()
+            ....:     assert m == n, "problem with n = {}".format(n)
+        """
+        if mpz_cmp_ui(self.value, 2) <= 0:
+            raise ValueError("no prime power less than 2")
+
+        cdef Integer n = PY_NEW(Integer)
+
+        mpz_sub_ui(n.value, self.value, 1)
+        cdef mp_bitcnt_t bit_index = mpz_sizeinbase(n.value,2)-1
+        if mpz_even_p(n.value):
+            mpz_sub_ui(n.value, n.value, 1)
+
+        while mpz_tstbit(n.value, bit_index):
+            if n.is_prime_power(proof=proof):
+                return n
+            mpz_sub_ui(n.value, n.value, 2)
+
+        # return the power of 2 we just skipped
+        mpz_add_ui(n.value, n.value, 1)
+        return n
 
     def additive_order(self):
         """
@@ -6568,7 +6756,7 @@ cdef int total_alloc = 0
 cdef int use_pool = 0
 
 
-cdef PyObject* fast_tp_new(type t, args, kwds):
+cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
@@ -6598,6 +6786,8 @@ cdef PyObject* fast_tp_new(type t, args, kwds):
         # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
         # See below for a more detailed description.
         new = <PyObject*>PyObject_Malloc( sizeof_Integer )
+        if unlikely(new == NULL):
+            raise MemoryError
 
         # Now set every member as set in z, the global dummy Integer
         # created before this tp_new started to operate.
@@ -6621,7 +6811,7 @@ cdef PyObject* fast_tp_new(type t, args, kwds):
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
         new_mpz = <mpz_ptr>((<Integer>new).value)
-        new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
+        new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the

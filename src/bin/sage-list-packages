@@ -40,10 +40,7 @@ def pkgname_split(name):
     r"""
     Split a pkgname to 'name,version'
     """
-    pname = name.split(' ')[0]
-    pname = re.sub("(\.|-)p[0-9]+$", "", pname) # strip .p0
-    pname = re.sub("(\.|-)[0-9].*", "", pname)  # strip version number
-    return (pname, name[len(pname)+1:])
+    return (name.split('-',1) + [''])[:2]
 
 # Installed packages
 SAGE_SPKG_INST=os.path.join(os.environ["SAGE_ROOT"], 'local', 'var',

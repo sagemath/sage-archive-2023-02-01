@@ -1510,33 +1510,33 @@ class FindStatCollection(Element):
 
         Element.__init__(self, parent)
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """
         TESTS::
 
-            sage: from sage.databases.findstat import FindStatCollection
+            sage: from sage.databases.findstat import FindStatCollection, FindStatCollections
             sage: FindStatCollection("Permutations") == FindStatCollection("Permutations")          # optional -- internet
             True
 
             sage: FindStatCollection("Permutations") == FindStatCollection("Integer Partitions")    # optional -- internet
             False
-        """
-        if (not isinstance(other, FindStatCollection)):
-            return False
-        return self.id() == other.id()
 
-    def __ne__(self, other):
-        """
-        TESTS::
-
-            sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Permutations") != FindStatCollection("Permutations")          # optional -- internet
             False
 
             sage: FindStatCollection("Permutations") != FindStatCollection("Integer Partitions")    # optional -- internet
             True
+
+            sage: FindStatCollection("Permutations") == 1                                           # optional -- internet
+            False
+
+            sage: FindStatCollection("Permutations") != 1                                           # optional -- internet
+            True
+
+            sage: sorted(c for c in FindStatCollections())[0]                                       # optional -- internet
+            Cc0001: Permutations
         """
-        return not self.__eq__(other)
+        return self.id().__cmp__(other.id())
 
     def in_range(self, element):
         r"""
@@ -2064,33 +2064,33 @@ class FindStatMap(Element):
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """
         TESTS::
 
-            sage: from sage.databases.findstat import FindStatMap
+            sage: from sage.databases.findstat import FindStatMap, FindStatMaps
             sage: FindStatMap(71) == FindStatMap(71)                            # optional -- internet
             True
 
             sage: FindStatMap(62) == FindStatMap(71)                            # optional -- internet
             False
-        """
-        if (not isinstance(other, FindStatMap)):
-            return False
-        return self.id() == other.id()
 
-    def __ne__(self, other):
-        """
-        TESTS::
-
-            sage: from sage.databases.findstat import FindStatMap
             sage: FindStatMap(71) != FindStatMap(71)                            # optional -- internet
             False
 
             sage: FindStatMap(62) != FindStatMap(71)                            # optional -- internet
             True
+
+            sage: FindStatMap(62) == 1                                          # optional -- internet
+            False
+
+            sage: FindStatMap(62) != 1                                          # optional -- internet
+            True
+
+            sage: sorted(c for c in FindStatMaps())[0]                          # optional -- internet
+            Mp00001: to semistandard tableau
         """
-        return not self.__eq__(other)
+        return self.id().__cmp__(other.id())
 
     def name(self):
         r"""

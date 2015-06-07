@@ -210,6 +210,15 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
         sage: is_group_divisible_design([range(40)],[["e",2]],40,K=[1],lambd=1,verbose=True)
         a block has size 2 while K=[1]
         False
+
+        sage: p = designs.projective_plane(3)
+        sage: is_group_divisible_design(None, p.blocks(), 13)
+        (True, [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12]])
+        sage: is_group_divisible_design(None, p.blocks()*2, 13, verbose=True)
+        the pair (0,1) has been seen 2 times but lambda=1
+        False
+        sage: is_group_divisible_design(None, p.blocks()*2, 13, lambd=2)
+        (True, [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12]])
     """
     cdef int n = v
     cdef int i,ii,j,jj,s,isok
@@ -289,6 +298,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
             if not len(g) in G:
                 if verbose:
                     print "a group has size {} while G={}".format(len(g),list(G))
+                sage_free(matrix)
                 return False
 
     # Checks that two points of the same group were never covered

@@ -2354,6 +2354,7 @@ class AbstractLinearCode(module.Module):
             sage: GG == G # long time
             True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
+            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = codes.TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
@@ -2394,16 +2395,17 @@ class AbstractLinearCode(module.Module):
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
                 gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
-                A = gap("MatrixAutomorphisms(matCwt)")
-                #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
-                G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
-                Gp = G2
-                if Gp.Size()==1:
-                    return PermutationGroup([()])
-                autgp_gens = Gp.GeneratorsOfGroup()
-                gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
-                stop = 1                         # get ready to stop
-                for x in gens:                   # if one of these gens is not an auto then don't stop
+                if gap("Length(matCwt)") > 0: 
+                   A = gap("MatrixAutomorphisms(matCwt)")
+                   #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
+                   G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+                   Gp = G2
+                   if Gp.Size()==1:
+                       return PermutationGroup([()])
+                   autgp_gens = Gp.GeneratorsOfGroup()
+                   gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+                   stop = 1                         # get ready to stop
+                   for x in gens:                   # if one of these gens is not an auto then don't stop
                     if not(self.is_permutation_automorphism(x)):
                         stop = 0
                         break

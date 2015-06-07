@@ -1142,20 +1142,12 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             else:
                 return CFiniteSequence(num / den)
 """
-EXAMPLES::
-
-    sage: r.egf()      # not implemented
-    exp(2*x)
-
 .. TODO::
 
     sage: CFiniteSequence(x+x^2+x^3+x^4+x^5+O(x^6)) # not implemented
-    ... x/(1-x)
     sage: latex(r)        # not implemented
     \big\{a_{n\ge0}\big|a_{n+2}=\sum_{i=0}^{1}c_ia_{n+i}, c=\{1,1\}, a_{n<2}=\{0,0,0,1\}\big\}
-
-Given a multivariate generating function, the generating coefficient must
-be given as extra parameter::
-
-    sage: r = CFiniteSequence(1/(1-y-x*y), x) # not tested
+    sage: r.egf()      # not implemented
+    exp(2*x)
+    sage: r = CFiniteSequence(1/(1-y-x*y), x) # not implemented
 """

@@ -629,6 +629,16 @@ class CoxeterMatrix(CoxeterType):
     def __repr__(self):
         """
         String representation of the Coxeter matrix.
+        
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix(['A',3]);CM
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+            sage: CM = CoxeterMatrix([[1,-3/2],[-3/2,1]]);CM
+            [   1 -3/2]
+            [-3/2    1]
         """
 
         return self._matrix.__repr__()

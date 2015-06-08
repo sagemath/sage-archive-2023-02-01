@@ -257,7 +257,7 @@ def pyx_preparse(s):
     additional_source_files, s = parse_keywords('cfile', s)
 
     v, s = parse_keywords('cinclude', s)
-    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories('runtime')
+    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
     s = """\ninclude "cdefs.pxi"\n""" + s
     s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)

@@ -594,7 +594,7 @@ class FiniteWord_class(Word_class):
 
         So `\phi([4,1,5,4,2,2,3]) = [1,2,5,4,4,2,3]`.
 
-        See also :func:`~sage.combinat.permutation.Permutation.foata_biject`.
+        See also :func:`~sage.combinat.permutation.Permutation.foata_bijection()`.
 
         EXAMPLES::
 
@@ -611,6 +611,45 @@ class FiniteWord_class(Word_class):
         s = self.standard_permutation()
         weight = [self.count(i) for i in range(1,max(self)+1)]
         return (s.foata_bijection()).de_standardize(weight)
+
+    def major_index(self, final_descent=False):
+        r"""
+        Return the major index of ``self``.
+
+        The major index of a word `w` is the sum of the descents of `w`.
+
+        With the ``final_descent`` option, the last position of a
+        non-empty word is also considered as a descent.
+
+        See also :func:`sage.combinat.permutation.Permutation.major_index()`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index()
+            5
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index(final_descent=True)
+            10
+        """
+        return (self.standard_permutation()).major_index(final_descent=final_descent)
+
+    def number_of_inversions(self):
+        r"""
+        Return the number of inversions in ``self``.
+
+        An inversion of a word `w = w_1 \ldots w_n` is a pair of indices `(i, j)`
+        with `i < j` and `w_i > w_j`.
+
+        See also :func:`sage.combinat.permutation.Permutation.number_of_inversions()`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.number_of_inversions()
+            3
+        """
+        return (self.standard_permutation()).number_of_inversions()
 
     def is_empty(self):
         r"""

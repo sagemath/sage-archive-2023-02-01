@@ -1550,7 +1550,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='magma')  # optional - magma, database_gap
+            sage: f.galois_group(algorithm='magma')  # optional - magma database_gap
             Transitive group number 5 of degree 4
 
         TESTS:

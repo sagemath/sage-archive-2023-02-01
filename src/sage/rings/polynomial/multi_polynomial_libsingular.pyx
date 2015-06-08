@@ -1112,7 +1112,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = QQ[]
-            sage: macaulay2(R)        # optional, indirect doctest
+            sage: macaulay2(R)        # optional - macaulay2, indirect doctest
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = GF(17)[]

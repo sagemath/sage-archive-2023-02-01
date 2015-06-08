@@ -65,7 +65,10 @@ cdef inline GEN call_python_func_impl "call_python_func"(GEN* args, object py_fu
     # Call the Python function
     r = PyObject_Call(py_func, t, <dict>NULL)
 
-    # Convert the result to a gen and copy it to the PARI stack
+    # Convert the result to a GEN and copy it to the PARI stack
+    # (with a special case for None)
+    if r is None:
+        return gnil
     return gcopy(objtogen(r).g)
 
 # We rename this function to be able to call it with a different
@@ -75,14 +78,14 @@ cdef extern from *:
     GEN call_python_func(GEN* args, PyObject* py_func)
 
 
-cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, unsigned long py_func):
+cdef GEN call_python(GEN arg1, GEN arg2, GEN arg3, GEN arg4, GEN arg5, ulong py_func):
     """
     This function, which will be installed in PARI, is a front-end for
     ``call_python_func_impl``.
 
-    It has 5 optional ``GEN``s as argument and one ``unsigned long``.
+    It has 5 optional ``GEN``s as argument and one ``ulong``.
     This last argument is actually a Python callable object cast to
-    ``usigned long``.
+    ``ulong``.
     """
     # Convert arguments to a NULL-terminated array. From PARI's point
     # of view, all these arguments are optional: if an argument is not
@@ -137,6 +140,10 @@ cpdef gen objtoclosure(f):
         't_CLOSURE'
         sage: mul(6,9)
         54
+        sage: def printme(x):
+        ....:     print(x)
+        sage: objtoclosure(printme)('matid(2)')
+        [1, 0; 0, 1]
 
     Test various kinds of errors::
 
@@ -159,7 +166,7 @@ cpdef gen objtoclosure(f):
     """
     pari_catch_sig_on()
     # Convert f to a t_INT containing the address of f
-    cdef GEN f_int = utoi(<unsigned long><PyObject*>f)
+    cdef GEN f_int = utoi(<ulong><PyObject*>f)
     # Create a t_CLOSURE which calls call_python() with py_func equal to f
     cdef gen c = pari_instance.new_gen(snm_closure(ep_call_python, mkvec(f_int)))
     c.refers_to = {0:f}  # c needs to keep a reference to f

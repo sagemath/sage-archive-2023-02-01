@@ -35,6 +35,7 @@ Algebras
    sage/algebras/jordan_algebra
 
    sage/algebras/quatalg/quaternion_algebra
+   sage/algebras/q_system
 
    sage/algebras/schur_algebra
    sage/algebras/shuffle_algebra

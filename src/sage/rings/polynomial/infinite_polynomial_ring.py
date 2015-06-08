@@ -666,7 +666,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
                 raise ValueError("generator names must be alpha-numeric strings not starting with a  digit, but %s isn't"%n)
         if len(names)!=len(set(names)):
             raise ValueError("generator names must be pairwise different")
-        self._names = list(names)
+        self._names = tuple(names)
         if not isinstance(order, basestring):
             raise TypeError("The monomial order must be given as a string")
         try:
@@ -692,7 +692,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         self._find_maxshift = re.compile('_([0-9]+)')  # findall yields stringrep of the shifts
         self._find_variables = re.compile('[a-zA-Z0-9]+_[0-9]+')
         self._find_varpowers = re.compile('([a-zA-Z0-9]+)_([0-9]+)\^?([0-9]*)') # findall yields triple "generator_name", "index", "exponent"
-        self._gens_dict = GenDictWithBasering(self, InfiniteGenDict(self.gens()))
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         # Create some small underlying polynomial ring.
         # It is used to ensure that the parent of the underlying
@@ -874,7 +873,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         try:
             from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
             if isinstance(self._base, MPolynomialRing_polydict):
-                x = sage_eval(repr(), next(self._gens_dict))
+                x = sage_eval(repr(), next(self.gens_dict()))
             else:
                 x = self._base(x)
             # remark: Conversion to self._P (if applicable)
@@ -937,7 +936,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             # By now, x or self._P are not libsingular. Since MPolynomialRing_polydict
             # is too buggy, we use string evaluation
             try:
-                return sage_eval(repr(x),self._gens_dict)
+                return sage_eval(repr(x), self.gens_dict())
             except (ValueError, TypeError, NameError):
                 raise ValueError("Can't convert %s into an element of %s - no conversion into underlying polynomial ring"%(x,self))
 
@@ -984,12 +983,12 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             except Exception:
                 # OK, last resort, to be on the safe side
                 try:
-                    return sage_eval(repr(x), self._gens_dict)
+                    return sage_eval(repr(x), self.gens_dict())
                 except (ValueError,TypeError,NameError):
                     raise ValueError("Can't convert %s into an element of %s; conversion of the underlying polynomial failed"%(x,self))
         else:
             try:
-                return sage_eval(repr(x), self._gens_dict)
+                return sage_eval(repr(x), self.gens_dict())
             except (ValueError,TypeError,NameError):
                 raise ValueError("Can't convert %s into an element of %s"%(x,self))
 
@@ -1200,6 +1199,23 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # the new variables (as used by R.<x>  = ...) come *last*,
         # but in order.
         return self.gens()[-n:]
+
+    @cached_method
+    def gens_dict(self):
+        """
+        Return a dictionary-like object containing the infinitely many
+        ``{var_name:variable}`` pairs.
+
+        EXAMPLES::
+
+            sage: R = InfinitePolynomialRing(ZZ, 'a')
+            sage: D = R.gens_dict()
+            sage: D
+            GenDict of Infinite polynomial ring in a over Integer Ring
+            sage: D['a_5']
+            a_5
+        """
+        return GenDictWithBasering(self, InfiniteGenDict(self.gens()))
 
     def _ideal_class_(self, n=0):
         """

@@ -53,6 +53,7 @@ Products of Projective Spaces
    sage/schemes/product_projective/homset
    sage/schemes/product_projective/morphism
    sage/schemes/product_projective/point
+   sage/schemes/product_projective/wehlerK3
 
 Toric Varieties
 ---------------

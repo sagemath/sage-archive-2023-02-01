@@ -124,8 +124,9 @@ Methods
 
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
 include "sage/ext/interrupt.pxi"
+
+from libc.string cimport memset
 
 cdef list id_to_vertices
 cdef dict vertices_to_id

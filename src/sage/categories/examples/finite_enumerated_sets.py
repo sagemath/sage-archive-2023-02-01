@@ -71,7 +71,7 @@ class Example(UniqueRepresentation, Parent):
             Category of facade finite enumerated sets
             sage: TestSuite(C).run()
         """
-        self._set = map(Integer, [1,2,3])
+        self._set = [Integer(_) for _ in [1,2,3]]
         Parent.__init__(self, facade = IntegerRing(), category = FiniteEnumeratedSets())
 
     def _repr_(self):

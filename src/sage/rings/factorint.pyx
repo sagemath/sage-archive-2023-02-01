@@ -17,8 +17,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/libs/pari/decl.pxi"
 from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.mpz cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range

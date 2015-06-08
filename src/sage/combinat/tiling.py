@@ -661,7 +661,7 @@ class Polyomino(SageObject):
             [[0, 0, 0], [1, 2, 1]]
         """
         zipped_coords = zip(*self)
-        return [map(min, zipped_coords), map(max, zipped_coords)]
+        return [[min(_) for _ in zipped_coords], [max(_) for _ in zipped_coords]]
 
     def translated(self, box):
         r"""

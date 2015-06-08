@@ -1,3 +1,5 @@
+"Access to Maxima methods"
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2010 Burcin Erocal <burcin@erocal.org>

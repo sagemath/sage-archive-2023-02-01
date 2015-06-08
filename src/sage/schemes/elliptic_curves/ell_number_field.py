@@ -165,7 +165,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         E = super(EllipticCurve_number_field, self).base_extend(R)
         if isinstance(E, EllipticCurve_number_field):
-            E._known_points = [E(map(R, P.xy())) for P in self._known_points if not P.is_zero()]
+            E._known_points = [E([R(_) for _ in P.xy()]) for P in self._known_points if not P.is_zero()]
         return E
 
     def simon_two_descent(self, verbose=0, lim1=2, lim3=4, limtriv=2,

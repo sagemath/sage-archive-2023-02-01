@@ -376,6 +376,13 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
 
+    TESTS:
+
+    We check that :trac:`18480` is fixed::
+
+        sage: codes.HammingCode(2, GF(2)).minimum_distance()
+        3
+
     AUTHORS:
 
     - David Joyner (11-2005)
@@ -395,7 +402,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     q = F.order()
     ans = None
-    dist_min = n
+    dist_min = n + 1
     gap.eval('Gmat:='+Gmat)
     gap.eval('K:=GF({})'.format(q))
     gap.eval('v:=Z({})*{}'.format(q,[0]*n))

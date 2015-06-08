@@ -120,9 +120,8 @@ class Parser():
             end
             <BLANKLINE>
 
-        This class is also used to parse the output of the ``'LCP'``
-        algorithm from gambit. This is done using the `format_LCP`
-        algorithm.
+        This class is also used to parse the output of algorithms from the gambit
+        python interface using the `format_gambit` function.
         """
         self.raw_string = raw_string
 
@@ -203,7 +202,7 @@ class Parser():
         return equilibria
 
 
-    def format_LCP(self, gambit_game):
+    def format_gambit(self, gambit_game):
         """
         Parses the output of gambit so as to return vectors
         corresponding to equilibria obtained using the LCP algorithm.
@@ -235,7 +234,7 @@ class Parser():
 
         The Parser class outputs the equilibrium::
 
-            sage: nasheq = Parser(LCP_output).format_LCP(g)  # optional - gambit
+            sage: nasheq = Parser(LCP_output).format_gambit(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)], [(0.6666666667, 0.3333333333), (0.3333333333, 0.6666666667)], [(0.0, 1.0), (0.0, 1.0)]]
 
@@ -260,7 +259,7 @@ class Parser():
 
         The corresponding parsed equilibrium::
 
-            sage: nasheq = Parser(LCP_output).format_LCP(g)  # optional - gambit
+            sage: nasheq = Parser(LCP_output).format_gambit(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)]]
 
@@ -297,7 +296,7 @@ class Parser():
 
         The corresponding parsed equilibrium::
 
-            sage: nasheq = Parser(LCP_output).format_LCP(g)  # optional - gambit
+            sage: nasheq = Parser(LCP_output).format_gambit(g)  # optional - gambit
             sage: nasheq  # optional - gambit
             [[(1.0, 0.0, 0.0), (0.0, 0.0, 1.0)],
              [(0.3333333333, 0.6666666667, 0.0), (0.1428571429, 0.0, 0.8571428571)],
@@ -308,7 +307,7 @@ class Parser():
         """
         nice_stuff = []
         for gambitstrategy in self.raw_string:
-            gambitstrategy = eval(str(gambitstrategy)[str(gambitstrategy).index("["): str(gambitstrategy).index("]") + 1])
+            gambitstrategy = list(gambitstrategy)
             profile = [tuple(gambitstrategy[:len(gambit_game.players[int(0)].strategies)])]
             for player in list(gambit_game.players)[1:]:
                 previousplayerstrategylength = len(profile[-1])

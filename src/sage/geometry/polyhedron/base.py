@@ -750,6 +750,51 @@ class Polyhedron_base(Element):
 
         return desc
 
+    def _rich_repr_(self, display_manager, **kwds):
+        r"""
+        Rich Output Magic Method
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: polytopes.hypercube(2)._rich_repr_(dm)
+            OutputPlainText container
+
+        The ``supplemental_plot`` preference lets us control whether
+        this object is shown as text or picture+text::
+
+            sage: dm.preferences.supplemental_plot
+            'never'
+            sage: del dm.preferences.supplemental_plot
+            sage: polytopes.hypercube(3)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices (use the .plot() method to plot)
+            sage: dm.preferences.supplemental_plot = 'never'
+        """
+        prefs = display_manager.preferences
+        is_small = (self.ambient_dim() <= 2)
+        can_plot = (prefs.supplemental_plot != 'never')
+        plot_graph = can_plot and (prefs.supplemental_plot == 'always' or is_small)
+        # Under certain circumstances we display the plot as graphics
+        if plot_graph:
+            plot_kwds = dict(kwds)
+            plot_kwds.setdefault('title', repr(self))
+            output = self.plot(**plot_kwds)._rich_repr_(display_manager)
+            if output is not None:
+                return output
+        # create text for non-graphical output
+        if can_plot:
+            text = '{0} (use the .plot() method to plot)'.format(repr(self))
+        else:
+            text = repr(self)
+        # latex() produces huge tikz environment, override
+        tp = display_manager.types
+        if (prefs.text == 'latex' and tp.OutputLatex in display_manager.supported_output()):
+            return tp.OutputLatex(r'\text{{{0}}}'.format(text))
+        return tp.OutputPlainText(text)
+
     def cdd_Hrepresentation(self):
         """
         Write the inequalities/equations data of the polyhedron in
@@ -2883,12 +2928,13 @@ class Polyhedron_base(Element):
         method to enumerate vertices and inequalities::
 
             sage: def get_idx(rep): return rep.index()
-            sage: map(get_idx, face.ambient_Hrepresentation())
+            sage: [get_idx(_) for _ in face.ambient_Hrepresentation()]
             [4]
-            sage: map(get_idx, face.ambient_Vrepresentation())
+            sage: [get_idx(_) for _ in face.ambient_Vrepresentation()]
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-            sage: [ (map(get_idx, face.ambient_Vrepresentation()), map(get_idx, face.ambient_Hrepresentation()))
+            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()], 
+            ...      [get_idx(_) for _ in face.ambient_Hrepresentation()])
             ...     for face in p.faces(3) ]
             [([0, 1, 2, 3, 4, 5, 6, 7], [4]),
              ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
@@ -4234,7 +4280,7 @@ class Polyhedron_base(Element):
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 
-        vertices = map(pivot, self.vertices())
-        rays = map(pivot, self.rays())
-        lines = map(pivot, self.lines())
+        vertices = [pivot(_) for _ in self.vertices()]
+        rays = [pivot(_) for _ in self.rays()]
+        lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())

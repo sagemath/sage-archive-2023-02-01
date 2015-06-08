@@ -31,7 +31,7 @@ except KeyError:
     keep_going = False
 
 # search for dependencies and add to gcc -I<path>
-include_dirs = sage_include_directories('buildtime')
+include_dirs = sage_include_directories(use_sources='True')
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
@@ -603,14 +603,19 @@ print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
 python_package_data = {}
 for package in python_packages:
-   if package == 'sage.libs.ntl':
-      python_package_data[package] = ['*.pxd', '*.pxi', '*.h', 'ntlwrap.cpp']
-   else:
-      python_package_data[package] = ['*.pxd', '*.pxi','*.h']
+    if package == 'sage.libs.ntl':
+        python_package_data[package] = ['*.pxd', '*.pxi', '*.h', 'ntlwrap.cpp']
+    else:
+        python_package_data[package] = ['*.pxd', '*.pxi','*.h']
 
-python_data_files = [(os.path.join(SAGE_LIB, 'sage', 'ext', 'interrupt'),
-                      [os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt_api.h'),
-                       os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt.h')])]
+cython_generated_files = [
+    os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt_api.h'),
+    os.path.join(SAGE_CYTHONIZED, 'sage', 'ext', 'interrupt', 'interrupt.h')
+]
+
+python_data_files = [
+    (os.path.join(SAGE_LIB, 'sage', 'ext', 'interrupt'), cython_generated_files)
+]
 
 #########################################################
 ### Distutils

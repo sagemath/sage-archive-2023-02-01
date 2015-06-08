@@ -51,7 +51,7 @@ from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
 from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all                import Integer, moebius
+from sage.rings.all                import Integer, moebius, CIF
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
@@ -2932,25 +2932,29 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
             sage: set_verbose(None)
             sage: z = QQ['z'].0
-            sage: K = NumberField(z^4 - 4*z^2 + 1,'z')
+            sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: H = End(P)
-            sage: f = H([x^2 - 5/4*y^2,y^2])
+            sage: f = H([x^2 - w/4*y^2,y^2])
             sage: f.multiplier_spectra(2,False)
-            [0, -1, 2.101020514433644?, 11.89897948556636?]
+            [0, 5.931851652578137? + 0.?e-17*I, 0.0681483474218635? - 1.930649271699173?*I,
+            0.0681483474218635? + 1.930649271699173?*I]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: H = End(P)
-            sage: f = H([x^2 -3/4*y^2,y^2])
+            sage: f = H([x^2 - 3/4*y^2,y^2])
             sage: f.multiplier_spectra(2)
-            [0, 1, 1]
+            [1, 1]
         """
-        PS = self.domain().ambient_space()
+        PS = self.domain()
 
         if (Integer(n) < 1):
             raise ValueError("Period must be a positive integer")
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if not is_ProjectiveSpace(PS):
+            raise NotImplementedError("Not implemented for subschemes")
         if (PS.dimension_relative() > 1):
             raise NonImplementedError("Only implemented for dimension 1")
         if not self.is_endomorphism():
@@ -2960,26 +2964,33 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         f = self.change_ring(QQbar)
 
-        PS = f.domain().ambient_space()
+        PS = f.domain()
 
         if not formal:
-            K = f._number_field_from_algebraics()
             G = f.nth_iterate_map(n)
             F = G._polys[0]*PS.gens()[1] - G._polys[1]*PS.gens()[0]
         else:
             # periodic points of formal period n are the roots of the nth dynatomic polynomial
             K = f._number_field_from_algebraics()
             F = K.dynatomic_polynomial(n)
+            if K.domain().base_ring() != QQ: # need to coerce F to poly over QQbar. This is only needed if base ring is not QQ
+                abspoly = K.domain().base_ring().absolute_polynomial()
+                phi = K.domain().base_ring().hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+                Kx = K.coordinate_ring()
+                QQbarx = QQbar[Kx.variable_names()]
+                phix = Kx.hom(phi,QQbarx)
+                F = phix(F)
 
-        other_roots = F([(K.domain().ambient_space().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
+        other_roots = F([(f.domain().ambient_space().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
 
         points = []
 
-        if (f(PS([1,0])) == PS([1,0])): # test if point at infinity is a fixed point
+        minfty = min([e[1] for e in F.exponents()]) # include the point at infinity with the right multiplicity
+        for i in range(minfty):
             points.append(PS([1,0]))
 
         for R in other_roots:
-            for i in range(0,R[1]):
+            for i in range(R[1]):
                 points.append(PS([R[0],1])) # include copies of higher multiplicity roots
 
         newpoints = [] # should include one representative point per cycle, included with the right multiplicity
@@ -3012,7 +3023,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``n`` - a positive integer, the period.
 
         - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
-            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find 
+            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find
             the values corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers
             of all periodic points of period ``n`` of ``self``. Default: True
 

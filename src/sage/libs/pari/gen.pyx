@@ -67,6 +67,7 @@ cimport cython
 cdef extern from "misc.h":
     int     factorint_withproof_sage(GEN* ans, GEN x, GEN cutoff)
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
 from sage.libs.pari.closure cimport objtoclosure
 

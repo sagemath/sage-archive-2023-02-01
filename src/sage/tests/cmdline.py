@@ -477,17 +477,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         return True
         ....:     except OSError:
         ....:         return False 
-        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"]) if has_tty() else ('usage: sage-dev', '', 0)
-        sage: ret, err
-        (0, '')
-        sage: print out    # random output
-        usage: sage-dev [-h] subcommand ...
-        <BLANKLINE>
-        The developer interface for sage.
-        ...
-        sage: ('usage: sage-dev' in out) or ('Developer interface disabled' in out)
-        True
-
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True

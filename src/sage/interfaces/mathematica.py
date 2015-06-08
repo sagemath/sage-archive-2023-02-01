@@ -366,8 +366,8 @@ import os
 import re
 
 from sage.misc.cachefunc import cached_method
-from expect import (Expect, ExpectElement, ExpectFunction,
-                    FunctionElement, AsciiArtString)
+from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
+                                    FunctionElement, AsciiArtString)
 
 def clean_output(s):
     if s is None:
@@ -972,7 +972,7 @@ mathematica = Mathematica()
 def reduce_load(X):
     return mathematica(X)
 
-import os, sys
+
 def mathematica_console(readline=True):
     if not readline:
         os.system('math')

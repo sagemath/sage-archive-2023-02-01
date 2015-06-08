@@ -27,6 +27,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
@@ -158,7 +159,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.ChainPoset(0)
             Finite lattice containing 0 elements
@@ -196,7 +197,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.AntichainPoset(0)
             Finite poset containing 0 elements
@@ -611,6 +612,10 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+
+    # shard intersection order
+    import sage.combinat.shard_order
+    ShardPoset = staticmethod(sage.combinat.shard_order.shard_poset)
 
     # Tamari lattices
     import sage.combinat.tamari_lattices

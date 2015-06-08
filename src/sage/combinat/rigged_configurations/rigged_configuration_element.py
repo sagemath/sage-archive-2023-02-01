@@ -343,7 +343,7 @@ class RiggedConfigurationElement(ClonableArray):
             sage: print RC(partition_list=[[],[],[],[]])._repr_horizontal()
             (/)   (/)   (/)   (/)
         """
-        tab_str = map(lambda x: repr(x).splitlines(), self)
+        tab_str = [repr(x).splitlines() for x in self]
         height = max(len(t) for t in tab_str)
         widths = [max(len(x) for x in t) for t in tab_str]
         ret_str = ''
@@ -448,7 +448,7 @@ class RiggedConfigurationElement(ClonableArray):
             baseline = lambda s: 0
         else:
             baseline = lambda s: len(s)
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         s = repr(self[0]).splitlines()
         ret = AsciiArt(s, baseline=baseline(s))
         for tableau in self[1:]:
@@ -1929,7 +1929,7 @@ class KRRCSimplyLacedElement(KRRiggedConfigurationElement):
         """
         B = self.parent()
         if not hasattr(B, "_max_charge"):
-            B._max_charge = max(b.cocharge() for b in B)
+            B._max_charge = max(b.cocharge() for b in B.module_generators)
         return B._max_charge - self.cocharge()
 
 class KRRCNonSimplyLacedElement(KRRiggedConfigurationElement, RCNonSimplyLacedElement):

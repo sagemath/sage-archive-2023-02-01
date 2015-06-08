@@ -54,6 +54,7 @@ TESTS::
 #*****************************************************************************
 
 from libc.stdint cimport int64_t
+include "sage/ext/cdefs.pxi"
 
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 

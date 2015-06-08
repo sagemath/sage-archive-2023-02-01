@@ -42,6 +42,7 @@ Basic arithmetic with c-integers.
 # The int definitions
 
 from sage.ext.stdsage cimport PY_NEW
+include "sage/ext/cdefs.pxi"
 include "sage/libs/pari/decl.pxi"
 
 cdef extern from "pari/pari.h":

@@ -6,7 +6,6 @@ AUTHORS:
 - \R. Andrew Ohana (2012): Initial version.
 
 """
-
 ########################################################################
 #       Copyright (C) 2013 R. Andrew Ohana <andrew.ohana@gmail.com>
 #
@@ -16,9 +15,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
 import os, socket, site
-import version
+from . import version
 
 opj = os.path.join
 
@@ -66,6 +66,7 @@ def _add_variable_or_fallback(key, fallback, force=False):
         '---foo---'
     """
     global SAGE_ENV
+    import six
     try:
         import os
         value = os.environ[key]
@@ -73,9 +74,9 @@ def _add_variable_or_fallback(key, fallback, force=False):
         value = fallback
     if force:
         value = fallback
-    if isinstance(value, basestring):
-        for k,v in SAGE_ENV.iteritems():
-            if isinstance(v, basestring):
+    if isinstance(value, six.string_types):
+        for k,v in SAGE_ENV.items():
+            if isinstance(v, six.string_types):
                 value = value.replace('$'+k, v)
     SAGE_ENV[key] = value
     globals()[key] = value
@@ -101,6 +102,7 @@ _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 's
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
 _add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
+_add_variable_or_fallback('SAGE_DISTFILES',  opj('$SAGE_ROOT', 'upstream'))
 
 # misc
 _add_variable_or_fallback('SAGE_URL',                'http://sage.math.washington.edu/sage/')

@@ -721,7 +721,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     if complement:
         last_sets = [set(range(n)).difference(s) for s in last_sets]
 
-    sizes = map(len,last_sets)
+    sizes = [len(_) for _ in last_sets]
     last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
 
     # Truncating the OA
@@ -818,7 +818,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
     #   (0,1,1), (1,0,-t)
     points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
-    points = [map(K,t) for t in points] # triples of K^3
+    points = [[K(_) for _ in t] for t in points] # triples of K^3
     AG_2_3 = []
     for x,y,z in points:
         if z!=0:
@@ -1061,7 +1061,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 for i,x2 in enumerate(B2):
                     count[i][x2] += 1
 
-            new_parallel_classes.extend(map(list,izip(*copies_of_OA1)))
+            new_parallel_classes.extend([list(_) for _ in izip(*copies_of_OA1)])
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1

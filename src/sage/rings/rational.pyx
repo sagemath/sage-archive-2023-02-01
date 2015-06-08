@@ -53,6 +53,7 @@ import sys
 import operator
 
 from sage.misc.mathml import mathml
+from sage.misc.long cimport pyobject_to_long
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
@@ -91,8 +92,8 @@ cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 cdef object numpy_double_interface = {'typestr': '=f8'}
 
-
-from sage.libs.gmp.pylong cimport *
+from libc.math cimport ldexp
+from sage.libs.gmp.all cimport *
 
 cdef class Rational(sage.structure.element.FieldElement)
 
@@ -2337,7 +2338,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             if isinstance(n, Rational):
                 # Perhaps it can be done exactly

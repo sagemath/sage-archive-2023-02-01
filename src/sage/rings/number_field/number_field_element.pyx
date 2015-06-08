@@ -34,6 +34,9 @@ include 'sage/ext/interrupt.pxi'
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+
 import sage.rings.field_element
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element

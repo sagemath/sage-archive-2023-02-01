@@ -280,9 +280,9 @@ class qsieve_nonblock:
         e = self._p
         try:
             e.expect('xxx', timeout=timeout)
-        except pexpect.TIMEOUT as msg:
+        except pexpect.TIMEOUT:
             pass
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             pass
             self._done = True
             self._p.close()

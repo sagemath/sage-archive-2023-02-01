@@ -206,7 +206,7 @@ cdef class E(Expression):
             2.718281828459045...
             sage: e._mpfr_(RealField(100))
             2.7182818284590452353602874714
-            sage: e._real_double_(RDF)
+            sage: e._real_double_(RDF)   # abs tol 5e-16
             2.718281828459045
             sage: import sympy
             sage: sympy.E == e # indirect doctest

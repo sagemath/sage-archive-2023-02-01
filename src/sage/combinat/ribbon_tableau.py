@@ -16,14 +16,12 @@ Ribbon Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.rings.all import QQ, ZZ
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import TableauOptions
@@ -793,7 +791,7 @@ def graph_implementation_rec(skp, weight, length, function):
 
 
 
-class MultiSkewTableau(CombinatorialObject, Element):
+class MultiSkewTableau(CombinatorialElement):
     """
     A multi skew tableau which is a tuple of skew tableaux.
 
@@ -806,9 +804,12 @@ class MultiSkewTableau(CombinatorialObject, Element):
         [2, 3, 1]
         sage: s.shape()
         [[2, 2] / [1], [2, 1] / []]
-    """
-    __metaclass__ = ClasscallMetaclass
 
+    TESTS::
+
+        sage: mst = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
+        sage: TestSuite(mst).run()
+    """
     @staticmethod
     def __classcall_private__(cls, x):
         """
@@ -822,18 +823,6 @@ class MultiSkewTableau(CombinatorialObject, Element):
             return x
 
         return MultiSkewTableaux()([SkewTableau(i) for i in x] )
-
-    def __init__(self, parent, x):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: mst = MultiSkewTableau([ [[None,1],[2,3]], [[1,2],[2]] ])
-            sage: TestSuite(mst).run()
-        """
-        CombinatorialObject.__init__(self, x)
-        Element.__init__(self, parent)
 
     def size(self):
         """

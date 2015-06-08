@@ -278,40 +278,18 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
         weak_lattice = weak_poset
 
-
-        @cached_method
-        def cambrian_lattice(self, c):
-            """
-            Return the c-Cambrian lattice on delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
-            Delta sequences are certain 2-colored minimal factorizations of ``c`` into reflections.
-
-            INPUT:
-
-            - ``c`` -- a standard Coxeter element in ``self`` (as a tuple, or as an element of ``self``)
-
-            EXAMPLES::
-
-                sage: CoxeterGroup(["A", 2]).cambrian_lattice((1,2))
-                Finite lattice containing 5 elements
-
-                sage: CoxeterGroup(["B", 2]).cambrian_lattice((1,2))
-                Finite lattice containing 6 elements
-
-                sage: CoxeterGroup(["G", 2]).cambrian_lattice((1,2))
-                Finite lattice containing 8 elements
-
-            """
-            from sage.combinat.posets.lattices import LatticePoset
-            return self.m_cambrian_lattice(c,1)
-
         def inversion_sequence(self, word):
             """
-            Return the inversion sequence corresponding to ``word``.  If
-            ``word``=`[w_0,w_1,...w_k]`, then the output is `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
+            Return the inversion sequence corresponding to the ``word``
+            in indices of simple generators of ``self``.
+
+            If ``word`` corresponds to `[w_0,w_1,...w_k]`, the output is
+            `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
 
             INPUT:
 
-            - ``word`` -- a word in the simple generators of ``self``
+            - ``word`` -- a word in the indices of the simple
+              generators of ``self``.
 
             EXAMPLES::
 
@@ -342,16 +320,16 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: WeylGroup(['A',3]).reflections_from_w0()
                 [
-                [-1  1  0]  [ 0 -1  1]  [ 1  0  0]  [ 0  0 -1]  [ 1  0  0]  [ 1  0  0]
-                [ 0  1  0]  [-1  0  1]  [ 1 -1  1]  [-1  1 -1]  [ 1  0 -1]  [ 0  1  0]
-                [ 0  0  1], [ 0  0  1], [ 0  0  1], [-1  0  0], [ 1 -1  0], [ 0  1 -1]
+                [0 1 0 0]  [0 0 1 0]  [1 0 0 0]  [0 0 0 1]  [1 0 0 0]  [1 0 0 0]
+                [1 0 0 0]  [0 1 0 0]  [0 0 1 0]  [0 1 0 0]  [0 0 0 1]  [0 1 0 0]
+                [0 0 1 0]  [1 0 0 0]  [0 1 0 0]  [0 0 1 0]  [0 0 1 0]  [0 0 0 1]
+                [0 0 0 1], [0 0 0 1], [0 0 0 1], [1 0 0 0], [0 1 0 0], [0 0 1 0]
                 ]
-
             """
             return self.long_element().inversions_as_reflections()
 
         @cached_method
-        def m_cambrian_lattice(self, c, m = 1):
+        def m_cambrian_lattice(self, c, m=1, on_roots=False):
             """
             Return the m-Cambrian lattice on ``m``-delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
             ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections.
@@ -370,44 +348,90 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 Finite lattice containing 12 elements
 
             """
-            from sage.combinat.posets.posets import Poset
             from sage.combinat.posets.lattices import LatticePoset
             if hasattr(c,"reduced_word"):
                c = c.reduced_word()
             elif not isinstance(c,list):
                c = list(c)
-            inv_woc = self.inversion_sequence(self.long_element().coxeter_sorting_word(c))
-            S = self.simple_reflections()
-            T = self.reflections_from_w0()
-            Twords = {t:t.reduced_word() for t in T}#PhiP=T
-            id = sorted([[s,0] for s in S])
+
+            if on_roots:
+                if not hasattr(self.long_element(),"reflection_to_root"):
+                    raise ValueError("The parameter 'on_root=True' needs the ElementMethod 'reflection_to_root'")
+                
+                inv_woc = [t.reflection_to_root() for t in self.inversion_sequence(self.long_element().coxeter_sorting_word(c))]
+                S = [s.reflection_to_root() for s in self.simple_reflections()]
+                PhiP = [t.reflection_to_root() for t in self.reflections().keys()]
+            else:
+                inv_woc = self.inversion_sequence(self.long_element().coxeter_sorting_word(c))
+                S = self.simple_reflections()
+                T = self.reflections_from_w0()
+                Twords = {t : t.reduced_word() for t in T}
+
             elements = []
             covers = []
-            new = [id]
+
+            bottom_elt = sorted([[s,0] for s in S])
+            new = [bottom_elt]
             while new != []:
                 for new_element in new:
                     new.remove(new_element)
                     elements.append(new_element)
                     for t in new_element:
-                        if t[1]<m:
-                            cov_element = [s for s in new_element if s!=t]
+                        if t[1] < m:
+                            cov_element = [s for s in new_element if s != t]
                             cov_element.append([t[0],t[1]+1])
                             for t_conj in [[i,t[1]] for i in inv_woc[inv_woc.index(t[0]):]]+[[i,t[1]+1] for i in inv_woc[:inv_woc.index(t[0])]]:
                                 if t_conj in cov_element:
                                     cov_element.remove(t_conj)
-                                    tmp = t[0]*t_conj[0]*t[0]
-                                    invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
-                                    plus_or_minus = invs.count(tmp)
-                                    if plus_or_minus % 2 == 1:
-                                        cov_element.append([tmp,t_conj[1]])
+                                    if on_roots:
+                                        tmp = t_conj[0].weyl_action(t[0].associated_reflection())
+                                        if tmp in PhiP:
+                                            cov_element.append([tmp,t_conj[1]])
+                                        else:
+                                            cov_element.append([-tmp,t_conj[1]-1])
                                     else:
-                                        cov_element.append([tmp,t_conj[1]-1])
+                                        tmp = t[0]*t_conj[0]*t[0]
+                                        invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
+                                        plus_or_minus = invs.count(tmp)
+                                        if plus_or_minus % 2 == 1:
+                                            cov_element.append([tmp,t_conj[1]])
+                                        else:
+                                            cov_element.append([tmp,t_conj[1]-1])
+
                             cov_element = sorted(cov_element)
                             if cov_element not in elements and cov_element not in new:
                                 new.append(cov_element)
                             covers.append([tuple(map(tuple,new_element)),tuple(map(tuple,cov_element))])
             return LatticePoset([[tuple(map(tuple,e)) for e in elements],covers],cover_relations=True)
 
+        def cambrian_lattice(self, c, on_roots=False):
+            """
+            Return the c-Cambrian lattice on delta sequences, see
+            :arXiv:`1503.00710` and :arXiv:`math/0611106`.
+            Delta sequences are certain 2-colored minimal factorizations
+            of ``c`` into reflections.
+
+            INPUT:
+
+            - ``c`` -- a standard Coxeter element in ``self``
+              (as a tuple, or as an element of ``self``)
+
+            - ``on_roots`` (optional) -- if ``on_roots`` is ``True``,
+              the lattice is realized on roots rather than on
+              reflections (
+
+            EXAMPLES::
+
+                sage: CoxeterGroup(["A", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 5 elements
+
+                sage: CoxeterGroup(["B", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 6 elements
+
+                sage: CoxeterGroup(["G", 2]).cambrian_lattice((1,2))
+                Finite lattice containing 8 elements
+            """
+            return self.m_cambrian_lattice(c=c, m=1, on_roots=on_roots)
 
     class ElementMethods:
 

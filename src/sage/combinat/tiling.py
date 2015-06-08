@@ -1674,7 +1674,7 @@ class TilingSolver(SageObject):
         the number of iterations (default value 0, which means to iterate
         forever). To iterate 4 times with half a second between each frame::
 
-            sage: a.show(delay=50, iterations=4) # optional
+            sage: a.show(delay=50, iterations=4)  # optional -- ImageMagick
 
         Limit the number of frames::
 

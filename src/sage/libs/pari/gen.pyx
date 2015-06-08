@@ -7831,6 +7831,9 @@ cdef class gen(gen_auto):
             sage: f = pari("(v[..])->length(v)")
             sage: f('a', f)
             2
+            sage: g = pari("(x,y,z[..])->[x,y,z]")
+            sage: g(), g(1), g(1,2), g(1,2,3), g(1,2,3,4)
+            ([0, 0, []], [1, 0, []], [1, 2, []], [1, 2, [3]], [1, 2, [3, 4]])
 
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
@@ -7845,6 +7848,7 @@ cdef class gen(gen_auto):
         cdef long t = typ(self.g)
         cdef gen t0
         cdef GEN result
+        cdef long arity
         cdef long nargs = len(args)
         cdef long nkwds = len(kwds)
 
@@ -7852,12 +7856,12 @@ cdef class gen(gen_auto):
         if t == t_CLOSURE:
             if nkwds > 0:
                 raise TypeError("cannot evaluate a PARI closure using keyword arguments")
+            if closure_is_variadic(self.g):
+                arity = closure_arity(self.g) - 1
+                args = list(args[:arity]) + [0]*(arity-nargs) + [args[arity:]]
             t0 = objtogen(args)
             pari_catch_sig_on()
-            if closure_is_variadic(self.g):
-                result = closure_callgen1(self.g, t0.g)
-            else:
-                result = closure_callgenvec(self.g, t0.g)
+            result = closure_callgenvec(self.g, t0.g)
             if result == gnil:
                 P.clear_stack()
                 return None

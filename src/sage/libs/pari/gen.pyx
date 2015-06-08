@@ -69,6 +69,7 @@ cdef extern from "misc.h":
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
+from sage.libs.pari.closure cimport objtoclosure
 
 from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
 cdef PariInstance P = pari_instance
@@ -9470,6 +9471,9 @@ cpdef gen objtogen(s):
         for i from 0 <= i < length:
             v[i] = objtogen(s[i])
         return v
+
+    if callable(s):
+        return objtoclosure(s)
 
     if s is None:
         raise ValueError("Cannot convert None to pari")

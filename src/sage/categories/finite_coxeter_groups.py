@@ -337,7 +337,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             INPUT:
 
             - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
+
             - ``m`` -- a positive integer (default: 1)
+
+            - ``on_roots`` (optional) -- if ``on_roots`` is ``True``,
+              the lattice is realized on roots rather than on
+              reflections. In order for this to work, the ElementMethod
+              ``reflection_to_root`` must be available.
 
             EXAMPLES::
 
@@ -418,7 +424,8 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
             - ``on_roots`` (optional) -- if ``on_roots`` is ``True``,
               the lattice is realized on roots rather than on
-              reflections (
+              reflections. In order for this to work, the ElementMethod
+              ``reflection_to_root`` must be available.
 
             EXAMPLES::
 

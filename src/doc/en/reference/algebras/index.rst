@@ -36,6 +36,8 @@ Algebras
 
    sage/algebras/quatalg/quaternion_algebra
 
+   sage/algebras/rational_cherednik_algebra
+
    sage/algebras/schur_algebra
    sage/algebras/shuffle_algebra
 

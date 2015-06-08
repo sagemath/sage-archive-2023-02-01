@@ -692,25 +692,30 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 A, E = self.representation(B = B, reduced = False, labels = True, order = order)
                 
         base_ring = self.base_ring()
-        target_ring = lift_map[base_ring(1)].base_ring()
+        target_ring = lift_map[base_ring(1)].parent()
         G = sage.graphs.graph.Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
         
         # write the entries of (a scaled version of) A as products of cross ratios of A
         T = G.min_spanning_tree()
         # - fix a tree of the support graph G to units (= empty dict, product of 0 terms) 
         F = {entry[2]: dict() for entry in T}
-        # - each next entry of G has to be computed relatively to the entries that have already 
-        #   been determined ( = H) 
         W = set(G.edges()) - set(T)
         H = G.subgraph(edges = T)
-        # - order edges so that any shortest circuit of each next edge closed in H, is induced in G
-        dist = H.distance_all_pairs()
-        dW = sorted([ (dist[e[0]][e[1]], e) for e in W])
-        W = [e for d,e in dW]
-        for edge in W:
-            
-            # - find a whirl (or wheel) minor fixing the entry 
+        while W: 
+            # - find an edge in W to process, closing a circuit in H which is induced in G 
+            edge = W.pop()
             path = H.shortest_path(edge[0], edge[1])
+            retry = True
+            while retry:
+                retry = False
+                for edge2 in W:
+                    if edge2[0] in path and edge2[1] in path:
+                        W.add(edge)
+                        edge = edge2
+                        W.remove(edge)
+                        path = H.shortest_path(edge[0], edge[1])
+                        retry = True
+                        break
             entry = edge[2]
             entries = []
             for i in range(len(path) - 1):
@@ -767,7 +772,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         for entry, monomial in F.iteritems():
             Z[entry] = target_ring(1)           
             for cr,degree in monomial.iteritems():
-                Z[entry] = Z[entry] * (lift_map[cr]**degree)
+                if cr == base_ring(-1):
+                    Z[entry] = Z[entry] * (target_ring(-1)**degree)
+                else:
+                    Z[entry] = Z[entry] * (lift_map[cr]**degree)
                 
         # create the various outputs as specified by inputs `reduced`, `labels`
         if not labels:

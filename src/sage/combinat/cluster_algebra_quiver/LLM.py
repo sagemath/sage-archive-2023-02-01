@@ -1,3 +1,7 @@
+from copy import copy
+from sage.matrix.all import matrix
+from sage.rings.all import FractionField, PolynomialRing
+from sage.rings.all import QQ, factor
 r"""
 Computes upper cluster algebra elements for a given matrix. 
 
@@ -13,34 +17,32 @@ AUTHORS::
 
 EXAMPLES::
 
+    sage: from sage.combinat.cluster_algebra_quiver.LLM import get_uca_element
+    sage: from sage.combinat.cluster_algebra_quiver.LLM import LLM_gen_set
+
     sage: B=matrix([[0,2],[-2,0]])
     sage: get_uca_element(B,[5,3])
     x0^-5 * x1^-3 * (x1^2 + 1)^2 * (x0^2 + x1^2 + 1)^3
-
     sage: get_uca_element(B,[-2,3])
-    x1**-3 * x0**2 * (x0**2 + 1)**3
-
+    x1^-3 * x0^2 * (x0^2 + 1)^3
     sage: get_uca_element(B,[-2,-3])
     x0^2 * x1^3
 
+
     sage: LLM_gen_set(B)
     [1, x1^-1 * (x0^2 + 1), x0^-1 * (x1^2 + 1), x1^-1 * x0^-1 * (x0^2 + x1^2 + 1)]
-
-
     sage: B=matrix([[0,3,2],[-3,0,2],[-2,-2,0]])
     sage: get_uca_element(B,[1,2,3])
     x2^-3 * x1^-2 * x0^-1 * (x0^2*x1^2 + 1) * (x0^5*x1^2 + x0^3 + x2^2) * (x0^5*x1^2 + x1^3*x2^4 + x0^3 + x2^2)
     sage: LLM_gen_set(B)
-    [1,\
+    [1,
      x2^-1 * (x0^2*x1^2 + 1),
      x1^-1 * (x0^3 + x2^2),
      x2^-1 * x1^-1 * (x0^5*x1^2 + x0^3 + x2^2),
      x0^-1 * (x1^3*x2^2 + 1),
      x2^-1 * x0^-1 * (x1^3*x2^2 + x0^2*x1^2 + 1),
      x1^-1 * x0^-1 * (x1^3*x2^4 + x0^3 + x2^2),
-     x2^-1 * x1^-1 * x0^-1 * (x0^5*x1^2 + x1^3*x2^4 + x0^3 + x2^2)
-
-
+     x2^-1 * x1^-1 * x0^-1 * (x0^5*x1^2 + x1^3*x2^4 + x0^3 + x2^2)]
     sage: B=matrix([[0,1,0,0],[-1,0,1,1],[0,-1,0,0],[0,-1,0,0]])
     sage: get_uca_element(B,[1,2,3,4])
     x3^-4 * x2^-3 * x1^-2 * x0^-1 * (x1 + 1)^4 * (x0*x1 + x2*x3 + x0) * (x0*x1^2 + 2*x0*x1 + x2*x3 + x0)
@@ -79,18 +81,19 @@ def _vector_decomposition(a,length):
 
     INPUT:
 
-    A vector ``a \in  \mathbb{Z}^n.''
+    A vector `a \in  \mathbb{Z}^n.`
 
     OUTPUT:
 
-    A decomposition of ``a`` into vectors ``b_i \in \{0,1\}^n`` such that ``a= \sum c_i b_i`` for ``c_i \in \mathbb{Z}.``
-    Returns an array of tuples ``\right[b_i,c_i\left].`` 
+    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \mathbb{Z}.`
+    Returns an array of tuples `\right[b_i,c_i\left].` 
 
     EXAMPLES::
 
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _vector_decomposition
+
         sage: _vector_decomposition([2,-1,3,-2],4)
         [[(1, 0, 1, 0), 2], [(0, 0, 1, 0), 1], [(0, 0, 0, -1), 1], [(0, -1, 0, -1), 1]]
-    
         sage: _vector_decomposition([3,2,3,4],4)
         [[(1, 1, 1, 1), 2], [(1, 0, 1, 1), 1], [(0, 0, 0, 1), 1]]
     """
@@ -169,22 +172,21 @@ def _compute_compatible_vectors(B,vd):
 
     EXAMPLES::
 
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _compute_compatible_vectors
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _vector_decomposition
+
+        sage: B=matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
+        sage: v=_vector_decomposition([3,2,3,4],4)
         sage: _compute_compatible_vectors(B,v)
-        [[[0, 0, 0, 0],
-        [0, 0, 0, 1],
-        [0, 0, 1, 0],
-        [0, 0, 1, 1],
-        [0, 1, 1, 1],
-        [1, 1, 1, 1]],
+        [[[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1], [1, 1, 1, 1]],
         [[0, 0, 0, 0],
         [0, 0, 0, 1],
-        [0, 0, 1, 0],
         [0, 0, 1, 1],
         [1, 0, 0, 0],
         [1, 0, 0, 1],
-        [1, 0, 1, 0],
         [1, 0, 1, 1]],
         [[0, 0, 0, 0], [0, 0, 0, 1]]]
+
     
         sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
         sage: v=_vector_decomposition([2,-1,3,-2],4)
@@ -217,29 +219,29 @@ def _compute_compatible_vectors(B,vd):
     compatibleList=[]
     psetvect = _power_set(num_rows)
     for a in vd:
-        negative=false
+        negative=False
         for m in xrange(len(a)):
     #If the vector a in vd is non-positive it is not compatible with any vector. 0 vector will pass this check but will be handled later.
             if a[m]<0:
-                negative=true
+                negative=True
                 break
-        if negative == true:
+        if negative == True:
             continue
         clist=[]
         for s in psetvect:
-            pass1=true
+            pass1=True
     #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
             for k in xrange(num_rows):
                 if s[k]>a[0][k]:
-                    pass1=false
+                    pass1=False
                     break
     #The second possible failure is if (s_i,a_j-s_j) = (1,1).
-            if pass1 == true:
+            if pass1 == True:
                 for  e in E:
                     if s[e[0]]==1 and (a[0][e[1]]-s[e[1]]) == 1:
-                        pass1=false
+                        pass1=False
                         break
-            if pass1 == true:
+            if pass1 == True:
                 clist.append(s)
         compatibleList.append(clist)
     return compatibleList
@@ -249,6 +251,10 @@ def _produce_uca_element(B,vd,cList):
     Takes the compatible vectors and uses them to produce a Laurent polynomial in the upper cluster algebra. 
 
     EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _produce_uca_element
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _vector_decomposition
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _compute_compatible_vectors
 
         sage: B=matrix([[0,1,0,0],[-1,0,1,1],[0,-1,0,0],[0,-1,0,0]])
         sage: v=_vector_decomposition([1,2,1,2],4)
@@ -318,13 +324,13 @@ def get_uca_element(B,a):
 
     EXAMPLES::
 
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import get_uca_element
+
         sage: B=matrix([[0,3,-3],[-3,0,3],[3,-3,0]])
         sage: get_uca_element(B,[1,1,0])
         x1^-1 * x0^-1 * x2^3 * (x0^3 + x1^3 + x2^3) 
-    
         sage: get_uca_element(B,[1,1,1])
         (2) * x2^2 * x1^2 * x0^2
-    
     
         sage: B=matrix([[0,3,0],[-3,0,3],[0,-3,0]])
         sage: get_uca_element(B,[1,1,0])
@@ -354,15 +360,18 @@ def LLM_gen_set(B):
 
     EXAMPLES::
 
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import LLM_gen_set
+
         sage: B=matrix([[0,1,0],[-1,0,1],[0,-1,0]])
+        sage: LLM_gen_set(B)
         [1,
-        (x1 + 1)/x2,
-        (x0 + x2)/x1,
-        (x0*x1 + x0 + x2)/(x1*x2),
-        (x1 + 1)/x0,
-        (x1^2 + 2*x1 + 1)/(x0*x2),
-        (x1*x2 + x0 + x2)/(x0*x1),
-        (x0*x1 + x1*x2 + x0 + x2)/(x0*x1*x2)]
+         x2^-1 * (x1 + 1),
+         x1^-1 * (x0 + x2),
+         x2^-1 * x1^-1 * (x0*x1 + x0 + x2),
+         x0^-1 * (x1 + 1),
+         x2^-1 * x0^-1 * (x1 + 1)^2,
+         x1^-1 * x0^-1 * (x1*x2 + x0 + x2),
+         x2^-1 * x1^-1 * x0^-1 * (x1 + 1) * (x0 + x2)]
     """
     aSet=_power_set(B.ncols())
     genSet=[]
@@ -384,6 +393,8 @@ def _zero_max(int1):
     The maximum of ``int1`` and zero. 
 
     EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _zero_max
 
         sage: _zero_max(5)
         5
@@ -407,6 +418,8 @@ def _power_set(n):
     A 2-dimensional array containing all elements of ``\{0,1\}^n``.
 
     EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.LLM import _power_set
 
         sage: _power_set(2)
         [[0, 0], [0, 1], [1, 0], [1, 1]]
@@ -467,10 +480,12 @@ def _multi_concatenate(l1,l2):
     
     EXAMPLES::
 
-    sage: _car_product([[0,1,2]],[3,4,5])
+    sage: from sage.combinat.cluster_algebra_quiver.LLM import _multi_concatenate
+
+    sage: _multi_concatenate([[0,1,2]],[3,4,5])
     [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
 
-    sage: _car_product([[0,1,2],[3,4,5]],[6,7,8])
+    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
     [[0, 1, 2, 6],
     [0, 1, 2, 7],
     [0, 1, 2, 8],

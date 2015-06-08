@@ -1659,7 +1659,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
         Another example illustrating a Fibonacci tile::
 
             sage: w = words.fibonacci_tile(2)
-            sage: show(w.animate())      # optional
+            sage: show(w.animate())  # optional -- ImageMagick
 
         The first 4 Fibonacci tiles in an animation::
 
@@ -1667,7 +1667,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: b = words.fibonacci_tile(1).animate()
             sage: c = words.fibonacci_tile(2).animate()
             sage: d = words.fibonacci_tile(3).animate()
-            sage: (a*b*c*d).show()       # optional
+            sage: (a*b*c*d).show()  # optional -- ImageMagick
 
         .. note::
 

@@ -371,13 +371,6 @@ class tr_data_rel:
         OUTPUT:
 
         the successor polynomial as a coefficient list.
-
-        EXAMPLES:
-
-        As this function is heavily used internally by the various enumeration
-        routines, there is no separate test::
-
-            sage: pass # not tested
         """
 
         import numpy

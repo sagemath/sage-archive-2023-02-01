@@ -988,7 +988,7 @@ class Permutation(CombinatorialElement):
             ....:    lp = [Permutations(size).random_element() for i in range(20)]
             ....:    timeit("[p.to_cycles() for p in lp]")
             ....:    timeit("[p._to_cycles_set() for p in lp]")
-            ....:    timeit("[p._to_cycles_list() for p in lp]") # not tested
+            ....:    timeit("[p._to_cycles_list() for p in lp]")
         """
         cycles = []
 
@@ -5841,7 +5841,7 @@ class StandardPermutations_n_abstract(Permutations):
             (2,4)(3,5)
             sage: Permutations(6)(SymmetricGroup(6)(x))
             [1, 4, 5, 2, 3, 6]
-            sage: Permutations(6)(x) # not tested -- we're not yet there
+            sage: Permutations(6)(x)  # known bug
             [1, 4, 5, 2, 3, 6]
         """
         if len(x) < self.n:

@@ -3943,8 +3943,8 @@ class FinitePoset(UniqueRepresentation, Parent):
     def canonical_label(self):
         """
         Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
-        is the number of elements in ``self``) that is isomorphic to ``self``
-        and invariant in the isomorphism class.
+        is the number of elements in the poset) that is isomorphic to this
+        poset and invariant in the isomorphism class.
 
         .. SEEALSO::
 
@@ -3959,7 +3959,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: sorted(Q.list())
+            sage: Q.list() # random
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3972,7 +3972,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list() # random
+            sage: sorted(Q.list())
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True

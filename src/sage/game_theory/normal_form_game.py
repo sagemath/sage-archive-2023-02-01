@@ -1366,6 +1366,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: ne = cg.obtain_nash(algorithm='lp-gambit') # optional - gambit
             sage: [[[round(el, 6) for el in v] for v in eq] for eq in ne] # optional - gambit
             [[[0.333333, 0.333333, 0.333333], [0.333333, 0.333333, 0.333333]]]
+            sage: A = matrix([[160, 205, 44],
+            ....:             [175, 180, 45],
+            ....:             [201, 204, 50],
+            ....:             [120, 207, 49]])
+            sage: cg = NormalFormGame([A])
+            sage: cg.obtain_nash(algorithm='lp-PPL')
+            [[(0, 0, 1, 0), (0, 0, 1)]]
 
         Running the constant-sum solver on a game which isn't a constant sum game
         generates a ``ValueError``::
@@ -1474,7 +1481,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_LCP(maximization)
 
         if algorithm.startswith('lp-'):
-            return self._solve_LP(solver=algorithm[3:])
+            return self._solve_LP(solver=algorithm[3:], maximization=maximization)
 
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
@@ -1650,7 +1657,7 @@ class NormalFormGame(SageObject, MutableMapping):
         y = p.new_variable(nonnegative=True)
         v = p.new_variable(nonnegative=False)
         p.add_constraint(sgn * self.payoff_matrices()[0] * y - v[0] <= 0)
-        p.add_constraint(matrix([[1] * strategy_sizes[0]]) * y == 1)
+        p.add_constraint(matrix([[1] * strategy_sizes[1]]) * y == 1)
         p.set_objective(v[0])
         p.solve()
         y = tuple(p.get_values(y).values())
@@ -1659,7 +1666,7 @@ class NormalFormGame(SageObject, MutableMapping):
         x = p.new_variable(nonnegative=True)
         u = p.new_variable(nonnegative=False)
         p.add_constraint(sgn * -self.payoff_matrices()[0].T * x - u[0] <= 0)
-        p.add_constraint(matrix([[1] * strategy_sizes[1]]) * x == 1)
+        p.add_constraint(matrix([[1] * strategy_sizes[0]]) * x == 1)
         p.set_objective(u[0])
         p.solve()
         x = tuple(p.get_values(x).values())

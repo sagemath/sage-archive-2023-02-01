@@ -1028,7 +1028,7 @@ class DocTestController(SageObject):
                 except subprocess.CalledProcessError:
                     pass
 
-            self.log("Optional tags: " + self._optional_tags_string())
+            self.log("Using --optional=" + self._optional_tags_string())
 
             self.add_files()
             self.expand_files_into_sources()

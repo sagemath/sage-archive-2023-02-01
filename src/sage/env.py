@@ -140,13 +140,13 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
 
-def sage_include_directories(use_sources='False'):
+def sage_include_directories(use_sources=False):
     """
     Return the list of include directories for compiling Sage extension modules.
 
     INPUTS:
 
-    -  ``use_sources`` -- (default: 'False') a boolean
+    -  ``use_sources`` -- (default: False) a boolean
 
     OUTPUTS:
 
@@ -177,7 +177,7 @@ def sage_include_directories(use_sources='False'):
                            distutils.sysconfig.get_python_inc(),
                            numpy.get_include()]
 
-    if use_sources == 'True' :
+    if use_sources :
         include_directories.extend([SAGE_SRC,
                                     opj(SAGE_SRC, 'sage','ext'),
                                     opj(SAGE_CYTHONIZED, 'sage', 'ext')])

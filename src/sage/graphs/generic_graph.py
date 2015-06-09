@@ -15756,6 +15756,10 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
+            - This method supports any parameter accepted by
+              :meth:`sage.plot.graphics.Graphics.show`, to which they are
+              forwarded.
+
             - See the documentation of the :mod:`sage.graphs.graph_plot` module
               for information and examples of how to define parameters that will
               be applied to **all** graph plots.

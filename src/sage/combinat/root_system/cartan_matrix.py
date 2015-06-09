@@ -634,8 +634,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M.is_finite()
             False
         """
+        if not self.is_indecomposable():
+            return False
         if self._cartan_type is None:
-            return self.det() > 0
+            return all([a.det() > 0 for a in self.principal_submatrices()])
         return self._cartan_type.is_finite()
 
     def is_affine(self):
@@ -654,9 +656,116 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M.is_affine()
             False
         """
+        if not self.is_indecomposable():
+            return False
         if self._cartan_type is None:
-            return self.det() == 0
+            return self.det() == 0 and all(
+                [a.det() > 0 for a in self.principal_submatrices(proper=True)]) 
         return self._cartan_type.is_affine()
+    
+    def is_hyperbolic(self, strict=False):
+        """
+        Return if ``self`` is a (strict) hyperbolic type or ``False`` otherwise.
+        
+        INPUT:
+
+            - ``strict`` -- checks if matrix is strictly hyperbolic if ``True`` 
+        
+        EXAMPLES::
+            
+            sage: M = CartanMatrix([[2,-2,0],[-2,2,-1],[0,-1,2]])
+            sage: M.is_hyperbolic()
+            True
+            sage: M.is_hyperbolic(strict=True)
+            False
+            sage: M = CartanMatrix([[2,-3],[-3,2]])
+            sage: M.is_hyperbolic()
+            True
+            sage: M = CartanMatrix(['C',4])
+            sage: M.is_hyperbolic()
+            False
+        """
+        if not self.is_indefinite() or not self.is_indecomposable():
+            return False
+            
+        D = self.dynkin_diagram()
+        from sage.sets.set import Set
+        iset = Set(D.index_set())
+        emptyset = Set({})
+        for l in iset.subsets():
+            if l != emptyset and l != iset:
+                subg= D.subgraph(vertices=l)
+                if subg.is_connected():
+                    if strict:
+                        if not subg.is_finite():
+                            return False
+                    else:
+                        if not subg.is_finite() and not subg.is_affine():
+                            return False
+        return True
+        
+    def is_indefinite(self):
+        """
+        Return if ``self`` is an indefinite type or ``False`` otherwise.
+        
+        EXAMPLES::
+        
+           sage: M = CartanMatrix([[2,-3],[-3,2]])
+           sage: M.is_indefinite()
+           True
+           sage: M = CartanMatrix("A2")
+           sage: M.is_indefinite()
+           False
+        """
+        return not self.is_finite() and not self.is_affine()
+                
+        
+    def is_indecomposable(self):
+        """
+        Return if ``self`` is an indecomposable matrix or ``False`` otherwise.
+        
+        EXAMPLES::
+        
+            sage: M = CartanMatrix(['A',5])
+            sage: M.is_indecomposable()
+            True
+            sage: M = CartanMatrix([[2,-1,0],[-1,2,0],[0,0,2]])
+            sage: M.is_indecomposable()
+            False
+        """
+        comp_num = self.dynkin_diagram().connected_components_number()
+        # consider the empty matrix to be indecomposable
+        return comp_num == 0 or comp_num == 1
+        
+    def principal_submatrices(self, proper=False):
+        """
+        Return a list of all principal submatrices of ``self``.
+        
+        INPUT:
+
+            - ``proper`` -- return only proper principal submatrices if ``True``
+        
+        EXAMPLES::
+        
+            sage: M = CartanMatrix(['A',2])
+            sage: M.principal_submatrices()
+            [
+                          [ 2 -1]
+            [], [2], [2], [-1  2]
+            ]
+            sage: M.principal_submatrices(proper=True)
+            [[], [2], [2]]
+            
+        """
+        from sage.sets.set import Set
+        iset = Set(range(self.ncols()));
+        ret = []
+        for l in iset.subsets():
+            if proper and l != iset:
+                ret.append(self.matrix_from_rows_and_columns(list(l),list(l)))
+            if not proper:
+                ret.append(self.matrix_from_rows_and_columns(list(l),list(l)))
+        return ret
 
 def is_generalized_cartan_matrix(M):
     """

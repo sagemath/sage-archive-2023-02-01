@@ -158,7 +158,7 @@ cpdef gen objtoclosure(f):
         sage: mul(*range(100))
         Traceback (most recent call last):
         ...
-        TypeError: PARI closure takes at most 5 arguments (100 given)
+        PariError: call_python: too many parameters in user-defined function call
         sage: mul([1], [2])
         Traceback (most recent call last):
         ...

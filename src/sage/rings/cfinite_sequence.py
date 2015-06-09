@@ -688,7 +688,7 @@ class CFiniteSequence(FieldElement):
 
         OUTPUT:
 
-        - A CFiniteSequence object
+        - A string
 
         EXAMPLES::
 

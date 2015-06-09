@@ -457,7 +457,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # representations
 
-    cpdef representation(self, B=None, reduced=False, labels=None, order=None):
+    cpdef representation(self, B=None, reduced=False, labels=None, order=None, lift_map=None):
         """
         Return a matrix representing the matroid.
 
@@ -493,6 +493,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         - ``order`` -- (default: ``None``) an ordering of the groundset
           elements. If provided, the columns (and, in case of a reduced
           representation, rows) will be presented in the given order.
+        - ``lift_map`` -- (default: ``None``) a dictionary containing the cross 
+          ratios of the representing matrix in it's domain. If provided, the 
+          representation will be transformed by mapping its cross ratios according
+          to ``lift_map``.
 
         OUTPUT:
 
@@ -507,7 +511,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         ``M._forget()`` is called): either the matrix used as input to create
         the matroid, or a matrix in which the lexicographically least basis
         corresponds to an identity. If only ``order`` is not ``None``, the
-        columns of this matrix will be permuted accordingly.
+        columns of this matrix will be permuted accordingly. 
 
         .. NOTE::
 
@@ -578,10 +582,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 B = set(B)
                 A = self._basic_representation(B)
             A = A.matrix_from_rows_and_columns(range(A.nrows()), order_idx)
-            if labels:
-                return (A._matrix_(), order)
+            if lift_map is None:
+                if labels:
+                    return (A._matrix_(), order)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), order)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)
         else:
             if B is None:
                 B = self.basis()
@@ -604,187 +614,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     Ci.append(C.index(e))
                     Cl.append(e)
             A = A.matrix_from_rows_and_columns(Ri, Ci)
-            if labels or labels is None:
-                return (A._matrix_(), Rl, Cl)
+            if lift_map is None:
+                if labels or labels is None:
+                    return (A._matrix_(), Rl, Cl)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
-
-    cpdef representation_lifted(self, lift_map, B=None, reduced=False, labels=None, order=None):
-        """
-        Return a matrix which arises from the matrix representing this matroid by 
-        lifting its cross ratios. 
-
-        INPUT:
-        - ``lift_map`` -- a python object with the interface of a dictionary, 
-          mapping each cross ratio of the representation matrix A as well as 
-          1 and -1, to some element of a target ring. 
-        - ``B`` -- (default: ``None``) a subset of elements. 
-        - ``reduced`` -- (default: ``False``). 
-        - ``labels`` -- (default: ``None``). 
-        - ``order`` -- (default: ``None``). 
-
-        OUTPUT:
-
-        - ``Z`` -- a full or reduced representation matrix of ``self``; or
-        - ``(Z, E)`` -- a full representation matrix ``Z`` and a list ``E``
-          of column labels; or
-        - ``(Z, R, C)`` -- a reduced representation matrix and a list ``R`` of
-          row labels and a list ``C`` of column labels.
-
-
-        .. NOTE::
-
-            With the exception of the input ``lift_map``, the interface of this 
-            method exactly matches the interface of method 
-            <sage.matroids.linear_matroid.LinearMatroid.representation>`. 
-            See there for the uses of inputs ``B``, ``reduced``, ``labels``, ``order``.
-            
-        The intended use of this method is to create matrices representing ``self`` 
-        over a different ring, when the conditions of the lift theorem are known to 
-        hold for the lift_map in combination with the representing matrix. 
-        
-        Beware of the following caveat. If the matrix which was used to create this 
-        matroid is not basic, that matrix may have strictly more cross ratios than a 
-        basic representation. Lifting such a matrix representation might fail, where 
-        lifting a basic representation would succeed.
-        
-        EXAMPLES::
-
-            sage: M = matroids.named_matroids.Fano()
-            sage: M.representation()
-            [1 0 0 0 1 1 1]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 1 0 1]
-            sage: Matrix(M) == M.representation()
-            True
-            sage: M.representation(labels=True)
-            (
-            [1 0 0 0 1 1 1]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 1 0 1], ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-            )
-            sage: M.representation(B='efg')
-            [1 1 0 1 1 0 0]
-            [1 0 1 1 0 1 0]
-            [1 1 1 0 0 0 1]
-            sage: M.representation(B='efg', order='efgabcd')
-            [1 0 0 1 1 0 1]
-            [0 1 0 1 0 1 1]
-            [0 0 1 1 1 1 0]
-            sage: M.representation(B='abc', reduced=True)
-            (
-            [0 1 1 1]
-            [1 0 1 1]
-            [1 1 0 1], ['a', 'b', 'c'], ['d', 'e', 'f', 'g']
-            )
-            sage: M.representation(B='efg', reduced=True, labels=False,
-            ....:                  order='gfeabcd')
-            [1 1 1 0]
-            [1 0 1 1]
-            [1 1 0 1]
-        """
-        if not labels:
-            A = self.representation(B = B, reduced = reduced, labels = False, order = order)
-        else:
-            if reduced:    
-                A, R, C = self.representation(B = B, reduced = True, labels = True, order = order)
-            else:
-                A, E = self.representation(B = B, reduced = False, labels = True, order = order)
-                
-        base_ring = self.base_ring()
-        target_ring = lift_map[base_ring(1)].parent()
-        G = sage.graphs.graph.Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
-        
-        # write the entries of (a scaled version of) A as products of cross ratios of A
-        T = G.min_spanning_tree()
-        # - fix a tree of the support graph G to units (= empty dict, product of 0 terms) 
-        F = {entry[2]: dict() for entry in T}
-        W = set(G.edges()) - set(T)
-        H = G.subgraph(edges = T)
-        while W: 
-            # - find an edge in W to process, closing a circuit in H which is induced in G 
-            edge = W.pop()
-            path = H.shortest_path(edge[0], edge[1])
-            retry = True
-            while retry:
-                retry = False
-                for edge2 in W:
-                    if edge2[0] in path and edge2[1] in path:
-                        W.add(edge)
-                        edge = edge2
-                        W.remove(edge)
-                        path = H.shortest_path(edge[0], edge[1])
-                        retry = True
-                        break
-            entry = edge[2]
-            entries = []
-            for i in range(len(path) - 1):
-                v = path[i]
-                w = path[i+1]
-                if v[1] == 0:
-                    entries.append((v[0],w[0])) 
+                if labels or labels is None:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), Rl, Cl)
                 else:
-                    entries.append((w[0],v[0]))
-            # - compute the cross ratio `cr` of this whirl            
-            cr = A[entry]
-            div = True
-            for entry2 in entries:
-                if div:
-                    cr = cr/A[entry2]
-                else:
-                    cr = cr* A[entry2]
-                div = not div   
-                
-            if len(path) % 4 == 0:
-                monomial = { cr: 1 }
-            else: 
-                cr = -cr
-                monomial = { cr: 1 }
-                if base_ring(-1) in monomial:
-                    monomial[base_ring(-1)] = monomial[base_ring(-1)] + 1
-                else:
-                    monomial[base_ring(-1)] = 1   
-                
-            if not cr in lift_map:
-                raise ValueError("Representing matrix has a cross ratio "+str(cr)+", which is not in the lift_map")    
-            # - write the entry as a product of cross ratios of A
-            div = True                  
-            for entry2 in entries:
-                if div:
-                    for cr, degree in F[entry2].iteritems():
-                        if cr in monomial:
-                            monomial[cr] = monomial[cr]+ degree
-                        else:
-                            monomial[cr] = degree   
-                else:
-                    for cr, degree in F[entry2].iteritems():
-                        if cr in monomial:
-                            monomial[cr] = monomial[cr] - degree
-                        else:
-                            monomial[cr] = -degree
-                div = not div  
-            F[entry] = monomial
-            # - current edge is done, can be used in next iteration
-            H.add_edge(edge)  
-         
-        # compute each entry of Z as the product of lifted cross ratios                       
-        Z = sage.matrix.constructor.Matrix(target_ring, A.nrows(), A.ncols())
-        for entry, monomial in F.iteritems():
-            Z[entry] = target_ring(1)           
-            for cr,degree in monomial.iteritems():
-                if cr == base_ring(-1):
-                    Z[entry] = Z[entry] * (target_ring(-1)**degree)
-                else:
-                    Z[entry] = Z[entry] * (lift_map[cr]**degree)
-                
-        # create the various outputs as specified by inputs `reduced`, `labels`
-        if not labels:
-            return Z
-        else:
-            if reduced:    
-                return Z, R, C
-            else:
-                return Z, E   
+                    return lift_cross_ratios(A._matrix_(), lift_map)        
 
     cpdef _current_rows_cols(self, B=None):
         """
@@ -2860,6 +2699,169 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             reduced = True
         data = (A, gs, reduced, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_linear_matroid, (version, data)
+
+def lift_cross_ratios(A, lift_map = None):
+    """
+    Return a matrix which arises from the given matrix by lifting cross ratios. 
+
+    INPUT:
+    
+    - ``A`` -- a matrix over a ring ``source_ring``.
+    - ``lift_map`` -- a python dictionary, mapping each cross ratio of ``A`` to some element 
+      of a target ring, and such that ``lift_map[source_ring(1)] = target_ring(1)``.
+    
+    OUTPUT:
+
+    - ``Z`` -- a matrix over the ring ``target_ring``.
+         
+    The intended use of this method is to create a (reduced) matrix representation of a 
+    matroid ``M`` over a ring ``target_ring``, given a (reduced) matrix representation of 
+    ``A`` of ``M`` over a ring ``source_ring`` and a map ``lift_map`` from ``source_ring`` 
+    to ``target_ring``.
+    
+    This method will create a unique candidate representation ``Z``, but will not verify 
+    if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the 
+    conditions of the lift theorem hold for the lift_map in combination with the matrix 
+    ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are keys of 
+    ``lift_map``, and 
+    
+    - if ``x, y`` are keys of ``lift_map``, and ``x+y == 1`` then 
+      ``lift_map[x] + lift_map[y] = lift_map[1]``
+    - if ``x, y, z`` are keys of ``lift_map``, and ``x*y == z`` then 
+      ``lift_map[x]*lift_map[y] = lift_map[z]``
+    - if ``x, y`` are keys of ``lift_map``, and ``x*y`` is not, then there is no key of 
+      ``lift_map`` such that ``lift_map[x]*lift_map[y] = lift_map[z]``
+    Finally, there are global conditions on the target field which depend on the matroid 
+    ``M`` represented by ``[ I A ]``. If ``M`` has a Fano minor, then in the target ring we 
+    must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must 
+    have ``1+1 != 0``.
+    
+    EXAMPLES::
+    
+        sage: from sage.matroids.advanced import lift_cross_ratios, LinearMatroid
+        sage: R = GF(7)
+        sage: z = QQ['z'].0
+        sage: S = NumberField(z^2-z+1, 'z')
+        sage: to_sixth_root_of_unity = { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**(-1)}
+        sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
+        sage: A
+        [1 0 6 1 2]
+        [6 1 0 0 1]
+        [0 6 3 6 0]
+        sage: Z = lift_cross_ratios(A, to_sixth_root_of_unity)
+        sage: Z
+        [ 1  0  1  1  1]
+        [ 1  1  0  0  z]
+        [ 0  1 -z -1  0]
+        sage: M = LinearMatroid(reduced_matrix = A)
+        sage: sorted(M.cross_ratios())
+        [3, 5]
+        sage: N = LinearMatroid(reduced_matrix = Z)
+        sage: sorted(N.cross_ratios())
+        [-z + 1, z]
+        sage: M.is_isomorphism(N, {e:e for e in M.groundset()})
+        True
+            
+    """
+    
+    for s,t in lift_map.iteritems():
+        source_ring = s.parent()
+        target_ring = t.parent()
+        break
+    plus_one1 = source_ring(1)    
+    minus_one1 = source_ring(-1)
+    plus_one2 = target_ring(1)
+    minus_one2 = target_ring(-1)
+        
+    G = sage.graphs.graph.Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
+    
+    # write the entries of (a scaled version of) A as products of cross ratios of A
+    T = G.min_spanning_tree()
+    # - fix a tree of the support graph G to units (= empty dict, product of 0 terms) 
+    F = {entry[2]: dict() for entry in T}
+    W = set(G.edges()) - set(T)
+    H = G.subgraph(edges = T)
+    while W: 
+        # - find an edge in W to process, closing a circuit in H which is induced in G 
+        edge = W.pop()
+        path = H.shortest_path(edge[0], edge[1])
+        retry = True
+        while retry:
+            retry = False
+            for edge2 in W:
+                if edge2[0] in path and edge2[1] in path:
+                    W.add(edge)
+                    edge = edge2
+                    W.remove(edge)
+                    path = H.shortest_path(edge[0], edge[1])
+                    retry = True
+                    break
+        entry = edge[2]
+        entries = []
+        for i in range(len(path) - 1):
+            v = path[i]
+            w = path[i+1]
+            if v[1] == 0:
+                entries.append((v[0],w[0])) 
+            else:
+                entries.append((w[0],v[0]))
+        # - compute the cross ratio `cr` of this whirl            
+        cr = A[entry]
+        div = True
+        for entry2 in entries:
+            if div:
+                cr = cr/A[entry2]
+            else:
+                cr = cr* A[entry2]
+            div = not div   
+        
+        monomial = dict()    
+        if len(path) % 4 == 0:
+            if not cr == plus_one1:
+                monomial[cr] = 1 
+        else: 
+            cr = -cr
+            if not cr ==plus_one1:
+                monomial[cr] = 1
+            if  monomial.has_key(minus_one1):
+                monomial[minus_one1] = monomial[minus_one1] + 1
+            else:
+                monomial[minus_one1] = 1   
+            
+        if cr != plus_one1 and not cr in lift_map:
+            raise ValueError("Input matrix has a cross ratio "+str(cr)+", which is not in the lift_map")    
+        # - write the entry as a product of cross ratios of A
+        div = True                  
+        for entry2 in entries:
+            if div:
+                for cr, degree in F[entry2].iteritems():
+                    if monomial.has_key(cr):
+                        monomial[cr] = monomial[cr]+ degree
+                    else:
+                        monomial[cr] = degree   
+            else:
+                for cr, degree in F[entry2].iteritems():
+                    if monomial.has_key(cr):
+                        monomial[cr] = monomial[cr] - degree
+                    else:
+                        monomial[cr] = -degree
+            div = not div  
+        F[entry] = monomial
+        # - current edge is done, can be used in next iteration
+        H.add_edge(edge)  
+     
+    # compute each entry of Z as the product of lifted cross ratios                       
+    Z = sage.matrix.constructor.Matrix(target_ring, A.nrows(), A.ncols())
+    for entry, monomial in F.iteritems():
+        Z[entry] = plus_one2      
+        for cr,degree in monomial.iteritems():
+            if cr == minus_one1:
+                Z[entry] = Z[entry] * (minus_one2**degree)
+            else:
+                Z[entry] = Z[entry] * (lift_map[cr]**degree)
+    
+    return Z
+
 
 # Binary matroid
 

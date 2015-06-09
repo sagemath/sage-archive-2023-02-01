@@ -2669,16 +2669,18 @@ class Polyhedron_base(Element):
             sage: P.barycentric_subdivision(1/2)
             Traceback (most recent call last):
             ...
-            AssertionError: The subdivision fraction should be between 0 and 1/2.
+            ValueError: The subdivision fraction should be between 0 and 1/2.
             sage: P=Polyhedron(ieqs=[[1,0,1],[0,1,0],[1,0,0],[0,0,1]])
             sage: P.barycentric_subdivision()
             Traceback (most recent call last):
             ...
-            AssertionError: The polytope has to be compact.
+            ValueError: The polytope has to be compact.
         """
 
-        assert(self.is_compact()), "The polytope has to be compact."
-        assert(subdivision_frac < Integer(1)/2 and subdivision_frac > 0), "The subdivision fraction should be between 0 and 1/2."
+        if not self.is_compact():
+            ValueError("The polytope has to be compact.")
+        if not (subdivision_frac < Integer(1)/2 and subdivision_frac > 0):
+            ValueError("The subdivision fraction should be between 0 and 1/2.")
 
         barycenter = self.center()
 

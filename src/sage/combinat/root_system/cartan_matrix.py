@@ -620,7 +620,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
     def is_finite(self):
         """
-        Return if ``self`` is a finite type or ``False`` if unknown.
+        Return ``True`` if ``self`` is a finite type or ``False`` if unknown.
+        
+        An indecomposable generalized Cartan matrix is finite if it has positive
+        determinant and if all its principal minors are positive.
 
         EXAMPLES::
 
@@ -642,7 +645,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
     def is_affine(self):
         """
-        Return if ``self`` is an affine type or ``False`` if unknown.
+        Return ``True`` if ``self`` is an affine type or ``False`` otherwise.
+        
+        An indecomposable generalized Cartan matrix is affine if it has zero
+        determinant and if all its proper principal minors are positive.
 
         EXAMPLES::
 
@@ -663,20 +669,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 [a.det() > 0 for a in self.principal_submatrices(proper=True)]) 
         return self._cartan_type.is_affine()
     
-    def is_hyperbolic(self, strict=False):
+    def is_hyperbolic(self, compact=False):
         """
-        Return if ``self`` is a (strict) hyperbolic type or ``False`` otherwise.
+        Return if ``True`` if ``self`` is a (compact) hyperbolic type 
+        or ``False`` otherwise.
+        
+        An indecomposable generalized Cartan matrix is hyperbolic if it has
+        negative determinant and if any proper connected subdiagram of its
+        Dynkin diagram is of finite or affine type. It is compact hyperbolic
+        if any proper connected subdiagram has finite type.
         
         INPUT:
 
-            - ``strict`` -- checks if matrix is strictly hyperbolic if ``True`` 
+            - ``compact`` -- if ``True``, check if matrix is compact hyperbolic  
         
         EXAMPLES::
             
             sage: M = CartanMatrix([[2,-2,0],[-2,2,-1],[0,-1,2]])
             sage: M.is_hyperbolic()
             True
-            sage: M.is_hyperbolic(strict=True)
+            sage: M.is_hyperbolic(compact=True)
             False
             sage: M = CartanMatrix([[2,-3],[-3,2]])
             sage: M.is_hyperbolic()
@@ -696,14 +708,33 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if l != emptyset and l != iset:
                 subg= D.subgraph(vertices=l)
                 if subg.is_connected():
-                    if strict:
+                    if compact:
                         if not subg.is_finite():
                             return False
                     else:
                         if not subg.is_finite() and not subg.is_affine():
                             return False
         return True
+    
+    def is_lorentzian(self):
+        """
+        Return ``True`` if ``self`` is a Lorentzian type or ``False`` otherwise.
         
+        A generalized Cartan matrix is Lorentzian if it has negative determinant
+        and exactly one negative eigenvalue.
+        
+        EXAMPLES::
+            sage: M = CartanMatrix([[2,-3],[-3,2]])
+            sage: M.is_lorentzian()
+            True
+            sage: M = CartanMatrix([[2,-1],[-1,2]])
+            sage: M.is_lorentzian()
+            False
+        """
+        if self.det() >= 0:
+            return False
+        return len([x for x in self.eigenvalues() if x < 0]) == 1
+                
     def is_indefinite(self):
         """
         Return if ``self`` is an indefinite type or ``False`` otherwise.
@@ -743,7 +774,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         
         INPUT:
 
-            - ``proper`` -- return only proper principal submatrices if ``True``
+            - ``proper`` -- if ``True``, return only proper submatrices 
         
         EXAMPLES::
         

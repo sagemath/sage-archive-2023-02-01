@@ -97,46 +97,6 @@ class Encoder(SageObject):
         """
         self._code = code
 
-    def __eq__(self, other):
-        r"""
-        Checks equality between ``self`` and ``other``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E1 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
-            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
-            sage: E1 == E2
-            True
-            sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
-            sage: C1 = LinearCode(G)
-            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C1)
-            sage: E1 == E2
-            False
-        """
-        return self.code() == other.code()
-
-    def __ne__(self, other):
-        r"""
-        Checks difference between ``self`` and ``other``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E1 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
-            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
-            sage: E1 != E2
-            False
-            sage: G = Matrix(GF(3), [[2,1,1,0,0,0,1],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,1,1,0,0,1]])
-            sage: C1 = LinearCode(G)
-            sage: E2 = codes.encoders.LinearCodeGeneratorMatrixEncoder(C1)
-            sage: E1 != E2
-            True
-        """
-        return not self.__eq__(other)
-
     def encode(self, word):
         r"""
         Transforms an element of the message space into an element of the code.
@@ -158,14 +118,25 @@ class Encoder(SageObject):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: word = vector((0, 1, 1, 0))
+            sage: word = vector(GF(2), (0, 1, 1, 0))
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.encode(word)
             (1, 1, 0, 0, 1, 1, 0)
+
+        If ``word`` is not in the message space of ``self``, it will return an exception::
+
+            sage: word = random_vector(GF(7), 4)
+            sage: E.encode(word)
+            Traceback (most recent call last):
+            ...
+            ValueError: Vector to encode must be in a Vector space of dimension 4 over Finite Field of size 2
         """
+        M = self.message_space()
+        if word not in M:
+            raise ValueError("Vector to encode must be in a %s" % M)
         return vector(word) * self.generator_matrix()
 
-    def unencode(self, c, nocheck=False, **kwargs):
+    def unencode(self, c, nocheck=False):
         r"""
         Returns the message corresponding to ``c``.
 
@@ -194,9 +165,9 @@ class Encoder(SageObject):
             if c not in self.code():
                 raise EncodingFailure("Given word is not in the code")
             else:
-                return self.unencode_nocheck(c, **kwargs)
+                return self.unencode_nocheck(c)
         else:
-            return self.unencode_nocheck(c, **kwargs)
+            return self.unencode_nocheck(c)
 
     @cached_method
     def unencoder_matrix(self):
@@ -227,7 +198,7 @@ class Encoder(SageObject):
         Gt = self.generator_matrix().matrix_from_columns(self.code().information_set())
         return Gt.inverse()
 
-    def unencode_nocheck(self, c, **kwargs):
+    def unencode_nocheck(self, c):
         r"""
         Returns the message corresponding to ``c``.
 
@@ -313,8 +284,8 @@ class Encoder(SageObject):
 
         This is an abstract method and it should be implemented separately.
         Reimplementing this for each subclass of :class:`Encoder` is not mandatory
-        (as encoders with a polynomial message space, for instance, do not
-        need a generator matrix).
+        (as a generator matrix only makes sense when the message space is of the `F^k`,
+        where `F` is the base field of :meth:`code`.)
         """
 
 class EncodingFailure(Exception):

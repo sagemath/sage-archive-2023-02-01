@@ -502,13 +502,13 @@ class AlternatingSignMatrix(Element):
             sage: fpl
                 |         |
                 |         |
-                #    # -- #
+                +    + -- +
                 |    |
                 |    |
-             -- #    #    # --
+             -- +    +    + --
                      |    |
                      |    |
-                # -- #    #
+                + -- +    +
                 |         |
                 |         |
 

@@ -567,9 +567,9 @@ class FiniteWord_class(Word_class):
         Return word ``self`` under the Foata bijection.
 
         The Foata bijection `\phi` is a bijection on the set of words
-        of given content. It can be defined by induction on the size
-        of the word: Given a word `w_1 w_2 \cdots w_n`, start with
-        `\phi(w_1) = w_1`. At the `i`-th step, if
+        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        It can be defined by induction on the size of the word: Given a word
+        `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
         `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
         `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
         the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
@@ -607,10 +607,21 @@ class FiniteWord_class(Word_class):
             sage: w = Word([4,1,5,4,2,2,3])
             sage: w.foata_bijection()
             word: 1254423
+
+        TESTS::
+
+            sage: w = Word('121314')
+            sage: w.foata_bijection()
+            word: 231114
+            sage: w = Word('1133a1')
+            sage: w.foata_bijection()
+            word: 3113a1
         """
         s = self.standard_permutation()
-        weight = [self.count(i) for i in range(1,max(self)+1)]
-        return (s.foata_bijection()).de_standardize(weight)
+        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        eval_dict = self.evaluation_dict()
+        weight = [eval_dict[a] for a in ordered_alphabet]
+        return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
 
     def major_index(self, final_descent=False):
         r"""

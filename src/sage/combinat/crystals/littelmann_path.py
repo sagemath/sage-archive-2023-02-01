@@ -214,6 +214,9 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         """
         return self._name
 
+    def weight_lattice_realization(self):
+        return self.weight.parent()
+
     class Element(ElementWrapper):
         """
         TESTS::
@@ -563,6 +566,18 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 return self.f(i, power=diff)
             else:
                 return self.e(i, power=-diff)
+
+        def weight(self):
+            """
+            EXAMPLES::
+
+                sage: B = crystals.LSPaths(['A',1,1],[1,0])
+                sage: b = B.highest_weight_vector()
+                sage: b.f(0).weight()
+                -Lambda[0] + 2*Lambda[1] - delta
+            """
+            P = self.parent().weight_lattice_realization()
+            return sum([p for p in self.value], P.zero())
 
         def _latex_(self):
             r"""

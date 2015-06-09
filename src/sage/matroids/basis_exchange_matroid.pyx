@@ -473,7 +473,7 @@ cdef class BasisExchangeMatroid(Matroid):
         A set.
 
         EXAMPLES::
-            
+
             sage: M = matroids.named_matroids.Fano()
             sage: sorted(M.groundset())
             ['a', 'b', 'c', 'd', 'e', 'f', 'g']
@@ -649,7 +649,7 @@ cdef class BasisExchangeMatroid(Matroid):
         A subset of ``F``.
 
         EXAMPLES::
- 
+
             sage: from sage.matroids.advanced import *
             sage: M = BasisMatroid(matroids.named_matroids.Vamos())
             sage: sorted(M._max_independent(set(['a', 'c', 'd', 'e', 'f'])))
@@ -1179,7 +1179,7 @@ cdef class BasisExchangeMatroid(Matroid):
         An iterable containing all flats of rank ``r``.
 
         .. SEEALSO::
-    
+
             :meth:`Matroid.closure() <sage.matroids.matroid.Matroid.closure>`
 
         EXAMPLES::
@@ -1254,7 +1254,7 @@ cdef class BasisExchangeMatroid(Matroid):
         An iterable containing all coflats of corank ``r``.
 
         .. SEEALSO::
-   
+
             :meth:`Matroid.coclosure() <sage.matroids.matroid.Matroid.coclosure>`
 
         EXAMPLES::

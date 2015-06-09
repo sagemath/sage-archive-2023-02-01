@@ -594,7 +594,9 @@ class FiniteWord_class(Word_class):
 
         So `\phi([4,1,5,4,2,2,3]) = [1,2,5,4,4,2,3]`.
 
-        See also :func:`~sage.combinat.permutation.Permutation.foata_bijection()`.
+        .. SEEALSO::
+
+            :meth:`Foata bijection on Permutations <sage.combinat.permutation.Permutation.foata_bijection()>`.
 
         EXAMPLES::
 
@@ -632,7 +634,9 @@ class FiniteWord_class(Word_class):
         With the ``final_descent`` option, the last position of a
         non-empty word is also considered as a descent.
 
-        See also :func:`sage.combinat.permutation.Permutation.major_index()`.
+        .. SEEALSO::
+
+            :meth:`major index on Permutations <sage.combinat.permutation.Permutation.major_index()>`.
 
         EXAMPLES::
 
@@ -652,7 +656,9 @@ class FiniteWord_class(Word_class):
         An inversion of a word `w = w_1 \ldots w_n` is a pair of indices `(i, j)`
         with `i < j` and `w_i > w_j`.
 
-        See also :func:`sage.combinat.permutation.Permutation.number_of_inversions()`.
+        .. SEEALSO::
+
+            :meth:`number of inversions on Permutations <sage.combinat.permutation.Permutation.number_of_inversions()>`.
 
         EXAMPLES::
 

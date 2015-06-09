@@ -17,7 +17,8 @@ import operator
 from sage.rings.all import QQ
 from sage.symbolic.ring import SR
 import sage.symbolic.pynac
-from sage.symbolic.constants import *
+from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
+                                     catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
 
 

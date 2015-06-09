@@ -160,7 +160,7 @@ class Composition(CombinatorialElement):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):
@@ -936,7 +936,7 @@ class Composition(CombinatorialElement):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
+        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
 
     def major_index(self):
         """

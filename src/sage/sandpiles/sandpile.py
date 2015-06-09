@@ -2105,7 +2105,7 @@ class Sandpile(DiGraph):
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]
-        sol = [map(eval,[j.replace('i','I') for j in k]) for k in sol]
+        sol = [[eval(j.replace('i','I')) for j in k] for k in sol]
         return sol
 
     def _set_points(self):
@@ -4146,14 +4146,14 @@ class SandpileDivisor(dict):
         a = a.split('\n')
         # a starts with two numbers. We are interested in the first one
         num_homog = int(a[0].split()[0])
-        homog = [map(int,i.split()) for i in a[1:-1]]
+        homog = [[int(_) for _ in i.split()] for i in a[1:-1]]
         ## second, the inhomogeneous points
         zinhom_file = open(lin_sys_zinhom,'r')
         b = zinhom_file.read()
         zinhom_file.close()
         b = b.split('\n')
         num_inhomog = int(b[0].split()[0])
-        inhomog = [map(int,i.split()) for i in b[1:-1]]
+        inhomog = [[int(_) for _ in i.split()] for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 

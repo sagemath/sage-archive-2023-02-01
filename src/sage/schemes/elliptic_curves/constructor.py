@@ -965,7 +965,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
 
     # Construct the morphism
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    P2 = ProjectiveSpace(2, K, names=map(str, R.gens()))
+    P2 = ProjectiveSpace(2, K, names=[str(_) for _ in R.gens()])
     cubic = P2.subscheme(F)
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse

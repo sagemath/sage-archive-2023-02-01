@@ -2,7 +2,7 @@ from sage.ext.memory cimport sage_free
 
 # Unset the signal handler and create a string from the buffer,
 # then free the memory in the buffer.
-cdef extern from "ntl_wrap.h":
+cdef extern from "sage/libs/ntl/ntlwrap.h":
     void del_charstar(char*)
 
 cdef object string(char* s):

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Tableaux
 
@@ -276,7 +277,7 @@ class Tableau(ClonableList):
         # We must verify ``t`` is a list of iterables, and also
         # normalize it to be a list of tuples.
         try:
-            t = map(tuple, t)
+            t = [tuple(_) for _ in t]
         except TypeError:
             raise ValueError("A tableau must be a list of iterables.")
 
@@ -322,7 +323,7 @@ class Tableau(ClonableList):
             return
 
         # Normalize t to be a list of tuples.
-        t = map(tuple, t)
+        t = [tuple(_) for _ in t]
 
         ClonableList.__init__(self, parent, t)
         # This dispatches the input verification to the :meth:`check`
@@ -406,7 +407,7 @@ class Tableau(ClonableList):
         """
         # Check that it has partition shape. That's all we require from a
         # general tableau.
-        lens = map(len, self)
+        lens = [len(_) for _ in self]
         for (a, b) in itertools.izip(lens, lens[1:]):
             if a < b:
                 raise ValueError("A tableau must be a list of iterables of weakly decreasing length.")
@@ -443,7 +444,7 @@ class Tableau(ClonableList):
             sage: T._repr_list()
             '[[1, 2, 3], [4, 5]]'
         """
-        return repr(map(list, self))
+        return repr([list(_) for _ in self])
 
     # See #18024. CombinatorialObject provided __str__, though ClonableList
     # doesn't. Emulate the old functionality. Possibly remove when
@@ -467,9 +468,9 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         if self.parent().global_options('convention') == "English":
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in self])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in self])
         else:
-            return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in reversed(self)])
+            return '\n'.join(["".join(("%3s"%str(x) for x in row)) for row in reversed(self)])
 
     def _repr_compact(self):
         """
@@ -516,12 +517,31 @@ class Tableau(ClonableList):
             sage: Tableaux.global_options.reset()
         """
         ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(ascii.splitlines())
+
+    def _unicode_art_(self):
+        r"""
+        TESTS::
+
+            sage: unicode_art(Tableau([[1,2,3],[4],[5]]))
+            ┌───┬───┬───┐
+            │ 1 │ 2 │ 3 │
+            ├───┼───┴───┘
+            │ 4 │
+            ├───┤
+            │ 5 │
+            └───┘
+            sage: unicode_art(Tableau([]))
+            ┌┐
+            └┘
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
 
     _ascii_art_repr = _repr_diagram
 
-    def _ascii_art_table(self):
+    def _ascii_art_table(self, unicode=False):
         """
         TESTS:
 
@@ -578,12 +598,57 @@ class Tableau(ClonableList):
             |  1 |  2 | 15 | 7 |
             +----+----+----+---+
             sage: Tableaux.global_options.reset()
+
+        Unicode version::
+
+            sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
+            sage: print t._ascii_art_table(unicode=True)
+            ┌────┬────┬────┬───┐
+            │ 1  │ 2  │ 15 │ 7 │
+            ├────┼────┼────┴───┘
+            │ 12 │ 5  │
+            ├────┼────┤
+            │ 8  │ 10 │
+            ├────┼────┘
+            │ 9  │
+            └────┘
+            sage: Tableaux().global_options(convention='french')
+            sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
+            sage: print t._ascii_art_table(unicode=True)
+            ┌────┐
+            │ 9  │
+            ├────┼────┐
+            │ 8  │ 10 │
+            ├────┼────┤
+            │ 12 │ 5  │
+            ├────┼────┼────┬───┐
+            │ 1  │ 2  │ 15 │ 7 │
+            └────┴────┴────┴───┘
+            sage: Tableaux.global_options.reset()
         """
+        if unicode:
+            import unicodedata
+            v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            dl = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND LEFT')
+            dr = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND RIGHT')
+            ul = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND LEFT')
+            ur = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND RIGHT')
+            vr = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND RIGHT')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND LEFT')
+            uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
+            dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
+            vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            v = '|'
+            h = '-'
+            dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
+
         if len(self) == 0:
-            return "++\n++"
+            return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
-        str_tab = map(lambda row: map(str, row), self)
+        str_tab = [[str(_) for _ in row] for row in self]
         col_widths = [1]*len(str_tab[0])
         for row in str_tab:
             for i,e in enumerate(row):
@@ -591,22 +656,47 @@ class Tableau(ClonableList):
 
         matr = []  # just the list of lines
         l1 = ""
-        for w in col_widths:
-            l1 += "+--" + '-'*w
-        matr.append(l1 + "+")
-        for row in str_tab:
+        l1 += dr + h*(2+col_widths[0])
+        for w in col_widths[1:]:
+            l1 += dh + h + h + h*w
+        matr.append(l1 + dl)
+        for nrow,row in enumerate(str_tab):
             l1 = ""; l2 = ""
-            for i,e in enumerate(row):
-                l1 += "+--" + '-'*col_widths[i]
-                l2 += "| {:^{width}} ".format(e, width=col_widths[i])
-            l1 += "+"; l2 += "|"
+            n = len(str_tab[nrow+1]) if nrow+1 < len(str_tab) else 0
+            for i,(e,w) in enumerate(zip(row,col_widths)):
+                if i == 0:
+                    if n:
+                        l1 += vr + h*(2+w)
+                    else:
+                        l1 += ur + h*(2+w)
+                elif i <= n:
+                    l1 += vh + h*(2+w)
+                else:
+                    l1 += uh + h*(2+w)
+                if unicode:
+                    l2 += u"{} {:^{width}} ".format(v, e, width=w)
+                else:
+                    l2 += "{} {:^{width}} ".format(v, e, width=w)
+            if i+1 <= n:
+                l1 += vl
+            else:
+                l1 += ul
+            l2 += v
             matr.append(l2)
             matr.append(l1)
 
         if self.parent().global_options('convention') == "English":
             return "\n".join(matr)
         else:
-            return "\n".join(reversed(matr))
+            output = "\n".join(reversed(matr))
+            if unicode:
+                tr = {
+                    ord(dl): ul, ord(dr): ur,
+                    ord(ul): dl, ord(ur): dr,
+                    ord(dh): uh, ord(uh): dh}
+                return output.translate(tr)
+            else:
+                return output
 
     def _ascii_art_compact(self):
         """
@@ -638,7 +728,7 @@ class Tableau(ClonableList):
             T = reversed(self)
 
         # Get the widths of the columns
-        str_tab = map(lambda row: map(str, row), T)
+        str_tab = [[str(_) for _ in row] for row in T]
         col_widths = [1]*len(self[0])
         for row in str_tab:
             for i,e in enumerate(row):
@@ -3812,7 +3902,7 @@ class StandardTableau(SemistandardTableau):
         #Go through and add n+1 to the end of each
         #of the rows
         for row, _ in outside_corners:
-            new_t = map(list, self)
+            new_t = [list(_) for _ in self]
             if row != len(self):
                 new_t[row] += [n+1]
             else:
@@ -4264,7 +4354,7 @@ class Tableaux(UniqueRepresentation, Parent):
             except TypeError:
                 return False
             # any list of lists of partition shape is a tableau
-            return map(len, x) in _Partitions
+            return [len(_) for _ in x] in _Partitions
         else:
             return False
 
@@ -5044,7 +5134,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             sage: 1 in SST
             False
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len,x)==self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x]==self.shape
 
     def _repr_(self):
         """
@@ -5386,7 +5476,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SST.cardinality()
             20
         """
-        return SemistandardTableaux.__contains__(self, x) and map(len, x) == self.shape
+        return SemistandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """
@@ -5706,8 +5796,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             True
         """
         from sage.combinat.partition import Partition
-        return x in SemistandardTableaux_shape_weight(Partition(map(len,
-            x)), self.weight)
+        return x in SemistandardTableaux_shape_weight(Partition(
+            [len(_) for _ in x]), self.weight)
 
 ########################
 # Standard Tableaux    #
@@ -6139,7 +6229,7 @@ class StandardTableaux_shape(StandardTableaux):
             sage: 1 in StandardTableaux([2,1,1])
             False
         """
-        return StandardTableaux.__contains__(self, x) and map(len,x) == self.shape
+        return StandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
     def _repr_(self):
         """

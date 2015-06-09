@@ -132,6 +132,7 @@ This base class provides a lot more methods than a general parent::
      '_pseudo_fraction_field',
      '_random_nonzero_element',
      '_unit_ideal',
+     '_xgcd_univariate_polynomial',
      '_zero_element',
      '_zero_ideal',
      'algebraic_closure',

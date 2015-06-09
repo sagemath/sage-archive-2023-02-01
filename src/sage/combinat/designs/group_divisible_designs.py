@@ -325,7 +325,7 @@ class GroupDivisibleDesign(IncidenceStructure):
             Group Divisible Design on 40 points of type 10^4
         """
         from string import join
-        group_sizes = map(len, self._groups)
+        group_sizes = [len(_) for _ in self._groups]
 
         gdd_type = ["{}^{}".format(s,group_sizes.count(s))
                     for s in sorted(set(group_sizes))]

@@ -150,18 +150,22 @@ These functions are available so that Python modules from Sage can call the
 Cython routines this module implements (as they can not directly call methods
 with C arguments).
 """
+
+#*****************************************************************************
+#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 include "sage/data_structures/bitset.pxi"
 cimport cpython
-
-##############################################################################
-#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
-##############################################################################
-
-from sage.graphs.base.c_graph cimport CGraph
+from libc.string cimport memset
 from libc.stdint cimport INT32_MAX
+from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
 

@@ -62,8 +62,7 @@ from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunc
 
 from sage.structure.element import RingElement
 
-import sage.misc.sage_eval
-from sage.misc.misc import verbose, SAGE_TMP_INTERFACE
+from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
@@ -195,17 +194,17 @@ class Expect(Interface):
         if self._expect is None:
             self._start()
         E = self._expect
-        wait=float(wait)
+        wait = float(wait)
         try:
             if alternate_prompt is None:
                 E.expect(self._prompt, timeout=wait)
             else:
                 E.expect(alternate_prompt, timeout=wait)
-        except pexpect.TIMEOUT as msg:
+        except pexpect.TIMEOUT:
             return False, E.before
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             return True, E.before
-        except Exception as msg:   # weird major problem!
+        except Exception:   # weird major problem!
             return True, E.before
         return True, E.before
 
@@ -443,7 +442,7 @@ If this all works, you can then make calls like:
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
             raise RuntimeError("unable to start %s" % self.name())
@@ -526,7 +525,7 @@ If this all works, you can then make calls like:
             # In case of is_remote(), killing the local "ssh -t" also kills the remote process it initiated
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
-        except (RuntimeError, OSError) as msg:
+        except (RuntimeError, OSError):
             pass
         self._expect = None
         return
@@ -918,12 +917,12 @@ If this all works, you can then make calls like:
                 self._send_interrupt()
                 try:
                     E.expect(self._prompt, timeout=timeout)
-                except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+                except (pexpect.TIMEOUT, pexpect.EOF):
                     pass
                 else:
                     success = True
                     break
-        except Exception as msg:
+        except Exception:
             pass
         if success:
             pass
@@ -1349,8 +1348,7 @@ class ExpectElement(InterfaceElement):
                 if P is not None:
                     P.clear(self._name)
 
-        except (RuntimeError, ExceptionPexpect) as msg:    # needed to avoid infinite loops in some rare cases
-            #print msg
+        except (RuntimeError, ExceptionPexpect):    # needed to avoid infinite loops in some rare cases
             pass
 
 #    def _sage_repr(self):

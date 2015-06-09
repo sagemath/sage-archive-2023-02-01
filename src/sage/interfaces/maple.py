@@ -915,8 +915,7 @@ class MapleElement(ExpectElement):
             sage: type(_)            # optional - maple
             <type 'float'>
         """
-        M = self.parent()
-        return float(maple.eval('evalf(%s)'%self.name()))
+        return float(maple.eval('evalf(%s)' % self.name()))
 
     def __hash__(self):
         """
@@ -1157,7 +1156,6 @@ def reduce_load_Maple():
     return maple
 
 
-import os
 def maple_console():
     """
     Spawn a new Maple command-line session.

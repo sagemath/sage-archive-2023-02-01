@@ -25,6 +25,7 @@ all:
 # All targets except for the base packages
 all-sage: \
      $(STANDARD_PACKAGES) \
+     $(OPTIONAL_INSTALLED_PACKAGES) \
      $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
      $(EXTCODE) \

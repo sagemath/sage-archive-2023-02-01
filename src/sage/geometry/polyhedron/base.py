@@ -2678,9 +2678,9 @@ class Polyhedron_base(Element):
         """
 
         if not self.is_compact():
-            ValueError("The polytope has to be compact.")
+            raise ValueError("The polytope has to be compact.")
         if not (subdivision_frac < Integer(1)/2 and subdivision_frac > 0):
-            ValueError("The subdivision fraction should be between 0 and 1/2.")
+            raise ValueError("The subdivision fraction should be between 0 and 1/2.")
 
         barycenter = self.center()
 

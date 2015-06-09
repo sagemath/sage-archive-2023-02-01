@@ -2595,7 +2595,7 @@ cdef class Matroid(SageObject):
         while r >= 0:
             if T[r]:
                 e = T[r].pop()
-                I[r+1] = I[r].union(set([e]))
+                I[r+1] = I[r].union([e])
                 res.append(I[r+1]) 
                 T[r+1] = T[r] - self._closure(I[r+1])
                 r = r + 1

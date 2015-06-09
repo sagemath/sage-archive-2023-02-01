@@ -1,6 +1,10 @@
 """
 Local Field Invariants
+
+This contains routines to compute local (p-adic) invariants of
+quadratic forms over the rationals.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #
@@ -23,34 +27,36 @@ Local Field Invariants
 ###########################################################################
 
 
-import copy
-
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.rings.arith import prime_divisors, hilbert_symbol
 from sage.functions.all import sgn
-from sage.rings.fraction_field import FractionField
 from sage.matrix.matrix_space import MatrixSpace
+from sage.misc.cachefunc import cached_method
 
 
-## Routines to compute local (p-adic) invariants of a quadratic form Q:
-## (Note: Here Q is the matrix so that Q(x) = x^t * Q * x.)
-## --------------------------------------------------------------------
-
+@cached_method
 def rational_diagonal_form(self, return_matrix=False):
     """
-    Returns a diagonal form equivalent to Q over the fraction field of
-    its defining ring.  If the return_matrix is True, then we return
-    the transformation matrix performing the diagonalization as the
-    second argument.
+    Return a diagonal form equivalent to the given quadratic from
+    over the fraction field of its defining ring.
 
     INPUT:
-        none
 
-    OUTPUT:
-        Q -- the diagonalized form of this quadratic form
-        (optional) T -- matrix which diagonalizes Q (over it's fraction field)
+    - ``return_matrix`` -- (boolean, default: False) also return the
+      transformation matrix.
+
+    OUTPUT: either ``D`` (if ``return_matrix`` is false) or ``(D,T)``
+    (if ``return_matrix`` is true) where
+
+    - ``D`` -- the diagonalized form of this quadratic form.
+
+    - ``T`` -- transformation matrix. This is such that
+      ``T.transpose() * self.matrix() * T`` gives ``D.matrix()``.
+
+    Both ``D`` and ``T`` are defined over the fraction field of the
+    base ring of the given form.
 
     EXAMPLES::
 
@@ -64,22 +70,43 @@ def rational_diagonal_form(self, return_matrix=False):
         [ -2 0 ]
         [ * 1/8 ]
 
-    ::
+    If we start with a diagonal form, we get back the same form defined
+    over the fraction field::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
-        sage: Q.rational_diagonal_form(return_matrix=True)
-        (
+        sage: Q.rational_diagonal_form()
         Quadratic form in 4 variables over Rational Field with coefficients:
         [ 1 0 0 0 ]
         [ * 3 0 0 ]
         [ * * 5 0 ]
-        [ * * * 7 ]                                                          ,
-        <BLANKLINE>
-        [1 0 0 0]
-        [0 1 0 0]
-        [0 0 1 0]
-        [0 0 0 1]
-        )
+        [ * * * 7 ]
+
+    In the following example, we check the consistency of the
+    transformation matrix::
+
+        sage: Q = QuadraticForm(ZZ, 4, range(10))
+        sage: D, T = Q.rational_diagonal_form(return_matrix=True)
+        sage: D
+        Quadratic form in 4 variables over Rational Field with coefficients:
+        [ 5 0 0 0 ]
+        [ * -1/20 0 0 ]
+        [ * * 13 0 ]
+        [ * * * 563/52 ]
+        sage: T
+        [     1  -9/10     11 149/26]
+        [     1   1/10     -2 -10/13]
+        [     0      0      1 -29/26]
+        [     0      0      0      1]
+        sage: T.transpose() * Q.matrix() * T
+        [    10      0      0      0]
+        [     0  -1/10      0      0]
+        [     0      0     26      0]
+        [     0      0      0 563/26]
+        sage: D.matrix()
+        [    10      0      0      0]
+        [     0  -1/10      0      0]
+        [     0      0     26      0]
+        [     0      0      0 563/26]
 
     ::
 
@@ -105,9 +132,9 @@ def rational_diagonal_form(self, return_matrix=False):
         )
     """
     n = self.dim()
-    Q = copy.deepcopy(self)
-    Q.__init__(FractionField(self.base_ring()), self.dim(), self.coefficients())
-    MS = MatrixSpace(Q.base_ring(), n, n)
+    K = self.base_ring().fraction_field()
+    Q = self.base_change_to(K)
+    MS = MatrixSpace(K, n, n)
     T = MS(1)
 
     ## Clear the entries one row at a time.
@@ -139,15 +166,10 @@ def rational_diagonal_form(self, return_matrix=False):
         Q = Q(temp)
         T = T * temp
 
-
-    ## Return the appropriate output
     if return_matrix:
         return Q, T
     else:
         return Q
-
-
-
 
 
 def signature_vector(self):
@@ -203,8 +225,6 @@ def signature_vector(self):
             n += 1
         else:
             z += 1
-
-    ## TO DO: Cache this result?
 
     return (p, n, z)
 

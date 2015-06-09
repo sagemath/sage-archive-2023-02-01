@@ -2875,18 +2875,13 @@ class AbstractLinearCode(module.Module):
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
-            input = code2leon(self)
-            from sage.misc.temporary_file import tmp_filename
-            output = tmp_filename()
-            import os
-            status = os.system(os.path.join(guava_bin_dir, 'wtdist')
-                               + ' ' + input + "::code > " + output)
-            if status != 0:
-                raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
-            f = open(output); lines = f.readlines(); f.close()
+            input = code2leon(self) + "::code"
+            import os, subprocess
+            lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
+            import StringIO  # to use the already present output parser 
             wts = [0]*(n+1)
             s = 0
-            for L in lines:
+            for L in StringIO.StringIO(lines).readlines():
                 L = L.strip()
                 if len(L) > 0:
                     o = ord(L[0])

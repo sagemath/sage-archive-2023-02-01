@@ -349,6 +349,7 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
+	bool info(unsigned inf) const;
 	//int compare(const basic &other) const;
 protected:
 	ex derivative(const symbol & s) const;

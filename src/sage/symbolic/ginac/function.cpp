@@ -1492,5 +1492,37 @@ std::string function::get_name() const
 	return registered_functions()[serial].name;
 }
 
+bool function::info(unsigned inf) const
+{
+	if (get_serial() == exp_SERIAL::serial)
+        {
+                const ex& arg = op(0);
+                switch (inf) {
+                case info_flags::real:
+                        return arg.info(info_flags::real);
+                case info_flags::positive:
+                        return arg.info(info_flags::real);
+                }
+        }
+	else if (get_serial() == log_SERIAL::serial)
+        {
+                const ex& arg = op(0);
+                switch (inf) {
+                case info_flags::real:
+                        return arg.info(info_flags::positive);
+                case info_flags::positive:
+                        return arg.info(info_flags::real) and
+                                is_exactly_a<numeric>(arg) and
+                                ex_to<numeric>(arg) >= *_num1_p;
+                case info_flags::negative:
+                        return arg.info(info_flags::real) and
+                                is_exactly_a<numeric>(arg) and
+                                arg.info(info_flags::positive) and
+                                ex_to<numeric>(arg) < *_num1_p;
+                }
+        }
+        return false;
+}
+
 } // namespace GiNaC
 

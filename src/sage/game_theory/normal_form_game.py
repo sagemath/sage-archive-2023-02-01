@@ -1388,6 +1388,22 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 1/3, 2/3), (1/3, 2/3)], [(4/5, 1/5, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
 
+        Of the algorithms implemented, only ``'lrs'`` and ``'enumeration'`` are guaranteed to find
+        all Nash equilibria in a game. The solver for constant-sum games only ever finds one Nash
+        equilibrium. Although it is possible for the ``'LCP'`` solver to find all Nash equilibria
+        in some instances, there are instances where it won't be able to find all Nash equilibria.::
+
+            sage: A = matrix(2, 2)
+            sage: gg = NormalFormGame([A])
+            sage: gg.obtain_nash(algorithm='enumeration')
+            [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
+            sage: gg.obtain_nash(algorithm='lrs') # optional - lrs
+            [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
+            sage: gg.obtain_nash(algorithm='lp-glpk')
+            [[(1.0, 0.0), (1.0, 0.0)]]
+            sage: gg.obtain_nash(algorithm='LCP') # optional - gambit
+            [[(1.0, 0.0), (1.0, 0.0)]]
+
         Note that outputs for all algorithms are as lists of lists of
         tuples and the equilibria have been sorted so that all algorithms give
         a comparable output (although ``'LCP'`` returns floats)::

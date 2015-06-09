@@ -2642,8 +2642,8 @@ class Polyhedron_base(Element):
 
         - ``subdivision_frac`` -- number. Gives the proportion how far the new
           vertices are pulled out of the polytope. Default is `\frac{1}{3}` and
-          the value should be smaller than `\frac{1}{2}`.
-            The subdivision is computed on the polar polyhedron.
+          the value should be smaller than `\frac{1}{2}`. The subdivision is 
+          computed on the polar polyhedron.
 
         OUTPUT:
 

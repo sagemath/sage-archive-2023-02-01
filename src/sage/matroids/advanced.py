@@ -52,7 +52,7 @@ from dual_matroid import DualMatroid
 from rank_matroid import RankMatroid
 from circuit_closures_matroid import CircuitClosuresMatroid
 from basis_matroid import BasisMatroid
-from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid, lift_cross_ratios
-from utilities import setprint, newlabel, get_nonisomorphic_matroids
+from linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from utilities import setprint, newlabel, get_nonisomorphic_matroids, lift_cross_ratios
 import lean_matrix
 from extension import LinearSubclasses, MatroidExtensions

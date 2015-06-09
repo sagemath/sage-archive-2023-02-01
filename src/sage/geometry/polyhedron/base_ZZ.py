@@ -256,9 +256,9 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P.ehrhart_polynomial(bim_bam_boum=19)   # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: Something went wrong (see output above) when running:
+            RuntimeError: Latte returned 1 when running:
             count --ehrhart-polynomial --redundancy-check=none --bim-bam-boum=19 --cdd ...
-
+            (see output above)
         """
         if not self.is_lattice_polytope():
             raise ValueError("this must be a lattice polytope")
@@ -316,13 +316,13 @@ class Polyhedron_ZZ(Polyhedron_base):
                     "'install_package('latte_int') at a Sage prompt)!\n")
 
         ans, err = latte_proc.communicate()
-
-        try:
-            p = ans.splitlines()[-2]
-        except IndexError:
+        ret_code = latte_proc.poll()
+        if ret_code:
             if not verbose:
                 print err
-            raise RuntimeError("Something went wrong (see output above) when running:\n{}".format(' '.join(args)))
+            raise RuntimeError("Latte returned {} when running:\n{}\n(see output above)".format(ret_code, ' '.join(args)))
+
+        p = ans.splitlines()[-2]
 
         return R(p)
 

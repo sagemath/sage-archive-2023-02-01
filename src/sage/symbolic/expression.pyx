@@ -663,8 +663,8 @@ cdef class Expression(CommutativeRingElement):
 
     def _sympy_character_art(self, use_unicode):
         r"""
-        Create character art using Sympy 
-        
+        Create character art using Sympy
+
         INPUT:
 
         - ``use_unicode`` -- boolean. Whether to allow unicode instead
@@ -695,7 +695,7 @@ cdef class Expression(CommutativeRingElement):
         Ascii art magic method.
 
         See :mod:`sage.typeset.ascii_art` for details.
-        
+
         EXAMPLES::
 
             sage: i = var('i')
@@ -724,24 +724,24 @@ cdef class Expression(CommutativeRingElement):
         Unicode art magic method.
 
         See :mod:`sage.typeset.unicode_art` for details.
-        
+
         EXAMPLES::
 
             sage: i = var('i')
             sage: unicode_art(sum(i^2/pi*x^i, i, 0, oo))
-                        2              
-                       x  + x          
+                        2
+                       x  + x
             ───────────────────────────
-                 3        2            
+                 3        2
             - π⋅x  + 3⋅π⋅x  - 3⋅π⋅x + π
             sage: unicode_art(integral(exp(x + x^2)/(x+1), x))
-            ⌠           
-            ⎮   2       
-            ⎮  x  + x   
-            ⎮ ℯ         
+            ⌠
+            ⎮   2
+            ⎮  x  + x
+            ⎮ ℯ
             ⎮ ─────── dx
-            ⎮  x + 1    
-            ⌡           
+            ⎮  x + 1
+            ⌡
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self._sympy_character_art(True).splitlines())

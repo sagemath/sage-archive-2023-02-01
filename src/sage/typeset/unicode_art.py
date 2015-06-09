@@ -47,7 +47,7 @@ class UnicodeArt(CharacterArt):
         sage: i = var('i')
         sage: unicode_art(sum(pi^i/factorial(i)*x^i, i, 0, oo))
          π⋅x
-        ℯ   
+        ℯ
     """
     _string_type = unicode
 
@@ -85,13 +85,13 @@ def unicode_art(*obj, **kwds):
     EXAMPLES::
 
         sage: unicode_art(integral(exp(sqrt(x))/(x+pi), x))
-            ⌠          
-            ⎮    ___   
-            ⎮  ╲╱ x    
-            ⎮ ℯ        
+            ⌠
+            ⎮    ___
+            ⎮  ╲╱ x
+            ⎮ ℯ
             ⎮ ────── dx
-            ⎮ x + π    
-            ⌡          
+            ⎮ x + π
+            ⌡
         sage: ident = lambda n: identity_matrix(ZZ, n)
         sage: unicode_art(ident(1), ident(2), ident(3), sep=' : ')
                       ⎛1 0 0⎞
@@ -102,11 +102,11 @@ def unicode_art(*obj, **kwds):
 
         sage: n = var('n')
         sage: unicode_art(sum(binomial(2 * n, n + 1) * x^n, n, 0, oo))
-             ⎛        __________    ⎞ 
-            -⎝2⋅x + ╲╱ -4⋅x + 1  - 1⎠ 
+             ⎛        __________    ⎞
+            -⎝2⋅x + ╲╱ -4⋅x + 1  - 1⎠
             ──────────────────────────
-                       __________     
-                 2⋅x⋅╲╱ -4⋅x + 1      
+                       __________
+                 2⋅x⋅╲╱ -4⋅x + 1
         sage: unicode_art(list(DyckWords(3)))
         ⎡                                   ╱╲   ⎤
         ⎢            ╱╲    ╱╲      ╱╲╱╲    ╱  ╲  ⎥

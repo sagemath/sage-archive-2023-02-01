@@ -15,7 +15,7 @@ AUTHORS:
 - Rudi Pendavingh, Stefan van Zwam (2013-04-01): initial version
 
 TESTS::
-    
+
     sage: from sage.matroids.advanced import *
     sage: import sage.matroids.basis_exchange_matroid
     sage: M = sage.matroids.basis_exchange_matroid.BasisExchangeMatroid(
@@ -55,7 +55,7 @@ cdef class BasisExchangeMatroid(Matroid):
     essentially by crawling the base exchange graph of the matroid. This is
     the graph whose vertices are the bases of the matroid, two bases being
     adjacent in the graph if their symmetric difference has 2 members.
-    
+
     This base exchange graph is not stored as such, but should be provided
     implicity by the child class in the form of two methods
     ``__is_exchange_pair(x, y)`` and ``__exchange(x, y)``, as well as an
@@ -68,55 +68,55 @@ cdef class BasisExchangeMatroid(Matroid):
     linear matroid would perform a row reduction to make the column labeled by
     `y` a standard basis vector (and therefore the columns indexed by `B-x+y`
     would form an identity matrix).
-    
+
     Each of the elementary matroid methods has a straightforward greedy-type
     implementation in terms of these two methods. For example, given a subset
     `F` of the groundset, one can step to a basis `B` over the edges of the
     base exchange graph which has maximal intersection with `F`, in each step
     increasing the intersection of the current `B` with `F`. Then one computes
     the rank of `F` as the cardinality of the intersection of `F` and `B`.
-    
+
     The following matroid classes can/will implement their oracle efficiently
     by deriving from ``BasisExchangeMatroid``:
-    
+
     - :class:`BasisMatroid <sage.matroids.basis_matroid.BasisMatroid>`: keeps
       a list of all bases.
-        
+
         - ``__is_exchange_pair(x, y)`` reduces to a query whether `B - x + y`
           is a basis.
         - ``__exchange(x, y)`` has no work to do.
-    
+
     - :class:`LinearMatroid <sage.matroids.linear_matroid.LinearMatroid>`:
       keeps a matrix representation `A` of the matroid so that `A[B] = I`.
-        
+
         - ``__is_exchange_pair(x, y)`` reduces to testing whether `A[r, y]`
           is nonzero, where `A[r, x]=1`.
         - ``__exchange(x, y)`` should modify the matrix so that `A[B - x + y]`
           becomes `I`, which means pivoting on `A[r, y]`.
-    
+
     - ``TransversalMatroid`` (not yet implemented): If `A` is a set of subsets
       of `E`, then `I` is independent if it is a system of distinct
       representatives of `A`, i.e. if `I` is covered by a matching of an
       appropriate bipartite graph `G`, with color classes `A` and `E` and an
       edge `(A_i,e)` if `e` is in the subset `A_i`. At any time you keep a
       maximum matching `M` of `G` covering the current basis `B`.
-        
+
         - ``__is_exchange_pair(x, y)`` checks for the existence of an
           `M`-alternating path `P` from `y` to `x`.
         - ``__exchange(x, y)`` replaces `M` by the symmetric difference of
           `M` and `E(P)`.
-    
+
     - ``AlgebraicMatroid`` (not yet implemented): keeps a list of polynomials
       in variables `E - B + e` for each variable `e` in `B`.
-        
+
         - ``__is_exchange_pair(x, y)`` checks whether the polynomial that
           relates `y` to `E-B` uses `x`.
         - ``__exchange(x, y)`` make new list of polynomials by computing
           resultants.
-    
+
     All but the first of the above matroids are algebraic, and all
     implementations specializations of the algebraic one.
-    
+
     BasisExchangeMatroid internally renders subsets of the ground set as
     bitsets. It provides optimized methods for enumerating bases, nonbases,
     flats, circuits, etc.
@@ -125,30 +125,30 @@ cdef class BasisExchangeMatroid(Matroid):
     def __init__(self, groundset, basis=None, rank=None):
         """
         Construct a BasisExchangeMatroid.
-        
+
         A BasisExchangeMatroid is a virtual class. It is unlikely that you
         want to create a BasisExchangeMatroid from the command line. See the
         class docstring for
         :class:`BasisExchangeMatroid <sage.matroids.basis_exchange_matroid.BasisExchangeMatroid>`.
-        
+
         INPUT:
-        
+
         - ``groundset`` -- a set.
         - ``basis`` -- (default: ``None``) a subset of groundset.
         - ``rank`` -- (default: ``None``) an integer.
-        
+
         This initializer sets up a correspondance between elements of
         ``groundset`` and ``range(len(groundset))``. ``BasisExchangeMatroid``
         uses this correspondence for encoding of subsets of the groundset as
         bitpacked sets of integers --- see ``__pack()`` and ``__unpack()``. In
         general, methods of ``BasisExchangeMatroid`` having a name starting
         with two underscores deal with such encoded subsets.
-        
+
         A second task of this initializer is to store the rank and intialize
         the 'current' basis.
-        
+
         EXAMPLES::
-            
+
             sage: from sage.matroids.basis_exchange_matroid import BasisExchangeMatroid
             sage: M = BasisExchangeMatroid(groundset='abcdef', basis='abc')
             sage: sorted(M.groundset())
@@ -169,7 +169,7 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_init(self._input2, self._bitset_size)
         bitset_init(self._output, self._bitset_size)
         bitset_init(self._temp, self._bitset_size)
-        
+
         self._groundset = frozenset(groundset)
         if not isinstance(groundset, tuple):
             self._E = tuple(groundset)
@@ -179,7 +179,7 @@ cdef class BasisExchangeMatroid(Matroid):
         cdef long i
         for i in xrange(self._groundset_size):
             self._idx[self._E[i]] = i
-        
+
         if basis is not None:
             self.__pack(self._current_basis, frozenset(basis))
 
@@ -195,19 +195,19 @@ cdef class BasisExchangeMatroid(Matroid):
     cdef __relabel(self, l):
         """
         Relabel each element `e` as `l[e]`, where `l` is a given injective map.
-        
+
         INPUT:
-        
+
         - `l`, a python object such that `l[e]` is the new label of e.
-        
+
         OUTPUT:
-        
+
         ``None``.
-        
+
         NOTE:
         For internal use. Matroids are immutable but this method does modify the matroid. The use this method will only
         be safe in very limited circumstances, such as perhaps on a fresh copy of a matroid.
-        
+
         """
         cdef long i
         E = []
@@ -218,14 +218,14 @@ cdef class BasisExchangeMatroid(Matroid):
                 E.append(self._E[i])
         self._E = tuple(E)
         self._groundset = frozenset(E)
-        
+
         self._idx = {}
         for i in xrange(self._groundset_size):
             self._idx[self._E[i]] = i
-        
+
         if self._weak_partition_var:
             self._weak_partition_var._relabel(l)
-        
+
         if self._strong_partition_var:
             self._strong_partition_var._relabel(l)
         if self._heuristic_partition_var:

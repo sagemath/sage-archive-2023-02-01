@@ -2385,7 +2385,7 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``weight`` -- list or tuple of nonnegative integers that add to `n` if ``self``
+        - ``weight`` -- list or tuple of nonnegative integers that sum to `n` if ``self``
           is a permutation in `S_n`.
 
         Let `weight = (w_1,w_2,\ldots,w_\ell)`. Then this methods looks for an increasing

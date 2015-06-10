@@ -157,6 +157,7 @@ import re
 
 oeis_url = 'http://oeis.org/'
 
+
 def _fetch(url):
     r"""
     Fetch the given ``url``.
@@ -176,13 +177,14 @@ def _fetch(url):
         '</html>'
     """
     try:
-        _ = verbose("Fetching URL %s ..." %url, caller_name='OEIS')
+        verbose("Fetching URL %s ..." % url, caller_name='OEIS')
         f = urlopen(url)
         result = f.read()
         f.close()
         return result
     except IOError as msg:
         raise IOError("%s\nError fetching %s." % (msg, url))
+
 
 def _urls(html_string):
     r"""
@@ -209,6 +211,7 @@ def _urls(html_string):
     """
     urls = []
     from HTMLParser import HTMLParser
+
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             if tag == 'a':
@@ -218,7 +221,9 @@ def _urls(html_string):
     MyHTMLParser().feed(html_string)
     return urls
 
+
 to_tuple = lambda string: tuple(Integer(x) for x in string.split(",") if x)
+
 
 class OEIS:
     r"""
@@ -358,7 +363,7 @@ class OEIS:
             TypeError: __call__() takes at least 2 arguments (1 given)
         """
         if isinstance(query, str):
-            if re.match('^A[0-9]{6}$',query):
+            if re.match('^A[0-9]{6}$', query):
                 return self.find_by_id(query)
             else:
                 return self.find_by_description(query, max_results, first_result)
@@ -402,7 +407,7 @@ class OEIS:
         if not isinstance(ident, str):
             ident = str(ident)
             ident = 'A000000'[:-len(ident)] + ident
-        options = {'q':ident, 'n':'1', 'fmt':'text'}
+        options = {'q': ident, 'n': '1', 'fmt': 'text'}
         url = oeis_url + "search?" + urlencode(options)
         sequence = _fetch(url).split('\n\n')[2]
         return OEISSequence(sequence)
@@ -453,10 +458,10 @@ class OEIS:
             2: A131957: Busy Beaver sigma variation: maximum number of 1's ...
             3: A052200: Number of n-state, 2-symbol, d+ in {LEFT, RIGHT}, ...
         """
-        options = {'q':description,
-                   'n':str(max_results),
-                   'fmt':'text',
-                   'start':str(first_result)}
+        options = {'q': description,
+                   'n': str(max_results),
+                   'fmt': 'text',
+                   'start': str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
         return FancyTuple([OEISSequence(_) for _ in sequence_list])
@@ -592,6 +597,7 @@ class OEIS:
             -1
         """
         return OEISSequence(self._imaginary_entry(keywords))
+
 
 class OEISSequence(SageObject):
     r"""
@@ -1099,9 +1105,9 @@ class OEISSequence(SageObject):
             1
         """
         if absolute_value or ('nonn' in self.keywords()):
-            fields = ['S','T','U']
+            fields = ['S', 'T', 'U']
         elif ('sign' in self.keywords()):
-            fields = ['V','W','X']
+            fields = ['V', 'W', 'X']
         else:
             raise TypeError("You found a sign inconsistency, please contact OEIS")
         return to_tuple(" ".join(flatten([self._fields[a] for a in fields])))[:number]
@@ -1304,9 +1310,8 @@ class OEISSequence(SageObject):
         if not self.is_full():
             raise LookupError("Future values not provided by OEIS.")
 
-    def __eq__(self,other):
+    def __eq__(self, other):
         r"""
-
         Returns ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.  Two integer sequences are considered equal if they have the
         same OEIS ID.
@@ -1335,7 +1340,6 @@ class OEISSequence(SageObject):
 
     def __ne__(self, other):
         r"""
-
         Returns ``True`` if ``self`` has a different OEIS ID than ``other`` and
         ``False`` otherwise.
 
@@ -1463,7 +1467,7 @@ class OEISSequence(SageObject):
                     webbrowser.open(url_list[url_number])
             elif browse == 'all':
                 for url in url_list:
-                     webbrowser.open(url)
+                    webbrowser.open(url)
 
     def formulas(self):
         r"""
@@ -1705,14 +1709,14 @@ class OEISSequence(SageObject):
                   'programs', 'keywords', 'offsets', 'url', 'old_IDs',
                   'author', 'extensions_or_errors']:
             if embedded() and s == 'links':
-                print re.sub('_',' ',s).upper()
+                print re.sub('_', ' ', s).upper()
                 getattr(self, s)()
                 print '\n'
             else:
                 result = getattr(self, s)()
                 if result != '' and result != ('',) and result != ():
-                    print re.sub('_',' ',s).upper()
-                    print str(result) +  '\n'
+                    print re.sub('_', ' ', s).upper()
+                    print str(result) + '\n'
 
     def programs(self, language='other'):
         r"""
@@ -1764,6 +1768,7 @@ class OEISSequence(SageObject):
         else:
             return FancyTuple(self._fields['o'])
 
+
 class FancyTuple(tuple):
     r"""
     This class inherits from ``tuple``, it allows to nicely print tuples whose
@@ -1796,8 +1801,7 @@ class FancyTuple(tuple):
             3: three
             4: 4
         """
-        length = len(str(len(self)-1))
+        length = len(str(len(self) - 1))
         return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
 
 oeis = OEIS()
-

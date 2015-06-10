@@ -2185,7 +2185,7 @@ class Tableau(ClonableList):
     
         """
         if corner not in self.corners():
-            raise ValueError("%s is not an outer corner" % corner)
+            raise ValueError("%s is not an outer corner" % str(corner))
     
         new_t = self.to_list()
         (r,c) = corner

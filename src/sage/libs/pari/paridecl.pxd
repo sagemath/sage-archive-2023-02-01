@@ -3340,13 +3340,13 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     member_zk(GEN x)
     GEN     member_zkst(GEN bid)
 
-    # modpoly.c
+    # polmodular.c
 
     GEN     Flm_Fl_polmodular_evalx(GEN phi, long L, ulong j, ulong p, ulong pi)
-    GEN     Fp_polmodular_evalx(long L, GEN J, GEN P, long v, int compute_derivs)
-    GEN     polmodular_ZM(long L)
-    GEN     polmodular_ZXX(long L, long xvar, long yvar)
-    GEN     polmodular(long L, GEN x, long yvar, int compute_derivs)
+    GEN     Fp_polmodular_evalx(long L, long inv, GEN J, GEN P, long v, int compute_derivs)
+    GEN     polmodular(long L, long inv, GEN x, long yvar, long compute_derivs)
+    GEN     polmodular_ZM(long L, long inv)
+    GEN     polmodular_ZXX(long L, long inv, long xvar, long yvar)
 
     # mp.c
 

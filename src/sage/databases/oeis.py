@@ -144,13 +144,7 @@ Classes and methods
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.structure.sequence import Sequence
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
-from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.continued_fraction import continued_fraction
-from sage.rings.real_lazy import RealLazyField
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -944,15 +938,21 @@ class OEISSequence(SageObject):
             Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
+            from sage.rings.continued_fraction import continued_fraction
             return continued_fraction(self.first_terms())
-        if 'cons' in self.keywords():
+        elif 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))
+            from sage.rings.real_lazy import RealLazyField
             return RealLazyField()('0' + ''.join(map(str, terms[:offset])) + '.' + ''.join(map(str, terms[offset:])))
         elif 'nonn' in self.keywords():
+            from sage.structure.sequence import Sequence
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return Sequence(self.first_terms(), NN)
         else:
-            return Sequence(self.first_terms(),IntegerRing())
+            from sage.structure.sequence import Sequence
+            from sage.rings.integer_ring import ZZ
+            return Sequence(self.first_terms(), ZZ)
 
     def is_finite(self):
         r"""

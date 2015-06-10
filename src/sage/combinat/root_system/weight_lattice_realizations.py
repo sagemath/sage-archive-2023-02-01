@@ -854,14 +854,19 @@ class WeightLatticeRealizations(Category_over_base_ring):
             assert result.level() == level
             return result
 
-
         # Should it be a method of highest_weight?
         def weyl_dimension(self, highest_weight):
-            """
+            r"""
+            Return the dimension of the highest weight representation of highest weight ``highest_weight``.
+
             EXAMPLES::
 
                 sage: RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0])
                 20
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: La = P.basis()
+                sage: P.weyl_dimension(La[1]+La[2])
+                16
 
                 sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
                 <type 'sage.rings.integer.Integer'>
@@ -870,9 +875,10 @@ class WeightLatticeRealizations(Category_over_base_ring):
             if not highest_weight.is_dominant():
                 raise ValueError("the highest weight must be dominant")
             rho = self.rho()
-            n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
-            d = prod([ rho.dot_product(x) for x in self.positive_roots()])
+            pr = self.coroot_lattice().positive_roots()
             from sage.rings.integer import Integer
+            n = prod(((rho+highest_weight).scalar(x) for x in pr), Integer(1))
+            d = prod((rho.scalar(x) for x in pr), Integer(1))
             return Integer(n/d)
 
         @lazy_attribute

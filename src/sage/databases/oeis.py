@@ -1640,10 +1640,10 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet, webbrowser
+            sage: f = oeis(45) ; f                      # optional -- internet webbrowser
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.browse()                            # optional -- internet, webbrowser
+            sage: f.browse()                            # optional -- internet webbrowser
 
         TESTS::
 

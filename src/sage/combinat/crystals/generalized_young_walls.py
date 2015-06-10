@@ -607,7 +607,7 @@ class GeneralizedYoungWall(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[1]
             sage: GYW = crystals.infinity.GeneralizedYoungWalls(2)
             sage: y = GYW([[],[1,0],[2,1]])
             sage: y.in_highest_weight_crystal(La)

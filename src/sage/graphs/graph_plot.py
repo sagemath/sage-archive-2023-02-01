@@ -28,7 +28,8 @@ the spring-layout algorithm.
 
 Here is the list of options accepted by
 :meth:`~sage.graphs.generic_graph.GenericGraph.plot` and the constructor of
-:class:`GraphPlot`.
+:class:`GraphPlot`. Those two functions also accept all options of
+:meth:`sage.plot.graphics.Graphics.show`.
 
 .. csv-table::
     :class: contentstable

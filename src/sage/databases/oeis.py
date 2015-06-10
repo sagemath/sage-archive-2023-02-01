@@ -25,9 +25,9 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
     sage: search = oeis([3, 7, 15, 1], max_results=4) ; search  # optional -- internet
     0: A001203: Continued fraction expansion of Pi.
-    1: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
-    2: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
-    3: A082495: (2^n-1) mod n.
+    1: A246674: Run Length Transform of A000225.
+    2: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
+    3: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
 
     sage: c = search[0] ; c                             # optional -- internet
     A001203: Continued fraction expansion of Pi.
@@ -40,7 +40,7 @@ What about a sequence starting with `3, 7, 15, 1` ?
     sage: c.examples()                                  # optional -- internet
     0: Pi = 3.1415926535897932384...
     1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
+    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
 
     sage: c.comments()                                  # optional -- internet
     0: The first 5,821,569,425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
@@ -86,7 +86,7 @@ related ?
     0: A000798: Number of different quasi-orders (or topologies, or transitive digraphs) with n labeled elements.
     1: A001035: Number of partially ordered sets ("posets") with n labeled elements (or labeled acyclic transitive digraphs).
     2: A001930: Number of topologies, or transitive digraphs with n unlabeled nodes.
-    3: A006057: Number of labeled topologies with n points.
+    3: A006057: Number of topologies on n labeled points satisfying axioms T_0-T_4.
     4: A079263: Number of constrained mixed models with n factors.
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
 
@@ -103,15 +103,15 @@ primes ?
     5832742205057, 51724158235372]
 
     sage: oeis(L)                                       # optional -- internet
-    0: A000110: Bell or exponential numbers: ways of placing n labeled balls into n indistinguishable boxes.
+    0: A000110: Bell or exponential numbers: number of ways to partition a set of n labeled elements.
 
     sage: b = _[0]                                      # optional -- internet
 
     sage: b.formulas()[0]                               # optional -- internet
-    'E.g.f.: exp( exp(x) - 1).'
+    'E.g.f.: exp(exp(x) - 1).'
 
     sage: b.comments()[89]                              # optional -- internet
-    'Number n is prime if mod(a(n)-2,n) = 0. [From _Dmitry Kruchinin_, Feb 14 2012]'
+    'Number n is prime if mod(a(n)-2,n) = 0. -_Dmitry Kruchinin_, Feb 14 2012'
 
     sage: [n for n in range(2, 20) if (b(n)-2) % n == 0]    # optional -- internet
     [2, 3, 5, 7, 11, 13, 17, 19]
@@ -274,7 +274,7 @@ class OEIS:
 
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+        1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
         2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
         sage: fibo = search[0]                         # optional -- internet
@@ -304,7 +304,7 @@ class OEIS:
         sage: sfibo.first_terms(absolute_value=True)[2:20] == fibo.first_terms()[:18]   # optional -- internet
         True
 
-        sage: fibo.formulas()[3]                        # optional -- internet
+        sage: fibo.formulas()[4]                        # optional -- internet
         'F(n) = F(n-1) + F(n-2) = -(-1)^n F(-n).'
 
         sage: fibo.comments()[1]                        # optional -- internet
@@ -329,7 +329,7 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
             2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = oeis('A000045')                # optional -- internet
@@ -340,7 +340,7 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            1: A027926: Triangular array T read by rows: T(n,0) = T(n,2n) = 1 for n >= 0; T(n,1) = 1 for n >= 1; T(n,k) = T(n-1,k-2) + T(n-1,k-1) for k = 2..2n-1, n >= 2.
             2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = _[0]                           # optional -- internet
@@ -487,7 +487,7 @@ class OEIS:
             sage: oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
             1: A177194: Fibonacci numbers whose decimal expression does not contain any digit 0.
-            2: A020695: Pisot sequence E(2,3).
+            2: A212804: Expansion of (1-x)/(1-x-x^2).
 
             sage: fibo = _[0] ; fibo                    # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
@@ -808,7 +808,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.author()                            # optional -- internet
-            '_N. J. A. Sloane_.'
+            '_N. J. A. Sloane_, Apr 30 1991'
 
         TESTS::
 
@@ -832,7 +832,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.keywords()                          # optional -- internet
-            ('core', 'nonn', 'easy', 'nice', 'changed')
+            ('core', 'nonn', 'nice', 'easy', 'hear', 'changed')
 
         TESTS::
 
@@ -918,7 +918,7 @@ class OEISSequence(SageObject):
         ::
 
             sage: sfib = oeis('A039834') ; sfib         # optional -- internet
-            A039834: a(n+2)=-a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
+            A039834: a(n+2) = -a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
             sage: x = sfib.natural_object() ; x.universe()    # optional -- internet
             Integer Ring
@@ -974,7 +974,7 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: s = oeis('A114288') ; s               # optional -- internet
-            A114288: Lexicographically minimal solution of any 9 X 9 sudoku, read by rows.
+            A114288: Lexicographically earliest solution of any 9 X 9 sudoku, read by rows.
 
             sage: s.is_finite()                         # optional -- internet
             True
@@ -1020,7 +1020,7 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: s = oeis('A114288') ; s               # optional -- internet
-            A114288: Lexicographically minimal solution of any 9 X 9 sudoku, read by rows.
+            A114288: Lexicographically earliest solution of any 9 X 9 sudoku, read by rows.
 
             sage: s.is_full()                           # optional -- internet
             True
@@ -1376,7 +1376,8 @@ class OEISSequence(SageObject):
             sage: w.references()                        # optional -- internet
             0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
             1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: Edgar Costa, Robert Gerbicz, and David Harvey, <a href="http://arxiv.org/abs/1209.3436">A search for Wilson primes</a>, 2012
+            2: R. Crandall and C. Pomerance, Prime Numbers: A Computational Perspective, Springer, NY, 2001; see p. 29.
+            3: G. H. Hardy and E. M. Wright, An Introduction to the Theory of Numbers, 5th ed., Oxford Univ. Press, 1979, th. 80.
             ...
 
             sage: _[0]                                  # optional -- internet
@@ -1477,7 +1478,7 @@ class OEISSequence(SageObject):
             sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: f.formulas()[1]                       # optional -- internet
+            sage: f.formulas()[2]                       # optional -- internet
             'F(n) = ((1+sqrt(5))^n-(1-sqrt(5))^n)/(2^n*sqrt(5)).'
 
         TESTS::
@@ -1543,7 +1544,7 @@ class OEISSequence(SageObject):
         EXAMPLES::
 
             sage: sfibo = oeis('A039834') ; sfibo       # optional -- internet
-            A039834: a(n+2)=-a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
+            A039834: a(n+2) = -a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
             sage: sfibo.extensions_or_errors()[0]       # optional -- internet
             'Signs corrected by Len Smiley (smiley(AT)math.uaa.alaska.edu) and _N. J. A. Sloane_.'
@@ -1573,7 +1574,7 @@ class OEISSequence(SageObject):
             sage: c.examples()                          # optional -- internet
             0: Pi = 3.1415926535897932384...
             1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
+            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
 
         TESTS::
 
@@ -1597,7 +1598,7 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.comments()[:3]                      # optional -- internet
-            ("Also called Lam{\\'e}'s sequence.",
+            ("Also sometimes called Lam\xc3\xa9's sequence.",
              "F(n+2) = number of binary sequences of length n that have no consecutive 0's.",
              'F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.')
 
@@ -1734,7 +1735,7 @@ class OEISSequence(SageObject):
             A001113: Decimal expansion of e.
 
             sage: ee.programs()[0]                      # optional -- internet
-            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } [From Harry J. Smith, Apr 15 2009]'
+            '(PARI) { default(realprecision, 50080); x=exp(1); for (n=1, 50000, d=floor(x); x=(x-d)*10; write("b001113.txt", n, " ", d)); } \\\\ _Harry J. Smith_, Apr 15 2009'
 
         TESTS::
 

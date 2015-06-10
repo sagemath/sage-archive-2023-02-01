@@ -129,8 +129,8 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     Return a 2 by 2 Coordination Game.
 
     A coordination game is a particular type of game where the pure Nash
-    equilibrium is for the players to pick the same strategies (or equivalent)
-    strategies [Webb]_.
+    equilibrium is for the players to pick the same strategies strategies
+    [Webb]_.
 
     In general these are represented as a normal form game using the
     following two matrices:
@@ -295,8 +295,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     Return a 2 by 2 AntiCoordination Game.
 
     An anti coordination game is a particular type of game where the pure Nash
-    equilibria is for the players to pick different strategies (or equivalent)
-    strategies.
+    equilibria is for the players to pick different strategies strategies.
 
     In general these are represented as a normal form game using the
     following two matrices:

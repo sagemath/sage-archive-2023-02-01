@@ -160,7 +160,7 @@ class Composition(CombinatorialElement):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):

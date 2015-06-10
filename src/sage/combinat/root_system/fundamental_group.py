@@ -197,6 +197,13 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
     def __init__(self, parent, x):
         r"""
         This should not be called directly
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: x = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f").an_element()
+            sage: TestSuite(x).run()
+
         """
         if x not in parent.special_nodes():
             raise ValueError("%s is not a special node" % x)
@@ -254,6 +261,22 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
     def __cmp__(self, x):
         r"""
         Compare `self` with `x`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: x = F.an_element(); x
+            pi[2]
+            sage: y = x*x; y
+            pi[0]
+            sage: y.__cmp__(x)
+            -1
+            sage: y.__cmp__(y)
+            0
+            sage: x.__cmp__(y)
+            1
+
         """
         if self.__class__  != x.__class__:
             return cmp(self.__class__,x.__class__)
@@ -306,6 +329,16 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
     Element = FundamentalGroupElement
 
     def __init__(self, cartan_type, prefix):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: TestSuite(F).run()
+
+        """
+
         def get_the_index(beta):
             r"""
             Given a dictionary with one key, return this key
@@ -362,6 +395,16 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         Parent.__init__(self, category = Groups().Commutative())
 
     def _element_constructor_(self, x):
+        r"""
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]).an_element() # indirect doctest
+            pi[2]
+
+        """
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
         return self.element_class(self, x)
@@ -400,12 +443,50 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         return self(self.action(x.value())(y.value()))
 
     def cartan_type(self):
+        r"""
+        The Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]).cartan_type()
+            ['A', 3, 1]
+
+        """
         return self._cartan_type
 
     def _repr_(self):
+        r"""
+        A string representing ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]) # indirect doctest
+            Fundamental group of type ['A', 3, 1]
+
+        """
+
         return "Fundamental group of type %s"%self.cartan_type()
 
     def special_nodes(self):
+        r"""
+        The set of nodes of the Dynkin diagram of the affine Cartan type of ``self``
+        which are conjugate to the `0` node.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['D',4,1]).special_nodes()
+            (0, 1, 3, 4)
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1]).special_nodes()
+            (0, 1, 2)
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['C',3,1]).special_nodes()
+            (0, 3)
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['D',4,2]).special_nodes()
+            (0, 3)
+
+        """
         return self._special_nodes
 
     def family(self):
@@ -429,6 +510,16 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
     @cached_method
     def index_set(self):
+        r"""
+        The node set of the affine Cartan type of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1]).index_set()
+            (0, 1, 2)
+
+        """
         return self.cartan_type().index_set()
 
     def action(self, i):
@@ -489,6 +580,21 @@ from sage.rings.finite_rings.integer_mod import Mod
 
 class FundamentalGroupGLElement(FundamentalGroupElement):
     def act_on_classical_ambient(self, wt):
+        r"""
+        Act by ``self`` on the classical ambient weight vector ``wt``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
+            sage: f = F.an_element(); f
+            pi[5]
+            sage: la = F.cartan_type().classical().root_system().ambient_space().an_element(); la
+            (2, 2, 3)
+            sage: f.act_on_classical_ambient(la)
+            (2, 3, 2)
+
+        """
         return wt.map_support(self.parent().action(self.value()))
 
 class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
@@ -498,12 +604,32 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
     Element = FundamentalGroupGLElement
 
     def __init__(self, cartan_type, prefix='pi'):
+        r"""
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
+            sage: TestSuite(F).run()
+
+        """
+
         FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix)
         from sage.rings.integer_ring import ZZ
         self._special_nodes = ZZ
         self._n = cartan_type.n + 1
 
     def _element_constructor_(self, x):
+        r"""
+        Construct an element of ``self`` from ``x``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1], general_linear = True).an_element() # indirect doctest
+            pi[5]
+
+        """
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
         return self.element_class(self, x)
@@ -542,10 +668,35 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         return self(x.value()+y.value())
 
     def _repr_(self):
+        r"""
+        A string representing the fundamental group.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True) # indirect doctest
+            Fundamental group of GL(3)
+
+        """
         return "Fundamental group of GL(%s)"%self._n
 
     def family(self):
-        return NotImplemented
+        r"""
+        The family associated with the set of special nodes.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: fam = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).family() # indirect doctest
+            sage: fam
+            Lazy family (<lambda>(i))_{i in <built-in function IntegerRing>}
+            sage: fam[-3]
+            -3
+
+        """
+        from sage.sets.family import LazyFamily
+        from sage.rings.integer_ring import IntegerRing
+        return LazyFamily(IntegerRing, lambda i: i)
 
     @cached_method
     def an_element(self):

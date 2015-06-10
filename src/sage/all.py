@@ -82,6 +82,7 @@ from time                import sleep
 
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.typeset.all    import *
 from sage.repl.all       import *
 
 from sage.misc.sh import sh

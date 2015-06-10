@@ -2972,63 +2972,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             L = self.root_system.ambient_space() # uses peculiarities of ambient embedding
             return max([root.scalar(root) for root in L.simple_roots()])
 
-        @cached_method
-        def dual_type_cospace(self):
-            r"""
-            Returns the cospace of dual type.
-
-            For example, if invoked on the root lattice of type `['B',2]`, returns the
-            coroot lattice of type `['C',2]`.
-
-            ..warning::
-
-                Not implemented for ambient spaces.
-
-            EXAMPLES::
-
-                sage: CartanType(['B',2]).root_system().root_lattice().dual_type_cospace()
-                Coroot lattice of the Root system of type ['C', 2]
-                sage: CartanType(['F',4]).root_system().coweight_lattice().dual_type_cospace()
-                Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
-
-            """
-            from root_space import RootSpace
-            from weight_space import WeightSpace
-
-            if isinstance(self, RootSpace):
-                if self.root_system.dual_side:
-                    return self.cartan_type().root_system().root_space(self.base_ring())
-                else:
-                    return self.cartan_type().dual().root_system().coroot_space(self.base_ring())
-            if isinstance(self, WeightSpace):
-                if self.root_system.dual_side:
-                    return self.cartan_type().root_system().weight_space(self.base_ring())
-                else:
-                    return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
-            raise TypeError("Not implemented for %s" % self)
-
-        @abstract_method(optional=True)
-        def to_ambient_space_morphism(self):
-            r"""
-            Return the morphism to the ambient space.
-
-            EXAMPLES::
-
-                sage: CartanType(['B',2]).root_system().root_lattice().to_ambient_space_morphism()
-                Generic morphism:
-                From: Root lattice of the Root system of type ['B', 2]
-                To:   Ambient space of the Root system of type ['B', 2]
-                sage: CartanType(['B',2]).root_system().coroot_lattice().to_ambient_space_morphism()
-                Generic morphism:
-                From: Coroot lattice of the Root system of type ['B', 2]
-                To:   Ambient space of the Root system of type ['B', 2]
-                sage: CartanType(['B',2]).root_system().weight_lattice().to_ambient_space_morphism()
-                Generic morphism:
-                From: Weight lattice of the Root system of type ['B', 2]
-                To:   Ambient space of the Root system of type ['B', 2]
-
-            """
-
         def plot_ls_paths(self, paths, plot_labels=None, colored_labels=True, **options):
             r"""
             Plot LS paths.
@@ -3204,6 +3147,63 @@ class RootLatticeRealizations(Category_over_base_ring):
                         mid += diff / QQ(10)
                     G += plot_options.text(i, mid, rgbcolor=plot_options.color(i))
             return G
+
+        @cached_method
+        def dual_type_cospace(self):
+            r"""
+            Returns the cospace of dual type.
+
+            For example, if invoked on the root lattice of type `['B',2]`, returns the
+            coroot lattice of type `['C',2]`.
+
+            ..warning::
+
+                Not implemented for ambient spaces.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().dual_type_cospace()
+                Coroot lattice of the Root system of type ['C', 2]
+                sage: CartanType(['F',4]).root_system().coweight_lattice().dual_type_cospace()
+                Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+
+            """
+            from root_space import RootSpace
+            from weight_space import WeightSpace
+
+            if isinstance(self, RootSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().root_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coroot_space(self.base_ring())
+            if isinstance(self, WeightSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().weight_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
+            raise TypeError, "Not implemented for %s"%self
+
+        @abstract_method(optional=True)
+        def to_ambient_space_morphism(self):
+            r"""
+            Return the morphism to the ambient space.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Root lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().coroot_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Coroot lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().weight_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Weight lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+
+            """
 
     ##########################################################################
 

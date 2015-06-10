@@ -1,4 +1,3 @@
-# distutils: libraries = gmp
 r"""
 Centrality
 
@@ -18,6 +17,7 @@ include "sage/data_structures/bitset.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.graphs.base.static_sparse_graph cimport *
+from libc.string cimport memset
 from libc.stdint cimport uint32_t
 from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational

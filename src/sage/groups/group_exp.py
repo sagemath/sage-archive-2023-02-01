@@ -50,6 +50,18 @@ class GroupExp(Functor):
 
     """
     def __init__(self):
+        r"""
+        Initialize the GroupExp functor.
+
+        EXAMPLES::
+
+            sage: F = GroupExp()
+            sage: F.domain()
+            Category of commutative additive groups
+            sage: F.codomain()
+            Category of groups
+        
+        """
         Functor.__init__(self, CommutativeAdditiveGroups(), Groups())
 
     def _apply_functor(self, x):

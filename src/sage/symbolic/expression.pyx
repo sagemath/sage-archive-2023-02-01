@@ -2325,7 +2325,7 @@ cdef class Expression(CommutativeRingElement):
         Check that :trac:`13326` is fixed::
 
             sage: bool(log(2)*Infinity == Infinity)
-            False
+            True
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

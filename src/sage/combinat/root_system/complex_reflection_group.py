@@ -146,6 +146,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
         self._reflection_index_set_inverse = self._reflection_index_set.inverse_family()
 
     def _irrcomp_repr_(self,W_type):
+        r"""
+        Return the string representation of an irreducible component of ``self``.
+
+        TESTS::
+
+            sage: W = ComplexReflectionGroup(25,[4,1,4],[1,1,4],[5,5,2]); W
+            Reducible finite complex reflection group of rank 12 and type ST25 x G(4,1,4) x A3 x I2(5)
+            sage: for W_type in W._type: print W._irrcomp_repr_(W_type)
+            ST25
+             G(4,1,4)
+             A3
+             I2(5)
+        """
         type_str = ''
         if "ST" in W_type:
             if W_type["ST"] in ZZ:
@@ -791,19 +804,27 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             sage: W = ComplexReflectionGroup((1,1,3))
             sage: W.simple_coroots()
-            [[2, -1], [-1, 2]]
+            ([2, -1], [-1, 2])
 
             sage: W = ComplexReflectionGroup((1,1,4),(2,1,2))
             sage: W.simple_coroots()
-            [[2, -1, 0, 0, 0], [-1, 2, -1, 0, 0], [0, -1, 2, 0, 0], [0, 0, 0, 2, -2], [0, 0, 0, -1, 2]]
+            ([2, -1, 0, 0, 0],
+             [-1, 2, -1, 0, 0],
+             [0, -1, 2, 0, 0],
+             [0, 0, 0, 2, -2],
+             [0, 0, 0, -1, 2])
 
             sage: W = ComplexReflectionGroup((3,1,2))
             sage: W.simple_coroots()
-            [[-2*E(3) - E(3)^2, 0], [-1, 1]]
+            ([-2*E(3) - E(3)^2, 0], [-1, 1])
 
             sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
             sage: W.simple_coroots()
-            [[2, -1, 0, 0, 0], [-1, 2, -1, 0, 0], [0, -1, 2, 0, 0], [0, 0, 0, -2*E(3) - E(3)^2, 0], [0, 0, 0, -1, 1]]
+            ([2, -1, 0, 0, 0],
+             [-1, 2, -1, 0, 0],
+             [0, -1, 2, 0, 0],
+             [0, 0, 0, -2*E(3) - E(3)^2, 0],
+             [0, 0, 0, -1, 1])
         """
         return self._gap_group.simpleCoroots.sage()
 
@@ -1468,7 +1489,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            tba
+            sage: W = ComplexReflectionGroup(4)
+            sage: sorted(W.standard_coxeter_elements())
         """
         if not self.is_irreducible() or not self.is_well_generated():
             raise ValueError("This method is available for irreducible, well-generated complex reflection groups")

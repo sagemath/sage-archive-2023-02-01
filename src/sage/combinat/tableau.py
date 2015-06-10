@@ -2132,6 +2132,85 @@ class Tableau(ClonableList):
             res = res.schensted_insert(i,left=left)
         return res
 
+    def reverse_bump(self,corner):
+        """
+        Reverse row bump the entry of ``self`` at ``corner``.
+    
+        INPUT:
+    
+        - ``corner`` -- an outer corner of the tableau.
+    
+        OUTPUT:
+    
+        An ordered pair consisting of:
+    
+        1. The resulting (smaller) tableau
+        2. The removed entry.
+    
+        .. SEEALSO::
+    
+            :func:`bump`
+    
+        EXAMPLES:
+    
+        This is the reverse of Schensted’s bump.
+    
+        ::
+    
+            sage: T = Tableau([[1,1,2,2,4],[2,3,3],[3,4],[4]])
+            sage: T.reverse_bump((2,1))
+            ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
+            sage: T == T.reverse_bump((2,1)).bump(2)
+            True
+            sage: T.reverse_bump((3,0))
+            ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
+            sage: T.reverse_bump((1,1))
+            Traceback (most recent call last):
+            ...
+            ValueError: (1,1) is not an outer corner
+    
+        Some edge cases:
+    
+        ::
+            sage: Tableau([[1]]).bump((0,0))
+            ([], 1)
+            sage: Tableau([[]]).bump((0,0))
+            Traceback (most recent call last):
+            ...
+            ValueError: (0,0) is not an outer corner
+    
+        .. NOTE::
+    
+            This function does not check whether the tableau is semistandard.
+    
+        """
+        if corner not in self.corners():
+            return ValueError("corner must be an outer corner")
+    
+        new_t = self.to_list()
+        (r,c) = corner
+        to_move = new_t[r][c]
+        
+        # delete square (r,c) from the tableau
+        if len(new_t[r]) > 1:
+            new_t[r] = new_t[r][:-1]
+        else: # (if the square was the only entry of its row, delete the row)
+            new_t = new_t[:-1]
+        
+        while r > 0:
+            # find the rightmost entry of row r-1 that is strictly smaller than to_move
+            # (first candidate is cell (r-1,0))
+            c = 0;
+            while c+1 < len(new_t[r-1]) and new_t[r-1][c+1] < to_move:
+                c = c+1
+            
+            # swap it with to_move
+            new_t[r-1][c], to_move = to_move, new_t[r-1][c]
+    
+            r = r-1
+        return Tableau(new_t),to_move
+
+
     def bump_multiply(left, right):
         """
         Multiply two tableaux using Schensted's bump.

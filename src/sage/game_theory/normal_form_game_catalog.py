@@ -94,7 +94,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     There is a single Nash equilibrium for this at which both thieves defect.
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.PrisonersDilemma()
+        sage: g = normal_form_games.PrisonersDilemma()
         sage: g
         Prisoners dilemma - Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
         sage: g.obtain_nash()
@@ -102,7 +102,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
 
     Note that we can pass other values of R, P, S, T::
 
-        sage: g = game_theory.PrisonersDilemma(R=-1, P=-2, S=-3, T=0)
+        sage: g = normal_form_games.PrisonersDilemma(R=-1, P=-2, S=-3, T=0)
         sage: g
         Prisoners dilemma - Normal Form Game with the following utilities: {(0, 1): [-3, 0], (1, 0): [0, -3], (0, 0): [-1, -1], (1, 1): [-2, -2]}
         sage: g.obtain_nash()
@@ -110,7 +110,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
 
     If we pass values that fail the defining requirement: :math:`T > R > P > S` we get an error message::
 
-        sage: g = game_theory.PrisonersDilemma(R=-1, P=-2, S=0, T=5)
+        sage: g = normal_form_games.PrisonersDilemma(R=-1, P=-2, S=0, T=5)
         Traceback (most recent call last):
         ...
         TypeError: The input values for a Prisoners Dilemma must be of the form T > R > P > S.
@@ -166,7 +166,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
     This is the default version of the game created by this function::
 
-        sage: g = game_theory.CoordinationGame()
+        sage: g = normal_form_games.CoordinationGame()
         sage: g
         Coordination game - Normal Form Game with the following utilities: {(0, 1): [0, 0], (1, 0): [0, 0], (0, 0): [10, 5], (1, 1): [5, 10]}
 
@@ -177,7 +177,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
     We can also pass different values of the input parameters::
 
-        sage: g = game_theory.CoordinationGame(A=9, a=6, B=2, b=1, C=0, c=1, D=4, d=11)
+        sage: g = normal_form_games.CoordinationGame(A=9, a=6, B=2, b=1, C=0, c=1, D=4, d=11)
         sage: g
         Coordination game - Normal Form Game with the following utilities: {(0, 1): [0, 1], (1, 0): [2, 1], (0, 0): [9, 6], (1, 1): [4, 11]}
         sage: g.obtain_nash()
@@ -185,7 +185,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
     Note that an error is returned if the defining inequalities are not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
 
-        sage: g = game_theory.CoordinationGame(A=9, a=6, B=0, b=1, C=2, c=10, D=4, d=11)
+        sage: g = normal_form_games.CoordinationGame(A=9, a=6, B=0, b=1, C=2, c=10, D=4, d=11)
         Traceback (most recent call last):
         ...
         TypeError: The input values for a Coordination game must be of the form A > B, D > C, a > c and d > b.
@@ -232,7 +232,7 @@ def BattleOfTheSexes():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.BattleOfTheSexes()
+        sage: g = normal_form_games.BattleOfTheSexes()
         sage: g
         Battle of the sexes - Coordination game - Normal Form Game with the following utilities: {(0, 1): [1, 1], (1, 0): [0, 0], (0, 0): [3, 2], (1, 1): [2, 3]}
         sage: g.obtain_nash()
@@ -278,7 +278,7 @@ def StagHunt():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.StagHunt()
+        sage: g = normal_form_games.StagHunt()
         sage: g
         Stag hunt - Coordination game - Normal Form Game with the following utilities: {(0, 1): [0, 4], (1, 0): [4, 0], (0, 0): [5, 5], (1, 1): [2, 2]}
         sage: g.obtain_nash()
@@ -331,7 +331,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
     This is the default version of the game created by this function::
 
-        sage: g = game_theory.AntiCoordinationGame()
+        sage: g = normal_form_games.AntiCoordinationGame()
         sage: g
         Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [1, 5], (1, 0): [5, 1], (0, 0): [3, 3], (1, 1): [0, 0]}
 
@@ -342,7 +342,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
     We can also pass different values of the input parameters::
 
-        sage: g = game_theory.AntiCoordinationGame(A=2, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
+        sage: g = normal_form_games.AntiCoordinationGame(A=2, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
         sage: g
         Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [2, 8], (1, 0): [4, 2], (0, 0): [2, 3], (1, 1): [1, 0]}
         sage: g.obtain_nash()
@@ -350,7 +350,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
     Note that an error is returned if the defining inequality is not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
 
-        sage: g = game_theory.AntiCoordinationGame(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
+        sage: g = normal_form_games.AntiCoordinationGame(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
         ...
         TypeError: The input values for an Anti coordination game must be of the form A < B, D < C, a < c and d < b.
@@ -416,7 +416,7 @@ def HawkDove(v=2, c=3):
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.HawkDove()
+        sage: g = normal_form_games.HawkDove()
         sage: g
         Hawk-Dove - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [2, 0], (1, 0): [0, 2], (0, 0): [-2, -2], (1, 1): [1, 1]}
         sage: g.obtain_nash()
@@ -482,7 +482,7 @@ def Pigs():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.Pigs()
+        sage: g = normal_form_games.Pigs()
         sage: g
         Pigs - Normal Form Game with the following utilities: {(0, 1): [1, 4], (1, 0): [6, -1], (0, 0): [3, 1], (1, 1): [0, 0]}
         sage: g.obtain_nash()
@@ -520,7 +520,7 @@ def MatchingPennies():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.MatchingPennies()
+        sage: g = normal_form_games.MatchingPennies()
         sage: g
         Matching pennies - Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 0): [-1, 1], (0, 0): [1, -1], (1, 1): [1, -1]}
         sage: g.obtain_nash()
@@ -559,7 +559,7 @@ def RPS():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.RPS()
+        sage: g = normal_form_games.RPS()
         sage: g
         Rock-Paper-Scissors - Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 2): [-1, 1], (0, 0): [0, 0], (2, 1): [1, -1], (1, 1): [0, 0], (2, 0): [-1, 1], (2, 2): [0, 0], (1, 0): [1, -1], (0, 2): [1, -1]}
         sage: g.obtain_nash()
@@ -609,7 +609,7 @@ def RPSLS():
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.RPSLS()
+        sage: g = normal_form_games.RPSLS()
         sage: g
         Rock-Paper-Scissors-Lizard-Spock - Normal Form Game with the following utilities: {(1, 3): [-1, 1], (3, 0): [-1, 1], (2, 1): [1, -1], (0, 3): [1, -1], (4, 0): [1, -1], (1, 2): [-1, 1], (3, 3): [0, 0], (4, 4): [0, 0], (2, 2): [0, 0], (4, 1): [-1, 1], (1, 1): [0, 0], (3, 2): [-1, 1], (0, 0): [0, 0], (0, 4): [-1, 1], (1, 4): [1, -1], (2, 3): [1, -1], (4, 2): [1, -1], (1, 0): [1, -1], (0, 1): [-1, 1], (3, 1): [1, -1], (2, 4): [-1, 1], (2, 0): [-1, 1], (4, 3): [-1, 1], (3, 4): [1, -1], (0, 2): [1, -1]}
         sage: g.obtain_nash()
@@ -674,7 +674,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.Chicken()
+        sage: g = normal_form_games.Chicken()
         sage: g
         Chicken - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 0): [1, -1], (0, 0): [0, 0], (1, 1): [-10, -10]}
         sage: g.obtain_nash()
@@ -682,7 +682,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
 
     Non default values can be passed::
 
-        sage: g = game_theory.Chicken(A=0, a=0, B=2, b=-1, C=-1, c=2, D=-100, d=-100)
+        sage: g = normal_form_games.Chicken(A=0, a=0, B=2, b=-1, C=-1, c=2, D=-100, d=-100)
         sage: g
         Chicken - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [-1, 2], (1, 0): [2, -1], (0, 0): [0, 0], (1, 1): [-100, -100]}
         sage: g.obtain_nash()
@@ -691,7 +691,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     Note that an error is returned if the defining inequalities are not obeyed
     :math:`B > A > C > D` and :math:`c > a > b > d`::
 
-        sage: g = game_theory.Chicken(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
+        sage: g = normal_form_games.Chicken(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
         ...
         TypeError: The input values for a game of chicken must be of the form B > A > C > D and c > a > b > d.
@@ -760,7 +760,7 @@ def TravellersDilemma(max_value=10):
 
     This can be implemented in Sage using the following::
 
-        sage: g = game_theory.TravellersDilemma()
+        sage: g = normal_form_games.TravellersDilemma()
         sage: g
         Travellers dilemma - Normal Form Game with the following utilities: {(7, 3): [5, 1], (4, 7): [1, 5], (1, 3): [5, 9], (4, 8): [0, 4], (3, 0): [9, 5], (2, 8): [0, 4], (8, 0): [4, 0], (7, 8): [0, 4], (5, 4): [7, 3], (0, 7): [1, 5], (5, 6): [2, 6], (2, 6): [2, 6], (1, 6): [2, 6], (5, 1): [7, 3], (3, 7): [1, 5], (0, 3): [5, 9], (8, 5): [4, 0], (2, 5): [3, 7], (5, 8): [0, 4], (4, 0): [8, 4], (1, 2): [6, 10], (7, 4): [5, 1], (6, 4): [6, 2], (3, 3): [7, 7], (2, 0): [10, 6], (8, 1): [4, 0], (7, 6): [5, 1], (4, 4): [6, 6], (6, 3): [6, 2], (1, 5): [3, 7], (8, 8): [2, 2], (7, 2): [5, 1], (3, 6): [2, 6], (2, 2): [8, 8], (7, 7): [3, 3], (5, 7): [1, 5], (5, 3): [7, 3], (4, 1): [8, 4], (1, 1): [9, 9], (2, 7): [1, 5], (3, 2): [9, 5], (0, 0): [10, 10], (6, 6): [4, 4], (5, 0): [7, 3], (7, 1): [5, 1], (4, 5): [3, 7], (0, 4): [4, 8], (5, 5): [5, 5], (1, 4): [4, 8], (6, 0): [6, 2], (7, 5): [5, 1], (2, 3): [5, 9], (2, 1): [10, 6], (8, 7): [4, 0], (6, 8): [0, 4], (4, 2): [8, 4], (1, 0): [11, 7], (0, 8): [0, 4], (6, 5): [6, 2], (3, 5): [3, 7], (0, 1): [7, 11], (8, 3): [4, 0], (7, 0): [5, 1], (4, 6): [2, 6], (6, 7): [1, 5], (8, 6): [4, 0], (5, 2): [7, 3], (6, 1): [6, 2], (3, 1): [9, 5], (8, 2): [4, 0], (2, 4): [4, 8], (3, 8): [0, 4], (0, 6): [2, 6], (1, 8): [0, 4], (6, 2): [6, 2], (4, 3): [8, 4], (1, 7): [1, 5], (0, 5): [3, 7], (3, 4): [4, 8], (0, 2): [6, 10], (8, 4): [4, 0]}
         sage: g.obtain_nash() # optional - lrs
@@ -770,7 +770,7 @@ def TravellersDilemma(max_value=10):
      different maximum value of the luggage. Below is an implementation
     with a maximum value of 5::
 
-        sage: g = game_theory.TravellersDilemma(5)
+        sage: g = normal_form_games.TravellersDilemma(5)
         sage: g
         Travellers dilemma - Normal Form Game with the following utilities: {(0, 1): [2, 6], (1, 2): [1, 5], (3, 2): [4, 0], (0, 0): [5, 5], (3, 3): [2, 2], (3, 0): [4, 0], (3, 1): [4, 0], (2, 1): [5, 1], (0, 2): [1, 5], (2, 0): [5, 1], (1, 3): [0, 4], (2, 3): [0, 4], (2, 2): [3, 3], (1, 0): [6, 2], (0, 3): [0, 4], (1, 1): [4, 4]}
         sage: g.obtain_nash()

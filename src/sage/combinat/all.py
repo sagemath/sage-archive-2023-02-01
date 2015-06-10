@@ -146,8 +146,8 @@ deprecated_callable_import(6637,
                            'sage.combinat.backtrack',
                            globals(),
                            locals(),
-                           ["SearchForest", 
-                            "TransitiveIdeal", 
+                           ["SearchForest",
+                            "TransitiveIdeal",
                             "TransitiveIdealGraded"],
                            ("This class soon will not be available in that "
                             "way anymore. Use RecursivelyEnumeratedSet "
@@ -198,5 +198,6 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
 # Fully Packed Loop
-lazy_import('sage.combinat.fully_packed_loop', 'FullyPackedLoop')
+from fully_packed_loop import FullyPackedLoop, FullyPackedLoops
+#lazy_import('sage.combinat.fully_packed_loop', 'FullyPackedLoop', 'FullyPackedLoops')
 

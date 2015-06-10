@@ -364,47 +364,81 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     return g
 
 
-def HawkDove():
+def HawkDove(v=2, c=3):
     r"""
     Return a Hawk Dove game.
 
-    Suppose two birds of prey must share a limited resource.
+    Suppose two birds of prey must share a limited resource :math:`v`.
     The birds can act like a hawk or a dove.
-    Hawks always fight over the resource to the point of exterminating a
-    fellow hawk and/or take a majority of the resource from a dove.
-    Two doves can share the resource.
+
+    - If a dove meets a hawk, the hawk takes the resources.
+    - If two doves meet they share the resources.
+    - If two hawks meet, one will win (with equal expectation) and take the
+      resources while the other will suffer a cost of :math:`c` where
+      :math:`c>v`.
+
     This can be modeled as a normal form game using the following two matrices
-    [Cressman]_:
+    [Webb]_:
 
     .. math::
 
         A = \begin{pmatrix}
-            0&3\\
-            1&2\\
+            v/2-c&v\\
+            0&v/2\\
             \end{pmatrix}
 
 
         B = \begin{pmatrix}
+            v/2-c&0\\
+            v&v/2\\
+            \end{pmatrix}
+
+    Here are the games with the default values of :math:`v=2` and :math:`c=3`.
+
+    .. math::
+
+        A = \begin{pmatrix}
+            -2&2\\
             0&1\\
-            3&2\\
+            \end{pmatrix}
+
+
+        B = \begin{pmatrix}
+            -2&0\\
+            2&1\\
             \end{pmatrix}
 
     This is a particular example of an anti coordination game.
     There are three Nash equilibria:
 
         1. One bird acts like a Hawk and the other like a Dove.
-        2. Both birds are equally likely to act like a Hawk or a Dove.
+        2. Both birds mix being a Hawk and a Dove
 
     This can be implemented in Sage using the following::
 
         sage: g = game_theory.HawkDove()
         sage: g
-        Hawk-Dove - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [2, 0], (1, 0): [0, 2], (0, 0): [-1, -1], (1, 1): [1, 1]}
+        Hawk-Dove - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [2, 0], (1, 0): [0, 2], (0, 0): [-2, -2], (1, 1): [1, 1]}
         sage: g.obtain_nash()
-        [[(0, 1), (1, 0)], [(1/2, 1/2), (1/2, 1/2)], [(1, 0), (0, 1)]]
+        [[(0, 1), (1, 0)], [(1/3, 2/3), (1/3, 2/3)], [(1, 0), (0, 1)]]
 
+        sage: g = normal_form_games.HawkDove(v=1, c=3)
+        sage: g
+        Hawk-Dove - Anti coordination game - Normal Form Game with the following utilities: {(0, 1): [1, 0], (1, 0): [0, 1], (0, 0): [-5/2, -5/2], (1, 1): [1/2, 1/2]}
+        sage: g.obtain_nash()
+        [[(0, 1), (1, 0)], [(1/6, 5/6), (1/6, 5/6)], [(1, 0), (0, 1)]]
+
+    Note that an error is returned if the defining inequality is not obeyed
+    :math:`c < v`:
+
+        sage: g = normal_form_games.HawkDove(v=5, c=1)
+        Traceback (most recent call last):
+        ...
+        TypeError: The input values for a Hawk Dove game must be of the form c>v.
     """
-    g = AntiCoordinationGame(A=-1, a=-1, B=0, b=2, C=2, c=0, D=1, d=1)
+    if not (c>v):
+        raise TypeError("The input values for a Hawk Dove game must be of the form c>v.")
+    g = AntiCoordinationGame(A=v/2-c, a=v/2-c, B=0, b=v, C=v, c=0, D=v/2, d=v/2)
     g.rename('Hawk-Dove - ' + repr(g))
     return g
 

@@ -2160,7 +2160,7 @@ class Tableau(ClonableList):
             sage: T = Tableau([[1,1,2,2,4],[2,3,3],[3,4],[4]])
             sage: T.reverse_bump((2,1))
             ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
-            sage: T == T.reverse_bump((2,1)).bump(2)
+            sage: T == T.reverse_bump((2,1))[0].bump(2)
             True
             sage: T.reverse_bump((3,0))
             ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
@@ -2172,9 +2172,9 @@ class Tableau(ClonableList):
         Some edge cases:
     
         ::
-            sage: Tableau([[1]]).bump((0,0))
+            sage: Tableau([[1]]).reverse_bump((0,0))
             ([], 1)
-            sage: Tableau([[]]).bump((0,0))
+            sage: Tableau([[]]).reverse_bump((0,0))
             Traceback (most recent call last):
             ...
             ValueError: (0,0) is not an outer corner
@@ -2185,7 +2185,7 @@ class Tableau(ClonableList):
     
         """
         if corner not in self.corners():
-            return ValueError("corner must be an outer corner")
+            raise ValueError(str(corner) + “ is not an outer corner")
     
         new_t = self.to_list()
         (r,c) = corner

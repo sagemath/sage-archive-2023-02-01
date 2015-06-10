@@ -243,16 +243,20 @@ REFERENCES:
    *The toggle group, homomesy, and the Razumov-Stroganov correspondence
    :arxiv:`abs/1503.08898`
 """
-from sage.structure.sage_object import SageObject
-from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration
+
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import Element
+#from sage.structure.sage_object import SageObject
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration, SixVertexModel
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
 from sage.matrix.constructor import matrix
 from sage.plot.line import line
 from sage.combinat.perfect_matching import PerfectMatching
 
-
-class FullyPackedLoop(SageObject):
+class FullyPackedLoop(Element):
     """
     A class for fully packed loops
     """
@@ -1013,3 +1017,71 @@ class FullyPackedLoop(SageObject):
                     end_points[(n + 2 + k)/2] = (k, n-1)
 
         return end_points
+
+class FullyPackedLoops(Parent, UniqueRepresentation):
+    r"""
+    Class of all fully packed loops on an  `n \times n` grid
+    INPUT:
+
+    - ``n`` -- the number of row (and column) or grid
+
+    EXAMPLES:
+
+    This will create an instance to manipulate the fully packed loops of size 3::
+
+        sage: FPLs = FullyPackedLoops(3)
+        sage: FPLs
+        Fully packed loops on a 3x3 grid
+        sage: FPLs.cardinality()
+        7
+
+    When using the square ice model, it is known that the number of
+    configurations is equal to the number of alternating sign matrices::
+
+        sage: M = FullyPackedLoops(1)
+        sage: len(M)
+        1
+        sage: M = FullyPackedLoops(4)
+        sage: len(M)
+        42
+        sage: all(len(SixVertexModel(n, boundary_conditions='ice'))
+        ....:     == FullyPackedLoops(n).cardinality() for n in range(1, 7))
+        True
+    """
+    def __init__(self, n):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: FPLs = FullyPackedLoops(4)
+            sage: TestSuite(FPLs).run()
+        """
+        self._n = n
+        Parent.__init__(self, category=FiniteEnumeratedSets())
+
+    def __iter__(self):
+        """
+        Iterate through ``self``.
+
+        EXAMPLES::
+
+            sage: FPLs = FullyPackedLoops(2)
+            sage: len(FPLs)
+            2
+        """
+        for X in SixVertexModel(self._n, boundary_conditions='ice'):
+            yield self.element_class(X)
+
+    Element = FullyPackedLoop
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: FPLs = FullyPackedLoops(4); FPLs
+            Fully packed loops on a 4x4 grid
+        """
+        return "Fully packed loops on a %sx%s grid" % (self._n,self._n)

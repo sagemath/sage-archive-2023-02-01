@@ -15,6 +15,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
@@ -379,7 +380,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         if isinstance(P, DualPBWBasis):
             return self(P.expansion(x))
         # ok, not a shuffle algebra element (or should not be viewed as one).
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             from sage.misc.sage_eval import sage_eval
             return sage_eval(x,locals=self.gens_dict())
         R = self.base_ring()

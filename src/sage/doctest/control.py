@@ -20,6 +20,7 @@ AUTHORS:
 #*****************************************************************************
 
 import random, os, sys, time, json, re, types
+import six
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
@@ -235,7 +236,7 @@ class DocTestController(SageObject):
         if options.verbose:
             options.show_skipped = True
 
-        if isinstance(options.optional, basestring):
+        if isinstance(options.optional, six.string_types):
             s = options.optional.lower()
             if s in ['all', 'true']:
                 options.optional = True
@@ -1027,7 +1028,7 @@ def run_doctests(module, options=None):
                 return [base]
             else:
                 return [os.path.join(base, file) + ext]
-        elif isinstance(x, basestring):
+        elif isinstance(x, six.string_types):
             return [os.path.abspath(x)]
     F = stringify(module)
     if options is None:

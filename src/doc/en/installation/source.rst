@@ -786,12 +786,6 @@ how it is built:
   You can benefit from this no-plot feature with other make targets by doing
   ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
 
-- ``make build-serial`` builds the components of Sage serially, rather
-  than in parallel (parallel building is the default).
-  Running ``make build-serial`` is equivalent to setting the environment
-  variable :envvar:`SAGE_PARALLEL_SPKG_BUILD` to "no" -- see below for
-  information about this variable.
-
 - ``make ptest`` and ``make ptestlong``: these run Sage's test suite.
   The first version skips tests that need more than a few seconds to complete
   and those which depend on optional packages or additional software.
@@ -886,8 +880,6 @@ Here are some of the more commonly used variables affecting the build process:
   If this is set to ``no``, then each spkg may still take advantage of the setting
   of :envvar:`MAKE` to build using multiple jobs, but the spkgs will be built
   one at a time.
-  Alternatively, run ``make build-serial`` which sets this environment
-  variable for you.
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,

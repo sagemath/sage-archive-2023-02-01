@@ -1476,6 +1476,28 @@ class Tableau(ClonableList):
         """
         return all(row[i]<row[i+1] for row in self for i in range(len(row)-1))
 
+    def is_row_increasing(self,weak=False):
+        r"""
+        Return true if the entries in each row are in increasing order.
+
+        """
+        def test(a,b):
+            if weak:
+                return a <= b
+            else:
+                return a < b
+        return all(test(row[i],row[i+1]) for row in self for i in range(len(row)-1))
+
+    def is_column_increasing(self,weak=False):
+        def test(a,b):
+            if weak:
+                return a <= b
+            else:
+                return a < b
+        def tworow(a, b):
+            return all(test(a[i], b_i) for i, b_i in enumerate(b))
+        return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
+
     def is_column_strict(self):
         """
         Return ``True`` if ``self`` is a column strict tableau and ``False``
@@ -2168,6 +2190,10 @@ class Tableau(ClonableList):
             Traceback (most recent call last):
             ...
             ValueError: (1, 1) is not an outer corner
+            sage: Tableau([[2,2,1],[3,3]]).reverse_bump((0,2))
+            Traceback (most recent call last):
+            ...
+            ValueError: Reverse bumping is only defined for semistandard tableaux
     
         Some edge cases:
 
@@ -2182,12 +2208,16 @@ class Tableau(ClonableList):
     
         .. NOTE::
     
-            This function does not check whether the tableau is semistandard.
+            Reverse row bumping is only implemented for tableaux with weakly increasing
+            and strictly increasing columns (though the tableau does not need to be a
+            SemistandardTableau).
     
         """
         if corner not in self.corners():
             raise ValueError("%s is not an outer corner" % str(corner))
-    
+        if not (self.is_row_increasing(weak=True) and self.is_column_increasing(weak=False)):
+            raise ValueError("Reverse bumping is only defined for semistandard tableaux")
+
         new_t = self.to_list()
         (r,c) = corner
         to_move = new_t[r][c]
@@ -2199,9 +2229,8 @@ class Tableau(ClonableList):
             new_t = new_t[:-1]
         
         while r > 0:
-            # find the rightmost entry of row r-1 that is strictly smaller than to_move
-            # (first candidate is cell (r-1,0))
-            c = 0;
+            # starting from (r-1,c), find the rightmost entry of row r-1
+            # that is strictly smaller than to_move
             while c+1 < len(new_t[r-1]) and new_t[r-1][c+1] < to_move:
                 c = c+1
             
@@ -2209,7 +2238,9 @@ class Tableau(ClonableList):
             new_t[r-1][c], to_move = to_move, new_t[r-1][c]
     
             r = r-1
-        return Tableau(new_t),to_move
+        if isinstance(self,SemistandardTableau):
+            return SemistandardTableau(new_t), to_move
+        return Tableau(new_t), to_move
 
 
     def bump_multiply(left, right):

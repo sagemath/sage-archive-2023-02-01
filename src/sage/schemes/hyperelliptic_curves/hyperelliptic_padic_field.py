@@ -39,10 +39,10 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         OUTPUT:
 
-        Returns a point `X(t) = ( x(t) : y(t) : z(t) )` such that
+        Returns a point `X(t) = ( x(t) : y(t) : z(t) )` such that:
 
-            (1) `X(0) = P` and `X(1) = Q` if `P, Q` are not in the infinite disc
-            (2) `X(P[0]^g}/P[1]) = P` and `X(Q[0]^g/Q[1]) = Q` if `P, Q` are in the infinite disc
+        (1) `X(0) = P` and `X(1) = Q` if `P, Q` are not in the infinite disc
+        (2) `X(P[0]^g/P[1]) = P` and `X(Q[0]^g/Q[1]) = Q` if `P, Q` are in the infinite disc
 
         EXAMPLES::
 

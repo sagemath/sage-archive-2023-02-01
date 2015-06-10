@@ -126,25 +126,25 @@ Hyperelliptic curves
    :maxdepth: 2
 
    sage/schemes/hyperelliptic_curves/constructor
-   sage/schemes/hyperelliptic_curves/hyperelliptic_finite_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_generic
+   sage/schemes/hyperelliptic_curves/hyperelliptic_finite_field
+   sage/schemes/hyperelliptic_curves/hyperelliptic_padic_field
+   sage/schemes/hyperelliptic_curves/hyperelliptic_rational_field
 
    sage/schemes/hyperelliptic_curves/mestre
 
    sage/schemes/hyperelliptic_curves/monsky_washnitzer
+   sage/schemes/hyperelliptic_curves/hypellfrob
 
-   sage/schemes/hyperelliptic_curves/jacobian_g2
    sage/schemes/hyperelliptic_curves/jacobian_generic
+   sage/schemes/hyperelliptic_curves/jacobian_g2
    sage/schemes/hyperelliptic_curves/jacobian_homset
    sage/schemes/hyperelliptic_curves/jacobian_morphism
 
-   sage/schemes/hyperelliptic_curves/hypellfrob
-   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_finite_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_g2_generic
+   sage/schemes/hyperelliptic_curves/hyperelliptic_g2_finite_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_g2_padic_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_g2_rational_field
-   sage/schemes/hyperelliptic_curves/hyperelliptic_padic_field
-   sage/schemes/hyperelliptic_curves/hyperelliptic_rational_field
    sage/schemes/hyperelliptic_curves/invariants
    sage/schemes/hyperelliptic_curves/kummer_surface
 

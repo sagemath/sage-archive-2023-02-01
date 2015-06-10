@@ -50,7 +50,7 @@ What about a sequence starting with `3, 7, 15, 1` ?
 ::
 
     sage: x = c.natural_object() ; x.parent()           # optional -- internet
-    Field of all continued fractions
+    <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
     sage: x.convergents()[:7]                           # optional -- internet
     [3, 22/7, 333/106, 355/113, 103993/33102, 104348/33215, 208341/66317]
@@ -149,7 +149,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
-from sage.rings.contfrac import ContinuedFractionField
+from sage.rings.continued_fraction import continued_fraction
 from sage.rings.real_lazy import RealLazyField
 from sage.misc.misc import verbose
 from sage.misc.cachefunc import cached_method
@@ -863,8 +863,7 @@ class OEISSequence(SageObject):
               RealLazyField()).
 
         - If the sequence ``self`` corresponds to the convergents of a
-              continued fraction, returns the associated continued
-              fraction (as an element of ContinuedFractionField()).
+              continued fraction, returns the associated continued fraction.
 
         .. WARNING::
 
@@ -883,9 +882,13 @@ class OEISSequence(SageObject):
             A002852: Continued fraction for Euler's constant (or Euler-Mascheroni constant) gamma.
 
             sage: x = g.natural_object() ; x.parent()   # optional -- internet
-            Field of all continued fractions
+            <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
-            sage: x[:20] == continued_fraction(euler_gamma, nterms=20)  # optional -- internet
+            sage: RDF(x) == RDF(euler_gamma)
+            True
+
+            sage: cfg = continued_fraction(euler_gamma)
+            sage: x[:90] == cfg[:90]                    # optional -- internet
             True
 
         ::
@@ -930,7 +933,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
             sage: s.natural_object().parent()
-            QQ as continued fractions
+            <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
             sage: s = oeis._imaginary_sequence('nonn')
             sage: s.natural_object().universe()
@@ -941,7 +944,7 @@ class OEISSequence(SageObject):
             Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
-            return ContinuedFractionField()(self.first_terms())
+            return continued_fraction(self.first_terms())
         if 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))

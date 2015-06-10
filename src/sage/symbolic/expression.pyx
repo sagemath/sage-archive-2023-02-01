@@ -4014,6 +4014,7 @@ cdef class Expression(CommutativeRingElement):
             1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
+            sage: x,y,p,q = var('x,y,p,q', domain='complex')
         """
         if side is not None:
             if not is_a_relational(self._gobj):

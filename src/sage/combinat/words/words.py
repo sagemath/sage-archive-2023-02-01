@@ -1670,13 +1670,9 @@ class FiniteWords_length_k_over_OrderedAlphabet(FiniteWords_over_OrderedAlphabet
             word: baczx
         """
         letters = list(self.alphabet().some_elements())
-        m = len(letters)
-        if m > self._length:
-            return self(letters[:self._length])
-        else:
-            r = self._length % m
-            q = (self._length - r) / m
-            return self(letters * int(q) + letters[:r])
+        r = self._length % len(letters)
+        q = (self._length - r) / len(letters)
+        return self(letters * int(q) + letters[:r])
 
     def cardinality(self):
         r"""

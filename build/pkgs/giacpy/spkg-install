@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ###########################################
-## Giacpy 
+## Giacpy
 ###########################################
 
 
@@ -19,10 +19,13 @@ cd src
 echo "Deleting $SAGE_LOCAL/lib/python/site-packages/giacpy*"
 rm -rf "$SAGE_LOCAL"/lib/python/site-packages/giacpy*
 
+# The CFLAGS modification is because of a not found ccobject.h. This file is not
+# directly imported  by giacpy, but giacpy cimports Integer which (in sage 6.7)
+# uses ccobject.h but this file was moved to src/sage/ext
+export CFLAGS="$CFLAGS -I$SAGE_SRC/sage/ext"
 
 sage setup.py install
 
 if [ $? -ne 0 ]; then
     exit 1
 fi
-

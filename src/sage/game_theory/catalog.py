@@ -587,7 +587,7 @@ def RPSLS():
     return g
 
 
-def Chicken():
+def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     r"""
     Return a Chicken game.
 
@@ -595,7 +595,25 @@ def Chicken():
     towards a cliff and the winner is declared as the last one to swerve.
     If neither player swerves they will both fall off the cliff.
 
-    This can be modeled as a normal form game using the following two matrices [Watson]_:
+    This can be modeled as a particular type of anti coordination game
+    following two matrices:
+
+    .. math::
+
+        A = \begin{pmatrix}
+            A&C\\
+            B&D\\
+            \end{pmatrix}
+
+        B = \begin{pmatrix}
+            a&c\\
+            b&d\\
+            \end{pmatrix}
+
+    Where :math:`A < B, D < C` and :math:`a < c, d < b` but with the extra
+    condition that :math:`A>C` and :math:`a>b`.
+
+    Here are the numeric values used by default [Watson]_:
 
     .. math::
 
@@ -610,7 +628,6 @@ def Chicken():
             -1&-10\\
             \end{pmatrix}
 
-    This is a particular example of an anti coordination game.
     There are three Nash equilibria:
 
         1. The second player swerving
@@ -624,8 +641,26 @@ def Chicken():
         Chicken: Anti coordination game: Normal Form Game with the following utilities: {(0, 1): [-1, 1], (1, 0): [1, -1], (0, 0): [0, 0], (1, 1): [-10, -10]}
         sage: g.obtain_nash()
         [[(0, 1), (1, 0)], [(9/10, 1/10), (9/10, 1/10)], [(1, 0), (0, 1)]]
+
+    Non default values can be passed::
+
+        sage: g = game_theory.Chicken(A=0, a=0, B=2, b=-1, C=-1, c=2, D=-100, d=-100)
+        sage: g
+        Chicken: Anti coordination game: Normal Form Game with the following utilities: {(0, 1): [-1, 2], (1, 0): [2, -1], (0, 0): [0, 0], (1, 1): [-100, -100]}
+        sage: g.obtain_nash()
+        [[(0, 1), (1, 0)], [(99/101, 2/101), (99/101, 2/101)], [(1, 0), (0, 1)]]
+
+    Note that an error is returned if the defining inequality is not obeyed
+    :math:`B > A > C > D` and :math:`c > a > b > d`::
+
+        sage: g = game_theory.Chicken(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
+        Traceback (most recent call last):
+        ...
+        TypeError: The input values for a game of chicken must be of the form B > A > C > D and c > a > b > d.
     """
-    g = AntiCoordinationGame(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10)
+    if not (B > A > C > D and c > a > b > d):
+        raise TypeError("The input values for a game of chicken must be of the form B > A > C > D and c > a > b > d.")
+    g = AntiCoordinationGame(A=A, a=a, B=B, b=b, C=C, c=c, D=D, d=d)
     g.rename('Chicken: ' + repr(g))
     return g
 

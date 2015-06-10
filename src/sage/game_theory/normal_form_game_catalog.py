@@ -767,7 +767,7 @@ def TravellersDilemma(max_value=10):
         [[(0, 0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1)]]
 
     Note that this command can be used to create travellers dilemma for a
-     different maximum value of the luggage. Below is an implementation
+    different maximum value of the luggage. Below is an implementation
     with a maximum value of 5::
 
         sage: g = normal_form_games.TravellersDilemma(5)

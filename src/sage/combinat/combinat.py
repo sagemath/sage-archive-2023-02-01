@@ -2681,9 +2681,12 @@ def bell_polynomial(n, k):
 
     .. MATH::
 
-       B_{n,k}(x_0, x_1, \ldots, x_{n-k}) = \sum_{\sum{j_i}=k, \sum{(i+1) j_i}
-       =n} \frac{n!}{j_0!j_1!\cdots j_{n-k}!} \left(\frac{x_0}{(0+1)!}\right)^{j_0} \left(\frac{x_1}{(1+1)!}\right)^{j_1}
-       \cdots \left(\frac{x_{n-k}}{(n-k+1)!}\right)^{j_{n-k}}.
+       B_{n,k}(x_0, x_1, \ldots, x_{n-k}) =
+            \sum_{\sum{j_i}=k, \sum{(i+1) j_i}=n}
+            \frac{n!}{j_0!j_1!\cdots j_{n-k}!}
+            \left(\frac{x_0}{(0+1)!}\right)^{j_0}
+            \left(\frac{x_1}{(1+1)!}\right)^{j_1} \cdots
+            \left(\frac{x_{n-k}}{(n-k+1)!}\right)^{j_{n-k}}.
 
     INPUT:
 

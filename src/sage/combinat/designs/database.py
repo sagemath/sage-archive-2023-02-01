@@ -334,7 +334,7 @@ def OA_7_18():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
-    M = [G(map(int,xxx)) for xxx in M.split()]
+    M = [G([int(_) for _ in xx]) for xx in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(7)]
 
     Mb = []
@@ -3224,7 +3224,7 @@ def DM_24_8_1():
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
-    G = cartesian_product(map(AdditiveCyclic,[2,2,6]))
+    G = cartesian_product([AdditiveCyclic(_) for _ in [2, 2, 6]])
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]

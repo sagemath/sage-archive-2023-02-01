@@ -457,7 +457,8 @@ class FullyPackedLoop(SageObject):
             sage: FullyPackedLoop(M) == M
             False
         """
-        return repr(self) == repr(other) and self.end_points == self.end_points
+        return repr(self) == repr(other) and self.end_points == self.end_points\
+        and self._six_vertex_model == other._six_vertex_model
 
     def to_alternating_sign_matrix(self):
         """

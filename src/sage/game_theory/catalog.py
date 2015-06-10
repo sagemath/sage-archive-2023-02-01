@@ -313,7 +313,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
             b&d\\
             \end{pmatrix}
 
-    Where :math:`A < B, D < C` and :math:`a < c, d > b`.
+    Where :math:`A < B, D < C` and :math:`a < c, d < b`.
 
     An often used version is the following:
 

@@ -38,7 +38,7 @@ import warnings
 
 from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
-    OutputPlainText, OutputAsciiArt, OutputLatex,
+    OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
 )
 from sage.repl.rich_output.preferences import DisplayPreferences
 
@@ -489,6 +489,10 @@ class DisplayManager(SageObject):
             sage: dm._preferred_text_formatter([1/42])
             OutputAsciiArt container
 
+            sage: dm.preferences.text = 'unicode_art'
+            sage: dm._preferred_text_formatter([1/42])
+            OutputUnicodeArt container
+
             sage: dm.preferences.text = 'latex'
             sage: dm._preferred_text_formatter([1/42])          
             \newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputLatex|\phantom{\verb!x!}\verb|container|
@@ -501,6 +505,11 @@ class DisplayManager(SageObject):
             out = self._backend.ascii_art_formatter(obj, **kwds)
             if type(out) != OutputAsciiArt:
                 raise OutputTypeException('backend returned wrong output type, require AsciiArt')
+            return out
+        if want == 'unicode_art' and OutputUnicodeArt in supported:
+            out = self._backend.unicode_art_formatter(obj, **kwds)
+            if type(out) != OutputUnicodeArt:
+                raise OutputTypeException('backend returned wrong output type, require UnicodeArt')
             return out
         if want == 'latex' and OutputLatex in supported:
             out = self._backend.latex_formatter(obj, **kwds)

@@ -3786,9 +3786,9 @@ class NumberField_generic(number_field_base.NumberField):
         from sage.misc.all import uniq
         S_pari = [p.pari_prime() for p in uniq(S)]
         result = K_pari.bnfsunit(S_pari)
-        units = map(self, result[0]) + self.unit_group().gens_values()
+        units = [self(_) for _ in result[0]] + self.unit_group().gens_values()
         orders = result[4][1].sage()
-        gens = map(self.ideal, result[4][2])
+        gens = [self.ideal(_) for _ in result[4][2]]
         return units, [(gens[k], orders[k]) for k in range(len(orders)) if orders[k] > 1]
 
     @cached_method
@@ -4196,7 +4196,7 @@ class NumberField_generic(number_field_base.NumberField):
             for r in f.polcompositum(g):
                 if not any(r.nfisisom(s) for s in C):
                     C.append(r)
-            C = map(R, C)
+            C = [R(_) for _ in C]
 
             q = sum(1 for r in C if r.degree() != max(m, n))
             if q == 1 and name != sv and name != ov:
@@ -4479,7 +4479,7 @@ class NumberField_generic(number_field_base.NumberField):
         """
         proof = proof_flag(proof)
         B = self.pari_bnf(proof).bnfisintnorm(n)
-        return map(self, B)
+        return [self(_) for _ in B]
 
     def extension(self, poly, name=None, names=None, check=True, embedding=None, latex_name=None, structure=None):
         """
@@ -6888,7 +6888,7 @@ class NumberField_absolute(NumberField_generic):
             True
 
         """
-        B = map(self, self._pari_integral_basis(v=v))
+        B = [self(_) for _ in self._pari_integral_basis(v=v)]
 
         import sage.rings.number_field.order as order
         return order.absolute_order_from_module_generators(B,
@@ -7765,7 +7765,8 @@ class NumberField_absolute(NumberField_generic):
         # f is the minimal polynomial of a over L
         f = L['x'](coeffs_in_L + [1])
         # sanity check...
-        mp_in_self = self['x'](map(L_into_self, f.coefficients(sparse=False)))
+
+        mp_in_self = self['x']([L_into_self(_) for _ in f.coefficients(sparse=False)])
         assert mp_in_self(a) == 0
 
         if structure is None:

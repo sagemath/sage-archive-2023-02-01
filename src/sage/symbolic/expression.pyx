@@ -683,10 +683,10 @@ cdef class Expression(CommutativeRingElement):
             /
         """
         from sympy import pretty, sympify
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         # FIXME:: when *sage* will use at least sympy >= 0.7.2
         # we could use a nice splitting with respect of the AsciiArt module.
-        # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
+        # from sage.typeset.ascii_art import AsciiArt, MAX_LENGTH ## for import
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
             s = pretty(sympify(self, evaluate=False), use_unicode=False)
@@ -2325,7 +2325,7 @@ cdef class Expression(CommutativeRingElement):
         Check that :trac:`13326` is fixed::
 
             sage: bool(log(2)*Infinity == Infinity)
-            False
+            True
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -4006,6 +4006,15 @@ cdef class Expression(CommutativeRingElement):
             (x + y)*(x - y)
             sage: f.expand()
             x^2 - y^2
+
+            sage: a,b,c = var('a,b,c')
+            sage: x,y = var('x,y', domain='real')
+            sage: p,q = var('p,q', domain='positive')
+            sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
+            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
+            sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
+            (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
+            sage: x,y,p,q = var('x,y,p,q', domain='complex')
         """
         if side is not None:
             if not is_a_relational(self._gobj):

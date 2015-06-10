@@ -136,14 +136,18 @@ Functions
 ---------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 include "sage/data_structures/binary_matrix.pxi"
+from libc.string cimport memset
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph

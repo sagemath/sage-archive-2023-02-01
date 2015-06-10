@@ -550,7 +550,7 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
     Gset = set(G)
     p_to_i = {g:i for i,g in enumerate(Gset)}
     for b in D:
-        b = map(G,b)
+        b = [G(_) for _ in b]
         S = block_stabilizer(G,b)
         GG = Gset.copy()
         while GG:

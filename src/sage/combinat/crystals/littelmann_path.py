@@ -215,6 +215,18 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         return self._name
 
     def weight_lattice_realization(self):
+        r"""
+        Return weight lattice realization of ``self``.
+
+        EXAMPLES::
+
+            sage: B = crystals.LSPaths(['B',3],[1,1,0])
+            sage: B.weight_lattice_realization()
+            Weight space over the Rational Field of the Root system of type ['B', 3]
+            sage: B = crystals.LSPaths(['B',3,1],[1,1,1,0])
+            sage: B.weight_lattice_realization()
+            Extended weight space over the Rational Field of the Root system of type ['B', 3, 1]
+        """
         return self.weight.parent()
 
     class Element(ElementWrapper):
@@ -222,7 +234,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         TESTS::
 
             sage: C = crystals.LSPaths(['E',6],[1,0,0,0,0,0])
-            sage: c=C.an_element()
+            sage: c = C.an_element()
             sage: TestSuite(c).run()
         """
 
@@ -569,6 +581,8 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
         def weight(self):
             """
+            Return the weight of ``self``.
+
             EXAMPLES::
 
                 sage: B = crystals.LSPaths(['A',1,1],[1,0])

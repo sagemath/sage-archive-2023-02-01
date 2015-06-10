@@ -133,6 +133,20 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
         Multiplicative form of Vector space of dimension 2 over Rational Field
     """
     def __init__(self, parent, x):
+        r"""
+        EXAMPLES::
+
+            sage: G = QQ^2
+            sage: EG = GroupExp()(G)
+            sage: x = EG.an_element(); x
+            (1, 0)
+            sage: TestSuite(x).run(skip = "_test_category")
+
+        See the documentation of :meth:`sage.structure.element_wrapper.ElementWrapper.__init__`
+        for the reason behind skipping the category test.
+
+        """
+
         if x not in parent._G:
             return ValueError("%s is not an element of %s" % (x, parent._G))
         ElementWrapper.__init__(self, parent, x)
@@ -176,6 +190,15 @@ class GroupExp_Class(UniqueRepresentation, Parent):
     - `G`: a commutative additive group
     """
     def __init__(self, G):
+        r"""
+
+        EXAMPLES::
+
+            sage: G = GroupExp()(QQ^2)
+            sage: TestSuite(G).run(skip = "_test_elements")
+
+        """
+
         if not G in CommutativeAdditiveGroups():
             raise TypeError("%s must be a commutative additive group" % G)
         self._G = G

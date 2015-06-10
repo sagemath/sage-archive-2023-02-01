@@ -10,6 +10,16 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
     """
 
     def _repr_(self):
+        r"""
+        A string representing the semidirect product group.
+
+        EXAMPLES::
+
+            sage: def twist(x,y):
+            ....:     return y
+            sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest
+            Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) acting on Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+        """
 
         def wrapper(prefix, s):
             if prefix is None:
@@ -34,6 +44,24 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
         return gstr + " * " + hstr
 
     def inverse(self):
+        r"""
+        The inverse of ``self``.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(['A',2]).root_lattice()
+            sage: from sage.groups.group_exp import GroupExp
+            sage: EL = GroupExp()(L)
+            sage: W = L.weyl_group(prefix="s")
+            sage: def twist(w,v):
+            ....:     return EL(w.action(v.value))
+            sage: G = GroupSemidirectProduct(W, EL, twist, prefix1='t')
+            sage: g = G.an_element(); g
+            s1*s2 * t[2*alpha[1] + 2*alpha[2]]
+            sage: g.inverse()
+            s2*s1 * t[2*alpha[1]]
+
+        """
         par = self.parent()
         g = self.cartesian_projection(0)
         h = self.cartesian_projection(1)
@@ -137,6 +165,21 @@ class GroupSemidirectProduct(CartesianProduct):
     """
 
     def __init__(self, G, H, twist=None, act_to_right=True, prefix0=None, prefix1=None, print_tuple=False,category=Groups()):
+        r"""
+        
+        EXAMPLES::
+
+            sage: def twist(x,y):
+            ....:     return y
+            sage: import __main__
+            sage: __main__.twist = twist
+            sage: G = GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist)
+            sage: TestSuite(G).run()
+
+        The ``__main__`` business is a trick to pass the picking test.
+
+        """
+
         self._act_to_right = act_to_right
         def check_implemented_group(x):
             if x in Groups():
@@ -161,9 +204,29 @@ class GroupSemidirectProduct(CartesianProduct):
         CartesianProduct.__init__(self, (G, H), category=category)
 
     def act_to_right(self):
+        r"""
+        True if the left factor acts on the right factor and
+        False if the right factor acts on the left factor.
+
+        EXAMPLES::
+
+            sage: def twist(x,y):
+            ....:     return y
+            sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist).act_to_right()
+            True
+
+        """
         return self._act_to_right
 
     def _repr_(self):
+        r"""
+        A string representing the semidirect product group.
+
+            sage: def twist(x,y):
+            ....:     return y
+            sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest
+            Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) acting on Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+        """
         cartesian_factors = self.cartesian_factors()
         if self.act_to_right():
             act_string = "acting on"
@@ -172,6 +235,17 @@ class GroupSemidirectProduct(CartesianProduct):
         return "Semidirect product of %s %s %s" % (cartesian_factors[0], act_string, cartesian_factors[1])
 
     def _element_constructor_(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: def twist(x,y):
+            ....:     return y
+            sage: import __main__
+            sage: __main__.twist = twist
+            sage: g = GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist).an_element()
+            sage: TestSuite(g).run()
+
+        """
         def type_error():
             raise TypeError("%s cannot be converted into an element of %s" % (x, self))
 
@@ -193,9 +267,51 @@ class GroupSemidirectProduct(CartesianProduct):
 
     @cached_method
     def one(self):
+        r"""
+        The identity element of the semidirect product group.
+
+        EXAMPLES::
+
+            sage: G = GL(2,QQ)
+            sage: V = QQ^2
+            sage: EV = GroupExp()(V) # make a multiplicative version of V
+            sage: def twist(g,v):
+            ....:     return EV(g*v.value)
+            sage: one = GroupSemidirectProduct(G, EV, twist=twist, prefix1 = 't').one(); one
+            1
+            sage: one.cartesian_projection(0)
+            [1 0]
+            [0 1]
+            sage: one.cartesian_projection(1)
+            (0, 0)
+
+        """
         return self((self.cartesian_factors()[0].one(), self.cartesian_factors()[1].one()))
 
     def product(self, x, y):
+        r"""
+        The product of elements `x` and `y` in the semidirect product group.
+
+        EXAMPLES::
+
+            sage: G = GL(2,QQ)
+            sage: V = QQ^2
+            sage: EV = GroupExp()(V) # make a multiplicative version of V
+            sage: def twist(g,v):
+            ....:     return EV(g*v.value)
+            sage: S = GroupSemidirectProduct(G, EV, twist=twist, prefix1 = 't')
+            sage: g = G([[2,1],[3,1]]); g
+            [2 1]
+            [3 1]
+            sage: v = EV.an_element(); v
+            (1, 0)
+            sage: x = S((g,v)); x
+            [2 1]
+            [3 1] * t[(1, 0)]
+            sage: x*x # indirect doctest
+            [7 3]
+            [9 4] * t[(0, 3)]
+        """
         xg = x.cartesian_projection(0)
         xh = x.cartesian_projection(1)
         yg = y.cartesian_projection(0)

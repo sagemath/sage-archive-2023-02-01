@@ -446,8 +446,12 @@ class GeneralizedYoungWall(CombinatorialElement):
 
     def weight(self,root_lattice=False):
         r"""
-        Returns the weight of ``self`` as an element of the root lattice
-        `\bigoplus_{i=0}^n \ZZ \alpha_i`.
+        Returns the weight of ``self``.
+
+        INPUT:
+
+        - `root_lattice` -- boolean determining whether weight should appear in
+        root lattice or not in extended affine weight lattice.
 
         EXAMPLES::
 
@@ -521,7 +525,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             -1
         """
         h = self.parent().weight_lattice_realization().simple_coroots()
-        return self.epsilon(i) + self.weight(root_lattice=True).scalar(h[i])
+        return self.epsilon(i) + self.weight(root_lattice=False).scalar(h[i])
 
     def Phi(self):
         r"""
@@ -782,20 +786,6 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
         """
         return "Crystal of generalized Young walls of type {}".format(self._cartan_type)
 
-    def subset(self, max_depth=4):
-        r"""
-        Construct the subcrystal of ``self`` trucated at depth ``max_depth``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.infinity.GeneralizedYoungWalls(2)
-            sage: S = Y.subset(max_depth=2)
-            sage: S
-            [[], [[], [1]], [[], [], [2]], [[0]], [[0, 2]], [[0], [1]], [[], [], [2], [], [], [2]],
-            [[], [1], [2]], [[0], [], [], [0]], [[0], [], [2]], [[], [], [2, 1]], [[], [1], [], [], [1]], [[], [1, 0]]]
-        """
-        return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')]
-
     def weight_lattice_realization(self):
         r"""
         Return the extended affine weight lattice of ``self``.
@@ -871,6 +861,23 @@ class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
         """
         return self.parent().weight_lattice_realization()(self.parent().hw + GeneralizedYoungWall.weight(self))
 
+    def phi(self,i):
+        r"""
+        Return the value `\varepsilon_i(Y) + \langle h_i,
+        \mathrm{wt}(Y)\rangle`, where `h_i` is the `i`-th simple
+        coroot and `Y` is ``self``.
+
+        EXAMPLES::
+            sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: y = crystals.GeneralizedYoungWalls(3,La[0])([])
+            sage: y.phi(1)
+            0
+            sage: y.phi(2)
+            0
+        """
+        h = self.parent().weight_lattice_realization().simple_coroots()
+        return self.epsilon(i) + self.weight().scalar(h[i])
+
 
 class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
     r"""
@@ -913,7 +920,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
         sage: LS = crystals.LSPaths(['A',3,1],[1,0,0,0])
         sage: C = LS.subcrystal(max_depth=4)
         sage: G = LS.digraph(subset=C)
-        sage: P = LS.weight_lattice_realization()
+        sage: P = RootSystem(['A',3,1]).weight_lattice(extended=True)
         sage: La = P.fundamental_weights()
         sage: YW = crystals.GeneralizedYoungWalls(3,La[0])
         sage: CW = YW.subcrystal(max_depth=4)
@@ -923,11 +930,7 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
 
     To display the crystal down to a specified depth::
 
-        sage: S = YLa.subset(max_depth=4)
-        sage: sorted(list(S))
-        [[], [[], [1]], [[], [1], [2]], [[], [1], [2], [3]], [[], [1, 0]],
-         [[], [1, 0], [2]], [[], [1, 0], [2], [3]], [[], [1, 0], [2, 1]],
-         [[], [1, 0, 3]], [[], [1, 0, 3], [2]], [[], [1, 0, 3, 2]]]
+        sage: S = YLa.subcrystal(max_depth=4)
         sage: G = YLa.digraph(subset=S)
         sage: view(G, tightpage=True) # not tested
     """
@@ -986,19 +989,3 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
         for c in self.subcrystal(direction='lower'):
             if c.in_highest_weight_crystal(self.hw) :
                 yield c
-
-    def subset(self, max_depth=4):
-        r"""
-        Return a subset of ``self`` up to ``max_depth``.
-
-        EXAMPLES::
-
-            sage: Y = crystals.GeneralizedYoungWalls(2,RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()[0])
-            sage: S = Y.subset(max_depth=3)
-            sage: S
-            [[], [[0]], [[0, 2]], [[0], [1]], [[0, 2, 1]], [[0, 2], [1]]]
-        """
-        return [c for c in self.subcrystal(max_depth=max_depth, direction='lower')
-                if c.in_highest_weight_crystal(self.hw)]
-
-

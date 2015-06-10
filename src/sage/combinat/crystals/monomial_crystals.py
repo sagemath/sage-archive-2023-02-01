@@ -1001,7 +1001,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GM.is_isomorphic(GB,edge_labels=True)
         True
 
-        sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
         sage: M = crystals.NakajimaMonomials(['A',3,1],La[0]+La[2])
         sage: B = crystals.GeneralizedYoungWalls(3,La[0]+La[2])
         sage: SM = M.subcrystal(max_depth=4)
@@ -1011,7 +1011,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         sage: GM.is_isomorphic(GB,edge_labels=True) # long time
         True
 
-        sage: La = RootSystem(['A',5,2]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',5,2]).weight_lattice(extended=True).fundamental_weights()
         sage: LA = RootSystem(['A',5,2]).weight_space().fundamental_weights()
         sage: M = crystals.NakajimaMonomials(['A',5,2],3*La[0])
         sage: B = crystals.LSPaths(3*LA[0])

@@ -2153,7 +2153,7 @@ class Tableau(ClonableList):
     
         EXAMPLES:
     
-        This is the reverse of Schensted’s bump.
+        This is the reverse of Schensted's bump.
     
         ::
     
@@ -2170,8 +2170,9 @@ class Tableau(ClonableList):
             ValueError: (1, 1) is not an outer corner
     
         Some edge cases:
-    
+
         ::
+
             sage: Tableau([[1]]).reverse_bump((0,0))
             ([], 1)
             sage: Tableau([]).reverse_bump((0,0))

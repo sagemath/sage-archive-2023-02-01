@@ -492,7 +492,7 @@ For example::
 
     sage: g = game_theory.PrisonersDilemma()
     sage: g
-    Prisoners dilemma: Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
+    Prisoners dilemma - Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
     sage: g.obtain_nash()
     [[(0, 1), (0, 1)]]
 

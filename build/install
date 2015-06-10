@@ -460,8 +460,8 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
-    elif [ "x$(cat $TYPE_FILE)" = "xoptional" ]; then
-        DEPS="| \$(STANDARD_PACKAGES)" # default for optional packages
+    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+        DEPS='| $(STANDARD_PACKAGES)' # default for optional packages
     else
         DEPS=""
     fi

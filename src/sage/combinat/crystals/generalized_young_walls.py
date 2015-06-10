@@ -451,7 +451,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         INPUT:
 
         - `root_lattice` -- boolean determining whether weight should appear in
-        root lattice or not in extended affine weight lattice.
+          root lattice or not in extended affine weight lattice.
 
         EXAMPLES::
 
@@ -468,7 +468,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         for r in self.data:
             for i in r:
                 W.append(-1*alpha[i])
-        if root_lattice==False:
+        if not root_lattice:
             return E(sum(w for w in W))
         return L(sum(w for w in W))
 
@@ -868,6 +868,7 @@ class CrystalOfGeneralizedYoungWallsElement(GeneralizedYoungWall):
         coroot and `Y` is ``self``.
 
         EXAMPLES::
+
             sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
             sage: y = crystals.GeneralizedYoungWalls(3,La[0])([])
             sage: y.phi(1)

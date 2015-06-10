@@ -520,23 +520,42 @@ def lift_cross_ratios(A, lift_map = None):
     
     return Z
         
-def to_sixth_root_of_unity():
-    R = GF(7)
-    z = QQ['z'].gen()
-    S = NumberField(z^2-z+1, 'z')
-    return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**(-1)}
+def lift_map(target):
+    """
+    Create a lift map. 
     
-def to_dyadic():
-    R = GF(11)
-    return {R(1):QQ(1), R(-1):QQ(-1), R(2):QQ(2), R(6): QQ(1/2)}
+    INPUT:
     
-def to_golden_mean():
-    R = GF(19)
-    t = QQ['t'].gen()
-    G = NumberField(t^2-t-1, 't')
-    return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t), 
-        R(5)**(-1): G(t)**(-1), R(5)**2: G(t)**2, R(5)**(-2)): G(t)**(-2) }
+    - ``target``, a string describing the target (partial) field.
     
+    OUTPUT:
+    
+    - a dictionary.
+    
+    
+    """
+    if target == "regular":
+        R = GF(3)
+        return {R(1): ZZ(1)}
+        
+    if target == "sixth_root_of_unity":
+        R = GF(7)
+        z = QQ['z'].gen()
+        S = NumberField(z^2-z+1, 'z')
+        return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**(-1)}
+        
+    if target == "dyadic":
+        R = GF(11)
+        return {R(1):QQ(1), R(-1):QQ(-1), R(2):QQ(2), R(6): QQ(1/2)}
+        
+    if target == "golden_mean":    
+        R = GF(19)
+        t = QQ['t'].gen()
+        G = NumberField(t^2-t-1, 't')
+        return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t), 
+            R(5)**(-1): G(t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
+            
+    raise NotImplementedError, target
         
     
             

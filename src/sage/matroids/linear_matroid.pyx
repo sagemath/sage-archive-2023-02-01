@@ -512,6 +512,11 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         the matroid, or a matrix in which the lexicographically least basis
         corresponds to an identity. If only ``order`` is not ``None``, the
         columns of this matrix will be permuted accordingly. 
+        
+        If a ``lift_map`` is provided, then the resulting matrix will be lifted 
+        using the method
+        :func:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+        See the docstring of this method for further details.
 
         .. NOTE::
 

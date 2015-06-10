@@ -3,18 +3,18 @@ Finite (complex) reflection groups
 
 AUTHORS:
 
-- Christian Stump
+- Christian Stump (initial version 2011--2015)
 
 .. note::
 
     - For definitions and classification types of finite complex reflection groups, see http://en.wikipedia.org/wiki/Complex_reflection_group.
     - Uses the GAP3 package *chevie*.
 
-Version: 2011-04-26
+    .. warning:: works only if the GAP3 package Chevie is available.
 
-TODO:
+.. TODO::
 
-- Element class should be unique to be able to work with large groups without creating elements multiple times
+    - Element class should be unique to be able to work with large groups without creating elements multiple times
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Christian Stump <christian.stump at lacim.ca>
@@ -1491,6 +1491,8 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             sage: W = ComplexReflectionGroup(4)
             sage: sorted(W.standard_coxeter_elements())
+            [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
+             (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
         """
         if not self.is_irreducible() or not self.is_well_generated():
             raise ValueError("This method is available for irreducible, well-generated complex reflection groups")
@@ -1719,9 +1721,9 @@ def ComplexReflectionGroup(*args,**kwds):
 
     can be one of the following:
 
-    - (a) integer between 4 and 37, which denotes an exeptional irreducible complex reflection group
-    - (b) triple (r,p,n) with p divides r, which denotes the group G(r,p,n)
-    - (c) list containing objects in (a) and (b)
+    - triple `(r,p,n)` with `p` divides `r`, which denotes the group `G(r,p,n)`
+    - integer between `4v and `37`, which denotes an exeptional irreducible complex reflection group
+    - list of combinations of these two
 
     EXAMPLES:
 

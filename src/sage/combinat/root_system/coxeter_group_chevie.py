@@ -1,23 +1,23 @@
 r"""
-Coxeter groups
+Finite Coxeter Groups
 
 AUTHORS:
 
-- Christian Stump
+- Christian Stump (initial version 2011--2015)
 
-.. note::
+.. NOTE::
 
-    - For definitions and classification types of finite complex reflection groups, see http://en.wikipedia.org/wiki/Complex_reflection_group.
-    - Uses the GAP3 package *chevie*.
+    - For definitions and classification types of finite complex reflection groups, see :wikipedia:`Complex_reflection_group`.
+    - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_
 
-Version: 2011-04-26
+.. warning:: works only if the GAP3 package Chevie is available.
 
-EXAMPLES::
+.. TODO::
 
-
+    - Element class should be unique to be able to work with large groups without creating elements multiple times.
 """
 #*****************************************************************************
-#       Copyright (C) 2011 Christian Stump <christian.stump at lacim.ca>
+#       Copyright (C) 2011-2015 Christian Stump <christian.stump at lacim.ca>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -82,7 +82,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
     def _repr_(self):
         r"""
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -100,7 +100,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
     @cached_method
     def bipartite_index_set(self):
         r"""
-        Returns the bipartite index set of a finite real reflection group.
+        Return the bipartite index set of a finite real reflection group.
 
         EXAMPLES::
 
@@ -122,7 +122,8 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
     def irreducible_components(self):
         r"""
-        Returns a list containing the irreducible components of ``self`` as finite reflection groups.
+        Return a list containing the irreducible components of ``self``
+        as finite reflection groups.
 
         EXAMPLES::
 
@@ -355,13 +356,14 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
     class Element(FiniteComplexReflectionGroup.Element):
 
-        has_descent = CoxeterGroups.ElementMethods.has_descent.__func__
         reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
 
         def has_left_descent(self, i):
             r"""
-            Returns whether ``i`` is a descent of ``self`` by testing
-            whether ``i`` is mapped to a negative root.
+            Return whether ``i`` is a left descent of ``self``.
+
+            This is done by testing whether ``i`` is mapped by ``self``
+            to a negative root.
 
             EXAMPLES::
 
@@ -378,11 +380,79 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                 raise ValueError("The given index %s is not in the index set"%i)
             return not W._is_positive_root[self(W._index_set[i]+1)]
 
+        def has_descent(self, i, side='left', positive=False):
+            r"""
+            Return whether ``i`` is a descent (or ascent) of ``self``.
+
+            This is done by testing whether ``i`` is mapped by ``self``
+            to a negative root.
+
+            INPUT:
+
+            - ``i`` - an index of a simple reflection
+            - ``side`` (default: 'right') - 'left' or 'right'
+            - ``positive`` (default: ``False``) - a boolean
+
+            EXAMPLES::
+
+                sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
+                sage: W = CoxeterGroupChevie(["A",3])
+                sage: s = W.simple_reflections()
+                sage: (s[1]*s[2]).has_left_descent(1)
+                True
+                sage: (s[1]*s[2]).has_left_descent(2)
+                False
+            """
+            if not isinstance(positive, bool):
+                raise TypeError("%s is not a boolean"%(bool))
+
+            negative = not positive
+
+            if side == 'left':
+                return self.has_left_descent(i) is negative
+            elif side == 'right':
+                return self.has_right_descent(i) is negative
+            else:
+                raise ValueError("The method 'has_descent' needs the input 'side' to be either 'left' or 'right'.")
+
         def act_on_root(self,root):
+            r"""
+            Return the root obtained by applying ``self`` on ``root``.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',2],implementation='chevie')
+                sage: for w in W:
+                ....:     print w.reduced_word(), [ w.act_on_root(beta) for beta in W.roots() ]
+                [] [(1, 0), (0, 1), (1, 1), (-1, 0), (0, -1), (-1, -1)]
+                [0] [(-1, 0), (1, 1), (0, 1), (1, 0), (-1, -1), (0, -1)]
+                [0, 1] [(0, 1), (-1, -1), (-1, 0), (0, -1), (1, 1), (1, 0)]
+                [0, 1, 0] [(0, -1), (-1, 0), (-1, -1), (0, 1), (1, 0), (1, 1)]
+                [1] [(1, 1), (0, -1), (1, 0), (-1, -1), (0, 1), (-1, 0)]
+                [1, 0] [(-1, -1), (1, 0), (0, -1), (1, 1), (-1, 0), (0, 1)]
+            """
             Phi = self.parent().roots()
             return Phi[ (~self)(Phi.index(root)+1)-1 ]
 
         def inversion_set(self):
+            r"""
+            Return the inversion set of ``self``.
+
+            This is the set `\{ \beta \in \Phi^+ : ``self``(\beta) \in \Phi^- \}`.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',2],implementation='chevie')
+                sage: for w in W:
+                ....:     print w.reduced_word(), w.inversion_set()
+                [] []
+                [0] [(1, 0)]
+                [0, 1] [(0, 1), (1, 1)]
+                [0, 1, 0] [(0, 1), (1, 0), (1, 1)]
+                [1] [(0, 1)]
+                [1, 0] [(1, 0), (1, 1)]
+
+            """
             Phi_plus = set(self.parent().positive_roots())
             return [ root for root in Phi_plus if self.act_on_root(root) not in Phi_plus ]
 
@@ -390,7 +460,7 @@ class IrreducibleFiniteCoxeterGroupChevie(FiniteCoxeterGroupChevie, IrreducibleF
 
     def _repr_(self):
         r"""
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -417,9 +487,9 @@ def CoxeterGroupChevie(*args,**kwds):
 
     OUTPUT:
 
-    Returns the Coxeter group as a finite reflection group, see :func:`ComplexReflectionGroup`.
+    Return the Coxeter group as a finite reflection group, see :func:`ComplexReflectionGroup`.
 
-    .. warning:: works only if the GAP3 package Chevie is available, use :func:`WeylGroup` otherwise.
+    .. warning:: works only if the GAP3 package Chevie is available.
 
     EXAMPLES::
 

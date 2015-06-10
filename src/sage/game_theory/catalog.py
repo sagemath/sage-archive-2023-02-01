@@ -450,28 +450,31 @@ def Pigs():
     Consider two pigs.
     One dominant pig and one subservient pig.
     These pigs share a pen.
-    There is a lever in the pen that delivers food but if either pig pushes
-    the lever it will take them a little while to get to the food.
+    There is a lever in the pen that delivers 6 units of food but if either pig
+    pushes the lever it will take them a little while to get to the food as well
+    as cost them 1 unit of food.
     If the dominant pig pushes the lever, the subservient pig has some time
-    to eat most of the food before being pushed out of the way.
-    If the subservient pig push the lever,
+    to eat two thirds of the food before being pushed out of the way.
+    If the subservient pig pushes the lever,
     the dominant pig will eat all the food.
     Finally if both pigs go to push the lever the subservient pig will be
-    able to eat a third of the food.
+    able to eat a third of the food (and they will also both lose 1 unit of food).
 
-    This can be modeled as a normal form game using the following two matrices [McMillan]_:
+    This can be modeled as a normal form game using the following two matrices
+    [McMillan]_ (we assume that the dominant pig's utilities are given by
+    :math:`A`):
 
     .. math::
 
         A = \begin{pmatrix}
-            1.5&-0.5\\
-            5&0\\
+            3&1\\
+            6&0\\
             \end{pmatrix}
 
 
         B = \begin{pmatrix}
-            3.5&6\\
-            .5&0\\
+            1&4\\
+            -1&0\\
             \end{pmatrix}
 
     There is a single Nash equilibrium at which the dominant pig pushes the
@@ -481,13 +484,13 @@ def Pigs():
 
         sage: g = game_theory.Pigs()
         sage: g
-        Pigs - Normal Form Game with the following utilities: {(0, 1): [-0.5, 6.0], (1, 0): [5.0, 0.5], (0, 0): [1.5, 3.5], (1, 1): [0.0, 0.0]}
+        Pigs - Normal Form Game with the following utilities: {(0, 1): [1, 4], (1, 0): [6, -1], (0, 0): [3, 1], (1, 1): [0, 0]}
         sage: g.obtain_nash()
-        [[(0, 1), (1, 0)]]
+        [[(1, 0), (0, 1)]]
 
     """
-    A = matrix([[1.5, -0.5], [5, 0]])
-    B = matrix([[3.5, 6], [0.5, 0]])
+    A = matrix([[3, 1], [6, 0]])
+    B = matrix([[1, 4], [-1, 0]])
     g = NormalFormGame([A, B])
     g.rename('Pigs - ' + repr(g))
     return g

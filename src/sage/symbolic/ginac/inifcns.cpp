@@ -192,10 +192,10 @@ static ex abs_eval(const ex & arg)
 	if (is_exactly_a<numeric>(arg))
 		return abs(ex_to<numeric>(arg));
 
-	if (arg.info(info_flags::nonnegative))
+	if (arg.info(info_flags::nonnegative) or arg.info(info_flags::positive))
 		return arg;
 
-	if (arg.info(info_flags::negative) || (-arg).info(info_flags::nonnegative))
+	if (arg.info(info_flags::negative) or (-arg).info(info_flags::nonnegative))
 		return -arg;
 
         if (is_exactly_a<function>(arg)) {                
@@ -219,10 +219,15 @@ static ex abs_eval(const ex & arg)
                         if (has_symbol(factor))
                                 prod_sy *= factor;
                         else if (factor.info(info_flags::real)) {
-                                if (factor.info(info_flags::negative))
+                                if (factor.info(info_flags::negative)) {                                        
                                         is_prod_neg = not is_prod_neg;
-                                prod *= factor;
+                                        prod *= factor;
                                 }
+                                else if (factor.info(info_flags::positive))                                        
+                                        prod *= factor;
+                                else
+                                        prod *= abs(factor).hold();
+                        }
                         else
                                 prod *= abs(factor);
                 }

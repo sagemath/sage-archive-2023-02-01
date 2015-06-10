@@ -240,7 +240,7 @@ REFERENCES:
    Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
 
 .. [Striker2015] Jessica Striker
-   *The toggle group, homomesy, and the Razumov-Stroganov correspondence
+   *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
    :arxiv:`abs/1503.08898`
 """
 import itertools

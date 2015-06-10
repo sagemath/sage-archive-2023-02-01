@@ -1180,7 +1180,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
             """
             Return ``self`` to the `n`-th power.
 
-            INPUT::
+            INPUT:
 
             - ``n`` -- a positive integer
 
@@ -1221,10 +1221,8 @@ def is_planar(sp):
         sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = map(list, sp)
-
     #Singletons don't affect planarity
-    to_consider = [x for x in to_consider if len(x) > 1]
+    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
@@ -1275,7 +1273,7 @@ def is_planar(sp):
                         if row is ap:
                             sr = Set(rng)
                         else:
-                            sr = Set(map(lambda x: -1*x, rng))
+                            sr = Set((-1*x for x in rng))
 
                         sj = Set(to_consider[j])
                         intersection = sr.intersection(sj)
@@ -1426,9 +1424,9 @@ def to_set_partition(l, k=None):
         if l == []:
             return SetPartition([])
         else:
-            k = max( map( lambda x: max( map(abs, x) ), l) )
+            k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( range(1, k+1) + map(lambda x: -1*x, range(1, k+1) ) )
+    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:
@@ -1521,7 +1519,7 @@ def set_partition_composition(sp1, sp2):
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set(map(lambda x: x[0], new_cc)) )
+            res.append( Set((x[0] for x in new_cc)) )
 
     return (SetPartition(Set(res)), total_removed)
 

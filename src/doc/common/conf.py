@@ -369,7 +369,7 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{2208}{\in}
 \DeclareUnicodeCharacter{2209}{\notin}
 \DeclareUnicodeCharacter{2202}{\partial}
-\DeclareUnicodeCharacter{222B}{\int}
+\DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
 \DeclareUnicodeCharacter{2148}{\id}
 \DeclareUnicodeCharacter{2248}{\approx}
 \DeclareUnicodeCharacter{2260}{\neq}
@@ -398,6 +398,22 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
 \DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
 \DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
+
+\DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
+\DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
+\DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
+\DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
+\DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
+\DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
+\DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
+\DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
+\DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
+
+\DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
+\DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
+\DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
+
+\DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
 
 \let\textLaTeX\LaTeX
 \renewcommand*{\LaTeX}{\hbox{\textLaTeX}}

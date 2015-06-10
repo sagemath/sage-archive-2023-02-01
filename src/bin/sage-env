@@ -364,12 +364,12 @@ if [ "$PYTHON_EGG_CACHE" = "" ]; then
     export PYTHON_EGG_CACHE
 fi
 
-if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+if [ -d "$SAGE_LOCAL/lib/python" ]; then
+    PYTHONPATH="$SAGE_LOCAL/lib/python:$SAGE_LOCAL/lib/python/site_packages"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
-    PYTHONHOME="$SAGE_ROOT/local"
+    PYTHONHOME="$SAGE_LOCAL"
     export PYTHONPATH
     export PYTHONHOME
 fi
@@ -410,15 +410,18 @@ fi
 # config directory. So we use pkg_resources.
 "$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
+    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
     MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
-# Unset these variables which interfere with R
+# Make sure that a system-wide R installation does not interfere
 unset R_HOME
 unset R_PROFILE
+# Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
+R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+R_MAKEVARS_USER="$SAGE_LOCAL/lib/R/share/Makevars.user" && export R_MAKEVARS_USER
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 

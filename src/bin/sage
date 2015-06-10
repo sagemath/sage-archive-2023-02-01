@@ -791,19 +791,23 @@ install() {
 }
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
-    exec sage-list-packages optional
+    shift
+    exec sage-list-packages optional $@
 fi
 
 if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
-    exec sage-list-packages experimental
+    shift
+    exec sage-list-packages experimental $@
 fi
 
 if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
-    exec sage-list-packages standard
+    shift
+    exec sage-list-packages standard $@
 fi
 
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
-    exec sage-list-packages installed
+    shift
+    exec sage-list-packages installed $@
 fi
 
 if [ "$1" = '-i' ]; then

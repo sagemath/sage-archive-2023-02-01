@@ -67,8 +67,6 @@ REFERENCES:
 """
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/random.pxi'
 
 cimport matrix_dense
 from sage.structure.element cimport Matrix, Vector

@@ -74,7 +74,7 @@ class FreeMonoid(FreeSemigroup):
         r"""
         The free monoid
 
-        INPUT::
+        INPUT:
 
         - ``alphabet`` -- a tuple of strings: the generators of the monoid
 

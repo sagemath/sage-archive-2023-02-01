@@ -102,14 +102,14 @@ class Crystals(Category_singleton):
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
-        INPUT::
+        INPUT:
 
-         - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
-           for the highest weight crystal of type A, or 'naive' for an
-           example of a broken crystal.
+        - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
+          for the highest weight crystal of type A, or 'naive' for an
+          example of a broken crystal.
 
-         - ``**kwds`` -- keyword arguments passed onto the constructor for the
-           chosen crystal.
+        - ``**kwds`` -- keyword arguments passed onto the constructor for the
+          chosen crystal.
 
         EXAMPLES::
 
@@ -570,7 +570,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex') #optional - dot2tex
+                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -600,7 +600,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()   #optional - dot2tex
+                sage: T._latex_()  # optional - dot2tex graphviz
                 '...tikzpicture...'
                 sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
 
@@ -610,10 +610,7 @@ class Crystals(Category_singleton):
                 sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
                 '...tikzpicture...'
             """
-            if not have_dot2tex():
-                print "dot2tex not available.  Install after running \'sage -sh\'"
-                return
-            G=self.digraph()
+            G = self.digraph()
             G.set_latex_options(**options)
             return G._latex_()
 

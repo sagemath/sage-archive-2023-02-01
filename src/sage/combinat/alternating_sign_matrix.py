@@ -1535,8 +1535,7 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
         """
         # get a list of the elements and switch to a tuple
         # representation
-        set_ = list(self)
-        set_ = map(lambda x: tuple(map(tuple, x)), set_)
+        set_ = [tuple(tuple(_) for _ in x) for x in list(self)]
         return (set_, [(a,b) for a in set_ for b in set_ if _is_a_cover(a,b)])
 
     def cover_relations(self):
@@ -1849,7 +1848,7 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]
         """
         for z in self._iterator_rec(self.n):
-            yield map(lambda x: list(reversed(x)), z)
+            yield [list(reversed(x)) for x in z]
 
     def __eq__(self, other):
         r"""

@@ -76,7 +76,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     - :math:`P` denotes the utility for punishing the other player.
     - :math:`T` denotes the temptation payoff.
 
-    an often used version [Webb]_ is the following:
+    An often used version [Webb]_ is the following:
 
     .. math::
 
@@ -91,7 +91,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
             -5&-4\\
             \end{pmatrix}
 
-    There is a single Nash equilibria for this at which both thieves defect.
+    There is a single Nash equilibrium for this at which both thieves defect.
     This can be implemented in Sage using the following::
 
         sage: g = game_theory.PrisonersDilemma()
@@ -126,10 +126,10 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
 
 def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     r"""
-    Return a 2 by 2 Coordination Game
+    Return a 2 by 2 Coordination Game.
 
     A coordination game is a particular type of game where the pure Nash
-    equilibria is for the players to pick the same strategies (or equivalent)
+    equilibrium is for the players to pick the same strategies (or equivalent)
     strategies [Webb]_.
 
     In general these are represented as a normal form game using the
@@ -183,7 +183,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
         sage: g.obtain_nash()
         [[(0, 1), (0, 1)], [(2/3, 1/3), (4/11, 7/11)], [(1, 0), (1, 0)]]
 
-    Note that an error is returned if the defining inequality is not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
+    Note that an error is returned if the defining inequalities are not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
 
         sage: g = game_theory.CoordinationGame(A=9, a=6, B=0, b=1, C=2, c=10, D=4, d=11)
         Traceback (most recent call last):
@@ -201,7 +201,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
 def BattleOfTheSexes():
     r"""
-    Return a Battle of the Sexes game
+    Return a Battle of the Sexes game.
 
     Consider two payers: Amy and Bob.
     Amy prefers to play video games and Bob prefers to
@@ -292,7 +292,7 @@ def StagHunt():
 
 def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     r"""
-    Return a 2 by 2 AntiCoordination Game
+    Return a 2 by 2 AntiCoordination Game.
 
     An anti coordination game is a particular type of game where the pure Nash
     equilibria is for the players to pick different strategies (or equivalent)
@@ -367,7 +367,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
 def HawkDove():
     r"""
-    Return a Hawk Dove game
+    Return a Hawk Dove game.
 
     Suppose two birds of prey must share a limited resource.
     The birds can act like a hawk or a dove.
@@ -394,7 +394,7 @@ def HawkDove():
     There are three Nash equilibria:
 
         1. One bird acts like a Hawk and the other like a Dove.
-        2. Both birds are equally likely to act like a Hawk of a Dove.
+        2. Both birds are equally likely to act like a Hawk or a Dove.
 
     This can be implemented in Sage using the following::
 
@@ -412,7 +412,7 @@ def HawkDove():
 
 def Pigs():
     r"""
-    Return a Pigs game
+    Return a Pigs game.
 
     Consider two pigs.
     One dominant pig and one subservient pig.
@@ -461,8 +461,8 @@ def Pigs():
 
 
 def MatchingPennies():
-    """
-    Return a Matching pennies game
+    r"""
+    Return a Matching Pennies game.
 
     Consider two players who can choose to display a coin either Heads
     facing up or Tails facing up.
@@ -498,7 +498,7 @@ def MatchingPennies():
 
 def RPS():
     r"""
-    Return a Rock-Paper-Scissors game
+    Return a Rock-Paper-Scissors game.
 
     Rock-Paper-Scissors is a zero sum game usually played between two
     players where each player simultaneously forms one of three
@@ -536,9 +536,11 @@ def RPS():
 
 def RPSLS():
     r"""
-    Return a Rock-Paper-Scissors-Lizard-Spock game
+    Return a Rock-Paper-Scissors-Lizard-Spock game.
 
-    Rock-Paper-Scissors-Lizard-Spock an extension of Rock-Paper-Scissors.
+    `Rock-Paper-Scissors-Lizard-Spock
+    <http://www.samkass.com/theories/RPSSL.html>`_  is an extension of
+    Rock-Paper-Scissors.
     It is a zero sum game usually played between two
     players where each player simultaneously forms one of three
     shapes with an outstretched hand. This game became popular
@@ -554,7 +556,7 @@ def RPSLS():
     - Lizard eats Paper
     - Paper disproves Spock
     - Spock vaporizes Rock
-    - (and as it always has) Rock crushes scissors
+    - (and as it always has) Rock crushes Scissors
 
     This can be modeled as a zero sum normal form game with the following
     matrix:
@@ -650,7 +652,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
         sage: g.obtain_nash()
         [[(0, 1), (1, 0)], [(99/101, 2/101), (99/101, 2/101)], [(1, 0), (0, 1)]]
 
-    Note that an error is returned if the defining inequality is not obeyed
+    Note that an error is returned if the defining inequalities are not obeyed
     :math:`B > A > C > D` and :math:`c > a > b > d`::
 
         sage: g = game_theory.Chicken(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
@@ -718,7 +720,7 @@ def TravellersDilemma(max_value=10):
 
 
     There is a single Nash equilibrium to this game resulting in
-    both players naming the smallest possible value
+    both players naming the smallest possible value.
 
     This can be implemented in Sage using the following::
 
@@ -728,9 +730,9 @@ def TravellersDilemma(max_value=10):
         sage: g.obtain_nash() # optional - lrs
         [[(0, 0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1)]]
 
-        Note that this command can be used to create travellers dilemma for a
-         different maximum value of the luggage. Below is an implementation
-        with a maximum value of 5::
+    Note that this command can be used to create travellers dilemma for a
+     different maximum value of the luggage. Below is an implementation
+    with a maximum value of 5::
 
         sage: g = game_theory.TravellersDilemma(5)
         sage: g

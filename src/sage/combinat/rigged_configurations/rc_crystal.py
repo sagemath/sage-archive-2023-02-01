@@ -108,8 +108,6 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             cartan_type = wt.parent().cartan_type()
         else:
             cartan_type = CartanType(cartan_type)
-            wt_lattice = cartan_type.root_system().weight_lattice()
-            wt = wt_lattice(wt)
 
         if not cartan_type.is_simply_laced():
             vct = cartan_type.as_folding()
@@ -221,6 +219,20 @@ class CrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             vac_num -= value * partitions[b].get_num_cells_to_column(row_len)
 
         return vac_num
+
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization used to express the weights
+        of elements in ``self``.
+
+        EXAMPLES::
+
+            sage: La = RootSystem(['A', 2, 1]).weight_lattice(extended=True).fundamental_weights()
+            sage: RC = crystals.RiggedConfigurations(La[0])
+            sage: RC.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['A', 2, 1]
+        """
+        return self._wt.parent()
 
     Element = RCHighestWeightElement
 

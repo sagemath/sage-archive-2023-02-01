@@ -211,6 +211,25 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
 
         return vac_num
 
+    # FIXME: Remove this method!!!
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization used to express the weights
+        of elements in ``self``.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['A', 2, 1])
+            sage: RC.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['A', 2, 1]
+        """
+        R = self._cartan_type.root_system()
+        if self._cartan_type.is_affine():
+            return R.weight_lattice(extended=True)
+        if self._cartan_type.is_finite() and R.ambient_space():
+            return R.ambient_space()
+        return R.weight_lattice()
+
     class Element(RiggedConfigurationElement):
         """
         A rigged configuration in `\mathcal{B}(\infty)` in simply-laced types.
@@ -230,11 +249,11 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
                 sage: RC = crystals.infinity.RiggedConfigurations(['A', 3, 1])
                 sage: elt = RC(partition_list=[[1,1]]*4, rigging_list=[[1,1], [0,0], [0,0], [-1,-1]])
                 sage: elt.weight()
-                0
+                -2*delta
             """
             P = self.parent().weight_lattice_realization()
             alpha = list(P.simple_roots())
-            return sum(sum(x) * alpha[i] for i,x in enumerate(self))
+            return -sum(sum(x) * alpha[i] for i,x in enumerate(self))
 
 class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
     r"""
@@ -409,19 +428,19 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
                 sage: RC = crystals.infinity.RiggedConfigurations(['C', 3])
                 sage: elt = RC(partition_list=[[1],[1,1],[1]], rigging_list=[[0],[-1,-1],[0]])
                 sage: elt.weight()
-                (1, 1, 0)
+                (-1, -1, 0)
 
                 sage: RC = crystals.infinity.RiggedConfigurations(['F', 4, 1])
                 sage: mg = RC.highest_weight_vector()
                 sage: elt = mg.f_string([1,0,3,4,2,2]); ascii_art(elt)
                 -1[ ]-1  0[ ]1  -2[ ][ ]-2  0[ ]1  -1[ ]-1
                 sage: wt = elt.weight(); wt
-                Lambda[0] - Lambda[1] + 2*Lambda[2] - 3*Lambda[3] + Lambda[4]
+                -Lambda[0] + Lambda[1] - 2*Lambda[2] + 3*Lambda[3] - Lambda[4] - delta
                 sage: al = RC.weight_lattice_realization().simple_roots()
-                sage: wt == al[0] + al[1] + 2*al[2] + al[3] + al[4]
+                sage: wt == -(al[0] + al[1] + 2*al[2] + al[3] + al[4])
                 True
             """
             P = self.parent().weight_lattice_realization()
             alpha = list(P.simple_roots())
-            return sum(sum(x) * alpha[i] for i,x in enumerate(self))
+            return -sum(sum(x) * alpha[i] for i,x in enumerate(self))
 

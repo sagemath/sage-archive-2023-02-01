@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"Birch and Swinnerton-Dyer formulas"
 #import ell_point
 #import formal_group
 #import ell_torsion

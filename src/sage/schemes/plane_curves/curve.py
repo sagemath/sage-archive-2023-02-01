@@ -1,3 +1,5 @@
+"Generic plane curves"
+
 from sage.misc.all import latex
 
 
@@ -40,7 +42,8 @@ class Curve_generic(AlgebraicScheme_subscheme):
 
     def _latex_(self):
         """
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x,y,z = PolynomialRing(QQ, 3, names='x,y,z').gens()
             sage: C = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)
             sage: latex(C)
@@ -109,7 +112,9 @@ class Curve_generic(AlgebraicScheme_subscheme):
         \note{Calls Singular's genus command.}
 
         EXAMPLE:
-        Examples of projective curves.
+
+        Examples of projective curves. ::
+
             sage: P2 = ProjectiveSpace(2, GF(5), names=['x','y','z'])
             sage: x, y, z = P2.coordinate_ring().gens()
             sage: C = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)
@@ -122,7 +127,8 @@ class Curve_generic(AlgebraicScheme_subscheme):
             sage: C.geometric_genus()
                   3
 
-        Examples of affine curves.
+        Examples of affine curves. ::
+
             sage: x, y = PolynomialRing(GF(5), 2, 'xy').gens()
             sage: C = Curve(y^2 - x^3 - 17*x + y)
             sage: C.geometric_genus()

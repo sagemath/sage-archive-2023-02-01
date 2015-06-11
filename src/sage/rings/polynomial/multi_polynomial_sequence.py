@@ -333,7 +333,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
     # make sure we use the polynomial ring as ring not the monoid
     ring = (ring(1) + ring(1)).parent()
 
-    if c != 2:
+    if c != 2 or not K.is_finite():
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
     elif K.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)

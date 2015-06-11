@@ -181,7 +181,7 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver(['A',4])
             sage: TestSuite(Q).run()
         """
-        from cluster_seed import ClusterSeed
+        from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
         from sage.matrix.matrix import Matrix
 
         # constructs a quiver from a mutation type
@@ -255,6 +255,7 @@ class ClusterQuiver(SageObject):
             self._n = data._n
             self._m = data._m
             self._digraph = copy( data._digraph )
+            self._vertex_dictionary = {}
             self._mutation_type = data._mutation_type
             self._description = data._description
 
@@ -269,6 +270,7 @@ class ClusterQuiver(SageObject):
             self._n = n = self._M.ncols()
             self._m = m = self._M.nrows() - self._n
             self._digraph = _matrix_to_digraph( self._M )
+            self._vertex_dictionary = {}
             self._mutation_type = None
             if n+m == 0:
                 self._description = 'Quiver without vertices'
@@ -327,6 +329,7 @@ class ClusterQuiver(SageObject):
             if not _principal_part(M).is_skew_symmetrizable( positive=True ):
                 raise ValueError("The input digraph must be skew-symmetrizable")
             self._digraph = dg
+            self._vertex_dictionary = {}
             self._M = M
             if n+m == 0:
                 self._description = 'Quiver without vertices'
@@ -458,6 +461,14 @@ class ClusterQuiver(SageObject):
                 else:
                     mr.remove(i)
             partition = (nr,mr,greens)
+            
+        # fix labels
+        for i in xrange(2):
+            for p in list(enumerate(partition[i])):
+                key = p[0]
+                part = p[1]
+                if part in self._vertex_dictionary:
+                    partition[0][key]= self._vertex_dictionary[part]
         
         vertex_color_dict = {}
         vertex_color_dict[ colors[0] ] = partition[0]
@@ -469,6 +480,7 @@ class ClusterQuiver(SageObject):
             'edge_colors': color_dict,
             'vertex_colors': vertex_color_dict,
             'edge_labels' : True,
+            'vertex_labels': True,
         }
         if circular:
             pp = _graphs_concentric_circles( n, m )
@@ -1715,3 +1727,19 @@ class ClusterQuiver(SageObject):
             total_edges += edge[2][0]
 
         return total_edges
+
+    def relabel(self, relabelling, inplace=True):
+        r"""
+        Returns the quiver after doing a relabelling
+        
+        Will relabel the vertices of the quiver
+        
+        """
+        if inplace:
+            quiver = self
+        else:
+            quiver = ClusterQuiver(self)
+        quiver._digraph.relabel(relabelling)
+        quiver._vertex_dictionary = relabelling
+        return quiver
+        

@@ -47,6 +47,7 @@ from sage.misc.all import prod
 from sage.matrix.all import identity_matrix
 from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
+from sage.rings.integer import Integer
 
 class ClusterSeed(SageObject):
     r"""
@@ -98,7 +99,7 @@ class ClusterSeed(SageObject):
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
     """
-    def __init__(self, data, frozen=None, is_principal=False, use_clusters=True, use_g_vec=False, use_c_vec=True, use_d_vec=False, track_mut=False,user_labels=None):
+    def __init__(self, data, frozen=None, is_principal=False, use_clusters=True, use_g_vec=False, use_c_vec=True, use_d_vec=False, track_mut=False,user_labels=None,user_labels_prefix='X'):
         r"""
         TESTS::
 
@@ -188,7 +189,7 @@ class ClusterSeed(SageObject):
             self.use_d_vectors(use_d_vec)
             self.use_c_vectors(use_c_vec)
             self.use_g_vectors(use_g_vec)
-            self.use_clusters(use_clusters, user_labels)
+            self.use_clusters(use_clusters, user_labels = user_labels, user_labels_prefix = user_labels_prefix)
             
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
@@ -246,7 +247,7 @@ class ClusterSeed(SageObject):
                 self._D = None
 
 
-    def use_clusters(self, use=True, user_labels=None):
+    def use_clusters(self, use=True, user_labels=None, user_labels_prefix=None):
         r"""
         
         Note: This will automatically invalidate the clusters
@@ -262,18 +263,14 @@ class ClusterSeed(SageObject):
             #### Move this up to the earlier spot where use_clusters flag was tested
             if self._use_clusters:
                 if user_labels:
-                    if isinstance(user_labels,list):
-                        user_labels = {i:user_labels[i] for i in xrange(len(user_labels))}
-                    elif isinstance(user_labels,dict):
-                        pass
-                    else:
-                        raise ValueError("The input 'user_labels' must be a dictionary or a list.")
-                    self._init_vars = user_labels
+
+                    self.sanitize_init_vars(user_labels, user_labels_prefix)
                 else:
                     xs = {i:'x%s'%i for i in xrange(self._n)}
                     ys = {(i+self._n):'y%s'%i for i in xrange(self._n+self._m)}
                     self._init_vars = copy(xs)
                     self._init_vars.update(ys)
+                
                 self._init_exch = dict(self._init_vars.items()[:self._n])
                 self._U = PolynomialRing(QQ,['y%s'%i for i in xrange(self._n)])
                 self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
@@ -296,6 +293,29 @@ class ClusterSeed(SageObject):
                 self._yhat = None
                 self._cluster = None
                 
+    def sanitize_init_vars(self, user_labels, user_labels_prefix = 'X'):
+        if isinstance(user_labels,list):
+            self._init_vars = {}
+            for i in xrange(len(user_labels)):
+                if isinstance(user_labels[i], Integer):
+                    self._init_vars[i] = user_labels_prefix+user_labels[i].str()
+                elif isinstance(user_labels[i], list):
+                    self._user_labels_prefix = user_labels_prefix
+                    strng = self._user_labels_prefix
+                    for j in user_labels[i]:
+                        if isinstance(j, Integer):
+                            strng = strng+"_"+j.str()
+                        else:
+                            strng = strng+"_"+j
+                    self._init_vars[i] = strng
+                else:
+                    self._init_vars[i] = user_labels[i]
+        elif isinstance(user_labels,dict):
+            self._init_vars = user_labels
+        else:
+            raise ValueError("The input 'user_labels' must be a dictionary or a list.")
+        
+        
     def set_c_matrix(self, matrix):
         if isinstance(matrix, ClusterQuiver):
             matrix = matrix.b_matrix()
@@ -358,7 +378,7 @@ class ClusterSeed(SageObject):
             name += ' with %s frozen variables'%self._m
         return name
 
-    def plot(self, circular=False, mark=None, save_pos=False, force_c =False, with_greens=False):
+    def plot(self, circular=False, mark=None, save_pos=False, force_c =False, with_greens=False, add_labels = False):
         r"""
         Returns the plot of the quiver of ``self``.
 
@@ -381,13 +401,16 @@ class ClusterSeed(SageObject):
             
         if force_c:
             quiver = ClusterQuiver(self._BC)
+        elif add_labels:
+            # relabelling multiple times causes errors, so we need to always do it in place
+            quiver = self.quiver().relabel(self._init_vars, inplace=False)
         else:
             quiver = self.quiver()
             
         #### don't create quiver until we want to display it?
         return quiver.plot(circular=circular,mark=mark,save_pos=save_pos, greens=greens)
 
-    def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False):
+    def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False, add_labels = False):
         r"""
         Shows the plot of the quiver of ``self``.
 
@@ -405,6 +428,9 @@ class ClusterSeed(SageObject):
         """
         if force_c:
             quiver = ClusterQuiver(self._BC)
+        elif add_labels:
+            # relabelling multiple times causes errors, so we need to always do it in place
+            quiver = self.quiver().relabel(self._init_vars, inplace=False)
         else:
             quiver = self.quiver()
         #### Wait to create quiver until we want to display it?
@@ -1529,6 +1555,11 @@ class ClusterSeed(SageObject):
             [ 0 -1  0]
             [ 1  0 -1]
             [ 0  1  0]
+            
+            sage: S = ClusterSeed(['A',4], user_labels=['a','b','c','d']); S.mutate(['a']); S.mutate(['(b+1)/a'])
+            sage: S.cluster()
+            [a, b, c, d]
+
 
         """
         
@@ -1536,7 +1567,7 @@ class ClusterSeed(SageObject):
         # check for sanitizable data
         if not isinstance(inplace, bool):
             raise ValueError('The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.')
-
+        
         if inplace:
             seed = self
         else:
@@ -1557,8 +1588,20 @@ class ClusterSeed(SageObject):
                 sequence = getattr(self, sequence)()
             elif hasattr(self.quiver(), sequence):
                 sequence = getattr(self.quiver(), sequence)()
-            else:
-                sequence = None
+            # If we are given a list in string format
+            elif sequence[0] == '[' and sequence[-1] == ']':
+                # convert to list
+                temp_list = ast.literal_eval(sequence)
+                
+                sequence = self._user_labels_prefix
+                for j in temp_list:
+                    if isinstance(j, Integer):
+                        sequence = sequence+"_"+j.str()
+                    elif isinstance(j, int):
+                        sequence = sequence+"_"+`j`
+                    else:
+                        sequence = sequence+"_"+j
+                
 
         # If we get a function, execute it
         if hasattr(sequence, '__call__'):
@@ -1590,9 +1633,9 @@ class ClusterSeed(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
 
         # remove ineligible vertices
-        if any( v not in V for v in seqq ):
-            v = filter( lambda v: v not in V, seqq )[0]
-            raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
+        #if any( v not in V for v in seqq ):
+            #v = filter( lambda v: v not in V, seqq )[0]
+            #raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
 
         seq = iter(seqq)   #### We do this in two steps so we make sure full sequence of mutations allowed before anything happens.
         
@@ -1601,7 +1644,7 @@ class ClusterSeed(SageObject):
             if k in xrange(n):
                 pass
             elif seed._use_clusters:
-                c = seed._R2(k)
+                c = FractionField(seed._R2)(k)
                 k = ClusterVariable( FractionField(seed._R2), c.numerator(), c.denominator(), mutation_type=self._mutation_type, variable_type='cluster variable',xdim=seed._n )
                 if k in seed.cluster():
                     k = seed.cluster().index(k)

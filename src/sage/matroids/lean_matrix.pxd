@@ -54,6 +54,7 @@ cdef class BinaryMatrix(LeanMatrix):
     cdef inline list row_union(self, object L)   # Not a Sage matrix operation
 
     cdef LeanMatrix matrix_from_rows_and_columns(self, rows, columns)
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns)
 
     cdef list _character(self, bitset_t x)
     cdef BinaryMatrix _distinguish_by(self, BinaryMatrix P)

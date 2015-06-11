@@ -1166,6 +1166,63 @@ cdef class BinaryMatrix(LeanMatrix):
                     bitset_add(A._M[r], c)
         return A
 
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as 
+        the column order of the resulting submatrix.
+        """
+        cdef BinaryMatrix A = BinaryMatrix(len(rows), len(columns))
+        cdef long r, c, lc, lg
+        cdef long *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and 
+        # write [c for c in columns if c>=lc] as array `cols` 
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <long*>sage_malloc(lc*sizeof(long))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1 
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        cdef long *gaps         
+        gaps = <long*>sage_malloc(lc*sizeof(long))          
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g   
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row, row2
+        for r in xrange(len(rows)):
+            row = self._M[rows[r]]
+            row2 = A._M[r]
+            bitset_intersection(row2, row, mask) # yes, this is safe
+            for g in xrange(lg):
+                if bitset_in(row, cols[g]):
+                    bitset_add(row2, gaps[g])
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset     
+        sage_free(gaps)
+        sage_free(cols)
+        bitset_free(mask)
+        return A, order   
+
     cdef list _character(self, bitset_t x):   # Not a Sage matrix operation
         """
         Return the vector of intersection lengths of the rows with ``x``.

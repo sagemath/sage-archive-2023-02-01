@@ -144,11 +144,11 @@ def sage_include_directories(use_sources=False):
     """
     Return the list of include directories for compiling Sage extension modules.
 
-    INPUTS:
+    INPUT:
 
     -  ``use_sources`` -- (default: False) a boolean
 
-    OUTPUTS:
+    OUTPUT:
 
     a list of include directories to be used to compile sage code
     1. while building sage (use_sources='True')

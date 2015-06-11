@@ -61,6 +61,79 @@ class HopfAlgebras(Category_over_base_ring):
     WithBasis = LazyImport('sage.categories.hopf_algebras_with_basis',  'HopfAlgebrasWithBasis')
 
     class ElementMethods:
+        def convolution_product(h,a,b):
+            r"""
+            input: h - an element of a Hopf algebra H
+                   a,b - linear maps from H to H
+            output: [a*b](h)
+            """
+            H = h.parent()
+            out = 0
+            for (bimonom,coef) in h.coproduct():
+                out += coef*a(H(bimonom[0]))*b(H(bimonom[1]))
+            return out
+
+        def convolution_power(h, L, n):
+            r"""
+            input: h - an element of a Hopf algebra H
+                   L - linear map from H to H
+                   n - the convolution power to which to take 'L'
+            output: [L^*n](h)
+            """
+            from sage.categories.tensor import tensor
+            H = h.parent()
+            def n_fold_coproduct(h, n):
+                H = h.parent()
+                if n == 0:
+                    return H(h.counit())
+                elif n == 1:
+                    return h
+                elif n == 2:
+                    return h.coproduct()
+                else:
+                    # apply some kind of multilinear recursion
+                    Hn = tensor([H]*n) # or: tensor([H for i in range(n)])
+                    terms = []
+                    hh = n_fold_coproduct(h, n-1)
+                    for (monom,cof) in hh:
+                        h0 = H(monom[0]).coproduct()
+                        terms += [(tuple((h00, h01) + monom[1:]), cof0 * cof) for ((h00, h01), cof0) in h0]
+                    return Hn.sum_of_terms(terms)
+            hhh = n_fold_coproduct(h,n)
+            out = H.zero()
+            for term in hhh:
+                out += H.prod(L(H(t)) for t in term[0]) * term[1]
+            return out
+
+        def hopf_power(h,n=2): 
+            r"""
+            Input: 
+                h - an element of a Hopf algebra H
+                n - the convolution power of the identity morphism to use
+            Output:
+                the nth convolution power of the identity morphism, applied to h., i.e., [id^*n](h)
+
+            Remark: for historical reasons (see saga of Frobenius-Schur indicators), the second power deserves special attention.
+            we use '2' as the default value for 'n'
+            """
+            H = h.parent()
+            def Id(x):
+                return x
+            def S(x):
+                return x.antipode()
+
+            if n<0:
+                L = S
+            else:
+                L = Id
+
+            if n==0:
+                return H(h.counit())
+            elif abs(n)==1:
+                return L(h)
+            else:
+                return h.convolution_power(L,abs(n)) 
+
         def antipode(self):
             """
             Returns the antipode of self.
@@ -85,6 +158,7 @@ class HopfAlgebras(Category_over_base_ring):
             # result not guaranted to be in self
             # This choice should be done consistently with coproduct, ...
             # return operator.antipode(self)
+
 
     class ParentMethods:
         #def __setup__(self): # Check the conventions for _setup_ or __setup__

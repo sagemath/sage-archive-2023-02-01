@@ -5574,8 +5574,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             I*x^3 + 2.0
             sage: f.roots()  # abs tol 1e-14
             [(-1.0911236359717227 + 0.6299605249474374*I, 1), (3.885780586188048e-16 - 1.2599210498948734*I, 1), (1.0911236359717211 + 0.6299605249474363*I, 1)]
-            sage: f(f.roots()[0][0])  # abs tol 1e-13
-            3.3306690738754696e-15 + 1.3704315460216776e-15*I
+            sage: abs(f(f.roots()[0][0]))  # abs tol 1e-13
+            1.1102230246251565e-16
 
         Examples using real root isolation::
 

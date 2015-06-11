@@ -1036,7 +1036,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef _richcmp_c_impl(left, Element right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         cdef ComplexIntervalFieldElement lt, rt
         lt = left
         rt = right
@@ -1094,7 +1094,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return (<Element>left)._cmp(right)
 
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
         Intervals are compared lexicographically on the 4-tuple:
         ``(x.real().lower(), x.real().upper(),

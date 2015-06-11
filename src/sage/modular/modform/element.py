@@ -20,6 +20,8 @@ from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
 from sage.modular.dirichlet import DirichletGroup
 from sage.misc.superseded import deprecated_function_alias
+from sage.rings.arith import lcm
+from sage.structure.element import get_coercion_model
 
 
 def is_ModularFormElement(x):
@@ -132,30 +134,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return str(self.q_expansion())
 
-    def _ensure_is_compatible(self, other):
-        """
-        Make sure self and other are compatible for arithmetic or
-        comparison operations. Raise an error if incompatible,
-        do nothing otherwise.
-
-        EXAMPLES::
-
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: h = ModularForms(17,4).0
-
-            sage: f._ensure_is_compatible(g)
-
-            sage: f._ensure_is_compatible(h)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Modular forms must be in the same ambient space.
-        """
-        if not isinstance(other, ModularForm_abstract):
-            raise TypeError("Second argument must be a modular form.")
-        if self.parent().ambient() != other.parent().ambient():
-            raise ArithmeticError("Modular forms must be in the same ambient space.")
-
     def __call__(self, x, prec=None):
         """
         Evaluate the q-expansion of this modular form at x.
@@ -213,7 +191,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion(prec)
 
-
     def __eq__(self, other):
         """
         Compare self to other.
@@ -235,28 +212,27 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.element() == other.element()
 
-    def __cmp__(self, other):
+    def __ne__(self, other):
         """
-        Compare self to other. If they are not the same object, but
-        are of the same type, compare them as vectors.
+        Return True if ``self != other``.
 
         EXAMPLES::
 
-            sage: f = ModularForms(DirichletGroup(17).0^2,2).2
-            sage: g = ModularForms(DirichletGroup(17).0^2,2).1
-            sage: f == g ## indirect doctest
-            False
-            sage: f == f
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]
+            sage: g = ModularForms(23, 2).0
+            sage: f != g
             True
+            sage: f != f
+            False
+
+        TESTS:
+
+        The following used to fail (see :trac:`18068`)::
+
+            sage: f != loads(dumps(f))
+            False
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if self.element() == other.element():
-            return 0
-        else:
-            return -1
+        return not (self == other)
 
     def _compute(self, X):
         """
@@ -819,7 +795,7 @@ class ModularForm_abstract(ModuleElement):
 
         # compute the requested embedding
         emb = self.base_ring().embeddings(rings.ComplexField(prec))[conjugate]
-        s = 'coeff = %s;'% map(emb, coeffs)
+        s = 'coeff = %s;' % [emb(_) for _ in coeffs]
         L.init_coeffs('coeff[k+1]',pari_precode = s,
                       max_imaginary_part=max_imaginary_part,
                       max_asymp_coeffs=max_asymp_coeffs)
@@ -915,49 +891,17 @@ class Newform(ModularForm_abstract):
             sage: f1.__eq__(f2)
             False
         """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
+        if (not isinstance(other, ModularForm_abstract)
+            or self.parent().ambient() != other.parent().ambient()):
             return False
-        if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return True
-            else:
-                return False
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return True
-            else:
-                return False
-
-    def __cmp__(self, other):
-        """
-        Compare self with other.
-
-        EXAMPLES::
-
-            sage: f1, f2 = Newforms(19,4,names='a')
-            sage: f1.__cmp__(f1)
-            0
-            sage: f1.__cmp__(f2)
-            -1
-            sage: f2.__cmp__(f1)
-            -1
-        """
-        try:
-            self._ensure_is_compatible(other)
-        except Exception:
-            return self.parent().__cmp__(other.parent())
-        if isinstance(other, Newform):
-            if self.q_expansion(self.parent().sturm_bound()) == other.q_expansion(other.parent().sturm_bound()):
-                return 0
-            else:
-                return -1
-        if is_ModularFormElement(other):
-            if self.element() == other.element():
-                return 0
-            else:
-                return -1
+        if (isinstance(other, Newform) and
+            self.q_expansion(self.parent().sturm_bound())
+            == other.q_expansion(other.parent().sturm_bound())):
+            return True
+        if (is_ModularFormElement(other) and
+            self.element() == other.element()):
+            return True
+        return False
 
     def abelian_variety(self):
         """
@@ -1140,6 +1084,128 @@ class Newform(ModularForm_abstract):
             ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
         """
         return self.modular_symbols(sign=1).atkin_lehner_operator(d).matrix()[0,0]
+
+    def twist(self, chi, level=None, check=True):
+        r"""
+        Return the twist of the newform ``self`` by the Dirichlet
+        character ``chi``.
+
+        If ``self`` is a newform `f` with character `\epsilon` and
+        `q`-expansion
+
+        .. math::
+
+            f(q) = \sum_{n=1}^\infty a_n q^n,
+
+        then the twist by `\chi` is the unique newform `f\otimes\chi`
+        with character `\epsilon\chi^2` and `q`-expansion
+
+        .. math::
+
+            (f\otimes\chi)(q) = \sum_{n=1}^\infty b_n q^n
+
+        satisfying `b_n = \chi(n) a_n` for all but finitely many `n`.
+
+        INPUT:
+
+        - ``chi`` -- a Dirichlet character
+
+        - ``level`` -- (optional) the level `N` of the twisted form.
+          By default, the algorithm tries to compute `N` using
+          [Atkin-Li]_, Theorem 3.1.
+
+        - ``check`` -- (optional) boolean; if ``True`` (default),
+          ensure that the coefficients `b_n` are correct for `n` up to
+          the Sturm bound and coprime to the level of `f` and to the
+          conductor of `\chi`.  This makes it less likely that a wrong
+          result is returned if an incorrect ``level`` is specified.
+
+        OUTPUT:
+
+        The form `f\otimes\chi` as an element of the set of newforms
+        for `\Gamma_1(N)` with character `\epsilon\chi^2`.
+
+        EXAMPLES::
+
+            sage: G = DirichletGroup(3, base_ring=QQ)
+            sage: Delta = Newforms(SL2Z, 12)[0]; Delta
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: Delta.twist(G[0]) == Delta
+            True
+            sage: Delta.twist(G[1])  # long time (about 5 s)
+            q + 24*q^2 - 1472*q^4 - 4830*q^5 + O(q^6)
+
+            sage: M = CuspForms(Gamma1(13), 2)
+            sage: f = M.newforms('a')[0]; f
+            q + a0*q^2 + (-2*a0 - 4)*q^3 + (-a0 - 1)*q^4 + (2*a0 + 3)*q^5 + O(q^6)
+            sage: f.twist(G[1])
+            q - a0*q^2 + (-a0 - 1)*q^4 + (-2*a0 - 3)*q^5 + O(q^6)
+
+            sage: f = Newforms(Gamma1(30), 2, names='a')[1]; f
+            q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6)
+            sage: f.twist(f.character())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot calculate 5-primary part of the level of the twist of q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6) by Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1
+            sage: f.twist(f.character(), level=30)
+            q - a1*q^2 + a1*q^3 - q^4 + (-a1 - 2)*q^5 + O(q^6)
+
+        TESTS:
+
+        We test that setting ``check=False`` can lead to wrong answers
+        that are prevented by the default ``check=True``::
+
+            sage: chi = DirichletGroup(1)[0]
+            sage: Delta.twist(chi, level=3)  # long time
+            Traceback (most recent call last):
+            ...
+            RuntimeError: twist of q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6) by Dirichlet character modulo 1 of conductor 1 is not a newform in Cuspidal subspace of dimension 3 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(3) of weight 12 over Cyclotomic Field of order 1 and degree 1
+            sage: Delta.twist(chi, level=3, check=False)  # long time
+            q + 78*q^2 - 243*q^3 + 4036*q^4 - 5370*q^5 + O(q^6)
+
+        AUTHORS:
+
+        - Peter Bruin (April 2015)
+
+        """
+        from sage.modular.all import CuspForms
+        coercion_model = get_coercion_model()
+        R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
+        N = self.level()
+        epsilon = self.character()
+        chi = chi.primitive_character()
+        if level is None:
+            N_epsilon = epsilon.conductor()
+            N_chi = chi.conductor()
+            G = DirichletGroup(N_epsilon.lcm(N_chi), base_ring=R)
+            epsilon_chi = G(epsilon) * G(chi)
+            N_epsilon_chi = epsilon_chi.conductor()
+            for q in N_chi.prime_divisors():
+                # See [Atkin-Li], Theorem 3.1.
+                alpha = N_epsilon.valuation(q)
+                beta = N_chi.valuation(q)
+                gamma = N.valuation(q)
+                delta = max(alpha + beta, 2*beta, gamma)
+                if delta == gamma and max(alpha + beta, 2*beta) < gamma:
+                    continue
+                if delta > gamma and N_epsilon_chi.valuation(q) == max(alpha, beta):
+                    continue
+                raise NotImplementedError('cannot calculate %s-primary part of the level of the twist of %s by %s'
+                                          % (q, self, chi))
+            level = lcm([N, N_epsilon * N_chi, N_chi**2])
+        G = DirichletGroup(level, base_ring=R)
+        S = CuspForms(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
+        nf = S.newforms(names='a')
+        L = N.lcm(level)
+        p = rings.ZZ.one()
+        while len(nf) > 1 or (check and len(nf) == 1 and p < S.sturm_bound()):
+            p = p.next_prime()
+            if not p.divides(L):
+                nf = [f for f in nf if f[p] == chi(p) * self[p]]
+        if len(nf) == 0:
+            raise RuntimeError('twist of %s by %s is not a newform in %s' % (self, chi, S))
+        return nf[0]
+
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):
@@ -1409,8 +1475,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         """
         from sage.modular.all import CuspForms, ModularForms
-        from sage.rings.all import PowerSeriesRing, lcm
-        from sage.structure.element import get_coercion_model
+        from sage.rings.all import PowerSeriesRing
         coercion_model = get_coercion_model()
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()

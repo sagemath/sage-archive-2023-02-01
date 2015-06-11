@@ -5,8 +5,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-
 cpdef fibers(f, domain)
 
 from sage.structure.parent cimport Parent

@@ -1,6 +1,5 @@
-include "sage/ext/cdefs.pxi"
-
 cimport sage.structure.element
+from sage.libs.gmp.types cimport mpz_t, mpq_t
 from sage.structure.element cimport Element, RingElement
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.pow_computer cimport PowComputer_class
@@ -8,7 +7,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    cdef int _cmp_c_impl(left, Element right) except -2
     cdef long valuation_c(self)
     cpdef val_unit(self)
 

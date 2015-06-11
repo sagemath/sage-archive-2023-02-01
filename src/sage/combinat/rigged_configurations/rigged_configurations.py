@@ -498,9 +498,10 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
         """
         index_set = self._cartan_type.classical().index_set()
-        from sage.combinat.backtrack import TransitiveIdeal
-        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
-                               self.module_generators).__iter__()
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        return RecursivelyEnumeratedSet(self.module_generators,
+                    lambda x: [x.f(i) for i in index_set],
+                    structure=None).naive_search_iterator()
 
     @lazy_attribute
     def module_generators(self):
@@ -1827,7 +1828,6 @@ class RCTypeA2Dual(RCTypeA2Even):
             yield []
             return
 
-        half = lambda x: QQ(x) / QQ(2)
         pos = 0
         length = len(container)
         ret_part = [-1] * length
@@ -1841,7 +1841,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 pos += 1
 
             if pos == length:
-                yield map(half, ret_part[:])
+                yield [QQ(_) / QQ(2) for _ in ret_part]
                 pos -= 1
 
     def to_virtual(self, rc):

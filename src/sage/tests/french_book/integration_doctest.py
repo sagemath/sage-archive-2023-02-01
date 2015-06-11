@@ -78,8 +78,8 @@ Sage example in ./integration.tex, line 436::
 
 Sage example in ./integration.tex, line 465::
 
-    sage: gp('intnum(x=17, 42, exp(-x^2)*log(x))') # rel tol 8e-29
-    2.5657285005610514829173563961304785900 E-127
+    sage: gp('intnum(x=17, 42, exp(-x^2)*log(x))') # rel tol 1e-17
+    2.5657285005610514829176211363206621657 E-127
 
 Sage example in ./integration.tex, line 474::
 

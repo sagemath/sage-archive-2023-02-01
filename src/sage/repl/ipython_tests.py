@@ -64,7 +64,7 @@ calls when you ask for the double-questionmark help, like `foo??` ::
     <BLANKLINE>
         - ``optional`` -- anything (optional). Dummy optional.
     <BLANKLINE>
-        EXAMPLES:
+        EXAMPLES::
     <BLANKLINE>
         ...
         """
@@ -102,6 +102,7 @@ Next, test the pinfo2 magic for Cython code::
     Type:   type
 '''
 
+
 def dummy(argument, optional=None):
     """
     Dummy Docstring Title
@@ -114,7 +115,7 @@ def dummy(argument, optional=None):
 
     - ``optional`` -- anything (optional). Dummy optional.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.repl.ipython_tests import dummy
         sage: dummy(1)

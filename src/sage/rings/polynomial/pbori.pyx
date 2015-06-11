@@ -184,14 +184,14 @@ REFERENCES:
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/python.pxi"
+from cpython.object cimport Py_EQ, Py_NE
 
 import operator
 
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
+from sage.misc.long cimport pyobject_to_long
 import sage.misc.weak_dict
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -991,25 +991,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef long _hash = hash(self.variable_names()) ^ 42
         _hash ^= hash(self.term_order())
         return _hash
-
-    def gens_dict(self):
-        """
-        Return a dictionary whose entries are ``{var_name:variable,...}``.
-
-        EXAMPLE::
-
-            sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: B.gens_dict()
-            {'a': a, 'b': b, 'c': c, 'd': d}
-        """
-        if self._gens_dict is not None:
-            return self._gens_dict
-
-        v = {}
-        for x in self.gens():
-            v[str(x)] = x
-        self._gens_dict = v
-        return v
 
     def remove_var(self, *var, order=None):
         """
@@ -2265,7 +2246,7 @@ cdef class BooleanMonomial(MonoidElement):
         # boilerplate code from sage.structure.parent
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
         return res
@@ -3141,7 +3122,7 @@ cdef class BooleanPolynomial(MPolynomial):
         #boilerplate from sage.structure.element
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
 
 
 
@@ -6131,13 +6112,17 @@ cdef class BooleanPolynomialVector:
             sage: v[3]
             Traceback (most recent call last):
             ...
-            IndexError
+            IndexError: index out of range
+            sage: v['a']
+            Traceback (most recent call last):
+            ...
+            TypeError: 'str' object cannot be interpreted as an index
         """
-        cdef long i = int(ind)
-        while i < 0:
+        cdef long i = pyobject_to_long(ind)
+        if i < 0:
             i += self._vec.size()
-        if i >= self._vec.size():
-            raise IndexError
+        if i < 0 or i >= self._vec.size():
+            raise IndexError("index out of range")
         return new_BP_from_PBPoly(self._parent, self._vec.get(i))
 
 

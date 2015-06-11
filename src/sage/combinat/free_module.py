@@ -29,7 +29,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
-from sage.misc.ascii_art import AsciiArt, empty_ascii_art
+from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -816,8 +816,8 @@ class CombinatorialFreeModuleElement(Element):
 
         .. NOTE::
 
-            #13406: the current implementation has been optimized, at
-            #the price of breaking the encapsulation for FreeModule
+            :trac:`13406`: the current implementation has been optimized, at
+            the price of breaking the encapsulation for FreeModule
             elements creation, with the following use case as metric,
             on a 2008' Macbook Pro::
 
@@ -874,7 +874,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: F.get_action(F, operator.mul, False)
 
         This also works when a coercion of the coefficient is needed, for
-        example with polynomials or fraction fields #8832::
+        example with polynomials or fraction fields (:trac:`8832`)::
 
             sage: P.<q> = QQ['q']
             sage: V = CombinatorialFreeModule(P, Permutations())
@@ -1328,7 +1328,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: ascii_art(R.one())  # indirect doctest
             1
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         try:
             if m == self.one_basis():
                 return AsciiArt(["1"])
@@ -1590,6 +1590,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         the one used in the generation of the elements of self's
         associated enumerated set.
 
+        .. WARNING:: Many cached methods depend on this order, in
+           particular for constructing subspaces and quotients.
+           Changing the order after some computations have been
+           cached does not invalidate the cache, and is likely to
+           introduce inconsistencies.
+
         EXAMPLES::
 
             sage: QS2 = SymmetricGroupAlgebra(QQ,2)
@@ -1600,6 +1606,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             [[2, 1], [1, 2]]
         """
         self._order = order
+        from sage.combinat.ranker import rank_from_list
+        self._rank_basis = rank_from_list(self._order)
 
     @cached_method
     def get_order(self):
@@ -1613,8 +1621,54 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             [[2, 1], [1, 2]]
         """
         if self._order is None:
-            self._order = list(self.basis().keys())
+            self.set_order(self.basis().keys().list())
         return self._order
+
+    def get_order_cmp(self):
+        """
+        Return a comparison function on the basis indices that is
+        compatible with the current term order.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebrasWithBasis(QQ).example()
+            sage: Acmp = A.get_order_cmp()
+            sage: sorted(A.basis().keys(), Acmp)
+            ['x', 'y', 'a', 'b']
+            sage: A.set_order(list(reversed(A.basis().keys())))
+            sage: Acmp = A.get_order_cmp()
+            sage: sorted(A.basis().keys(), Acmp)
+            ['b', 'a', 'y', 'x']
+        """
+        self.get_order()
+        return self._order_cmp
+
+    def _order_cmp(self, x, y):
+        """
+        Compare `x` and `y` w.r.t. the term order.
+
+        INPUT:
+
+        - ``x``, ``y`` -- indices of the basis of ``self``
+
+        OUTPUT:
+
+        `-1`, `0`, or `1` depending on whether `x<y`, `x==y`, or `x>y`
+        w.r.t. the term order.
+
+        EXAMPLES::
+
+            sage: A = CombinatorialFreeModule(QQ, ['x','y','a','b'])
+            sage: A.set_order(['x', 'y', 'a', 'b'])
+            sage: A._order_cmp('x', 'y')
+            -1
+            sage: A._order_cmp('y', 'y')
+            0
+            sage: A._order_cmp('a', 'y')
+            1
+        """
+        return cmp( self._rank_basis(x), self._rank_basis(y) )
+
 
     @cached_method
     def _dense_free_module(self, base_ring=None):
@@ -2029,7 +2083,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if remove_zeros:
             d = dict( (key, coeff) for key, coeff in d.iteritems() if coeff)
         return self.element_class( self, d )
-
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """

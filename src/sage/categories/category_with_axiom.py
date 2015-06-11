@@ -1646,9 +1646,7 @@ TESTS:
         and Category of finite dimensional algebras with basis over Rational Field
         and Category of finite set algebras over Rational Field
     sage: FiniteGroups().Algebras(QQ)
-    Join of Category of finite dimensional hopf algebras with basis over Rational Field
-        and Category of group algebras over Rational Field
-        and Category of finite set algebras over Rational Field
+    Category of finite group algebras over Rational Field
 """
 #*****************************************************************************
 #  Copyright (C) 2011-2014 Nicolas M. Thiery <nthiery at users.sf.net>

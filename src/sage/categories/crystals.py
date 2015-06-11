@@ -102,14 +102,14 @@ class Crystals(Category_singleton):
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
-        INPUT::
+        INPUT:
 
-         - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
-           for the highest weight crystal of type A, or 'naive' for an
-           example of a broken crystal.
+        - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
+          for the highest weight crystal of type A, or 'naive' for an
+          example of a broken crystal.
 
-         - ``**kwds`` -- keyword arguments passed onto the constructor for the
-           chosen crystal.
+        - ``**kwds`` -- keyword arguments passed onto the constructor for the
+          chosen crystal.
 
         EXAMPLES::
 
@@ -224,16 +224,12 @@ class Crystals(Category_singleton):
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
-                sage: next(g)
+                sage: for _ in range(5): next(g)
                 (-Lambda[0] + Lambda[2],)
-                sage: next(g)
                 (Lambda[0] - Lambda[1] + delta,)
-                sage: next(g)
-                (Lambda[1] - Lambda[2] + delta,)
-                sage: next(g)
-                (-Lambda[0] + Lambda[2] + delta,)
-                sage: next(g)
                 (Lambda[1] - Lambda[2],)
+                (Lambda[0] - Lambda[1],)
+                (Lambda[1] - Lambda[2] + delta,)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)
                 [(-Lambda[0] + Lambda[2],),
@@ -246,17 +242,12 @@ class Crystals(Category_singleton):
                  (Lambda[1] - Lambda[2],)]
 
             """
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             if index_set is None:
                 index_set = self.index_set()
-            if max_depth < float('inf'):
-                from sage.combinat.backtrack import TransitiveIdealGraded
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             self.module_generators, max_depth).__iter__()
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(lambda x: [x.f(i) for i in index_set]
-                                           + [x.e(i) for i in index_set],
-                                   self.module_generators).__iter__()
+            succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            R = RecursivelyEnumeratedSet(self.module_generators, succ, structure=None)
+            return R.breadth_first_search_iterator(max_depth)
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both"):
@@ -303,19 +294,19 @@ class Crystals(Category_singleton):
                 index_set = self.index_set()
             if generators is None:
                 generators = self.module_generators
-            from sage.combinat.backtrack import TransitiveIdealGraded
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
             if direction == 'both':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'upper':
-                return TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'lower':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                             generators, max_depth)
-            raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+                succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            elif direction == 'upper':
+                succ = lambda x: [x.e(i) for i in index_set]
+            elif direction == 'lower':
+                succ = lambda x: [x.f(i) for i in index_set]
+            else:
+                raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+            return RecursivelyEnumeratedSet(generators, succ,
+                                            structure=None, enumeration='breadth',
+                                            max_depth=max_depth)
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
@@ -579,7 +570,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex') #optional - dot2tex
+                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -609,7 +600,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()   #optional - dot2tex
+                sage: T._latex_()  # optional - dot2tex graphviz
                 '...tikzpicture...'
                 sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
 
@@ -619,10 +610,7 @@ class Crystals(Category_singleton):
                 sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
                 '...tikzpicture...'
             """
-            if not have_dot2tex():
-                print "dot2tex not available.  Install after running \'sage -sh\'"
-                return
-            G=self.digraph()
+            G = self.digraph()
             G.set_latex_options(**options)
             return G._latex_()
 

@@ -160,7 +160,12 @@ cdef class SageObject:
         except AttributeError:
             return str(type(self))
         else:
-            return repr_func()
+            result = repr_func()
+            if isinstance(result, unicode):
+                # Py3 compatibility: allow _repr_ to return unicode
+                return result.encode('utf-8')
+            else:
+                return result
 
     def _ascii_art_(self):
         r"""
@@ -174,12 +179,12 @@ cdef class SageObject:
 
         OUTPUT:
 
-        An :class:`~sage.misc.ascii_art.AsciiArt` object, see
-        :mod:`sage.misc.ascii_art` for details.
+        An :class:`~sage.typeset.ascii_art.AsciiArt` object, see
+        :mod:`sage.typeset.ascii_art` for details.
 
         EXAMPLES:
 
-        You can use the :func:`~sage.misc.ascii_art.ascii_art` function
+        You can use the :func:`~sage.typeset.ascii_art.ascii_art` function
         to get the ASCII art representation of any object in Sage::
 
             sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
@@ -220,10 +225,75 @@ cdef class SageObject:
             sage: 1._ascii_art_()
             1
             sage: type(_)
-            <class 'sage.misc.ascii_art.AsciiArt'>
+            <class 'sage.typeset.ascii_art.AsciiArt'>
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(repr(self).splitlines())
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation.
+
+        To implement multi-line unicode art output in a derived class
+        you must override this method. Unlike :meth:`_repr_`, which is
+        sometimes used for the hash key, the output of
+        :meth:`_unicode_art_` may depend on settings and is allowed to
+        change during runtime.
+
+        OUTPUT:
+
+        An :class:`~sage.typeset.unicode_art.UnicodeArt` object, see
+        :mod:`sage.typeset.unicode_art` for details.
+
+        EXAMPLES:
+
+        You can use the :func:`~sage.typeset.unicode_art.unicode_art` function
+        to get the ASCII art representation of any object in Sage::
+
+            sage: unicode_art(integral(exp(x+x^2)/(x+1), x))
+              /
+             |
+             |   2
+             |  x  + x
+             | e
+             | ------- dx
+             |  x + 1
+             |
+            /
+
+        Alternatively, you can use the ``%display ascii_art/simple`` magic to
+        switch all output to ASCII art and back::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('tab = StandardTableaux(3)[2]; tab')
+            [[1, 2], [3]]
+            sage: shell.run_cell('%display ascii_art')
+            sage: shell.run_cell('tab')
+            1  2
+            3
+            sage: shell.run_cell('Tableaux.global_options(ascii_art="table", convention="French")')
+            sage: shell.run_cell('tab')
+            +---+
+            | 3 |
+            +---+---+
+            | 1 | 2 |
+            +---+---+
+            sage: shell.run_cell('%display plain')
+            sage: shell.run_cell('Tableaux.global_options.reset()')
+            sage: shell.quit()
+
+        TESTS::
+
+            sage: 1._unicode_art_()
+            1
+            sage: type(_)
+            <class 'sage.typeset.unicode_art.UnicodeArt'>
+        """
+        ascii_art = self._ascii_art_()
+        lines = map(unicode, ascii_art)
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(lines)
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -1033,24 +1103,6 @@ def register_unpickle_override(module, name, callable, call_name=None):
     you can specify the module name and class name, for the benefit of
     :func:`~sage.misc.explain_pickle.explain_pickle` when called with ``in_current_sage=True``).)
 
-    EXAMPLES::
-
-        sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
-
-    Now we horribly break the pickling system::
-
-        sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.rational.Rational'>
-
-    and we reach into the internals and put it back::
-
-        sage: del unpickle_override[('sage.rings.integer', 'Integer')]
-        sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
-
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
     in many of the ``sage`` source files.  However, if the underlying data
@@ -1492,12 +1544,14 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
                 if run_test_suite:
                     TestSuite(object).run(catch = False)
                 i += 1
-            except Exception as msg:
+            except Exception:
                 j += 1
                 if run_test_suite:
                     print " * unpickle failure: TestSuite(load('%s')).run()"%os.path.join(dir,A)
                 else:
                     print " * unpickle failure: load('%s')"%os.path.join(dir,A)
+                from traceback import print_exc
+                print_exc()
                 failed.append(A)
                 if debug:
                     tracebacks.append(sys.exc_info())

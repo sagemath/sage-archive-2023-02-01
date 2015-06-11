@@ -4,7 +4,6 @@ Vectors with elements in GF(2).
 AUTHOR:
 
 - Martin Albrecht (2009-12): initial implementation
-
 - Thomas Feulner (2012-11): added :meth:`Vector_mod2_dense.hamming_weight`
 
 EXAMPLES::
@@ -185,7 +184,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         if self._entries:
             mzd_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
             sage: v = vector(GF(2), [0,0,0,0])
@@ -461,7 +460,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         INPUT:
 
-        - ``copy`` - always ``True
+        - ``copy`` - always ``True``
 
         EXAMPLE::
 

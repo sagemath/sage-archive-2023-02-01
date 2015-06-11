@@ -426,8 +426,7 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
-        sage: phi = hom(R, QQ, [2])
+        sage: phi = hom(QQ['x'], QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -503,7 +502,7 @@ def end(X, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
+        sage: R.<x> = QQ[]
         sage: phi = end(R, [x + 1])
         sage: phi
         Ring endomorphism of Univariate Polynomial Ring in x over Rational Field

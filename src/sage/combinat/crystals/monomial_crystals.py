@@ -227,21 +227,21 @@ class NakajimaYMonomial(Element):
                     return_str += "Y_{%s,%s} "%(L[x][0][0],L[x][0][1])
             return return_str
 
-    def weight(self):
+    def _classical_weight(self):
         r"""
-        Return the weight of ``self`` as an element of
+        Return the weight of ``self`` as an element of the classical version of
         ``self.parent().weight_lattice_realization``.
 
         EXAMPLES::
 
             sage: M = crystals.infinity.NakajimaMonomials(['D',4,2])
             sage: m = M.module_generators[0].f_string([0,3,2,0,1])
-            sage: m.weight()
+            sage: m._classical_weight()
             -2*Lambda[0] + Lambda[1]
 
             sage: M = crystals.infinity.NakajimaMonomials(['E',6])
             sage: m = M.module_generators[0].f_string([1,5,2,6,3])
-            sage: m.weight()
+            sage: m._classical_weight()
             (-1/2, -3/2, 3/2, 1/2, -1/2, 1/2, 1/2, -1/2)
         """
         P = self.parent().weight_lattice_realization()
@@ -270,6 +270,20 @@ class NakajimaYMonomial(Element):
         path = self.to_highest_weight()
         return Q(sum(-alpha[j] for j in path[1]))
 
+    def weight(self):
+        r"""
+        Return the weight of ``self`` as an element of the weight lattice.
+
+        EXAMPLES::
+
+            sage: C = crystals.infinity.NakajimaMonomials(['A',1,1])
+            sage: v=C.highest_weight_vector()
+            sage: v.f(1).weight()+v.f(0).weight()
+            -delta
+        """
+        P = self.parent().weight_lattice_realization()
+        return P(self.weight_in_root_lattice())
+
     def epsilon(self,i):
         r"""
         Return the value of `\varepsilon_i` on ``self``.
@@ -288,7 +302,7 @@ class NakajimaYMonomial(Element):
         if i not in self.parent().index_set():
             raise ValueError("i must be an element of the index set")
         h = self.parent().weight_lattice_realization().simple_coroots()
-        return self.phi(i) - self.weight().scalar(h[i])
+        return self.phi(i) - self._classical_weight().scalar(h[i])
 
     def phi(self,i):
         r"""
@@ -626,7 +640,7 @@ class NakajimaAMonomial(NakajimaYMonomial):
             sage: M = crystals.infinity.NakajimaMonomials(['A',4,2],use_Y=False)
             sage: m = M.module_generators[0].f_string([1,2,0,1])
             sage: m.weight()
-            2*Lambda[0] - Lambda[1]
+            2*Lambda[0] - Lambda[1] - delta
         """
         return self.to_Y_monomial().weight()
 

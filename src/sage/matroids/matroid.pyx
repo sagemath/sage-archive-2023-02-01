@@ -312,7 +312,6 @@ from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
 from sage.graphs.graph import Graph
-from sage.matroids.catalog import *
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -4666,9 +4665,6 @@ cdef class Matroid(SageObject):
             sage: M = matroids.named_matroids.R6()
             sage: M.is_3connected()
             False
-            sage: B, X = M.is_3connected(True)
-            sage: M.connectivity(X)
-            1
         """
         # The 5 stages of the algorithm
         # Stage 0, special cases

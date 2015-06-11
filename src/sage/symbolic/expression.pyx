@@ -2958,7 +2958,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (1*x).operator()
             sage: (1.0*x).operator()
-            <built-in function mul>
+            <function mul_vararg...
             sage: 1.0 * pi
             1.00000000000000*pi
             sage: 1.000000*(x+2)

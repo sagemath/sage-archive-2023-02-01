@@ -1335,11 +1335,21 @@ class Tableau(ClonableList):
             sage: all(all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1) for t in T)
             True
 
-        Coxeter relation of the Bender--Knuth involutions (they have the form
-        `(ab)^6 = 1`)::
+        A "folk theorem" on Bender--Knuth involutions states that
+        any `i` satisfies `(s_i s_{i+1})^6 = id`, where `s_k` denotes
+        the `k`-th Bender--Knuth involution. Let us check that this is
+        false::
 
             sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: all(all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5)) for t in T)
+            sage: t = Tableau([[1,2,2],[3,4]])
+            sage: p(p(p(p(p(p(t,2),2),2),2),2),2)
+            [[1, 2, 3], [2, 4]]
+
+        However, for `i = 1`, this holds, as observed by Berenstein and
+        Kirillov::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: all(p(p(p(p(p(p(t,1),1),1),1),1),1) == t for t in T)
             True
 
         TESTS::

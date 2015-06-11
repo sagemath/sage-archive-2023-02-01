@@ -1026,13 +1026,6 @@ class SkewTableau(ClonableList):
             sage: all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1)
             True
 
-        Coxeter relation of the Bender--Knuth involutions (they have the form
-        `(ab)^6 = 1`)::
-
-            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5))
-            True
-
         TESTS::
 
             sage: t = SkewTableau([])

@@ -1478,8 +1478,20 @@ class Tableau(ClonableList):
 
     def is_row_increasing(self,weak=False):
         r"""
-        Return true if the entries in each row are in increasing order.
+        Return ``True`` if the entries in each row are in increasing order and ``False`` otherwise.
 
+        By default, this checks for strictly increasing rows. Set ``weak`` to ``True`` to test for
+        weakly increasing rows.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1, 1, 3], [1, 2]])
+            sage: T.is_row_increasing(weak=True)
+            True
+            sage: T.is_row_increasing()
+            False
+            sage: Tableau([[2, 1]]).is_row_increasing(weak=True)
+            False
         """
         def test(a,b):
             if weak:
@@ -1489,6 +1501,22 @@ class Tableau(ClonableList):
         return all(test(row[i],row[i+1]) for row in self for i in range(len(row)-1))
 
     def is_column_increasing(self,weak=False):
+        r"""
+        Return ``True`` if the entries in each column are in increasing order and ``False`` otherwise.
+
+        By default, this checks for strictly increasing columns. Set ``weak`` to ``True`` to test for
+        weakly increasing columns.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1, 1, 3], [1, 2]])
+            sage: T.is_column_increasing(weak=True)
+            True
+            sage: T.is_column_increasing()
+            False
+            sage: Tableau([[2], [1]]).is_column_increasing(weak=True)
+            False
+        """
         def test(a,b):
             if weak:
                 return a <= b

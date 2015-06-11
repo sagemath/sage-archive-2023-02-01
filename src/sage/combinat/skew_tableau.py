@@ -289,7 +289,7 @@ class SkewTableau(ClonableList):
             [   1  3    1  2 ]
             [   2   ,   3    ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
 
     def _latex_(self):

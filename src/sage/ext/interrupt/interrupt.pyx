@@ -158,11 +158,11 @@ def init_interrupts():
     """
     # Set the Python-level interrupt handler. When a SIGINT occurs,
     # this will not be called directly. Instead, a SIGINT is caught by
-    # the libcsage (c_lib) interrupt handler. If it happens during pure
-    # Python code (not within sig_on()/sig_off()), the handler will set
-    # Python's interrupt flag. Python regularly checks this and will
-    # call its interrupt handler (which is the one we set now). This
-    # handler issues a sig_check() which finally raises the
+    # our interrupt handler, set up in implementation.c. If it happens
+    # during pure Python code (not within sig_on()/sig_off()), the
+    # handler will set Python's interrupt flag. Python regularly checks
+    # this and will call its interrupt handler (which is the one we set
+    # now). This handler issues a sig_check() which finally raises the
     # KeyboardInterrupt exception.
     import signal
     signal.signal(signal.SIGINT, sage_python_check_interrupt)
@@ -192,6 +192,6 @@ def sage_python_check_interrupt(sig, frame):
     """
     Python-level interrupt handler for interrupts raised in Python
     code. This simply delegates to the interrupt handling code in
-    libcsage (c_lib).
+    ``implementation.c``.
     """
     sig_check()

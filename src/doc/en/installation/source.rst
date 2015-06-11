@@ -875,12 +875,6 @@ Here are some of the more commonly used variables affecting the build process:
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
 
-- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if set to ``no``, then build spkgs
-  serially rather than in parallel.
-  If this is set to ``no``, then each spkg may still take advantage of the setting
-  of :envvar:`MAKE` to build using multiple jobs, but the spkgs will be built
-  one at a time.
-
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
   run the test suite for each package which has one.
@@ -961,15 +955,6 @@ Here are some of the more commonly used variables affecting the build process:
   to ``yes``, profiling support is enabled where possible. Note that
   Python-level profiling is always avaliable; This option enables
   profiling in Cython modules.
-
-- :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
-  extraction of tar files, i.e. Sage's spkg files.
-  Since some spkgs contain such a huge number of files that the log files
-  get very large and harder to search (and listing the contained files is
-  usually less valuable), we decided to turn this off by default.
-  This variable affects builds of Sage with ``make`` (and ``sage --upgrade``)
-  as well as the manual installation of individual spkgs with e.g. ``sage -i``
-  or ``sage -f``.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
   package-specific documentation to

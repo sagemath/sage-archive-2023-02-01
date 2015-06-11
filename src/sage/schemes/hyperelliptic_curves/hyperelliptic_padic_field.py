@@ -957,7 +957,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         INPUT:
 
-        - f power series wtih coefficients in `\Q_p` or an extension
+        - f power series wtih coefficients in `\QQ_p` or an extension
         - x0 seeds the Newton iteration
         - prec precision
 
@@ -1005,7 +1005,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
     def curve_over_ram_extn(self,deg):
         r"""
-        Returns self over `\Q_p(p^(1/deg))`
+        Return ``self`` over `\QQ_p(p^(1/deg))`.
 
         INPUT:
 
@@ -1013,7 +1013,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         OUTPUT:
 
-        self over `\Q_p(p^(1/deg))`
+        ``self`` over `\QQ_p(p^(1/deg))`
 
         EXAMPLES::
 
@@ -1129,7 +1129,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         - w: differential
         - P: Weierstrass point
-        - S: point in the same disc of P (S is defined over an extension of `\Q_p`; coordinates
+        - S: point in the same disc of P (S is defined over an extension of `\QQ_p`; coordinates
           of S are given in terms of uniformizer `a`)
 
         OUTPUT:
@@ -1176,8 +1176,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         INPUT:
 
-        - S: a point with coordinates in an extension of `\Q_p` (with unif. a)
-        - Q: a non-Weierstrass point defined over `\Q_p`
+        - S: a point with coordinates in an extension of `\QQ_p` (with unif. a)
+        - Q: a non-Weierstrass point defined over `\QQ_p`
 
         OUTPUT:
 
@@ -1262,8 +1262,8 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         INPUT:
 
         - w: a differential
-        - S: a point with coordinates in an extension of `\Q_p`
-        - Q: a non-Weierstrass point defined over `\Q_p`
+        - S: a point with coordinates in an extension of `\QQ_p`
+        - Q: a non-Weierstrass point defined over `\QQ_p`
 
         OUTPUT:
 

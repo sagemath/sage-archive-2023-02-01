@@ -1,4 +1,3 @@
-cimport cython
 r"""
 Linear matroids
 
@@ -3383,7 +3382,7 @@ cdef class BinaryMatroid(LinearMatroid):
             return False
 
     # minors, dual
-    @cython.profile(True)
+
     cpdef _minor(self, contractions, deletions):
         r"""
         Return a minor.

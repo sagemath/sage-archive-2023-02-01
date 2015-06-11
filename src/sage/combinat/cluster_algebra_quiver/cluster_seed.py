@@ -1196,8 +1196,11 @@ class ClusterSeed(SageObject):
             raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector and return the ones which have no negative entry
-        return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
-
+        # return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
+        
+        return get_green_vertices(self._C)
+    
+ 
     def first_green_vertex(self):
         r"""
         Return the first green vertex of ``self``.
@@ -1256,7 +1259,8 @@ class ClusterSeed(SageObject):
             raise ValueError("Must use c vectors to grab the vertices.")
 
         # Go through each vector and return the ones which have no positive entry
-        return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
+        # return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
+        return get_red_vertices(self._C)
 
     def first_red_vertex(self):
         r"""
@@ -3304,6 +3308,16 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
                 if uv_okay == False:
                         return False
         return True
+
+def get_green_vertices(C):
+        import numpy as np
+        max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+        return [i for i in xrange(C.ncols()) if max_entries[i] > 0]
+    
+def get_red_vertices(C):
+        import numpy as np
+        max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+        return [i for i in xrange(C.ncols()) if max_entries[i] < 0]
 
 class ClusterVariable(FractionFieldElement):
     r"""

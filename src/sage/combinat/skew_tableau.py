@@ -1035,6 +1035,15 @@ class SkewTableau(ClonableList):
             sage: t.bender_knuth_involution(3)
             [[None, None], [None]]
 
+        The `(s_1 s_2)^6 = id` identity that holds for Bender--Knuth
+        involutions on straight shapes does not generally hold for
+        skew shapes::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: t = SkewTableau([[None,1,2],[2,3]])
+            sage: p(p(p(p(p(p(t,1),1),1),1),1),1)
+            [[None, 2, 2], [1, 3]]
+
         AUTHORS:
 
         - Darij Grinberg (2013-05-14)

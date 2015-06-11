@@ -222,6 +222,8 @@ class GroupSemidirectProduct(CartesianProduct):
         r"""
         A string representing the semidirect product group.
 
+        EXAMPLES::
+
             sage: def twist(x,y):
             ....:     return y
             sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest

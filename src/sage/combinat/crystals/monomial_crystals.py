@@ -910,6 +910,16 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
         """
         return Infinity
 
+    def weight_lattice_realization(self):
+        r"""
+        """
+        F = self.cartan_type().root_system()
+        if self.cartan_type().is_finite() and F.ambient_space() is not None:
+            return F.ambient_space()
+        if self.cartan_type().is_affine():
+            return F.weight_lattice(extended=True)
+        return F.weight_lattice()
+
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""
     Element class for

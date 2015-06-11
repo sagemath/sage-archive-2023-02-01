@@ -1410,6 +1410,14 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(1.0, 0.0), (1.0, 0.0)]]
             sage: gg.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0), (1.0, 0.0)]]
+            sage: gg.obtain_nash(algorithm='enumeration', maximization=False)
+            [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
+            sage: gg.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
+            [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
+            sage: gg.obtain_nash(algorithm='lp-glpk', maximization=False)
+            [[(1.0, 0.0), (1.0, 0.0)]]
+            sage: gg.obtain_nash(algorithm='LCP', maximization=False) # optional - gambit
+            [[(1.0, 0.0), (1.0, 0.0)]]
 
         Note that outputs for all algorithms are as lists of lists of
         tuples and the equilibria have been sorted so that all algorithms give

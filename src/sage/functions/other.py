@@ -386,7 +386,7 @@ class Function_ceil(BuiltinFunction):
         return r"\left \lceil %s \right \rceil"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``ceil`` is an instance of this class, we can do ``ceil(n)`` to get
@@ -401,6 +401,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil(int(10^50))
             100000000000000000000000000000000000000000000000000
         """
+        maximum_bits = kwds.get('maximum_bits', 20000)
         try:
             return x.ceil()
         except AttributeError:
@@ -470,7 +471,7 @@ class Function_ceil(BuiltinFunction):
 
             sage: h(x) = ceil(x)
             sage: h(pi)._numerical_approx()
-            4
+            4.00000000000000
         """
         return self._eval_(x)
 
@@ -557,7 +558,7 @@ class Function_floor(BuiltinFunction):
         return r"\left \lfloor %s \right \rfloor"%latex(x)
 
     #FIXME: this should be moved to _eval_
-    def __call__(self, x, maximum_bits=20000):
+    def __call__(self, x, **kwds):
         """
         Allows an object of this class to behave like a function. If
         ``floor`` is an instance of this class, we can do ``floor(n)`` to
@@ -572,6 +573,7 @@ class Function_floor(BuiltinFunction):
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
         """
+        maximum_bits = kwds.get('maximum_bits',20000)
         try:
             return x.floor()
         except AttributeError:
@@ -642,7 +644,7 @@ class Function_floor(BuiltinFunction):
 
             sage: h(x) = floor(x)
             sage: h(pi)._numerical_approx()
-            3
+            3.00000000000000
         """
         return self._eval_(x)
 

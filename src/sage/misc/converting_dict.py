@@ -201,16 +201,14 @@ class KeyConvertingDict(dict):
         """
         return key in self
 
-    _no_default_provided = object()
-
-    def pop(self, key, default=_no_default_provided):
+    def pop(self, key, *args):
         r"""
         Remove and retreive a given element from the dictionary
 
         INPUT:
 
         - ``key`` -- A value identifying the element, will be converted.
-        - ``default`` -- The value to return if the element is not mapped.
+        - ``default`` -- The value to return if the element is not mapped, optional.
 
         EXAMPLES::
 
@@ -227,10 +225,7 @@ class KeyConvertingDict(dict):
             KeyError: ...
         """
         key = self.key_conversion_function(key)
-        if default is self._no_default_provided:
-            return super(KeyConvertingDict, self).pop(key)
-        else:
-            return super(KeyConvertingDict, self).pop(key, default)
+        return super(KeyConvertingDict, self).pop(key, *args)
 
     def setdefault(self, key, default=None):
         r"""

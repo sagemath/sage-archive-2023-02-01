@@ -158,69 +158,6 @@ class WeylGroups(Category_singleton):
             return DiGraph([[x,i[0],i[1]] for x in WP for i in x.quantum_bruhat_successors(index_set, roots = True)],
                            name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self, index_set))
 
-        @cached_method
-        def reflection_to_root(self, r):
-            r"""
-            Returns the root associated with the reflection ``r`` in ``self``.
-
-            EXAMPLES::
-
-                sage: W=WeylGroup(['C',2],prefix="s")
-                sage: W.reflection_to_root(W.from_reduced_word([1,2,1]))
-                2*alpha[1] + alpha[2]
-                sage: W.reflection_to_root(W.from_reduced_word([1,2]))
-                Traceback (most recent call last):
-                ...
-                ValueError: s1*s2 is not a reflection
-                sage: W.reflection_to_root(W.long_element())
-                Traceback (most recent call last):
-                ...
-                ValueError: s2*s1*s2*s1 is not a reflection
-
-            """
-
-            i = r.first_descent()
-            if i is None:
-                raise ValueError("{} is not a reflection".format(r))
-            if r == self.simple_reflection(i):
-                return self.cartan_type().root_system().root_lattice().simple_root(i)
-            rsi = r.apply_simple_reflection(i, side = 'right')
-            if not rsi.has_descent(i, side = 'left'):
-                raise ValueError("{} is not a reflection".format(r))
-            return (self.reflection_to_root(rsi.apply_simple_reflection(i, side = 'left'))).simple_reflection(i)
-
-        @cached_method
-        def reflection_to_coroot(self, r):
-            r"""
-            Returns the coroot associated with the reflection ``r`` in ``self``.
-
-            EXAMPLES::
-
-                sage: W=WeylGroup(['C',2],prefix="s")
-                sage: W.reflection_to_coroot(W.from_reduced_word([1,2,1]))
-                alphacheck[1] + alphacheck[2]
-                sage: W.reflection_to_coroot(W.from_reduced_word([1,2]))
-                Traceback (most recent call last):
-                ...
-                ValueError: s1*s2 is not a reflection
-                sage: W.reflection_to_coroot(W.long_element())
-                Traceback (most recent call last):
-                ...
-                ValueError: s2*s1*s2*s1 is not a reflection
-
-            """
-
-            i = r.first_descent()
-            if i is None:
-                raise ValueError("{} is not a reflection".format(r))
-            if r == self.simple_reflection(i):
-                return self.cartan_type().root_system().root_lattice().simple_coroot(i)
-            rsi = r.apply_simple_reflection(i, side = 'right')
-            if not rsi.has_descent(i, side='left'):
-                raise ValueError("{} is not a reflection".format(r))
-            return (self.reflection_to_coroot(rsi.apply_simple_reflection(i, side = 'left'))).simple_reflection(i)
-
-
     class ElementMethods:
 
         def is_pieri_factor(self):
@@ -512,9 +449,9 @@ class WeylGroups(Category_singleton):
                 return reflections
             W = self.parent()
             if inversion_type == 'roots':
-                return [W.reflection_to_root(r) for r in reflections]
+                return [r.reflection_to_root() for r in reflections]
             if inversion_type == 'coroots':
-                return [W.reflection_to_coroot(r) for r in reflections]
+                return [r.reflection_to_coroot() for r in reflections]
             raise ValueError("inversion_type {} is invalid".format(inversion_type))
 
         def inversion_arrangement(self, side='right'):
@@ -582,7 +519,7 @@ class WeylGroups(Category_singleton):
             """
 
             W = self.parent()
-            return [(x[0],W.reflection_to_coroot(x[1])) for x in self.bruhat_lower_covers_reflections()]
+            return [(x[0],x[1].reflection_to_coroot()) for x in self.bruhat_lower_covers_reflections()]
 
         def bruhat_upper_covers_coroots(self):
             r"""
@@ -604,7 +541,7 @@ class WeylGroups(Category_singleton):
             """
 
             W = self.parent()
-            return [(x[0],W.reflection_to_coroot(x[1])) for x in self.bruhat_upper_covers_reflections()]
+            return [(x[0],x[1].reflection_to_coroot()) for x in self.bruhat_upper_covers_reflections()]
 
         def quantum_bruhat_successors(self, index_set = None, roots = False, quantum_only = False):
             r"""
@@ -673,4 +610,67 @@ class WeylGroups(Category_singleton):
                     else:
                         successors.append(wrc)
             return successors
+
+        @cached_in_parent_method
+        def reflection_to_root(self):
+            r"""
+            Returns the root associated with the reflection ``self``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: W.from_reduced_word([1,2,1]).reflection_to_root()
+                2*alpha[1] + alpha[2]
+                sage: W.from_reduced_word([1,2]).reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
+
+            """
+
+            i = self.first_descent()
+            if i is None:
+                raise ValueError("{} is not a reflection".format(self))
+            if self == self.parent().simple_reflection(i):
+                return self.parent().cartan_type().root_system().root_lattice().simple_root(i)
+            rsi = self.apply_simple_reflection(i, side = 'right')
+            if not rsi.has_descent(i, side = 'left'):
+                raise ValueError("{} is not a reflection".format(self))
+            return (rsi.apply_simple_reflection(i, side = 'left').reflection_to_root()).simple_reflection(i)
+
+        @cached_in_parent_method
+        def reflection_to_coroot(self):
+            r"""
+            Returns the coroot associated with the reflection ``self``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: W.from_reduced_word([1,2,1]).reflection_to_coroot()
+                alphacheck[1] + alphacheck[2]
+                sage: W.from_reduced_word([1,2]).reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
+
+            """
+
+            i = self.first_descent()
+            if i is None:
+                raise ValueError("{} is not a reflection".format(self))
+            if self == self.parent().simple_reflection(i):
+                return self.parent().cartan_type().root_system().root_lattice().simple_coroot(i)
+            rsi = self.apply_simple_reflection(i, side = 'right')
+            if not rsi.has_descent(i, side='left'):
+                raise ValueError("{} is not a reflection".format(self))
+            return (rsi.apply_simple_reflection(i, side = 'left').reflection_to_coroot()).simple_reflection(i)
+
 

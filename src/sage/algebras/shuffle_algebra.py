@@ -302,10 +302,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
             sage: F = ShuffleAlgebra(QQ,'ab')
             sage: S = F.an_element(); S
-            2*B[word: ] + 2*B[word: a] + 3*B[word: b]
+            B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
             sage: F.coproduct(S)
-            2*B[word: ] # B[word: ] + 2*B[word: ] # B[word: a] + 3*B[word: ] # B[word: b]
-             + 2*B[word: a] # B[word: ] + 3*B[word: b] # B[word: ]
+            B[word: ] # B[word: ] + 2*B[word: ] # B[word: a]
+            + 3*B[word: ] # B[word: b] + B[word: ] # B[word: bab]
+            + 2*B[word: a] # B[word: ] + B[word: a] # B[word: bb]
+            + B[word: ab] # B[word: b] + 3*B[word: b] # B[word: ]
+            + B[word: b] # B[word: ab] + B[word: b] # B[word: ba]
+            + B[word: ba] # B[word: b] + B[word: bab] # B[word: ]
+            + B[word: bb] # B[word: a]
             sage: F.coproduct(F.one())
             B[word: ] # B[word: ]
         """
@@ -320,9 +325,9 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
             sage: F = ShuffleAlgebra(QQ,'ab')
             sage: S = F.an_element(); S
-            2*B[word: ] + 2*B[word: a] + 3*B[word: b]
+            B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
             sage: F.counit(S)
-            2
+            1
         """
         return S.monomial_coefficients().get(Word(), 0)
 

@@ -1173,27 +1173,27 @@ cdef class BinaryMatrix(LeanMatrix):
         """
         cdef BinaryMatrix A = BinaryMatrix(len(rows), len(columns))
         cdef long r, c, lc, lg
-        cdef long *cols
+        cdef mp_bitcnt_t *cols
         # deal with trivial case
         lc = len(columns)
         if lc == 0:
             return A, []
-        # write [c for c in columns if c<lc] as bitset `mask` and 
-        # write [c for c in columns if c>=lc] as array `cols` 
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
         cdef bitset_t mask
         bitset_init(mask, lc)
         bitset_clear(mask)
-        cols = <long*>sage_malloc(lc*sizeof(long))
+        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
         g = 0
         for c in columns:
             if c<lc:
                 bitset_add(mask, c)
             else:
                 cols[g] = c
-                g = g+1 
+                g = g+1
         # write [ c for c in range(lc) if c not in columns] as array `gaps`        
-        cdef long *gaps         
-        gaps = <long*>sage_malloc(lc*sizeof(long))          
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
         g = 0
         c = bitset_first(mask)
@@ -1201,7 +1201,7 @@ cdef class BinaryMatrix(LeanMatrix):
             gaps[g] = c
             g = g+1
             c =  bitset_next(mask, c+1)
-        lg = g   
+        lg = g
         bitset_complement(mask, mask)
         # copy relevant part of this matrix into A
         cdef bitset_t row, row2
@@ -1217,11 +1217,11 @@ cdef class BinaryMatrix(LeanMatrix):
         g = 0
         for g in xrange(lg):
             order[gaps[g]] = cols[g]
-        # free up the two arrays and the bitset     
+        # free up the two arrays and the bitset
         sage_free(gaps)
         sage_free(cols)
         bitset_free(mask)
-        return A, order   
+        return A, order
 
     cdef list _character(self, bitset_t x):   # Not a Sage matrix operation
         """
@@ -1844,6 +1844,71 @@ cdef class TernaryMatrix(LeanMatrix):
         M.resize(self._nrows)
         return M
 
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as 
+        the column order of the resulting submatrix.
+        """
+        cdef TernaryMatrix A = TernaryMatrix(len(rows), len(columns))
+        cdef long r, c, lc, lg
+        cdef mp_bitcnt_t *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row0, row1, row0_2, row1_2
+        cdef mp_bitcnt_t p, q
+        for r in xrange(len(rows)):
+            row0 = self._M0[rows[r]]
+            row1 = self._M1[rows[r]]
+            row0_2 = A._M0[r]
+            row1_2 = A._M1[r]
+            bitset_intersection(row0_2, row0, mask) # yes, this is safe
+            bitset_intersection(row1_2, row1, mask) # yes, this is safe
+            for g in xrange(lg):
+                p = cols[g]
+                if bitset_in(row0, p):
+                    q = gaps[g]
+                    bitset_add(row0_2, q)
+                    if bitset_in(row1, p):
+                        bitset_add(row1_2, q)
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset
+        sage_free(gaps)
+        sage_free(cols)
+        bitset_free(mask)
+        return A, order    
+
     def __richcmp__(left, right, op):
         """
         Compare two matrices.
@@ -2366,6 +2431,71 @@ cdef class QuaternaryMatrix(LeanMatrix):
         M.resize(self._nrows)
         return M
 
+    cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
+        """
+        Return a submatrix indexed by indicated rows and columns, as well as 
+        the column order of the resulting submatrix.
+        """
+        cdef QuaternaryMatrix A = QuaternaryMatrix(len(rows), len(columns), ring = self._gf4)
+        cdef long r, c, lc, lg
+        cdef mp_bitcnt_t *cols
+        # deal with trivial case
+        lc = len(columns)
+        if lc == 0:
+            return A, []
+        # write [c for c in columns if c<lc] as bitset `mask` and
+        # write [c for c in columns if c>=lc] as array `cols`
+        cdef bitset_t mask
+        bitset_init(mask, lc)
+        bitset_clear(mask)
+        cols = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        g = 0
+        for c in columns:
+            if c<lc:
+                bitset_add(mask, c)
+            else:
+                cols[g] = c
+                g = g+1
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        cdef mp_bitcnt_t *gaps
+        gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
+        bitset_complement(mask, mask)
+        g = 0
+        c = bitset_first(mask)
+        while c>=0:
+            gaps[g] = c
+            g = g+1
+            c =  bitset_next(mask, c+1)
+        lg = g
+        bitset_complement(mask, mask)
+        # copy relevant part of this matrix into A
+        cdef bitset_t row0, row1, row0_2, row1_2
+        cdef mp_bitcnt_t p, q
+        for r in xrange(len(rows)):
+            row0 = self._M0[rows[r]]
+            row1 = self._M1[rows[r]]
+            row0_2 = A._M0[r]
+            row1_2 = A._M1[r]
+            bitset_intersection(row0_2, row0, mask) # yes, this is safe
+            bitset_intersection(row1_2, row1, mask) 
+            for g in xrange(lg):
+                p = cols[g]
+                q = gaps[g]
+                if bitset_in(row0, p):
+                    bitset_add(row0_2, q)
+                if bitset_in(row1, p):
+                    bitset_add(row1_2, q)
+        # record order of the columns in list `order`
+        cdef list order = range(lc)
+        g = 0
+        for g in xrange(lg):
+            order[gaps[g]] = cols[g]
+        # free up the two arrays and the bitset
+        sage_free(gaps)
+        sage_free(cols)
+        bitset_free(mask)
+        return A, order
+    
     def __neg__(self):
         """
         Negate the matrix.

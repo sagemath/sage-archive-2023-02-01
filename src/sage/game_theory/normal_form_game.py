@@ -490,7 +490,7 @@ For more information on how to access these, see: :mod:`Game Theory Catalog<sage
 Included is information on the situation each Game models.
 For example::
 
-    sage: g = normal_form_games.PrisonersDilemma()
+    sage: g = game_theory.normal_form_games.PrisonersDilemma()
     sage: g
     Prisoners dilemma - Normal Form Game with the following utilities: {(0, 1): [-5, 0], (1, 0): [0, -5], (0, 0): [-2, -2], (1, 1): [-4, -4]}
     sage: g.obtain_nash()

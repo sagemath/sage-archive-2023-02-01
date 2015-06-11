@@ -29,6 +29,7 @@ from sage.rings.arith import binomial
 from combinat import CombinatorialClass
 from integer_vector import IntegerVectors
 from sage.misc.misc import uniq
+from choose_nk import rank, from_rank
 
 def Combinations(mset, k=None):
     """

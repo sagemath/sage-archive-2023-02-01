@@ -1,5 +1,5 @@
 """
-Normal Form games with N players.
+Normal form games with N players.
 
 This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 3 algorithms are implemented to compute equilibria

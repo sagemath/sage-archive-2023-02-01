@@ -1,7 +1,5 @@
 r"""
-Documentation for the game theory catalog
-
-A catalog of named normal form games.
+A catalog of normal form games.
 The docstrings give an interpretation of the situation they model.
 
 More information is available in the following references:
@@ -74,12 +72,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     - :math:`R` denotes the reward received for cooperating.
     - :math:`S` denotes the 'sucker' utility.
     - :math:`P` denotes the utility for punishing the other player.
-    -ve you ever thought about how number crunching can improve your travel and
-    health services? Join Kevin Glazebrook and Vincent Knight as they explain
-    how Operational Research is being used to reduce congestion at airports and
-    to ensure emergency medical services are delivered efficiently.
-
-    :math:`T` denotes the temptation payoff.
+    - :math:`T` denotes the temptation payoff.
 
     An often used version [Webb]_ is the following:
 

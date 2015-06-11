@@ -318,9 +318,10 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             return self.m_cambrian_lattice(c,1)
 
         def inversion_sequence(self, word):
-            """
-            Return the inversion sequence corresponding to ``word``.  If
-            ``word``=`[w_0,w_1,...w_k]`, then the output is `[w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1 w_0]`.
+            r"""
+            Return the inversion sequence corresponding to ``word``. If
+            ``word`` is `w_0,w_1,\ldots,w_k`, then the output is
+            `w_0,w_0w_1w_0,\ldots,w_0w_1\cdots w_k \cdots w_1w_0`.
 
             INPUT:
 
@@ -336,7 +337,6 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: [t.reduced_word() for t in CoxeterGroup(["A",3]).inversion_sequence([2,1,3,2,1,3])]
                 [[2], [1, 2, 1], [2, 3, 2], [1, 2, 3, 2, 1], [3], [1]]
-
             """
             return [self.from_reduced_word(word[:i+1]+list(reversed(word[:i]))) for i in range(len(word))]
 

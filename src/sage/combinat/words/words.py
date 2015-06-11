@@ -940,31 +940,31 @@ class Words_over_Alphabet(Words_all):
 
             sage: W = Words(4)
             sage: W.an_element()
-            word: 12212
+            word: 212
 
             sage: W = Words([5, 1, 9]); W
             Words over {5, 1, 9}
             sage: W.an_element()
-            word: 51151
+            word: 151
 
             sage: W = Words(NN); W
             Words over Non negative integer semiring
             sage: W.an_element()
-            word: 01101
+            word: 101
 
         TESTS::
 
             sage: W = Words([1]); W
             Words over {1}
             sage: W.an_element()
-            word: 11111
+            word: 111
         """
         some_letters = list(self.alphabet().some_elements())
         if len(some_letters) == 1:
-            return self([some_letters[0]]*5)
+            return self([some_letters[0]] * 3)
         else:
             a, b = some_letters[:2]
-            return self([a, b, b, a, b])
+            return self([b, a, b])
 
     def __contains__(self, x):
         """

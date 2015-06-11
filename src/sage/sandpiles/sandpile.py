@@ -210,12 +210,12 @@ The number of superstable configurations of each degree::
     sage: S.postulation()
     2
 
-the saturated, homogeneous sandpile ideal
+the saturated, homogeneous sandpile ideal::
 
     sage: S.ideal()
     Ideal (x1 - x0, x3*x2 - x0^2, x4^2 - x0^2, x2^3 - x4*x3*x0, x4*x2^2 - x3^2*x0, x3^3 - x4*x2*x0, x4*x3^2 - x2^2*x0) of Multivariate Polynomial Ring in x4, x3, x2, x1, x0 over Rational Field
 
-its minimal free resolution
+its minimal free resolution::
 
     sage: S.resolution()
     'R^1 <-- R^7 <-- R^15 <-- R^13 <-- R^4'
@@ -573,7 +573,7 @@ class Sandpile(DiGraph):
         sage: s.dict()
         {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
 
-        Sandpiles can be created from Graphs and DiGraphs.
+        Sandpiles can be created from Graphs and DiGraphs.::
 
         sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
         sage: s = Sandpile(g)
@@ -588,7 +588,7 @@ class Sandpile(DiGraph):
         [ 0 -1  2 -1]
         [-1  0 -1  2]
 
-        NOTES::
+        NOTES:
 
         Loops are allowed.  There are four admissible input formats.  Two of
         these are dictionaries whose keys are the vertex names.  In one, the
@@ -5317,6 +5317,7 @@ class SandpileDivisor(dict):
         SandpileDivisor
 
         EXAMPLES::
+
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [1,2,3])
             sage: D.dualize()
@@ -5827,7 +5828,7 @@ class SandpileDivisor(dict):
             sage: D.polytope()
             The empty polyhedron in QQ^3
 
-        NOTES::
+        NOTES:
 
         For a divisor ``D``, this is the intersection of (i) the polyhedron
         determined by the system of inequalities ``LL x \leq D`` where ``LL``
@@ -6078,11 +6079,7 @@ class SandpileDivisor(dict):
 
         integer or (integer, SandpileDivisor)
 
-        EXAMPLES:
-
-        :
-
-        ::
+        EXAMPLES::
 
             sage: S = sandpiles.Complete(4)
             sage: D = SandpileDivisor(S,[4,2,0,0])
@@ -6093,11 +6090,6 @@ class SandpileDivisor(dict):
             sage: E = _[1]
             sage: (D - E).rank()
             -1
-
-         Riemann-Roch theorem::
-
-            sage: D.rank() - (S.canonical_divisor()-D).rank() == D.deg() + 1 - S.genus()
-            True
 
          Riemann-Roch theorem::
 
@@ -6119,7 +6111,7 @@ class SandpileDivisor(dict):
             sage: (D - E).effective_div()
             []
 
-        NOTES;
+        NOTES:
 
         The rank of a divisor `D` is -1 if `D` is not linearly equivalent to an effective divisor
         (i.e., the dollar game represented by `D` is unwinnable).  Otherwise, the rank of `D` is
@@ -6331,7 +6323,7 @@ class SandpileDivisor(dict):
             sage: K.is_weierstrass_pt(4)
             True
 
-        NOTES::
+        NOTES:
 
         The vertex ``v`` is a (generalized) Weierstrass point for divisor ``D`` if the sequence of ranks ``r(D - nv)``
         for ``n = 0, 1, 2, ...`` is not ``r(D), r(D)-1, ..., 0, -1, -1, ...``.
@@ -6381,7 +6373,7 @@ class SandpileDivisor(dict):
             sage: K.weierstrass_pts(True)
             [(4, (1, 0, 0, -1))]
 
-        NOTES::
+        NOTES:
 
         The vertex ``v`` is a (generalized) Weierstrass point for divisor ``D`` if the sequence of ranks ``r(D - nv)``
         for ``n = 0, 1, 2, ...`` is not ``r(D), r(D)-1, ..., 0, -1, -1, ...``.

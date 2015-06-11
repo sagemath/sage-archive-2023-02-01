@@ -268,15 +268,6 @@ EOF
 echo >&5 "SHELL = `command -v bash`"
 echo >&5
 
-# If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
-# then turn off parallel building: disable just building multiple
-# packages at the same time.   Individual packages can still be built
-# in parallel by specifying '-j' in $MAKE.
-if [ "${SAGE_PARALLEL_SPKG_BUILD:-yes}" = no ]; then
-    echo ".NOTPARALLEL:" >&5
-    echo "" >&5
-fi
-
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {

@@ -243,11 +243,10 @@ REFERENCES:
    *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
    :arxiv:`abs/1503.08898`
 """
-import itertools
-from sage.structure.parent import Parent
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
 from sage.structure.element import Element
-#from sage.structure.sage_object import SageObject
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration, SixVertexModel
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
@@ -263,8 +262,58 @@ class FullyPackedLoop(Element):
     """
     A class for fully packed loops
     """
+    __metaclass__ = ClasscallMetaclass
 
-    def __init__(self, generator):
+    @staticmethod
+    def __classcall_private__(cls, generator):
+        """
+        Create an ASM.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: FullyPackedLoop(A)
+                |         |
+                |         |
+                +    + -- +
+                |    |
+                |    |
+             -- +    +    + --
+                     |    |
+                     |    |
+                + -- +    +
+                |         |
+                |         |
+
+            sage: SVM = SixVertexModel(4, boundary_conditions='ice')[0]
+            sage: FullyPackedLoop(SVM)
+                |         |
+                |         |
+                +    + -- +    + --
+                |    |         |
+                |    |         |
+             -- +    +    + -- +
+                     |    |
+                     |    |
+                + -- +    +    + --
+                |         |    |
+                |         |    |
+             -- +    + -- +    +
+                     |         |
+                     |         |
+        """
+        if isinstance(generator, AlternatingSignMatrix):
+            SVM = generator.to_six_vertex_model()
+            #print 'I am in AlternatingSignMatrix. len(SVM): ', len(SVM)
+        elif isinstance(generator, SixVertexConfiguration):
+            SVM = generator
+            #print 'I am in sixvertexconfiguration. len(SVM): ', len(SVM)
+        else:
+            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
+        FPLs = FullyPackedLoops(len(SVM))
+        return FPLs.element_class(FPLs, SVM)
+
+    def __init__(self, parent, generator):
         """
         Initialise object, can take ASM of FPL as generator.
 
@@ -320,6 +369,12 @@ class FullyPackedLoop(Element):
             ...
             TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration
 
+        TESTS::
+
+            sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: TestSuite(fpl).run()
+
         """
         if isinstance(generator, AlternatingSignMatrix):
             self._six_vertex_model = generator.to_six_vertex_model()
@@ -331,6 +386,7 @@ class FullyPackedLoop(Element):
         self.end_points = self._end_point_dictionary()
         self.configuration = matrix(list(self._six_vertex_model))
         self._n = len(self.end_points)/2
+        Element.__init__(self, parent)
 
     def _repr_(self):
         """
@@ -1058,8 +1114,8 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
 
         TESTS::
 
-            sage: FPLs = FullyPackedLoops(4)
-            sage: #TestSuite(FPLs).run()
+            sage: FPLs = FullyPackedLoops(3)
+            sage: TestSuite(FPLs).run()
         """
         self._n = n
         Parent.__init__(self, category=FiniteEnumeratedSets())
@@ -1075,9 +1131,9 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             2
         """
         for X in SixVertexModel(self._n, boundary_conditions='ice'):
-            yield self.element_class(X)
+            yield self.element_class(self, X)
 
-    Element = FullyPackedLoop
+    #Element = FullyPackedLoop
 
     def _repr_(self):
         r"""
@@ -1109,6 +1165,41 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         if isinstance(fpl, FullyPackedLoop):
             return fpl._n == self._n
         return True
+
+    def _element_constructor_(self, fpl):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: FPLs = FullyPackedLoops(4)
+            sage: A = AlternatingSignMatrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: elt = FullyPackedLoop(A)
+            sage: FPL = FPLs(elt); FPL
+                |         |
+                |         |
+                +    + -- +    + --
+                |    |         |
+                |    |         |
+             -- +    +    + -- +
+                     |    |
+                     |    |
+                + -- +    +    + --
+                |         |    |
+                |         |    |
+             -- +    + -- +    +
+                     |         |
+                     |         |
+
+            sage: FPL.parent() is FPLs
+            True
+        """
+        if isinstance(fpl, FullyPackedLoop):
+            if fpl.parent() is self:
+                return fpl
+            raise ValueError("Cannot convert between fully packed loops of different sizes")
+
+    Element = FullyPackedLoop
 
     def size(self):
         r"""
@@ -1164,4 +1255,4 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         #ASM = AlternatingSignMatrix(matrix.identity(self._n))
         #SVM = ASM.to_six_vertex_model()
         SVM = SixVertexModel(self._n,boundary_conditions='ice').an_element()
-        return self.element_class(SVM)
+        return self.element_class(self, SVM)

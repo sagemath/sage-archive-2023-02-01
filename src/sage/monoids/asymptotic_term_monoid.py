@@ -1,6 +1,38 @@
 r"""
 Asymptotic Term Monoid
 
+This module implements asymptotic term monoids. This structures build
+upon the (asymptotic) growth groups. While growth elements only model
+the growth of a function as it tends towards infinity, an asymptotic
+term is basically a wrapper for the growth which specifies the "type"
+of the term. The multiplication is the associated group operation.
+
+Besides an abstract base term, :class:`GenericTerm`, this module
+implements the following types of terms:
+
+- :class:`OTerm` -- O terms in infinity, see
+  :wikipedia:`Big_O_notation`.
+- :class:`TermWithCoefficient` -- abstract base class for
+  asymptotic terms with coefficients.
+- :class:`ExactTerm` -- this class represents a growth element
+  multiplied with some non-zero coefficient from a base ring.
+- :class:`LTermGeneric` -- abstract base class for "L terms", i.e.
+  "concrete" O terms.
+
+A characteristic property of asymptotic terms is that some terms are
+able to "absorb" other terms (see
+:meth:`sage.monoids.AsymptoticTermMonoid.GenericTerm.absorb`). For
+instance, `O(x^2)` is able to absorb `O(x)` (with result
+`O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
+`1*x^5`). Essentially, absorption can be interpreted as the
+addition of "compatible" terms.
+
+.. TODO::
+
+    - The behavior of L terms depends on their underlying growth
+      group. These concrete realizations of L terms have to be
+      implemented.
+
 AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version

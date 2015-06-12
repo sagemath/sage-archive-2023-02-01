@@ -1041,8 +1041,12 @@ class SkewTableau(ClonableList):
 
             sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
             sage: t = SkewTableau([[None,1,2],[2,3]])
-            sage: p(p(p(p(p(p(t,1),1),1),1),1),1)
+            sage: x = t
+            sage: for i in range(6): x = p(x, 2)
+            sage: x
             [[None, 2, 2], [1, 3]]
+            sage: x == t
+            False
 
         AUTHORS:
 

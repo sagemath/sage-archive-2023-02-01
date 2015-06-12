@@ -1346,8 +1346,12 @@ class Tableau(ClonableList):
 
             sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
             sage: t = Tableau([[1,2,2],[3,4]])
-            sage: p(p(p(p(p(p(t,2),2),2),2),2),2)
+            sage: x = t
+            sage: for i in range(6): x = p(x, 2)
+            sage: x
             [[1, 2, 3], [2, 4]]
+            sage: x == t
+            False
 
         TESTS::
 

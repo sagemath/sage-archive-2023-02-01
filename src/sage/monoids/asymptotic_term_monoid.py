@@ -514,8 +514,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _repr_(self):
         r"""
-        Represent the generic term as ``Generic Term with growth
-        ...``.
+        A representation string for this generic term.
 
         INPUT:
 
@@ -653,8 +652,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
     def _repr_(self):
         r"""
-        Represent the generic term monoid as 'Generic Term Monoid
-        over `growth_group`'.
+        A representation string for this generic term monoid.
 
         INPUT:
 
@@ -857,7 +855,7 @@ class OTerm(GenericTerm):
 
     def _repr_(self):
         r"""
-        Represent this O term as ``O(growth)``.
+        A representation string for this O term.
 
         INPUT:
 
@@ -1015,8 +1013,7 @@ class OTermMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent this `O` term monoid as 'Asymptotic O term monoid
-        over ``growth_group``'.
+        A representation string for this O term monoid.
 
         INPUT:
 
@@ -1111,8 +1108,7 @@ class TermWithCoefficient(GenericTerm):
 
     def _repr_(self):
         r"""
-        Represent the :class:`TermWithCoefficient` as 'Asymptotic
-        Term with coefficient ``coefficient`` and growth ``growth``'.
+        A representation string for this term with coefficient.
 
         INPUT:
 
@@ -1404,9 +1400,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        Represent this term monoid as 'Monoid for asymptotic terms with
-        coefficients from ``base_ring`` over
-        ``growth_group``'.
+        A representation string for this monoid for terms with
+        coefficient.
 
         INPUT:
 
@@ -1530,8 +1525,7 @@ class LTermGeneric(TermWithCoefficient):
 
     def _repr_(self):
         r"""
-        Represent the generic `L` term as "``coefficient * L(growth,
-        start)``".
+        A representation string for this generic L term.
 
         INPUT:
 
@@ -1736,9 +1730,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     def _repr_(self):
         r"""
-        Represent the generic `L` term monoid as 'Generic L Term
-        Monoid with coefficients from ``base_ring`` over
-        ``growth_group``'.
+        A representation string for this generic L term monoid.
 
         INPUT:
 
@@ -1869,8 +1861,7 @@ class ExactTerm(TermWithCoefficient):
 
     def _repr_(self):
         r"""
-        Represent this exact term as ``coefficient *
-        growth``.
+        A representation string for this exact term monoid.
 
         INPUT:
 
@@ -1984,9 +1975,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     def _repr_(self):
         r"""
-        Represent the asymptotic exact term monoid as 'Exact Term
-        Monoid with coefficients from ``base_ring`` over
-        ``growth_group``'.
+        A representation string for this exact term monoid.
 
         INPUT:
 

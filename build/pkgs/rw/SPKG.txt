@@ -4,9 +4,11 @@
 
 rw is a program that calculates rank-width and rank-decompositions.
 
+http://pholia.tdi.informatik.uni-frankfurt.de/~philipp/software/rw.shtml
+
 == License ==
 
-GPL 2
+GPL version 2 or later
 
 == SPKG Maintainers ==
 
@@ -15,5 +17,3 @@ Nathann Cohen  (nathann.cohen@gmail.com)
 == Upstream Contact ==
 
 Philipp Klaus Krause (philipp@informatik.uni-frankfurt.de)
-
-http://pholia.tdi.informatik.uni-frankfurt.de/~philipp/contact.shtml

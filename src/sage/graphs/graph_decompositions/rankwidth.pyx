@@ -210,7 +210,7 @@ def rank_decomposition(G, verbose = False):
 
     #Original way of displaying the decomposition
     #print_rank_dec(0x7ffffffful >> (31 - num_vertices), 0)
-    g = mkgraph()
+    g = mkgraph(n)
 
     # Free the memory
     destroy_rw()
@@ -229,8 +229,7 @@ cdef int sage_graph_to_matrix(G):
     id_to_vertices = []
     vertices_to_id = {}
 
-    global num_vertices
-    num_vertices = G.order()
+    cdef int num_vertices = G.order()
 
     cdef int i,j
 
@@ -293,7 +292,7 @@ cdef void print_rank_dec(subset_t s, int l):
     print_rank_dec(cslots[s], l + 1)
     print_rank_dec(s & ~cslots[s], l + 1)
 
-def mkgraph():
+def mkgraph(int num_vertices):
     r"""
     Returns the graph corresponding the the current rank-decomposition.
 
@@ -307,7 +306,6 @@ def mkgraph():
         (3, Graph on 19 vertices)
     """
     global cslots
-    global num_vertices
     global id_to_vertices
 
     cdef subset_t s

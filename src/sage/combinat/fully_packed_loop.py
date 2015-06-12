@@ -305,11 +305,11 @@ class FullyPackedLoop(Element):
         if isinstance(generator, AlternatingSignMatrix):
             SVM = generator.to_six_vertex_model()
             #print 'I am in AlternatingSignMatrix. len(SVM): ', len(SVM)
-        elif isinstance(generator, SixVertexConfiguration):
+        elif isinstance(generator, SquareIceModel.Element):
             SVM = generator
             #print 'I am in sixvertexconfiguration. len(SVM): ', len(SVM)
         else:
-            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
+            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
         FPLs = FullyPackedLoops(len(SVM))
         return FPLs.element_class(FPLs, SVM)
 
@@ -362,12 +362,18 @@ class FullyPackedLoop(Element):
             sage: fpl = FullyPackedLoop(5)
             Traceback (most recent call last):
             ...
-            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration
+            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
 
             sage: fpl = FullyPackedLoop((1, 2, 3))
             Traceback (most recent call last):
             ...
-            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration
+            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
+
+            sage: SVM = SixVertexModel(3)[0]
+            sage: FullyPackedLoop(SVM)
+            Traceback (most recent call last):
+            ...
+            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
 
         TESTS::
 

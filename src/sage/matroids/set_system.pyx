@@ -328,9 +328,11 @@ cdef class SetSystem:
 
     cpdef is_connected(self):
         """
-        Test if the setsystem is connected, i.e. if there is a nonempty proper
-        subset ``X`` of the ground set so the each subset is either contained in 
-        ``X`` or disjoint from ``X``. 
+        Test if the :class:`SetSystem` is connected.
+
+        A :class:`SetSystem` is connected if there is no nonempty proper subset
+        ``X`` of the ground set so the each subset is either contained in ``X``
+        or disjoint from ``X``.
 
         EXAMPLES::
 
@@ -344,6 +346,7 @@ cdef class SetSystem:
             sage: S = SetSystem([1], [])
             sage: S.is_connected()
             True
+
         """
         if self._groundset_size <= 1:
             return True
@@ -352,13 +355,19 @@ cdef class SetSystem:
         cdef bitset_t active
         bitset_init(active, self._len)
         bitset_complement(active, active)
+
+        # We compute the union of all sets containing 0, and deactivate them.
         for i in xrange(self._len):
             if bitset_in(self._subsets[i], 0):
                 bitset_union(self._temp, self._subsets[i], self._temp)
                 bitset_discard(active, i)
+
         cdef bint closed = False
         while not closed:
             closed = True
+
+            # We update _temp with all active sets that intersects it. If there
+            # is no such set, then _temp is closed (i.e. a connected component).
             i = bitset_first(active)
             while i>=0:
                 if not bitset_are_disjoint(self._temp, self._subsets[i]):

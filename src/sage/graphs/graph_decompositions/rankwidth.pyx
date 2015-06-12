@@ -181,8 +181,6 @@ def rank_decomposition(G, verbose = False):
         from sage.graphs.graph import Graph
         return (0, Graph())
 
-    global num_vertices
-
     cdef int i
 
     if sage_graph_to_matrix(G):
@@ -226,7 +224,6 @@ cdef int sage_graph_to_matrix(G):
     global id_to_vertices
     global vertices_to_id
     global adjacency_matrix
-    global slots
     global cslots
 
     id_to_vertices = []
@@ -241,12 +238,7 @@ cdef int sage_graph_to_matrix(G):
     if init_rw_dec(num_vertices):
         # The original code does not completely frees the memory in case of
         # error
-        if cslots != NULL:
-            sage_free(cslots)
-        if slots != NULL:
-            sage_free(slots)
-        if adjacency_matrix != NULL:
-            sage_free(adjacency_matrix)
+        destroy_rw()
         return 1
 
     memset(adjacency_matrix, 0, sizeof(subset_t) * num_vertices)

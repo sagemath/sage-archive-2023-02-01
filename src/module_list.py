@@ -456,8 +456,8 @@ ext_modules = [
               libraries=['planarity']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
-                         'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
+              libraries=['rw']),
 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),

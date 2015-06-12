@@ -49,7 +49,7 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
 ::
 
-    sage: x = c.natural_object() ; x.parent()           # optional -- internet
+    sage: x = c.natural_object() ; type(x)              # optional -- internet
     <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
     sage: x.convergents()[:7]                           # optional -- internet
@@ -881,7 +881,7 @@ class OEISSequence(SageObject):
             sage: g = oeis("A002852") ; g               # optional -- internet
             A002852: Continued fraction for Euler's constant (or Euler-Mascheroni constant) gamma.
 
-            sage: x = g.natural_object() ; x.parent()   # optional -- internet
+            sage: x = g.natural_object() ; type(x)      # optional -- internet
             <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
             sage: RDF(x) == RDF(euler_gamma)
@@ -932,7 +932,7 @@ class OEISSequence(SageObject):
         TESTS::
 
             sage: s = oeis._imaginary_sequence('nonn,cofr')
-            sage: s.natural_object().parent()
+            sage: type(s.natural_object())
             <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
             sage: s = oeis._imaginary_sequence('nonn')

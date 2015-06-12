@@ -2947,10 +2947,19 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 3/4*y^2,y^2])
             sage: f.multiplier_spectra(2)
             [1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 7/4*y^2,y^2])
+            sage: f.multiplier_spectra(3)
+            [1, 1]
         """
         PS = self.domain()
+        n = Integer(n)
 
-        if (Integer(n) < 1):
+        if (n < 1):
             raise ValueError("Period must be a positive integer")
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(PS):
@@ -2968,7 +2977,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         if not formal:
             G = f.nth_iterate_map(n)
-            F = G._polys[0]*PS.gens()[1] - G._polys[1]*PS.gens()[0]
+            F = G[0]*PS.gens()[1] - G[1]*PS.gens()[0]
         else:
             # periodic points of formal period n are the roots of the nth dynatomic polynomial
             K = f._number_field_from_algebraics()

@@ -115,6 +115,7 @@ $(INST)/sage: \
 		 $(INST)/$(PYTHON) \
 		 $(INST)/$(RATPOINTS) \
 		 $(INST)/$(READLINE) \
+		 $(INST)/$(RW) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SIX) \
 		 $(INST)/$(SYMMETRICA) \

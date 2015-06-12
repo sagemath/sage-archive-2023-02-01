@@ -69,6 +69,19 @@ class Interface(ParentWithBase):
         return self.__name
 
     def get_seed(self):
+        """
+        Returns the seed used to set the random
+        number generator in this interface.
+        The seed is initialized as None
+        but should be set when the interface starts.
+
+        EXAMPLES::
+
+            sage: o = Octave()    # optional - octave
+            sage: o.set_seed(107)  # optional - octave
+            sage: o.get_seed()      # optional - octave
+            107
+        """
         return self._seed
 
     def rand_seed(self):
@@ -79,6 +92,12 @@ class Interface(ParentWithBase):
         This should be overridden if
         the particular interface needs something
         other than a small positive integer.
+
+        EXAMPLES::
+
+            sage: o = Octave()    # optional - octave
+            sage: o.rand_seed()   # optional - octave
+            303801469L #random
         """
         from sage.misc.randstate import randstate
         return long(randstate().seed()&0x1FFFFFFF)
@@ -93,6 +112,14 @@ class Interface(ParentWithBase):
         gap.py or singular.py.
         If seed is None then should generate
         a random seed.
+
+        EXAMPLES::
+
+            sage: o = Octave()
+            sage: o.set_seed(1)
+            1
+            sage: [o.rand() for i in range(5)]
+            [ 0.134364,  0.847434,  0.763775,  0.255069,  0.495435]
         """
         raise NotImplementedError("This interpreter did not implement a set_seed function")
 

@@ -197,9 +197,8 @@ class Octave(Expect):
 
     def set_seed(self, seed=None):
         """
-        http://maxima.sourceforge.net/docs/manual/maxima_10.html
-        make_random_state (n) returns a new random state object created from an
-        integer seed value equal to n modulo 2^32. n may be negative.
+        Sets the seed for the random number generator
+        for this octave interpreter.
 
         EXAMPLES::
 

@@ -63,7 +63,7 @@ REFERENCES:
 
 import itertools
 
-from sage.rings.all import ZZ, QQ, RDF, AA, QQbar
+from sage.rings.all import ZZ, QQ, RDF, RIF, AA, QQbar
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from sage.misc.decorators import rename_keyword
@@ -818,17 +818,17 @@ class Polytopes():
         - ``exact`` -- (boolean, default ``True``) If ``False`` use an
           approximate ring for the coordinates.
 
-        If ``exact=True``, the coefficients will belong to the number
-        field defined by `x^3+x^2+x-1` and if ``exact=False`` it will
+        If ``exact=True``, the coefficients will belong to the algebraic
+        real field AA and if ``exact=False`` it will
         be the real double field.
 
         EXAMPLES::
 
-            sage: sc = polytopes.snub_cube()
+            sage: sc = polytopes.snub_cube()  # VERY LONG TIME !
             sage: sc.f_vector()
             (1, 24, 60, 38, 1)
             sage: sc.volume()
-            ?
+            5.288715111507165?
 
         Its non exact version::
 
@@ -839,11 +839,9 @@ class Polytopes():
             (1, 24, 60, 38, 1)
         """
         if exact:
-            from sage.rings.number_field.number_field import NumberField
             x = polygen(QQ, 'x')
-            K = NumberField(x ** 3 + x ** 2 + x - 1, 'z', embedding=RDF(0.543))
-            z = K.gen()
-            base_ring = K
+            z = AA.polynomial_root(x ** 3 + x ** 2 + x - 1, RIF(0.54, 0.56))
+            base_ring = AA
         else:
             base_ring = RDF
             tsqr33 = 3 * base_ring(33).sqrt()

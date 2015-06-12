@@ -1602,9 +1602,9 @@ class OEISSequence(SageObject):
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
             sage: f.comments()[:3]                      # optional -- internet
-            ("Also sometimes called Lam\xc3\xa9's sequence.",
-             "F(n+2) = number of binary sequences of length n that have no consecutive 0's.",
-             'F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.')
+            0: Also sometimes called Lamé's sequence.
+            1: F(n+2) = number of binary sequences of length n that have no consecutive 0's.
+            2: F(n+2) = number of subsets of {1,2,...,n} that contain no consecutive integers.
 
         TESTS::
 
@@ -1793,6 +1793,7 @@ class FancyTuple(tuple):
         index of the value in ``self``.
 
         EXAMPLES::
+
             sage: from sage.databases.oeis import FancyTuple
             sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4]) ; t
             0: zero
@@ -1803,5 +1804,28 @@ class FancyTuple(tuple):
         """
         length = len(str(len(self) - 1))
         return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
+
+    def __getslice__(self, i, j):
+        r"""
+        The slice of a FancyTuple remains a FancyTuple.
+        
+        EXAMPLES::
+
+            sage: from sage.databases.oeis import FancyTuple
+            sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4])
+            sage: t[-2:]
+            0: three
+            1: 4
+        
+        TESTS::
+
+            sage: t = ('é', 'è', 'à', 'ç')
+            sage: t
+            ('\xc3\xa9', '\xc3\xa8', '\xc3\xa0', '\xc3\xa7')
+            sage: FancyTuple(t)[2:4]
+            0: à
+            1: ç
+        """
+        return FancyTuple(tuple(self).__getslice__(i, j))
 
 oeis = OEIS()

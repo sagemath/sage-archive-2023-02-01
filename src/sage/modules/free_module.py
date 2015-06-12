@@ -2073,7 +2073,7 @@ done from the right side.""")
         EXAMPLES::
 
             sage: R = QQ^2
-            sage: macaulay2(R) # optional
+            sage: macaulay2(R) # optional - macaulay2
               2
             QQ
         """

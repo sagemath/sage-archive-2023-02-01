@@ -652,12 +652,12 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 2])
-                sage: C.metapost('/tmp/test.mp') #optional
+                sage: C.metapost(tmp_filename())
 
             ::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.metapost('/tmp/test.mp')
+                sage: C.metapost(tmp_filename())
                 Traceback (most recent call last):
                 ...
                 NotImplementedError

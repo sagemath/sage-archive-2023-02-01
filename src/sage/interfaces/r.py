@@ -616,7 +616,7 @@ class R(Expect):
         EXAMPLES::
 
             sage: ap = r.available_packages()   # optional - internet
-            sage: len(ap) > 20                  #optional
+            sage: len(ap) > 20                  # optional - internet
             True
         """
         p = self.new('available.packages("%s/src/contrib")'%RRepositoryURL)
@@ -1835,7 +1835,7 @@ class RElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: latex(r(2))  # optional - Hmisc R package
+            sage: latex(r(2))  # optional - Hmisc (R package)
             2
         """
         from sage.misc.latex import LatexExpr

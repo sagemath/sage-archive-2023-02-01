@@ -98,19 +98,19 @@ def hypellfrob(p, N, Q):
     cdef int i, j
 
     if N < 1:
-        raise ValueError, "N must be an integer >= 1"
+        raise ValueError("N must be an integer >= 1")
 
     Q = Q.list()
     if len(Q) < 4 or len(Q) % 2 or Q[-1] != 1:
-        raise ValueError, "Q must be a monic polynomial of odd degree >= 3"
+        raise ValueError("Q must be a monic polynomial of odd degree >= 3")
     QQ = ZZX(Q)
 
     bound = (len(Q) - 1) * (2*N - 1)
     if p <= bound:
-        raise ValueError, "In the current implementation, p must be greater than (2g+1)(2N-1) = %s" % bound
+        raise ValueError("In the current implementation, p must be greater than (2g+1)(2N-1) = %s" % bound)
 
     if not is_prime(p):
-        raise ValueError, "p (= %s) must be prime" % p
+        raise ValueError("p (= %s) must be prime" % p)
 
     pp = ZZ(p)
 
@@ -120,7 +120,7 @@ def hypellfrob(p, N, Q):
     # Note: the C++ code actually resets the size of the matrix, but this seems
     # to confuse the Sage NTL wrapper. So to be safe I'm setting it ahead of
     # time.
-    mm = ntl_mat_ZZ(2*g, 2*g)
+    mm = ntl_mat_ZZ(2 * g, 2 * g)
 
     cdef int result
     sig_on()
@@ -129,7 +129,7 @@ def hypellfrob(p, N, Q):
     sig_off()
 
     if not result:
-        raise ValueError, "Could not compute frobenius matrix, because the curve is singular at p."
+        raise ValueError("Could not compute frobenius matrix, because the curve is singular at p.")
 
     R = Qp(p, N, print_mode="terse")
     prec = big_oh(p**N)

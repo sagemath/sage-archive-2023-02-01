@@ -149,8 +149,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: t1 * t2
             Generic Term with growth x^3
         """
-        cls = self.__class__
-        return cls(self.parent(), self.growth * other.growth)
+        return self.parent()(self.growth * other.growth)
 
 
     def can_absorb(self, other):
@@ -1178,9 +1177,8 @@ class TermWithCoefficient(GenericTerm):
             sage: t1 * t2
             6 * x^5
         """
-        result = super(TermWithCoefficient, self)._mul_(other)
-        result.coefficient = self.coefficient * other.coefficient
-        return result
+        return self.parent()(self.growth * other.growth,
+                             self.coefficient * other.coefficient)
 
 
     def _le_(self, other):

@@ -81,7 +81,7 @@ class ComplexReflectionGroups(Category_singleton):
 
     def example(self):
         r"""
-        Returns an example of a complex reflection group.
+        Return an example of a complex reflection group.
 
         EXAMPLES::
 
@@ -96,7 +96,7 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method
         def index_set(self):
             r"""
-            Returns the index set of the simple reflections of ``self``.
+            Return the index set of the simple reflections of ``self``.
 
             EXAMPLES::
 
@@ -105,7 +105,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def simple_reflection(self, i):
             r"""
-            Returns the `i`-th simple reflection of ``self``.
+            Return the `i`-th simple reflection of ``self``.
 
             For `i` in `1,\dots,\ell`, this gives the `i`-th simple reflection of ``self``.
             EXAMPLES::
@@ -117,7 +117,7 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def hyperplane_index_set(self):
             r"""
-            Returns the index set of the reflection hyperplanes of ``self``.
+            Return the index set of the reflection hyperplanes of ``self``.
             EXAMPLES::
 
                 tba
@@ -126,10 +126,11 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def distinguished_reflection(self, i):
             r"""
-            Returns the `i`-th distinguished reflection of ``self``. For a definition of
-            destinguished reflections, see :meth:`distinguished_reflections`.
+            Return the `i`-th distinguished reflection of ``self``.
 
             For `i` in `1,\dots,N^*`, this gives the `i`-th distinguished reflection of ``self``.
+            For a definition of destinguished reflections, see :meth:`distinguished_reflections`.
+
             EXAMPLES::
 
                 tba
@@ -138,7 +139,7 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def reflection_index_set(self):
             r"""
-            Returns the index set of the reflections of ``self``.
+            Return the index set of the reflections of ``self``.
             EXAMPLES::
 
                 tba
@@ -147,7 +148,7 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def reflection(self, i):
             r"""
-            Returns the `i`-th reflection of ``self``.
+            Return the `i`-th reflection of ``self``.
 
             For `i` in `1,\dots,N`, this gives the `i`-th reflection of ``self``.
             EXAMPLES::
@@ -176,8 +177,9 @@ class ComplexReflectionGroups(Category_singleton):
         @cached_method
         def distinguished_reflections(self):
             r"""
-            Returns a finite family containing the distinguished reflections of ``self``,
-            indexed by ``self.hyperplane_index_set()``.
+            Return a finite family containing the distinguished reflections of ``self``,
+            indexed by :meth:`self.hyperplane_index_set`.
+
             These are the reflections in ``self`` acting on the complement
             of the fixed hyperplane `H` as `\operatorname{exp}(2 \pi i / n)`, where `n`
             is the order of the reflection subgroup fixing `H`.
@@ -221,8 +223,8 @@ class ComplexReflectionGroups(Category_singleton):
         @cached_method
         def reflections(self):
             r"""
-            Returns a finite family containing the reflections of ``self``,
-            indexed by ``self.reflection_index_set()``.
+            Return a finite family containing the reflections of ``self``,
+            indexed by :meth:`self.reflection_index_set`.
 
            EXAMPLES::
 
@@ -266,14 +268,21 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def irreducible_components(self):
             r"""
-            Returns a list containing all irreducible components of ``self`` as finite reflection groups.
+            Return a list containing all irreducible components of
+            ``self`` as finite reflection groups.
+
+            EXAMPLES::
+
+                tba
             """
 
         def an_element(self):
             r"""
-            Implements: :meth:`Sets.ParentMethods.an_element` by
-            returning the product of the simple reflections (which is *not*
-            necessarily a Coxeter element).
+            Return the product of the simple reflections of ``self``.
+
+            .. warning:: This is *not* necessarily a Coxeter element
+            (namely when ``self`` is not well-generated or not
+            irreducible.
 
             EXAMPLES::
 
@@ -289,8 +298,10 @@ class ComplexReflectionGroups(Category_singleton):
 
         def some_elements(self):
             r"""
+            Return a list of typical elements of ``self``.
+
             Implements :meth:`Sets.ParentMethods.some_elements` by
-            returning some typical element of `self`.
+            returning some typical element of ``self``.
 
             EXAMPLES::
 
@@ -304,14 +315,20 @@ class ComplexReflectionGroups(Category_singleton):
 
         def from_word(self, word, word_type='simple'):
             r"""
+            Return the group element corresponding to ``word``.
+
             INPUT:
 
-             - ``word`` - a list (or iterable) of elements of the appropriate index set
+            - ``word`` - a list (or iterable) of elements of the
+               appropriate index set
+
+            - ``word_type`` (optional, default: 'simple') can be
+              'simple', 'distinguished', or 'all', depending on the type
+              of reflections used.
   
-            Returns the group element corresponding to the given
-            word. Namely, if ``word`` is `[i_1,i_2,\ldots,i_k]`, then
-            this returns the corresponding product of
-            (simple/distinguished/all) reflections `t_{i_1} t_{i_2} \cdots t_{i_k}`.
+            If ``word`` is `[i_1,i_2,\ldots,i_k]`, then this returns the
+            corresponding product of (simple/distinguished/all)
+            reflections `t_{i_1} t_{i_2} \cdots t_{i_k}`.
 
             EXAMPLES::
 
@@ -342,8 +359,13 @@ class ComplexReflectionGroups(Category_singleton):
 
         def group_generators(self):
             r"""
-            Implements :meth:`Groups.ParentMethods.group_generators`
-            by returning the simple reflections of ``self``.
+            Return the simple reflections of ``self``.
+
+            Implements :meth:`Groups.ParentMethods.group_generators`.
+
+            EXAMPLES::
+
+                tba
             """
             return self.simple_reflections()
 
@@ -357,7 +379,8 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflection_left(self, i):
             """
-            Returns ``self`` multiplied by the simple reflection ``s[i]`` on the left
+            Return ``self`` multiplied by the simple reflection ``s[i]``
+            on the left.
 
             This low level method is used intensively. Coxeter groups
             are encouraged to override this straightforward
@@ -385,7 +408,8 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflection_right(self, i):
             """
-            Returns ``self`` multiplied by the simple reflection ``s[i]`` on the right
+            Return ``self`` multiplied by the simple reflection ``s[i]``
+            on the right.
 
             This low level method is used intensively. Coxeter groups
             are encouraged to override this straightforward
@@ -413,7 +437,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflection(self, i, side = 'right'):
             """
-            Returns ``self`` multiplied by the simple reflection ``s[i]``
+            Return ``self`` multiplied by the simple reflection ``s[i]``.
 
             INPUT:
 
@@ -461,7 +485,7 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def reflection_length(self):
             r"""
-            Returns the reflection length of ``self``, that is the
+            Return the reflection length of ``self``, that is the
             minimal length of a product of reflections giving ``self``.
 
             EXAMPLES::
@@ -485,7 +509,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def is_reflection(self):
             r"""
-            Returns True if ``self`` is a reflection, i.e., if ``self`` fixes a hyperplane pointwise.
+            Return True if ``self`` is a reflection.
 
             EXAMPLES::
 
@@ -507,15 +531,13 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflections(self, word, side = 'right'):
             r"""
-            Multiplies all simple reflections in ``word`` to ``self``.
+            Return the result of the (left/right) multiplication of   
+            ``word`` to ``self``.
 
             INPUT:
 
-             - word -- A sequence of indices of reflections
-             - side -- (defaut:'right') Indicates multiplying from left or right
-
-            Returns the result of the (left/right) multiplication of   
-            word to self.  self is not changed.
+             - ``word`` -- A sequence of indices of reflections
+             - ``side`` -- (defaut:'right') Indicates multiplying from left or right
 
             EXAMPLES::
 
@@ -556,15 +578,13 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_distinguished_reflections(self, word, side = 'right'):
             r"""
-            Multiplies all reflections in ``word`` to ``self``.
+            Return the result of the (left/right) multiplication of   
+            ``word`` to`` self``.
 
             INPUT:
 
-             - word -- A sequence of indices of reflections
-             - side -- (defaut:'right') Indicates multiplying from left or right
-
-            Returns the result of the (left/right) multiplication of   
-            word to self.  self is not changed.
+             - ``word`` -- A sequence of indices of reflections
+             - ``side`` -- (defaut:'right') Indicates multiplying from left or right
 
             EXAMPLES::
 
@@ -605,15 +625,13 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_reflections(self, word, side = 'right'):
             r"""
-            Multiplies all reflections in ``word`` to ``self``.
+            Return the result of the (left/right) multiplication of   
+            ``word`` to ``self``.
 
             INPUT:
 
-             - word -- A sequence of indices of reflections
-             - side -- (defaut:'right') Indicates multiplying from left or right
-
-            Returns the result of the (left/right) multiplication of   
-            word to self.  self is not changed.
+             - ``word`` -- A sequence of indices of reflections
+             - ``side`` -- (defaut:'right') Indicates multiplying from left or right
 
             EXAMPLES::
 
@@ -686,7 +704,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def example(self):
             r"""
-            Returns an example of a finite complex reflection group.
+            Return an example of a finite complex reflection group.
 
             EXAMPLES::
 
@@ -700,7 +718,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             def is_finite(self):
                 r"""
-                Returns ``True`` since ``self`` is finite.
+                Return ``True`` since ``self`` is finite.
 
                 EXAMPLES::
 
@@ -713,18 +731,28 @@ class ComplexReflectionGroups(Category_singleton):
             @abstract_method(optional=True)
             def degrees(self):
                 r"""
-                Returns the degrees of ``self``, as a list.
+                Return the degrees of ``self``, as a list in increasing
+                order.
+
+                EXAMPLES::
+
+                    sage: tba
                 """
 
             @abstract_method(optional=True)
             def codegrees(self):
                 r"""
-                Returns the codegrees of ``self``, as a list.
+                Return the codegrees of ``self``, as a list in
+                decreasing order.
+
+                EXAMPLES::
+
+                    sage: tba
                 """
 
             def nr_simple_reflections(self):
                 r"""
-                Returns the number of reflections simple of ``self``.
+                Return the number of reflections simple of ``self``.
 
                 EXAMPLES::
 
@@ -745,8 +773,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             def nr_reflecting_hyperplanes(self):
                 r"""
-                Returns the number of reflecting hyperplanes of ``self``. It is given by the sum of the codegrees of self plus its rank.
-                For real groups, this coincides with the number of reflections.
+                Return the number of reflecting hyperplanes of ``self``.
+
+                It is given by the sum of the codegrees of self plus its
+                rank.
+
+                For real groups, this coincides with the number of
+                reflections.
 
                 EXAMPLES::
 
@@ -767,8 +800,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             def nr_reflections(self):
                 r"""
-                Returns the number of reflections of ``self``. It is given by the sum of the degrees of self minus its rank.
-                For real groups, this coincides with the number of reflecting hyperplanes.
+                Return the number of reflections of ``self``.
+
+                It is given by the sum of the degrees of self minus its
+                rank.
+
+                For real groups, this coincides with the number of
+                reflecting hyperplanes.
 
                 EXAMPLES::
 
@@ -789,7 +827,9 @@ class ComplexReflectionGroups(Category_singleton):
 
             def rank(self):
                 r"""
-                Returns the rank of ``self``. This is the dimension of the underlying vector space.
+                Return the rank of ``self``.
+
+                This is the dimension of the underlying vector space.
 
                 EXAMPLES::
 
@@ -810,7 +850,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             def nr_irreducible_components(self):
                 r"""
-                Returns the number of irreducible components of ``self``.
+                Return the number of irreducible components of ``self``.
 
                 EXAMPLES::
 
@@ -826,7 +866,9 @@ class ComplexReflectionGroups(Category_singleton):
 
             def cardinality(self):
                 r"""
-                Returns the cardinality of ``self``. It is given by the product of the degrees of ``self``.
+                Return the cardinality of ``self``.
+
+                It is given by the product of the degrees of ``self``.
 
                 EXAMPLES::
 
@@ -847,7 +889,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             def is_irreducible(self):
                 r"""
-                Returns True if ``self`` is irreducible.
+                Return True if ``self`` is irreducible.
 
                 EXAMPLES::
 
@@ -865,7 +907,7 @@ class ComplexReflectionGroups(Category_singleton):
 
             def is_reducible(self):
                 r"""
-                Returns True if ``self`` is not irreducible.
+                Return True if ``self`` is not irreducible.
 
                 EXAMPLES::
 
@@ -883,7 +925,10 @@ class ComplexReflectionGroups(Category_singleton):
 
             def is_well_generated(self):
                 r"""
-                Returns True if ``self`` is well generated. This is, if ``self`` is generated by `\ell` many reflections where `\ell` is the rank of ``self``.
+                Return True if ``self`` is well generated.
+
+                This is, if ``self`` is generated by `\ell` many
+                reflections where `\ell` is the rank of ``self``.
 
                 REMARK:
 
@@ -913,7 +958,10 @@ class ComplexReflectionGroups(Category_singleton):
 
             def is_real(self):
                 r"""
-                Returns True if ``self`` is real. For irreducible reflection groups, this is equivalent to `2` is a degree of ``self``.
+                Return ``True`` if ``self`` is real.
+
+                For irreducible reflection groups, this holds if and
+                only if `2` is a degree of ``self``.
 
                 EXAMPLES::
 
@@ -930,11 +978,11 @@ class ComplexReflectionGroups(Category_singleton):
             @cached_method
             def reflecting_hyperplanes(self):
                 r"""
-                Returns the list of all reflecting hyperplanes of ``self``.
+                Return the list of all reflecting hyperplanes of
+                ``self``.
 
-                REMARK:
-
-                - the method does not yet work for non-crystallographic types
+                .. REMARK:: The method does not yet work for non-
+                   crystallographic types.
 
                 EXAMPLES::
 
@@ -978,7 +1026,8 @@ class ComplexReflectionGroups(Category_singleton):
             @abstract_method(optional=True)
             def as_matrix(self):
                 r"""
-                Returns the matrix presentation of ``self`` acting on the vector space V.
+                Return the matrix presentation of ``self`` acting on the
+                vector space `V`.
 
                 EXAMPLES::
 
@@ -996,7 +1045,8 @@ class ComplexReflectionGroups(Category_singleton):
 
             def character_value(self):
                 r"""
-                Returns the value at ``self`` of the character of the reflection representation `V` of ``self.parent()``.
+                Return the value at ``self`` of the character of the
+                reflection representation `V` of :meth:`self.parent`.
 
                 EXAMPLES::
 
@@ -1021,7 +1071,8 @@ class ComplexReflectionGroups(Category_singleton):
             
             def example(self):
                 r"""
-                Returns an example of an irreducible finite complex reflection group.
+                Return an example of an irreducible finite complex
+                reflection group.
 
                 EXAMPLES::
 
@@ -1034,9 +1085,13 @@ class ComplexReflectionGroups(Category_singleton):
             class ParentMethods:
                 def coxeter_number(self):
                     r"""
-                    Returns the Coxeter number of an irreducible
-                    reflection group. This is defined as the below
-                    expression.
+                    Return the Coxeter number of an irreducible
+                    reflection group.
+
+                    This is defined as `\frac{N + N^*}{n}` where
+                    `N` is the number of reflections, `N^*` is the
+                    number of reflecting hyperplanes, and `n` is the
+                    rank of ``self``.
 
                     EXAMPLES::
 
@@ -1067,7 +1122,8 @@ class ComplexReflectionGroups(Category_singleton):
 
             def example(self):
                 r"""
-                Returns an example of a well-generated finite complex reflection group.
+                Return an example of a well-generated finite complex
+                reflection group.
 
                 EXAMPLES::
 
@@ -1081,7 +1137,8 @@ class ComplexReflectionGroups(Category_singleton):
 
                 def example(self):
                     r"""
-                    Returns an example of an irreducible well-generated finite complex reflection group.
+                    Return an example of an irreducible well-generated
+                    finite complex reflection group.
 
                     EXAMPLES::
 
@@ -1094,10 +1151,15 @@ class ComplexReflectionGroups(Category_singleton):
                 class ParentMethods:
                     def coxeter_number(self):
                         r"""
-                        Returns the Coxeter number of a well-generated,
+                        Return the Coxeter number of a well-generated,
                         irreducible reflection group. This is defined to be
                         the order of a regular element in ``self``, and is
                         equal to the highest degree of self.
+
+                        .. REMARK:: This method overwrites the more
+                           general method for complex reflection groups
+                           since the expression given here is quicker to
+                           compute.
 
                         EXAMPLES::
 
@@ -1116,6 +1178,14 @@ class ComplexReflectionGroups(Category_singleton):
                         return max(self.degrees())
 
                     def number_of_reflections_of_full_support(self):
+                        r"""
+                        Return the number of reflections with full
+                        support.
+
+                        EXAMPLES::
+
+                            sage: tba
+                        """
                         n = self.rank()
                         h = self.coxeter_number()
                         l = self.cardinality()
@@ -1125,15 +1195,13 @@ class ComplexReflectionGroups(Category_singleton):
                     @cached_method
                     def rational_catalan_number(self,p,polynomial=False):
                         r"""
-                        Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
-                        of the m-th Fuss-Catalan numbers of the irreducible components of ``self``. For an
-                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
-                        where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
+                        Return the ``p``-th rational Catalan number
+                        associated to ``self``.
 
-                        REMARKS:
-
-                        - For the symmetric group `S_n`, it reduces to the Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
-                        - The Fuss-Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+                        It is defined by
+                        `\prod_{i = 1}^\ell \frac{p + (p(d_i-1)) \mod h)}{d_i}`
+                        where `d_1,\ldots,d_\ell` are the degrees and
+                        where `h` is the Coxeter number.
 
                         EXAMPLES::
 
@@ -1181,9 +1249,10 @@ class ComplexReflectionGroups(Category_singleton):
 
                     def fuss_catalan_number(self,m,positive=False,polynomial=False):
                         r"""
-                        Returns the m-th Fuss-Catalan number associated to ``self``. It is given by the product
-                        of the m-th Fuss-Catalan numbers of the irreducible components of ``self``. For an
-                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
+                        Return the ``m``-th Fuss-Catalan number
+                        associated to ``self``.
+
+                        It is defined by `\prod_{i = 1}^\ell \frac{d_i + mh}{d_i}`
                         where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
 
                         REMARKS:
@@ -1226,9 +1295,9 @@ class ComplexReflectionGroups(Category_singleton):
 
                     def catalan_number(self,positive=False,polynomial=False):
                         r"""
-                        Returns the Catalan number associated to ``self``. It is given by the product
-                        of the Catalan numbers of the irreducible components of ``self``. For an
-                        irreducible finite reflection group, it is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
+                        Return the Catalan number associated to ``self``.
+
+                        It is defined by `\prod_{i = 1}^\ell \frac{d_i + h}{d_i}`
                         where `d_1,\ldots,d_\ell` are the degrees and where `h` is the Coxeter number.
 
                         REMARKS:

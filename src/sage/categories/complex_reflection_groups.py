@@ -507,7 +507,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflections(self, word, side = 'right'):
             r"""
-            ... multiplies all simple reflections in ``word`` to ``self``...
+            Multiplies all simple reflections in ``word`` to ``self``.
 
             INPUT:
 
@@ -544,7 +544,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_distinguished_reflection(self, i, side = 'right'):
             r"""
-            ... multiplies the ``i``-th distinguished reflection to ``self``...
+            Multiplies the ``i``-th distinguished reflection to ``self``.
             """
             G = self.parent()
             if not i in G.hyperplane_index_set():
@@ -556,7 +556,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_distinguished_reflections(self, word, side = 'right'):
             r"""
-            ... multiplies all reflections in ``word`` to ``self``...
+            Multiplies all reflections in ``word`` to ``self``.
 
             INPUT:
 
@@ -593,7 +593,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_reflection(self, i, side = 'right'):
             r"""
-            ... multiplies the ``i``-th reflection to ``self``...
+            Multiplies the ``i``-th reflection to ``self``.
             """
             G = self.parent()
             if i not in G.reflection_index_set():
@@ -605,7 +605,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_reflections(self, word, side = 'right'):
             r"""
-            ... multiplies all reflections in ``word`` to ``self``...
+            Multiplies all reflections in ``word`` to ``self``.
 
             INPUT:
 

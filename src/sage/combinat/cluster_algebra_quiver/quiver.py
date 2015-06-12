@@ -398,6 +398,7 @@ class ClusterQuiver(SageObject):
         - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
         - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``greens` -- (default:[]) if set to a list, will display the green vertices as green
 
         EXAMPLES::
 
@@ -489,7 +490,7 @@ class ClusterQuiver(SageObject):
             options[ 'pos' ] = pp
         return dg.plot( **options )
 
-    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False):
+    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
         """
         Shows the plot of the underlying digraph of ``self``.
 
@@ -500,6 +501,7 @@ class ClusterQuiver(SageObject):
         - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
         - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``greens` -- (default:[]) if set to a list, will display the green vertices as green
 
         TESTS::
 
@@ -507,7 +509,7 @@ class ClusterQuiver(SageObject):
             sage: Q.show() # long time
         """
         n, m = self._n, self._m
-        plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos )
+        plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)
         if circular:
             plot.show( figsize=[fig_size*3*(n+m)/4+1,fig_size*3*(n+m)/4+1] )
         else:
@@ -1718,6 +1720,18 @@ class ClusterQuiver(SageObject):
         Note: This only works with non-valued quivers. If used on a
         non-valued quiver then the positive value is taken to be the number of edges added
 
+        OUTPUT:
+        
+        Returns an integer of the number of edges
+
+        EXAMPLES::
+        
+            sage: S = ClusterQuiver(['A',4]); S.number_of_edges()
+            3
+            
+            sage: S = ClusterQuiver(['B',4]); S.number_of_edges()
+            3
+
         """
 
         digraph_edges = self.digraph().edges()
@@ -1733,6 +1747,15 @@ class ClusterQuiver(SageObject):
         Returns the quiver after doing a relabelling
         
         Will relabel the vertices of the quiver
+        
+        INPUT:
+        
+        - ``relabelling`` -- Dictionary of labels to move around
+        - ``inplace`` -- (default:True) if True, will return a duplicate of the quiver
+        
+        EXAMPLES::
+        
+            sage: S = ClusterQuiver(['A',4]).relabel({1:'5',2:'go'})
         
         """
         if inplace:

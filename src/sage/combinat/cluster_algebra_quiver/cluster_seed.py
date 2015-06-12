@@ -98,6 +98,22 @@ class ClusterSeed(SageObject):
 
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
+
+        sage: S = ClusterSeed(['A',4]); S._use_clusters
+        True
+        
+        sage: S._use_d_vec
+        False
+        
+        sage: S._use_g_vec
+        True
+        
+        sage: S._use_c_vec
+        True
+                
+        sage: S = ClusterSeed(['A',4],use_clusters=False); S._use_clusters
+        False
+
     """
     def __init__(self, data, frozen=None, is_principal=False, use_clusters=True, use_g_vec=False, use_c_vec=True, use_d_vec=False, track_mut=False,user_labels=None,user_labels_prefix='X'):
         r"""
@@ -195,7 +211,7 @@ class ClusterSeed(SageObject):
         else:
             quiver = ClusterQuiver( data, frozen=frozen )
             #### keep is_principal around?
-            self.__init__( quiver,is_principal=is_principal,use_clusters=use_clusters, use_g_vec=use_g_vec,use_d_vec=use_d_vec, use_c_vec=use_c_vec,track_mut=track_mut,user_labels=user_labels )
+            self.__init__( quiver,is_principal=is_principal,use_clusters=use_clusters, use_g_vec=use_g_vec,use_d_vec=use_d_vec, use_c_vec=use_c_vec,track_mut=track_mut,user_labels=user_labels,user_labels_prefix=user_labels_prefix )
 
 
         # If we need to recalculate cluster
@@ -203,8 +219,33 @@ class ClusterSeed(SageObject):
         
     def use_c_vectors(self, use=True):
         r"""
+        Initialize the use of c vectors
         
-        Note: This will remove any C matrix that was already set
+        Warning: This will remove any C matrix that was already set.
+        
+        INPUT:
+
+        - ``use`` -- (default:True) If True, will use c vectors
+        
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(['A',4],use_c_vec=False, use_g_vec=False, use_clusters=False);
+            sage: S.use_c_vectors(True)
+            sage: S.c_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            
+            sage: S = ClusterSeed(['A',4],use_c_vec=False, use_g_vec=False, use_clusters=False);
+            sage: S.mutate(1);
+            sage: S.use_c_vectors(True)
+            sage: S.c_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+
         """
         if not hasattr(self, '_use_c_vec') or  self._use_c_vec != use:
             self._use_c_vec = use
@@ -222,20 +263,78 @@ class ClusterSeed(SageObject):
 
     def use_g_vectors(self, use=True):
         r"""
+        Initialize the use of g vectors.
         
-        Note: This will remove any G matrix that was already set
+        Warning: This will remove any G matrix that was already set
+        
+        INPUT:
+
+        - ``use`` -- (default:True) If True, will use g vectors
+        
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(['A',4],use_g_vec=False, use_clusters=False);
+            sage: S.use_g_vectors(True)
+            sage: S.g_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            
+            sage: S = ClusterSeed(['A',4],use_g_vec=False, use_clusters=False);
+            sage: S.mutate(1);
+            sage: S.use_g_vectors(True)
+            sage: S.g_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+
         """
         if not hasattr(self, '_use_g_vec') or self._use_g_vec != use:
             self._use_g_vec = use
             self._G = matrix.identity(self._n) if self._use_g_vec else None
             
-            if not self._use_c_vec:
+            if self._use_g_vec and not self._use_c_vec:
                 self.use_c_vectors(True)
             
     def use_d_vectors(self, use=True):
         r"""
+        Initialize the use of d vectors
         
-        Note: This will remove any D matrix that was already set
+        Warning: This will remove any D matrix that was already set
+        
+        INPUT:
+
+        - ``use`` -- (default:True) If True, will use d vectors
+
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(['A',4]);
+            sage: S.use_d_vectors(True)
+            sage: S.d_matrix()
+            [-1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            
+            sage: S = ClusterSeed(['A',4]); S.mutate(1); S.d_matrix()
+            [-1  0  0  0]
+            [ 0  1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            sage: S.use_d_vectors(True)
+            sage: S.d_matrix()
+            [-1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            
+            sage: S = ClusterSeed(['A',4]); S.use_d_vectors(True); S.mutate(1); S.d_matrix()
+            [-1  0  0  0]
+            [ 0  1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
         """
         if not hasattr(self, '_use_d_vec') or self._use_d_vec != use:
             self._use_d_vec = use
@@ -249,22 +348,41 @@ class ClusterSeed(SageObject):
 
     def use_clusters(self, use=True, user_labels=None, user_labels_prefix=None):
         r"""
+        Use clusters in our Cluster Seed
         
         Note: This will automatically invalidate the clusters
         
+        INPUT:
+
+        - ``use`` -- (default:True) If True, will use clusters
+        - ``user_labels`` -- (default:None) If set will overwrite the default cluster labels
+        - ``user_labels_prefix`` -- (default:None) If set will overwrite the default 
+        
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(['A',4],use_clusters=False); S._cluster
+            sage: S.use_clusters(True)
+            sage: S.cluster()
+            [x0, x1, x2, x3]
+            
+            sage: S = ClusterSeed(['A',4],use_clusters=False); S.mutate(1)
+            sage: S.use_clusters(True)
+            sage: S.cluster()
+            [x0, x1, x2, x3]
         """
         self._user_labels = user_labels
+        self._user_labels_prefix = user_labels_prefix
         if not hasattr(self, '_use_clusters') or self._use_clusters != use:
             self._use_clusters = use
             
-            if not self._use_g_vec:
-                self.use_g_vectors(True)
-            
             #### Move this up to the earlier spot where use_clusters flag was tested
             if self._use_clusters:
+                if not self._use_g_vec:
+                    self.use_g_vectors(True)
+                
                 if user_labels:
 
-                    self.sanitize_init_vars(user_labels, user_labels_prefix)
+                    self._sanitize_init_vars(user_labels, user_labels_prefix)
                 else:
                     xs = {i:'x%s'%i for i in xrange(self._n)}
                     ys = {(i+self._n):'y%s'%i for i in xrange(self._n+self._m)}
@@ -293,7 +411,10 @@ class ClusterSeed(SageObject):
                 self._yhat = None
                 self._cluster = None
                 
-    def sanitize_init_vars(self, user_labels, user_labels_prefix = 'X'):
+    def _sanitize_init_vars(self, user_labels, user_labels_prefix = 'X'):
+        r"""
+        Warning: This is an internal method that should not be used.
+        """
         if isinstance(user_labels,list):
             self._init_vars = {}
             for i in xrange(len(user_labels)):
@@ -317,13 +438,52 @@ class ClusterSeed(SageObject):
         
         
     def set_c_matrix(self, matrix):
+        r"""
+        Will force set the c matrix according to a matrix, a quiver, or a seed.
+        
+        INPUT:
+
+        - ``matrix`` -- The matrix to set the c matrix to
+        
+        EXAMPLES::
+            sage: S = ClusterSeed(['A',3]);
+            sage: X = matrix([[0,0,1],[0,1,0],[1,0,0]])
+            sage: S.set_c_matrix(X)
+            sage: S.c_matrix()
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            
+            sage: Y = matrix([[-1,0,1],[0,1,0],[1,0,0]])
+            sage: S.set_c_matrix(Y)
+            C matrix does not look to be valid - there exists a column containing positive and negative entries.
+            Continuing...
+            
+            sage: Z = matrix([[1,0,1],[0,1,0],[2,0,2]])
+            sage: S.set_c_matrix(Z)
+            C matrix does not look to be valid - not a linearly independent set.
+            Continuing...
+
+
+
+        """
         if isinstance(matrix, ClusterQuiver):
             matrix = matrix.b_matrix()
         if isinstance(matrix, ClusterSeed):
             matrix=matrix.b_matrix()
         
         if matrix.determinant() == 0:
-            raise Warning
+            print "C matrix does not look to be valid - not a linearly independent set."
+            print "Continuing..."
+        
+        # Do a quick check to make sure that each column is either all positive or all negative.
+        # Can do this through green/red vertices
+        greens = Set(get_green_vertices(matrix))
+        reds = Set(get_red_vertices(matrix))
+        if greens.intersection(reds).cardinality() > 0 or greens.union(reds).cardinality() < matrix.ncols():
+            print "C matrix does not look to be valid - there exists a column containing positive and negative entries."
+            print "Continuing..."
+        
         self._C = matrix
         self._BC = self._M.stack(self._C)
         
@@ -387,6 +547,9 @@ class ClusterSeed(SageObject):
         - ``circular`` -- (default:False) if True, the circular plot is chosen, otherwise >>spring<< is used.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
         - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``force_c`` -- (default:False) if True, will show the frozen vertices even if they were never initialized
+        - ``with_greens`` -- (default:False) if True, will display the green vertices in green
+        - ``add_labels`` -- (default:False) if True, will use the initial variables as labels
 
         EXAMPLES::
 
@@ -410,7 +573,7 @@ class ClusterSeed(SageObject):
         #### don't create quiver until we want to display it?
         return quiver.plot(circular=circular,mark=mark,save_pos=save_pos, greens=greens)
 
-    def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False, add_labels = False):
+    def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False, with_greens= False, add_labels = False):
         r"""
         Shows the plot of the quiver of ``self``.
 
@@ -420,12 +583,20 @@ class ClusterSeed(SageObject):
         - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
         - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``force_c`` -- (default:False) if True, will show the frozen vertices even if they were never initialized
+        - ``with_greens`` -- (default:False) if True, will display the green vertices in green
+        - ``add_labels`` -- (default:False) if True, will use the initial variables as labels
 
         TESTS::
 
             sage: S = ClusterSeed(['A',5])
             sage: S.show() # long time
         """
+        
+        greens = []
+        if with_greens:
+            greens = self.green_vertices()
+            
         if force_c:
             quiver = ClusterQuiver(self._BC)
         elif add_labels:
@@ -434,7 +605,7 @@ class ClusterSeed(SageObject):
         else:
             quiver = self.quiver()
         #### Wait to create quiver until we want to display it?
-        quiver.show(fig_size=fig_size, circular=circular,mark=mark,save_pos=save_pos)
+        quiver.show(fig_size=fig_size, circular=circular,mark=mark,save_pos=save_pos, greens=greens)
         
             
     def interact(self, fig_size=1, circular=True):
@@ -653,6 +824,9 @@ class ClusterSeed(SageObject):
         return self._m
 
     def cluster_variable(self, k):
+        r"""
+        Generates a cluster variable using f polynomials
+        """
         if self._use_clusters:
             IE = self._init_exch.values()
             if (k in xrange(self._n)) or (k in IE):
@@ -863,6 +1037,11 @@ class ClusterSeed(SageObject):
             [-1 -1  0]
             [ 1  0  0]
             [ 0  0  1]
+            
+            sage: S = ClusterSeed(['A',4],use_g_vec=False, use_clusters=False); S.g_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Need to use G vectors
         """
         #### check added booleans for consistency
         from sage.matrix.all import matrix
@@ -982,6 +1161,11 @@ class ClusterSeed(SageObject):
             [ 1  0  0]
             [ 0  0 -1]
             [ 0 -1  0]
+            
+            sage: S = ClusterSeed(['A',4],use_g_vec=False, use_clusters=False, use_c_vec=False); S.c_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: Need to use C vectors.
         """
         #### check added booleans for consistency
         if not (self._is_principal or self._use_c_vec):
@@ -1073,12 +1257,12 @@ class ClusterSeed(SageObject):
         dn = copy( dnew.parent().zero() )
         dmax = copy( dnew.parent().zero() )
 
-        for j in range(self._n):
+        for j in xrange(self._n):
             if B[j,k] >0:
                 dp += B[j,k]*D.column(j)
             elif B[j,k] <0:
                 dn -= B[j,k]*D.column(j)
-        for i in range(n):
+        for i in xrange(self._n):
             dmax[i] = max(dp[i],dn[i])
         self._D.set_column(k,dnew+dmax)
         
@@ -1195,9 +1379,6 @@ class ClusterSeed(SageObject):
         if not self._use_c_vec:
             raise ValueError("Must use c vectors to grab the vertices.")
 
-        # Go through each vector and return the ones which have no negative entry
-        # return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k < 0)[0]]
-        
         return get_green_vertices(self._C)
     
  
@@ -1220,13 +1401,10 @@ class ClusterSeed(SageObject):
         if not self._use_c_vec:
             raise ValueError("Must use c vectors to grab the vertices.")
 
-        # Go through each vector
-        for i in range(self._n):
-            # and return the one which has no negative entry
-            if not exists(self.c_vector(i), lambda k : k < 0)[0]:
-                return i
-
-
+        greens = self.green_vertices()
+        if len(greens) > 0:
+            return greens[0]
+        
         return None
 
     def red_vertices(self):
@@ -1258,8 +1436,6 @@ class ClusterSeed(SageObject):
         if not self._use_c_vec:
             raise ValueError("Must use c vectors to grab the vertices.")
 
-        # Go through each vector and return the ones which have no positive entry
-        # return [i for i in range(self._n) if not exists(self.c_vector(i), lambda k : k > 0)[0]]
         return get_red_vertices(self._C)
 
     def first_red_vertex(self):
@@ -1285,21 +1461,23 @@ class ClusterSeed(SageObject):
         if not self._use_c_vec:
             raise ValueError("Must use c vectors to grab the vertices.")
 
-        # Go through each vector
-        for i in range(self._n):
-            # and return the ones which have no negative entry
-            if not exists(self.c_vector(i), lambda k : k > 0)[0]:
-                return i
+        reds = self.red_vertices()
+        if len(reds) > 0:
+            return reds[0]
 
         return None
 
-    def urban_renewals(self):
+    def urban_renewals(self, return_first=False):
         r"""
         Return the list of the urban renewal vertices of ``self``.
 
         An urban renewal vertex is one in which there are two arrows pointing
         toward the vertex and two arrows pointing away.
 
+        INPUT:
+        
+        - ``return_first`` -- (default:False) if True, will return the first urban renewal
+        
         OUTPUT:
 
         A list of vertices (as integers)
@@ -1312,8 +1490,12 @@ class ClusterSeed(SageObject):
         vertices = []
         for i in range(self._n):
             if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
+                if return_first:
+                    return i
                 vertices.append(i)
 
+        if return_first:
+            return None
         return vertices
 
     def first_urban_renewal(self):
@@ -1328,11 +1510,7 @@ class ClusterSeed(SageObject):
             sage: G = ClusterSeed(['GR',[4,9]]); G.first_urban_renewal()
             5
         """
-        for i in range(self._n):
-            if self.quiver().digraph().in_degree(i) == 2 and self.quiver().digraph().out_degree(i) == 2:
-                return i
-
-        return None
+        return self.urban_renewals(return_first=True)
 
     def highest_degree_denominator(self, filter=None):
         r"""
@@ -1560,11 +1738,27 @@ class ClusterSeed(SageObject):
             [ 1  0 -1]
             [ 0  1  0]
             
-            sage: S = ClusterSeed(['A',4], user_labels=['a','b','c','d']); S.mutate(['a']); S.mutate(['(b+1)/a'])
+            sage: S = ClusterSeed(['A',4], user_labels=['a','b','c','d']);
+            sage: S.mutate(['a']); S.mutate(['(b+1)/a'])
             sage: S.cluster()
             [a, b, c, d]
-
-
+            
+            sage: S = ClusterSeed(['A',4], user_labels=[[1,2],[2,3],[4,5],[5,6]]);
+            sage: S.cluster()
+            [X_1_2, X_2_3, X_4_5, X_5_6]
+            sage: S.mutate('[1,2]');
+            sage: S.cluster()
+            [(X_2_3 + 1)/X_1_2, X_2_3, X_4_5, X_5_6]
+            
+            sage: S = ClusterSeed(['A',4], user_labels=[[1,2],[2,3],[4,5],[5,6]],user_labels_prefix='P');
+            sage: S.cluster()
+            [P_1_2, P_2_3, P_4_5, P_5_6]
+            sage: S.mutate('[1,2]')
+            sage: S.cluster()
+            [(P_2_3 + 1)/P_1_2, P_2_3, P_4_5, P_5_6]
+            sage: S.mutate('P_4_5')
+            sage: S.cluster()
+            [(P_2_3 + 1)/P_1_2, P_2_3, (P_2_3*P_5_6 + 1)/P_4_5, P_5_6]
         """
         
  
@@ -1595,7 +1789,8 @@ class ClusterSeed(SageObject):
             # If we are given a list in string format
             elif sequence[0] == '[' and sequence[-1] == ']':
                 # convert to list
-                temp_list = ast.literal_eval(sequence)
+                from ast import literal_eval
+                temp_list = literal_eval(sequence)
                 
                 sequence = self._user_labels_prefix
                 for j in temp_list:
@@ -2124,7 +2319,7 @@ class ClusterSeed(SageObject):
             raise ValueError("The b-matrix is not square.")
         M = self._M.stack(identity_matrix(self._n))
         is_principal = (self._m == 0)
-        seed = ClusterSeed( M, is_principal=is_principal, use_clusters=self._use_clusters, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels)
+        seed = ClusterSeed( M, is_principal=is_principal, use_clusters=self._use_clusters, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix)
         #### This should fix principal_extension resetting boolean flags.  Might need to update user labels to include new principals with y's.        
         seed._mutation_type = self._mutation_type
         return seed
@@ -3310,14 +3505,30 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
         return True
 
 def get_green_vertices(C):
-        import numpy as np
-        max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
-        return [i for i in xrange(C.ncols()) if max_entries[i] > 0]
+    r"""
+    Get the green vertices from a matrix. Will go through each clumn and return
+    the ones where no entry is greater than 0.
+    
+    INPUT:
+    
+    - ``C`` -- The C matrix to check
+    """
+    import numpy as np
+    max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+    return [i for i in xrange(C.ncols()) if max_entries[i] > 0]
     
 def get_red_vertices(C):
-        import numpy as np
-        max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
-        return [i for i in xrange(C.ncols()) if max_entries[i] < 0]
+    r"""
+    Get the red vertices from a matrix. Will go through each clumn and return
+    the ones where no entry is less than 0.
+    
+    INPUT:
+    
+    - ``C`` -- The C matrix to check
+    """
+    import numpy as np
+    min_entries = [ np.min(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+    return [i for i in xrange(C.ncols()) if min_entries[i] < 0]
 
 class ClusterVariable(FractionFieldElement):
     r"""

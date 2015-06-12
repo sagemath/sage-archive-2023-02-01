@@ -62,8 +62,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     - ``parent`` -- the parent of the asymptotic term.
 
-    - ``growth`` -- an element of the parent's ``growth_group``,
-      specifying the growth of the asymptotic term.
+    - ``growth`` -- an asymptotic growth element.
 
     OUTPUT:
 
@@ -263,8 +262,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         INPUT:
 
-        - ``other`` -- an asymptotic term that can be absorbed
-          by this element.
+        - ``other`` -- an asymptotic term.
 
         OUTPUT:
 
@@ -492,7 +490,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method is called by thge coercion framework, thus,
+            This method is called by the coercion framework, thus,
             it can be assumed that this element, as well as ``other``
             are from the same parent.
 
@@ -547,12 +545,11 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     :class:`GenericTerm` or :class:`OTerm`). Basically, asymptotic
     terms consist of a ``growth`` (which is an asymptotic growth
     group element, for example
-    :class:`~sage.groups.asymptotic_growth_group.GrowthElementPower`).
+    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthElement`).
 
     INPUT:
 
-    - ``growth_group`` -- an asymptotic growth group. This is the parent of
-      the elements specifying the growth of the asymptotic terms.
+    - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -819,14 +816,13 @@ class OTerm(GenericTerm):
     specified growth. For the mathematical properties of `O` terms
     see :wikipedia:`Big_O_Notation`.
 
-    `O` terms may *absorb* terms of weaker or equal growth.
+    `O` terms can *absorb* terms of weaker or equal growth.
 
     INPUT:
 
     - ``parent`` -- the parent of the asymptotic term.
 
-    - ``growth`` -- an element of the parent's ``growth_group``,
-      specifying the growth of the asymptotic term.
+    - ``growth`` -- a growth element.
 
     OUTPUT:
 
@@ -927,8 +923,7 @@ class OTermMonoid(GenericTermMonoid):
 
     INPUT:
 
-    - ``growth_group`` -- the underlying asymptotic growth group,
-      compare :class:`GenericTermMonoid`.
+    - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -949,6 +944,13 @@ class OTermMonoid(GenericTermMonoid):
         Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: OT_y_QQ = atm.OTermMonoid(MG_y_QQ); OT_y_QQ
         Asymptotic O Term Monoid over Monomial Growth Group in y over Rational Field
+
+    O term monoids can also be created by using the term factory::
+
+        sage: atm.TermMonoid('O', MG_x_ZZ) is OT_x_ZZ
+        True
+        sage: atm.TermMonoid('O', agg.MonomialGrowthGroup(QQ, 'x'))
+        Asymptotic O Term Monoid over Monomial Growth Group in x over Rational Field
     """
     # enable the category framework for elements
     Element = OTerm
@@ -1158,7 +1160,7 @@ class TermWithCoefficient(GenericTerm):
             sage: CT = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: ET = atm.ExactTermMonoid(MG, ZZ)
 
-            This method handels the multiplication of abstract terms
+            This method handles the multiplication of abstract terms
             with coefficient (i.e. :class:`TermWithCoefficient`) and
             exact terms (i.e. :class:`ExactTerm`). First, an example
             for abstract terms::
@@ -1227,8 +1229,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     INPUT:
 
-    - ``growth_group`` -- The underlying asymptotic growth group,
-      compare :class:`GenericTermMonoid`.
+    - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -1640,8 +1641,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
     INPUT:
 
-    - ``growth_group`` -- The underlying asymptotic growth group,
-      compare :class:`GenericTermMonoid`.
+    - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -1939,8 +1939,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     INPUT:
 
-    - ``growth_group`` -- The underlying asymptotic growth group, compare
-      :class:`GenericTermMonoid`.
+    - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. Has to be a subcategory
@@ -1969,6 +1968,13 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         Conversion map:
           From: Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
           To:   Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+
+    Exact term monoids can also be created using the term factory::
+
+        sage: atm.TermMonoid('exact', MG_ZZ, ZZ) is ET_ZZ
+        True
+        sage: atm.TermMonoid('exact', agg.MonomialGrowthGroup(ZZ, 'x'), QQ)
+        Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
     """
     # enable the category framework for elements
     Element = ExactTerm

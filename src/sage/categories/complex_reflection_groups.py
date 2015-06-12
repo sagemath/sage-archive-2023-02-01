@@ -67,6 +67,8 @@ class ComplexReflectionGroups(Category_singleton):
     @cached_method
     def super_categories(self):
         r"""
+        Return the super categories of ``self``.
+
         EXAMPLES::
 
             sage: ComplexReflectionGroups().super_categories()
@@ -100,7 +102,15 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4))
+                sage: W.index_set()
+                [0, 1, 2]
+                sage: W = ComplexReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
+                sage: W.index_set()
+                [1, 3, 'asdf']
+                sage: W = ComplexReflectionGroup((1,1,4),index_set={'a':0,'b':1,'c':2})
+                sage: W.index_set()
+                ['a', 'b', 'c']
             """
 
         def simple_reflection(self, i):
@@ -108,9 +118,15 @@ class ComplexReflectionGroups(Category_singleton):
             Return the `i`-th simple reflection of ``self``.
 
             For `i` in `1,\dots,\ell`, this gives the `i`-th simple reflection of ``self``.
+
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
+                sage: for i in W.index_set():
+                ....:     print i, W.simple_reflection(i)
+                1 (1,7)(2,4)(5,6)(8,10)(11,12)
+                3 (1,4)(2,8)(3,5)(7,10)(9,11)
+                asdf (2,5)(3,9)(4,6)(8,11)(10,12)
             """
             return self.one().apply_simple_reflection(i)
 
@@ -118,9 +134,18 @@ class ComplexReflectionGroups(Category_singleton):
         def hyperplane_index_set(self):
             r"""
             Return the index set of the reflection hyperplanes of ``self``.
+
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4))
+                sage: W.hyperplane_index_set()
+                [0, 1, 2, 3, 4, 5]
+                sage: W = ComplexReflectionGroup((1,1,4),hyperplane_index_set=[1,3,'asdf',7,9,11])
+                sage: W.hyperplane_index_set()
+                [1, 3, 'asdf', 7, 9, 11]
+                sage: W = ComplexReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: W.hyperplane_index_set()
+                ['a', 'b', 'c', 'd', 'e', 'f']
             """
 
         @abstract_method(optional=True)
@@ -133,16 +158,32 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: for i in W.hyperplane_index_set(): print i, W.distinguished_reflection(i)
+                a (1,7)(2,4)(5,6)(8,10)(11,12)
+                b (1,4)(2,8)(3,5)(7,10)(9,11)
+                c (2,5)(3,9)(4,6)(8,11)(10,12)
+                d (1,8)(2,7)(3,6)(4,10)(9,12)
+                e (1,6)(2,9)(3,8)(5,11)(7,12)
+                f (1,11)(3,10)(4,9)(5,7)(6,12)
             """
 
         @abstract_method(optional=True)
         def reflection_index_set(self):
             r"""
             Return the index set of the reflections of ``self``.
+
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4))
+                sage: W.reflection_index_set()
+                [0, 1, 2, 3, 4, 5]
+                sage: W = ComplexReflectionGroup((1,1,4),reflection_index_set=[1,3,'asdf',7,9,11])
+                sage: W.reflection_index_set()
+                [1, 3, 'asdf', 7, 9, 11]
+                sage: W = ComplexReflectionGroup((1,1,4),reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+                sage: W.reflection_index_set()
+                ['a', 'b', 'c', 'd', 'e', 'f']
             """
 
         @abstract_method(optional=True)
@@ -151,15 +192,25 @@ class ComplexReflectionGroups(Category_singleton):
             Return the `i`-th reflection of ``self``.
 
             For `i` in `1,\dots,N`, this gives the `i`-th reflection of ``self``.
+
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup((1,1,4))
+                sage: for i in W.reflection_index_set():
+                ....:     print i, W.reflection(i)
+                0 (1,7)(2,4)(5,6)(8,10)(11,12)
+                1 (1,4)(2,8)(3,5)(7,10)(9,11)
+                2 (2,5)(3,9)(4,6)(8,11)(10,12)
+                3 (1,8)(2,7)(3,6)(4,10)(9,12)
+                4 (1,6)(2,9)(3,8)(5,11)(7,12)
+                5 (1,11)(3,10)(4,9)(5,7)(6,12)
             """
 
         @cached_method
         def simple_reflections(self):
             r"""
-            Returning the simple reflections of ``self`` as a family indexed by ``self.index_set()``.
+            Return the simple reflections of ``self`` as a family
+            indexed by :meth:`self.index_set`.
 
             EXAMPLES::
 
@@ -177,8 +228,9 @@ class ComplexReflectionGroups(Category_singleton):
         @cached_method
         def distinguished_reflections(self):
             r"""
-            Return a finite family containing the distinguished reflections of ``self``,
-            indexed by :meth:`self.hyperplane_index_set`.
+            Return a finite family containing the distinguished
+            reflections of ``self``, indexed by
+            :meth:`self.hyperplane_index_set`.
 
             These are the reflections in ``self`` acting on the complement
             of the fixed hyperplane `H` as `\operatorname{exp}(2 \pi i / n)`, where `n`
@@ -273,7 +325,11 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup([1,1,3],[3,1,3],4)
+                sage: W.irreducible_components()
+                [Irreducible finite complex reflection group of rank 2 and type A2,
+                 Irreducible finite complex reflection group of rank 3 and type G(3,1,3),
+                 Irreducible finite complex reflection group of rank 2 and type ST4]
             """
 
         def an_element(self):
@@ -365,9 +421,13 @@ class ComplexReflectionGroups(Category_singleton):
 
             EXAMPLES::
 
-                tba
+                sage: W = ComplexReflectionGroup([3,1,2])
+                sage: for gen in W.group_generators():
+                ....:     print gen
+                (1,3,9)(2,4,10)(6,11,17)(8,12,18)(14,19,23)(15,16,20)(21,22,24)
+                (1,5)(2,6)(3,7)(4,8)(9,13)(10,14)(11,15)(12,16)(17,21)(18,22)(19,20)(23,24)
             """
-            return self.simple_reflections()
+            return sorted(self.simple_reflections())
 
         semigroup_generators = group_generators
 
@@ -613,15 +673,30 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_reflection(self, i, side = 'right'):
             r"""
-            Multiplies the ``i``-th reflection to ``self``.
+            Return the product of ``self`` with the reflection indexed
+            by ``i``.
+
+            EXAMPLES::
+
+                sage: W = ComplexReflectionGroup([2,1,2])
+                sage: for w in W:
+                ....:     print w.reduced_word(), w.apply_reflection(0).reduced_word()
+                 0
+                0 
+                1 10
+                01 010
+                10 1
+                010 01
+                101 1010
+                1010 101
             """
-            G = self.parent()
-            if i not in G.reflection_index_set():
+            W = self.parent()
+            if i not in W.reflection_index_set():
                 raise ValueError("The given index %s is not an index of a reflection"%i)
             if side == 'right':
-                return self * G.reflection(i)
+                return self * W.reflection(i)
             else:
-                return self.parent().reflection(i) * self
+                return W.reflection(i) * self
 
         def apply_reflections(self, word, side = 'right'):
             r"""
@@ -736,18 +811,40 @@ class ComplexReflectionGroups(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: tba
+                    sage: W = ComplexReflectionGroup([1,1,4])
+                    sage: W.degrees()
+                    [2, 3, 4]
+
+                    sage: W = ComplexReflectionGroup([3,1,3])
+                    sage: W.degrees()
+                    [3, 6, 9]
+
+                    sage: W = ComplexReflectionGroup(31)
+                    sage: W.degrees()
+                    [8, 12, 20, 24]
                 """
 
             @abstract_method(optional=True)
             def codegrees(self):
                 r"""
                 Return the codegrees of ``self``, as a list in
-                decreasing order.
+                increasing order.
+
+                .. REMARK:: This should be in decreasing order.
 
                 EXAMPLES::
 
-                    sage: tba
+                    sage: W = ComplexReflectionGroup([1,1,4])
+                    sage: W.codegrees()
+                    [0, 1, 2]
+
+                    sage: W = ComplexReflectionGroup([3,1,3])
+                    sage: W.codegrees()
+                    [0, 3, 6]
+
+                    sage: W = ComplexReflectionGroup(31)
+                    sage: W.codegrees()
+                    [0, 12, 16, 28]
                 """
 
             def nr_simple_reflections(self):
@@ -1184,7 +1281,13 @@ class ComplexReflectionGroups(Category_singleton):
 
                         EXAMPLES::
 
-                            sage: tba
+                            sage: W = ComplexReflectionGroup([1,1,4])
+                            sage: W.number_of_reflections_of_full_support()
+                            1
+
+                            sage: W = ComplexReflectionGroup([3,1,3])
+                            sage: W.number_of_reflections_of_full_support()
+                            3
                         """
                         n = self.rank()
                         h = self.coxeter_number()
@@ -1206,28 +1309,12 @@ class ComplexReflectionGroups(Category_singleton):
                         EXAMPLES::
 
                             sage: W = ComplexReflectionGroup((1,1,3))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [5, 12, 22]
-
-                            sage: W = ComplexReflectionGroup((1,1,4))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [14, 55, 140]
-
-                            sage: W = ComplexReflectionGroup((1,1,5))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [42, 273, 969]
+                            sage: [ W.rational_catalan_number(p) for p in [5,7,8] ]
+                            [7, 12, 15]
 
                             sage: W = ComplexReflectionGroup((2,1,2))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [6, 15, 28]
-
-                            sage: W = ComplexReflectionGroup((2,1,3))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [20, 84, 220]
-
-                            sage: W = ComplexReflectionGroup((2,1,4))
-                            sage: [ W.fuss_catalan_number(i) for i in [1,2,3] ]
-                            [70, 495, 1820]
+                            sage: [ W.rational_catalan_number(p) for p in [7,9,11] ]
+                            [10, 15, 21]
                         """
                         from sage.rings.all import gcd, ZZ
                         from sage.combinat.q_analogues import q_int
@@ -1240,6 +1327,7 @@ class ComplexReflectionGroups(Category_singleton):
                             f = lambda n: q_int(n)
                         else:
                             f = lambda n: n
+
                         num = prod( f( p + (p*(deg-1))%h ) for deg in self.degrees() )
                         den = prod( f(deg                ) for deg in self.degrees() )
                         ret = num / den
@@ -1291,7 +1379,8 @@ class ComplexReflectionGroups(Category_singleton):
                             p = m*h-1
                         else:
                             p = m*h+1
-                        return self.rational_catalan_number(self,p,polynomial=polynomial)
+
+                        return self.rational_catalan_number(p,polynomial=polynomial)
 
                     def catalan_number(self,positive=False,polynomial=False):
                         r"""
@@ -1307,14 +1396,14 @@ class ComplexReflectionGroups(Category_singleton):
 
                         EXAMPLES::
 
-                            sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [2,3,4,5] ]
-                            [2, 5, 14, 42]
+                            sage: [ ComplexReflectionGroup((1,1,n)).catalan_number() for n in [3,4,5] ]
+                            [5, 14, 42]
 
-                            sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [2,3,4,5] ]
-                            [6, 20, 70, 252]
+                            sage: [ ComplexReflectionGroup((2,1,n)).catalan_number() for n in [3,4,5] ]
+                            [20, 70, 252]
 
-                            sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [2,3,4,5] ]
-                            [4, 14, 50, 182]
+                            sage: [ ComplexReflectionGroup((2,2,n)).catalan_number() for n in [3,4,5] ]
+                            [14, 50, 182]
                         """
                         return self.fuss_catalan_number(1,positive=positive,polynomial=polynomial)
 
@@ -1322,9 +1411,3 @@ class ComplexReflectionGroups(Category_singleton):
                 def _test_well_generated(self, **options):
                     tester = self._tester(**options)
                     return self.is_well_generated()
-
-                def fuss_catalan_number(self,m):
-                    return prod( W.fuss_catalan_number(m) for W in self.irreducible_components() )
-
-                def catalan_number(self):
-                    return self.fuss_catalan_number(1)

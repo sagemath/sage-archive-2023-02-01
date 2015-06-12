@@ -640,7 +640,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if not self.is_indecomposable():
             return False
         if self._cartan_type is None:
-            return all([a.det() > 0 for a in self.principal_submatrices()])
+            return all(a.det() > 0 for a in self.principal_submatrices())
         return self._cartan_type.is_finite()
 
     def is_affine(self):
@@ -666,7 +666,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             return False
         if self._cartan_type is None:
             return self.det() == 0 and all(
-                [a.det() > 0 for a in self.principal_submatrices(proper=True)]) 
+                a.det() > 0 for a in self.principal_submatrices(proper=True)) 
         return self._cartan_type.is_affine()
     
     def is_hyperbolic(self, compact=False):
@@ -681,7 +681,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         
         INPUT:
 
-            - ``compact`` -- if ``True``, check if matrix is compact hyperbolic  
+        - ``compact`` -- if ``True``, check if matrix is compact hyperbolic  
         
         EXAMPLES::
             
@@ -699,21 +699,18 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         if not self.is_indefinite() or not self.is_indecomposable():
             return False
-            
+        
+        from sage.misc.misc import powerset
         D = self.dynkin_diagram()
-        from sage.sets.set import Set
-        iset = Set(D.index_set())
-        emptyset = Set({})
-        for l in iset.subsets():
-            if l != emptyset and l != iset:
-                subg= D.subgraph(vertices=l)
+        iset = list(D.index_set())
+        for l in powerset(iset):
+            if l != [] and l != iset:
+                subg = D.subgraph(vertices=l)
                 if subg.is_connected():
-                    if compact:
-                        if not subg.is_finite():
-                            return False
-                    else:
-                        if not subg.is_finite() and not subg.is_affine():
-                            return False
+                    if compact and not subg.is_finite():
+                        return False
+                    elif not subg.is_finite() and not subg.is_affine():
+                        return False
         return True
     
     def is_lorentzian(self):
@@ -724,6 +721,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         and exactly one negative eigenvalue.
         
         EXAMPLES::
+        
             sage: M = CartanMatrix([[2,-3],[-3,2]])
             sage: M.is_lorentzian()
             True
@@ -766,7 +764,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         comp_num = self.dynkin_diagram().connected_components_number()
         # consider the empty matrix to be indecomposable
-        return comp_num == 0 or comp_num == 1
+        return comp_num <= 1
         
     def principal_submatrices(self, proper=False):
         """
@@ -774,7 +772,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         
         INPUT:
 
-            - ``proper`` -- if ``True``, return only proper submatrices 
+        - ``proper`` -- if ``True``, return only proper submatrices 
         
         EXAMPLES::
         
@@ -788,15 +786,37 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             [[], [2], [2]]
             
         """
-        from sage.sets.set import Set
-        iset = Set(range(self.ncols()));
+        from sage.misc.misc import powerset
+        iset = range(self.ncols());
         ret = []
-        for l in iset.subsets():
-            if proper and l != iset:
-                ret.append(self.matrix_from_rows_and_columns(list(l),list(l)))
-            if not proper:
-                ret.append(self.matrix_from_rows_and_columns(list(l),list(l)))
+        for l in powerset(iset):
+            if not proper or (proper and l != iset):
+                ret.append(self.matrix_from_rows_and_columns(l,l))
         return ret
+        
+    def indecomposable_blocks(self):
+        """
+        Return a list of all indecomposable blocks of ``self``.
+        
+        EXAMPLES::
+        
+            sage: M = CartanMatrix(['A',2])
+            sage: M.indecomposable_blocks()
+            [
+            [ 2 -1]
+            [-1  2]
+            ]
+            sage: M = CartanMatrix([['A',2,1],['A',3,1]])
+            sage: M.indecomposable_blocks()
+            [
+            [ 2 -1  0 -1]            
+            [-1  2 -1  0]  [ 2 -1 -1]
+            [ 0 -1  2 -1]  [-1  2 -1]
+            [-1  0 -1  2], [-1 -1  2]
+            ]
+        """
+        subgraphs = self.dynkin_diagram().connected_components_subgraphs()
+        return [CartanMatrix(subg._matrix_().rows()) for subg in subgraphs]
 
 def is_generalized_cartan_matrix(M):
     """

@@ -507,6 +507,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         Return the weight lattice realization of ``self``.
 
         EXAMPLES::
+
             sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
             sage: B.weight_lattice_realization()
             Extended weight lattice of the Root system of type ['A', 2, 1]

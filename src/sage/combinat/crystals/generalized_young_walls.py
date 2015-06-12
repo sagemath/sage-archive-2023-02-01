@@ -672,7 +672,7 @@ class InfinityCrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
         \varepsilon_i,\ \varphi_i \colon \mathcal{Y}(\infty)
         \longrightarrow \ZZ, \qquad
         \mathrm{wt}\colon \mathcal{Y}(\infty) \longrightarrow
-        \bigoplus_{i=0}^n \ZZ \Lambda_i,
+        \bigoplus_{i=0}^n \ZZ \Lambda_i \oplus \ZZ \delta,
 
     by
 

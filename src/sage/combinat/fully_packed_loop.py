@@ -304,14 +304,12 @@ class FullyPackedLoop(Element):
         """
         if isinstance(generator, AlternatingSignMatrix):
             SVM = generator.to_six_vertex_model()
-            #print 'I am in AlternatingSignMatrix. len(SVM): ', len(SVM)
         elif isinstance(generator, SquareIceModel.Element):
             SVM = generator
-            #print 'I am in sixvertexconfiguration. len(SVM): ', len(SVM)
         else:
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
         FPLs = FullyPackedLoops(len(SVM))
-        return FPLs.element_class(FPLs, SVM)
+        return FPLs(generator)
 
     def __init__(self, parent, generator):
         """
@@ -1172,7 +1170,7 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             return fpl._n == self._n
         return True
 
-    def _element_constructor_(self, fpl):
+    def _element_constructor_(self, generator):
         """
         Construct an element of ``self``.
 
@@ -1197,13 +1195,23 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
                      |         |
                      |         |
 
+            sage: FPLs(A) == FPL
+            True
+
+            sage: FPLs(FPL._six_vertex_model) == FPL
+            True
+
             sage: FPL.parent() is FPLs
             True
         """
-        if isinstance(fpl, FullyPackedLoop):
-            if fpl.parent() is self:
-                return fpl
-            raise ValueError("Cannot convert between fully packed loops of different sizes")
+        if isinstance(generator, AlternatingSignMatrix):
+            SVM = generator.to_six_vertex_model()
+        elif isinstance(generator, SquareIceModel.Element):
+            SVM = generator
+        else:
+            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
+        FPLs = FullyPackedLoops(len(SVM))
+        return FPLs.element_class(FPLs, SVM)
 
     Element = FullyPackedLoop
 

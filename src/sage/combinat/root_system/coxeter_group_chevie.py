@@ -1,5 +1,6 @@
 r"""
-Finite Coxeter Groups
+Finite (real) reflection groups
+-------------------------------
 
 AUTHORS:
 

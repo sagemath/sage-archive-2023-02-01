@@ -1,5 +1,6 @@
 r"""
 Finite (complex) reflection groups
+----------------------------------
 
 AUTHORS:
 

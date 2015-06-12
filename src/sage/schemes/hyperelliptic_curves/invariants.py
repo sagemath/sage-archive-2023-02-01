@@ -4,12 +4,12 @@ Compute invariants of quintics and sextics via 'Ueberschiebung'.
 
 REFERENCES:
 
-.. [M] Mestre, Jean-Francois.  Construction de courbes de genre 2 a
-   partir de leurs modules. (French) [Constructing genus-2 curves from
-   their moduli] Effective methods in algebraic geometry (Castiglioncello,
+.. [M] Mestre, Jean-Francois. *Construction de courbes de genre 2 a
+   partir de leurs modules*. Effective methods in algebraic geometry
+   (Castiglioncello,
    1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
 
-.. [I] Igusa, Jun-ichi.  Arithmetic variety of moduli for genus two.
+.. [I] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
    Ann. of Math. (2) 72 1960 612--649.
 
 .. TODO::
@@ -60,8 +60,8 @@ def differential_operator(f, g, k):
     .. math::
 
         (f g)_k = \frac{(m - k)! (n - k)!}{m! n!} \left(
-        \frac{\del f}{\del x} \frac{\del g}{\del y} -
-        \frac{\del f}{\del y} \frac{\del g}{\del x} \right)^k .
+        \frac{\partial f}{\partial x} \frac{\partial g}{\partial y} -
+        \frac{\partial f}{\partial y} \frac{\partial g}{\partial x} \right)^k .
 
     EXAMPLES::
 
@@ -123,13 +123,13 @@ def Ueberschiebung(f, g, k):
     r"""
     Return the differential operator `(f g)_k`.
 
-    This is defined by Mestre on page 315:
+    This is defined by Mestre on page 315 [M]_:
 
     .. math::
 
         (f g)_k = \frac{(m - k)! (n - k)!}{m! n!} \left(
-        \frac{\del f}{\del x} \frac{\del g}{\del y} -
-        \frac{\del f}{\del y} \frac{\del g}{\del x} \right)^k .
+        \frac{\partial f}{\partial x} \frac{\partial g}{\partial y} -
+        \frac{\partial f}{\partial y} \frac{\partial g}{\partial x} \right)^k .
 
     EXAMPLES::
 

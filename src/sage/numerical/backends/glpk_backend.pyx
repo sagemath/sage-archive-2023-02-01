@@ -1915,13 +1915,13 @@ cdef class GLPKBackend(GenericBackend):
         else:
             return 0.0
 
-    cpdef int get_row_stat(self, int variable):
+    cpdef int get_row_stat(self, int i):
         """
         Retrieve the status of a constraint.
 
         INPUT:
 
-        - ``variable`` -- The number of the constraint
+        - ``i`` -- The index of the constraint
         
         OUTPUT:
         
@@ -1951,16 +1951,21 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: lp.get_row_stat(1)
             3
+            sage: lp.get_row_stat(-1)
+            Exception ValueError: ...
+            0
         """
-        return glp_get_row_stat(self.lp, variable+1)
+        if i < 0 or i >= glp_get_num_rows(self.lp):
+            raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
+        return glp_get_row_stat(self.lp, i+1)
 
-    cpdef int get_col_stat(self, int variable):
+    cpdef int get_col_stat(self, int j):
         """
         Retrieve the status of a variable.
         
         INPUT:
 
-        - ``variable`` -- The number of the variable
+        - ``j`` -- The index of the variable
         
         OUTPUT:
 
@@ -1990,8 +1995,14 @@ cdef class GLPKBackend(GenericBackend):
             1
             sage: lp.get_col_stat(1)
             2
+            sage: lp.get_col_stat(-1)
+            Exception ValueError: ...
+            0
         """
-        return glp_get_col_stat(self.lp, variable+1)
+        if j < 0 or j >= glp_get_num_cols(self.lp):
+            raise ValueError("The variable's index j must satisfy 0 <= j < number_of_variables")
+
+        return glp_get_col_stat(self.lp, j+1)
 
     def __dealloc__(self):
         """

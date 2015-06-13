@@ -2585,9 +2585,9 @@ cdef class Matroid(SageObject):
             121
 
         """
-        
-        T = [set() for r in range(self.full_rank()+1)]
-        I = [frozenset() for i in range(self.full_rank()+1)]
+        cdef int r, i
+        cdef list T = [set() for r in range(self.full_rank()+1)]
+        cdef list I = [frozenset() for i in range(self.full_rank()+1)]
         r = 0
         
         res = [frozenset()]

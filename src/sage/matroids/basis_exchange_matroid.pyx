@@ -1426,7 +1426,7 @@ cdef class BasisExchangeMatroid(Matroid):
         """
         cdef bitset_t *I
         cdef bitset_t *T
-        cdef long i
+        cdef long i, e, r
 
         res = SetSystem(self._E)
         bitset_clear(self._input)
@@ -1437,7 +1437,7 @@ cdef class BasisExchangeMatroid(Matroid):
         r = self.full_rank()
         I = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
         T = <bitset_t*>sage_malloc((r + 1) * sizeof(bitset_t))
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_init(I[i], self._bitset_size)
             bitset_init(T[i], self._bitset_size)
 
@@ -1458,7 +1458,7 @@ cdef class BasisExchangeMatroid(Matroid):
                 i = i + 1
             else:
                 i = i - 1
-        for i in xrange(r + 1):
+        for i in range(r + 1):
             bitset_free(I[i])
             bitset_free(T[i])
         sage_free(I)

@@ -140,7 +140,8 @@ cdef class Matroid(SageObject):
     cpdef is_3connected(self, separation=*)
 
     # representability
-    cpdef local_binary_matroid(self, basis=*)
+    cpdef _local_binary_matroid(self, basis=*)
+    cpdef binary_matroid(self, randomized_tests=*, verify=*)
     cpdef is_binary(self, randomized_tests=*)
 
     # matroid k-closed

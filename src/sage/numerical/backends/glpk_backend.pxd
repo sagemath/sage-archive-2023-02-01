@@ -204,8 +204,8 @@ cdef extern from "glpk.h":
      int GLP_BS      # basic variable
      int GLP_NL      # non-basic variable on lower bound
      int GLP_NU      # non-basic variable on upper bound
-     int GLP_NF	     # non-basic free (unbounded) variable
-     int GLP_NS	     # non-basic fixed variable
+     int GLP_NF      # non-basic free (unbounded) variable
+     int GLP_NS      # non-basic fixed variable
 
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp

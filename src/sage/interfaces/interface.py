@@ -77,9 +77,9 @@ class Interface(ParentWithBase):
 
         EXAMPLES::
 
-            sage: o = Octave()    # optional - octave
-            sage: o.set_seed(107)  # optional - octave
-            sage: o.get_seed()      # optional - octave
+            sage: s = Singular()
+            sage: s.set_seed(107)
+            sage: s.get_seed()
             107
         """
         return self._seed

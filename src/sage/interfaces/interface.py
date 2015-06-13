@@ -94,10 +94,15 @@ class Interface(ParentWithBase):
         other than a small positive integer.
 
         EXAMPLES::
+            from sage.misc.random_testing import random_testing
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.rand_seed() # random
+            318491487L
 
-            sage: o = Octave()    # optional - octave
-            sage: o.rand_seed()   # optional - octave
-            303801469L #random
+            sage: s = Singular()
+            sage: s.rand_seed() # random
+            365260051L
         """
         from sage.misc.randstate import randstate
         return long(randstate().seed()&0x1FFFFFFF)
@@ -115,11 +120,11 @@ class Interface(ParentWithBase):
 
         EXAMPLES::
 
-            sage: o = Octave()
-            sage: o.set_seed(1)
+            sage: s = Singular()
+            sage: s.set_seed(1)
             1
-            sage: [o.rand() for i in range(5)]
-            [ 0.134364,  0.847434,  0.763775,  0.255069,  0.495435]
+            sage: [s.random(1,10) for i in range(5)]
+            [8, 10, 4, 9, 1]
         """
         raise NotImplementedError("This interpreter did not implement a set_seed function")
 

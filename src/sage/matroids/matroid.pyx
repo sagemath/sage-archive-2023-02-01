@@ -2561,6 +2561,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``self.full_rank()``
+
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
         """
         cdef SetSystem res
         res = SetSystem(list(self.groundset()))
@@ -2627,6 +2632,11 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Test all subsets of the groundset of cardinality ``r``
+        
+        .. SEEALSO::
+
+            :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
+
         """
         res = []
         for X in combinations(self.groundset(), r):

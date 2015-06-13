@@ -2589,6 +2589,10 @@ cdef class Matroid(SageObject):
             sage: len(I)
             121
 
+        .. SEEALSO::
+
+            :meth:`M.independent_r_sets() <sage.matroids.matroid.Matroid.independent_r_sets>`
+
         """
         cdef int r, i
         cdef list T = [set() for r in range(self.full_rank()+1)]
@@ -2635,6 +2639,7 @@ cdef class Matroid(SageObject):
         
         .. SEEALSO::
 
+            :meth:`M.independent_sets() <sage.matroids.matroid.Matroid.independent_sets>`
             :meth:`M.bases() <sage.matroids.matroid.Matroid.bases>`
 
         """

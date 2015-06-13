@@ -48,6 +48,7 @@ import time
 import gc
 import quit
 import cleaner
+import six
 from random import randrange
 
 ########################################################
@@ -178,7 +179,7 @@ class Expect(Interface):
         self.__max_startup_time = max_startup_time
 
         #Handle the log file
-        if isinstance(logfile, basestring):
+        if isinstance(logfile, six.string_types):
             self.__logfile = None
             self.__logfilename = logfile
         else:
@@ -848,7 +849,7 @@ If this all works, you can then make calls like:
 
             if len(line)>0:
                 try:
-                    if isinstance(wait_for_prompt, basestring):
+                    if isinstance(wait_for_prompt, six.string_types):
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
@@ -1205,7 +1206,7 @@ If this all works, you can then make calls like:
             except AttributeError:
                 pass
 
-        if not isinstance(code, basestring):
+        if not isinstance(code, six.string_types):
             raise TypeError('input code must be a string.')
 
         #Remove extra whitespace
@@ -1293,7 +1294,7 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, basestring) and parent._eval_using_file_cutoff and \
+        if isinstance(value, six.string_types) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 

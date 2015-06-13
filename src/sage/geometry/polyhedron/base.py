@@ -12,7 +12,7 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
+import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
 from sage.misc.all import cached_method, prod
@@ -646,7 +646,7 @@ class Polyhedron_base(Element):
                     continue
                 elif opt is False:
                     return False
-                elif isinstance(opt, (basestring, list, tuple)):
+                elif isinstance(opt, (six.string_types, list, tuple)):
                     merged['color'] = opt
                 else:
                     merged.update(opt)

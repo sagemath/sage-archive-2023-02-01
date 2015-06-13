@@ -90,11 +90,14 @@ _add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
 _add_variable_or_fallback('SAGE_ETC',        opj('$SAGE_LOCAL', 'etc'))
+_add_variable_or_fallback('SAGE_INC',        opj('$SAGE_LOCAL', 'include'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
 _add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
 _add_variable_or_fallback('SITE_PACKAGES',   site.getsitepackages())
 _add_variable_or_fallback('SAGE_LIB',        SITE_PACKAGES[0])
+
+_add_variable_or_fallback('SAGE_CYTHONIZED', opj('$SAGE_SRC', 'build', 'cythonized'))
 
 _add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
 _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
@@ -136,3 +139,50 @@ _add_variable_or_fallback('SAGE_STARTUP_FILE',  opj('$DOT_SAGE', 'init.sage'))
 
 # delete temporary variables used for setting up sage.env
 del opj, os, socket, version, site
+
+def sage_include_directories(use_sources=False):
+    """
+    Return the list of include directories for compiling Sage extension modules.
+
+    INPUT:
+
+    -  ``use_sources`` -- (default: False) a boolean
+
+    OUTPUT:
+
+    a list of include directories to be used to compile sage code
+    1. while building sage (use_sources='True')
+    2. while using sage (use_sources='False')
+
+    EXAMPLES:
+
+    Expected output while using sage
+
+    ::
+
+        sage: import sage.env
+        sage: sage.env.sage_include_directories()
+        ['.../include',
+        '.../include/python...',
+        '.../python.../site-packages/numpy/core/include',
+        '.../python.../site-packages',
+        '.../python.../site-packages/sage/ext']
+    """
+    import os, numpy
+    import distutils.sysconfig
+
+    opj = os.path.join
+
+    include_directories = [SAGE_INC,
+                           distutils.sysconfig.get_python_inc(),
+                           numpy.get_include()]
+
+    if use_sources :
+        include_directories.extend([SAGE_SRC,
+                                    opj(SAGE_SRC, 'sage','ext'),
+                                    opj(SAGE_CYTHONIZED, 'sage', 'ext')])
+    else:
+        include_directories.extend([SAGE_LIB,
+                                    opj(SAGE_LIB, 'sage', 'ext')])
+
+    return include_directories

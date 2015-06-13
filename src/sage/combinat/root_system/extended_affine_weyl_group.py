@@ -1411,9 +1411,9 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 INPUT:
 
-                    - ``side`` -- 'left' or 'right' (default: 'right')
-                    - ``positive`` -- True or False (default: False)
-                    - ``index_set`` -- an optional subset of Dynkin nodes
+                - ``side`` -- 'left' or 'right' (default: 'right')
+                - ``positive`` -- True or False (default: False)
+                - ``index_set`` -- an optional subset of Dynkin nodes
 
                 If ``index_set`` is not None, then the descent must be in the ``index_set``.
 
@@ -1509,6 +1509,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 r"""
                 Returns the image of ``self`` under the homomorphism to the classical Weyl group.
 
+                EXAMPLES::
+
                     sage: ExtendedAffineWeylGroup(['A',3,1]).WF().simple_reflection(0).to_classical_weyl()
                     s1*s2*s3*s2*s1
 
@@ -1523,6 +1525,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             def to_dual_classical_weyl(self):
                 r"""
                 Returns the image of ``self`` under the homomorphism to the dual form of the classical Weyl group.
+
+                EXAMPLES::
 
                     sage: x = ExtendedAffineWeylGroup(['A',3,1]).WF().simple_reflection(0).to_dual_classical_weyl(); x
                     s1*s2*s3*s2*s1
@@ -1683,7 +1687,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                      [pi[1], pi[2], pi[3]]
 
                 """
-
                 while True:
                     i = self.first_descent(index_set=index_set, side=side)
                     if i is None:
@@ -1707,7 +1710,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                      [(0, False), (1, True), (2, True), (3, True)]
 
                 """
-
                 return self == self.coset_representative(index_set=index_set,side=side)
 
             def to_affine_grassmannian(self):
@@ -2197,6 +2199,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         """
         def has_descent(self, i, side='right', positive=False):
             r"""
+            Returns whether ``self`` has `i` as a descent.
+
             INPUT:
 
             - `i` - an index.
@@ -2345,9 +2349,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 sage: ExtendedAffineWeylGroup(["A",3,1]).W0P().simple_reflections()
                 Finite family {0: s1*s2*s3*s2*s1 * t[-Lambdacheck[1] - Lambdacheck[3]], 1: s1, 2: s2, 3: s3}
-
             """
-
             return Family(self.realization_of().index_set(), lambda i: self.simple_reflection(i))
 
         def classical_weyl_morphism(self, w):
@@ -2383,6 +2385,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
+            Returns whether ``self`` has `i` as a descent.
+
             INPUT:
 
             - `i` -- an affine Dynkin index
@@ -2928,6 +2932,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         def has_descent(self, i, side='right', positive=False):
             r"""
+            Returns whether ``self`` has `i` as a descent.
+
             INPUT:
 
             - `i` - an affine Dynkin index

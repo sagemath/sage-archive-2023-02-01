@@ -23,7 +23,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
     r"""
     Factory for the fundamental group of an extended affine Weyl group.
 
-    INPUTS:
+    INPUT:
 
     - `cartan_type` -- a Cartan type that is either affine or finite, with the latter being a
       shorthand for the untwisted affinization

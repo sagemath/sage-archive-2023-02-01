@@ -1,3 +1,7 @@
+"""
+Functor that converts a commutative additive group into an isomorphic multiplicative group.
+"""
+
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
 from sage.structure.element import MultiplicativeGroupElement
@@ -11,15 +15,34 @@ from sage.structure.element_wrapper import ElementWrapper
 
 class GroupExp(Functor):
     r"""
-    A functor that wraps a commutative additive group to become a
+    A functor that converts a commutative additive group into an isomorphic
     multiplicative group.
 
-    EXAMPLES::
+    More precisely, given a commutative additive group `G`, define the exponential
+    of `G` to be the isomorphic group with elements denoted
+    `e^g` for every `g \in G` and but with product in multiplicative notation
+
+    .. MATH::
+
+        e^g e^h = e^{g+h} \qquad\text{for all $g,h \in G$.}
+
+    The class :class:`GroupExp` implements the sage functor which sends a commutative
+    additive group `G` to its exponential.
+
+    The creation of an instance of the functor :class:`GroupExp` requires no input::
 
         sage: E = GroupExp(); E
         Functor from Category of commutative additive groups to Category of groups
+
+    The :class:`GroupExp` functor (denoted `E` in the examples) can be applied to two kinds of input.
+    The first is a commutative additive group. The output is its exponential.
+    This is accomplished by :meth:`_apply_functor`::
+
         sage: EZ = E(ZZ); EZ
         Multiplicative form of Integer Ring
+
+    Elements of the exponentiated group can be created and manipulated as follows::
+
         sage: x = EZ(-3); x
         -3
         sage: x.parent()
@@ -30,6 +53,10 @@ class GroupExp(Functor):
         -3
         sage: EZ.one()
         0
+
+    The second kind of input the :class:`GroupExp` functor accepts, is a homomorphism of commutative additive groups.
+    The output is the multiplicative form of the homomorphism. This is achieved by :meth:`_apply_functor_to_morphism`::
+
         sage: L = RootSystem(['A',2]).ambient_space()
         sage: EL = E(L)
         sage: W = L.weyl_group(prefix="s")
@@ -51,7 +78,7 @@ class GroupExp(Functor):
     """
     def __init__(self):
         r"""
-        Initialize the GroupExp functor.
+        Initialize the :class:`GroupExp` functor.
 
         EXAMPLES::
 
@@ -66,8 +93,19 @@ class GroupExp(Functor):
 
     def _apply_functor(self, x):
         r"""
-        Given a commutative additive group `x`, returns the isomorphic
+        Given a commutative additive group, return the isomorphic
         multiplicative group.
+
+        INPUT:
+
+        - A commutative additive group `x`
+
+        OUTPUT:
+
+        - An isomorphic group whose operation is multiplication rather than addition.
+
+        In the following example, ``self`` is the functor `GroupExp()`,
+        `x` is the additive group `QQ^2`, and the output group is stored as `EQ2`.
 
         EXAMPLES::
 
@@ -87,8 +125,19 @@ class GroupExp(Functor):
 
     def _apply_functor_to_morphism(self, f):
         r"""
-        Given a morphism of commutative additive groups, returns the corresponding morphism
+        Given a morphism of commutative additive groups, return the corresponding morphism
         of multiplicative groups.
+
+        INPUT:
+
+        - A homomorphism `f` of commutative additive groups.
+
+        OUTPUT:
+
+        - The above homomorphism, but between the corresponding multiplicative groups.
+
+        In the following example, ``self`` is the functor `GroupExp()` and `f` is an endomorphism of the
+        additive group of integers.
 
         EXAMPLES::
 
@@ -112,25 +161,27 @@ class GroupExp(Functor):
         new_f = lambda a: new_codomain(f(a.value))
         return SetMorphism(Hom(new_domain, new_codomain, Groups()), new_f)
 
-
 class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
     r"""
-    The Element class for a GroupExp_Class object.
+    An element in the exponential of a commutative additive group.
 
     INPUT:
 
-    - ``self`` -- the instance being created
-    - ``parent`` -- the parent of ``self``
-    - ``x`` -- the additive group element being wrapped
+    - ``self`` -- the exponentiated group element being created
+    - ``parent`` -- the exponential group (parent of ``self``)
+    - ``x`` -- the commutative additive group element being wrapped to form ``self``.
 
     EXAMPLES::
 
         sage: G = QQ^2
         sage: EG = GroupExp()(G)
-        sage: x = GroupExpElement(EG, vector(QQ, (1,-3))); x
+        sage: z = GroupExpElement(EG, vector(QQ, (1,-3))); z
         (1, -3)
-        sage: x.parent()
+        sage: z.parent()
         Multiplicative form of Vector space of dimension 2 over Rational Field
+        sage: EG(vector(QQ,(1,-3)))==z
+        True
+
     """
     def __init__(self, parent, x):
         r"""
@@ -153,7 +204,7 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
 
     def inverse(self):
         r"""
-        Returns the inverse of the element `self`.
+        Invert the element ``self``.
 
         EXAMPLES::
 
@@ -167,7 +218,7 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
 
     def __mul__(self, x):
         r"""
-        Returns the product of `self` and `x`.
+        Multiply ``self`` by `x`.
 
         EXAMPLES::
 
@@ -188,14 +239,24 @@ class GroupExp_Class(UniqueRepresentation, Parent):
     INPUT:
 
     - `G`: a commutative additive group
+
+    OUTPUT:
+
+    - The multiplicative form of `G`.
+
+    EXAMPLES::
+
+        sage: GroupExp()(QQ)
+        Multiplicative form of Rational Field
+
     """
     def __init__(self, G):
         r"""
 
         EXAMPLES::
 
-            sage: G = GroupExp()(QQ^2)
-            sage: TestSuite(G).run(skip = "_test_elements")
+            sage: EG = GroupExp()(QQ^2)
+            sage: TestSuite(EG).run(skip = "_test_elements")
 
         """
 
@@ -206,7 +267,7 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        Returns a string describing ``self``.
+        Return a string describing the multiplicative form of a commutative additive group.
 
         EXAMPLES::
 
@@ -217,7 +278,7 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, x):
         r"""
-        Constructs the element of ``self`` that wraps the additive
+        Construct the multipliciative group element, which wraps the additive
         group element `x`.
 
         EXAMPLES::
@@ -230,19 +291,24 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     def one(self):
         r"""
-        Returns the identity element of ``self``.
+        Return the identity element of the multiplicative group.
 
         EXAMPLES::
 
             sage: G = GroupExp()(ZZ^2)
             sage: G.one()
             (0, 0)
+            sage: x = G.an_element(); x
+            (1, 0)
+            sage: x == x * G.one()
+            True
+
         """
         return GroupExpElement(self, self._G.zero())
 
     def an_element(self):
         r"""
-        Returns an element of ``self``.
+        Return an element of the multiplicative group.
 
         EXAMPLES::
 
@@ -257,7 +323,7 @@ class GroupExp_Class(UniqueRepresentation, Parent):
 
     def product(self, x, y):
         r"""
-        Returns the product of `x` and `y` in ``self``.
+        Return the product of `x` and `y` in the multiplicative group.
 
         EXAMPLES::
 

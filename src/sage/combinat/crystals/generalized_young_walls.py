@@ -444,7 +444,7 @@ class GeneralizedYoungWall(CombinatorialElement):
             s += "{\\foreach \\y [count=\\t from 0] in \\x {  \\node[font=\\tiny] at (-\\t,\\s) {$\\y$}; \n \draw (-\\t+.5,\\s+.5) to (-\\t-.5,\\s+.5); \n \draw (-\\t+.5,\\s-.5) to (-\\t-.5,\\s-.5); \n \draw (-\\t-.5,\\s-.5) to (-\\t-.5,\\s+.5);  } \n \draw[-] (.5,\\s+1) to (.5,-.5) to (-\\t-1,-.5); } \n \\end{tikzpicture} \n"
         return s
 
-    def weight(self,root_lattice=False):
+    def weight(self, root_lattice=False):
         r"""
         Returns the weight of ``self``.
 
@@ -510,7 +510,7 @@ class GeneralizedYoungWall(CombinatorialElement):
         La = self.cartan_type().root_system().weight_lattice().fundamental_weights()
         return sum(self.epsilon(i)*La[i] for i in self.index_set())
 
-    def phi(self,i):
+    def phi(self, i):
         r"""
         Return the value `\varepsilon_i(Y) + \langle h_i,
         \mathrm{wt}(Y)\rangle`, where `h_i` is the `i`-th simple

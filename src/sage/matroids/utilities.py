@@ -379,9 +379,9 @@ def lift_cross_ratios(A, lift_map = None):
     
     This method will create a unique candidate representation ``Z``, but will not verify 
     if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the 
-    conditions of the lift theorem hold for the lift_map in combination with the matrix 
-    ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are keys of 
-    ``lift_map``, and 
+    conditions of the lift theorem (see _[PvZ]) hold for the lift_map in combination with 
+    the matrix ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are 
+    keys of ``lift_map``, and 
     
     - if ``x, y`` are keys of ``lift_map``, and ``x+y == 1`` then 
       ``lift_map[x] + lift_map[y] = lift_map[1]``
@@ -394,13 +394,18 @@ def lift_cross_ratios(A, lift_map = None):
     must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must 
     have ``1+1 != 0``.
     
+    Several such lift maps can be created by the function
+    :meth:`lift_map() <sage.matroids.utilities.lift_map>`
+    
+    .. SEEALSO::
+
+        :meth:`lift_map() <sage.matroids.utilities.lift_map>`
+    
     EXAMPLES::
     
-        sage: from sage.matroids.advanced import lift_cross_ratios, LinearMatroid
+        sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
         sage: R = GF(7)
-        sage: z = QQ['z'].0
-        sage: S = NumberField(z^2-z+1, 'z')
-        sage: to_sixth_root_of_unity = { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**(-1)}
+        sage: to_sixth_root_of_unity = lift_map('sru')
         sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
         sage: A
         [1 0 6 1 2]
@@ -419,8 +424,14 @@ def lift_cross_ratios(A, lift_map = None):
         [-z + 1, z]
         sage: M.is_isomorphism(N, {e:e for e in M.groundset()})
         True
-            
+    
+    REFERENCES
+    ==========
+
+    ..  [BPvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid representations over partial fields, 
+        Journal of Combinatorial Theory, Series B, Volume 100, Issue 1, January 2010, Pages 36–67    
     """
+    from sage.graphs.graph import Graph
     
     for s,t in lift_map.iteritems():
         source_ring = s.parent()
@@ -431,7 +442,7 @@ def lift_cross_ratios(A, lift_map = None):
     plus_one2 = target_ring(1)
     minus_one2 = target_ring(-1)
         
-    G = sage.graphs.graph.Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
+    G = Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
     
     # write the entries of (a scaled version of) A as products of cross ratios of A
     T = G.min_spanning_tree()
@@ -508,8 +519,9 @@ def lift_cross_ratios(A, lift_map = None):
         # - current edge is done, can be used in next iteration
         H.add_edge(edge)  
      
-    # compute each entry of Z as the product of lifted cross ratios                       
-    Z = sage.matrix.constructor.Matrix(target_ring, A.nrows(), A.ncols())
+    # compute each entry of Z as the product of lifted cross ratios  
+    from sage.matrix.constructor import Matrix                    
+    Z = Matrix(target_ring, A.nrows(), A.ncols())
     for entry, monomial in F.iteritems():
         Z[entry] = plus_one2      
         for cr,degree in monomial.iteritems():
@@ -522,40 +534,58 @@ def lift_cross_ratios(A, lift_map = None):
         
 def lift_map(target):
     """
-    Create a lift map. 
-    
+    Create a lift map, to be used for lifting the cross ratios of a matroid 
+    representation.
+
+    .. SEEALSO::
+
+        :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
     INPUT:
-    
+
     - ``target``, a string describing the target (partial) field.
-    
+
     OUTPUT:
-    
+
     - a dictionary.
+
+    Depending on the value of ``target``, the following lift maps will be created:
+
+    - `reg`: a lift map from `GF(3)` to the regular partial field `(Z, <-1>)`.
+
+    - `sru`: a lift map from `GF(7)` to the 
+        sixth-root-of-unity partial field `(Q(z) <z>)`, where `z` is a sixth-root.
+        The map sends 3 to `z`.
     
-    
+    - `dyadic`: a lift map from `GF(11)` to the dyadic partial field `(Q, <-1, 2>)`.
+
+    - `gm`: a lift map from `GF(19)` to the golden mean partial field
+        `(Q(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
+
     """
-    if target == "regular":
+    from sage.rings.number_field.number_field import NumberField
+    if target == "reg":
         R = GF(3)
         return {R(1): ZZ(1)}
         
-    if target == "sixth_root_of_unity":
+    if target == "sru":
         R = GF(7)
-        z = QQ['z'].gen()
-        S = NumberField(z^2-z+1, 'z')
-        return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**(-1)}
+        z = ZZ['z'].gen()
+        S = NumberField(z*z-z+1, 'z')
+        return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**5}
         
     if target == "dyadic":
         R = GF(11)
         return {R(1):QQ(1), R(-1):QQ(-1), R(2):QQ(2), R(6): QQ(1/2)}
         
-    if target == "golden_mean":    
+    if target == "gm":    
         R = GF(19)
         t = QQ['t'].gen()
-        G = NumberField(t^2-t-1, 't')
+        G = NumberField(t*t-t-1, 't')
         return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t), 
             R(5)**(-1): G(t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
             
-    raise NotImplementedError, target
+    raise NotImplementedError(target)
         
     
             

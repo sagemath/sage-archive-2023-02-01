@@ -708,13 +708,13 @@ class GenericTermMonoid(sage.structure.parent.Parent,
                     S.growth_group()) is not None:
                 return True
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, data):
         r"""
         Convert the given object to to this term monoid.
 
         INPUT:
 
-        - ``x`` -- an object representing the element to be
+        - ``data`` -- an object representing the element to be
           initialized.
 
         OUTPUT:
@@ -723,7 +723,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         .. NOTE::
 
-            The object ``x`` is either an asymptotic term that is
+            The object ``data`` is either an asymptotic term that is
             to be coerced into this term monoid, or an asymptotic
             growth element that is used for creating an element
             of this term monoid.
@@ -744,21 +744,37 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             True
             sage: P_QQ.coerce(term1)  # coercion does not fail
             Generic Term with growth x
+
+        The conversion of growth elements also works for the creation
+        of terms::
+
+            sage: x = SR('x'); x.parent()
+            Symbolic Ring
+            sage: P_ZZ(x^42)
+            Generic Term with growth x^42
+            sage: x = PolynomialRing(ZZ, 'x').gen(); x.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: P_ZZ(x^10)
+            Generic Term with growth x^10
+            sage: P_ZZ(10*x^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input is ambiguous: cannot convert 10*x^2 to a generic term.
         """
-        from sage.groups.asymptotic_growth_group import GenericGrowthElement
-
-        if isinstance(x, GenericGrowthElement):
-            return self.element_class(self, x)
-
-        if x is None:
-            raise ValueError('The growth of the term has to be specified!')
-        elif x.parent() is self:
-            return x
-        elif isinstance(x, GenericTerm):
-            return self.element_class(self,
-                                      self.growth_group().coerce(x.growth))
+        if type(data) == self.element_class and data.parent() == self:
+            return data
+        elif isinstance(data, GenericTerm):
+            return self.element_class(self, data.growth)
+        elif type(data) == int and data == 0:
+            raise ValueError('No input specified. Cannot continue.')
         else:
-            raise ValueError('Input is not an asymptotic growth element.')
+            try:
+                data = self.growth_group()(data)
+                return self.element_class(self, data)
+            except:
+                raise ValueError('Input is ambiguous: cannot convert %s to a '
+                                 'generic term.' % (data,))
+
 
     def _an_element_(self):
         r"""
@@ -847,6 +863,14 @@ class OTerm(GenericTerm):
         True
         sage: t3 <= t1
         False
+
+    The conversion of growth elements also works for the creation
+    of `O` terms::
+
+        sage: x = SR('x'); x.parent()
+        Symbolic Ring
+        sage: OT(x^17)
+        O(x^17)
     """
 
     def _repr_(self):
@@ -1068,7 +1092,7 @@ class TermWithCoefficient(GenericTerm):
         Asymptotic Term with coefficient 3/8 and growth x^3
     """
 
-    def __init__(self, parent, growth, coefficient=1):
+    def __init__(self, parent, growth, coefficient=None):
         r"""
         See :class:`TermWithCoefficient` for more information.
 
@@ -1096,7 +1120,15 @@ class TermWithCoefficient(GenericTerm):
             sage: t = CT_ZZ(x^42, 0)
             Traceback (most recent call last):
             ...
-            ValueError: 0 is not a valid coefficient
+            ValueError: 0 is not a valid coefficient.
+
+        The conversion of growth elements also works for the creation
+        of terms with coefficient::
+
+            sage: x = SR('x'); x.parent()
+            Symbolic Ring
+            sage: CT_ZZ(x^42, 42)
+            Asymptotic Term with coefficient 42 and growth x^42
         """
         if coefficient not in parent.base_ring():
             raise ValueError('%s is not in %s' % (coefficient,
@@ -1351,14 +1383,14 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                     coerce_map_from(S.base_ring()) is not None)
 
 
-    def _element_constructor_(self, x, coefficient=None):
+    def _element_constructor_(self, data, coefficient=None):
         r"""
         Construct an asymptotic term with coefficient or convert
-        the given object ``x`` to this term monoid.
+        the given object ``data`` to this term monoid.
 
         INPUT:
 
-        - ``x`` -- a growth element or an object representing the
+        - ``data`` -- a growth element or an object representing the
           element to be initialized.
 
         - ``coefficient`` -- an element of the ``base_ring``.
@@ -1369,7 +1401,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         .. NOTE::
 
-            The object ``x`` is either an asymptotic term with
+            The object ``data`` is either an asymptotic term with
             coefficient that is to be coerced into this term monoid,
             or an asymptotic growth element that is used together
             with ``coefficient`` in order to create an element of
@@ -1389,14 +1421,30 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: P(x)
             Traceback (most recent call last):
             ...
-            ValueError: The coefficient is not specified
+            ValueError: Coefficient is not specified. Cannot continue.
         """
-        if isinstance(x, TermWithCoefficient):
-            return self.element_class(self, x.growth, x.coefficient)
-        elif coefficient is None:
-            raise ValueError('The coefficient is not specified')
+        if type(data) == self.element_class and data.parent() == self:
+            return data
+        elif isinstance(data, TermWithCoefficient):
+            return self.element_class(self, data.growth, data.coefficient)
+        elif type(data) == int and data == 0:
+            raise ValueError('No input specified. Cannot continue.')
         else:
-            return self.element_class(self, x, coefficient)
+            try:
+                data = self.growth_group()(data)
+                return self.element_class(self, data, coefficient)
+            except:
+                if coefficient is None:
+                    raise ValueError('Coefficient is not specified. '
+                                     'Cannot continue.')
+                elif coefficient not in self.base_ring():
+                    raise ValueError('%s is not in %s'
+                                     % (coefficient, self.base_ring()))
+                elif coefficient == 0:
+                    raise ValueError('0 is not a valid coefficient.')
+                raise ValueError('Input is ambiguous: cannot convert %s with '
+                                 'coefficient %s to a term with coefficient.'
+                                 % (data, coefficient))
 
 
     def _repr_(self):
@@ -1508,9 +1556,17 @@ class LTermGeneric(TermWithCoefficient):
         Traceback (most recent call last):
         ...
         NotImplementedError: Not yet implemented
+
+    The conversion of growth elements also works for the creation of
+    terms with coefficient::
+
+        sage: x = SR('x'); x.parent()
+        Symbolic Ring
+        sage: LT_ZZ(x^12, 34, 56)
+        34 * L(x^12, 56)
     """
 
-    def __init__(self, parent, growth, coefficient=1, start=0):
+    def __init__(self, parent, growth, coefficient=None, start=None):
         r"""
         See :class:`LTermGeneric` for more information and examples.
         """
@@ -1678,14 +1734,14 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
     Element = LTermGeneric
 
 
-    def _element_constructor_(self, x, coefficient=None, start=0):
+    def _element_constructor_(self, data, coefficient=None, start=0):
         r"""
         Construct a generic `L` term or convert the given
-        object ``x`` to this term monoid.
+        object ``data`` to this term monoid.
 
         INPUT:
 
-        - ``x`` -- a growth element or an object representing the
+        - ``data`` -- a growth element or an object representing the
           element to be initialized.
 
         - ``coefficient`` -- an element of the ``base_ring``.
@@ -1699,7 +1755,7 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
 
         .. NOTE::
 
-            The object ``x`` is either a `L` term that is to be
+            The object ``data`` is either a `L` term that is to be
             coerced into this term monoid, or an asymptotic growth
             element that is used together with ``coefficient`` and
             ``start`` in order to create an element of this term
@@ -1720,12 +1776,33 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
             sage: LT(et)
             5/9 * L(x^7, 0)
         """
-        if isinstance(x, LTermGeneric):
-            return self.element_class(self, x.growth, x.coefficient, x.start)
-        elif isinstance(x, ExactTerm):
-            return self.element_class(self, x.growth, x.coefficient, 0)
+        if type(data) == self.element_class and data.parent == self:
+            return data
+        elif isinstance(data, LTermGeneric):
+            return self.element_class(self, data.growth, data.coefficient,
+                                      data.start)
+        elif isinstance(data, ExactTerm):
+            return self.element_class(self, data.growth, data.coefficient, 0)
+        elif type(data) == int and data == 0:
+            raise ValueError('No input specified. Cannot continue')
         else:
-            return self.element_class(self, x, coefficient, start)
+            try:
+                data = self.growth_group()(data)
+                return self.element_class(self, data, coefficient, start)
+            except:
+                if coefficient is None:
+                    raise ValueError('Coefficient is not specified. Cannot '
+                                     'continue')
+                elif coefficient not in self.base_ring():
+                    raise ValueError('%s is not in %s'
+                                     % (coefficient, self.base_ring()))
+                elif coefficient == 0:
+                    raise ValueError('0 is not a valid coefficient.')
+                elif start is None:
+                    raise ValueError('Start is not specified. Cannot continue.')
+                raise ValueError('Input is ambiguous: cannot convert %s with '
+                                 'coefficient %s and start %s to L term.'
+                                 % (data, coefficient, start))
 
 
     def _repr_(self):

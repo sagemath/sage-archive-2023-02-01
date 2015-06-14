@@ -2491,8 +2491,6 @@ def FruchtGraph():
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic
     identity graph. It is planar and it is Hamiltonian.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the first
     seven nodes are on the outer circle, with the next four on an inner
@@ -2512,7 +2510,16 @@ def FruchtGraph():
         sage: FRUCHT.graph6_string()
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.FruchtGraph()
+        sage: G.is_isomorphic(Graph(networkx.frucht_graph()))
+        True
     """
+    edges = {0:[1, 6, 7], 1:[2, 7], 2:[3, 8], 3:[4, 9], 4:[5, 9],
+             5:[6, 10], 6:[10], 7:[11], 8:[9, 11], 10:[11]}
     pos_dict = {}
     for i in range(7):
         x = float(2*(cos((pi/2) + ((2*pi)/7)*i)))
@@ -2523,9 +2530,7 @@ def FruchtGraph():
     pos_dict[9] = (0,-1)
     pos_dict[10] = (1,0)
     pos_dict[11] = (0,0)
-    import networkx
-    G = networkx.frucht_graph()
-    return Graph(G, pos=pos_dict, name="Frucht graph")
+    return Graph(edges, pos=pos_dict, name="Frucht graph")
 
 def GoldnerHararyGraph():
     r"""

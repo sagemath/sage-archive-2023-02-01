@@ -1,18 +1,19 @@
-= lrs =
+= lrslib =
 
 == Description ==
 
-lrs implements the linear reverse search algorithm of Avis and Fukuda. 
+lrslib implements the linear reverse search algorithm of Avis and Fukuda. 
 
 See the homepage (http://cgm.cs.mcgill.ca/~avis/C/lrs.html)  for details.
 
 == License ==
-lrs is released under a GPL v2+ license.
+lrslib is released under a GPL v2+ license.
 
 == SPKG Maintainers ==
 
- * Marshall Hampton
- * Michael Abshoff
+ * Marshall Hampton (lrs old-style spkg)
+ * Michael Abshoff (lrs old-style spkg)
+ * Matthias Koeppe (lrslib new-style spkg)
 
 == Upstream Contact ==
 
@@ -26,13 +27,3 @@ No dependencies.
 
 The only patch is the makefile, which has been cleaned up for Sage using our environmental variables and with an added "make check" section.
 
-== Changelog ==
-
-=== lrs-4.2b.p1 (Marshall Hampton, January 19th, 2009) ===
- * fixed SPKG.txt
- * added make check section to our patched makefile
- * created hg repository for this spkg
- * added spkg-check which uses the "make check" added
-
-=== lrs-4.2b.p0 (Marshall Hampton, May 2008) ===
- * made lrs 4.2b an optional spkg

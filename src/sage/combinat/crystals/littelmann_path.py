@@ -766,13 +766,17 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         if q is None:
             from sage.rings.all import QQ
             q = QQ['q'].gens()[0]
-        P0 = self.weight_lattice_realization().classical()
+        #P0 = self.weight_lattice_realization().classical()
+        P0 = RootSystem(self.cartan_type().classical()).weight_lattice()
         B = P0.algebra(q.parent())
+        def weight(x):
+            w = x.weight()
+            return P0.sum(int(c)*P0.basis()[i] for i,c in w if i in P0.index_set())
         if group_components:
             G = self.digraph(index_set = self.cartan_type().classical().index_set())
             C = G.connected_components()
-            return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
-        return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
+            return sum(q**(c[0].energy_function())*B.sum(B(weight(b)) for b in c) for c in C)
+        return B.sum(q**(b.energy_function())*B(weight(b)) for b in self)
 
     def is_perfect(self, level=1):
         r"""

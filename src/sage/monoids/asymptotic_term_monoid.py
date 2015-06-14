@@ -1729,6 +1729,13 @@ class LTermGenericMonoid(TermWithCoefficientMonoid):
         Conversion map:
           From: Generic L Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
           To:   Generic L Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+
+    L term monoids can also be created by using the term factory::
+
+        sage: atm.TermMonoid('L', MG_ZZ, QQ) is LT_ZZ
+        True
+        sage: atm.TermMonoid('L', agg.MonomialGrowthGroup(ZZ, 'x'), ZZ)
+        Generic L Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
     """
     # enable the category framework for elements
     Element = LTermGeneric

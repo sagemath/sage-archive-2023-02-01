@@ -1626,7 +1626,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         Here the minimal discriminant ideal is principal but there is
         no global minimal model since the quotient is the 12th power
-        ofa non-principal ideal::
+        of a non-principal ideal::
 
             sage: E.minimal_discriminant_ideal()
             Fractional ideal (4)
@@ -1839,8 +1839,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
            Over fields of class number greater than 1, a global
-           minimal model may not exist.  If it does not, use the
-           method :meth:`semi_global_minimal_model` to obtain a model
+           minimal model may not exist.  If it does not, set the
+           parameter ``semi_global`` to ``True`` to obtain a model
            minimal at all but one prime.
 
         INPUT:
@@ -1912,7 +1912,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             2^7 * 3^3
 
         If there is no global minimal model, this method will raise an
-        error unless you set the parameter ``semi_global`` to `True``::
+        error unless you set the parameter ``semi_global`` to ``True``::
 
             sage: K.<a> = NumberField(x^2-10)
             sage: K.class_number()
@@ -2605,8 +2605,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. note::
 
-            The curves in the isogeny class will all be minimal
-            models when the class number is `1`.
+            The curves in the isogeny class will all be minimal models
+            if these exist (for example, when the class number is
+            `1`); otherwise they will be minimal at all but one prime.
 
         EXAMPLES::
 
@@ -2618,15 +2619,18 @@ class EllipticCurve_number_field(EllipticCurve_field):
         The curves in the class (sorted)::
 
             sage: [E1.ainvs() for E1 in C]
-            [(0, 0, 0, -135, -594), (0, 0, 0, -15, 22), (0, 0, 0, 0, -27), (0, 0, 0, 0, 1)]
+            [(0, 0, 0, 0, -27),
+            (0, 0, 0, 0, 1),
+            (i + 1, i, i + 1, -i + 3, 4*i),
+            (i + 1, i, i + 1, -i + 33, -58*i)]
 
         The matrix of degrees of cyclic isogenies between curves::
 
             sage: C.matrix()
-            [1 3 2 6]
-            [3 1 6 2]
-            [2 6 1 3]
-            [6 2 3 1]
+            [1 3 6 2]
+            [3 1 2 6]
+            [6 2 1 3]
+            [2 6 3 1]
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
@@ -2637,12 +2641,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: isogs = C.isogenies()
             sage: [((i,j),isogs[i][j].degree()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), 3), ((0, 2), 2), ((1, 3), 2), ((2, 3), 3)]
+            [((0, 1), 3), ((2, 1), 2), ((3, 0), 2), ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), (x^3 + 18*x^2 + 297*x + 1512)/(x^2 + 18*x + 81)),
-            ((0, 2), (x^2 + 6*x - 27)/(x + 6)),
-            ((1, 3), (x^2 - 2*x - 3)/(x - 2)),
-            ((2, 3), (x^3 - 108)/x^2)]
+            [((0, 1), (1/9*x^3 - 12)/x^2),
+            ((2, 1), (-1/2*i*x^2 + x)/(x + 3/2*i)),
+            ((3, 0), (-1/2*i*x^2 - x - 4*i)/(x - 5/2*i)),
+            ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
 
         The isogeny class may be visualized by obtaining its graph and
         plotting it::
@@ -2657,19 +2661,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: len(C)
             6
             sage: C.matrix()
-            [ 1  2  6  3  9 18]
-            [ 2  1  3  6 18  9]
-            [ 6  3  1  2  6  3]
-            [ 3  6  2  1  3  6]
-            [ 9 18  6  3  1  2]
-            [18  9  3  6  2  1]
+            [ 1  3  9 18  6  2]
+            [ 3  1  3  6  2  6]
+            [ 9  3  1  2  6 18]
+            [18  6  2  1  3  9]
+            [ 6  2  6  3  1  3]
+            [ 2  6 18  9  3  1]
             sage: [E1.ainvs() for E1 in C]
-            [(i + 1, -i, i, -240*i - 399, 2869*i + 2627),
-            (i + 1, -i, i, -485/2*i - 1581/4, 22751/8*i + 10805/4),
-            (i + 1, -i, i, -125/2*i - 61/4, -1425/8*i + 285/4),
+            [(i + 1, i - 1, i, -i - 1, -i + 1),
+            (i + 1, i - 1, i, 14*i + 4, 7*i + 14),
+            (i + 1, i - 1, i, 59*i + 99, 372*i - 410),
+            (i + 1, -i, i, -240*i - 399, 2869*i + 2627),
             (i + 1, -i, i, -5*i - 4, 2*i + 5),
-            (i + 1, -i, i, 1, 0),
-            (i + 1, -i, i, -5/2*i + 19/4, -33/8*i - 11/4)]
+            (i + 1, -i, i, 1, 0)]
 
         An example with CM by `\sqrt{-5}`::
 
@@ -2690,18 +2694,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [1 2]
             [2 1]
             sage: [E.ainvs() for E in C]
-            [(0,
-            0,
-            0,
-            -2142429020160*c^2 - 5608955658240,
-            -1803656541954375680*c^2 - 4722034125328875520),
-            (0,
-            0,
-            0,
-            -1688345640960*c^2 - 4420220682240,
-            -2589731225505628160*c^2 - 6780004123216445440)]
-            sage: C.isogenies()[1][0]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-1688345640960*c^2-4420220682240)*x + (-2589731225505628160*c^2-6780004123216445440) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (-34278864322560*c^2-89743290531840)*x + (-115434018685080043520*c^2-302210184021048033280) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
+            (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
+            sage: C.isogenies()[0][1]
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (-1391590873420*c^3-3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         An example with CM by `\sqrt{-23}` (class number `3`)::
 
@@ -2737,11 +2733,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [-92, -23, -23]
 
             sage: C.matrix()
-            [1 2 2 4 2 4]
-            [2 1 2 2 4 4]
+            [1 2 2 2 4 4]
+            [2 1 2 4 2 4]
             [2 2 1 4 4 2]
-            [4 2 4 1 3 3]
-            [2 4 4 3 1 3]
+            [2 4 4 1 3 3]
+            [4 2 4 3 1 3]
             [4 4 2 3 3 1]
 
         The graph of this isogeny class has a shape which does not
@@ -2769,11 +2765,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: G = C.graph()
             sage: G.adjacency_matrix()
-            [0 1 1 0 1 0]
-            [1 0 1 1 0 0]
+            [0 1 1 1 0 0]
+            [1 0 1 0 1 0]
             [1 1 0 0 0 1]
-            [0 1 0 0 1 1]
-            [1 0 0 1 0 1]
+            [1 0 0 0 1 1]
+            [0 1 0 1 0 1]
             [0 0 1 1 1 0]
 
         To display the graph without any edge labels::
@@ -2855,20 +2851,20 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: CL.matrix() # long time
             [1 2 3 3 5 5]
             [2 1 5 5 3 3]
-            [3 5 1 3 2 5]
-            [3 5 3 1 5 2]
-            [5 3 2 5 1 3]
-            [5 3 5 2 3 1]
+            [3 5 1 3 5 2]
+            [3 5 3 1 2 5]
+            [5 3 5 2 1 3]
+            [5 3 2 5 3 1]
 
         To see the array of binary quadratic forms::
 
             sage: CL.qf_matrix()  # long time
             [[[1], [2, 0, 13], [3, -2, 9], [3, -2, 9], [5, -4, 6], [5, -4, 6]],
             [[2, 0, 13], [1], [5, -4, 6], [5, -4, 6], [3, -2, 9], [3, -2, 9]],
-            [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [2, 0, 13], [5, -4, 6]],
-            [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [5, -4, 6], [2, 0, 13]],
-            [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [1], [3, -2, 9]],
-            [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [3, -2, 9], [1]]]
+            [[3, -2, 9], [5, -4, 6], [1], [3, -2, 9], [5, -4, 6], [2, 0, 13]],
+            [[3, -2, 9], [5, -4, 6], [3, -2, 9], [1], [2, 0, 13], [5, -4, 6]],
+            [[5, -4, 6], [3, -2, 9], [5, -4, 6], [2, 0, 13], [1], [3, -2, 9]],
+            [[5, -4, 6], [3, -2, 9], [2, 0, 13], [5, -4, 6], [3, -2, 9], [1]]]
 
         As in the non-CM case, the isogeny class may be visualized by
         obtaining its graph and plotting it.  Since there are more
@@ -2907,8 +2903,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. note::
 
-           Over `\QQ`, the codomains of the isogenies returned are standard
-           minimal models.
+           Over `\QQ`, the codomains of the isogenies returned are
+           standard minimal models.  Over other number fields they are
+           global minimal models if these exist, otherwise models
+           which are minimal at all but one prime.
 
         .. note::
 
@@ -3186,7 +3184,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
             sage: C = E.isogeny_class()
             sage: [E.isogeny_degree(F) for F in C]
-            [9, 18, 6, 3, 1, 2]
+            [2, 6, 18, 9, 3, 1]
         """
         # First deal with some easy cases:
         if self.conductor() != other.conductor():

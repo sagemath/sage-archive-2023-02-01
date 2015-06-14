@@ -841,7 +841,7 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        P = c.representative_prime(c)
+        P = c.representative_prime()
         if debug:
             print("Using a prime in that class: %s" % P)
         I = I/P

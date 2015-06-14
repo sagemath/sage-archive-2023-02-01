@@ -158,7 +158,9 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
     INPUT:
 
-    - ``groups`` -- a partition of `X`
+    - ``groups`` -- a partition of `X`. If set to ``None`` the groups are
+      guessed automatically, and the function returns ``(True, guessed_groups)``
+      instead of ``True``
 
     - ``blocks`` -- collection of blocks
 
@@ -202,30 +204,31 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
         sage: is_group_divisible_design([range(40)],[["e",2]],40,lambd=1,verbose=True)
         e does not belong to [0,...,39]
         False
-        sage: is_group_divisible_design([range(40)],[["e",2]],40,G=[5],lambd=1,verbose=True)
+        sage: is_group_divisible_design([range(40)],[range(40)],40,G=[5],lambd=1,verbose=True)
         a group has size 40 while G=[5]
         False
         sage: is_group_divisible_design([range(40)],[["e",2]],40,K=[1],lambd=1,verbose=True)
         a block has size 2 while K=[1]
         False
+
+        sage: p = designs.projective_plane(3)
+        sage: is_group_divisible_design(None, p.blocks(), 13)
+        (True, [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12]])
+        sage: is_group_divisible_design(None, p.blocks()*2, 13, verbose=True)
+        the pair (0,1) has been seen 2 times but lambda=1
+        False
+        sage: is_group_divisible_design(None, p.blocks()*2, 13, lambd=2)
+        (True, [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12]])
     """
     cdef int n = v
     cdef int i,ii,j,jj,s,isok
     cdef int l = lambd
+    cdef bint guess_groups = groups is None
 
     if v < 0 or lambd < 0:
         if verbose:
             print "v={} and lambda={} must be non-negative integers".format(v,l)
         return False
-
-    # Group sizes are element of G
-    if G is not None:
-        G = set(G)
-        for g in groups:
-            if not len(g) in G:
-                if verbose:
-                    print "a group has size {} while G={}".format(len(g),list(G))
-                return False
 
     # Block sizes are element of K
     if K is not None:
@@ -237,7 +240,9 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
                 return False
 
     # Check that "groups" consists of disjoints sets whose union has length n
-    if sum(len(g) for g in groups) != n or len(set().union(*groups)) != n:
+    if (groups is not None and
+        (sum(len(g) for g in groups) != n or
+         len(set().union(*groups)) != n)):
         if verbose:
             print "groups is not a partition of [0,...,{}]".format(n-1)
         return False
@@ -251,7 +256,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
     # Check that the groups/blocks belong to [0,...,n-1]
     from itertools import chain
-    for b in chain(groups,blocks):
+    for b in chain(groups if groups is not None else [],blocks):
         for x in b:
             try:
                 i = x
@@ -276,6 +281,26 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
                 matrix[ii*n+jj] += 1
                 matrix[jj*n+ii] += 1
 
+    # Guess the groups (if necessary)
+    if groups is None:
+        from sage.sets.disjoint_set import DisjointSet_of_integers
+        groups = DisjointSet_of_integers(n)
+        for i in range(n):
+            for j in range(i+1,n):
+                if matrix[i*n+j] == 0:
+                    groups.union(i,j)
+        groups = groups.root_to_elements_dict().values()
+
+    # Group sizes are element of G
+    if G is not None:
+        G = set(G)
+        for g in groups:
+            if not len(g) in G:
+                if verbose:
+                    print "a group has size {} while G={}".format(len(g),list(G))
+                sage_free(matrix)
+                return False
+
     # Checks that two points of the same group were never covered
     for g in groups:
         s = len(g)
@@ -296,7 +321,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
     # Checking that what should be equal to lambda IS equal to lambda
     for i in range(n):
         for j in range(i+1,n):
-            if i != j and matrix[i*n+j] != l:
+            if matrix[i*n+j] != l:
                 if verbose:
                     print "the pair ({},{}) has been seen {} times but lambda={}".format(i,j,matrix[i*n+j],l)
                 sage_free(matrix)
@@ -304,7 +329,7 @@ def is_group_divisible_design(groups,blocks,v,G=None,K=None,lambd=1,verbose=Fals
 
     sage_free(matrix)
 
-    return True
+    return True if not guess_groups else (True, groups)
 
 def is_pairwise_balanced_design(blocks,v,K=None,lambd=1,verbose=False):
     r"""

@@ -61,6 +61,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
+    :meth:`~sage.combinat.permutation.Permutation.destandardization` |  Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_code` | Returns the Lehmer code of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Returns the Lehmer cocode of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.reduced_word` | Returns the reduced word of the permutation ``self``.
@@ -988,7 +989,7 @@ class Permutation(CombinatorialElement):
             ....:    lp = [Permutations(size).random_element() for i in range(20)]
             ....:    timeit("[p.to_cycles() for p in lp]")
             ....:    timeit("[p._to_cycles_set() for p in lp]")
-            ....:    timeit("[p._to_cycles_list() for p in lp]") # not tested
+            ....:    timeit("[p._to_cycles_list() for p in lp]")
         """
         cycles = []
 
@@ -2378,6 +2379,67 @@ class Permutation(CombinatorialElement):
             M_prime[k-1] = e
             M = M_prime
         return Permutations()(M)
+
+    def destandardize(self, weight, ordered_alphabet = None):
+        r"""
+        Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
+
+        INPUT:
+
+        - ``weight`` -- list or tuple of nonnegative integers that sum to `n` if ``self``
+          is a permutation in `S_n`.
+
+        - ``ordered_alphabet`` -- (default: None) a list or tuple specifying the ordered alphabet the
+          destandardized word is over
+
+        OUTPUT: word over the ``ordered_alphabet`` which standardizes to ``self``
+
+        Let `weight = (w_1,w_2,\ldots,w_\ell)`. Then this methods looks for an increasing
+        sequence of `1,2,\ldots, w_1` and labels all letters in it by 1, then an increasing
+        sequence of `w_1+1,w_1+2,\ldots,w_1+w_2` and labels all these letters by 2, etc..
+        If an increasing sequence for the specified ``weight`` does not exist, an error is
+        returned. The output is a word ``w`` over the specified ordered alphabet with
+        evaluation ``weight`` such that ``w.standard_permutation()`` is ``self``.
+
+        EXAMPLES::
+
+            sage: p = Permutation([1,2,5,3,6,4])
+            sage: p.destandardize([3,1,2])
+            word: 113132
+            sage: p = Permutation([2,1,3])
+            sage: p.destandardize([2,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Standardization with weight [2, 1] is not possible!
+
+        TESTS::
+
+            sage: p = Permutation([4,1,2,3,5,6])
+            sage: p.destandardize([2,1,3], ordered_alphabet = [1,'a',3])
+            word: 311a33
+            sage: p.destandardize([2,1,3], ordered_alphabet = [1,'a'])
+            Traceback (most recent call last):
+            ...
+            ValueError: Not enough letters in the alphabet are specified compared to the weight
+        """
+        ides = [i+1 for i in self.idescents()]
+        partial = [0]
+        for a in weight:
+            partial.append(partial[-1]+a)
+        if not set(ides).issubset(set(partial)):
+            raise ValueError("Standardization with weight {} is not possible!".format(weight))
+        if ordered_alphabet is None:
+            ordered_alphabet = range(1,len(weight)+1)
+        else:
+            if len(weight) > len(ordered_alphabet):
+                raise ValueError("Not enough letters in the alphabet are specified compared to the weight")
+        q = self.inverse()
+        s = [0]*len(self)
+        for i in range(len(partial)-1):
+            for j in range(partial[i],partial[i+1]):
+                s[q[j]-1] = ordered_alphabet[i]
+        from sage.combinat.words.word import Word
+        return Word(s)
 
     def to_lehmer_code(self):
         r"""
@@ -5841,7 +5903,7 @@ class StandardPermutations_n_abstract(Permutations):
             (2,4)(3,5)
             sage: Permutations(6)(SymmetricGroup(6)(x))
             [1, 4, 5, 2, 3, 6]
-            sage: Permutations(6)(x) # not tested -- we're not yet there
+            sage: Permutations(6)(x)  # known bug
             [1, 4, 5, 2, 3, 6]
         """
         if len(x) < self.n:

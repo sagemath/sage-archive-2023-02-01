@@ -1781,7 +1781,7 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
 
     def __iter__(self):
         """
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: list(TruncatedStaircases(4, [2,3]))
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]

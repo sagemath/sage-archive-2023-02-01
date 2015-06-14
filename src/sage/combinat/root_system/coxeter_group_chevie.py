@@ -332,9 +332,13 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         """
         return self.fundamental_weights()[self._index_set[i]]
 
-    def permutahedron(self,coefficients=None):
+    def permutahedron(self,point=None):
         r"""
-        Return the permutahedron of ``self`.
+        Return the permutahedron of ``self``.
+
+        This is the convex hull of the point ``point`` in the weight
+        basis under the action of ``self`` on the underlying vector
+        space `V`.
 
         EXAMPLES::
 
@@ -349,9 +353,9 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         """
         n = self.rank()
         weights = self.fundamental_weights()
-        if coefficients is None:
-            coefficients = [1]*n
-        v = sum( coefficients[i] * weights[i] for i in range(n) )
+        if point is None:
+            point = [1]*n
+        v = sum( point[i] * weights[i] for i in range(n) )
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron( vertices=[ v*(~w).as_matrix() for w in self] )
 

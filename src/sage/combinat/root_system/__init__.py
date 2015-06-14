@@ -66,7 +66,7 @@ Finite reflection groups
 
 .. SEEALSO::
 
-    The categories :class:`ComplexReflectionGroups`
+    The category :class:`ComplexReflectionGroups`
 
 Representation theory
 ---------------------

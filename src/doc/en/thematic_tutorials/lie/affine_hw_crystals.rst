@@ -2,8 +2,13 @@
 Affine Highest Weight Crystals
 ==============================
 
-Affine highest weight crystals are infinite-dimensional. Hence, to work
-with them in Sage, we need some further tools.
+Affine highest weight crystals are infinite-dimensional. Their underlying
+weight lattice is the extended weight lattice including the null root `\delta`.
+This is in contrast to finite-dimensional affine crystals such as for example the
+Kirillov-Reshetikhin crystals whose underlying weight lattice is the classical weight
+lattice, i.e., does not include `\delta`.
+
+Hence, to work with them in Sage, we need some further tools.
 
 Littelmann path model
 ---------------------

@@ -1728,6 +1728,13 @@ def ChvatalGraph():
         2
         2
         4
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.ChvatalGraph()
+        sage: G.is_isomorphic(Graph(networkx.chvatal_graph()))
+        True
     """
     edges = {0:[1, 4, 6, 9], 1:[2, 5, 7], 2:[3, 6, 8], 3:[4, 7, 9], 4:[5, 8],
              5:[10, 11], 6:[10, 11], 7:[8, 11], 8:[10], 9:[10, 11]}

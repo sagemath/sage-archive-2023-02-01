@@ -87,7 +87,6 @@ class GroupExp(Functor):
             Category of commutative additive groups
             sage: F.codomain()
             Category of groups
-        
         """
         Functor.__init__(self, CommutativeAdditiveGroups(), Groups())
 
@@ -209,7 +208,7 @@ class GroupExpElement(ElementWrapper, MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: EZ = GroupExp()(ZZ)
-            sage: EZ(-3)^(-1)
+            sage: EZ(-3).inverse()
             3
         """
         return GroupExpElement(self.parent(), -self.value)

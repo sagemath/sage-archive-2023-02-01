@@ -738,6 +738,10 @@ ext_modules = [
               libraries = ["ec", "pari",
                            "ntl", "gmp", "gmpxx", "stdc++", "m"]),
 
+    Extension('sage.libs.pari.closure',
+              sources = ["sage/libs/pari/closure.pyx"],
+              libraries = ['pari', 'gmp']),
+
     Extension('sage.libs.pari.gen',
               sources = ["sage/libs/pari/gen.pyx"]),
 

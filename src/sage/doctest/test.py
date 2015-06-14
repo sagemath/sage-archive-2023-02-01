@@ -331,14 +331,17 @@ Test running under gdb, without and with a timeout::
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
-    sage -t --warn-long 0.0 1second.rst
+    sage -t 1second.rst
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
     ----------------------------------------------------------------------
     ...
     0
-    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
+
+gdb might need a long time to start up, so we allow 30 seconds::
+
+    sage: subprocess.call(["sage", "-t", "--gdb",  "--warn-long", "0", "-T30", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
         Timed out

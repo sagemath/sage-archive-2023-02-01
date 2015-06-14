@@ -268,15 +268,6 @@ EOF
 echo >&5 "SHELL = `command -v bash`"
 echo >&5
 
-# If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
-# then turn off parallel building: disable just building multiple
-# packages at the same time.   Individual packages can still be built
-# in parallel by specifying '-j' in $MAKE.
-if [ "${SAGE_PARALLEL_SPKG_BUILD:-yes}" = no ]; then
-    echo ".NOTPARALLEL:" >&5
-    echo "" >&5
-fi
-
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {
@@ -386,6 +377,18 @@ done
 echo >&5
 echo >&5
 
+echo >&5 '# All optional installed packages (triggers the auto-update)'
+echo >&5 'OPTIONAL_INSTALLED_PACKAGES = \'
+filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if [ "$PKG_NAME" = "gcc" ]; then
+        continue
+    fi
+    if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
+        echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
+    fi;
+done
+echo >&5
+echo >&5
 
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
@@ -445,8 +448,11 @@ EOF
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
+    TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
+    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+        DEPS='| $(STANDARD_PACKAGES)' # default for optional packages
     else
         DEPS=""
     fi

@@ -392,3 +392,12 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     idealpseudomin_nonscalar(GEN I, GEN G)
     GEN     idealred_elt(GEN nf, GEN I)
     GEN     idealred(GEN nf, GEN I)
+
+    ###################################################################
+    #                                                                 #
+    #                              CLOSURES                           #
+    #                                                                 #
+    ###################################################################
+
+    long    closure_arity(GEN C)
+    long    closure_is_variadic(GEN C)

@@ -1229,10 +1229,10 @@ class LatinSquare:
 
     def find_disjoint_mates(self, nr_to_find = None, allow_subtrade = False):
         r"""
-        .. warning:::
+        .. warning::
 
-           If allow_subtrade is True then we may return a partial
-           latin square that is *not* disjoint to self. In that case,
+           If allow_subtrade is ``True`` then we may return a partial
+           latin square that is *not* disjoint to ``self``. In that case,
            use bitrade(P, Q) to get an actual bitrade.
 
         EXAMPLES::

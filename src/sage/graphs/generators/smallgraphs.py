@@ -1729,7 +1729,8 @@ def ChvatalGraph():
         2
         4
     """
-    import networkx
+    edges = {0:[1, 4, 6, 9], 1:[2, 5, 7], 2:[3, 6, 8], 3:[4, 7, 9], 4:[5, 8],
+             5:[10, 11], 6:[10, 11], 7:[8, 11], 8:[10], 9:[10, 11]}
     pos_dict = {}
     for i in range(5, 10):
         x = float(cos((pi / 2) + ((2 * pi) / 5) * i))
@@ -1742,7 +1743,7 @@ def ChvatalGraph():
     pos_dict[10] = (0.5, 0)
     pos_dict[11] = (-0.5, 0)
 
-    return Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+    return Graph(edges, pos=pos_dict, name="Chvatal graph")
 
 def ClebschGraph():
     r"""

@@ -9,41 +9,38 @@ AUTHOR:
 
 - David Perkinson (June 4, 2015) Upgraded from version 2.3 to 2.4.
 
-  MAJOR CHANGES:
-  1. Eliminated dependence on 4ti2, substituing the use of Polyhedron methods.
-     Thus, no optional packages are necessary.
-  2. Fixed bug in Sandpile.__init__ so that now multigraphs are handled correctly.
-  3. Created `sandpiles` to handle examples of Sandpiles in analogy with `graphs`,
-     `simplicial_complexes`, and `polytopes`.  In the process, we implemented a much
-     faster way of producing the sandpile grid graph.
-  4. Added support for open and closed sandpile Markov chains.
-  5. Added support for Weierstrass points.
-  6. Implemented the Cori-Le Borgne algorithm for computing ranks of divisors on
-     complete graphs.
+MAJOR CHANGES
 
-  NEW METHODS
-  Sandpile: avalanche_polynomial, genus, group_gens, help, jacobian_representatives,
-            markov_chain, picard_representatives, smith_form, stable_configs,
-            stationary_density, tutte_polynomial.
-  SandpileConfig: burst_size, help.
-  SandpileDivisor: help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt,
-                   polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold,
-                   stabilize, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
+1. Eliminated dependence on 4ti2, substituting the use of Polyhedron methods. Thus, no optional packages are necessary.
+2. Fixed bug in ``Sandpile.__init__`` so that now multigraphs are handled correctly.
+3. Created ``sandpiles`` to handle examples of Sandpiles in analogy with ``graphs``, ``simplicial_complexes``, and ``polytopes``.  In the process, we implemented a much faster way of producing the sandpile grid graph.
+4. Added support for open and closed sandpile Markov chains.
+5. Added support for Weierstrass points.
+6. Implemented the Cori-Le Borgne algorithm for computing ranks of divisors on complete graphs.
 
-  DEPRECATED
-  SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method,
-  complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile,
-  random_digraph, random_DAG, random_tree, glue_graphs, admissible_partitions,
-  firing_vector, min_cycles.
+NEW METHODS
 
-  MINOR CHANGES
-  * The `sink` argument to Sandpile.__init__ now defaults to the first vertex.
-  * A SandpileConfig or SandpileDivisor may now be multiplied by an integer.
-  * Sped up __add__ method for SandpileConfig and SandpileDivisor.
-  * Enhanced string representation of a Sandpile (via _repr_ and the `name` method).
-  * Recurrents for complete graphs and cycle graphs are computed more quickly.
-  * The stabilization code for SandpilConfig has been made more efficient.
-  * Added optional probability distribution arguments to `add_random` methods.
+**Sandpile**: avalanche_polynomial, genus, group_gens, help, jacobian_representatives, markov_chain, picard_representatives, smith_form, stable_configs, stationary_density, tutte_polynomial.
+
+**SandpileConfig**: burst_size, help.
+
+**SandpileDivisor**:  help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt, polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold, stabilize, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
+
+DEPRECATED
+
+SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method, complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile, random_digraph, random_DAG, random_tree, glue_graphs, admissible_partitions, firing_vector, min_cycles.
+
+MINOR CHANGES
+
+* The ``sink`` argument to ``Sandpile.__init__`` now defaults to the first vertex.
+* A SandpileConfig or SandpileDivisor may now be multiplied by an integer.
+* Sped up ``__add__`` method for SandpileConfig and SandpileDivisor.
+* Enhanced string representation of a Sandpile (via ``_repr_`` and the ``name`` methods).
+* Recurrents for complete graphs and cycle graphs are computed more quickly.
+* The stabilization code for SandpileConfig has been made more efficient.
+* Added optional probability distribution arguments to ``add_random`` methods.
+
+---------------------------------------
 
 - Marshall Hampton (2010-1-10) modified for inclusion as a module within Sage
   library.
@@ -68,8 +65,8 @@ AUTHOR:
 
 EXAMPLES:
 
-For general help, enter `Sandpile.help()`, `SandpileConfig.help()`, and
-`SandpileDivisor.help()`.  Miscellaneous examples appear below.
+For general help, enter ``Sandpile.help()``, ``SandpileConfig.help()``, and
+``SandpileDivisor.help()``.  Miscellaneous examples appear below.
 
 A weighted directed graph given as a Python dictionary::
 
@@ -210,7 +207,7 @@ The number of superstable configurations of each degree::
     sage: S.postulation()
     2
 
-the saturated, homogeneous sandpile ideal::
+the saturated homogeneous toppling ideal::
 
     sage: S.ideal()
     Ideal (x1 - x0, x3*x2 - x0^2, x4^2 - x0^2, x2^3 - x4*x3*x0, x4*x2^2 - x3^2*x0, x3^3 - x4*x2*x0, x4*x3^2 - x2^2*x0) of Multivariate Polynomial Ring in x4, x3, x2, x1, x0 over Rational Field
@@ -233,7 +230,7 @@ and its Betti numbers::
 
 Some various ways of creating Sandpiles::
 
-    sage: S = sandpiles.Complete(4) # for more options enter `sandpile.TAB`
+    sage: S = sandpiles.Complete(4) # for more options enter ``sandpile.TAB``
     sage: S = sandpiles.Wheel(6)
 
 A multidigraph with loops (vertices 0, 1, 2; for example, there is a directed
@@ -312,6 +309,7 @@ Distribution of avalanche sizes::
     (0, 1, 2, 3)
     sage: D.weierstrass_rank_seq(0)
     (2, 1, 0, 0, 0, -1)
+
 """
 
 #*****************************************************************************
@@ -322,32 +320,32 @@ Distribution of avalanche sizes::
 #*****************************************************************************
 
 from string import join
-import os
-from sage.gsl.probability_distribution import GeneralDiscreteDistribution
 from collections import Counter
-from sage.combinat.vector_partition import IntegerVectorsIterator
-from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.integer_vector import IntegerVectors
+from copy import deepcopy
+from inspect import getdoc
+import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
-from sage.symbolic.all import I, pi
+from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.parking_functions import ParkingFunctions
+from sage.combinat.set_partition import SetPartitions
+from sage.combinat.vector_partition import IntegerVectorsIterator
+from sage.env import SAGE_LOCAL
 from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from copy import deepcopy
-from sage.rings.arith import falling_factorial
-from sage.rings.all import Integer
-from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix, identity_matrix
-from sage.interfaces.singular import singular
-from sage.combinat.parking_functions import ParkingFunctions
-from sage.combinat.set_partition import SetPartitions
+from sage.gsl.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
-from sage.plot.colors import rainbow
-from sage.env import SAGE_LOCAL
+from sage.interfaces.singular import singular
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.misc.sagedoc import detex
 from sage.misc.superseded import deprecation
+from sage.modules.free_module_element import vector
+from sage.plot.colors import rainbow
+from sage.rings.arith import falling_factorial
+from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, lcm
+from sage.symbolic.all import I, pi
 
 # TODO: remove the following line once 4ti2 functions are removed
 path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
@@ -387,7 +385,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -399,114 +397,85 @@ class Sandpile(DiGraph):
             For detailed help with any method FOO listed below,
             enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.
             <BLANKLINE>
-            all_k_config             -- constant configuration (k,k,...,k)
-            all_k_div                -- constant divisor (k,k,...,k)
-            avalanche_polynomial     -- avalanche polynomial
-            betti                    -- Betti table for toppling ideal
-            betti_complexes          -- divisors whose complexes have homology
-            burning_config           -- burning configuration
-            burning_script           -- script for burning configuration
-            canonical_divisor        -- canonical divisor (undirected only)
-            dict                     -- dictionary defining underlying graph
-            genus                    -- genus (undirected graphs only)
-            groebner                 -- Groebner basis for toppling ideal
-            group_gens               -- minimal set of generators for sandpile group
-            group_order              -- order of the sandpile group
-            h_vector                 -- number of superstables of each degree
-            help                     -- list of Sandpile-specific methods
-            hilbert_function         -- Hilbert function of toppling ideal
-            ideal                    -- (homogenous) toppling ideal
-            identity                 -- identity of the sandpile group
-            in_degree                -- indegrees of vertices
-            invariant_factors        -- invariant factors of sandpile group
-            is_undirected            -- True if underlying graph is undirected
-            jacobian_representatives -- Jacobian group representatives
-            laplacian                -- discrete Laplacian (rows=firing rules)
-            markov_chain             -- open and closed sandpile Markov chains
-            max_stable               -- maximal stable configuration
-            max_stable_div           -- maximal stable divisor
-            max_superstables         -- maximal (component-wise) superstables
-            min_recurrents           -- minimal (component-wise) recurrents
-            nonsink_vertices         -- non-sink vertices
-            nonspecial_divisors      -- nonspecial divisors
-            out_degree               -- outdegrees of vertices
-            picard_representatives   -- Picard group representatives
-            points                   -- zeros of the toppling ideal
-            postulation              -- degree of largest superstable
-            recurrents               -- elements of the sandpile group
-            reduced_laplacian        -- reduced Laplacian (rows=firing rules)
-            reorder_vertices         -- reorder vertices by distance from sink
-            resolution               -- free resolution of the toppling ideal
-            ring                     -- ring containing the toppling ideal
-            show                     -- show the sandpile graph
-            show3d                   -- show the sandpile graph in 3d
-            sink                     -- the sink vertex
-            smith_form               -- Smith normal form of the Laplacian transpose
-            solve                    -- approximate zeros of the toppling ideal
-            stable_configs           -- iterator for all stable configurations
-            stationary_density       -- stationary density for closed Markov chain
-            superstables             -- superstable configurations
-            symmetric_recurrents     -- symmetric recurrents
-            tutte_polynomial         -- Tutte polynomial of the underlying graph
-            unsaturated_ideal        -- unsaturated (homogeneous) toppling ideal
-            version                  -- version of Sage Sandpiles
-            zero_config              -- the zero configuration
-            zero_div                 -- the zero divisor
+            all_k_config             -- The constant configuration with all values set to k.
+            all_k_div                -- The divisor with all values set to k.
+            avalanche_polynomial     -- The avalanche polynomial.
+            betti                    -- The Betti table for the homogeneous toppling ideal.
+            betti_complexes          -- The support-complexes with non-trivial homology.
+            burning_config           -- The minimal burning configuration.
+            burning_script           -- A script for the minimal burning configuration.
+            canonical_divisor        -- The canonical divisor.
+            dict                     -- A dictionary of dictionaries representing a directed graph.
+            genus                    -- The genus: (# non-loop edges) - (# vertices) + 1.
+            groebner                 -- A Groebner basis for the homogeneous toppling ideal.
+            group_gens               -- A minimal list of generators for the sandpile group.
+            group_order              -- The size of the sandpile group.
+            h_vector                 -- The number of superstable configurations in each degree.
+            help                     -- List of Sandpile-specific methods (not inherited from Graph).
+            hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
+            ideal                    -- The saturated homogeneous toppling ideal.
+            identity                 -- The identity configuration.
+            in_degree                -- The in-degree of a vertex or a list of all in-degrees.
+            invariant_factors        -- The invariant factors of the sandpile group.
+            is_undirected            -- Is the underlying graph undirected?
+            jacobian_representatives -- Representatives for the elements of the Jacobian group.
+            laplacian                -- The Laplacian matrix of the graph.
+            markov_chain             -- The sandpile Markov chain for configurations or divisors.
+            max_stable               -- The maximal stable configuration.
+            max_stable_div           -- The maximal stable divisor.
+            max_superstables         -- The maximal superstable configurations.
+            min_recurrents           -- The minimal recurrent elements.
+            nonsink_vertices         -- The names of the nonsink vertices.
+            nonspecial_divisors      -- The nonspecial divisors.
+            out_degree               -- The out-degree of a vertex or a list of all out-degrees.
+            picard_representatives   -- Representatives of the divisor classes of degree d in the Picard group.
+            points                   -- Generators for the multiplicative group of zeros of the sandpile ideal.
+            postulation              -- The postulation number of the toppling ideal.
+            recurrents               -- The recurrent configurations.
+            reduced_laplacian        -- The reduced Laplacian matrix of the graph.
+            reorder_vertices         -- A copy of the sandpile with vertex names permuted.
+            resolution               -- A minimal free resolution of the homogeneous toppling ideal.
+            ring                     -- The ring containing the homogeneous toppling ideal.
+            show                     -- Draw the underlying graph.
+            show3d                   -- Draw the underlying graph.
+            sink                     -- The sink vertex.
+            smith_form               -- The Smith normal form for the Laplacian.
+            solve                    -- Approximations of the complex affine zeros of the sandpile ideal.
+            stable_configs           -- Generator for all stable configurations.
+            stationary_density       -- The stationary density of the sandpile.
+            superstables             -- The superstable configurations.
+            symmetric_recurrents     -- The symmetric recurrent configurations.
+            tutte_polynomial         -- The Tutte polynomial.
+            unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
+            version                  -- The version number of Sage Sandpiles.
+            zero_config              -- The all-zero configuration.
+            zero_div                 -- The all-zero divisor.
         """
-        # methods acquired from [i for i in sorted(Sandpile.__dict__.keys()) if i[0]!='_']
-        methods = [['all_k_config','constant configuration (k,k,...,k)'],
-         ['all_k_div', 'constant divisor (k,k,...,k)'],
-         ['avalanche_polynomial', 'avalanche polynomial'],
-         ['betti','Betti table for toppling ideal'],
-         ['betti_complexes','divisors whose complexes have homology'],
-         ['burning_config','burning configuration'],
-         ['burning_script','script for burning configuration'],
-         ['canonical_divisor','canonical divisor (undirected only)'],
-         ['dict','dictionary defining underlying graph'],
-         ['genus','genus (undirected graphs only)'],
-         ['groebner','Groebner basis for toppling ideal'],
-         ['group_gens','minimal set of generators for sandpile group'],
-         ['group_order','order of the sandpile group'],
-         ['h_vector','number of superstables of each degree'],
-         ['help','list of Sandpile-specific methods'],
-         ['hilbert_function','Hilbert function of toppling ideal'],
-         ['ideal','(homogenous) toppling ideal'],
-         ['identity','identity of the sandpile group'],
-         ['in_degree','indegrees of vertices'],
-         ['invariant_factors','invariant factors of sandpile group'],
-         ['is_undirected','True if underlying graph is undirected'],
-         ['jacobian_representatives','Jacobian group representatives'],
-         ['laplacian','discrete Laplacian (rows=firing rules)'],
-         ['markov_chain','open and closed sandpile Markov chains'],
-         ['max_stable','maximal stable configuration'],
-         ['max_stable_div','maximal stable divisor'],
-         ['max_superstables','maximal (component-wise) superstables'],
-         ['min_recurrents','minimal (component-wise) recurrents'],
-         ['nonsink_vertices','non-sink vertices'],
-         ['nonspecial_divisors','nonspecial divisors'],
-         ['out_degree','outdegrees of vertices'],
-         ['picard_representatives','Picard group representatives'],
-         ['points','zeros of the toppling ideal'],
-         ['postulation','degree of largest superstable'],
-         ['recurrents','elements of the sandpile group'],
-         ['reduced_laplacian','reduced Laplacian (rows=firing rules)'],
-         ['reorder_vertices','reorder vertices by distance from sink'],
-         ['resolution','free resolution of the toppling ideal'],
-         ['ring','ring containing the toppling ideal'],
-         ['show','show the sandpile graph'],
-         ['show3d','show the sandpile graph in 3d'],
-         ['sink','the sink vertex'],
-         ['smith_form','Smith normal form of the Laplacian transpose'],
-         ['solve','approximate zeros of the toppling ideal'],
-         ['stable_configs','iterator for all stable configurations'],
-         ['stationary_density','stationary density for closed Markov chain'],
-         ['superstables','superstable configurations'],
-         ['symmetric_recurrents','symmetric recurrents'],
-         ['tutte_polynomial','Tutte polynomial of the underlying graph'],
-         ['unsaturated_ideal','unsaturated (homogeneous) toppling ideal'],
-         ['version','version of Sage Sandpiles'],
-         ['zero_config','the zero configuration'],
-         ['zero_div','the zero divisor']]
+        # We collect the first sentence of each docstring.  The sentence is,
+        # by definition, from the beginning of the string to the first
+        # occurrence of a period or question mark.  If neither of these appear
+        # in the string, take the sentence to be the empty string.  If the
+        # latter occurs, something should be changed.
+        methods = []
+        for i in sorted(Sandpile.__dict__.keys()):
+            if i[0]!='_':
+                s = eval('getdoc(Sandpile.' + i +')')
+                period = s.find('.')
+                question = s.find('?')
+                if period==-1 and question==-1:
+                    s = ''  # Neither appears!
+                else:
+                    if period==-1:
+                        period = len(s) + 1
+                    if question==-1:
+                        question = len(s) + 1
+                    if period < question:
+                        s = s.split('.')[0]
+                        s = detex(s).strip() + '.'
+                    else:
+                        s = s.split('?')[0]
+                        s = detex(s).strip() + '?'
+                methods.append([i,s])
         print 'For detailed help with any method FOO listed below,'
         print 'enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.'
         print ''
@@ -526,13 +495,14 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-         - ``g`` - dict for directed multigraph with edges weighted by
-           nonnegative integers (see NOTES), a Graph or DiGraph.
+         - ``g`` -- dict for directed multigraph with edges weighted by
+           nonnegative integers (see NOTE), a Graph or DiGraph.
 
-         - ``sink`` (optional) - A sink vertex.  Any outgoing edges from the
+         - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
            designated sink are ignored for the purposes of stabilization.  It is
-           assumed that every vertex has a directed path into the sink.  The
-           default is the first vertex in the list of the Sandpile's vertices.
+           assumed that every vertex has a directed path into the sink.  If the
+           ``sink`` argument is omitted, the first vertex in the list of the
+           Sandpile's vertices is set as the sink.
 
         OUTPUT:
 
@@ -573,7 +543,7 @@ class Sandpile(DiGraph):
         sage: s.dict()
         {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
 
-        Sandpiles can be created from Graphs and DiGraphs.::
+        Sandpiles can be created from Graphs and DiGraphs.
 
         sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
         sage: s = Sandpile(g)
@@ -588,16 +558,16 @@ class Sandpile(DiGraph):
         [ 0 -1  2 -1]
         [-1  0 -1  2]
 
-        NOTES:
+        .. NOTE::
 
-        Loops are allowed.  There are four admissible input formats.  Two of
-        these are dictionaries whose keys are the vertex names.  In one, the
-        values are dictionaries with keys the names of vertices which are the
-        heads of outgoing edges and with values the weights of the edges.  In
-        the other format, the values are lists of names of vertices which are
-        the heads of the outgoing edges, with weights determined by the number
-        of times a name of a vertex appears in the list.  Both Graphs and
-        DiGraphs can also be used as inputs.
+            Loops are allowed.  There are four admissible input formats.  Two of
+            these are dictionaries whose keys are the vertex names.  In one, the
+            values are dictionaries with keys the names of vertices which are the
+            heads of outgoing edges and with values the weights of the edges.  In
+            the other format, the values are lists of names of vertices which are
+            the heads of the outgoing edges, with weights determined by the number
+            of times a name of a vertex appears in the list.  Both Graphs and
+            DiGraphs can also be used as inputs.
 
         TESTS::
 
@@ -680,11 +650,11 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``name`` - name of an internal method
+        ``name`` -- name of an internal method
 
         OUTPUT:
 
-        None.
+        None
 
         EXAMPLES::
 
@@ -797,7 +767,11 @@ class Sandpile(DiGraph):
 
         INPUT:
 
+        None
+
         OUTPUT:
+
+        None
 
         EXAMPLES::
 
@@ -813,11 +787,11 @@ class Sandpile(DiGraph):
 
     def show(self,**kwds):
         r"""
-        Draws the graph.
+        Draw the underlying graph.
 
         INPUT:
 
-        ``kwds`` - arguments passed to the show method for Graph or DiGraph
+        ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
         OUTPUT:
 
@@ -835,13 +809,13 @@ class Sandpile(DiGraph):
         else:
             DiGraph(self).show(**kwds)
 
-    def show3d(self,**kwds):
+    def show3d(self, **kwds):
         r"""
-        Draws the graph.
+        Draw the underlying graph.
 
         INPUT:
 
-        ``kwds`` - arguments passed to the show method for Graph or DiGraph
+        ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
         OUTPUT:
 
@@ -870,7 +844,6 @@ class Sandpile(DiGraph):
 
         dict
 
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -886,7 +859,7 @@ class Sandpile(DiGraph):
 
     def sink(self):
         r"""
-        The identifier for the sink vertex.
+        The sink vertex.
 
         INPUT:
 
@@ -894,7 +867,7 @@ class Sandpile(DiGraph):
 
         OUTPUT:
 
-        Object (name for the sink vertex)
+        sink vertex
 
         EXAMPLES::
 
@@ -931,10 +904,10 @@ class Sandpile(DiGraph):
             [-1 -1  3 -1]
             [ 0 -1 -1  2]
 
-        WARNING::
+        .. WARNING::
 
-        The function ``laplacian_matrix`` should be avoided.  It returns the
-        indegree version of the laplacian.
+            The function ``laplacian_matrix`` should be avoided.  It returns the
+            indegree version of the Laplacian.
         """
         return deepcopy(self._laplacian)
 
@@ -964,10 +937,10 @@ class Sandpile(DiGraph):
             [-1  3 -1]
             [-1 -1  2]
 
-        NOTES:
+        .. NOTE::
 
-        This is the Laplacian matrix with the row and column indexed by the
-        sink vertex removed.
+            This is the Laplacian matrix with the row and column indexed by the
+            sink vertex removed.
         """
         return deepcopy(self._reduced_laplacian)
 
@@ -1062,7 +1035,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        SandpileDivisor
+        None
 
         OUTPUT:
 
@@ -1108,7 +1081,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``v`` (optional) - vertex name
+        ``v`` - (optional) vertex name
 
         OUTPUT:
 
@@ -1156,7 +1129,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``v`` - vertex name or None
+        ``v`` -- (optional) vertex name
 
         OUTPUT:
 
@@ -1215,7 +1188,7 @@ class Sandpile(DiGraph):
 
     def burning_config(self):
         r"""
-        A minimal burning configuration.
+        The minimal burning configuration.
 
         INPUT:
 
@@ -1242,30 +1215,30 @@ class Sandpile(DiGraph):
             sage: matrix(script)*S.reduced_laplacian()
             [2 0 1 1 0]
 
-        NOTES:
+        .. NOTE::
 
-        The burning configuration and script are computed using a modified
-        version of Speer's script algorithm.  This is a generalization to
-        directed multigraphs of Dhar's burning algorithm.
+            The burning configuration and script are computed using a modified
+            version of Speer's script algorithm.  This is a generalization to
+            directed multigraphs of Dhar's burning algorithm.
 
-        A *burning configuration* is a nonnegative integer-linear
-        combination of the rows of the reduced Laplacian matrix having
-        nonnegative entries and such that every vertex has a path from some
-        vertex in its support.  The corresponding *burning script* gives
-        the integer-linear combination needed to obtain the burning
-        configuration.  So if `b` is the burning configuration, `\sigma` is its
-        script, and `\tilde{L}` is the reduced Laplacian, then `\sigma\cdot
-        \tilde{L} = b`.  The *minimal burning configuration* is the one
-        with the minimal script (its components are no larger than the
-        components of any other script
-        for a burning configuration).
+            A *burning configuration* is a nonnegative integer-linear
+            combination of the rows of the reduced Laplacian matrix having
+            nonnegative entries and such that every vertex has a path from some
+            vertex in its support.  The corresponding *burning script* gives
+            the integer-linear combination needed to obtain the burning
+            configuration.  So if `b` is the burning configuration, `\sigma` is its
+            script, and `\tilde{L}` is the reduced Laplacian, then `\sigma\cdot
+            \tilde{L} = b`.  The *minimal burning configuration* is the one
+            with the minimal script (its components are no larger than the
+            components of any other script
+            for a burning configuration).
 
-        The following are equivalent for a configuration `c` with burning
-        configuration `b` having script `\sigma`:
+            The following are equivalent for a configuration `c` with burning
+            configuration `b` having script `\sigma`:
 
-         - `c` is recurrent;
-         - `c+b` stabilizes to `c`;
-         - the firing vector for the stabilization of `c+b` is `\sigma`.
+             - `c` is recurrent;
+             - `c+b` stabilizes to `c`;
+             - the firing vector for the stabilization of `c+b` is `\sigma`.
         """
         return deepcopy(self._burning_config)
 
@@ -1298,30 +1271,30 @@ class Sandpile(DiGraph):
             sage: matrix(script)*S.reduced_laplacian()
             [2 0 1 1 0]
 
-        NOTES:
+        .. NOTE::
 
-        The burning configuration and script are computed using a modified
-        version of Speer's script algorithm.  This is a generalization to
-        directed multigraphs of Dhar's burning algorithm.
+            The burning configuration and script are computed using a modified
+            version of Speer's script algorithm.  This is a generalization to
+            directed multigraphs of Dhar's burning algorithm.
 
-        A *burning configuration* is a nonnegative integer-linear
-        combination of the rows of the reduced Laplacian matrix having
-        nonnegative entries and such that every vertex has a path from some
-        vertex in its support.  The corresponding *burning script* gives the
-        integer-linear combination needed to obtain the burning configuration.
-        So if `b` is the burning configuration, `s` is its script, and
-        `L_{\mathrm{red}}` is the reduced Laplacian, then `s\cdot
-        L_{\mathrm{red}}= b`.  The *minimal burning configuration* is the one
-        with the minimal script (its components are no larger than the
-        components of any other script
-        for a burning configuration).
+            A *burning configuration* is a nonnegative integer-linear
+            combination of the rows of the reduced Laplacian matrix having
+            nonnegative entries and such that every vertex has a path from some
+            vertex in its support.  The corresponding *burning script* gives the
+            integer-linear combination needed to obtain the burning configuration.
+            So if `b` is the burning configuration, `s` is its script, and
+            `L_{\mathrm{red}}` is the reduced Laplacian, then `s\cdot
+            L_{\mathrm{red}}= b`.  The *minimal burning configuration* is the one
+            with the minimal script (its components are no larger than the
+            components of any other script
+            for a burning configuration).
 
-        The following are equivalent for a configuration `c` with burning
-        configuration `b` having script `s`:
+            The following are equivalent for a configuration `c` with burning
+            configuration `b` having script `s`:
 
-         - `c` is recurrent;
-         - `c+b` stabilizes to `c`;
-         - the firing vector for the stabilization of `c+b` is `s`.
+             - `c` is recurrent;
+             - `c+b` stabilizes to `c`;
+             - the firing vector for the stabilization of `c+b` is `s`.
         """
         return deepcopy(self._burning_script)
 
@@ -1345,13 +1318,13 @@ class Sandpile(DiGraph):
         """
         return self._nonsink_vertices
 
-    def all_k_config(self,k):
+    def all_k_config(self, k):
         r"""
-        The configuration with all values set to k.
+        The constant configuration with all values set to `k`.
 
         INPUT:
 
-        ``k`` - integer
+        ``k`` -- integer
 
         OUTPUT:
 
@@ -1427,7 +1400,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         None
 
@@ -1435,16 +1408,6 @@ class Sandpile(DiGraph):
 
         SandpileConfig or a list of integers  If ``verbose`` is ``False``, the
         configuration are converted to a list of integers.
-
-        INPUT:
-
-        ``verbose`` (optional) - boolean
-
-        None
-
-        OUTPUT:
-
-        SandpileConfig or a list of integers
 
         EXAMPLES::
 
@@ -1509,7 +1472,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1570,13 +1533,13 @@ class Sandpile(DiGraph):
 
     def superstables(self, verbose=True):
         r"""
-        The list of superstable configurations as dictionaries if
-        ``verbose`` is ``True``, otherwise as lists of integers.  The
-        superstables are also known as `G`-parking functions.
+        The superstable configurations.  If ``verbose`` is ``False``, the
+        configurations are converted to lists of integers.  Superstables for
+        undirected graphs are also known as ``G-parking functions``.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1645,7 +1608,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1697,8 +1660,8 @@ class Sandpile(DiGraph):
 
     def is_undirected(self):
         r"""
-        ``True`` if ``(u,v)`` is and edge if and only if ``(v,u)`` is an
-        edges, each edge with the same weight.
+        Is the underlying graph undirected?  ``True`` if `(u,v)` is and edge if
+        and only if `(v,u)` is an edge, each edge with the same weight.
 
         INPUT:
 
@@ -1752,12 +1715,12 @@ class Sandpile(DiGraph):
         r"""
         The minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.  If
-        ``verbose is ``False``, the configurations are converted to lists of
+        ``verbose`` is ``False``, the configurations are converted to lists of
         integers.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1794,7 +1757,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1853,7 +1816,7 @@ class Sandpile(DiGraph):
 
     def _set_avalanche_polynomial(self):
         """
-        Compute the avalanche polynomial.  See `self.avalanche_polynomial` for details.
+        Compute the avalanche polynomial.  See ``self.avalanche_polynomial`` for details.
 
         INPUT:
 
@@ -1886,11 +1849,11 @@ class Sandpile(DiGraph):
 
     def avalanche_polynomial(self, multivariable=True):
         r"""
-        The avalanche polynomial.  See NOTES for details.
+        The avalanche polynomial.  See NOTE for details.
 
         INPUT:
 
-        ``multivariable`` (optional) - boolean
+        ``multivariable`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1904,19 +1867,19 @@ class Sandpile(DiGraph):
             sage: s.avalanche_polynomial(False)
             9*x0^3 + 6*x0^2 + 9*x0 + 24
 
-        NOTES:
+        .. NOTE::
 
-        For each nonsink vertex ``v``, let ``x_v`` be an indeterminate.
-        If ``(r,v)`` is a pair consisting of a recurrent ``r`` and nonsink
-        vertex ``v``, then for each nonsink vertex ``w``, let ``n_w`` be the
-        number of times vertex ``w`` fires in the stabilization of ``r + v``.
-        Let ``M(r,v)`` be the monomial $\prod_w x_w^{n_w}$, i.e., the exponent
-        records the vector of ``n_w`` as ``w`` ranges over the nonsink vertices.
-        The avalanche polynomial is then the sum of ``M(r,v)`` as ``r`` ranges
-        over the recurrents and ``v`` ranges over the nonsink vertices.  If
-        ``multivariable`` is ``False``, then set all the indeterminates equal
-        to each other (and, thus, only count the number of vertex firings in the
-        stabilizations, forgetting which particular vertices fired).
+            For each nonsink vertex `v`, let `x_v` be an indeterminate.
+            If `(r,v)` is a pair consisting of a recurrent `r` and nonsink
+            vertex `v`, then for each nonsink vertex `w`, let `n_w` be the
+            number of times vertex `w` fires in the stabilization of `r + v`.
+            Let `M(r,v)` be the monomial `\prod_w x_w^{n_w}`, i.e., the exponent
+            records the vector of `n_w` as `w` ranges over the nonsink vertices.
+            The avalanche polynomial is then the sum of `M(r,v)` as `r` ranges
+            over the recurrents and `v` ranges over the nonsink vertices.  If
+            ``multivariable`` is ``False``, then set all the indeterminates equal
+            to each other (and, thus, only count the number of vertex firings in the
+            stabilizations, forgetting which particular vertices fired).
         """
         if multivariable:
             return deepcopy(self._avalanche_polynomial)
@@ -1928,15 +1891,11 @@ class Sandpile(DiGraph):
 
     def nonspecial_divisors(self, verbose=True):
         r"""
-        The nonspecial divisors: those divisors of degree ``g-1`` with
-        empty linear system.  The term is only defined for undirected graphs.
-        Here, ``g = |E| - |V| + 1`` is the genus of the graph (not counted loops
-        as part of |E|).  If ``verbose`` is ``False``, the divisors are converted
-        to lists of integers.
+        The nonspecial divisors. Only for undirected graphs.  (See NOTE.)
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -1953,6 +1912,18 @@ class Sandpile(DiGraph):
             2
             sage: [i.effective_div() for i in ns]
             [[], [], [], [], [], []]
+
+        .. NOTE::
+
+            The "nonspecial divisors" are those divisors of degree `g-1` with
+            empty linear system.  The term is only defined for undirected graphs.
+            Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+            as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
+            to lists of integers.
+
+        .. WARNING::
+
+            The underlying graph must be undirected.
         """
         if self.is_undirected():
             result = []
@@ -1970,8 +1941,8 @@ class Sandpile(DiGraph):
 
     def canonical_divisor(self):
         r"""
-        The canonical divisor: the divisor ``deg(v)-2`` grains of sand
-        on each vertex (not counting loops).  Only for undirected graphs.
+        The canonical divisor.  This is the divisor with `\deg(v)-2` grains of
+        sand on each vertex (not counting loops).  Only for undirected graphs.
 
         INPUT:
 
@@ -1989,6 +1960,10 @@ class Sandpile(DiGraph):
             sage: s = Sandpile({0:[1,1],1:[0,0,1,1,1]},0)
             sage: s.canonical_divisor()  # loops are disregarded
             {0: 0, 1: 0}
+
+        .. WARNING::
+
+            The underlying graph must be undirected.
         """
         if self.is_undirected():
             return SandpileDivisor(self,[self.laplacian()[i][i] - 2 for i in range(self.num_verts())])
@@ -2022,8 +1997,7 @@ class Sandpile(DiGraph):
 
     def invariant_factors(self):
         r"""
-        The invariant factors of the sandpile group (a finite
-        abelian group).
+        The invariant factors of the sandpile group.
 
         INPUT:
 
@@ -2044,7 +2018,7 @@ class Sandpile(DiGraph):
     def _set_hilbert_function(self):
         """
         Computes the variables holding the Hilbert function of the homogeneous
-        homogeneous sandpile ideal, the first differences of the Hilbert
+        homogeneous toppling ideal, the first differences of the Hilbert
         function, and the postulation number for the zero-set of the sandpile
         ideal when any one of these is called by the user.
 
@@ -2073,9 +2047,9 @@ class Sandpile(DiGraph):
 
     def h_vector(self):
         r"""
-        The first differences of the Hilbert function of the homogeneous
-        sandpile ideal.  It lists the number of superstable configurations in
-        each degree.
+        The number of superstable configurations in each degree.  Equivalently,
+        this is the list of first differences of the Hilbert function of the
+        (homogeneous) toppling ideal.
 
         INPUT:
 
@@ -2098,7 +2072,7 @@ class Sandpile(DiGraph):
 
     def hilbert_function(self):
         r"""
-        The Hilbert function of the homogeneous sandpile ideal.
+        The Hilbert function of the homogeneous toppling ideal.
 
         INPUT:
 
@@ -2120,7 +2094,7 @@ class Sandpile(DiGraph):
 
     def postulation(self):
         r"""
-        The postulation number of the sandpile ideal.  This is the
+        The postulation number of the toppling ideal.  This is the
         largest weight of a superstable configuration of the graph.
 
         INPUT:
@@ -2162,9 +2136,10 @@ class Sandpile(DiGraph):
 
     def smith_form(self):
         r"""
-        List of integer matrices ``D, U, V`` such that ``ULV = D`` where ``L`` is the
-        transpose of the Laplacian, ``D`` is diagonal, and  ``U`` and ``V`` are
-        invertible over the integers.
+        The Smith normal form for the Laplacian.  In detail: a list of integer
+        matrices `D, U, V` such that `ULV = D` where `L` is the transpose of the
+        Laplacian, `D` is diagonal, and  `U` and `V` are invertible over the
+        integers.
 
         INPUT:
 
@@ -2190,8 +2165,9 @@ class Sandpile(DiGraph):
 
     def reorder_vertices(self):
         r"""
-        Create a copy of the sandpile but with the vertices ordered according
-        to their distance from the sink, from greatest to least.
+        A copy of the sandpile with vertex names permuted.  After reordering,
+        vertex `u` comes before vertex `v` in the list of vertices if `u` is
+        closer to the sink.
 
         INPUT:
 
@@ -2207,7 +2183,10 @@ class Sandpile(DiGraph):
             sage: S.dict()
             {0: {1: 1}, 1: {2: 1}, 2: {0: 1, 1: 1}}
             sage: T = S.reorder_vertices()
-            sage: T.dict()
+
+        The vertices 1 and 2 have been swapped::
+
+            sage: T.dict() 
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
 
@@ -2282,12 +2261,12 @@ class Sandpile(DiGraph):
 
     def jacobian_representatives(self, verbose=True):
         r"""
-        Find representatives for the elements of the Jacobian group. If ``verbose``
+        Representatives for the elements of the Jacobian group. If ``verbose``
         is ``False``, then lists representing the divisors are returned.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -2314,22 +2293,20 @@ class Sandpile(DiGraph):
             sage: s.jacobian_representatives()
             [{0: -5, 1: 3, 2: 2}, {0: -4, 1: 3, 2: 1}]
 
-        ::
-
-        Let tau be the nonnegative generator of the kernel of the transpose of
-        the Laplacian, and let tau_s be it sink component, then the sandpile
-        group is isomorphic to the direct sum of ``\Z/tau_s\Z`` and the Jacobian
-        group.  In the case above, we have::
+        Let `\tau` be the nonnegative generator of the kernel of the transpose of
+        the Laplacian, and let `tau_s` be it sink component, then the sandpile
+        group is isomorphic to the direct sum of the cyclic group of order
+        `\tau_s` and the Jacobian group.  In the example above, we have::
 
             sage: s.laplacian().left_kernel()
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [14  5  8]
 
-        NOTES:
+        .. NOTE::
 
-        The Jacobian group is the set of all divisors of degree zero modulo the
-        integer rowspan of the Laplacian matrix.
+            The Jacobian group is the set of all divisors of degree zero modulo the
+            integer rowspan of the Laplacian matrix.
         """
         if verbose:
             return deepcopy(self._jacobian_representatives)
@@ -2338,13 +2315,14 @@ class Sandpile(DiGraph):
 
     def picard_representatives(self, d, verbose=True):
         r"""
-        Representatives of the divisor classes of degree ``d`` in the Picard group.  (Also
+        Representatives of the divisor classes of degree `d` in the Picard group.  (Also
         see the documentation for ``jacobian_representatives``.)
 
         INPUT:
 
-        - ``d`` - integer
-        - ``verbose`` (optional) - boolean
+        - ``d`` -- integer
+
+        - ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -2369,14 +2347,15 @@ class Sandpile(DiGraph):
 
     def stable_configs(self, smax=None):
         r"""
-        Generator for all stable configurations.  If smax is provided, then the generator gives
-        all stable configurations less than or equal to smax.  If smax does not represent a
-        stable configuration, then each component of smax is replaced by the corresponding
-        component of the maximal stable configuration.
+        Generator for all stable configurations.  If ``smax`` is provided, then
+        the generator gives all stable configurations less than or equal to
+        ``smax``.  If ``smax`` does not represent a stable configuration, then each
+        component of ``smax`` is replaced by the corresponding component of the
+        maximal stable configuration.
 
         INPUT:
 
-        ``smax`` (optional) - SandpileConfig or list representing a SandpileConfig
+        ``smax`` -- (optional) SandpileConfig or list representing a SandpileConfig
 
 
         OUTPUT:
@@ -2408,17 +2387,18 @@ class Sandpile(DiGraph):
 
     def markov_chain(self,state, distrib=None):
         r"""
-        The sandpile Markov chain for either configurations or divisors,
-        starting at ``state``.  See NOTE for details.
+        The sandpile Markov chain for configurations or divisors.
+        The chain starts at ``state``.  See NOTE for details.
 
         INPUT:
 
-        - ``state``  - SandpileConfig, SandpileDivisor, or list representing one of these
-        - ``distrib`` - list of nonnegative numbers summing to 1 (representing a prob. dist.)
+        - ``state``  -- SandpileConfig, SandpileDivisor, or list representing one of these
+
+        - ``distrib`` -- (optional) list of nonnegative numbers summing to 1 (representing a prob. dist.)
 
         OUTPUT:
 
-        generator for Markov chain (see NOTES)
+        generator for Markov chain (see NOTE)
 
         EXAMPLES::
 
@@ -2462,22 +2442,22 @@ class Sandpile(DiGraph):
             sage: m.next().values() # random
             [1, 1, 3, 4]
 
-        NOTES:
+        .. NOTE::
 
-        The `closed sandpile Markov chain` has state space consisting of the configurations
-        on a sandpile.  It transitions from a state by choosing a vertex at random
-        (according to the probability distribution `distrib`), dropping a grain of sand at
-        that vertex, and stabilizing.  If the chosen vertex is the sink, the chain stays
-        at the current state.
+            The ``closed sandpile Markov chain`` has state space consisting of the configurations
+            on a sandpile.  It transitions from a state by choosing a vertex at random
+            (according to the probability distribution ``distrib``), dropping a grain of sand at
+            that vertex, and stabilizing.  If the chosen vertex is the sink, the chain stays
+            at the current state.
 
-        The `open sandpile Markov chain` has state space consisting of the recurrent elements,
-        i.e., the state space is the sandpile group.  It transitions from the configuration `c`
-        by choosing a vertex `v` at random according to `distrib`.  The next state is the
-        stabilization of `c+v`.  If `v` is the sink vertex, then the stabilization of `c+v`
-        is defined to be `c`.
+            The ``open sandpile Markov chain`` has state space consisting of the recurrent elements,
+            i.e., the state space is the sandpile group.  It transitions from the configuration `c`
+            by choosing a vertex `v` at random according to ``distrib``.  The next state is the
+            stabilization of `c+v`.  If `v` is the sink vertex, then the stabilization of `c+v`
+            is defined to be `c`.
 
-        Note that in either case, if ``distrib`` is specified, its length is equal to
-        the total number of vertices (including the sink).
+            Note that in either case, if ``distrib`` is specified, its length is equal to
+            the total number of vertices (including the sink).
 
         REFERENCES:
 
@@ -2578,28 +2558,28 @@ class Sandpile(DiGraph):
             sage: s.stationary_density()
             9/8
 
-        NOTES:
+        .. NOTE::
 
-        The stationary density of a sandpile is the sum ``\sum_c (\deg(c) + \deg(s))``
-        where ``\deg(s)`` is the degree of the sink and the sum is over all
-        recurrent configurations.
+            The stationary density of a sandpile is the sum `\sum_c (\deg(c) + \deg(s))`
+            where `\deg(s)` is the degree of the sink and the sum is over all
+            recurrent configurations.
 
         REFERENCES:
 
-        .. [Levine2014] Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
+        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
            Priezzhev and Ruelle, Communications in Mathematical Physics.
         """
         return self._stationary_density
 
 #################### Functions for divisors #####################
 
-    def all_k_div(self,k):
+    def all_k_div(self, k):
         r"""
-        The divisor with all values set to k.
+        The divisor with all values set to `k`.
 
         INPUT:
 
-        ``k`` - integer
+        ``k`` -- integer
 
         OUTPUT:
 
@@ -2673,10 +2653,7 @@ class Sandpile(DiGraph):
 
     def betti_complexes(self):
         r"""
-        A list of all the divisors with nonempty linear systems whose
-        corresponding simplicial complexes have nonzero homology in some
-        dimension. Each such divisor is returned with its corresponding
-        simplicial complex.
+        The support-complexes with non-trivial homology.  (See NOTE.)
 
         INPUT:
 
@@ -2709,6 +2686,11 @@ class Sandpile(DiGraph):
             {0: Z, 1: 0}
             sage: p[-1][1].homology()
             {0: 0, 1: 0, 2: Z}
+
+        .. NOTE::
+
+            A ``support-complex`` is the simplicial complex formed from the
+            supports of the divisors in a linear system.
         """
         return deepcopy(self._betti_complexes)
 
@@ -2722,7 +2704,7 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-        ``v``, ``w`` - vertices
+        ``v``, ``w`` -- vertices
 
         OUTPUT:
 
@@ -2811,7 +2793,7 @@ class Sandpile(DiGraph):
 
     def unsaturated_ideal(self):
         r"""
-        The unsaturated, homogeneous sandpile ideal.
+        The unsaturated, homogeneous toppling ideal.
 
         INPUT:
 
@@ -2833,12 +2815,12 @@ class Sandpile(DiGraph):
 
     def ideal(self, gens=False):
         r"""
-        The saturated, homogeneous sandpile ideal (or its generators if
-        ``gens=True``).
+        The saturated homogeneous toppling ideal.  If ``gens`` is ``True``, the
+        generators for the ideal are returned instead.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``gens`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -2861,7 +2843,7 @@ class Sandpile(DiGraph):
 
     def ring(self):
         r"""
-        The ring containing the homogeneous sandpile ideal.
+        The ring containing the homogeneous toppling ideal.
 
         INPUT:
 
@@ -2879,18 +2861,18 @@ class Sandpile(DiGraph):
             sage: S.ring().gens()
             (x3, x2, x1, x0)
 
-        NOTES:
+        .. NOTE::
 
-        The indeterminate `xi` corresponds to the `i`-th vertex as listed my
-        the method ``vertices``. The term-ordering is degrevlex with
-        indeterminates ordered according to their distance from the sink (larger
-        indeterminates are further from the sink).
+            The indeterminate ``xi`` corresponds to the `i`-th vertex as listed my
+            the method ``vertices``. The term-ordering is degrevlex with
+            indeterminates ordered according to their distance from the sink (larger
+            indeterminates are further from the sink).
         """
         return self._ring
 
     def _set_resolution(self):
         r"""
-        Compute the free resolution of the homogeneous sandpile ideal.
+        Compute the free resolution of the homogeneous toppling ideal.
 
         INPUT:
 
@@ -2932,17 +2914,17 @@ class Sandpile(DiGraph):
 
     def resolution(self, verbose=False):
         r"""
-        This function computes a minimal free resolution of the homogeneous
-        sandpile ideal.  If ``verbose`` is ``True``, then all of the mappings
-        are returned.  Otherwise, the resolution is summarized.
+        A minimal free resolution of the homogeneous toppling ideal.  If
+        ``verbose`` is ``True``, then all of the mappings are returned.
+        Otherwise, the resolution is summarized.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``False``) boolean
 
         OUTPUT:
 
-        free resolution of the sandpile ideal
+        free resolution of the toppling ideal
 
         EXAMPLES::
 
@@ -2977,7 +2959,7 @@ class Sandpile(DiGraph):
 
     def _set_groebner(self):
         r"""
-        Computes a Groebner basis for the homogeneous sandpile ideal with
+        Computes a Groebner basis for the homogeneous toppling ideal with
         respect to the standard sandpile ordering (see ``ring``).
 
         INPUT:
@@ -2999,8 +2981,8 @@ class Sandpile(DiGraph):
 
     def groebner(self):
         r"""
-        A Groebner basis for the homogeneous sandpile ideal with
-        respect to the standard sandpile ordering (see ``ring``).
+        A Groebner basis for the homogeneous toppling ideal.  It is computed
+        with respect to the standard sandpile ordering (see ``ring``).
 
         INPUT:
 
@@ -3020,13 +3002,13 @@ class Sandpile(DiGraph):
 
     def betti(self, verbose=True):
         r"""
-        Computes the Betti table for the homogeneous sandpile ideal.  If
+        The Betti table for the homogeneous toppling ideal.  If
         ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
         it returns a less formated table.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -3075,10 +3057,10 @@ class Sandpile(DiGraph):
             sage: S.group_order()
             8
 
-        NOTES:
+        .. NOTE::
 
-        The solutions form a multiplicative group isomorphic to the sandpile
-        group.  Generators for this group are given exactly by ``points()``.
+            The solutions form a multiplicative group isomorphic to the sandpile
+            group.  Generators for this group are given exactly by ``points()``.
         """
         singular.setring(self._ring._singular_())
         v = [singular.var(i) for i in range(1,singular.nvars(self._ring))]
@@ -3160,7 +3142,7 @@ class Sandpile(DiGraph):
     # FIX: use the is_symmetric functions for configurations.
     def symmetric_recurrents(self, orbits):
         r"""
-        The list of symmetric recurrent configurations.
+        The symmetric recurrent configurations.
 
         INPUT:
 
@@ -3189,10 +3171,10 @@ class Sandpile(DiGraph):
              {1: 2, 2: 1, 3: 2, 4: 1},
              {1: 2, 2: 2, 3: 1, 4: 1}]
 
-        NOTES:
+        .. NOTE::
 
-        The user is responsible for ensuring that the list of orbits comes from
-        a group of symmetries of the underlying graph.
+            The user is responsible for ensuring that the list of orbits comes from
+            a group of symmetries of the underlying graph.
         """
         sym_recurrents = []
         active = [self._max_stable]
@@ -3215,7 +3197,6 @@ class SandpileConfig(dict):
     r"""
     Class for configurations on a sandpile.
     """
-
     @staticmethod
     def help(verbose=True):
         r"""
@@ -3223,7 +3204,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -3242,50 +3223,53 @@ class SandpileConfig(dict):
             For detailed help with any method FOO listed below,
             enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c.
             <BLANKLINE>
-            all_k_config           -- constant configuration (k,k,...,k)
-            add_random             -- add sand grain to a random vertex
-            burst_size             -- burst size of vertex
-            deg                    -- degree of the configuration
-            dualize                -- difference with the max. stable configuration
-            equivalent_recurrent   -- equivalent recurrent configuration
-            equivalent_superstable -- equivalent superstable configuration
-            fire_script            -- fire a multiset of vertices
-            fire_unstable          -- fire all unstable vertices
-            fire_vertex            -- fire a particular vertex
-            is_recurrent           -- is the configuration recurrent?
-            is_stable              -- is the configuration stable?
-            is_superstable         -- is the configuration superstable?
-            is_symmetric           -- is the configuration symmetric?
-            order                  -- order of equivalent recurrent in the sandpile group
-            sandpile               -- the parent Sandpile
-            show                   -- display the configuration
-            stabilize              -- the stabilized configuration
-            support                -- the vertices containing sand
-            unstable               -- the unstable vertices
-            values                 -- list of integers representing the configuration
+            add_random             -- Add one grain of sand to a random vertex.
+            burst_size             -- The burst size of the configuration with respect to the given vertex.
+            deg                    -- The degree of the configuration.
+            dualize                -- The difference with the maximal stable configuration.
+            equivalent_recurrent   -- The recurrent configuration equivalent to the given configuration.
+            equivalent_superstable -- The equivalent superstable configuration.
+            fire_script            -- Fire the given script.
+            fire_unstable          -- Fire all unstable vertices.
+            fire_vertex            -- Fire the given vertex.
+            help                   -- List of SandpileConfig methods.
+            is_recurrent           -- Is the configuration recurrent?
+            is_stable              -- Is the configuration stable?
+            is_superstable         -- Is the configuration superstable?
+            is_symmetric           -- Is the configuration symmetric?
+            order                  -- The order of the equivalent recurrent element.
+            sandpile               -- The configuration's underlying sandpile.
+            show                   -- Show the configuration.
+            stabilize              -- The stabilized configuration.
+            support                -- The vertices containing sand.
+            unstable               -- The unstable vertices.
+            values                 -- The values of the configuration as a list.
         """
-        # methods acquired from [i for i in sorted(SandpileConfig.__dict__.keys()) if i[0]!='_']
-        methods = [['all_k_config','constant configuration (k,k,...,k)'],
-                   ['add_random','add sand grain to a random vertex'],
-                   ['burst_size','burst size of vertex'],
-                   ['deg','degree of the configuration'],
-                   ['dualize','difference with the max. stable configuration'],
-                   ['equivalent_recurrent','equivalent recurrent configuration'],
-                   ['equivalent_superstable','equivalent superstable configuration'],
-                   ['fire_script','fire a multiset of vertices'],
-                   ['fire_unstable','fire all unstable vertices'],
-                   ['fire_vertex','fire a particular vertex'],
-                   ['is_recurrent','is the configuration recurrent?'],
-                   ['is_stable','is the configuration stable?'],
-                   ['is_superstable','is the configuration superstable?'],
-                   ['is_symmetric','is the configuration symmetric?'],
-                   ['order','order of equivalent recurrent in the sandpile group'],
-                   ['sandpile','the parent Sandpile'],
-                   ['show','display the configuration'],
-                   ['stabilize','the stabilized configuration'],
-                   ['support','the vertices containing sand'],
-                   ['unstable','the unstable vertices'],
-                   ['values','list of integers representing the configuration']]
+        # We collect the first sentence of each docstring.  The sentence is,
+        # by definition, from the beginning of the string to the first
+        # occurrence of a period or question mark.  If neither of these appear
+        # in the string, take the sentence to be the empty string.  If the
+        # latter occurs, something should be changed.
+        methods = []
+        for i in sorted(SandpileConfig.__dict__.keys()):
+            if i[0]!='_':
+                s = eval('getdoc(SandpileConfig.' + i +')')
+                period = s.find('.')
+                question = s.find('?')
+                if period==-1 and question==-1:
+                    s = ''  # Neither appears!
+                else:
+                    if period==-1:
+                        period = len(s) + 1
+                    if question==-1:
+                        question = len(s) + 1
+                    if period < question:
+                        s = s.split('.')[0]
+                        s = detex(s).strip() + '.'
+                    else:
+                        s = s.split('?')[0]
+                        s = detex(s).strip() + '?'
+                methods.append([i,s])
         print 'Shortcuts for SandpileConfig operations:'
         print '~c    -- stabilize'
         print 'c & d -- add and stabilize'
@@ -3310,8 +3294,9 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        - ``S`` - Sandpile
-        - ``c`` - dict or list representing a configuration
+        - ``S`` -- Sandpile
+
+        - ``c`` -- dict or list representing a configuration
 
         OUTPUT:
 
@@ -3348,7 +3333,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        None
+        ``memo`` -- (optional) dict
 
         OUTPUT:
 
@@ -3375,7 +3360,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        - ``key``, ``item`` - objects
+        ``key``, ``item`` -- objects
 
         OUTPUT:
 
@@ -3392,10 +3377,10 @@ class SandpileConfig(dict):
              '_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
              '_vertices': [1, 2]}
 
-        NOTES:
+        .. NOTE::
 
-        In the example, above, changing the value of ``c`` at some vertex makes
-        a call to setitem, which resets some of the stored variables for ``c``.
+            In the example, above, changing the value of ``c`` at some vertex makes
+            a call to setitem, which resets some of the stored variables for ``c``.
         """
         if key in self.keys():
             dict.__setitem__(self,key,item)
@@ -3411,7 +3396,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``name`` - name of an internal method
+        ``name`` -- name of an internal method
 
         OUTPUT:
 
@@ -3489,13 +3474,13 @@ class SandpileConfig(dict):
         """
         return self._deg
 
-    def __add__(self,other):
+    def __add__(self, other):
         r"""
         Addition of configurations.
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3511,13 +3496,13 @@ class SandpileConfig(dict):
         """
         return SandpileConfig(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
 
-    def __sub__(self,other):
+    def __sub__(self, other):
         r"""
         Subtraction of configurations.
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3536,13 +3521,13 @@ class SandpileConfig(dict):
             sum[v] -= other[v]
         return sum
 
-    def __rsub__(self,other):
+    def __rsub__(self, other):
         r"""
         Right-side subtraction of configurations.
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3593,12 +3578,13 @@ class SandpileConfig(dict):
     # recurrent addition or multiplication on the right by an integer
     def __mul__(self, other):
         r"""
-        The if `other` is an configuration, the recurrent element equivalent to the sum.
-        If `other` is an integer, the sum of configuration with itself `other` times
+        The if ``other`` is an configuration, the recurrent element equivalent
+        to the sum.  If ``other`` is an integer, the sum of configuration with
+        itself ``other`` times.
 
         INPUT:
 
-        ``other`` - SandpileConfig or Integer
+        ``other`` -- SandpileConfig or Integer
 
         OUTPUT:
 
@@ -3632,11 +3618,11 @@ class SandpileConfig(dict):
 
     def __rmul__(self, other):
         r"""
-        The sum of configuration with itself `other` times.
+        The sum of configuration with itself ``other`` times.
 
         INPUT:
 
-        ``other`` - Integer
+        ``other`` -- Integer
 
         OUTPUT:
 
@@ -3662,7 +3648,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3687,14 +3673,14 @@ class SandpileConfig(dict):
         """
         return forall(self._vertices, lambda v: self[v]<=other[v])[0]
 
-    def __lt__(self,other):
+    def __lt__(self, other):
         r"""
         ``True`` if every component of ``self`` is at most that
         of ``other`` and the two configurations are not equal.
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3721,7 +3707,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3746,14 +3732,14 @@ class SandpileConfig(dict):
         """
         return forall(self._vertices, lambda v: self[v]>=other[v])[0]
 
-    def __gt__(self,other):
+    def __gt__(self, other):
         r"""
         ``True`` if every component of ``self`` is at least that
         of ``other`` and the two configurations are not equal.
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3777,13 +3763,13 @@ class SandpileConfig(dict):
     def __pow__(self, k):
         r"""
         The recurrent element equivalent to the sum of the
-        configuration with itself ``k`` times.  If ``k`` is negative, do the
-        same for the negation of the configuration.  If ``k`` is zero, return
+        configuration with itself `k` times.  If `k` is negative, do the
+        same for the negation of the configuration.  If `k` is zero, return
         the identity of the sandpile group.
 
         INPUT:
 
-        ``k`` - SandpileConfig
+        ``k`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3824,7 +3810,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``other`` - SandpileConfig
+        ``other`` -- SandpileConfig
 
         OUTPUT:
 
@@ -3870,8 +3856,8 @@ class SandpileConfig(dict):
 
     def values(self):
         r"""
-        The values of the configuration as a list, sorted in the order
-        of the vertices.
+        The values of the configuration as a list.  The list is sorted in the
+        order of the vertices.
 
         INPUT:
 
@@ -3898,8 +3884,7 @@ class SandpileConfig(dict):
 
     def dualize(self):
         r"""
-        The difference between the maximal stable configuration and the
-        configuration.
+        The difference with the maximal stable configuration.
 
         INPUT:
 
@@ -3924,11 +3909,11 @@ class SandpileConfig(dict):
 
     def fire_vertex(self, v):
         r"""
-        Fire the vertex ``v``.
+        Fire the given vertex.
 
         INPUT:
 
-        ``v`` - vertex
+        ``v`` -- vertex
 
         OUTPUT:
 
@@ -3950,12 +3935,12 @@ class SandpileConfig(dict):
 
     def fire_script(self, sigma):
         r"""
-        Fire the script ``sigma``, i.e., fire each vertex the indicated number
-        of times.
+        Fire the given script.  In other words,  fire each vertex the number of
+        times indicated by ``sigma``.
 
         INPUT:
 
-        ``sigma`` - SandpileConfig or (list or dict representing a SandpileConfig)
+        ``sigma`` -- SandpileConfig or (list or dict representing a SandpileConfig)
 
         OUTPUT:
 
@@ -3986,7 +3971,7 @@ class SandpileConfig(dict):
 
     def unstable(self):
         r"""
-        List of the unstable vertices.
+        The unstable vertices.
 
         INPUT:
 
@@ -4075,7 +4060,7 @@ class SandpileConfig(dict):
 
         INPUT:
 
-        ``with_firing_vector`` (optional) -  boolean
+        ``with_firing_vector`` -- (default: ``False``)  boolean
 
         OUTPUT:
 
@@ -4127,8 +4112,7 @@ class SandpileConfig(dict):
 
     def support(self):
         r"""
-        The input is a dictionary of integers.  The output is a list of keys
-        of nonzero values of the dictionary.
+        The vertices containing sand.
 
         INPUT:
 
@@ -4136,7 +4120,7 @@ class SandpileConfig(dict):
 
         OUTPUT:
 
-        list - support of the config
+        list - support of the configuration
 
         EXAMPLES::
 
@@ -4154,20 +4138,17 @@ class SandpileConfig(dict):
         r"""
         Add one grain of sand to a random vertex.  Optionally, a probability
         distribution, ``distrib``, may be placed on the vertices or the nonsink vertices.
-        See NOTES for details.
+        See NOTE for details.
 
         INPUT:
 
-        - ``distrib`` (optional) - list of nonnegative numbers summing to 1 (representing a prob. dist.)
-        - ``lazy`` (optional) - boolean
+        ``distrib`` -- (optional) list of nonnegative numbers summing to 1 (representing a prob. dist.)
 
         OUTPUT:
 
         SandpileConfig
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
             sage: c = s.zero_config()
@@ -4180,15 +4161,11 @@ class SandpileConfig(dict):
             sage: c.add_random([0.7,0.1,0.1,0.1]) # random
             {1: 0, 2: 0, 3: 0}
 
-        ::
-
-        We compute the 'sizes' of the avalanches caused by adding random grains
+        We compute the "sizes" of the avalanches caused by adding random grains
         of sand to the maximal stable configuration on a grid graph.  The
         function ``stabilize()`` returns the firing vector of the
         stabilization, a dictionary whose values say how many times each vertex
-        fires in the stabilization.
-
-        ::
+        fires in the stabilization.::
 
             sage: S = sandpiles.Grid(10,10)
             sage: m = S.max_stable()
@@ -4203,22 +4180,22 @@ class SandpileConfig(dict):
             sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
             sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
 
-        NOTES:
+        .. NOTE::
 
-        If ``distrib`` is ``None``, then the probability is the uniform probability on the nonsink
-        vertices.  Otherwise, there are two possibilities:
+            If ``distrib`` is ``None``, then the probability is the uniform probability on the nonsink
+            vertices.  Otherwise, there are two possibilities:
 
-        (i) the length of ``distrib`` is equal to the number of vertices, and ``distrib`` represents
-        a probability distribution on all of the vertices.  In that case, the sink may be chosen
-        at random, in which case, the  configuration is unchanged.
+            (i) the length of ``distrib`` is equal to the number of vertices, and ``distrib`` represents
+            a probability distribution on all of the vertices.  In that case, the sink may be chosen
+            at random, in which case, the  configuration is unchanged.
 
-        (ii) Otherwise, the length of ``distrib`` must be equal to the number of nonsink vertices,
-        and ``distrib`` represents a probability distribution on the nonsink vertices.
+            (ii) Otherwise, the length of ``distrib`` must be equal to the number of nonsink vertices,
+            and ``distrib`` represents a probability distribution on the nonsink vertices.
 
-        WARNING::
+        .. WARNING::
 
-        If ``distrib != None``, the user is responsible for assuring the sum of its entries is
-        1 and that its length is equal to the number of sink vertices or the number of nonsink vertices.
+            If ``distrib != None``, the user is responsible for assuring the sum of its entries is
+            1 and that its length is equal to the number of sink vertices or the number of nonsink vertices.
         """
         c = deepcopy(self)
         ind = self._sandpile._sink_ind
@@ -4239,11 +4216,11 @@ class SandpileConfig(dict):
 
     def order(self):
         r"""
-        The order of the recurrent element equivalent to ``config``.
+        The order of the equivalent recurrent element.
 
         INPUT:
 
-        ``config`` - configuration
+        None
 
         OUTPUT:
 
@@ -4271,7 +4248,7 @@ class SandpileConfig(dict):
 
     def is_stable(self):
         r"""
-        ``True`` if stable.
+        Is the configuration stable?
 
         INPUT:
 
@@ -4334,16 +4311,16 @@ class SandpileConfig(dict):
 
     def equivalent_recurrent(self, with_firing_vector=False):
         r"""
-        The recurrent configuration equivalent to the given
-        configuration and optionally returns the corresponding firing vector.
+        The recurrent configuration equivalent to the given configuration.
+        Optionally, return the corresponding firing vector.
 
         INPUT:
 
-        ``with_firing_vector`` (optional) -  boolean
+        ``with_firing_vector`` -- (default: ``False``)  boolean
 
         OUTPUT:
 
-        ``SandpileConfig`` or ``[SandpileConfig, firing_vector]``
+        SandpileConfig or [SandpileConfig, firing_vector]
 
 
         EXAMPLES::
@@ -4359,11 +4336,11 @@ class SandpileConfig(dict):
             sage: r == cv - f*S.reduced_laplacian()
             True
 
-        NOTES:
+        .. NOTE::
 
-        Let `L` be the reduced laplacian, `c` the initial configuration, `r` the
-        returned configuration, and `f` the firing vector.  Then `r = c - f\cdot
-        L`.
+            Let `L` be the reduced Laplacian, `c` the initial configuration, `r` the
+            returned configuration, and `f` the firing vector.  Then `r = c - f\cdot
+            L`.
         """
         if with_firing_vector:
             return self._equivalent_recurrent
@@ -4402,7 +4379,7 @@ class SandpileConfig(dict):
 
     def is_recurrent(self):
         r"""
-        ``True`` if the configuration is recurrent.
+        Is the configuration recurrent?
 
         INPUT:
 
@@ -4433,7 +4410,7 @@ class SandpileConfig(dict):
 
         OUTPUT:
 
-        ``[configuration, firing_vector]``
+        [configuration, firing_vector]
 
 
         EXAMPLES::
@@ -4449,16 +4426,16 @@ class SandpileConfig(dict):
 
     def equivalent_superstable(self, with_firing_vector=False):
         r"""
-        The equivalent superstable configuration. Optionally
-        returns the corresponding firing vector.
+        The equivalent superstable configuration. Optionally, return the
+        corresponding firing vector.
 
         INPUT:
 
-        ``with_firing_vector`` (optional) - boolean
+        ``with_firing_vector`` -- (default: ``False``) boolean
 
         OUTPUT:
 
-        ``SandpileConfig`` or ``[SandpileConfig, firing_vector]``
+        SandpileConfig or [SandpileConfig, firing_vector]
 
 
         EXAMPLES::
@@ -4474,11 +4451,11 @@ class SandpileConfig(dict):
             sage: s == mv - f*S.reduced_laplacian()
             True
 
-        NOTES:
+        .. NOTE::
 
-        Let `L` be the reduced laplacian, `c` the initial configuration, `s` the
-        returned configuration, and `f` the firing vector.  Then `s = c - f\cdot
-        L`.
+            Let `L` be the reduced Laplacian, `c` the initial configuration, `s` the
+            returned configuration, and `f` the firing vector.  Then `s = c - f\cdot
+            L`.
         """
         if with_firing_vector:
             return self._equivalent_superstable
@@ -4514,8 +4491,7 @@ class SandpileConfig(dict):
 
     def is_superstable(self):
         r"""
-        ``True`` if ``config`` is superstable, i.e., whether its dual is
-        recurrent.
+        Is the configuration superstable?
 
         INPUT:
 
@@ -4535,12 +4511,13 @@ class SandpileConfig(dict):
 
     def is_symmetric(self, orbits):
         r"""
-        This function checks if the values of the configuration are constant
-        over the vertices in each sublist of ``orbits``.
+        Is the configuration symmetric?  Return ``True`` if the values of the
+        configuration are constant over the vertices in each sublist of
+        ``orbits``.
 
         INPUT:
 
-         ``orbits`` - list of lists of vertices
+         ``orbits`` -- list of lists of vertices
 
         OUTPUT:
 
@@ -4564,11 +4541,11 @@ class SandpileConfig(dict):
 
     def burst_size(self, v):
         r"""
-        The burst size of the configuration with respect to the vertex ``v``.
+        The burst size of the configuration with respect to the given vertex.
 
         INPUT:
 
-        ``v`` - vertex
+        ``v`` -- vertex
 
         OUTPUT:
 
@@ -4582,16 +4559,16 @@ class SandpileConfig(dict):
             sage: [i.burst_size(1) for i in s.recurrents()]
             [0, 0, 1, 2, 1, 2, 0, 2]
 
-        NOTES:
+        .. NOTE::
 
-        To define `c.burst(v)`, if ``v`` is not the sink, let ``c'`` be the unique
-        recurrent for which the the stabilization of ``c' + v`` is ``c``.  The
-        burst size is then the amount of sand that goes into the sink during this
-        stabilization.  If ``v`` is the sink, the burst size is defined to be 1.
+            To define ``c.burst(v)``, if `v` is not the sink, let `c'` be the unique
+            recurrent for which the the stabilization of `c' + v` is `c`.  The
+            burst size is then the amount of sand that goes into the sink during this
+            stabilization.  If `v` is the sink, the burst size is defined to be 1.
 
         REFERENCES:
 
-        .. [Levine2014] Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
+        .. [Levine2014]_ Lionel Levine. Threshold state and a conjecture of Poghosyan, Poghosyan,
            Priezzhev and Ruelle, Communications in Mathematical Physics.
         """
         if v==self.sandpile().sink():
@@ -4602,17 +4579,22 @@ class SandpileConfig(dict):
             w = w.equivalent_recurrent()
             return w.deg() - self.deg() +1
 
-    def show(self,sink=True,colors=True,heights=False,directed=None,**kwds):
+    def show(self, sink=True, colors=True, heights=False, directed=None, **kwds):
         r"""
         Show the configuration.
 
         INPUT:
 
-        - ``sink`` - whether to show the sink
-        - ``colors`` - whether to color-code the amount of sand on each vertex
-        - ``heights`` - whether to label each vertex with the amount of sand
-        - ``kwds`` - arguments passed to the show method for Graph
-        - ``directed`` - whether to draw directed edges
+        - ``sink`` -- (default: ``True``) whether to show the sink
+
+        - ``colors`` -- (default: ``True``) whether to color-code the amount of sand on each vertex
+
+        - ``heights`` -- (default: ``False``) whether to label each vertex with the amount of sand
+
+        - ``directed`` -- (optional) whether to draw directed edges
+
+        - ``kwds`` -- (optional) arguments passed to the show method for Graph
+
 
         OUTPUT:
 
@@ -4676,7 +4658,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -4688,62 +4670,63 @@ class SandpileDivisor(dict):
             For detailed help with any method FOO listed below,
             enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.
             <BLANKLINE>
-            add_random             -- add sand to a random vertex
-            betti                  -- Betti numbers for associated simplicial complex
-            deg                    -- degree of the divisor
-            dualize                -- difference with the max. stable divisor
-            effective_div          -- linearly equiv. effective divisors
-            fire_script            -- fire a multiset of vertices
-            fire_unstable          -- fire all unstable vertices
-            fire_vertex            -- fire a particular vertex
-            is_alive               -- is the divisor stabilizable?
-            is_linearly_equivalent -- is linearly equiv. to a given divisor?
-            is_q_reduced           -- is q-reduced w.r.t. sink vertex?
-            is_symmetric           -- is symmetric?
-            is_weierstrass_pt      -- is given vertex a Weierstrass pt?
-            polytope               -- polytope determining the complete linear sys.
-            polytope_integer_pts   -- integer pts. inside divisor's polytope
-            q_reduced              -- linearly equiv. q-reduced divisor
-            rank                   -- the rank of the divisor
-            sandpile               -- the parent Sandpile
-            show                   -- display the divisor
-            simulate_threshold     -- unstablizable divisor reaching in Markov chain
-            stabilize              -- stabilize, if possible
-            support                -- the vertices containing sand
-            unstable               -- the unstable vertices
-            values                 -- list of integers representing the divisor
-            weierstrass_gap_seq    -- the Weierstrass gap seq. at a given vertex
-            weierstrass_pts        -- list of all Weierstrass pts (vertices)
-            weierstrass_rank_seq   -- sequence of ranks r(D-kv) at a W. pt.
+            Dcomplex               -- The support-complex.
+            add_random             -- Add one grain of sand to a random vertex.
+            betti                  -- The Betti numbers for the support-complex.
+            deg                    -- The degree of the divisor.
+            dualize                -- The difference with the maximal stable divisor.
+            effective_div          -- All linearly equivalent effective divisors.
+            fire_script            -- Fire the given script.
+            fire_unstable          -- Fire all unstable vertices.
+            fire_vertex            -- Fire the given vertex.
+            help                   -- List of SandpileDivisor methods.
+            is_alive               -- Is the divisor stabilizable?
+            is_linearly_equivalent -- Is the given divisor linearly equivalent?
+            is_q_reduced           -- Is the divisor q-reduced?
+            is_symmetric           -- Is the divisor symmetric?
+            is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
+            linear_system          -- The complete linear system (deprecated: use "polytope_integer_pts").
+            polytope               -- The polytope determinining the complete linear system.
+            polytope_integer_pts   -- The integer points inside divisor's polytope.
+            q_reduced              -- The linearly equivalent q-reduced divisor.
+            r_of_D                 -- The rank of the divisor (deprecated: use "rank", instead).
+            rank                   -- The rank of the divisor.
+            sandpile               -- The divisor's underlying sandpile.
+            show                   -- Show the divisor.
+            simulate_threshold     -- The first unstabilizable divisor in the closed Markov chain.
+            stabilize              -- The stabilization of the divisor.
+            support                -- List of vertices at which the divisor is nonzero.
+            unstable               -- The unstable vertices.
+            values                 -- The values of the divisor as a list.
+            weierstrass_gap_seq    -- The Weierstrass gap sequence at the given vertex.
+            weierstrass_pts        -- The Weierstrass points (vertices).
+            weierstrass_rank_seq   -- The Weierstrass rank sequence at the given vertex.
         """
-        # methods acquired from [i for i in sorted(SandpileDivisor.__dict__.keys()) if i[0]!='_']
-        methods = [['add_random','add sand to a random vertex'],
-                     ['betti','Betti numbers for associated simplicial complex'],
-                     ['deg','degree of the divisor'],
-                     ['dualize','difference with the max. stable divisor'],
-                     ['effective_div','linearly equiv. effective divisors'],
-                     ['fire_script','fire a multiset of vertices'],
-                     ['fire_unstable','fire all unstable vertices'],
-                     ['fire_vertex','fire a particular vertex'],
-                     ['is_alive','is the divisor stabilizable?'],
-                     ['is_linearly_equivalent','is linearly equiv. to a given divisor?'],
-                     ['is_q_reduced','is q-reduced w.r.t. sink vertex?'],
-                     ['is_symmetric','is symmetric?'],
-                     ['is_weierstrass_pt','is given vertex a Weierstrass pt?'],
-                     ['polytope','polytope determining the complete linear sys.'],
-                     ['polytope_integer_pts',"integer pts. inside divisor's polytope"],
-                     ['q_reduced','linearly equiv. q-reduced divisor'],
-                     ['rank','the rank of the divisor'],
-                     ['sandpile','the parent Sandpile'],
-                     ['show','display the divisor'],
-                     ['simulate_threshold','unstablizable divisor reaching in Markov chain'],
-                     ['stabilize','stabilize, if possible'],
-                     ['support','the vertices containing sand'],
-                     ['unstable','the unstable vertices'],
-                     ['values','list of integers representing the divisor'],
-                     ['weierstrass_gap_seq','the Weierstrass gap seq. at a given vertex'],
-                     ['weierstrass_pts','list of all Weierstrass pts (vertices)'],
-                     ['weierstrass_rank_seq','sequence of ranks r(D-kv) at a W. pt.']]
+        # We collect the first sentence of each docstring.  The sentence is,
+        # by definition, from the beginning of the string to the first
+        # occurrence of a period or question mark.  If neither of these appear
+        # in the string, take the sentence to be the empty string.  If the
+        # latter occurs, something should be changed.
+        methods = []
+        for i in sorted(SandpileDivisor.__dict__.keys()):
+            if i[0]!='_':
+                s = eval('getdoc(SandpileDivisor.' + i +')')
+                period = s.find('.')
+                question = s.find('?')
+                if period==-1 and question==-1:
+                    s = ''  # Neither appears!
+                else:
+                    if period==-1:
+                        period = len(s) + 1
+                    if question==-1:
+                        question = len(s) + 1
+                    if period < question:
+                        s = s.split('.')[0]
+                        s = detex(s).strip() + '.'
+                    else:
+                        s = s.split('?')[0]
+                        s = detex(s).strip() + '?'
+                methods.append([i,s])
         print 'For detailed help with any method FOO listed below,'
         print 'enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.'
         print ''
@@ -4761,8 +4744,9 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        - ``S`` - Sandpile
-        - ``D`` - dict or list representing a divisor
+        - ``S`` -- Sandpile
+
+        - ``D`` -- dict or list representing a divisor
 
         OUTPUT:
 
@@ -4797,7 +4781,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        None
+        memo -- (optional) dict
 
         OUTPUT:
 
@@ -4824,7 +4808,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        - ``key``, ``item`` - objects
+        ``key``, ``item`` -- objects
 
         OUTPUT:
 
@@ -4847,10 +4831,10 @@ class SandpileDivisor(dict):
             {'_sandpile': Cycle sandpile graph: 3 vertices, sink = 0,
              '_vertices': [0, 1, 2]}
 
-        NOTES:
+        .. NOTE::
 
-        In the example, above, changing the value of ``D`` at some vertex makes
-        a call to setitem, which resets some of the stored variables for ``D``.
+            In the example, above, changing the value of `D` at some vertex makes
+            a call to setitem, which resets some of the stored variables for `D`.
         """
         if key in self.keys():
             dict.__setitem__(self,key,item)
@@ -4866,7 +4850,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``name`` - name of an internal method
+        ``name`` -- name of an internal method
 
         OUTPUT:
 
@@ -4971,7 +4955,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -4989,11 +4973,11 @@ class SandpileDivisor(dict):
 
     def __mul__(self, other):
         r"""
-        Sum of the divisor with itself `other` times.
+        Sum of the divisor with itself ``other`` times.
 
         INPUT:
 
-        ``other`` - integer
+        ``other`` -- integer
 
         OUTPUT:
 
@@ -5014,11 +4998,11 @@ class SandpileDivisor(dict):
 
     def __rmul__(self, other):
         r"""
-        The sum of divisor with itself `other` times.
+        The sum of divisor with itself ``other`` times.
 
         INPUT:
 
-        ``other`` - Integer
+        ``other`` -- Integer
 
         OUTPUT:
 
@@ -5037,13 +5021,13 @@ class SandpileDivisor(dict):
         """
         return SandpileDivisor(self.sandpile(),[other*i for i in self.values()])
 
-    def __radd__(self,other):
+    def __radd__(self, other):
         r"""
         Right-side addition of divisors.
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5068,7 +5052,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5090,9 +5074,10 @@ class SandpileDivisor(dict):
     def __rsub__(self, other):
         r"""
         Right-side subtraction of divisors.
+
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5141,7 +5126,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5166,14 +5151,14 @@ class SandpileDivisor(dict):
         """
         return forall(self._vertices, lambda v: self[v]<=other[v])[0]
 
-    def __lt__(self,other):
+    def __lt__(self, other):
         r"""
         ``True`` if every component of ``self`` is at most that
         of ``other`` and the two divisors are not equal.
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5200,7 +5185,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5225,14 +5210,14 @@ class SandpileDivisor(dict):
         """
         return forall(self._vertices, lambda v: self[v]>=other[v])[0]
 
-    def __gt__(self,other):
+    def __gt__(self, other):
         r"""
         ``True`` if every component of ``self`` is at least that
         of ``other`` and the two divisors are not equal.
 
         INPUT:
 
-        ``other`` - SandpileDivisor
+        ``other`` -- SandpileDivisor
 
         OUTPUT:
 
@@ -5277,8 +5262,8 @@ class SandpileDivisor(dict):
 
     def values(self):
         r"""
-        The values of the divisor as a list, sorted in the order of the
-        vertices.
+        The values of the divisor as a list.  The list is sorted in the order of
+        the vertices.
 
         INPUT:
 
@@ -5305,8 +5290,7 @@ class SandpileDivisor(dict):
 
     def dualize(self):
         r"""
-        The difference between the maximal stable divisor and the
-        divisor.
+        The difference with the maximal stable divisor.
 
         INPUT:
 
@@ -5317,7 +5301,6 @@ class SandpileDivisor(dict):
         SandpileDivisor
 
         EXAMPLES::
-
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [1,2,3])
             sage: D.dualize()
@@ -5327,13 +5310,13 @@ class SandpileDivisor(dict):
         """
         return self._sandpile.max_stable_div() - self
 
-    def fire_vertex(self,v):
+    def fire_vertex(self, v):
         r"""
-        Fire the vertex ``v``.
+        Fire the given vertex.
 
         INPUT:
 
-        ``v`` - vertex
+        ``v`` -- vertex
 
         OUTPUT:
 
@@ -5354,12 +5337,12 @@ class SandpileDivisor(dict):
 
     def fire_script(self, sigma):
         r"""
-        Fire the script ``sigma``, i.e., fire each vertex the indicated number
-        of times.
+        Fire the given script.  In other words, fire each vertex the number of
+        times indicated by ``sigma``.
 
         INPUT:
 
-        ``sigma`` - SandpileDivisor or (list or dict representing a SandpileDivisor)
+        ``sigma`` -- SandpileDivisor or (list or dict representing a SandpileDivisor)
 
         OUTPUT:
 
@@ -5389,7 +5372,7 @@ class SandpileDivisor(dict):
 
     def unstable(self):
         r"""
-        List of the unstable vertices.
+        The unstable vertices.
 
         INPUT:
 
@@ -5468,7 +5451,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -5483,10 +5466,10 @@ class SandpileDivisor(dict):
             sage: D.q_reduced(False)
             [-2, 1, 2, 0]
 
-        NOTES:
+        .. NOTE::
 
-        The divisor `D` is q-reduced if `D = c + kq` where `c`
-        is superstable, `k` is an integer, and `q` is the sink.
+            The divisor `D` is `qreduced if `D = c + kq` where `c`
+            is superstable, `k` is an integer, and `q` is the sink.
         """
         if verbose:
             return deepcopy(self._q_reduced)
@@ -5495,8 +5478,8 @@ class SandpileDivisor(dict):
 
     def is_q_reduced(self):
         r"""
-        ``True`` if `q`-reduced.  This means that `self = c + kq` where `c` is
-        superstable, `k` is an integer, and `q` is the sink vertex.
+        Is the divisor `q`-reduced?  This would mean that `self = c + kq` where
+        `c` is superstable, `k` is an integer, and `q` is the sink vertex.
 
         INPUT:
 
@@ -5506,9 +5489,7 @@ class SandpileDivisor(dict):
 
         boolean
 
-        EXAMPLES:
-
-        ::
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[2,-3,2,0])
@@ -5541,15 +5522,14 @@ class SandpileDivisor(dict):
 
     def is_linearly_equivalent(self, D, with_firing_vector=False):
         r"""
-        Is ``self`` linearly equivalent to the divisor D? If `with_firing_vector` is ``False``
-        the output is either ``True`` or ``False``.  If `with_firing_vector` is ``True`` then:
-        if ``self ~ D``, the output is a vector ``v`` such that ``self - v*self.laplacian() = D``;
-        if ``self`` is not linearly equivalent to ``D``, the output is the empty vector, ``()``.
+        Is the given divisor linearly equivalent?  Optionally, returns the
+        firing vector.  (See NOTE.)
 
         INPUT:
 
-        - ``D`` - SandpileDivisor or list, tuple, etc. representing a divisor
-        - ``with_firing_vector`` - boolean
+        - ``D`` -- SandpileDivisor or list, tuple, etc. representing a divisor
+
+        - ``with_firing_vector`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -5570,6 +5550,14 @@ class SandpileDivisor(dict):
             False
             sage: D.is_linearly_equivalent([0,0,0],True)
             ()
+
+        .. NOTE::
+
+            - If ``with_firing_vector`` is ``False``, returns either ``True`` or ``False``.
+
+            - If ``with_firing_vector`` is ``True`` then: (i) if ``self`` is linearly
+              equivalent to `D`, returns a vector `v` such that ``self - v*self.laplacian().transpose() = D``.
+              Otherwise, (ii) if ``self`` is not linearly equivalent to `D`, the output is the empty vector, ``()``.
         """
         # First try to convert D into a vector.
         v = vector(self.values())
@@ -5604,12 +5592,12 @@ class SandpileDivisor(dict):
 
     def simulate_threshold(self, distrib=None):
         r"""
-        Starting at `self`, repeatedly choose a vertex and add a grain of sand to it.  Return the first unstabilizable
-        divisor that is reached.
+        The first unstabilizable divisor in the closed Markov chain.
+        (See NOTE.)
 
         INPUT:
 
-        ``distrib`` (optional) - list of nonnegative numbers representing a probability distribution on the vertices
+        ``distrib`` -- (optional)  list of nonnegative numbers representing a probability distribution on the vertices
 
         OUTPUT:
 
@@ -5625,6 +5613,13 @@ class SandpileDivisor(dict):
             7.10000000000000
             sage: n(s.stationary_density()*s.num_verts())
             6.93750000000000
+
+        .. NOTE::
+
+            Starting at ``self``, repeatedly choose a vertex and add a grain of
+            sand to it.  Return the first unstabilizable divisor that is
+            reached.  Also see the ``markov_chain`` method for the underlying
+            sandpile.
         """
         E = deepcopy(self)
         S = E.sandpile()
@@ -5643,7 +5638,9 @@ class SandpileDivisor(dict):
         r"""
         Computes and stores the complete linear system of a divisor.
 
-        INPUT: None
+        INPUT:
+
+        None
 
         OUTPUT:
 
@@ -5655,9 +5652,9 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: D._set_linear_system() # optional - 4ti2
 
-        WARNING:
+        .. WARNING:
 
-        This method requires 4ti2.
+            This method requires 4ti2.
         """
         # import os
 
@@ -5740,9 +5737,11 @@ class SandpileDivisor(dict):
 
     def linear_system(self):
         r"""
-        The complete linear system of a divisor.
+        The complete linear system (deprecated: use ``polytope_integer_pts``).
 
-        INPUT: None
+        INPUT:
+
+        None
 
         OUTPUT:
 
@@ -5764,15 +5763,15 @@ class SandpileDivisor(dict):
              'num_homog': 2,
              'num_inhomog': 3}
 
-        NOTES:
+        .. NOTE::
 
-        If `L` is the Laplacian, an arbitrary `v` such that `v\cdot L\geq -D`
-        has the form `v = w + t` where `w` is in ``inhomg`` and `t` is in the
-        integer span of ``homog`` in the output of ``linear_system(D)``.
+            If `L` is the Laplacian, an arbitrary `v` such that `v\cdot L\geq -D`
+            has the form `v = w + t` where `w` is in ``inhomg`` and `t` is in the
+            integer span of ``homog`` in the output of ``linear_system(D)``.
 
-        WARNING:
+        .. WARNING::
 
-        This method requires 4ti2.
+            This method requires 4ti2.
         """
         deprecation(18618,'D.linear_system() will be removed soon.  See D.rank() and D.polytope().')
         return self._linear_system
@@ -5828,21 +5827,21 @@ class SandpileDivisor(dict):
             sage: D.polytope()
             The empty polyhedron in QQ^3
 
-        NOTES:
+        .. NOTE::
 
-        For a divisor ``D``, this is the intersection of (i) the polyhedron
-        determined by the system of inequalities ``LL x \leq D`` where ``LL``
-        is the transpose of the Laplacian with (ii) the hyperplane
-        ``x_{sink_vertex} = 0``. The polytope is thought of as sitting in
-        ``(n-1)``-dimensional Euclidean space where ``n`` is the number of
-        vertices.
+            For a divisor `D`, this is the intersection of (i) the polyhedron
+            determined by the system of inequalities `L^t x \leq D` where `L^t`
+            is the transpose of the Laplacian with (ii) the hyperplane
+            `x_{\mathrm{sink\_vertex}} = 0`. The polytope is thought of as sitting in
+            `(n-1)`-dimensional Euclidean space where `n` is the number of
+            vertices.
         """
         return deepcopy(self._polytope)
 
     def _set_polytope_integer_pts(self):
         r"""
         Record the integer lattice points inside the polytope determining the
-        complete linear system (see the documentation for `polytope`).
+        complete linear system (see the documentation for ``polytope``).
 
         INPUT:
 
@@ -5864,8 +5863,9 @@ class SandpileDivisor(dict):
 
     def polytope_integer_pts(self):
         r"""
-        The integer points inside the polytope determining the complete
-        linear system (see the documentation for `polytope`).
+        The integer points inside divisor's polytope.  The polytope referred to
+        here is the one determining the divisor's complete linear system (see the
+        documentation for ``polytope``).
 
         INPUT:
 
@@ -5928,7 +5928,9 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        - ``verbose`` -- (default: ``True``) boolean
+
+        - ``with_firing_vectors`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -5990,15 +5992,15 @@ class SandpileDivisor(dict):
 
     def _set_rank(self, set_witness=False):
         r"""
-        Find the rank of the divisor ``D`` and an effective divisor ``E`` such that
-        ``D - E`` is unwinnable, i.e., has an empty complete linear system.  If
-        Riemann-Roch applies, `verbose` is `False`, and the degree of ``D`` is greater
-        than ``2g-2`` (``g = `` genus), then the rank is ``\deg(D) - g``.  In that case,
-        the divisor ``E`` is not calculated.
+        Find the rank of the divisor `D` and an effective divisor `E` such that
+        `D - E` is unwinnable, i.e., has an empty complete linear system.  If
+        Riemann-Roch applies, ``verbose`` is ``False``, and the degree of `D` is greater
+        than `2g-2` (`g = ` genus), then the rank is `\deg(D) - g`.  In that case,
+        the divisor `E` is not calculated.
 
         INPUT:
 
-        ``verbose`` (optional)  - boolean
+        ``verbose`` -- (default: ``False``)  boolean
 
         OUTPUT:
 
@@ -6068,12 +6070,12 @@ class SandpileDivisor(dict):
 
     def rank(self, with_witness=False):
         r"""
-        The rank of the divisor.  Optionally returns an effective divisor ``E`` such
-        that ``D - E`` is not winnable (has an empty complete linear system).
+        The rank of the divisor.  Optionally returns an effective divisor `E` such
+        that `D - E` is not winnable (has an empty complete linear system).
 
         INPUT:
 
-        with_witness (optional) - boolean
+        ``with_witness`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6095,6 +6097,11 @@ class SandpileDivisor(dict):
 
             sage: D.rank() - (S.canonical_divisor()-D).rank() == D.deg() + 1 - S.genus()
             True
+
+         Riemann-Roch theorem::
+
+            sage: D.rank() - (S.canonical_divisor()-D).rank() == D.deg() + 1 - S.genus()
+            True
             sage: S = Sandpile({0:[1,1,1,2],1:[0,0,0,1,1,1,2,2],2:[2,2,1,1,0]},0) # multigraph with loops
             sage: D = SandpileDivisor(S,[4,2,0])
             sage: D.rank(True)
@@ -6111,12 +6118,12 @@ class SandpileDivisor(dict):
             sage: (D - E).effective_div()
             []
 
-        NOTES:
+        .. NOTE::
 
-        The rank of a divisor `D` is -1 if `D` is not linearly equivalent to an effective divisor
-        (i.e., the dollar game represented by `D` is unwinnable).  Otherwise, the rank of `D` is
-        the largest integer `r` such that `D - E` is linearly equivalent to an effective divisor
-        for all effective divisors `E` with `deg(E) = r`.
+            The rank of a divisor `D` is -1 if `D` is not linearly equivalent to an effective divisor
+            (i.e., the dollar game represented by `D` is unwinnable).  Otherwise, the rank of `D` is
+            the largest integer `r` such that `D - E` is linearly equivalent to an effective divisor
+            for all effective divisors `E` with `\deg(E) = r`.
         """
         if with_witness:
             return (self._rank, deepcopy(self._rank_witness))
@@ -6125,12 +6132,12 @@ class SandpileDivisor(dict):
 
     def _set_r_of_D(self, verbose=False):
         r"""
-        Computes ``r(D)`` and an effective divisor ``F`` such
-        that ``|D - F|`` is empty.
+        Computes `r(D)` and an effective divisor `F` such that `|D - F|` is
+        empty.
 
         INPUT:
 
-        verbose (optional) - boolean
+        ``verbose`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6177,12 +6184,13 @@ class SandpileDivisor(dict):
 
     def r_of_D(self, verbose=False):
         r"""
-        Returns ``r(D)`` and, if ``verbose`` is ``True``, an effective divisor
-        ``F`` such that ``|D - F|`` is empty.
+        The rank of the divisor (deprecated: use ``rank``, instead).  Returns
+        `r(D)` and, if ``verbose`` is ``True``, an effective divisor `F` such
+        that `|D - F|` is empty.
 
         INPUT:
 
-        ``verbose`` (optional) - boolean
+        ``verbose`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6209,7 +6217,7 @@ class SandpileDivisor(dict):
             sage: SandpileDivisor(S, [0,0,0,0,0,-4]).r_of_D(True) # optional - 4ti2
             (-1, {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: -4})
         """
-        deprecation(18618,'D.r_of_D() will be removed soon.  Please use `D.rank()` instead.')
+        deprecation(18618,'D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.')
         if verbose:
             return self._r_of_D
         else:
@@ -6217,11 +6225,13 @@ class SandpileDivisor(dict):
 
     def weierstrass_rank_seq(self, v='sink'):
         r"""
-        Compute the rank of the divisor 'D - nv' starting with 'n=0' and ending when the rank is -1.
+        The Weierstrass rank sequence at the given vertex.  Computes the rank of
+        the divisor `D - nv` starting with `n=0` and ending when the rank is
+        `-1`.
 
         INPUT:
 
-        ``v`` (optional) - vertex
+        ``v`` -- (default: ``sink``) vertex
 
         OUTPUT:
 
@@ -6256,13 +6266,14 @@ class SandpileDivisor(dict):
 
     def weierstrass_gap_seq(self, v='sink', weight=True):
         r"""
-        Compute the Weierstrass gap sequence at ``v``.  If 'weight' is True,
-        then also compute the weight of each gap value.
+        The Weierstrass gap sequence at the given vertex.  If ``weight`` is
+        ``True``, then also compute the weight of each gap value.
 
         INPUT:
 
-        - ``v`` (optional) - vertex
-        - ``weight`` (optional) - boolean
+        - ``v`` -- (default: ``sink``) vertex
+
+        - ``weight`` -- (default: ``True``) boolean
 
         OUTPUT:
 
@@ -6281,14 +6292,14 @@ class SandpileDivisor(dict):
             sage: D.weierstrass_rank_seq()  # rank sequence at the sink vertex
             (1, 0, 0, -1)
 
-        NOTES:
+        .. NOTE::
 
-        The integer `k` is a Weierstrass gap for the divisor `D` at vertex `v` if the rank
-        of `D - (k-1)v` does not equal the rank of `D - kv`.  Let `r` be the rank of `D` and
-        let `k_i` be the `i`-th gap at `v`.  The Weierstrass weight of `v` for `D` is the
-        sum of `(k_i - i)` as `i` ranges from `1` to `r + 1`.  It measure the difference
-        between the sequence `r, r - 1, ..., 0, -1, -1, ...` and the rank sequence
-        `rank(D), rank(D - v), rank(D - 2v), ...`
+            The integer `k` is a Weierstrass gap for the divisor `D` at vertex `v` if the rank
+            of `D - (k-1)v` does not equal the rank of `D - kv`.  Let `r` be the rank of `D` and
+            let `k_i` be the `i`-th gap at `v`.  The Weierstrass weight of `v` for `D` is the
+            sum of `(k_i - i)` as `i` ranges from `1` to `r + 1`.  It measure the difference
+            between the sequence `r, r - 1, ..., 0, -1, -1, ...` and the rank sequence
+            `\mathrm{rank}(D), \mathrm{rank}(D - v), \mathrm{rank}(D - 2v), \dots`
         """
         L = self.weierstrass_rank_seq(v)
         gaps = [i for i in range(1,len(L)) if L[i]!=L[i-1]]
@@ -6300,11 +6311,11 @@ class SandpileDivisor(dict):
 
     def is_weierstrass_pt(self, v='sink'):
         r"""
-        Is 'v' a Weierstrass point?
+        Is the given vertex a Weierstrass point?
 
         INPUT:
 
-        ``v`` (optional) - vertex
+        ``v`` -- (default: ``sink``) vertex
 
         OUTPUT:
 
@@ -6323,10 +6334,10 @@ class SandpileDivisor(dict):
             sage: K.is_weierstrass_pt(4)
             True
 
-        NOTES:
+        .. NOTE::
 
-        The vertex ``v`` is a (generalized) Weierstrass point for divisor ``D`` if the sequence of ranks ``r(D - nv)``
-        for ``n = 0, 1, 2, ...`` is not ``r(D), r(D)-1, ..., 0, -1, -1, ...``.
+            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         return self.weierstrass_gap_seq(v)[1] > 0
 
@@ -6336,7 +6347,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``distrib`` (optional) - list of nonnegative numbers representing a probability distribution on the vertices
+        None
 
         OUTPUT:
 
@@ -6354,11 +6365,11 @@ class SandpileDivisor(dict):
 
     def weierstrass_pts(self, with_rank_seq=False):
         r"""
-        Tuple of Weierstrass points (vertices), optionally with their rank sequences.
+        The Weierstrass points (vertices). Optionally, return the corresponding rank sequences.
 
         INPUT:
 
-        ``with_rank_seq`` (optional) - boolean
+        ``with_rank_seq`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6373,11 +6384,10 @@ class SandpileDivisor(dict):
             sage: K.weierstrass_pts(True)
             [(4, (1, 0, 0, -1))]
 
-        NOTES:
+        .. NOTE::
 
-        The vertex ``v`` is a (generalized) Weierstrass point for divisor ``D`` if the sequence of ranks ``r(D - nv)``
-        for ``n = 0, 1, 2, ...`` is not ``r(D), r(D)-1, ..., 0, -1, -1, ...``.
-
+            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         if with_rank_seq:
             rks = [self.weierstrass_rank_seq(v) for v in self._weierstrass_pts]
@@ -6386,7 +6396,7 @@ class SandpileDivisor(dict):
 
     def support(self):
         r"""
-        List of keys of the nonzero values of the divisor.
+        List of vertices at which the divisor is nonzero.
 
         INPUT:
 
@@ -6394,8 +6404,7 @@ class SandpileDivisor(dict):
 
         OUTPUT:
 
-        list - support of the divisor
-
+        list representing the support of the divisor
 
         EXAMPLES::
 
@@ -6454,8 +6463,7 @@ class SandpileDivisor(dict):
 
     def Dcomplex(self):
         r"""
-        The simplicial complex determined by the supports of the
-        linearly equivalent effective divisors.
+        The support-complex. (See NOTE.)
 
         INPUT:
 
@@ -6475,13 +6483,17 @@ class SandpileDivisor(dict):
             [1, 5, 10, 4]
             sage: p.betti()
             {0: 1, 1: 2, 2: 0}
+
+        .. NOTE::
+
+            The "support-complex" is the simplicial complex determined by the
+            supports of the linearly equivalent effective divisors.
         """
         return self._Dcomplex
 
     def betti(self):
         r"""
-        The Betti numbers for the simplicial complex associated with
-        the divisor.
+        The Betti numbers for the support-complex.  (See NOTE.)
 
         INPUT:
 
@@ -6497,6 +6509,11 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [2,0,1])
             sage: D.betti()
             {0: 1, 1: 1}
+
+        .. NOTE::
+
+            The "support-complex" is the simplicial complex determined by the
+            supports of the linearly equivalent effective divisors.
         """
         return self.Dcomplex().betti()
 
@@ -6506,7 +6523,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        ``distrib`` (optional) - list of nonnegative numbers representing a probability distribution on the vertices
+        ``distrib`` -- (optional) list of nonnegative numbers representing a probability distribution on the vertices
 
         OUTPUT:
 
@@ -6521,9 +6538,9 @@ class SandpileDivisor(dict):
             sage: D.add_random([0.1,0.1,0.1,0.7]) # random
             {0: 0, 1: 0, 2: 0, 3: 1}
 
-        WARNING::
+        .. WARNING::
 
-        If ``distrib != None``, the user is responsible for assuring the sum of its entries is 1.
+            If ``distrib`` is not ``None``, the user is responsible for assuring the sum of its entries is 1.
         """
         D = deepcopy(self)
         S = self.sandpile()
@@ -6538,12 +6555,13 @@ class SandpileDivisor(dict):
 
     def is_symmetric(self, orbits):
         r"""
-        This function checks if the values of the divisor are constant
-        over the vertices in each sublist of ``orbits``.
+        Is the divisor symmetric?  Return ``True`` if the values of the
+        configuration are constant over the vertices in each sublist of
+        ``orbits``.
 
         INPUT:
 
-         - ``orbits`` - list of lists of vertices
+        ``orbits`` -- list of lists of vertices
 
         OUTPUT:
 
@@ -6569,8 +6587,8 @@ class SandpileDivisor(dict):
 
     def _set_life(self):
         r"""
-        Will the sequence of divisors ``D_i`` where ``D_{i+1}`` is obtained from
-        ``D_i`` by firing all unstable vertices of ``D_i`` stabilize?  If so,
+        Will the sequence of divisors `D_i` where `D_{i+1}` is obtained from
+        `D_i` by firing all unstable vertices of `D_i` stabilize?  If so,
         save the resulting cycle, otherwise save ``[]``.
 
         INPUT:
@@ -6605,12 +6623,13 @@ class SandpileDivisor(dict):
 
     def is_alive(self, cycle=False):
         r"""
-        Will the divisor stabilize under repeated firings of all unstable
-        vertices?  Optionally returns the resulting cycle.
+        Is the divisor stabilizable?  In other words, will the divisor stabilize
+        under repeated firings of all unstable vertices?  Optionally returns the
+        resulting cycle.
 
         INPUT:
 
-        ``cycle`` (optional) - boolean
+        ``cycle`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6669,7 +6688,7 @@ class SandpileDivisor(dict):
 
         INPUT:
 
-        None
+        ``with_firing_vector`` -- (default: ``False``) boolean
 
         OUTPUT:
 
@@ -6689,15 +6708,17 @@ class SandpileDivisor(dict):
         else:
             return self._stabilize[0]
 
-    def show(self,heights=True,directed=None,**kwds):
+    def show(self, heights=True, directed=None, **kwds):
         r"""
         Show the divisor.
 
         INPUT:
 
-        - ``heights`` - whether to label each vertex with the amount of sand
-        - ``kwds`` - arguments passed to the show method for Graph
-        - ``directed`` - whether to draw directed edges
+        - ``heights`` -- (default: ``True``) whether to label each vertex with the amount of sand
+
+        - ``directed`` -- (optional) whether to draw directed edges
+
+        - ``kwds`` -- (optional) arguments passed to the show method for Graph
 
         OUTPUT:
 
@@ -6737,7 +6758,7 @@ def sandlib(selector=None):
 
     INPUT:
 
-    ``selector`` - identifier or None
+    ``selector`` -- (optional) identifier or None
 
     OUTPUT:
 
@@ -6833,7 +6854,7 @@ def complete_sandpile(n):
 
     INPUT:
 
-    ``n`` - positive integer
+    ``n`` -- positive integer
 
     OUTPUT:
 
@@ -6848,13 +6869,13 @@ def complete_sandpile(n):
     deprecation(18618,'May 25, 2015:  Replaced by sandpiles.Complete.')
     return Sandpile(graphs.CompleteGraph(n), 0)
 
-def grid_sandpile(m,n):
-    """
-    The mxn grid sandpile.  Each nonsink vertex has degree 4.
+def grid_sandpile(m, n):
+    r"""
+    The `m\times n` grid sandpile.  Each nonsink vertex has degree 4.
 
     INPUT:
 
-    ``m``, ``n`` - positive integers
+    ``m``, ``n`` -- positive integers
 
     OUTPUT:
 
@@ -6920,7 +6941,7 @@ def triangle_sandpile(n):
 
     INPUT:
 
-    ``n`` - int
+    ``n`` -- integer
 
     OUTPUT:
 
@@ -6967,7 +6988,7 @@ def aztec_sandpile(n):
 
     INPUT:
 
-    ``n`` - integer
+    ``n`` -- integer
 
     OUTPUT:
 
@@ -7005,10 +7026,10 @@ def aztec_sandpile(n):
         sage: Sandpile(aztec_sandpile(2),'sink').group_order()
         4542720
 
-    NOTES:
+    .. NOTE::
 
-    This is the aztec diamond graph with a sink vertex added.  Boundary
-    vertices have edges to the sink so that each vertex has degree 4.
+        This is the aztec diamond graph with a sink vertex added.  Boundary
+        vertices have edges to the sink so that each vertex has degree 4.
     """
     aztec_sandpile = {}
     half = QQ(1)/2
@@ -7050,10 +7071,13 @@ def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
 
     INPUT:
 
-     - ``num_verts`` - number of vertices
-     - ``p`` - probability edges occur
-     - ``directed`` - True if directed
-     - ``weight_max`` - integer maximum for random weights
+     - ``num_verts`` -- number of vertices
+
+     - ``p`` -- (default: 0.5) probability edges occur
+
+     - ``directed`` -- (default: ``True``) if directed
+
+     - ``weight_max`` -- (default: 1) integer maximum for random weights
 
     OUTPUT:
 
@@ -7103,9 +7127,11 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
     INPUT:
 
-     - ``num_verts`` - positive integer
-     - ``p`` - real number such that `0 < p \leq 1`
-     - ``weight_max`` - positive integer
+     - ``num_verts`` -- positive integer
+
+     - ``p`` -- (default: 0,5) real number such that `0 < p \leq 1`
+
+     - ``weight_max`` -- (default: 1) positive integer
 
     OUTPUT:
 
@@ -7153,14 +7179,14 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         g[i] = out_edges
     return g
 
-def random_tree(n,d):
+def random_tree(n, d):
     r"""
-    A random undirected tree with ``n`` nodes, no node having
-    degree higher than ``d``.
+    A random undirected tree with `n` nodes, no node having
+    degree higher than `d`.
 
     INPUT:
 
-    ``n``, ``d`` - integers
+    ``n``, ``d`` -- integers
 
     OUTPUT:
 
@@ -7196,14 +7222,15 @@ def random_tree(n,d):
                 next_vertex+=1
     return g
 
-def glue_graphs(g,h,glue_g,glue_h):
+def glue_graphs(g, h, glue_g, glue_h):
     r"""
     Glue two graphs together.
 
     INPUT:
 
-     - ``g``, ``h`` - dictionaries for directed multigraphs
-     - ``glue_h``, ``glue_g`` - dictionaries for a vertex
+     - ``g``, ``h`` -- dictionaries for directed multigraphs
+
+     - ``glue_h``, ``glue_g`` -- dictionaries for a vertex
 
     OUTPUT:
 
@@ -7236,17 +7263,17 @@ def glue_graphs(g,h,glue_g,glue_h):
         sage: S.resolution()
         'R^1 <-- R^7 <-- R^21 <-- R^35 <-- R^35 <-- R^21 <-- R^7 <-- R^1'
 
-    NOTES:
+    .. NOTE::
 
-    This method makes a dictionary for a graph by combining those for
-    ``g`` and ``h``.  The sink of ``g`` is replaced by a vertex that
-    is connected to the vertices of ``g`` as specified by ``glue_g``
-    the vertices of ``h`` as specified in ``glue_h``.  The sink of the glued
-    graph is `0`.
+        This method makes a dictionary for a graph by combining those for
+        `g` and `h`.  The sink of `g` is replaced by a vertex that
+        is connected to the vertices of `g` as specified by ``glue_g``
+        the vertices of `h` as specified in ``glue_h``.  The sink of the glued
+        graph is `0`.
 
-    Both ``glue_g`` and ``glue_h`` are dictionaries with entries of the form
-    ``v:w`` where ``v`` is the vertex to be connected to and ``w`` is the weight
-    of the connecting edge.
+        Both ``glue_g`` and ``glue_h`` are dictionaries with entries of the form
+        ``v:w`` where ``v`` is the vertex to be connected to and ``w`` is the weight
+        of the connecting edge.
     """
     # first find the sinks of g and h
     for i in g:
@@ -7285,16 +7312,16 @@ def glue_graphs(g,h,glue_g,glue_h):
     k['x'+str(g_sink)] = new_edges
     return k
 
-def firing_graph(S,eff):
+def firing_graph(S, eff):
     r"""
-    Creates a digraph with divisors as vertices and edges between two
-    divisors ``D`` and ``E`` if firing a single vertex in ``D`` gives
-    ``E``.
+    Creates a digraph with divisors as vertices and edges between two divisors
+    `D` and `E` if firing a single vertex in `D` gives `E`.
 
     INPUT:
 
-    ``S`` - sandpile
-    ``eff`` - list of divisors
+    ``S`` -- Sandpile
+
+    ``eff`` -- list of divisors
 
     OUTPUT:
 
@@ -7322,14 +7349,14 @@ def firing_graph(S,eff):
 
 def parallel_firing_graph(S, eff):
     r"""
-    Creates a digraph with divisors as vertices and edges between two
-    divisors ``D`` and ``E`` if firing all unstable vertices in ``D`` gives
-    ``E``.
+    Creates a digraph with divisors as vertices and edges between two divisors
+    `D` and `E` if firing all unstable vertices in `D` gives `E`.
 
     INPUT:
 
-    ``S`` - Sandpile
-    ``eff`` - list of divisors
+    ``S`` -- Sandpile
+
+    ``eff`` -- list of divisors
 
     OUTPUT:
 
@@ -7359,13 +7386,14 @@ def parallel_firing_graph(S, eff):
 
 def admissible_partitions(S, k):
     r"""
-    The partitions of the vertices of ``S`` into ``k`` parts,
-    each of which is connected.
+    The partitions of the vertices of `S` into `k` parts, each of which is
+    connected.
 
     INPUT:
 
-    ``S`` - Sandpile
-    ``k`` - integer
+    ``S`` -- Sandpile
+
+    ``k`` -- integer
 
     OUTPUT:
 
@@ -7417,16 +7445,17 @@ def admissible_partitions(S, k):
             result.append(p)
     return result
 
-def partition_sandpile(S,p):
+def partition_sandpile(S, p):
     r"""
-    Each set of vertices in ``p`` is regarded as a single vertex, with and edge
-    between ``A`` and ``B`` if some element of ``A`` is connected by an edge
-    to  some element of ``B`` in ``S``.
+    Each set of vertices in `p` is regarded as a single vertex, with and edge
+    between `A` and `B` if some element of `A` is connected by an edge to  some
+    element of `B` in `S`.
 
     INPUT:
 
-    ``S`` - Sandpile
-    ``p`` - partition of the vertices of ``S``
+    ``S`` -- Sandpile
+
+    ``p`` -- partition of the vertices of ``S``
 
     OUTPUT:
 
@@ -7462,15 +7491,16 @@ def partition_sandpile(S,p):
         if S.sink() in i:
             return Sandpile(g,i)
 
-def firing_vector(S,D,E):
+def firing_vector(S, D, E):
     r"""
-    If ``D`` and ``E`` are linearly equivalent divisors, find the firing vector
-    taking ``D`` to ``E``.
+    If `D` and `E` are linearly equivalent divisors, find the firing vector
+    taking `D` to `E`.
 
     INPUT:
 
-    - ``S`` - Sandpile
-    - ``D``, ``E`` - tuples (representing linearly equivalent divisors)
+    - ``S`` -- Sandpile
+
+    - ``D``, ``E`` -- tuples (representing linearly equivalent divisors)
 
     OUTPUT:
 
@@ -7505,14 +7535,15 @@ def firing_vector(S,D,E):
         print "Error. Are the divisors linearly equivalent?"
         return
 
-def min_cycles(G,v):
+def min_cycles(G, v):
     r"""
-    Minimal length cycles in the digraph ``G`` starting at vertex ``v``.
+    Minimal length cycles in the digraph `G` starting at vertex `v`.
 
     INPUT:
 
-    ``G`` - DiGraph
-    ``v`` - vertex of ``G``
+    - ``G`` -- DiGraph
+
+    - ``v`` -- vertex of ``G``
 
     OUTPUT:
 
@@ -7533,16 +7564,16 @@ def min_cycles(G,v):
 
 def wilmes_algorithm(M):
     r"""
-    Computes an integer matrix ``L`` with the same integer row span as ``M``
-    and such that ``L`` is the reduced laplacian of a directed multigraph.
+    Computes an integer matrix `L` with the same integer row span as `M` and
+    such that `L` is the reduced Laplacian of a directed multigraph.
 
     INPUT:
 
-    ``M`` - square integer matrix of full rank
+    ``M`` -- square integer matrix of full rank
 
     OUTPUT:
 
-    ``L`` - integer matrix
+    integer matrix (``L``)
 
     EXAMPLES::
 
@@ -7553,9 +7584,11 @@ def wilmes_algorithm(M):
         [    0    -1  1650 -1649]
         [    0     0 -1658  1658]
 
-    NOTES:
+    REFERENCES:
 
-    The algorithm is due to John Wilmes.
+    .. [Primer2013] Perlman, Perkinson, and Wilmes.  Primer for the algebraic
+       geometry of sandpiles. Tropical and Non-Archimedean Geometry, Contemp.
+       Math., 605, Amer. Math. Soc., Providence, RI, 2013.
     """
     # find the gcd of the row-sums, and perform the corresponding row
     # operations on M

@@ -2740,8 +2740,6 @@ def HeawoodGraph():
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the nodes are
     positioned in a circular layout with the first node appearing at
@@ -2761,15 +2759,22 @@ def HeawoodGraph():
         sage: H.graph6_string()
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.HeawoodGraph()
+        sage: G.is_isomorphic(Graph(networkx.heawood_graph()))
+        True
     """
+    edges = {0:[1, 5, 13], 1:[2, 10], 2:[3, 7], 3:[4, 12], 4:[5, 9], 5:[6],
+             6:[7, 11], 7:[8], 8:[9, 13], 9:[10], 10:[11], 11:[12], 12:[13]}
     pos_dict = {}
     for i in range(14):
         x = float(cos((pi/2) + (pi/7)*i))
         y = float(sin((pi/2) + (pi/7)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.heawood_graph()
-    return Graph(G, pos=pos_dict, name="Heawood graph")
+    return Graph(edges, pos=pos_dict, name="Heawood graph")
 
 def HerschelGraph():
     r"""

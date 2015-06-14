@@ -534,7 +534,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         The edges of the graph are by default colored using blue for
         edge 1, red for edge 2, green for edge 3, and yellow for edge 4::
 
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
         Alternatively, one may get the graph of the action of the ``tau`` operator::
 
@@ -548,7 +548,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             ([1, 4, 2, 3], [1, 2, 4, 3], 2), ([1, 4, 2, 3], [1, 4, 2, 3], 1), ([1, 4, 2, 3], [1, 4, 2, 3], 3),
             ([2, 1, 3, 4], [1, 2, 3, 4], 1), ([2, 1, 3, 4], [2, 1, 3, 4], 2), ([2, 1, 3, 4], [2, 1, 4, 3], 3),
             ([2, 1, 4, 3], [1, 2, 4, 3], 1), ([2, 1, 4, 3], [2, 1, 3, 4], 3), ([2, 1, 4, 3], [2, 1, 4, 3], 2)]
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
         .. seealso:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
 

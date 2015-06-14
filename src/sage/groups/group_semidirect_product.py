@@ -1,3 +1,7 @@
+"""
+Semidirect product of groups
+"""
+
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
 from sage.sets.cartesian_product import CartesianProduct
@@ -112,22 +116,71 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
 
 class GroupSemidirectProduct(CartesianProduct):
     r"""
-    Returns the semidirect product of the groups ``G`` and ``H`` using the homomorphism ``twist``.
+    Return the semidirect product of the groups ``G`` and ``H`` using the homomorphism ``twist``.
 
     INPUT:
 
     - ``G`` and ``H`` -- multiplicative groups
-    - ``twist`` -- (default: None) a group homomorphism (see below)
+    - ``twist`` -- (default: None) a function defining a homomorphism (see below)
     - ``act_to_right`` -- True or False (default: True)
     - ``prefix0`` -- (default: None) optional string
     - ``prefix1`` -- (default: None) optional string
     - ``print_tuple`` -- True or False (default: False)
     - ``category`` -- A category (default: Groups())
 
-    If ``act_to_right`` is True, ``twist`` is an element of ``Hom(G, Aut(H))``. Syntactically
-    ``twist(g,h)`` is in ``H`` for all `g\in G` and `h\in H`.
-    If ``act_to_right`` is False, ``twist`` is an element of ``Hom(H, Aut(G))``
-    and ``twist(h,g)`` is in ``G`` for all `g\in G` and `h\in H`.
+    A semidirect product of groups `G` and `H` is a group structure on the Cartesian product `G \times H`
+    whose product agrees with that of `G` on `G \times 1_H` and with that of `H` on `1_G \times H`, such that
+    either `1_G \times H` or `G \times 1_H` is a normal subgroup. In the former case the group is denoted
+    `G \ltimes H` and in the latter, `G \rtimes H`.
+
+    If ``act_to_right`` is True, this indicates the group `G \ltimes H` in which `G` acts on `H` by
+    automorphisms. In this case there is a
+    group homomorphism `\phi \in \mathrm{Hom}(G, \mathrm{Aut}(H))` such that
+
+    .. MATH::
+
+        g h g^{-1} &= \phi(g)(h).
+
+    The homomorphism `\phi` is specified by the input ``twist``, which syntactically is the function `G\times H\to H`
+    defined by
+
+    .. MATH::
+
+        twist(g,h) = \phi(g)(h).
+
+    The product on `G \ltimes H` is defined by
+        
+    .. MATH::
+
+        \begin{align*}
+        (g_1,h_1)(g_2,h_2) &= g_1 h_1 g_2 h_2 \\
+        &= g_1 g_2 g_2^{-1} h_1 g_2 h_2 \\
+        &= (g_1g_2, twist(g_2^{-1}, h_1) h_2)
+        \end{align*}
+
+    If ``act_to_right`` is False, the group `G \rtimes H` is specified by a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))`
+    such that
+
+    .. MATH::
+
+        h g h^{-1} &= \psi(h)(g)
+
+    Then ``twist`` is the function `H\times G\to G` defined by
+
+    .. MATH::
+
+       twist(h,g) = \psi(h)(g).
+
+    so that the product in `G \rtimes H` is defined by
+
+    .. MATH::
+
+        \begin{align*}
+        (g_1,h_1)(g_2,h_2) &= g_1 h_1 g_2 h_2 \\
+        &= g_1 h_1 g_2 h_1^{-1} h_1 h_2 \\
+        &= (g_1 twist(h_1,g_2), h_1 h_2)
+        \end{align*}
+
     If ``prefix0`` (resp. ``prefixl``) is not None then it is used as a wrapper for
     printing elements of ``G`` (resp. ``H``). If ``print_tuple`` is True then elements are printed
     in the style `(g,h)` and otherwise in the style `g * h`.
@@ -164,7 +217,7 @@ class GroupSemidirectProduct(CartesianProduct):
         - Twofold Direct product as a special case of semidirect product
     """
 
-    def __init__(self, G, H, twist=None, act_to_right=True, prefix0=None, prefix1=None, print_tuple=False,category=Groups()):
+    def __init__(self, G, H, twist = None, act_to_right = True, prefix0 = None, prefix1 = None, print_tuple = False, category = Groups()):
         r"""
         
         EXAMPLES::

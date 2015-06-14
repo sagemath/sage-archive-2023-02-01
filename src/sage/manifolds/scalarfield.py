@@ -650,11 +650,29 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- a scalar field
+        - ``other`` -- a scalar field (or something else)
 
         OUTPUT:
 
-        - True if ``self`` is equal to ``other``,  or False otherwise
+        - ``True`` if ``self`` is equal to ``other``, ``False`` otherwise
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.__eq__(1)
+            False
+            sage: f.__eq__(M.zero_scalar_field())
+            False
+            sage: g = M.scalar_field({X: x+y})
+            sage: f.__eq__(g)
+            True
+            sage: h = M.scalar_field({X: 1})
+            sage: h.__eq__(M.one_scalar_field())
+            True
+            sage: h.__eq__(1)
+            True
 
         """
         if not isinstance(other, ScalarField):
@@ -673,7 +691,7 @@ class ScalarField(CommutativeAlgebraElement):
             return self.is_zero()
         com_charts = self.common_charts(other)
         if com_charts is None:
-            raise ValueError("No common chart for the comparison.")
+            raise ValueError("no common chart for the comparison")
         resu = True
         for chart in com_charts:
             resu = resu and (self._express[chart] == other._express[chart])
@@ -682,6 +700,28 @@ class ScalarField(CommutativeAlgebraElement):
     def __ne__(self, other):
         r"""
         Non-equality operator.
+
+        INPUT:
+
+        - ``other`` -- a scalar field
+
+        OUTPUT:
+
+        - ``True`` if ``self`` differs from ``other``, ``False`` otherwise
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.__ne__(1)
+            True
+            sage: f.__ne__(M.zero_scalar_field())
+            True
+            sage: g = M.scalar_field({X: x+y})
+            sage: f.__ne__(g)
+            False
+
         """
         return not self.__eq__(other)
 
@@ -690,6 +730,19 @@ class ScalarField(CommutativeAlgebraElement):
         Old-style (Python 2) comparison operator.
 
         This is provisory, until migration to Python 3 is achieved.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f.__cmp__(1)
+            -1
+            sage: f.__cmp__(M.zero_scalar_field())
+            -1
+            sage: g = M.scalar_field({X: x+y})
+            sage: f.__cmp__(g)
+            0
 
         """
         if self.__eq__(other):
@@ -701,20 +754,57 @@ class ScalarField(CommutativeAlgebraElement):
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f._init_derived()
+
         """
         self._restrictions = {} # dict. of restrictions of self on subsets
                                 # of self._domain, with the subsets as keys
 
     def _del_derived(self):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
+
+        TEST::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: f.restrict(U)
+            Scalar field on the Open subset U of the 2-dimensional topological manifold M
+            sage: f._restrictions
+            {Open subset U of the 2-dimensional topological manifold M: Scalar field on the Open subset U of the 2-dimensional topological manifold M}
+            sage: f._del_derived()
+            sage: f._restrictions  # restrictions are derived quantities
+            {}
+
         """
         self._restrictions.clear()
 
     def _repr_(self):
         r"""
         String representation of ``self``.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f._repr_()
+            'Scalar field on the 2-dimensional topological manifold M'
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: f._repr_()
+            'Scalar field f on the 2-dimensional topological manifold M'
+            sage: repr(f)  # indirect doctest
+            'Scalar field f on the 2-dimensional topological manifold M'
+
         """
         description = "Scalar field"
         if self._name is not None:
@@ -725,6 +815,23 @@ class ScalarField(CommutativeAlgebraElement):
     def _latex_(self):
         r"""
         LaTeX representation of ``self``.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f._latex_()
+            '\\mbox{Scalar field on the 2-dimensional topological manifold M}'
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: f._latex_()
+            'f'
+            sage: f = M.scalar_field({X: x+y}, name='f', latex_name=r'\Phi')
+            sage: f._latex_()
+            '\\Phi'
+            sage: latex(f)  # indirect doctest
+            \Phi
+
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
@@ -737,10 +844,27 @@ class ScalarField(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``name`` -- (string; default: ``None``) name given to the scalar field
+        - ``name`` -- (string; default: ``None``) name given to the scalar
+          field
         - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
           the scalar field; if ``None`` while ``name`` is provided, the LaTeX
           symbol is set to ``name``.
+
+        EXAMPLES::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y})
+            sage: f = M.scalar_field({X: x+y}); f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.set_name('f'); f
+            Scalar field f on the 2-dimensional topological manifold M
+            sage: latex(f)
+            f
+            sage: f.set_name('f', latex_name=r'\Phi'); f
+            Scalar field f on the 2-dimensional topological manifold M
+            sage: latex(f)
+            \Phi
 
         """
         if name is not None:
@@ -749,13 +873,6 @@ class ScalarField(CommutativeAlgebraElement):
                 self._latex_name = self._name
         if latex_name is not None:
             self._latex_name = latex_name
-
-    def _new_instance(self):
-        r"""
-        Create an instance of the same class as ``self`` and on the same domain.
-
-        """
-        return self.__class__(self._domain)
 
     def domain(self):
         r"""
@@ -1139,8 +1256,8 @@ class ScalarField(CommutativeAlgebraElement):
 
         """
         if not chart._domain.is_subset(self._domain):
-            raise ValueError("The chart is not defined on a subset of " +
-                             "the scalar field domain.")
+            raise ValueError("the chart is not defined on a subset of " +
+                             "the scalar field domain")
         schart = chart.restrict(subdomain)
         self._express[chart] = chart.function(self.expr(schart))
         self._is_zero = False # a priori
@@ -1306,9 +1423,9 @@ class ScalarField(CommutativeAlgebraElement):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The specified domain is not a subset " +
+                raise ValueError("the specified domain is not a subset " +
                                  "of the domain of definition of the scalar " +
-                                 "field.")
+                                 "field")
             # Special case of the zero scalar field:
             if self._is_zero:
                 return subdomain._zero_scalar_field
@@ -1473,13 +1590,39 @@ class ScalarField(CommutativeAlgebraElement):
 
         - value at p
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: p = M((2,-5), name='p'); p
+            Point p on the 2-dimensional topological manifold M
+            sage: f.__call__(p)
+            -3
+            sage: f(p)
+            -3
+            sage: M.zero_scalar_field()(p)
+            0
+            sage: M.one_scalar_field()(p)
+            1
+
+        Example with a change of chart::
+
+            sage: Y.<u,v> = M.chart()
+            sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
+            sage: Y_to_X = X_to_Y.inverse()
+            sage: g = M.scalar_field({Y: u*v}, name='g')
+            sage: g(p)
+            -21
+            sage: p.coord(Y)
+            (-3, 7)
 
         """
         #!# it should be "if p not in self_domain:" instead, but this test is
         # skipped for efficiency
         if p not in self._manifold:
-            raise ValueError("The point " + str(p) +
+            raise ValueError("the point " + str(p) +
                              " does not belong to the " + str(self._manifold))
         if self._is_zero:
             return 0
@@ -1525,8 +1668,18 @@ class ScalarField(CommutativeAlgebraElement):
 
         - an exact copy of ``self``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = f.__pos__(); g
+            Scalar field +f on the 2-dimensional topological manifold M
+            sage: g == f
+            True
+
         """
-        result = self._new_instance()
+        result = self.__class__(self._domain)
         for chart in self._express:
             result._express[chart] = + self._express[chart]
         if self._name is not None:
@@ -1543,8 +1696,22 @@ class ScalarField(CommutativeAlgebraElement):
 
         - the negative of ``self``
 
+        TESTS::
+
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = f.__neg__(); g
+            Scalar field -f on the 2-dimensional topological manifold M
+            sage: g.display()
+            -f: M --> R
+               (x, y) |--> -x - y
+            sage: g.__neg__() == f
+            True
+
         """
-        result = self._new_instance()
+        result = self.__class__(self._domain)
         for chart in self._express:
             result._express[chart] = - self._express[chart]
         if self._name is not None:
@@ -1569,6 +1736,22 @@ class ScalarField(CommutativeAlgebraElement):
         - the scalar field resulting from the addition of ``self`` and
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = M.scalar_field({X: x*y}, name='g')
+            sage: s = f._add_(g); s
+            Scalar field f+g on the 2-dimensional topological manifold M
+            sage: s.display()
+            f+g: M --> R
+               (x, y) |--> (x + 1)*y + x
+            sage: s == f+g
+            True
+            sage: f._add_(M.zero_scalar_field()) == f
+            True
+
         """
         dom = self._domain
         # Special cases:
@@ -1579,7 +1762,7 @@ class ScalarField(CommutativeAlgebraElement):
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
-            raise ValueError("No common chart for the addition.")
+            raise ValueError("no common chart for the addition")
         result = self.__class__(dom)
         for chart in com_charts:
             # CoordFunction addition:
@@ -1605,6 +1788,22 @@ class ScalarField(CommutativeAlgebraElement):
         - the scalar field resulting from the subtraction of ``other`` from
           ``self``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = M.scalar_field({X: x*y}, name='g')
+            sage: s = f._sub_(g); s
+            Scalar field f-g on the 2-dimensional topological manifold M
+            sage: s.display()
+            f-g: M --> R
+               (x, y) |--> -(x - 1)*y + x
+            sage: s == f-g
+            True
+            sage: f._sub_(M.zero_scalar_field()) == f
+            True
+
         """
         dom = self._domain
         # Special cases:
@@ -1615,7 +1814,7 @@ class ScalarField(CommutativeAlgebraElement):
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
-            raise ValueError("No common chart for the subtraction.")
+            raise ValueError("no common chart for the subtraction")
         result = self.__class__(dom)
         for chart in com_charts:
             # CoordFunction subtraction:
@@ -1642,6 +1841,24 @@ class ScalarField(CommutativeAlgebraElement):
         - the scalar field resulting from the multiplication of ``self`` by
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = M.scalar_field({X: x*y}, name='g')
+            sage: s = f._mul_(g); s
+            Scalar field f*g on the 2-dimensional topological manifold M
+            sage: s.display()
+            f*g: M --> R
+               (x, y) |--> x^2*y + x*y^2
+            sage: s == f*g
+            True
+            sage: f._mul_(M.zero_scalar_field()) == M.zero_scalar_field()
+            True
+            sage: f._mul_(M.one_scalar_field()) == f
+            True
+
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
@@ -1652,7 +1869,7 @@ class ScalarField(CommutativeAlgebraElement):
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
-            raise ValueError("No common chart for the multiplication.")
+            raise ValueError("no common chart for the multiplication")
         result = self.__class__(dom)
         for chart in com_charts:
             # CoordFunction multiplication:
@@ -1675,19 +1892,37 @@ class ScalarField(CommutativeAlgebraElement):
         - the scalar field resulting from the division of ``self`` by
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: g = M.scalar_field({X: x*y}, name='g')
+            sage: s = f._div_(g); s
+            Scalar field f/g on the 2-dimensional topological manifold M
+            sage: s.display()
+            f/g: M --> R
+               (x, y) |--> (x + y)/(x*y)
+            sage: s == f/g
+            True
+            sage: f._div_(M.zero_scalar_field())
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division of a scalar field by zero
+
         """
         from sage.tensor.modules.format_utilities import format_mul_txt, \
                                                          format_mul_latex
         dom = self._domain
         # Special cases:
         if other._is_zero:
-            raise ZeroDivisionError("Division of a scalar field by zero.")
+            raise ZeroDivisionError("division of a scalar field by zero")
         if self._is_zero:
             return dom._zero_scalar_field
         # Generic case:
         com_charts = self.common_charts(other)
         if com_charts is None:
-            raise ValueError("No common chart for the division.")
+            raise ValueError("no common chart for the division")
         result = self.__class__(dom)
         for chart in com_charts:
             # CoordFunction division:
@@ -1710,6 +1945,28 @@ class ScalarField(CommutativeAlgebraElement):
         OUPUT:
 
         - the scalar field ``number*self``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: s = f._lmul_(2); s
+            Scalar field on the 2-dimensional topological manifold M
+            sage: s.display()
+            M --> R
+            (x, y) |--> 2*x + 2*y
+            sage: s == 2*f
+            True
+            sage: f._lmul_(pi).display()
+            M --> R
+            (x, y) |--> pi*x + pi*y
+            sage: f._lmul_(pi) == pi*f
+            True
+            sage: f._lmul_(0) == M.zero_scalar_field()
+            True
+            sage: f._lmul_(1) == f
+            True
 
         """
         if number == 0:
@@ -1752,6 +2009,19 @@ class ScalarField(CommutativeAlgebraElement):
         OUPUT:
 
         - the scalar field ``number*self``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: s = f._rmul_(2); s
+            Scalar field on the 2-dimensional topological manifold M
+            sage: s.display()
+            M --> R
+            (x, y) |--> 2*x + 2*y
+            sage: s == f*2
+            True
 
         """
         return self._lmul_(number) # since the algebra is commutative

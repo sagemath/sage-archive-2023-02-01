@@ -3206,8 +3206,6 @@ def KrackhardtKiteGraph():
     - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
       http://www.orgnet.com/sna.html
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the graph is
     drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
@@ -3228,11 +3226,18 @@ def KrackhardtKiteGraph():
 
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.KrackhardtKiteGraph()
+        sage: G.is_isomorphic(Graph(networkx.krackhardt_kite_graph()))
+        True
     """
+    edges = {0:[1, 2, 3, 5], 1:[3, 4, 6], 2:[3, 5], 3:[4, 5, 6],
+             4:[6], 5:[6, 7], 6:[7], 7:[8], 8:[9]}
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
-    import networkx
-    G = networkx.krackhardt_kite_graph()
-    return Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
+    return Graph(edges, pos=pos_dict, name="Krackhardt Kite Graph")
 
 def LjubljanaGraph(embedding=1):
     r"""

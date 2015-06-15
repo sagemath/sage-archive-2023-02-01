@@ -1549,8 +1549,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     def elements_below_coxeter_element(self, c=None):
         r"""
-        Returns all elements in ``self`` in the interval `[1,c]` in the absolute order of ``self``.
-        This order is defines by `\omega \leq_R \tau \Leftrightarrow \ell_R(\omega) + \ell_R(\omega^{-1} \tau) = \ell_R(\tau)``.
+        Returns all elements in ``self`` in the interval `[1,c]` in the
+        absolute order of ``self``.
+
+        This order is defines by `\omega \leq_R \tau \Leftrightarrow \ell_R(\omega) + \ell_R(\omega^{-1} \tau) = \ell_R(\tau)`,
+        where `\ell_R` denotes the reflection length.
 
         REMARK:
 

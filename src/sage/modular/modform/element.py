@@ -890,18 +890,43 @@ class Newform(ModularForm_abstract):
             True
             sage: f1.__eq__(f2)
             False
+
+        We test comparison of equal newforms with different parents
+        (see :trac:`18478`)::
+
+            sage: f = Newforms(Gamma1(11), 2)[0]; f
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: g = Newforms(Gamma0(11), 2)[0]; g
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            sage: f == g
+            True
+
+            sage: f = Newforms(DirichletGroup(4)[1], 5)[0]; f
+            q - 4*q^2 + 16*q^4 - 14*q^5 + O(q^6)
+            sage: g = Newforms(Gamma1(4), 5)[0]; g
+            q - 4*q^2 + 16*q^4 - 14*q^5 + O(q^6)
+            sage: f == g
+            True
+
         """
         if (not isinstance(other, ModularForm_abstract)
-            or self.parent().ambient() != other.parent().ambient()):
+            or self.weight() != other.weight()):
             return False
-        if (isinstance(other, Newform) and
-            self.q_expansion(self.parent().sturm_bound())
-            == other.q_expansion(other.parent().sturm_bound())):
-            return True
-        if (is_ModularFormElement(other) and
-            self.element() == other.element()):
-            return True
-        return False
+        if isinstance(other, Newform):
+            if (self.level() != other.level() or
+                self.character() != other.character()):
+                return False
+            # The two parents may have different Sturm bounds in case
+            # one of them is a space of cusp forms with character
+            # (possibly trivial, i.e. for the group Gamma0(n)) and the
+            # other is a space of cusp forms for Gamma1(n).  It is
+            # safe to take the smaller bound because we have checked
+            # that the characters agree.
+            bound = min(self.parent().sturm_bound(),
+                        other.parent().sturm_bound())
+            return self.q_expansion(bound) == other.q_expansion(bound)
+        # other is a ModularFormElement
+        return self.element() == other
 
     def abelian_variety(self):
         """

@@ -3433,9 +3433,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: (2/3)._interface_init_()
             '2/3'
-            sage: kash(3/1).Type()              # optional
+            sage: kash(3/1).Type()              # optional - kash
             elt-fld^rat
-            sage: magma(3/1).Type()             # optional
+            sage: magma(3/1).Type()             # optional - magma
             FldRatElt
         """
         return '%s/%s'%(self.numerator(), self.denominator())

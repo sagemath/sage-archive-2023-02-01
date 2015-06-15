@@ -210,15 +210,17 @@ cdef class Ring(ParentWithGens):
 
     def __xor__(self, n):
         r"""
-        Trap the operation ``^``. It's next to impossible to test this since
-        ``^`` is intercepted first by the preparser.
+        Trap the operation ``^``.
 
         EXAMPLES::
 
-            sage: RR^3 # not tested
+            sage: eval('RR^3')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: use ** for exponentiation, not '^', which means xor in Python, and has the wrong precedence
         """
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
+        raise RuntimeError("use ** for exponentiation, not '^', which means xor "
+              "in Python, and has the wrong precedence")
 
     def base_extend(self, R):
         """

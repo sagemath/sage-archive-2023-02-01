@@ -2646,7 +2646,7 @@ class LPDictionary(LPAbstractDictionary):
         r"""
         See :class:`LPDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = matrix(QQ, ([1, 1], [3, 1]))
             sage: b = vector(QQ, (1000, 1500))
@@ -3214,7 +3214,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         r"""
         See :class:`LPRevisedDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)

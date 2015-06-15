@@ -1373,7 +1373,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - CryptoMiniSat
+            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - cryptominisat
             [{y: 1, z: 0, x: 0}]
             sage: S.subs( sol[0] )
             [0, 0, 0]

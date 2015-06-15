@@ -15513,6 +15513,7 @@ class GenericGraph(GenericGraph_pyx):
              ('...', ...): [...,...],
              ('...', ...): [...,...]}
             sage: g.plot(layout = "graphviz")  # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
 
         Note: the actual coordinates are not deterministic
 
@@ -15520,14 +15521,21 @@ class GenericGraph(GenericGraph_pyx):
         ``dot`` layout program. One may specify an alternative layout
         program::
 
-            sage: g.plot(layout = "graphviz", prog = "dot")    # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "neato")  # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "twopi")  # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "fdp")    # optional - dot2tex graphviz
+            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g = graphs.BalancedTree(5,2)
             sage: g.plot(layout = "graphviz", prog = "circo")  # optional - dot2tex graphviz
+            Graphics object consisting of 62 graphics primitives
 
-        TODO: put here some cool examples showcasing graphviz features.
+        .. TODO::
+
+            Put here some cool examples showcasing graphviz features.
 
         This requires ``graphviz`` and the ``dot2tex`` spkg. Here are
         some installation tips:
@@ -15539,8 +15547,10 @@ class GenericGraph(GenericGraph_pyx):
          - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
            and install it with ``sage -i dot2tex-2.8.?.spkg``
 
-        TODO: use the graphviz functionality of Networkx 1.0 once it
-        will be merged into Sage.
+        .. TODO::
+
+            Use the graphviz functionality of Networkx 1.0 once it
+            will be merged into Sage.
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"
@@ -15755,6 +15765,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``save_pos`` - save position computed during plotting
 
         .. NOTE::
+
+            - This method supports any parameter accepted by
+              :meth:`sage.plot.graphics.Graphics.show`.
 
             - See the documentation of the :mod:`sage.graphs.graph_plot` module
               for information and examples of how to define parameters that will

@@ -81,8 +81,9 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [])
         sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: skip_extensions = (loadable_module_extension(), '.h', '.pxi', '.pxd', '.cpp')
         sage: for f in stale_iter:
-        ....:     if f.endswith(loadable_module_extension()): continue
+        ....:     if f.endswith(skip_extensions): continue
         ....:     print('Found stale file: ' + f)
     """
     PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')

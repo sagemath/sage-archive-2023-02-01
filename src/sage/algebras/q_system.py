@@ -38,23 +38,43 @@ class QSystem(Parent, UniqueRepresentation):
     r"""
     A Q-system.
 
-    We use the presentation of a Q-system given in [HKOTY99]_.
-
-    The relation is:
+    Let `\mathfrak{g}` be a symmetrizable Kac-Moody algebra with index
+    set `I` over a field `k`. Follow the presentation given in [HKOTY99]_,
+    an unrestricted Q-system is a `k`-algebra in infinitely many variables
+    `Q_m^{(a)}`, where `m \in \ZZ_{>0}` and `a \in I`, which satisifies
+    the relations
 
     .. MATH::
 
         (Q_m^{(a)})^2 = Q_{m+1}^{(a)} Q_{m-1}^{(a)} +
         \prod_{b \sim a} \prod_{k=0}^{-C_{ab} - 1}
-        Q^{(b)}_{\lfloor \frac{m C_{ba} - k}{C_{ab}} \rfloor}
+        Q^{(b)}_{\lfloor \frac{m C_{ba} - k}{C_{ab}} \rfloor},
 
-    with `Q^{(a)}_0 = 1`.
+    with `Q_0^{(a)} := 1`. Q-systems can be considered as T-systems where
+    we forget the spectral parameter `u` and for `\mathfrak{g}` of finite
+    type, have a solution given by the characters of Kirillov-Reshetikhin
+    modules (again without the spectral parameter) for an affine Kac-Moody
+    algebra `\widehat{\mathfrak{g}}` with `\mathfrak{g}` as its classical
+    subalgebra.
 
     Q-systems have two natural bases:
 
-    - ``Fundamental`` -- given by polynomials of the
-      fundamental representations
-    - ``SqaureFree`` -- given by square-free terms
+    - :class:`~QSystem.Fundamental` -- given by polynomials of the
+      fundamental representations `Q_1^{(a)}`
+    - :class:`~QSystem.SqaureFree` -- given by square-free terms
+
+    There is also a level `\ell` restricted Q-system (with unit boundary
+    condition) given by setting `Q_{d_a \ell}^{(a)}` = 1`, where `d_a`
+    are the entries of the symmetrizing matrix for the dual type of
+    `\mathfrak{g}`.
+
+    EXAMPLES:
+
+    We begin by constructing a Q-system and the two bases::
+
+        sage: Q = QSystem(['A', 4])
+        sage: F = Q.Fundamental()
+        sage: SF = Q.SquareFree()
 
     REFERENCES:
 
@@ -393,8 +413,12 @@ class QSystem(Parent, UniqueRepresentation):
             """
             if a not in self.index_set():
                 raise ValueError("a is not in the index set")
-            if m == 0 or m == self._level:
+            if m == 0:
                 return self.one()
+            if self._level:
+                t = self._cartan_type.dual().cartan_matrix().symmetrizer()
+                if m == t[a] * self._level:
+                    return self.one()
             if m == 1:
                 return self.monomial( self._indices.gen((a,1)) )
             #if self._cartan_type.type() == 'A' and self._level is None:
@@ -420,6 +444,21 @@ class QSystem(Parent, UniqueRepresentation):
 
                 Q^{(a)}_m = \frac{Q^{(a)}_{m-1}^2 - \mathcal{Q}_{a,m-1}}{
                 Q^{(a)}_{m-2}}.
+
+            .. NOTE::
+
+                This helper method is defined in order to use the
+                division implemented in polynomial rings.
+
+            EXAMPLES::
+
+                sage: F = QSystem(QQ, ['A',8]).Fundamental()
+                sage: F._Q_poly(1, 2)
+                q1^2 - q2
+                sage: F._Q_poly(3, 2)
+                q3^2 - q2*q4
+                sage: F._Q_poly(6, 3)
+                q6^3 - 2*q5*q6*q7 + q4*q7^2 + q5^2*q8 - q4*q6*q8
             """
             if m == 0 or m == self._level:
                 return self._poly.one()
@@ -446,6 +485,15 @@ class QSystem(Parent, UniqueRepresentation):
             def _mul_(self, x):
                 """
                 Return the product of ``self`` and ``x``.
+
+                EXAMPLES::
+
+                    sage: F = QSystem(QQ, ['A',8]).Fundamental()
+                    sage: x = F.gen(1, 2)
+                    sage: y = F.gen(3, 2)
+                    sage: x * y
+                    -Q^(1)[1]^2*Q^(2)[1]*Q^(4)[1] + Q^(2)[1]^2*Q^(4)[1]
+                     - Q^(2)[1]*Q^(3)[1]^2 + Q^(1)[1]^2*Q^(3)[1]^2
                 """
                 return self.parent().sum_of_terms((tl*tr, cl*cr)
                                                   for tl,cl in self for tr,cr in x)

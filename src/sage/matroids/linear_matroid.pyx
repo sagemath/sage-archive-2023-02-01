@@ -2824,9 +2824,6 @@ cdef class BinaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = GF2_zero
         self._one = GF2_one
 
@@ -3777,9 +3774,6 @@ cdef class TernaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = GF3_zero
         self._one = GF3_one
         self._two = GF3_minus_one
@@ -4595,9 +4589,6 @@ cdef class QuaternaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = (<QuaternaryMatrix>self._A)._zero
         self._one = (<QuaternaryMatrix>self._A)._one
         self._x_zero = (<QuaternaryMatrix>self._A)._x_zero

@@ -3485,6 +3485,7 @@ cdef class BinaryMatroid(LinearMatroid):
         2-separations especially), it is easy to implement.
         """
         global GF2
+        cdef int r, c
         B= self.basis()
         Bl = [e for e in B]
         C = [self._cocircuit((self.groundset() - B) | set([e])) for e in Bl]
@@ -3496,36 +3497,27 @@ cdef class BinaryMatroid(LinearMatroid):
                 if e is not f:
                     col[e, f] = c
                     c += 1
-        M = {}
+        M = []
         r = 0
         for e in xrange(len(B)):
             for f in xrange(e):
                 for g in xrange(f):
                     if not C[e].issuperset(C[f] & C[g]):
-                        M[(r, col[e, f])] = 1
-                        M[(r, col[e, g])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[e,f], col[e,g]])
                         r += 1
                     if not C[f].issuperset(C[e] & C[g]):
-                        M[(r, col[f, e])] = 1
-                        M[(r, col[f, g])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[f,e], col[f,g]])
                         r += 1
                     if not C[g].issuperset(C[e] & C[f]):
-                        M[(r, col[g, e])] = 1
-                        M[(r, col[g, f])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[g,e], col[g,f]])
                         r += 1
                     if len(C[e] & C[f] & C[g]) > 0:
-                        M[(r, col[e, f])] = 1
-                        M[(r, col[e, g])] = 1
-                        M[(r, col[f, e])] = 1
-                        M[(r, col[f, g])] = 1
-                        M[(r, col[g, e])] = 1
-                        M[(r, col[g, f])] = 1
-                        M[(r, 0)] = 1
+                        M.append([0,col[e,f], col[e,g], col[f,e], col[f,g], col[g,e], col[g,f]])
                         r += 1
-        m = sage.matrix.constructor.Matrix(GF2, r, c, M)
+        cdef BinaryMatrix m = BinaryMatrix(r,c)
+        for r in range(len(M)):
+            for c in M[r]:
+                m.set(r,c)
         # now self is graphic iff there is a binary vector x so that M*x = 0 and x_0 = 1, so:
         return BinaryMatroid(m).corank(frozenset([0])) > 0
 

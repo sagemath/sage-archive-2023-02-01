@@ -319,10 +319,7 @@ cdef class LeanMatrix:
                     break
             if is_pivot:
                 self.swap_rows_c(p, r)
-                self.rescale_row_c(r, self.get_unsafe(r, c) ** (-1), 0)
-                for row from 0 <= row < self._nrows:
-                    if row != r and self.is_nonzero(row, c):
-                        self.add_multiple_of_row_c(row, r, -self.get_unsafe(row, c), 0)
+                self.pivot(r, c)
                 P.append(c)
                 r += 1
             if r == self._nrows:
@@ -881,12 +878,12 @@ cdef class BinaryMatrix(LeanMatrix):
             elif isinstance(M, LeanMatrix):
                 for i from 0 <= i < M.nrows():
                     for j from 0 <= j < M.ncols():
-                        if int((<LeanMatrix>M).get_unsafe(i, j)) % 2:
+                        if int((<LeanMatrix>M).get_unsafe(i, j)) & 1:
                             self.set(i, j)
             elif isinstance(M, Matrix):
                 for i from 0 <= i < M.nrows():
                     for j from 0 <= j < M.ncols():
-                        if int((<Matrix>M).get_unsafe(i, j)) % 2:
+                        if int((<Matrix>M).get_unsafe(i, j)) & 1:
                             self.set(i, j)
             else:
                 raise TypeError("unrecognized input type")
@@ -1086,7 +1083,7 @@ cdef class BinaryMatrix(LeanMatrix):
         """
         bitset_copy(self._temp, self._M[i])
         bitset_intersection(self._temp, self._temp, self._M[j])
-        return bitset_len(self._temp) % 2
+        return bitset_len(self._temp) & 1
 
     cdef int add_multiple_of_row_c(self, long i, long j, s, bint col_start) except -1:
         """
@@ -2186,8 +2183,8 @@ cdef class QuaternaryMatrix(LeanMatrix):
         bitset_symmetric_difference(self._u, self._u, self._s)
         bitset_intersection(self._s, self._M1[i], self._M1[j])
         bitset_symmetric_difference(self._t, self._t, self._s)
-        a = bitset_len(self._t) % 2
-        b = bitset_len(self._u) % 2
+        a = bitset_len(self._t) & 1
+        b = bitset_len(self._u) & 1
         if a:
             if b:
                 return self._x_one

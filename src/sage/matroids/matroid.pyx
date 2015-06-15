@@ -4795,10 +4795,10 @@ cdef class Matroid(SageObject):
         - ``randomized_tests`` -- (default: 1) an integer; the number of
           times a certain necessary condition for being binary is tested,
           using randomization
-         - ``verify`` -- (default: ``True``), a Boolean; if ``True``, 
-          any output will be a binary matroid representing ``self``; if 
+        - ``verify`` -- (default: ``True``), a Boolean; if ``True``,
+          any output will be a binary matroid representing ``self``; if
           ``False``, any output will represent ``self`` if and only if the
-          matroid is binary.
+          matroid is binary
 
         OUTPUT:
 
@@ -4809,7 +4809,7 @@ cdef class Matroid(SageObject):
         First, compare the binary matroids local to two random bases.
         If these matroids are not  isomorphic, return ``None``. This
         test is performed ``randomized_tests`` times. Next, if ``verify``
-        is ``True``, test if a binary matroid local to some basis is 
+        is ``True``, test if a binary matroid local to some basis is
         isomorphic to ``self``.
 
         .. SEEALSO::

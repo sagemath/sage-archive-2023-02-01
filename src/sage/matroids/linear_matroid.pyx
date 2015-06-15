@@ -3484,8 +3484,7 @@ cdef class BinaryMatroid(LinearMatroid):
         global GF2
         cdef int r, c
         B= self.basis()
-        Bl = [e for e in B]
-        C = [self._cocircuit((self.groundset() - B) | set([e])) for e in Bl]
+        C = [self._fundamental_cocircuit(B,e) for e in B]
 
         c = 1
         col = {}

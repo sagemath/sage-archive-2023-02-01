@@ -872,9 +872,6 @@ cdef class BinaryMatrix(LeanMatrix):
             if isinstance(M, BinaryMatrix):
                 for i from 0 <= i < M.nrows():
                     bitset_copy(self._M[i], (<BinaryMatrix>M)._M[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M[i], j)
             elif isinstance(M, LeanMatrix):
                 for i from 0 <= i < M.nrows():
                     for j from 0 <= j < M.ncols():
@@ -1043,7 +1040,7 @@ cdef class BinaryMatrix(LeanMatrix):
             bitset_discard(self._M[r], c)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M[r], c)
 
     cdef inline bint get(self, long r, long c):   # Not a Sage matrix operation
@@ -1437,10 +1434,6 @@ cdef class TernaryMatrix(LeanMatrix):
                 for i from 0 <= i < (<TernaryMatrix>M)._nrows:
                     bitset_copy(self._M0[i], (<TernaryMatrix>M)._M0[i])
                     bitset_copy(self._M1[i], (<TernaryMatrix>M)._M1[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M0[i], j)
-                    bitset_realloc(self._M1[i], j)
                 return
             if isinstance(M, LeanMatrix):
                 for i from 0 <= i < M.nrows():
@@ -1645,10 +1638,10 @@ cdef class TernaryMatrix(LeanMatrix):
             bitset_add(self._M1[r], c)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M0[r], c)
 
-    cdef bint _is_negative(self, long r, long c):
+    cdef inline bint _is_negative(self, long r, long c):
         return bitset_in(self._M1[r], c)
 
     cdef inline long row_len(self, long i):   # Not a Sage matrix operation
@@ -1932,10 +1925,6 @@ cdef class QuaternaryMatrix(LeanMatrix):
                 for i from 0 <= i < (<QuaternaryMatrix>M)._nrows:
                     bitset_copy(self._M0[i], (<QuaternaryMatrix>M)._M0[i])
                     bitset_copy(self._M1[i], (<QuaternaryMatrix>M)._M1[i])
-                j = max(1, self._ncols)
-                for i from 0 <= i < self._nrows:
-                    bitset_realloc(self._M0[i], j)
-                    bitset_realloc(self._M1[i], j)
             elif isinstance(M, LeanMatrix):
                 self._gf4 = (<LeanMatrix>M).base_ring()
                 self._zero = self._gf4(0)
@@ -2069,7 +2058,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         self.set(r, c, x)
         return 0
 
-    cdef bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
+    cdef inline bint is_nonzero(self, long r, long c) except -2:   # Not a Sage matrix operation
         return bitset_in(self._M0[r], c) or bitset_in(self._M1[r], c)
 
     cdef LeanMatrix copy(self):   # Deprecated Sage matrix operation

@@ -65,7 +65,7 @@ class SandpileExamples(object):
 
             sage: sandpiles()
             Try sandpile.FOO() where FOO is in the list:
-
+            <BLANKLINE>
                 Complete, Cycle, Diamond, Fan, Grid, House, Wheel
         """
         print 'Try sandpile.FOO() where FOO is in the list:\n'
@@ -195,7 +195,7 @@ class SandpileExamples(object):
             sage: s.vertices()
             [(0, 0), (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)]
             sage: s.invariant_factors()
-            [1, 1, 1, 1, 8, 72]
+            [1, 1, 1, 1, 1, 2415]
             sage: s = sandpiles.Grid(1,1)
             sage: s.dict()
             {(0, 0): {(1, 1): 4}, (1, 1): {(0, 0): 4}}

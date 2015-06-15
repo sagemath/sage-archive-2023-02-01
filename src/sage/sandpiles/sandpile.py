@@ -28,7 +28,7 @@ NEW METHODS
 
 DEPRECATED
 
-SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method, complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile, random_digraph, random_DAG, random_tree, glue_graphs, admissible_partitions, firing_vector, min_cycles.
+SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method, complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile, random_digraph, random_tree, glue_graphs, admissible_partitions, firing_vector, min_cycles.
 
 MINOR CHANGES
 
@@ -1714,9 +1714,9 @@ class Sandpile(DiGraph):
     def min_recurrents(self, verbose=True):
         r"""
         The minimal recurrent elements.  If the underlying graph is
-        undirected, these are the recurrent elements of least degree.  If
-        ``verbose`` is ``False``, the configurations are converted to lists of
-        integers.
+        undirected, these are the recurrent elements of least degree.
+        If ``verbose`` is ``False``, the configurations are converted 
+        to lists of integers.
 
         INPUT:
 
@@ -3578,7 +3578,7 @@ class SandpileConfig(dict):
     # recurrent addition or multiplication on the right by an integer
     def __mul__(self, other):
         r"""
-        The if ``other`` is an configuration, the recurrent element equivalent
+        If ``other`` is an configuration, the recurrent element equivalent
         to the sum.  If ``other`` is an integer, the sum of configuration with
         itself ``other`` times.
 
@@ -7139,11 +7139,7 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
     EXAMPLES::
 
-        sage: d = DiGraph(random_DAG(5, .5));d
-        doctest:...: DeprecationWarning:
-        Importing random_DAG from here is deprecated. If you need to use it, please import
-        it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
+        sage: d = DiGraph(random_DAG(5, .5)); d
         Digraph on 5 vertices
 
     TESTS:

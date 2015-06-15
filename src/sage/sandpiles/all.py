@@ -1,6 +1,6 @@
 from sage.misc.lazy_import import lazy_import
 
-from sandpile import Sandpile, SandpileDivisor, SandpileConfig, firing_graph, parallel_firing_graph, wilmes_algorithm, random_tree, random_digraph, triangle_sandpile
+from sandpile import Sandpile, SandpileDivisor, SandpileConfig, firing_graph, parallel_firing_graph, wilmes_algorithm, random_tree, random_digraph, random_DAG, triangle_sandpile
 
 from examples import sandpiles
 
@@ -9,4 +9,4 @@ lazy_import('sage.sandpiles.sandpile', 'grid_sandpile', deprecation=(18618,'grid
 lazy_import('sage.sandpiles.sandpile', 'complete_sandpile', deprecation=(18618,'complete_sandpile() will soon be removed.  Use sandpile.Complete() instead.'))
 lazy_import('sage.sandpiles.sandpile', 'firing_vector', deprecation=(18618,'firing_vector() will soon be removed.  Use SandpileDivisor.is_linearly_equivalent() instead.'))
 
-lazy_import('sage.sandpiles.sandpile', ['admissible_partitions','partition_sandpile','min_cycles','glue_graphs','aztec_sandpile','triangle_sandpile','random_DAG'], deprecation=18618)
+lazy_import('sage.sandpiles.sandpile', ['admissible_partitions','partition_sandpile','min_cycles','glue_graphs','aztec_sandpile','triangle_sandpile'], deprecation=18618)

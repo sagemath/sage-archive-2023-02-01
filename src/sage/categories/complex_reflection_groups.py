@@ -29,11 +29,17 @@ class ComplexReflectionGroups(Category_singleton):
 
     The (finite) dimension of `V` is the *rank* of `W`.
 
-    See :wikipedia:`Reflection_group` for details.
+    For a comprehensive treatment of complex reflection groups and
+    many definitions and theorems used here, we refer to [LT2009]_.
+    See also :wikipedia:`Reflection_group`.
 
-    .. seealso::
+    .. SEEALSO::
 
         :func:`ReflectionGroup` for usage examples of this category.
+
+    REFERENCES:
+
+    .. [LT2009] G.I.~Lehrer and D.E.~Taylor. Unitary reflection groups. Australian Mathematical Society Lecture Series, 2009.
 
     EXAMPLES::
 
@@ -1246,7 +1252,7 @@ class ComplexReflectionGroups(Category_singleton):
             TESTS::
 
                 sage: TestSuite(W).run()
-                #sage: TestSuite(ComplexReflectionGroups().Finite().WellGenerated()).run()
+                sage: TestSuite(ComplexReflectionGroups().Finite().WellGenerated()).run()
             """
 
             def example(self):
@@ -1338,7 +1344,12 @@ class ComplexReflectionGroups(Category_singleton):
                         It is defined by
                         `\prod_{i = 1}^n \frac{p + (p(d_i-1)) \mod h)}{d_i}`
                         where `d_1,\ldots,d_n` are the degrees and
-                        where `h` is the Coxeter number.
+                        where `h` is the Coxeter number, see [STW2015]_
+                        for this formula.
+
+                        REFERENCES:
+
+                        .. [STW2015] C. Stump, H. Thomas, N. Williams. Cataland II, in preparation, 2015.
 
                         EXAMPLES::
 
@@ -1381,6 +1392,10 @@ class ComplexReflectionGroups(Category_singleton):
 
                             - For the symmetric group `S_n`, it reduces to the Fuss-Catalan number `\frac{1}{mn+1}\binom{(m+1)n}{n}`.
                             - The Fuss-Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
+
+                        REFERENCES:
+
+                        .. [Arm2000] D. Armstrong. Generalized noncrossing partitions and combinatorics of {C}oxeter groups. Mem. Amer. Math. Soc., 2006.
 
                         EXAMPLES::
 
@@ -1428,6 +1443,10 @@ class ComplexReflectionGroups(Category_singleton):
                             - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
                             - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
 
+                        REFERENCES:
+
+                        .. [Arm2000] D. Armstrong. Generalized noncrossing partitions and combinatorics of {C}oxeter groups. Mem. Amer. Math. Soc., 2006.
+
                         EXAMPLES::
 
                             sage: [ ReflectionGroup((1,1,n)).catalan_number() for n in [3,4,5] ]
@@ -1443,5 +1462,14 @@ class ComplexReflectionGroups(Category_singleton):
 
             class ParentMethods:
                 def _test_well_generated(self, **options):
+                    r"""
+                    Tester for well-generated complex reflection groups.
+
+                    EXAMPLES::
+
+                        sage: W = ReflectionGroup(4)
+                        sage: W._test_well_generated()
+                        True
+                    """
                     tester = self._tester(**options)
                     return self.is_well_generated()

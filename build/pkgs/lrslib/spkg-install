@@ -10,24 +10,15 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-$MAKE
+$MAKE all-static
 if [ $? -ne 0 ]; then
    echo "Error building lrs"
    exit 1
 fi
 
-$MAKE gmp
+$MAKE install-static
 if [ $? -ne 0 ]; then
-   echo "Error installing gmp components of lrs"
+   echo "Error installing lrs"
    exit 1
 fi
 
-echo $SAGE_LOCAL
-
-mv lrs $SAGE_LOCAL/bin/lrs
-mv glrs $SAGE_LOCAL/bin/glrs
-mv redund $SAGE_LOCAL/bin/redund
-mv gredund $SAGE_LOCAL/bin/gredund
-mv fourier $SAGE_LOCAL/bin/fourier
-mv nash $SAGE_LOCAL/bin/nash
-mv gnash $SAGE_LOCAL/bin/gnash

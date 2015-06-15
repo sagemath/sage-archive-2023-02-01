@@ -1,100 +1,148 @@
-# Makefile for lrslib including lrs and redund 
-# 2000.6.14
-#
-# choose one of the first 4 and gmp if applicable - see README
-#
-# make all      normal version for 32bit machines with timing/signals handling
-# make all64    for machines with 64bit integers, eg. DEC Alpha
-# make ansi     ansi standard version for 32bit machines without signals handling
-# make nosigs   ansi standard version for 32bit machines without timing/signals handling
+#new makefile for lrslib-050    2012.9.27
 
-# make demo     compile the demo programs (vanilla machine)
+### modified for Sage
 
-# make gmp      uses gmp arithmetic, set paths for include files *first*
+#contains multithread version of lrs called plrs, wrapper written by Gary Roumanis
+#if Boost libraries are not available, comment out plrs compiles     http://www.boost.org/
 
-# make clean    to clean all executables
+#make all               uses gmp and long arithmetic 
+#make allmp             uses native mp and long arithmetic
 
-# Modified to use Sage gmp libraries
+#Select a path below to give location of boost atomic library
+# versions of gcc since at least 4.6.4 include boost atomic library
+# sony, mune
+BOOSTINC = /usr/include
+BOOSTLIB = /usr/lib
+#mai64 mai12
+#BOOSTINC = /usr/include/boost_1_57_0
+#BOOSTLIB = /usr/include/boost_1_57_0/stage/lib
 
+# cgm-server.mcgill.ca
+#BOOSTINC = /home/cgm/avis/C/ve/boost/cgm/boost_1_57_0/
+#BOOSTLIB = /home/cgm/avis/C/ve/boost/cgm/boost_1_57_0/stage/lib
+# obsolete version for cgm
+#BOOSTINC = /usr/include/boost151/boost/include/
+#BOOSTLIB = /usr/include/boost151/boost/lib/
+
+#Select a path below to give location of gmp library
+
+#cygwin
 INCLUDEDIR = ${SAGE_LOCAL}/include
 LIBDIR     = ${SAGE_LOCAL}/lib
 
-all:	lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h lrslong.c lrslong.h redund.c buffer.c nash.c
-	gcc -O3 -DTIMES -DSIGNALS -o lrs  lrs.c lrslib.c lrsmp.c
-	gcc -O3 -DTIMES -DSIGNALS -o redund  redund.c lrslib.c lrsmp.c
-	gcc -O3 -DTIMES -DSIGNALS -DLONG -o lrs1  lrs.c lrslib.c lrslong.c
-	gcc -O3 -DTIMES -DSIGNALS -DLONG -o redund1  redund.c lrslib.c lrslong.c
-	gcc -O3 -DLRS_QUIET  -DTIMES -DSIGNALS -o nash nash.c lrslib.c lrsmp.c
-	gcc -O3 -o setupnash setupnash.c lrslib.c lrsmp.c
-	gcc -O3 -o setupnash2 setupnash2.c lrslib.c lrsmp.c
-	gcc -Wall -O3 -o fourier  fourier.c lrslib.c lrsmp.c
-	gcc -O3 -o buffer buffer.c
+#linux at mcgill with gmp version 3
+#INCLUDEDIR = /usr/local/include
+#LIBDIR     = /usr/local/lib
 
-gmp:	lrs.c redund.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c nash.c
-	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} lrs.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o glrs
-	gcc -O3 -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} redund.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gredund
-	gcc -O3 -DLRS_QUIET -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} nash.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gnash
-	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfourier
-	gcc -O3 -o buffer buffer.c
+CFLAGS=-O3
+# These flags should *not* include the arithmetic selecting define.
+CPPFLAGS=-DLRS_QUIET -DTIMES -DSIGNALS
+# set to something more useful if your system has a ranlib command
+RANLIB ?= /bin/true
 
-gnash:	lrslib.h lrslib.c lrsgmp.h lrsgmp.c nash.c
-	gcc -O3 -static -DLRS_QUIET -DTIMES -DSIGNALS -DGMP -I${INCLUDEDIR} nash.c lrslib.c lrsgmp.c -L${LIBDIR} -lgmp -o gnash
+# default set of executables to build
+BINARIES=2nash lrs lrs1 nash redund redund1 setnash setnash2
+# default set of libraries to build
+LIB=liblrsgmp.a
+LIBRARIES=$(LIB) $(SHLIB) $(SHLINK)
 
-all64:	lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h lrslong.c lrslong.h redund.c buffer.c
-	gcc -DTIMES -DSIGNALS -DB64 -O3 -o lrs  lrs.c lrslib.c lrsmp.c
-	gcc -DTIMES -DSIGNALS -DB64 -O3 -o redund  redund.c lrslib.c lrsmp.c
-	gcc -DTIMES -DSIGNALS -DLONG -DB64 -O3 -o lrs1  lrs.c lrslib.c lrslong.c
-	gcc -DTIMES -DSIGNALS -DLONG -DB64 -O3 -o redund1  redund.c lrslib.c lrslong.c
-	gcc -O3 -o buffer buffer.c
+# where to install binaries, libraries, include files
+prefix := ${SAGE_LOCAL}
 
-ansi:	lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h lrslong.c lrslong.h redund.c buffer.c nash.c
-	gcc -ansi -DTIMES   -O3 -o lrs  lrs.c lrslib.c lrsmp.c
-	gcc -ansi -DTIMES   -O3 -o redund redund.c lrslib.c lrsmp.c
-	gcc -ansi -DTIMES  -DLONG  -O3 -o lrs1  lrs.c lrslib.c lrslong.c
-	gcc -ansi -DTIMES  -DLONG  -O3 -o redund1 redund.c lrslib.c lrslong.c
-	gcc -O3 -o buffer buffer.c
-	gcc -Wall -ansi -O3 -o nash nash.c lrslib.c lrsmp.c
+# Shared library
+SONAME ?=liblrsgmp.so.0
+SOMINOR ?=.0.0
+SHLIB ?=$(SONAME)$(SOMINOR)
+SHLINK ?=liblrsgmp.so
 
-nosigs:	lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h lrslong.c lrslong.h redund.c buffer.c
-	gcc -ansi  -O3 -o lrs  lrs.c lrslib.c lrsmp.c
-	gcc -ansi  -O3 -o redund redund.c lrslib.c lrsmp.c
-	gcc -ansi  -O3 -DLONG -o lrs1  lrs.c lrslib.c lrslong.c
-	gcc -ansi  -O3 -DLONG -o redund1 redund.c lrslib.c lrslong.c
-	gcc -ansi -O3 -o buffer buffer.c
+LRSGMPLIB=$(LIB)
 
-lrs:    lrs.c lrslib.c lrslong.c lrsmp.c
-	gcc -Wall -ansi -O3 -o lrs  lrs.c lrslib.c lrsmp.c
+# rule to build gmp arithmetic using object files.
+%-GMP.o: %.c lrsgmp.h
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) -DGMP -o $@ $<
 
-nash:    setupnash2.c setupnash.c nash.c lrslib.c  lrsmp.c
-	gcc -Wall -DTIMES -ansi -O3 -o nash nash.c lrslib.c lrsmp.c
-	gcc -Wall -o setupnash setupnash.c lrslib.c lrsmp.c
-	gcc -Wall -o setupnash2 setupnash2.c lrslib.c lrsmp.c
+# rule to build gmp arithmetic and relocatable object files.
+%-GMP-SHR.o: %.c lrsgmp.h
+	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) -DGMP -o $@ $<
 
-fourier:    fourier.c lrslib.c lrslong.c lrsmp.c
-	gcc -Wall -O3 -o fourier  fourier.c lrslib.c lrsmp.c
-	gcc -O3 -static -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfourier
+# Cancel built in rules
+%: %.c
+%: %.cpp
 
-demo:	lpdemo.c chdemo.c vedemo.c lrslib.c lrslong.c lrsmp.c
-	gcc -Wall -ansi -O3 -o lpdemo lpdemo.c lrslib.c lrsmp.c
-	gcc -Wall -ansi -O3 -o vedemo vedemo.c lrslib.c lrsmp.c
-	gcc -Wall -ansi -O3 -o chdemo chdemo.c lrslib.c lrsmp.c
+# How to build a gmp arithmetic using tool
+%: %-GMP.o $(LRSGMPLIB)
+	$(CC) $< -L. -llrsgmp -L${LIBDIR}  -lgmp -o $@
 
-float: float2rat.c rat2float.c lrsmp.c 
-	gcc -DLRSMP -Wall -ansi -o float2rat float2rat.c lrsmp.c
-	gcc -DLRSMP -Wall -ansi -o rat2float rat2float.c lrsmp.c
+all: $(BINARIES)
 
-clean:
-	rm -rf lrs lrs1 redund redund1 buffer glrs gredund
-	rm -rf foo gfoo
-	rm -rf lpdemo vedemo chdemo
-	rm -rf fourier gfourier                   
-	rm -rf nash gnash setupnash setupnash2
+all-static: $(LIB)
+	$(MAKE) LRSGMPLIB=$(LIB) all
 
-foo:	foo.c lrslib.h lrslib.c lrsmp.h lrsmp.c
-	gcc -O3 -static -DTIMES -DSIGNALS  foo.c lrslib.c lrsmp.c -L${LIBDIR} -o foo
+all-shared: $(SHLINK)
+	$(MAKE) LRSGMPLIB=$(SHLINK)
 
-gfoo:	foo.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c
-	gcc -O3 -static -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} foo.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o gfoo
+$(BINARIES): $(LRSGMPLIB)
+
+liblrsgmp.a: lrslib-GMP.o lrsgmp-GMP.o
+	ar r $@ $^
+	$(RANLIB) $@
+
+$(SHLIB): lrslib-GMP-SHR.o lrsgmp-GMP-SHR.o
+	$(CC) -shared -Wl,-soname=$(SONAME) $(SHLIBFLAGS) -o $@ $^ -lgmp
+
+$(SHLINK): $(SHLIB)
+	ln -sf $< $@
+
+lrs1:	lrs.c lrslib.c lrslib.c lrslong.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -DLONG -o lrs1 lrs.c lrslib.c lrslong.c
+
+redund1: redund.c lrslib.c lrslib.c lrslong.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -DLONG -o redund1 redund.c lrslib.c lrslong.c
+
+setnash: setupnash.c lrslib.c lrsmp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o setnash setupnash.c lrslib.c lrsmp.c
+
+setnash2: setupnash2.c lrslib.c lrsmp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o setnash2 setupnash2.c lrslib.c lrsmp.c
+
+install: install-static
+
+install-shared: all-shared install-common
+	 mkdir -p $(DESTDIR)${prefix}/lib
+	 cp $(SHLIB)  $(DESTDIR)${prefix}/lib 
+	 cd $(DESTDIR)${prefix}/lib && ln -sf $(SHLIB) $(SHLINK)
+	 cd $(DESTDIR)${prefix}/lib && ln -sf $(SHLIB) $(SONAME)
+
+install-static: all-static install-common
+	 mkdir -p $(DESTDIR)${prefix}/lib
+	 cp $(LIB) $(DESTDIR)${prefix}/lib 
+
+install-common:
+	 mkdir -p $(DESTDIR)${prefix}/bin
+	 cp $(BINARIES) $(DESTDIR)${prefix}/bin 
+	 mkdir -p $(DESTDIR)${prefix}/include
+	 cp lrslib.h lrsgmp.h $(DESTDIR)${prefix}/include 
+
+fourier:	fourier.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c
+	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o fourier
+
+
+## plrs:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
+## 		g++ -DGMP  -Wall -Wno-write-strings -Wno-sign-compare -I${BOOSTINC}  -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DGMP -o plrs plrs.cpp lrslib.c lrsgmp.c -L${BOOSTLIB} -lboost_thread -lboost_system -lgmp
+
+## plrsmp:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
+## 		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DLONG -o plrs1 plrs.cpp lrslib.c lrslong.c -lboost_thread -lboost_system
+## 		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -o plrsmp plrs.cpp lrslib.c lrsmp.c  -lboost_thread -lboost_system
+
+allmp:		lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h
+		gcc -Wall -O3 -DTIMES -DSIGNALS -o lrs lrs.c lrslib.c lrsmp.c
+		gcc -Wall -O3 -DTIMES -DSIGNALS -DLONG -o lrs1 lrs.c lrslib.c lrslong.c
+		gcc -O3 -DTIMES -DSIGNALS -o redund  redund.c lrslib.c lrsmp.c
+		gcc -O3 -DTIMES -DSIGNALS -DLONG -o redund1  redund.c lrslib.c lrslong.c
+		gcc -O3 -DLRS_QUIET  -DTIMES -DSIGNALS -o nash nash.c lrslib.c lrsmp.c
+		gcc -O3 -o setnash setupnash.c lrslib.c lrsmp.c
+		gcc -O3 -o setnash2 setupnash2.c lrslib.c lrsmp.c
+		gcc -O3 -o 2nash 2nash.c
 
 check:
 	lrs ext/test/cut16_11.ext > testout1
@@ -102,9 +150,11 @@ check:
 	echo "*Volume= 32768/14175" > testout2
 	diff testout1 testout2
 	lrs ine/test/cyclic17_8.ine > testout1
-	echo `grep -G Volume testout1` > testout1
+	echo `grep -G Totals testout1` > testout1
 	echo "*Totals: vertices=935 rays=0 bases=935 integer_vertices=0" > testout2
 	diff testout1 testout2
 	rm testout1
 	rm testout2
 
+clean:		
+		rm -f $(BINARIES) $(LIBRARIES) plrs *.o *.exe testout1 testout2

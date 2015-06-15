@@ -191,7 +191,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
             return FundamentalGroupGL(cartan_type, prefix)
         else:
             raise ValueError("General Linear Fundamental group is untwisted type A")
-    return FundamentalGroupOfExtendedAffineWeylGroup_Class(cartan_type,prefix)
+    return FundamentalGroupOfExtendedAffineWeylGroup_Class(cartan_type,prefix,False)
 
 class FundamentalGroupElement(MultiplicativeGroupElement):
     def __init__(self, parent, x):
@@ -328,7 +328,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
     """
     Element = FundamentalGroupElement
 
-    def __init__(self, cartan_type, prefix):
+    def __init__(self, cartan_type, prefix, general_linear):
         r"""
 
         EXAMPLES::
@@ -392,7 +392,11 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             self._dual_node = Family({0:0})
             self._finite_action = Family({0:tuple([])})
 
-        Parent.__init__(self, category = Groups().Commutative())
+        if general_linear:
+            category = Groups().Commutative().Infinite()
+        else:
+            category = Groups().Commutative().Finite()
+        Parent.__init__(self, category = category)
 
     def _element_constructor_(self, x):
         r"""
@@ -508,6 +512,12 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         """
         return Family(self.special_nodes(), lambda i: self(i))
 
+    def gens(self):
+        r"""
+        See :meth:`generators`.
+        """
+        return self.generators()
+
     def generators(self):
         r"""
         Return a tuple of generators of the fundamental group.
@@ -519,6 +529,21 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             (f[0], f[1], f[6])
         """
         return tuple(self.family())
+
+    def list(self):
+        r"""
+        Return a tuple containing all the elements of the fundamental group.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").list()
+            (f[0], f[1], f[6])
+        """
+        if self in Groups().Finite():
+            return self.gens()
+        else:
+            raise TypeError("Infinite groups cannot be listed")
 
     @cached_method
     def index_set(self):
@@ -626,7 +651,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         """
 
-        FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix)
+        FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix, True)
         from sage.rings.integer_ring import ZZ
         self._special_nodes = ZZ
         self._n = cartan_type.n + 1

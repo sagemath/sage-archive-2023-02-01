@@ -105,6 +105,9 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
         ...
         NotImplementedError: Coxeter group of type ['A', 4, 1] as permutation group not implemented
 
+        sage: W = CoxeterGroup(["A",4], implementation="chevie")
+        Irreducible real reflection group of rank 4 and type A4
+
     We use the different options for the "reflection" implementation::
 
         sage: W = CoxeterGroup(["H",3], implementation="reflection", base_ring=RR)

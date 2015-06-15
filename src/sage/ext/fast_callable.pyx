@@ -253,8 +253,8 @@ AUTHOR:
         sage: z = etb.constant(0)
         sage: c = etb.var('c')
         sage: for i in range(16):
-        ...       z = z*z + c
-        sage: mand = fast_callable(z, domain=CDF) # not tested
+        ....:     z = z*z + c
+        sage: mand = fast_callable(z, domain=CDF)
 
     Now ``ff`` does 32 complex arithmetic operations on each call
     (16 additions and 16 multiplications).  However, if ``z*z`` produced
@@ -267,13 +267,13 @@ AUTHOR:
 
         sage: etb = ExpressionTreeBuilder('x')
         sage: x = etb.var('x')
-        sage: (x+1)*(x+1) # not tested
-        *(+(v_0, 1), +(v_0, 1))
+        sage: (x+1)*(x+1)
+        mul(add(v_0, 1), add(v_0, 1))
 
     but this code will only evaluate ``x+1`` once::
 
-        sage: v = x+1; v*v # not tested
-        *(+(v_0, 1), +(v_0, 1))
+        sage: v = x+1; v*v
+        mul(add(v_0, 1), add(v_0, 1))
 """
 
 

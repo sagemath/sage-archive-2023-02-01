@@ -1057,20 +1057,11 @@ cdef class BasisExchangeMatroid(Matroid):
         bitset_set_first_n(active_rows, self.full_rank())
         i=0
         while i>=0:
-            j = 0
-            while j>=0:
-                if i != j:
-                    e = bitset_first(comp[i])
-                    f = bitset_next(comp[j], e)
-                    while f>=0 and f!=e:
-                        e = bitset_next(comp[i], f)
-                        if e<0:
-                            f = -1
-                            break
-                        f = bitset_next(comp[j], e)
-                    if f>=0:
-                        bitset_union(comp[i], comp[i], comp[j])
-                        bitset_discard(active_rows, j)
+            j = bitset_first(active_rows)
+            while j>=0 and j<i:
+                if not bitset_are_disjoint(comp[i], comp[j]):
+                    bitset_union(comp[i], comp[i], comp[j])
+                    bitset_discard(active_rows, j)
                 j = bitset_next(active_rows, j+1) 
             i = bitset_next(active_rows, i+1)
         

@@ -189,13 +189,6 @@ if [ "$1" = '-c' ]; then
     shift
 fi
 
-# Don't verbosely extract files from spkgs by default (#10040):
-if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
-    UNTAR_VERBOSE=v
-else
-    unset UNTAR_VERBOSE
-fi
-
 ##################################################################
 # Figure out the package filename, download it if needed.
 ##################################################################
@@ -266,6 +259,22 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         PKG_BASE_VER=`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`
         PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
         echo "Found local metadata for $PKG_NAME"
+
+        # Warning for experimental packages
+        if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
+            echo # The following message appears twice in this file
+            echo "=========================== WARNING ==========================="
+            echo "You are about to download and install an experimental package."
+            echo "This probably won't work at all for you! There is no guarantee"
+            echo "that it will build correctly, or behave as expected."
+            echo "Use at your own risk!"
+            echo "==============================================================="
+            read -p "Are you sure you want to continue [Y/n]? " answer
+            case "$answer" in
+                n*|N*) exit 0;;
+            esac
+        fi
+
     else
         cd "$SAGE_DISTFILES"
         for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
@@ -357,16 +366,20 @@ if [ ! -f "$PKG_SRC" ]; then
                         # Warn and ask the user if downloading an
                         # experimental or archive package.
                         if [ $repo = experimental ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an experimental package."
-                            echo "This probably won't work at all for you! There is no guarantee that it"
-                            echo "has ever been built correctly! Use at your own risk!"
+                            echo # The following message appears twice in this file
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an experimental package."
+                            echo "This probably won't work at all for you! There is no guarantee"
+                            echo "that it will build correctly, or behave as expected."
+                            echo "Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         elif [ $repo = archive ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an archived package."
-                            echo "This means the package is likely to be outdated and it probably won't"
-                            echo "work at all for you! Use at your own risk!"
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an archived package."
+                            echo "This means the package is likely to be outdated and it probably"
+                            echo "won't work at all for you! Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         else
                             ask_download=no
@@ -535,7 +548,7 @@ else
     ls -l "$PKG_SRC"
 fi
 
-uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f - --no-same-owner
+uncompress_spkg "$PKG_SRC" | tar xf - --no-same-owner
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to extract $PKG_SRC"
     exit 1

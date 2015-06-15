@@ -101,6 +101,28 @@ class Manifolds(Category_singleton):
             return self._with_axiom('Connected')
 
         @cached_method
+        def FiniteDimensional(self):
+            """
+            Return the full subcategory of the finite dimensional
+            objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: C = Manifolds().Connected().FiniteDimensional(); C
+                Category of finite dimensional connected manifolds
+
+            TESTS::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: C = Manifolds().Connected().FiniteDimensional()
+                sage: TestSuite(C).run()
+                sage: Manifolds().Connected().FiniteDimensional.__module__
+                'sage.categories.manifolds'
+            """
+            return self._with_axiom('FiniteDimensional')
+
+        @cached_method
         def Differentiable(self):
             """
             Return the subcategory of the differentiable objects of ``self``.
@@ -139,9 +161,47 @@ class Manifolds(Category_singleton):
             return self._with_axiom('Smooth')
 
         @cached_method
+        def Analytic(self):
+            """
+            Return the subcategory of the analytic objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: Manifolds().Analytic()
+                Category of analytic manifolds
+
+            TESTS::
+
+                sage: TestSuite(Manifolds().Analytic()).run()
+                sage: Manifolds().Smooth.__module__
+                'sage.categories.manifolds'
+            """
+            return self._with_axiom('Analytic')
+
+        @cached_method
+        def AlmostComplex(self):
+            """
+            Return the subcategory of the almost complex objects of ``self``.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: Manifolds().AlmostComplex()
+                Category of almost complex manifolds
+
+            TESTS::
+
+                sage: TestSuite(Manifolds().AlmostComplex()).run()
+                sage: Manifolds().Smooth.__module__
+                'sage.categories.manifolds'
+            """
+            return self._with_axiom('AlmostComplex')
+
+        @cached_method
         def Complex(self):
             """
-            Return the full subcategory of the complex objects of ``self``.
+            Return the subcategory of the complex objects of ``self``.
 
             EXAMPLES::
 
@@ -152,32 +212,10 @@ class Manifolds(Category_singleton):
             TESTS::
 
                 sage: TestSuite(Manifolds().Complex()).run()
-                sage: Manifolds().Complex.__module__
+                sage: Manifolds().Smooth.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('Complex')
-
-        @cached_method
-        def FiniteDimensional(self):
-            """
-            Return the full subcategory of the finite dimensional
-            objects of ``self``.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: C = Manifolds().Connected().FiniteDimensional(); C
-                Category of finite dimensional connected manifolds
-
-            TESTS::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: C = Manifolds().Connected().FiniteDimensional()
-                sage: TestSuite(C).run()
-                sage: Manifolds().Connected().FiniteDimensional.__module__
-                'sage.categories.manifolds'
-            """
-            return self._with_axiom('FiniteDimensional')
 
     class FiniteDimensional(CategoryWithAxiom):
         """
@@ -191,12 +229,18 @@ class Manifolds(Category_singleton):
 
     class Differentiable(CategoryWithAxiom):
         """
-        The category of differentiable manifolds.
+        The category of differentiable manifolds over `\RR`.
+
+        A `d`-dimensional differentiable manifold is a manifold whose
+        underlying vector space is `\RR^d` and differentiable atlas.
         """
 
     class Smooth(CategoryWithAxiom):
         """
-        The category of smooth manifolds.
+        The category of smooth manifolds over `\RR`.
+
+        A `d`-dimensional differentiable manifold is a manifold whose
+        underlying vector space is `\RR^d` and smooth atlas.
         """
         def extra_super_categories(self):
             """
@@ -212,9 +256,56 @@ class Manifolds(Category_singleton):
             """
             return [Manifolds().Differentiable()]
 
+    class Analytic(CategoryWithAxiom):
+        r"""
+        The category of complex manifolds.
+
+        A `d`-dimensional analytic manifold is a manifold whose underlying
+        vector space is `\RR^d` and an analytic atlas.
+        """
+        def extra_super_categories(self):
+            """
+            Return the extra super categories of ``self``.
+
+            An analytic manifold is smooth.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: Manifolds().Analytic().super_categories() # indirect doctest
+                [Category of smooth manifolds]
+            """
+            return [Manifolds().Smooth()]
+
+    class AlmostComplex(CategoryWithAxiom):
+        r"""
+        The category of almost complex manifolds.
+
+        A `d`-dimensional almost complex manifold `M` is a manifold
+        whose underlying vector space is `\RR^d` with a smooth tensor
+        field `J` of rank `(1, 1)` such that `J^2 = -1` when regarded as a
+        vector bundle isomorphism `J : TM \to TM` on the tangent bundle.
+        The tensor field `J` is called the almost complex structure of `M`.
+        """
+        def extra_super_categories(self):
+            """
+            Return the extra super categories of ``self``.
+
+            An analytic manifold is smooth.
+
+            EXAMPLES::
+
+                sage: from sage.categories.manifolds import Manifolds
+                sage: Manifolds().Analytic().super_categories() # indirect doctest
+                [Category of smooth manifolds]
+            """
+            return [Manifolds().Smooth()]
+
     class Complex(CategoryWithAxiom):
         r"""
-        The category of complex manifolds, i.e., the underlying vector
-        space is `\CC^d`.
+        The category of complex manifolds.
+
+        A `d`-dimensional complex manifold is a manifold whose underlying
+        vector space is `\CC^d` and a holomorphic atlas.
         """
 

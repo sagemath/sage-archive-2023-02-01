@@ -419,14 +419,6 @@ class AmbientSpace(CombinatorialFreeModule):
         return vector(list(vector(classical._plot_projection(classical(x)))) +
                       [x["deltacheck"]])
 
-    def from_vector_notation(self, weight, style="lattice"):
-        """
-        ..TODO:: CHECK THIS STUPID DEFAULT IMPLEMENTATION WITH DAN
-
-        This is in particular used to compute demazure-lusztig characters
-        """
-        return weight
-
     class Element(CombinatorialFreeModule.Element):
 
         def inner_product(self, other):

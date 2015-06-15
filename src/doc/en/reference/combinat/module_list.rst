@@ -202,7 +202,6 @@ Comprehensive Module list
     sage/combinat/root_system/cartan_matrix
     sage/combinat/root_system/cartan_type
     sage/combinat/root_system/coxeter_group
-    sage/combinat/root_system/coxeter_group_chevie
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation

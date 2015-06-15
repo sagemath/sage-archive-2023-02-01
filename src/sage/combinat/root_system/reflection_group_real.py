@@ -1,5 +1,5 @@
 r"""
-Finite (real) reflection groups
+Finite real reflection groups
 -------------------------------
 
 AUTHORS:
@@ -9,7 +9,7 @@ AUTHORS:
 .. NOTE::
 
     - For definitions and classification types of finite complex reflection groups, see :wikipedia:`Complex_reflection_group`.
-    - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_
+    - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 .. WARNING:: works only if the GAP3 package Chevie is available.
 
@@ -52,6 +52,117 @@ from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 UCF = UniversalCyclotomicField()
 E = UCF.gen
+
+def ReflectionGroup(*args,**kwds):
+    r"""
+    Construct a finite (complex or real) reflection group as a Sage
+    permutation group by fetching the permutation representation of the
+    generators from chevie's database.
+
+    INPUT:
+
+    can be one or multiple of the following:
+
+    - triple `(r,p,n)` with `p` divides `r`, which denotes the group
+      `G(r,p,n)`
+
+    - integer between `4 and `37`, which denotes an exeptional
+      irreducible complex reflection group
+
+    - finite Cartan-Killing type
+
+    EXAMPLES:
+
+    Finite reflection groups can be constructed from
+
+    Cartan-Killing classification types::
+
+        sage: W = ReflectionGroup(['A',3]); W
+         Irreducible real reflection group of rank 3 and type A3
+
+        sage: W = ReflectionGroup(['H',4]); W
+         Irreducible real reflection group of rank 4 and type H4
+
+        sage: W = ReflectionGroup(['I',5]); W
+         Irreducible real reflection group of rank 2 and type I2(5)
+
+    the complex infinite family `G(r,p,n)` with `p` divides `r`::
+
+        sage: W = ReflectionGroup((1,1,4)); W
+        Irreducible complex reflection group of rank 3 and type A3
+
+        sage: W = ReflectionGroup((2,1,3)); W
+        Irreducible complex reflection group of rank 3 and type B3
+
+    Chevalley-Shepard-Todd exceptional classification types::
+
+        sage: W = ReflectionGroup(23); W
+         Irreducible complex reflection group of rank 3 and type H3
+
+    multiples of the above::
+
+        sage: W = ReflectionGroup(['A',2],['B',2]); W
+        Reducible real reflection group of rank 4 and type A2 x B2
+
+        sage: W = ReflectionGroup(['A',2],4); W
+        Reducible complex reflection group of rank 4 and type A2 x ST4
+
+        sage: W = ReflectionGroup((4,2,2),4); W
+        Reducible complex reflection group of rank 4 and type G(4,2,2) x ST4
+    """
+    if not is_chevie_available():
+        raise ImportError("The GAP3 package 'chevie' is needed to work with (complex) reflection groups")
+    gap3.load_package("chevie")
+
+    W_types     = []
+    is_complex  = False
+    for arg in args:
+        # preparsing
+        if type(arg) is list:
+            X = tuple(arg)
+        else:
+            X = arg
+
+        # precheck for valid input data
+        if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
+            raise ValueError("The input data (%s) is not valid for reflection groups."%X)
+
+        # check for real vs complex
+        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
+            is_complex = True
+
+        # transforming two reducible types
+        if X == (2,2,2):
+            W_types.extend([(1,1,2),(1,1,2)])
+        elif X == ('I',2):
+            W_types.extend([('A',1),('A',1)])
+        else:
+            W_types.append(X)
+
+    for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
+        index_set = kwds.get(index_set_kwd, None)
+        if index_set is not None:
+            from sage.sets.family import Family
+            if type(index_set) in [list,tuple]:
+                kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
+            elif type(index_set) is dict:
+                kwds[index_set_kwd] = Family(index_set)
+            else:
+                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
+
+    if len(W_types) == 1:
+        if is_complex is True:
+            cls = IrreducibleComplexReflectionGroup
+        else:
+            cls = IrreducibleRealReflectionGroup
+    else:
+        if is_complex is True:
+            cls = ComplexReflectionGroup
+        else:
+            cls = RealReflectionGroup
+    return cls(tuple(W_types), index_set=kwds.get('index_set', None),
+                               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
+                               reflection_index_set=kwds.get('reflection_index_set', None) )
 
 class RealReflectionGroup(ComplexReflectionGroup):
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
@@ -443,114 +554,3 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
     class Element(RealReflectionGroup.Element,IrreducibleComplexReflectionGroup.Element):
         pass
-
-def ReflectionGroup(*args,**kwds):
-    r"""
-    Construct a finite (complex or real) reflection group as a Sage
-    permutation group by fetching the permutation representation of the
-    generators from chevie's database.
-
-    INPUT:
-
-    can be one or multiple of the following:
-
-    - triple `(r,p,n)` with `p` divides `r`, which denotes the group
-      `G(r,p,n)`
-
-    - integer between `4 and `37`, which denotes an exeptional
-    irreducible complex reflection group
-
-    - finite Cartan-Killing type
-
-    EXAMPLES:
-
-    Finite reflection groups can be constructed from
-
-    Cartan-Killing classification types::
-
-        sage: W = ReflectionGroup(['A',3]); W
-         Irreducible real reflection group of rank 3 and type A3
-
-        sage: W = ReflectionGroup(['H',4]); W
-         Irreducible real reflection group of rank 4 and type H4
-
-        sage: W = ReflectionGroup(['I',5]); W
-         Irreducible real reflection group of rank 2 and type I2(5)
-
-    the complex infinite family `G(r,p,n)` with `p` divides `r`::
-
-        sage: W = ReflectionGroup((1,1,4)); W
-        Irreducible complex reflection group of rank 3 and type A3
-
-        sage: W = ReflectionGroup((2,1,3)); W
-        Irreducible complex reflection group of rank 3 and type B3
-
-    Chevalley-Shepard-Todd exceptional classification types::
-
-        sage: W = ReflectionGroup(23); W
-         Irreducible complex reflection group of rank 3 and type H3
-
-    multiples of the above::
-
-        sage: W = ReflectionGroup(['A',2],['B',2]); W
-        Reducible real reflection group of rank 4 and type A2 x B2
-
-        sage: W = ReflectionGroup(['A',2],4); W
-        Reducible complex reflection group of rank 4 and type A2 x ST4
-
-        sage: W = ReflectionGroup((4,2,2),4); W
-        Reducible complex reflection group of rank 4 and type G(4,2,2) x ST4
-    """
-    if not is_chevie_available():
-        raise ImportError("The GAP3 package 'chevie' is needed to work with (complex) reflection groups")
-    gap3.load_package("chevie")
-
-    W_types     = []
-    is_complex  = False
-    for arg in args:
-        # preparsing
-        if type(arg) is list:
-            X = tuple(arg)
-        else:
-            X = arg
-
-        # precheck for valid input data
-        if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
-            raise ValueError("The input data (%s) is not valid for reflection groups."%X)
-
-        # check for real vs complex
-        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
-            is_complex = True
-
-        # transforming two reducible types
-        if X == (2,2,2):
-            W_types.extend([(1,1,2),(1,1,2)])
-        elif X == ('I',2):
-            W_types.extend([('A',1),('A',1)])
-        else:
-            W_types.append(X)
-
-    for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
-        index_set = kwds.get(index_set_kwd, None)
-        if index_set is not None:
-            from sage.sets.family import Family
-            if type(index_set) in [list,tuple]:
-                kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
-            elif type(index_set) is dict:
-                kwds[index_set_kwd] = Family(index_set)
-            else:
-                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
-
-    if len(W_types) == 1:
-        if is_complex is True:
-            cls = IrreducibleComplexReflectionGroup
-        else:
-            cls = IrreducibleRealReflectionGroup
-    else:
-        if is_complex is True:
-            cls = ComplexReflectionGroup
-        else:
-            cls = RealReflectionGroup
-    return cls(tuple(W_types), index_set=kwds.get('index_set', None),
-                               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
-                               reflection_index_set=kwds.get('reflection_index_set', None) )

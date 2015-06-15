@@ -1,22 +1,22 @@
 r"""
-Finite (complex) reflection groups
+Finite complex reflection groups
 ----------------------------------
 
 AUTHORS:
 
 - Christian Stump (initial version 2011--2015)
 
-.. note::
+.. NOTE::
 
-    - For definitions and classification types of finite complex reflection groups, see http://en.wikipedia.org/wiki/Complex_reflection_group.
-    - Uses the GAP3 package *chevie*.
+    - For definitions and classification types of finite complex reflection groups, see :wikipedia:`Complex_reflection_group`.
+    - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
 
 .. WARNING:: works only if the GAP3 package Chevie is available.
 
 .. TODO::
 
-    - Properly provide root systems for complex reflection groups
-    - Element class should be unique to be able to work with large groups without creating elements multiple times
+    - Properly provide root systems for real reflection groups
+    - Element class should be unique to be able to work with large groups without creating elements multiple times.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Christian Stump <christian.stump at lacim.ca>

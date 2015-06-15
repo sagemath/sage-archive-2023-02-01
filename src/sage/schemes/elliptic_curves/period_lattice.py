@@ -112,6 +112,7 @@ from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 
+
 class PeriodLattice(FreeModule_generic_pid):
     """
     The class for the period lattice of an algebraic variety.

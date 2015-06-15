@@ -154,7 +154,6 @@ EXAMPLES::
 
 import os
 from expect import Expect, ExpectElement
-from sage.misc.misc import verbose
 
 
 class Octave(Expect):
@@ -173,7 +172,7 @@ class Octave(Expect):
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
 
-    def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=100, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
         """
         EXAMPLES::
 
@@ -392,7 +391,6 @@ class Octave(Expect):
         - David Joyner and William Stein
         """
         m = A.nrows()
-        n = A.ncols()
         if m != len(b):
             raise ValueError("dimensions of A and b must be compatible")
         from sage.matrix.all import MatrixSpace
@@ -515,7 +513,7 @@ class OctaveElement(ExpectElement):
 
 
 # An instance
-octave = Octave(script_subdirectory='user')
+octave = Octave()
 
 def reduce_load_Octave():
     """
@@ -528,7 +526,6 @@ def reduce_load_Octave():
     return octave
 
 
-import os
 def octave_console():
     """
     Spawn a new Octave command-line session.

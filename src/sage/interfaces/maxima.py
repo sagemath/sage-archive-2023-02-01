@@ -286,7 +286,7 @@ We illustrate Laplace transforms::
 ::
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -?%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
+    -%at('diff(x(t),t,1),t=0)+s^2*'laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d
 representation::
@@ -438,6 +438,13 @@ A long complicated input expression::
 
     sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
     '1/n9^9+1/n8^8+1/n7^7+1/n6^6+1/n5^5+1/n4^4+1/n3^3+1/n2^2+1/n1+1'
+
+Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
+
+    sage: maxima.eval("1 == 1;")
+    Traceback (most recent call last):
+    ...
+    TypeError: ...incorrect syntax: = is not a prefix operator...
 """
 
 #*****************************************************************************
@@ -455,7 +462,8 @@ A long complicated input expression::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re
+import os
+import re
 import pexpect
 #cygwin = os.uname()[0][:6]=="CYGWIN"
 
@@ -466,7 +474,7 @@ from sage.env import DOT_SAGE, SAGE_LOCAL
 ##import sage.rings.all
 
 from expect import (Expect, ExpectElement, FunctionElement,
-                    ExpectFunction, gc_disabled, AsciiArtString)
+                    ExpectFunction, gc_disabled)
 
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,
@@ -580,7 +588,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6722`)::
+        Test that we can use more than 256MB RAM (see trac :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds

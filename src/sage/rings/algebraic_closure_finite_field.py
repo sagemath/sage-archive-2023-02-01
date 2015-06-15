@@ -729,7 +729,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         """
         Fn = self._subfield(n)
-        return Fn, Fn.hom((self.gen(n),))
+        return Fn, Fn.hom( (self.gen(n),), check=False)
 
     def inclusion(self, m, n):
         """
@@ -752,7 +752,10 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         """
         if m.divides(n):
-            return self._subfield(m).hom((self._get_im_gen(m, n),))
+            # check=False is required to avoid "coercion hell": an
+            # infinite loop in checking the morphism involving
+            # polynomial_compiled.pyx on the modulus().
+            return self._subfield(m).hom( (self._get_im_gen(m, n),), check=False)
         else:
             raise ValueError("subfield of degree %s not contained in subfield of degree %s" % (m, n))
 
@@ -919,7 +922,7 @@ class AlgebraicClosureFiniteField_generic(Field):
                 FF, pphi = self.subfield(ll)
                 # note: there is no coercion from the l-th subfield to the ll-th
                 # subfield. The line below does the conversion manually.
-                g = PolynomialRing(FF, 'x')(map(psi, g))
+                g = PolynomialRing(FF, 'x')([psi(_) for _ in g])
                 polys.extend((gg,m,ll,pphi) for gg,_ in g.factor())
 
         if multiplicities:
@@ -1069,7 +1072,7 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
         """
         p = self.characteristic()
         if m == 1:
-            return self._subfield(n).one_element()
+            return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 

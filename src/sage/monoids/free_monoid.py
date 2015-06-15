@@ -261,7 +261,7 @@ class FreeMonoid_class(Monoid_class):
             return self.element_class(self, x, check)
         if isinstance(x, FiniteWord_class):
             d = self.gens_dict()
-            return self.prod(map(lambda let: d[let], x))
+            return self.prod([d[let] for let in x])
         if isinstance(x, list):
             return self.element_class(self, x, check)
 
@@ -306,19 +306,6 @@ class FreeMonoid_class(Monoid_class):
             2005
         """
         return self.__ngens
-
-    @cached_method
-    def one_element(self):
-        """
-        Returns the identity element in this monoid.
-
-        EXAMPLES::
-
-            sage: F = FreeMonoid(2005, 'a')
-            sage: F.one_element()
-            1
-        """
-        return self(1)
 
     def cardinality(self):
         r"""

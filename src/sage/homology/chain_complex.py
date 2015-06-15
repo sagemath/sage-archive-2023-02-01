@@ -200,7 +200,7 @@ def ChainComplex(data=None, **kwds):
 
         sage: IZ = ChainComplex({0: identity_matrix(ZZ, 1)})
         sage: IZ.differential()  # the differentials in the chain complex
-        {0: [1], 1: [], -1: []}
+        {-1: [], 0: [1], 1: []}
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
@@ -246,7 +246,7 @@ def ChainComplex(data=None, **kwds):
         try:
             zero = grading_group.identity()
         except AttributeError:
-            zero = grading_group.zero_element()
+            zero = grading_group.zero()
         if base_ring is None:
             base_ring = ZZ
         data_dict = dict()
@@ -394,7 +394,7 @@ class Chain_class(ModuleElement):
             return 'Trivial chain'
 
         if n == 1:
-            deg, vec = self._vec.iteritems().next()
+            deg, vec = next(self._vec.iteritems())
             return 'Chain({0}:{1})'.format(deg, vec)
 
         return 'Chain with {0} nonzero terms over {1}'.format(
@@ -416,7 +416,7 @@ class Chain_class(ModuleElement):
             0 <---- [0] <---- [4] <---- [2] <----- 0
                               [5]       [3]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
 
         def arrow_art(d):
             d_str = ['  d_{0}  '.format(d)]
@@ -880,15 +880,16 @@ class ChainComplex_class(Parent):
 
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
             sage: D.differential()
-            {0: [1 0]
-            [0 2], 1: [], -1: []}
+            {-1: [], 0: [1 0]
+             [0 2], 1: []}
             sage: D.differential(0)
             [1 0]
             [0 2]
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
             sage: C.differential()
-            {0: 40 x 40 dense matrix over Integer Ring, 1: [],
-             -1: 40 x 0 dense matrix over Integer Ring}
+            {-1: 40 x 0 dense matrix over Integer Ring,
+             0: 40 x 40 dense matrix over Integer Ring,
+             1: []}
         """
         if dim is None:
             return copy(self._diff)
@@ -1580,7 +1581,7 @@ class ChainComplex_class(Parent):
                         [1]                             [1]       [0]       [1]
              0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
 
         def arrow_art(n):
             d_n = self.differential(n)

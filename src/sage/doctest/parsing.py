@@ -27,7 +27,7 @@ AUTHORS:
 import re, sys
 import doctest
 import collections
-from sage.misc.preparser import preparse, strip_string_literals
+from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
@@ -76,33 +76,33 @@ def parse_optional_tags(string):
 
         sage: from sage.doctest.parsing import parse_optional_tags
         sage: parse_optional_tags("sage: magma('2 + 2')# optional: magma")
-        set(['magma'])
+        {'magma'}
         sage: parse_optional_tags("sage: #optional -- mypkg")
-        set(['mypkg'])
+        {'mypkg'}
         sage: parse_optional_tags("sage: print(1)  # parentheses are optional here")
-        set([])
+        set()
         sage: parse_optional_tags("sage: print(1)  # optional")
-        set([''])
+        {''}
         sage: sorted(list(parse_optional_tags("sage: #optional -- foo bar, baz")))
         ['bar', 'foo']
         sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")))
         ['long time', 'not tested', 'p4cka9e']
         sage: parse_optional_tags("    sage: raise RuntimeError # known bug")
-        set(['bug'])
+        {'bug'}
         sage: sorted(list(parse_optional_tags("    sage: determine_meaning_of_life() # long time, not implemented")))
         ['long time', 'not implemented']
 
     We don't parse inside strings::
 
         sage: parse_optional_tags("    sage: print '  # long time'")
-        set([])
+        set()
         sage: parse_optional_tags("    sage: print '  # long time'  # not tested")
-        set(['not tested'])
+        {'not tested'}
 
     UTF-8 works::
 
          sage: parse_optional_tags("'ěščřžýáíéďĎ'")
-         set([])
+         set()
     """
     safe, literals, state = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]

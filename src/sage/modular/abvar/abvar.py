@@ -44,7 +44,7 @@ from sage.matrix.all            import matrix, block_diagonal_matrix, identity_m
 from sage.modules.all           import vector
 from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
-from sage.misc.misc             import prod
+from sage.misc.all              import prod
 
 from copy import copy
 
@@ -120,9 +120,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         All hell breaks loose if you try to do anything with `A`::
 
             sage: A
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: BUG -- lattice method must be defined in derived class
+            <repr(<sage.modular.abvar.abvar.ModularAbelianVariety_abstract_with_category at 0x...>) failed: NotImplementedError: BUG -- lattice method must be defined in derived class>
 
 
         All instances of this class are in the category of modular
@@ -186,9 +184,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
             sage: A = sage.modular.abvar.abvar.ModularAbelianVariety_abstract((Gamma0(37),), QQ)
             sage: A
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: BUG -- lattice method must be defined in derived class
+            <repr(<sage.modular.abvar.abvar.ModularAbelianVariety_abstract_with_category at 0x...>) failed: NotImplementedError: BUG -- lattice method must be defined in derived class>
         """
         raise NotImplementedError("BUG -- lattice method must be defined in derived class")
     #############################################################################
@@ -3659,11 +3655,11 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
 
     def lattice(self):
         r"""
-        Return the lattice the defines this modular symbols modular abelian
-        variety.
+        Return the lattice defining this modular abelian variety.
 
-        OUTPUT: a free `\ZZ`-module embedded in an ambient
-        `\QQ`-vector space
+        OUTPUT:
+
+        A free `\ZZ`-module embedded in an ambient `\QQ`-vector space.
 
         EXAMPLES::
 

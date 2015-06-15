@@ -253,6 +253,11 @@ export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC="$SAGE_SRC/doc"
+
+if [ -z "${SAGE_ORIG_PATH_SET}" ]; then 
+    SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
+    SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
+fi 
 export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
@@ -268,6 +273,11 @@ if [ `uname` = "Darwin" ]; then
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
     MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
+    if [ $MACOSX_DEPLOYMENT_TARGET = '10.10' ]; then
+        # Workaround for the libtool version detection bug
+        # See http://trac.sagemath.org/ticket/17204
+        MACOSX_DEPLOYMENT_TARGET=10.9
+    fi
     export MACOSX_DEPLOYMENT_TARGET
 fi
 
@@ -302,15 +312,6 @@ GIT_EXEC_PATH="$SAGE_LOCAL"/libexec/git-core && export GIT_EXEC_PATH
 SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
 SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 
-if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://www.sagemath.org/"
-    export SAGE_SERVER
-fi
-
-if [ "$SAGE_UPSTREAM" = "" ]; then
-    SAGE_UPSTREAM="${SAGE_SERVER}packages/upstream"
-    export SAGE_UPSTREAM
-fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
     SAGE_REPO_ANONYMOUS="git://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS
@@ -363,12 +364,12 @@ if [ "$PYTHON_EGG_CACHE" = "" ]; then
     export PYTHON_EGG_CACHE
 fi
 
-if [ -d "$SAGE_ROOT/local/lib/python" ]; then
-    PYTHONPATH="$SAGE_ROOT/local/lib/python"
+if [ -d "$SAGE_LOCAL/lib/python" ]; then
+    PYTHONPATH="$SAGE_LOCAL/lib/python:$SAGE_LOCAL/lib/python/site_packages"
     if [ -n "$SAGE_PATH" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
-    PYTHONHOME="$SAGE_ROOT/local"
+    PYTHONHOME="$SAGE_LOCAL"
     export PYTHONPATH
     export PYTHONHOME
 fi
@@ -409,15 +410,18 @@ fi
 # config directory. So we use pkg_resources.
 "$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; pkg_resources.get_distribution("matplotlib").version' 2>/dev/null
 if [ $? -eq 0 ]; then
-    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print pkg_resources.get_distribution("matplotlib").version'`
+    MPLVERSION=`"$SAGE_ROOT/local/bin/python" -c 'import pkg_resources; print (pkg_resources.get_distribution("matplotlib").version)'`
     MPLCONFIGDIR="$DOT_SAGE/matplotlib-$MPLVERSION"
     export MPLCONFIGDIR
     # The directory is created when Sage starts (see sage.misc.misc).
 fi
 
-# Unset these variables which interfere with R
+# Make sure that a system-wide R installation does not interfere
 unset R_HOME
 unset R_PROFILE
+# Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
+R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+R_MAKEVARS_USER="$SAGE_LOCAL/lib/R/share/Makevars.user" && export R_MAKEVARS_USER
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
@@ -451,6 +455,7 @@ if [ -z "$CC" ]; then
     # See http://trac.sagemath.org/sage_trac/ticket/12820
     if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
         CC=`which clang 2>/dev/null`
+        CXX=`which clang++ 2>/dev/null`
     fi
 fi
 if [ -z "$CC" ]; then
@@ -542,7 +547,15 @@ if [ "$LDFLAGS" = "" ]; then
     LDFLAGS=""          && export LDFLAGS
 fi
 
-if [ "$CXXFLAGS" = "" ]; then
+if [ -z "$CFLAGS" ]; then
+    unset CFLAGS
+fi
+
+if [ -z "$CXXFLAGS" ]; then
+    unset CXXFLAGS
+fi
+
+if [ -n "$CFLAGS" -a -z "$CXXFLAGS" ]; then
     export CXXFLAGS="$CFLAGS"
 fi
 

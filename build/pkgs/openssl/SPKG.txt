@@ -12,13 +12,10 @@ library in a variety of computer languages are available.
 
  * Custom GPL-incompatible license
 
-== Maintainers ==
-
- * William Stein
-
 == Upstream Contact ==
 
- * None yet
+ * http://openssl.org/
+ * http://openssl.org/support/community.html
 
 === Patches ===
 

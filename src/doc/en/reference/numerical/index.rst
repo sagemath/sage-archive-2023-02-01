@@ -25,6 +25,11 @@ LP Solver backends
    sage/numerical/backends/ppl_backend
    sage/numerical/backends/cvxopt_backend
 
+.. backends depending on optional packages
+..   sage/numerical/backends/coin_backend
+..   sage/numerical/backends/cplex_backend
+..   sage/numerical/backends/gurobi_backend
+
 Sage also supports, via optional packages, CBC (COIN-OR), CPLEX (ILOG), and Gurobi. In order to find out
 how to use them in Sage, please refer to the `Thematic Tutorial on Linear
 Programming

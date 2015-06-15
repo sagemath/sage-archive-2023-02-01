@@ -70,10 +70,9 @@ def kill_spawned_jobs(verbose=False):
     for L in open(file).readlines():
         i = L.find(' ')
         pid = L[:i].strip()
-        cmd = L[i+1:].strip()
         try:
             if verbose:
-                print "Killing spawned job %s"%pid
+                print "Killing spawned job %s" % pid
             os.killpg(int(pid), 9)
         except OSError:
             pass
@@ -102,13 +101,9 @@ def invalidate_all():
         (2, 3)
         sage: sage.interfaces.quit.invalidate_all()
         sage: a
-        Traceback (most recent call last):
-        ...
-        ValueError: The maxima session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.maxima.MaximaElement at 0x...>) failed: ValueError: The maxima session in which this object was defined is no longer running.>
         sage: b
-        Traceback (most recent call last):
-        ...
-        ValueError: The pari session in which this object was defined is no longer running.
+        <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
 
     However the maxima and gp sessions should still work out, though with their state reset:
 

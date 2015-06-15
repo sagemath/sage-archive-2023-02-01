@@ -58,6 +58,7 @@ class MatrixPlot(GraphicPrimitive):
     Extra options will get passed on to :meth:`~Graphics.show`, as long as they are valid::
 
         sage: matrix_plot([[1, 0], [0, 1]], fontsize=10)
+        Graphics object consisting of 1 graphics primitive
         sage: matrix_plot([[1, 0], [0, 1]]).show(fontsize=10) # These are equivalent
 
     TESTS:
@@ -65,6 +66,7 @@ class MatrixPlot(GraphicPrimitive):
     We test creating a matrix plot::
 
         sage: matrix_plot([[mod(i,5)^j for i in range(5)] for j in range(1,6)])
+        Graphics object consisting of 1 graphics primitive
     """
     def __init__(self, xy_data_array, xrange, yrange, options):
         """
@@ -99,15 +101,12 @@ class MatrixPlot(GraphicPrimitive):
 
             sage: m = matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))[0]
             sage: list(sorted(m.get_minmax_data().items()))
-            [('xmax', 3.5), ('xmin', -0.5), ('ymax', -0.5), ('ymin', 2.5)]
+            [('xmax', 3.5), ('xmin', -0.5), ('ymax', 2.5), ('ymin', -0.5)]
 
 
         """
         from sage.plot.plot import minmax_data
         limits= minmax_data(self.xrange, self.yrange, dict=True)
-        if self.options()['origin']!='lower':
-            # flip y-axis so that the picture looks correct.
-            limits['ymin'],limits['ymax']=limits['ymax'],limits['ymin']
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
@@ -158,6 +157,7 @@ class MatrixPlot(GraphicPrimitive):
         TESTS::
 
             sage: matrix_plot(random_matrix(RDF, 50), cmap='jet')
+            Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
         cmap = get_cmap(options.pop('cmap',None))
@@ -203,15 +203,21 @@ class MatrixPlot(GraphicPrimitive):
             for opt in ['vmin', 'vmax', 'norm', 'origin','subdivisions','subdivision_options',
                         'colorbar','colorbar_options']:
                 del opts[opt]
+
             if origin=='lower':
-                subplot.spy(self.xy_data_array.tocsr()[::-1], **opts)
+                subplot.spy(self.xy_data_array.tocsr(), **opts)
             else:
-                subplot.spy(self.xy_data_array, **opts)
+                data = self.xy_data_array.tocsr().copy()
+                data.indices = -data.indices + data.shape[1] - 1
+                subplot.spy(data, **opts)
         else:
             opts = dict(cmap=cmap, interpolation='nearest', aspect='equal',
                       norm=norm, vmin=options['vmin'], vmax=options['vmax'],
                       origin=origin,zorder=options.get('zorder',None))
-            image=subplot.imshow(self.xy_data_array, **opts)
+            if origin == 'lower':
+                image=subplot.imshow(self.xy_data_array, **opts)
+            else:
+                image=subplot.imshow(self.xy_data_array[::-1], **opts)
 
             if options.get('colorbar', False):
                 colorbar_options = options['colorbar_options']
@@ -306,11 +312,13 @@ def matrix_plot(mat, **options):
     A matrix over `\ZZ` colored with different grey levels::
 
         sage: matrix_plot(matrix([[1,3,5,1],[2,4,5,6],[1,3,5,7]]))
+        Graphics object consisting of 1 graphics primitive
 
     Here we make a random matrix over `\RR` and use ``cmap='hsv'``
     to color the matrix elements different RGB colors::
 
         sage: matrix_plot(random_matrix(RDF, 50), cmap='hsv')
+        Graphics object consisting of 1 graphics primitive
 
     By default, entries are scaled to the interval [0,1] before
     determining colors from the color map.  That means the two plots
@@ -319,6 +327,8 @@ def matrix_plot(mat, **options):
         sage: P = matrix_plot(matrix(2,[1,1,3,3]))
         sage: Q = matrix_plot(matrix(2,[2,2,3,3]))
         sage: P; Q
+        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 1 graphics primitive
 
     However, we can specify which values scale to 0 or 1 with the
     ``vmin`` and ``vmax`` parameters (values outside the range are
@@ -327,23 +337,28 @@ def matrix_plot(mat, **options):
         sage: P = matrix_plot(matrix(2,[1,1,3,3]), vmin=0, vmax=3, colorbar=True)
         sage: Q = matrix_plot(matrix(2,[2,2,3,3]), vmin=0, vmax=3, colorbar=True)
         sage: P; Q
+        Graphics object consisting of 1 graphics primitive
+        Graphics object consisting of 1 graphics primitive
 
     We can also specify a norm function of 'value', which means that
     there is no scaling performed::
 
         sage: matrix_plot(random_matrix(ZZ,10)*.05, norm='value', colorbar=True)
+        Graphics object consisting of 1 graphics primitive
 
     Matrix subdivisions can be plotted as well::
 
         sage: m=random_matrix(RR,10)
         sage: m.subdivide([2,4],[6,8])
         sage: matrix_plot(m, subdivisions=True, subdivision_style=dict(color='red',thickness=3))
+        Graphics object consisting of 1 graphics primitive
 
     You can also specify your own subdivisions and separate styles
     for row or column subdivisions::
 
         sage: m=random_matrix(RR,10)
         sage: matrix_plot(m, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]], subdivision_style=[dict(color='red',thickness=3),dict(linestyle='--',thickness=6)])
+        Graphics object consisting of 1 graphics primitive
 
     Generally matrices are plotted with the (0,0) entry in the upper
     left.  However, sometimes if we are plotting an image, we'd like
@@ -351,23 +366,28 @@ def matrix_plot(mat, **options):
     ``origin`` argument::
 
         sage: matrix_plot(identity_matrix(100), origin='lower')
+        Graphics object consisting of 1 graphics primitive
 
     Another random plot, but over `\GF{389}`::
 
         sage: m = random_matrix(GF(389), 10)
         sage: matrix_plot(m, cmap='Oranges')
+        Graphics object consisting of 1 graphics primitive
 
     It also works if you lift it to the polynomial ring::
 
         sage: matrix_plot(m.change_ring(GF(389)['x']), cmap='Oranges')
+        Graphics object consisting of 1 graphics primitive
 
     We have several options for colorbars::
 
         sage: matrix_plot(random_matrix(RDF, 50), colorbar=True, colorbar_orientation='horizontal')
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: matrix_plot(random_matrix(RDF, 50), colorbar=True, colorbar_format='%.3f')
+        Graphics object consisting of 1 graphics primitive
 
     The length of a color bar and the length of the adjacent
     matrix plot dimension may be quite different.  This example
@@ -376,17 +396,20 @@ def matrix_plot(mat, **options):
 
         sage: m = random_matrix(ZZ, 40, 80, x=-10, y=10)
         sage: m.plot(colorbar=True, colorbar_orientation='vertical',
-        ...          colorbar_options={'shrink':0.50})
+        ....:        colorbar_options={'shrink':0.50})
+        Graphics object consisting of 1 graphics primitive
 
     Here we plot a random sparse matrix::
 
         sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
         sage: matrix_plot(sparse)
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: A=random_matrix(ZZ,100000,density=.00001,sparse=True)
         sage: matrix_plot(A,marker=',')
+        Graphics object consisting of 1 graphics primitive
 
     As with dense matrices, sparse matrix entries are automatically
     converted to floating point numbers before plotting.  Thus the
@@ -394,6 +417,7 @@ def matrix_plot(mat, **options):
 
         sage: b=random_matrix(GF(2),200,sparse=True,density=0.01)
         sage: matrix_plot(b)
+        Graphics object consisting of 1 graphics primitive
 
     While this returns an error::
 
@@ -408,24 +432,29 @@ def matrix_plot(mat, **options):
 
         sage: b=random_matrix(CDF,200,sparse=True,density=0.01)
         sage: matrix_plot(b.apply_map(abs))
+        Graphics object consisting of 1 graphics primitive
 
     Plotting lists of lists also works::
 
         sage: matrix_plot([[1,3,5,1],[2,4,5,6],[1,3,5,7]])
+        Graphics object consisting of 1 graphics primitive
 
     As does plotting of NumPy arrays::
 
         sage: import numpy
         sage: matrix_plot(numpy.random.rand(10, 10))
+        Graphics object consisting of 1 graphics primitive
 
     A plot title can be added to the matrix plot.::
 
         sage: matrix_plot(identity_matrix(50), origin='lower', title='not identity')
+        Graphics object consisting of 1 graphics primitive
 
     The title position is adjusted upwards if the ``origin`` keyword is set
     to ``"upper"`` (this is the default).::
 
         sage: matrix_plot(identity_matrix(50), title='identity')
+        Graphics object consisting of 1 graphics primitive
 
     TESTS::
 
@@ -452,6 +481,7 @@ def matrix_plot(mat, **options):
     Test that sparse matrices also work with subdivisions::
 
         sage: matrix_plot(sparse, subdivisions=True, subdivision_boundaries=[[2,4],[6,8]])
+        Graphics object consisting of 1 graphics primitive
 
     Test that matrix plots have aspect ratio one (see :trac:`15315`)::
 

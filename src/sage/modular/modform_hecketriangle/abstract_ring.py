@@ -16,14 +16,16 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import FractionField, PolynomialRing, ZZ, QQ, infinity
+from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, ZZ, QQ, infinity
 from sage.algebras.free_algebra import FreeAlgebra
+from sage.rings.arith import bernoulli, sigma
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_groups import HeckeTriangleGroup
 from constructor import FormsRing, FormsSpace, rational_type
+from series_constructor import MFSeriesConstructor
 
 
 # Maybe replace Parent by just SageObject?
@@ -78,15 +80,13 @@ class FormsRing_abstract(Parent):
         #from graded_ring import canonical_parameters
         #(group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
 
-        if (group == infinity):
-            raise NotImplementedError
-
         #if (not group.is_arithmetic() and base_ring.characteristic()>0):
         #    raise NotImplementedError
         #if (base_ring.characteristic().divides(2*group.n()*(group.n()-2))):
         #    raise NotImplementedError
+
         if (base_ring.characteristic() > 0):
-            raise NotImplementedError
+            raise NotImplementedError("Only characteristic 0 is supported.")
         self._group               = group
         self._red_hom             = red_hom
         self._base_ring           = base_ring
@@ -310,11 +310,11 @@ class FormsRing_abstract(Parent):
             sage: MF.default_num_prec()
             10
             sage: E6 = MF.E6()
-            sage: E6(i)
-            -0.002...
+            sage: E6(i + 1e-1000)
+            0.002... - 6.7...e-1000*I
             sage: MF.default_num_prec(100)
-            sage: E6(i)
-            0.000000000000000000000000000...
+            sage: E6(i + 1e-1000)
+            3.9946838...e-1999 - 6.6578064...e-1000*I
 
             sage: MF = ModularForms(n=5, k=4/3)
             sage: f_rho = MF.f_rho()
@@ -420,7 +420,7 @@ class FormsRing_abstract(Parent):
     def reduce_type(self, analytic_type=None, degree=None):
         r"""
         Return a new space with analytic properties shared by both ``self`` and ``analytic_type``,
-        possibly reduced to its homogeneous space of the given ``degree`` (if ``degree`` is set).
+        possibly reduced to its space of homogeneous elements of the given ``degree`` (if ``degree`` is set).
         Elements of the new space are contained in ``self``.
 
         INPUT:
@@ -614,6 +614,128 @@ class FormsRing_abstract(Parent):
 
         return self._rat_field
 
+    def get_d(self, fix_d = False, d_num_prec = None):
+        r"""
+        Return the parameter ``d`` of self either as a formal
+        parameter or as a numerical approximation with the specified
+        precision (resp. an exact value in the arithmetic cases).
+
+        For an (exact) symbolic expression also see
+        ``HeckeTriangleGroup().dvalue()``.
+
+        INPUT:
+
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is
+                            used for ``d``.
+
+                            If ``True`` then the numerical value of
+                            ``d`` is used (or an exact value if the
+                            group is arithmetic).  Otherwise, the given
+                            value is used for ``d``.
+
+        - ``d_num_prec`` -- An integer.  The numerical precision of
+                            ``d``. Default: ``None``, in which case
+                            the default numerical precision of
+                            ``self.parent()`` is used.
+
+        OUTPUT:
+
+        The corresponding formal, numerical or exact parameter ``d`` of ``self``,
+        depending on the arguments and whether ``self.group()`` is arithmetic.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: ModularFormsRing(n=8).get_d()
+            d
+            sage: ModularFormsRing(n=8).get_d().parent()
+            Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: ModularFormsRing(n=infinity).get_d(fix_d = True)
+            1/64
+            sage: ModularFormsRing(n=infinity).get_d(fix_d = True).parent()
+            Rational Field
+            sage: ModularFormsRing(n=5).default_num_prec(40)
+            sage: ModularFormsRing(n=5).get_d(fix_d = True)
+            0.0070522341...
+            sage: ModularFormsRing(n=5).get_d(fix_d = True).parent()
+            Real Field with 40 bits of precision
+            sage: ModularFormsRing(n=5).get_d(fix_d = True, d_num_prec=100).parent()
+            Real Field with 100 bits of precision
+            sage: ModularFormsRing(n=5).get_d(fix_d=1).parent()
+            Integer Ring
+        """
+
+        if d_num_prec is None:
+            d_num_prec = self.default_num_prec()
+        else:
+            d_num_prec = ZZ(d_num_prec)
+
+        if (fix_d is True):
+            d = self._group.dvalue()
+            if (self._group.is_arithmetic()):
+                d = 1 / self.base_ring()(1/d)
+            else:
+                d = self.group().dvalue().n(d_num_prec)
+        elif (fix_d is False):
+            d = FractionField(PolynomialRing(self.base_ring(), "d")).gen()
+        else:
+            d = fix_d
+
+        return d
+
+    def get_q(self, prec = None, fix_d = False, d_num_prec = None):
+        r"""
+        Return the generator of the power series of the Fourier expansion of ``self``.
+
+        INPUT:
+
+        - ``prec``       -- An integer or ``None`` (default), namely the desired default
+                            precision of the space of power series. If nothing is specified
+                            the default precision of ``self`` is used.
+
+        - ``fix_d``      -- If ``False`` (default) a formal parameter is used for ``d``.
+                            If ``True`` then the numerical value of ``d`` is used
+                            (resp. an exact value if the group is arithmetic).
+                            Otherwise the given value is used for ``d``.
+
+        - ``d_num_prec`` -- The precision to be used if a numerical value for ``d`` is substituted.
+                            Default: ``None`` in which case the default
+                            numerical precision of ``self.parent()`` is used.
+
+        OUTPUT:
+
+        The generator of the ``PowerSeriesRing`` of corresponding to the given
+        parameters. The base ring of the power series ring is given by the corresponding
+        parent of ``self.get_d()`` with the same arguments.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
+            sage: ModularFormsRing(n=8).default_prec(5)
+            sage: ModularFormsRing(n=8).get_q().parent()
+            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+            sage: ModularFormsRing(n=8).get_q().parent().default_prec()
+            5
+            sage: ModularFormsRing(n=infinity).get_q(prec=12, fix_d = True).parent()
+            Power Series Ring in q over Rational Field
+            sage: ModularFormsRing(n=infinity).get_q(prec=12, fix_d = True).parent().default_prec()
+            12
+            sage: ModularFormsRing(n=5).default_num_prec(40)
+            sage: ModularFormsRing(n=5).get_q(fix_d = True).parent()
+            Power Series Ring in q over Real Field with 40 bits of precision
+            sage: ModularFormsRing(n=5).get_q(fix_d = True, d_num_prec=100).parent()
+            Power Series Ring in q over Real Field with 100 bits of precision
+            sage: ModularFormsRing(n=5).get_q(fix_d=1).parent()
+            Power Series Ring in q over Rational Field
+        """
+
+        d = self.get_d(fix_d, d_num_prec)
+        if (prec is None):
+            prec = self.default_prec()
+
+        base_ring = d.parent()
+        return PowerSeriesRing(FractionField(base_ring), 'q', default_prec = prec).gen()
+
     @cached_method
     def diff_alg(self):
         r"""
@@ -639,7 +761,7 @@ class FormsRing_abstract(Parent):
         free_alg         = FreeAlgebra(FractionField(ZZ),6,'X,Y,Z,dX,dY,dZ')
         (X,Y,Z,dX,dY,dZ) = free_alg.gens()
         diff_alg         = free_alg.g_algebra({dX*X:1+X*dX,dY*Y:1+Y*dY,dZ*Z:1+Z*dZ})
-        
+
         return diff_alg
 
     @cached_method
@@ -653,12 +775,21 @@ class FormsRing_abstract(Parent):
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing(n=7)._derivative_op()
             -1/2*X^6*dY - 5/28*X^5*dZ + 1/7*X*Z*dX + 1/2*Y*Z*dY + 5/28*Z^2*dZ - 1/7*Y*dX
+
+            sage: ModularFormsRing(n=infinity)._derivative_op()
+            -X*Y*dX + X*Z*dX + 1/2*Y*Z*dY + 1/4*Z^2*dZ - 1/2*X*dY - 1/4*X*dZ
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
-        return   1/self._group.n() * (X*Z-Y)*dX\
-               + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n()-1))*dY\
-               + (self._group.n()-2) / (4*self._group.n()) * (Z**2-X**(self._group.n()-2))*dZ
+
+        if (self.hecke_n() == infinity):
+            return   (X*Z-X*Y) * dX\
+                   + ZZ(1)/ZZ(2) * (Y*Z-X) * dY\
+                   + ZZ(1)/ZZ(4) * (Z**2-X) * dZ
+        else:
+            return   1/self._group.n() * (X*Z-Y) * dX\
+                   + ZZ(1)/ZZ(2) * (Y*Z-X**(self._group.n()-1)) * dY\
+                   + (self._group.n()-2) / (4*self._group.n()) * (Z**2-X**(self._group.n()-2)) * dZ
 
     @cached_method
     def _serre_derivative_op(self):
@@ -671,18 +802,27 @@ class FormsRing_abstract(Parent):
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing(n=8)._serre_derivative_op()
             -1/2*X^7*dY - 3/16*X^6*dZ - 3/16*Z^2*dZ - 1/8*Y*dX
+
+            sage: ModularFormsRing(n=infinity)._serre_derivative_op()
+            -X*Y*dX - 1/4*Z^2*dZ - 1/2*X*dY - 1/4*X*dZ
         """
 
         (X,Y,Z,dX,dY,dZ) = self.diff_alg().gens()
-        return - 1/self._group.n() * Y*dX\
-               - ZZ(1)/ZZ(2) * X**(self._group.n()-1)*dY\
-               - (self._group.n()-2) / (4*self._group.n()) * (Z**2+X**(self._group.n()-2))*dZ
+
+        if (self.hecke_n() == infinity):
+            return - X * Y * dX\
+                   - ZZ(1)/ZZ(2) * X * dY\
+                   - ZZ(1)/ZZ(4) * (Z**2+X) * dZ
+        else:
+            return - 1/self._group.n() * Y*dX\
+                   - ZZ(1)/ZZ(2) * X**(self._group.n()-1) * dY\
+                   - (self._group.n()-2) / (4*self._group.n()) * (Z**2+X**(self._group.n()-2)) * dZ
 
     @cached_method
     def has_reduce_hom(self):
         r"""
         Return whether the method ``reduce`` should reduce
-        homogeneous elements to the corresponding homogeneous space.
+        homogeneous elements to the corresponding space of homogeneous elements.
 
         This is mainly used by binary operations on homogeneous
         spaces which temporarily produce an element of ``self``
@@ -849,20 +989,20 @@ class FormsRing_abstract(Parent):
 
         return self._analytic_type
 
-    def homogeneous_space(self, k, ep):
+    def homogeneous_part(self, k, ep):
         r"""
         Return the homogeneous component of degree (``k``, ``e``) of ``self``.
 
         INPUT:
 
-        - `k` -- An integer.
+        - ``k``  -- An integer.
 
         - ``ep`` -- `+1` or `-1`.
 
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing, QuasiWeakModularFormsRing
-            sage: QuasiMeromorphicModularFormsRing(n=7).homogeneous_space(k=2, ep=-1)
+            sage: QuasiMeromorphicModularFormsRing(n=7).homogeneous_part(k=2, ep=-1)
             QuasiMeromorphicModularForms(n=7, k=2, ep=-1) over Integer Ring
         """
 
@@ -877,7 +1017,7 @@ class FormsRing_abstract(Parent):
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
 
         EXAMPLES::
 
@@ -906,12 +1046,32 @@ class FormsRing_abstract(Parent):
             sage: J_inv
             d*q^-1 + 79/200 + 42877/(640000*d)*q + 12957/(2000000*d^2)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = WeakModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: WeakModularForms(n=5).J_inv().q_expansion(prec=5) == MFC(group=5, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: WeakModularForms(n=infinity).J_inv().q_expansion(prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: WeakModularForms(n=5).J_inv().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).J_inv_ZZ().add_bigoh(5)
+            True
+            sage: WeakModularForms(n=infinity).J_inv().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).J_inv_ZZ().add_bigoh(5)
+            True
+
+            sage: WeakModularForms(n=infinity).J_inv()
+            1/64*q^-1 + 3/8 + 69/16*q + 32*q^2 + 5601/32*q^3 + 768*q^4 + O(q^5)
+
             sage: WeakModularForms().J_inv()
             1/1728*q^-1 + 31/72 + 1823/16*q + 335840/27*q^2 + 16005555/32*q^3 + 11716352*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("weak", ring=True)(x**self._group.n()/(x**self._group.n()-y**2)).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("weak", ring=True)(x/(x-y**2)).reduce()
+        else:
+            return self.extend_type("weak", ring=True)(x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def j_inv(self):
@@ -922,7 +1082,7 @@ class FormsRing_abstract(Parent):
 
         It lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
 
         EXAMPLES::
 
@@ -951,25 +1111,40 @@ class FormsRing_abstract(Parent):
             sage: j_inv
             q^-1 + 79/(200*d) + 42877/(640000*d^2)*q + 12957/(2000000*d^3)*q^2 + O(q^3)
 
+            sage: WeakModularForms(n=infinity).j_inv()
+            q^-1 + 24 + 276*q + 2048*q^2 + 11202*q^3 + 49152*q^4 + O(q^5)
+
             sage: WeakModularForms().j_inv()
             q^-1 + 744 + 196884*q + 21493760*q^2 + 864299970*q^3 + 20245856256*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("weak", ring=True)(1/d*x**self._group.n()/(x**self._group.n()-y**2)).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("weak", ring=True)(1/d*x/(x-y**2)).reduce()
+        else:
+            return self.extend_type("weak", ring=True)(1/d*x**self._group.n()/(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def f_rho(self):
         r"""
-        Return the generator ``f_rho`` of the graded ring of ``self``.
-        Up to the group action ``f_rho`` has exactly one simple zero at ``rho``. ``f_rho`` is
-        normalized such that its first nontrivial Fourier coefficient is ``1``.
+        Return a normalized modular form ``f_rho`` with exactly one simple
+        zero at ``rho`` (up to the group action).
+
+        It lies in a (holomorphic) extension of the graded ring of ``self``.
+        In case ``has_reduce_hom`` is ``True`` it is given as an element of
+        the corresponding space of homogeneous elements.
 
         The polynomial variable ``x`` exactly corresponds to ``f_rho``.
 
-        It lies in a (cuspidal) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        NOTE:
+
+        If ``n=infinity`` the situation is different, there we have:
+        ``f_rho=1`` (since that's the limit as ``n`` goes to infinity)
+        and the polynomial variable ``x`` no longer refers to ``f_rho``.
+        Instead it refers to ``E4`` which has exactly one simple zero
+        at the cusp ``-1``. Also note that ``E4`` is the limit of
+        ``f_rho^(n-2)``.
 
         EXAMPLES::
 
@@ -998,6 +1173,22 @@ class FormsRing_abstract(Parent):
             sage: f_rho
             1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_rho().q_expansion(prec=5) == MFC(group=5, prec=7).f_rho_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_rho().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_rho_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=5).f_rho().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_rho_ZZ().add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_rho().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_rho_ZZ().add_bigoh(5)
+            True
+
+            sage: ModularForms(n=infinity, k=0).f_rho() == ModularForms(n=infinity, k=0)(1)
+            True
+
             sage: ModularForms(k=4).f_rho() == ModularForms(k=4).E4()
             True
             sage: ModularForms(k=4).f_rho()
@@ -1005,20 +1196,23 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("holo", ring=True)(x).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("holo", ring=True)(1).reduce()
+        else:
+            return self.extend_type("holo", ring=True)(x).reduce()
 
     @cached_method
     def f_i(self):
         r"""
-        Return the generator ``f_i`` of the graded ring of ``self``.
-        Up to the group action ``f_i`` has exactly one simple zero at ``i``. ``f_i`` is
-        normalized such that its first nontrivial Fourier coefficient is ``1``.
-
-        The polynomial variable ``y`` exactly corresponds to ``f_i``.
+        Return a normalized modular form ``f_i`` with exactly one simple
+        zero at ``i`` (up to the group action).
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        The polynomial variable ``y`` exactly corresponds to ``f_i``.
 
         EXAMPLES::
 
@@ -1047,6 +1241,22 @@ class FormsRing_abstract(Parent):
             sage: f_i
             1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_i().q_expansion(prec=5) == MFC(group=5, prec=7).f_i_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_i().q_expansion(prec=5) == MFC(group=infinity, prec=7).f_i_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=5).f_i().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_i_ZZ().add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_i().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_i_ZZ().add_bigoh(5)
+            True
+
+            sage: ModularForms(n=infinity, k=2).f_i()
+            1 - 24*q + 24*q^2 - 96*q^3 + 24*q^4 + O(q^5)
+
             sage: ModularForms(k=6).f_i() == ModularForms(k=4).E6()
             True
             sage: ModularForms(k=6).f_i()
@@ -1054,18 +1264,25 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
+
         return self.extend_type("holo", ring=True)(y).reduce()
 
     @cached_method
     def f_inf(self):
         r"""
-        Return the first nontrivial cusp form ``f_inf`` of the graded ring of ``self``.
-        Up to the group action ``f_inf`` has exactly one simple zero at ``infinity``.
-        ``f_inf`` is normalized such that its first nontrivial Fourier coefficient is ``1``.
+        Return a normalized (according to its first nontrivial Fourier
+        coefficient) cusp form ``f_inf`` with exactly one simple zero
+        at ``infinity`` (up to the group action).
 
-        It lies in a (holomorphic) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        It lies in a (cuspidal) extension of the graded ring of
+        ``self``. In case ``has_reduce_hom`` is ``True`` it is given
+        as an element of the corresponding space of homogeneous elements.
+
+        NOTE:
+
+        If ``n=infinity`` then ``f_inf`` is no longer a cusp form
+        since it doesn't vannish at the cusp ``-1``. The first
+        non-trivial cusp form is given by ``E4*f_inf``.
 
         EXAMPLES::
 
@@ -1079,7 +1296,7 @@ class FormsRing_abstract(Parent):
             sage: QuasiMeromorphicModularFormsRing(n=7).f_inf() == QuasiMeromorphicModularFormsRing(n=7)(f_inf)
             True
 
-            sage: from sage.modular.modform_hecketriangle.space import CuspForms
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms
             sage: MF = CuspForms(n=5, k=20/3)
             sage: f_inf = MF.f_inf()
             sage: f_inf in MF
@@ -1092,6 +1309,24 @@ class FormsRing_abstract(Parent):
             sage: f_inf
             q - 9/(200*d)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5).f_inf().q_expansion(prec=5) == (d*MFC(group=5, prec=7).f_inf_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_inf().q_expansion(prec=5) == (d*MFC(group=infinity, prec=7).f_inf_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: ModularForms(n=5).f_inf().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).f_inf_ZZ().add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity).f_inf().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).f_inf_ZZ().add_bigoh(5)
+            True
+
+            sage: ModularForms(n=infinity, k=4).f_inf().reduced_parent()
+            ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+            sage: ModularForms(n=infinity, k=4).f_inf()
+            q - 8*q^2 + 28*q^3 - 64*q^4 + O(q^5)
+
             sage: CuspForms(k=12).f_inf() == CuspForms(k=12).Delta()
             True
             sage: CuspForms(k=12).f_inf()
@@ -1099,7 +1334,11 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("cusp", ring=True)(d*(x**self._group.n()-y**2)).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("holo", ring=True)(d*(x-y**2)).reduce()
+        else:
+            return self.extend_type("cusp", ring=True)(d*(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def G_inv(self):
@@ -1110,11 +1349,18 @@ class FormsRing_abstract(Parent):
         I.e. ``G_inv(-1/t) = -G_inv(t)``. It is a holomorphic square root
         of ``J_inv*(J_inv-1)`` with real Fourier coefficients.
 
-        If `2` does not divide `n` the function does not exist and an exception is raised.
+        If `2` does not divide `n` the function does not exist and an
+        exception is raised.
 
         The G-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        NOTE:
+
+        If ``n=infinity`` then ``G_inv`` is holomorphic everywhere except
+        at the cusp ``-1`` where it isn't even meromorphic. Consequently
+        this function raises an exception for ``n=infinity``.
 
         EXAMPLES::
 
@@ -1143,39 +1389,60 @@ class FormsRing_abstract(Parent):
             sage: G_inv
             d^2*q^-1 - 15*d/128 - 15139/262144*q - 11575/(1572864*d)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = WeakModularForms(n=8)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: WeakModularForms(n=8).G_inv().q_expansion(prec=5) == (d*MFC(group=8, prec=7).G_inv_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: WeakModularForms(n=8).G_inv().q_expansion(fix_d=1, prec=5) == MFC(group=8, prec=7).G_inv_ZZ().add_bigoh(5)
+            True
+
             sage: WeakModularForms(n=4, k=0, ep=-1).G_inv()
             1/65536*q^-1 - 3/8192 - 955/16384*q - 49/32*q^2 - 608799/32768*q^3 - 659/4*q^4 + O(q^5)
 
-        As explained above, the G-invariant exists only for even `n`::
+            As explained above, the G-invariant exists only for even `n`::
 
             sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=9)
             sage: MF.G_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: G_inv doesn't exists for n=9.
+            ArithmeticError: G_inv doesn't exists for odd n(=9).
         """
 
-        if (ZZ(2).divides(self._group.n())):
-            (x,y,z,d) = self._pol_ring.gens()
+        (x,y,z,d) = self._pol_ring.gens()
+
+        if (self.hecke_n() == infinity):
+            raise ArithmeticError("G_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
+        elif (ZZ(2).divides(self._group.n())):
             return self.extend_type("weak", ring=True)(d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("G_inv doesn't exists for n={}.".format(self._group.n()))
+            raise ArithmeticError("G_inv doesn't exists for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def g_inv(self):
         r"""
         If `2` divides `n`: Return the g-invariant of the group of ``self``.
 
-        The g-invariant is analogous to the j-invariant but has multiplier ``-1``.
-        I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a (normalized) holomorphic square root
-        of ``J_inv*(J_inv-1)``, normalized such that its first nontrivial Fourier coefficient is ``1``.
+        The g-invariant is analogous to the j-invariant but has
+        multiplier ``-1``.  I.e. ``g_inv(-1/t) = -g_inv(t)``. It is a
+        (normalized) holomorphic square root of ``J_inv*(J_inv-1)``,
+        normalized such that its first nontrivial Fourier coefficient
+        is ``1``.
 
-        If `2` does not divide ``n`` the function does not exist and an exception is raised.
+        If `2` does not divide ``n`` the function does not exist and
+        an exception is raised.
 
         The g-invariant lies in a (weak) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        NOTE:
+
+        If ``n=infinity`` then ``g_inv`` is holomorphic everywhere except
+        at the cusp ``-1`` where it isn't even meromorphic. Consequently
+        this function raises an exception for ``n=infinity``.
 
         EXAMPLES::
 
@@ -1207,31 +1474,42 @@ class FormsRing_abstract(Parent):
             sage: WeakModularForms(n=4, k=0, ep=-1).g_inv()
             q^-1 - 24 - 3820*q - 100352*q^2 - 1217598*q^3 - 10797056*q^4 + O(q^5)
 
-        As explained above, the g-invariant exists only for even `n`::
+            As explained above, the g-invariant exists only for even `n`::
 
             sage: from sage.modular.modform_hecketriangle.space import WeakModularForms
             sage: MF = WeakModularForms(n=9)
             sage: MF.g_inv()
             Traceback (most recent call last):
             ...
-            ArithmeticError: g_inv doesn't exists for n=9.
+            ArithmeticError: g_inv doesn't exists for odd n(=9).
         """
 
+        if (self.hecke_n() == infinity):
+            raise ArithmeticError("g_inv doesn't exists for n={} (it is not meromorphic at -1).".format(self._group.n()))
         if (ZZ(2).divides(self._group.n())):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exists for n={}.".format(self._group.n()))
+           raise ArithmeticError("g_inv doesn't exists for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):
         r"""
-        Return the normalized Eisenstein series of weight 4` of the graded ring of ``self``.
-        It is equal to ``f_rho^(n-2)``.
+        Return the normalized Eisenstein series of weight `4`.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        It is equal to ``f_rho^(n-2)``.
+
+        NOTE:
+
+        If ``n=infinity`` the situation is different, there we have:
+        ``f_rho=1`` (since that's the limit as ``n`` goes to infinity)
+        and the polynomial variable ``x`` refers to ``E4`` instead of
+        ``f_rho``. In that case ``E4`` has exactly one simple zero
+        at the cusp ``-1``. Also note that ``E4`` is the limit of ``f_rho^n``.
 
         EXAMPLES::
 
@@ -1260,6 +1538,22 @@ class FormsRing_abstract(Parent):
             sage: E4
             1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ModularForms(n=5)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5, k=4).E4().q_expansion(prec=5) == MFC(group=5, prec=7).E4_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity, k=4).E4().q_expansion(prec=5) == MFC(group=infinity, prec=7).E4_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=5, k=4).E4().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E4_ZZ().add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity, k=4).E4().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E4_ZZ().add_bigoh(5)
+            True
+
+            sage: ModularForms(n=infinity, k=4).E4()
+            1 + 16*q + 112*q^2 + 448*q^3 + 1136*q^4 + O(q^5)
+
             sage: ModularForms(k=4).f_rho() == ModularForms(k=4).E4()
             True
             sage: ModularForms(k=4).E4()
@@ -1267,17 +1561,22 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("holo", ring=True)(x**(self._group.n()-2)).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("holo", ring=True)(x).reduce()
+        else:
+            return self.extend_type("holo", ring=True)(x**(self._group.n()-2)).reduce()
 
     @cached_method
     def E6(self):
         r"""
-        Return the normalized Eisenstein series of weight `6` of the graded ring of ``self``,
-        It is equal to ``f_rho^(n-3) * f_i``.
+        Return the normalized Eisenstein series of weight `6`.
 
         It lies in a (holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        It is equal to ``f_rho^(n-3) * f_i``.
 
         EXAMPLES::
 
@@ -1306,6 +1605,22 @@ class FormsRing_abstract(Parent):
             sage: E6
             1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = ModularForms(n=5, k=6)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=5, k=6).E6().q_expansion(prec=5) == MFC(group=5, prec=7).E6_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity, k=6).E6().q_expansion(prec=5) == MFC(group=infinity, prec=7).E6_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=5, k=6).E6().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E6_ZZ().add_bigoh(5)
+            True
+            sage: ModularForms(n=infinity, k=6).E6().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E6_ZZ().add_bigoh(5)
+            True
+
+            sage: ModularForms(n=infinity, k=6).E6()
+            1 - 8*q - 248*q^2 - 1952*q^3 - 8440*q^4 + O(q^5)
+
             sage: ModularForms(k=6).f_i() == ModularForms(k=6).E6()
             True
             sage: ModularForms(k=6).E6()
@@ -1313,18 +1628,26 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("holo", ring=True)(x**(self._group.n()-3)*y).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("holo", ring=True)(x*y).reduce()
+        else:
+            return self.extend_type("holo", ring=True)(x**(self._group.n()-3)*y).reduce()
 
     @cached_method
     def Delta(self):
         r"""
-        Return an analog of the Delta-function of the graded ring of ``self``.
-        It is a cusp form of weight `12` and is equal to
-        ``d*(E4^3 - E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n - y^2)``.
+        Return an analog of the Delta-function.
 
-        It lies in a (cuspidal) extension of the graded ring of ``self``.
-        In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        It lies in the graded ring of ``self``. In case
+        ``has_reduce_hom`` is ``True`` it is given as an element of
+        the corresponding space of homogeneous elements.
+
+        It is a cusp form of weight `12` and is equal to ``d*(E4^3 -
+        E6^2)`` or (in terms of the generators) ``d*x^(2*n-6)*(x^n -
+        y^2)``.
+
+        Note that ``Delta`` is also a cusp form for ``n=infinity``.
 
         EXAMPLES::
 
@@ -1351,9 +1674,25 @@ class FormsRing_abstract(Parent):
             sage: Delta
             q + 47/(200*d)*q^2 + O(q^3)
 
-            sage: d = ModularForms(n=5).coeff_ring().gen()
+            sage: d = ModularForms(n=5).get_d()
             sage: Delta == (d*(ModularForms(n=5).E4()^3-ModularForms(n=5).E6()^2))
             True
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = CuspForms(n=5, k=12)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: CuspForms(n=5, k=12).Delta().q_expansion(prec=5) == (d*MFC(group=5, prec=7).Delta_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(prec=5) == (d*MFC(group=infinity, prec=7).Delta_ZZ()(q/d)).add_bigoh(5)
+            True
+            sage: CuspForms(n=5, k=12).Delta().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).Delta_ZZ().add_bigoh(5)
+            True
+            sage: CuspForms(n=infinity, k=12).Delta().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).Delta_ZZ().add_bigoh(5)
+            True
+
+            sage: CuspForms(n=infinity, k=12).Delta()
+            q + 24*q^2 + 252*q^3 + 1472*q^4 + O(q^5)
 
             sage: CuspForms(k=12).f_inf() == CuspForms(k=12).Delta()
             True
@@ -1362,18 +1701,24 @@ class FormsRing_abstract(Parent):
         """
 
         (x,y,z,d) = self._pol_ring.gens()
-        return self.extend_type("cusp", ring=True)(d*x**(2*self._group.n()-6)*(x**self._group.n()-y**2)).reduce()
+
+        if (self.hecke_n() == infinity):
+            return self.extend_type("cusp", ring=True)(d*x**2*(x-y**2)).reduce()
+        else:
+            return self.extend_type("cusp", ring=True)(d*x**(2*self._group.n()-6)*(x**self._group.n()-y**2)).reduce()
 
     @cached_method
     def E2(self):
         r"""
-        Return the normalized quasi holomorphic Eisenstein series of weight `2` of the
-        graded ring of ``self``. It is also a generator of the graded ring of
-        ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
+        Return the normalized quasi holomorphic Eisenstein series of weight `2`.
 
         It lies in a (quasi holomorphic) extension of the graded ring of ``self``.
         In case ``has_reduce_hom`` is ``True`` it is given as an element of
-        the corresponding homogeneous space.
+        the corresponding space of homogeneous elements.
+
+        It is in particular also a generator of the graded ring of
+        ``self`` and  the polynomial variable ``z`` exactly corresponds to ``E2``.
+
 
         EXAMPLES::
 
@@ -1406,9 +1751,191 @@ class FormsRing_abstract(Parent):
             sage: E2 == f_inf.derivative() / f_inf
             True
 
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: MF = QuasiModularForms(n=5, k=2)
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(prec=5) == MFC(group=5, prec=7).E2_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(prec=5) == MFC(group=infinity, prec=7).E2_ZZ()(q/d).add_bigoh(5)
+            True
+            sage: QuasiModularForms(n=5, k=2).E2().q_expansion(fix_d=1, prec=5) == MFC(group=5, prec=7).E2_ZZ().add_bigoh(5)
+            True
+            sage: QuasiModularForms(n=infinity, k=2).E2().q_expansion(fix_d=1, prec=5) == MFC(group=infinity, prec=7).E2_ZZ().add_bigoh(5)
+            True
+
+            sage: QuasiModularForms(n=infinity, k=2).E2()
+            1 - 8*q - 8*q^2 - 32*q^3 - 40*q^4 + O(q^5)
+
             sage: QuasiModularForms(k=2).E2()
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 + O(q^5)
         """
 
         (x,y,z,d) = self._pol_ring.gens()
+
         return self.extend_type(["holo", "quasi"], ring=True)(z).reduce()
+
+    @cached_method
+    def EisensteinSeries(self, k=None):
+        r"""
+        Return the normalized Eisenstein series of weight ``k``.
+
+        Only arithmetic groups or trivial weights (with corresponding
+        one dimensional spaces) are supported.
+
+        INPUT:
+
+        - ``k``  -- A non-negative even integer, namely the weight.
+
+                    If ``k=None`` (default) then the weight of ``self``
+                    is choosen if ``self`` is homogeneous and the
+                    weight is possible, otherwise ``k=0`` is set.
+
+        OUTPUT:
+
+        A modular form element lying in a (holomorphic) extension of
+        the graded ring of ``self``. In case ``has_reduce_hom`` is
+        ``True`` it is given as an element of the corresponding
+        space of homogeneous elements.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing, CuspFormsRing
+            sage: MR = ModularFormsRing()
+            sage: MR.EisensteinSeries() == MR.one()
+            True
+            sage: E8 = MR.EisensteinSeries(k=8)
+            sage: E8 in MR
+            True
+            sage: E8
+            f_rho^2
+
+            sage: from sage.modular.modform_hecketriangle.space import CuspForms, ModularForms
+            sage: MF = ModularForms(n=4, k=12)
+            sage: E12 = MF.EisensteinSeries()
+            sage: E12 in MF
+            True
+            sage: CuspFormsRing(n=4, red_hom=True).EisensteinSeries(k=12).parent()
+            ModularForms(n=4, k=12, ep=1) over Integer Ring
+            sage: MF.disp_prec(4)
+            sage: E12
+            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + O(q^4)
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor as MFC
+            sage: d = MF.get_d()
+            sage: q = MF.get_q()
+            sage: ModularForms(n=3, k=2).EisensteinSeries().q_expansion(prec=5) == MFC(group=3, prec=7).EisensteinSeries_ZZ(k=2)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=4).EisensteinSeries().q_expansion(prec=5) == MFC(group=3, prec=7).EisensteinSeries_ZZ(k=4)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=6).EisensteinSeries().q_expansion(prec=5) == MFC(group=3, prec=7).EisensteinSeries_ZZ(k=6)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=3, k=8).EisensteinSeries().q_expansion(prec=5) == MFC(group=3, prec=7).EisensteinSeries_ZZ(k=8)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=2).EisensteinSeries().q_expansion(prec=5) == MFC(group=4, prec=7).EisensteinSeries_ZZ(k=2)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=4).EisensteinSeries().q_expansion(prec=5) == MFC(group=4, prec=7).EisensteinSeries_ZZ(k=4)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=6).EisensteinSeries().q_expansion(prec=5) == MFC(group=4, prec=7).EisensteinSeries_ZZ(k=6)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=4, k=8).EisensteinSeries().q_expansion(prec=5) == MFC(group=4, prec=7).EisensteinSeries_ZZ(k=8)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=2, ep=-1).EisensteinSeries().q_expansion(prec=5) == MFC(group=6, prec=7).EisensteinSeries_ZZ(k=2)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=4).EisensteinSeries().q_expansion(prec=5) == MFC(group=6, prec=7).EisensteinSeries_ZZ(k=4)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=6, ep=-1).EisensteinSeries().q_expansion(prec=5) == MFC(group=6, prec=7).EisensteinSeries_ZZ(k=6)(q/d).add_bigoh(5)
+            True
+            sage: ModularForms(n=6, k=8).EisensteinSeries().q_expansion(prec=5) == MFC(group=6, prec=7).EisensteinSeries_ZZ(k=8)(q/d).add_bigoh(5)
+            True
+
+            sage: ModularForms(n=3, k=12).EisensteinSeries()
+            1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
+            sage: ModularForms(n=4, k=12).EisensteinSeries()
+            1 + 1008/691*q + 2129904/691*q^2 + 178565184/691*q^3 + O(q^4)
+            sage: ModularForms(n=6, k=12).EisensteinSeries()
+            1 + 6552/50443*q + 13425048/50443*q^2 + 1165450104/50443*q^3 + 27494504856/50443*q^4 + O(q^5)
+            sage: ModularForms(n=3, k=20).EisensteinSeries()
+            1 + 13200/174611*q + 6920614800/174611*q^2 + 15341851377600/174611*q^3 + 3628395292275600/174611*q^4 + O(q^5)
+            sage: ModularForms(n=4).EisensteinSeries(k=8)
+            1 + 480/17*q + 69600/17*q^2 + 1050240/17*q^3 + 8916960/17*q^4 + O(q^5)
+            sage: ModularForms(n=6).EisensteinSeries(k=20)
+            1 + 264/206215591*q + 138412296/206215591*q^2 + 306852616488/206215591*q^3 + 72567905845512/206215591*q^4 + O(q^5)
+        """
+
+        n = self.hecke_n()
+
+        # For now we completely disable Eisenstein series for n == infinity,
+        # but leave some related basic variables intact.
+        if n == infinity:
+            raise NotImplementedError("In the case n=infinity, the Eisenstein series is not unique and more parameters are required.")
+
+        if (k is None):
+            try:
+                if not self.is_homogeneous():
+                    raise TypeError(None)
+                k = self.weight()
+                if k < 0:
+                    raise TypeError(None)
+                k = 2*ZZ(k/2)
+                #if self.ep() != ZZ(-1)**ZZ(k/2):
+                #    raise TypeError
+            except TypeError:
+                k = ZZ(0)
+
+        try:
+            if k < 0:
+                raise TypeError(None)
+            k = 2*ZZ(k/2)
+        except TypeError:
+            raise TypeError("k={} must be a non-negative even integer!".format(k))
+
+        # The case n=infinity is special (there are 2 cusps)
+        # Until we/I get confirmation what is what sort of Eisenstein series
+        # this case is excluded...
+        if    n == infinity:
+            # We set the weight zero Eisenstein series to 1
+            pass
+        elif  k == 0:
+            return self.one()
+        elif  k == 2:
+            # This is a bit problematic, e.g. for n=infinity there is a
+            # classical Eisenstein series of weight 2
+            return self.E2()
+        elif  k == 4:
+            return self.E4()
+        elif  k == 6:
+            return self.E6()
+
+        # Basic variables
+        ep = (-ZZ(1))**(k/2)
+        extended_self = self.extend_type(["holo"], ring=True)
+        # reduced_self is a classical ModularForms space
+        reduced_self = extended_self.reduce_type(["holo"], degree = (QQ(k), ep))
+
+        if (n == infinity):
+            l2  = ZZ(0)
+            l1  = ZZ((k-(1-ep)) / ZZ(4))
+        else:
+            num = ZZ((k-(1-ep)*n/(n-2)) * (n-2) / ZZ(4))
+            l2  = num % n
+            l1  = ((num-l2)/n).numerator()
+
+        # If the space is one dimensional we return the normalized generator
+        if l1 == 0:
+            return extended_self(reduced_self.F_basis(0)).reduce()
+
+        # The non-arithmetic remaining cases (incomplete, very hard in general)
+        # TODO: the n = infinity case(s) (doable)
+        # TODO: the n = 5 case (hard)
+        if (not self.group().is_arithmetic() or n == infinity):
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
+
+        # The arithmetic cases
+        prec = reduced_self._l1 + 1
+        MFC = MFSeriesConstructor(group=self.group(), prec=prec)
+        d = self.get_d()
+        q = self.get_q()
+        q_series = MFC.EisensteinSeries_ZZ(k=k)(q/d)
+
+        return extended_self(reduced_self.construct_form(q_series, check=False)).reduce()

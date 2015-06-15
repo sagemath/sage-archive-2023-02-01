@@ -790,7 +790,7 @@ class AbelianStratum(SageObject):
 
         self._zeroes = list(l)
 
-        if not self._marked_separatrix is 'no':
+        if not self._marked_separatrix == 'no':
             self._zeroes[1:] = sorted(self._zeroes[1:], reverse=True)
         else:
             self._zeroes.sort(reverse=True)
@@ -990,7 +990,7 @@ class AbelianStratum(SageObject):
             sage: AbelianStratum(1,1,1,1).connected_components()
             [H_c(1, 1, 1, 1)]
         """
-        return map(lambda x: x(self), self._cc)
+        return [x(self) for x in self._cc]
 
     def is_connected(self):
         r"""

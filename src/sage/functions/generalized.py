@@ -179,9 +179,14 @@ class FunctionHeaviside(BuiltinFunction):
         sage: heaviside(x)
         heaviside(x)
 
+    TESTS::
+
+        sage: heaviside(x)._sympy_()
+        Heaviside(x)
+
     REFERENCES:
 
-    -  http://en.wikipedia.org/wiki/Heaviside_function
+    -  :wikipedia:`Heaviside_function`
 
     """
     def __init__(self):
@@ -206,7 +211,9 @@ class FunctionHeaviside(BuiltinFunction):
             H\left(x\right)
         """
         BuiltinFunction.__init__(self, "heaviside", latex_name="H",
-                                   conversions=dict(mathematica='HeavisideTheta'))
+                                 conversions=dict(maxima='hstep',
+                                                  mathematica='HeavisideTheta',
+                                                  sympy='Heaviside'))
 
     def _eval_(self, x):
         """
@@ -419,11 +426,10 @@ class FunctionSignum(BuiltinFunction):
 
     TESTS:
 
-    Check if conversion to sympy works #11921::
+    Check if conversion to sympy works :trac:`11921`::
 
         sage: sgn(x)._sympy_()
         sign(x)
-
 
     REFERENCES:
 

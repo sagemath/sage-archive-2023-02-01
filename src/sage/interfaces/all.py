@@ -1,4 +1,5 @@
 # interfaces to other interpreters
+from sage.misc.lazy_import import lazy_import
 
 from frobby import frobby
 from four_ti_2 import four_ti_2
@@ -7,7 +8,7 @@ from fricas import FriCAS, fricas, fricas_console
 
 from gap import gap, gap_reset_workspace, gap_console, set_gap_memory_pool_size, Gap
 from gap3 import gap3, gap3_console, gap3_version, Gap3
-from genus2reduction import genus2reduction, Genus2reduction
+lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
 from gfan import gfan,  Gfan
 from giac import giac, giac_console, Giac
 from gp import gp, gp_console, gp_version, Gp

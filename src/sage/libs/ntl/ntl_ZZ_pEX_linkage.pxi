@@ -14,11 +14,11 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *, ZZ_pEContext_c
-from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *, ZZ_pEX_c, ZZ_pEX_Modulus_c
+from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_from_str
 from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE
 

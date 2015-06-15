@@ -462,6 +462,7 @@ class SuffixTrie(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import SuffixTrie
             sage: SuffixTrie(Word("cacao")).plot()
+            Graphics object consisting of 38 graphics primitives
 
         TESTS::
 
@@ -864,7 +865,9 @@ class ImplicitSuffixTree(SageObject):
 
             sage: from sage.combinat.words.suffix_trees import ImplicitSuffixTree
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=True)
+            Graphics object consisting of 23 graphics primitives
             sage: ImplicitSuffixTree(Word('cacao')).plot(word_labels=False)
+            Graphics object consisting of 23 graphics primitives
 
         TESTS::
 

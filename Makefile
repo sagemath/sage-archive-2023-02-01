@@ -18,9 +18,9 @@ logs:
 build: logs configure
 	+cd build && \
 	"../$(PIPE)" \
-		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
+		"./install all 2>&1" \
 		"tee -a ../logs/install.log"
-	./sage -b
+	+./sage -b
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -35,9 +35,6 @@ download:
 # information.
 ssl: all
 	./sage -i pyopenssl
-
-build-serial: SAGE_PARALLEL_SPKG_BUILD = no
-build-serial: build
 
 # Start Sage if the file local/etc/sage-started.txt does not exist
 # (i.e. when we just installed Sage for the first time).
@@ -58,6 +55,13 @@ doc: doc-html
 
 doc-html: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+
+# 'doc-html-no-plot': build docs without building the graphics coming
+# from the '.. plot' directive, in case you want to save a few
+# megabytes of disk space. 'doc-clean' is a prerequisite because the
+# presence of graphics is cached in src/doc/output.
+doc-html-no-plot: build doc-clean
+	$(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: build
 	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
@@ -175,7 +179,7 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install micro_release \
+.PHONY: all build start install micro_release \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean clean lib-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \

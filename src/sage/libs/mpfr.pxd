@@ -1,21 +1,24 @@
-
-from sage.libs.gmp.all cimport mp_exp_t, mp_size_t, gmp_randstate_t, mpz_t, mpq_t
+from sage.libs.gmp.types cimport *
 
 cdef extern from "mpfr.h":
     ctypedef struct __mpfr_struct:
         pass
 
-    #ctypedef __mpfr_struct mpfr_t[1]
-    ctypedef __mpfr_struct* mpfr_t
-    ctypedef mpfr_t mpfr_ptr
-    ctypedef mpfr_t mpfr_srcptr
+    ctypedef __mpfr_struct mpfr_t[1]
+    ctypedef __mpfr_struct* mpfr_ptr
+    ctypedef __mpfr_struct* mpfr_srcptr
     ctypedef enum mpfr_rnd_t:
-        GMP_RNDN = 0
-        GMP_RNDZ = 1
-        GMP_RNDU = 2
-        GMP_RNDD = 3
-        GMP_RND_MAX = 4
-        GMP_RNDNA = -1
+        MPFR_RNDN
+        MPFR_RNDZ
+        MPFR_RNDU
+        MPFR_RNDD
+        MPFR_RNDA
+        MPFR_RNDF
+        MPFR_RNDNA
+        GMP_RNDN
+        GMP_RNDZ
+        GMP_RNDU
+        GMP_RNDD
 
     ctypedef mpfr_rnd_t mp_rnd_t
     ctypedef long mp_prec_t

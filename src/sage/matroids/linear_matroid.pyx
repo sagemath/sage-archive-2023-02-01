@@ -108,7 +108,7 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/misc/bitset.pxi'
+include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
@@ -377,13 +377,13 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         """
         return characteristic(self._A)
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return self._A.is_nonzero(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return self._A.is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``.
         Assumptions are that this is a valid basis exchange.
@@ -1659,7 +1659,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             [2, 3, 4, 5, 6]
             sage: M = matroids.CompleteGraphic(5)
             sage: M.cross_ratios()
-            set([])
+            set()
         """
         if hyperlines is None:
             hyperlines = self.flats(self.full_rank() - 2)
@@ -2857,13 +2857,13 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<BinaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<BinaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -2878,6 +2878,31 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         bitset_copy(C, (<BinaryMatrix>self._A)._M[self._prow[x]])
 
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for BinaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)     
+           
+    
+    
     cdef  __exchange_value(self, long x, long y):
         r"""
         Return the (x, y) entry of the current representation.
@@ -3418,7 +3443,10 @@ cdef class BinaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
+        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                             groundset=[self._E[c] for c in C],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     # graphicness test
     cpdef is_graphic(self):
@@ -3791,13 +3819,13 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         return 3
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<TernaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<TernaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -3812,6 +3840,29 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         bitset_copy(C, (<TernaryMatrix>self._A)._M0[self._prow[x]])
 
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for TernaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)
+        
     cdef  __exchange_value(self, long x, long y):
         r"""
         Return the (x, y) entry of the current representation.
@@ -4291,7 +4342,10 @@ cdef class TernaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
+        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                              groundset=[self._E[c] for c in C],
+                              basis=bas,
+                              keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -4585,13 +4639,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         """
         return 2
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<QuaternaryMatrix>self._A).get(self._prow[x], y)   # Not a Sage matrix operation
+        return (<QuaternaryMatrix>self._A).is_nonzero(self._prow[x], y)
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         r"""
         Replace ``self.basis() with ``self.basis() - x + y``. Internal method, does no checks.
         """
@@ -4605,6 +4659,29 @@ cdef class QuaternaryMatroid(LinearMatroid):
         Fill bitset `C` with the incidence vector of the `B`-fundamental cocircuit using ``x``. Internal method using packed elements.
         """
         bitset_union(C, (<QuaternaryMatrix>self._A)._M0[self._prow[x]], (<QuaternaryMatrix>self._A)._M1[self._prow[x]])
+    
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for QuaternaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)
 
     cdef  __exchange_value(self, long x, long y):
         r"""
@@ -4978,7 +5055,10 @@ cdef class QuaternaryMatroid(LinearMatroid):
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
         C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C), groundset=[self._E[c] for c in C], basis=bas)
+        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
+                                 groundset=[self._E[c] for c in C],
+                                 basis=bas,
+                                 keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -5256,13 +5336,13 @@ cdef class RegularMatroid(LinearMatroid):
         """
         return 0
 
-    cdef  bint __is_exchange_pair(self, long x, long y):
+    cdef bint __is_exchange_pair(self, long x, long y) except -1:
         r"""
         Check if ``self.basis() - x + y`` is again a basis. Internal method.
         """
-        return (<IntegerMatrix>self._A).get(self._prow[x], self._prow[y])   # Not a Sage matrix operation
+        return (<IntegerMatrix>self._A).is_nonzero(self._prow[x], self._prow[y])
 
-    cdef bint __exchange(self, long x, long y):
+    cdef int __exchange(self, long x, long y) except -1:
         """
         Put element indexed by ``x`` into basis, taking out element ``y``. Assumptions are that this is a valid basis exchange.
 
@@ -5348,13 +5428,13 @@ cdef class RegularMatroid(LinearMatroid):
         of the matroid, then `Q = A^T (A A^T)^{-1} A`. Finally, `P` is equal
         to `Q` multiplied by the number of bases of the matroid.
 
-        The matrix `P` is independent of the choice of `A`, except for column
-        scaling. It has the property that `xP` is the orthogonal projection of
-        the row vector `x` onto the row space of `A`. For regular matroids,
+        The matrices `P` and `Q` are independent of the choice of `A`, except for column
+        scaling. The vector `Qx` is the orthogonal projection of
+        the vector `x` onto the row space of `A`. For regular matroids,
         there is an extended Matrix Tree theorem that derives the fraction of
         bases containing a subset by computing the determinant of the
-        principal submatrix corresponding to that subset. See [Lyons]_ .
-        In particular, the entries of `P` are integers.
+        principal submatrix of `Q` corresponding to that subset. See [Lyons]_ .
+        Due to the scaling, the entries of `P` are integers.
 
         EXAMPLES::
 
@@ -5371,9 +5451,7 @@ cdef class RegularMatroid(LinearMatroid):
         """
         if self._r_projection is None:
             R = self._basic_representation()._matrix_()
-            X = (R * R.transpose())
-            self._bases_count = X.det()
-            self._r_projection = self._bases_count * R.transpose() * X.inverse() * R
+            self._r_projection = R.transpose() * (R * R.transpose()).adjoint() * R
         return self._r_projection
 
     cpdef _invariant(self):
@@ -5382,10 +5460,11 @@ cdef class RegularMatroid(LinearMatroid):
 
         OUTPUT:
 
-        The hash of a list of pairs `(w, A[w])` and `(w, B[w])`, where `A[w]`
-        counts the number of `i` such that `|P[i, i]|=w` (where `P` is the
-        projection matrix from ``self._projection()``), and `B[w]` counts the
-        number of pairs `(i, j)` such that `|P[i, j]|=w`.
+        The hash value of a list of pairs `(w, A[w])` and `(w, B[w])` and a number `N`, 
+        derived form the projection matrix `P` as obtained from ``self._projection()`` 
+        as follows: `A[w]` counts the number of `i` such that `|P[i, i]|=w`, `B[w]` counts 
+        the number of pairs `(i, j)` such that `|P[i, j]|=w`, and `N` counts the number 
+        of triples `(i,j,k)` so that `P[i,j]*P'j,k]*P[k,i]` is negative.
 
         EXAMPLES::
 
@@ -5404,6 +5483,7 @@ cdef class RegularMatroid(LinearMatroid):
         P = self._projection()
         A = {}
         B = {}
+        N = 0
         for i in xrange(P.nrows()):
             w = P.get_unsafe(i, i)
             if w != 0:
@@ -5418,7 +5498,10 @@ cdef class RegularMatroid(LinearMatroid):
                         B[w] += 1
                     else:
                         B[w] = 1
-        self._r_invariant = hash(tuple([tuple([(w, A[w]) for w in sorted(A)]), tuple([(w, B[w]) for w in sorted(B)])]))
+                    for k in range(j):
+                        if P.get_unsafe(i, j)*P.get_unsafe(j, k)*P.get_unsafe(k, i)<0:
+                            N=N+1
+        self._r_invariant = hash(tuple([tuple([(w, A[w]) for w in sorted(A)]), tuple([(w, B[w]) for w in sorted(B)]), N]))
         return self._r_invariant
 
     cpdef _hypergraph(self):
@@ -5530,6 +5613,28 @@ cdef class RegularMatroid(LinearMatroid):
             False
             sage: M1._is_isomorphic(M2.delete('a'))
             True
+
+        Check that trac ticket #17316 was fixed::
+
+            sage: from sage.matroids.advanced import *
+            sage: Mnew = RegularMatroid(groundset=range(12), matrix=Matrix(ZZ,
+            ....: [[ 1, 0, 0, 0, 1, 0, 0,-1,-1, 0, 1, 0],
+            ....:  [ 0, 1, 0, 0,-1, 1, 0, 0, 0, 0, 0, 0],
+            ....:  [ 0, 0, 1, 0, 0,-1, 1, 0, 1, 0,-1, 0],
+            ....:  [ 0, 0, 0, 1, 0, 0,-1, 1, 0, 0, 0, 0],
+            ....:  [ 0, 0, 0, 0, 0, 1,-1, 0, 0, 1, 1, 0],
+            ....:  [ 0, 0, 0, 0, 1, 0, 0,-1,-1, 0, 0, 1]]))
+            sage: Nnew = RegularMatroid(groundset=range(12), matrix=Matrix(ZZ,
+            ....: [[1,0,0,0,0,0,1,1,0,0,1,0],
+            ....:  [0,1,0,0,0,0,1,0,1,0,1,0],
+            ....:  [0,0,1,0,0,0,1,0,0,1,1,0],
+            ....:  [0,0,0,1,0,0,1,1,0,0,0,1],
+            ....:  [0,0,0,0,1,0,1,0,1,0,0,1],
+            ....:  [0,0,0,0,0,1,1,0,0,1,0,1]]))
+            sage: Mnew.is_isomorphic(Nnew)
+            False
+            sage: len(Mnew.circuits()) == len(Nnew.circuits())
+            False
         """
         if type(other) == RegularMatroid:
             return self.is_field_isomorphic(other)
@@ -5557,6 +5662,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         - ``True``, if ``self`` is isomorphic to ``other``;
         - ``False``, if ``self`` is not isomorphic to ``other``;
+        - ``None``, if the test is inconclusive.
 
         EXAMPLES::
 
@@ -5570,12 +5676,16 @@ cdef class RegularMatroid(LinearMatroid):
         if self._invariant() != other._invariant():
             return False
         if self.size() > 8:  # TODO: Optimize the cutoff. _hypertest() is slow for small matroids, and can be fast for larger ones.
-            return self._hypertest(other)
+            m = self._hypertest(other)
+            if m is None:
+                return False
+            if self._is_field_isomorphism(other, m):
+                return True
 
     cdef _hypertest(self, other):
         """
         Test if the hypergraphs associated with ``self`` and ``other`` are
-        isomorphic.
+        isomorphic, and if so return an isomorphism.
 
         INPUT:
 
@@ -5583,7 +5693,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         OUTPUT:
 
-        - ``True`` if the hypergraphs are isomorphic; ``False`` otherwise.
+        - a dictionary, if the hypergraphs are isomorphic; ``None`` otherwise.
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         HS = self._hypergraph()
@@ -5591,8 +5701,11 @@ cdef class RegularMatroid(LinearMatroid):
         VO = []
         for X in HO[0]:
             VO.extend(X)
-        return isomorphic(HS[2], HO[2], HS[0], VO, 1, 1) is not None
-
+        m = isomorphic(HS[2], HO[2], HS[0], VO, 1, 1)
+        if m is not None:
+            idx={str(f):f for f in other.groundset()}
+            return {e:idx[m[str(e)]] for e in self.groundset() if str(e) in m}
+    
     cpdef has_line_minor(self, k, hyperlines=None):
         """
         Test if the matroid has a `U_{2, k}`-minor.

@@ -1357,7 +1357,7 @@ def BrouwerHaemersGraph():
     V = VectorSpace(F,d)
     M = Matrix(F,identity_matrix(d))
     M[1,1]=-1
-    G = Graph([map(tuple,V), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G = Graph([[tuple(_) for _ in V], lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
@@ -3323,7 +3323,7 @@ def M22Graph():
         (77, 16, 0, 4)
     """
     from sage.groups.perm_gps.permgroup_named import MathieuGroup
-    sets = map(tuple,MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets"))
+    sets = [tuple(_) for _ in MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets")]
     g = Graph([sets, lambda x,y : not any(xx in y for xx in x)], name="M22 Graph")
     g.relabel()
     ordering = [0, 1, 3, 4, 5, 6, 7, 10, 12, 19, 20, 31, 2, 24, 35, 34, 22, 32,
@@ -3470,10 +3470,10 @@ def McLaughlinGraph():
     from itertools import combinations
     from sage.sets.set import Set
 
-    blocks = WittDesign(23).blocks()
-    blocks = map(Set, blocks)
+    blocks = [Set(_) for _ in WittDesign(23).blocks()]
+
     B = [b for b in blocks if 0 in b]
-    C = [b for b in blocks if not 0 in b]
+    C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
         for x in range(23):
@@ -3832,7 +3832,7 @@ def ShrikhandeGraph():
         sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
         ....:     for i in range(G.order())
         ....:     for j in range(i) ])
-        set([2])
+        {2}
 
     It is non-planar, and both Hamiltonian and Eulerian::
 
@@ -3923,7 +3923,7 @@ def SylvesterGraph():
         True
     """
     g = HoffmanSingletonGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
@@ -3963,7 +3963,7 @@ def SimsGewirtzGraph():
 
     """
     g = HigmanSimsGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,
@@ -4101,7 +4101,7 @@ def TietzeGraph():
         sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
         True
     """
-    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8)], name="Tietze Graph")
     g.add_cycle(range(9))
     g.add_cycle([9,10,11])
     _circle_embedding(g,range(9))

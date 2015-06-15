@@ -393,11 +393,6 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         methods['_sage_src_lines_'] = _sage_src_lines
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
-    #if "_sage_doc_" not in methods:
-    #    from sage.misc.sageinspect import sage_getdoc
-    #    def _sage_getdoc(obj):
-    #        return sage_getdoc(cls)
-    #    methods['_sage_src_lines_'] = _sage_getdoc
 
     metaclass = DynamicMetaclass
     # The metaclass of a class must derive from the metaclasses of its

@@ -7,6 +7,7 @@ TESTS::
     sage: P = E(0,0)
     sage: def get_points(n): return sum([point(list(i*P)[:2], size=3) for i in range(-n,n) if i != 0 and (i*P)[0] < 3])
     sage: sum([get_points(15*n).plot3d(z=n) for n in range(1,10)])
+    Graphics3d Object
 """
 
 #*****************************************************************************
@@ -28,6 +29,8 @@ TESTS::
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from sage.plot.primitive import GraphicPrimitive_xydata
+import collections
+
 
 # TODO: create _allowed_options for 3D point classes to
 # improve bad option handling in plot3d?
@@ -62,6 +65,7 @@ class Point(GraphicPrimitive_xydata):
     We test creating a point::
 
         sage: point((3,3))
+        Graphics object consisting of 1 graphics primitive
     """
     def __init__(self, xdata, ydata, options):
         """
@@ -258,6 +262,7 @@ class Point(GraphicPrimitive_xydata):
         the points are red::
 
             sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), size=30)
+            Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
 
@@ -299,27 +304,48 @@ def point(points, **kwds):
     For information regarding additional arguments, see either point2d?
     or point3d?.
 
+    .. SEEALSO::
+
+        :func:`sage.plot.point.point2d`, :func:`sage.plot.plot3d.shapes2.point3d`
+
     EXAMPLES::
 
         sage: point((1,2))
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point((1,2,3))
+        Graphics3d Object
 
     ::
 
         sage: point([(0,0), (1,1)])
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point([(0,0,1), (1,1,1)])
+        Graphics3d Object
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
+        Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
+
+    TESTS:
+
+    One can now use iterators (:trac:`13890`)::
+
+        sage: point(iter([(1,1,1)]))
+        Graphics3d Object
+        sage: point(iter([(1,2),(3,5)]))
+        Graphics object consisting of 1 graphics primitive
     """
+    if isinstance(points, collections.Iterator):
+        points = list(points)
+
     try:
         return point2d(points, **kwds)
     except (ValueError, TypeError):
@@ -355,16 +381,20 @@ def point2d(points, **options):
     A purple point from a single tuple or coordinates::
 
         sage: point((0.5, 0.5), rgbcolor=hue(0.75))
+        Graphics object consisting of 1 graphics primitive
 
     Points with customized markers and edge colors::
 
         sage: r = [(random(), random()) for _ in range(10)]
         sage: point(r, marker='d', markeredgecolor='red', size=20)
+        Graphics object consisting of 1 graphics primitive
 
     Passing an empty list returns an empty plot::
 
         sage: point([])
+        Graphics object consisting of 0 graphics primitives
         sage: import numpy; point(numpy.array([]))
+        Graphics object consisting of 0 graphics primitives
 
     If you need a 2D point to live in 3-space later, this is possible::
 
@@ -382,43 +412,52 @@ def point2d(points, **options):
     Here are some random larger red points, given as a list of tuples::
 
         sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30)
+        Graphics object consisting of 1 graphics primitive
 
     And an example with a legend::
 
         sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
+        Graphics object consisting of 1 graphics primitive
 
     The legend can be colored::
 
         sage: P = points([(0,0),(1,0)], pointsize=40, legend_label='origin', legend_color='red')
         sage: P + plot(x^2,(x,0,1), legend_label='plot', legend_color='green')
+        Graphics object consisting of 2 graphics primitives
 
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
+        Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
 
     For plotting data, we can use a logarithmic scale, as long as we are sure
     not to include any nonpositive points in the logarithmic direction::
 
         sage: point([(1,2),(2,4),(3,4),(4,8),(4.5,32)],scale='semilogy',base=2)
+        Graphics object consisting of 1 graphics primitive
 
     Since Sage Version 4.4 (:trac:`8599`), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
     ``pointsize`` is still supported::
 
         sage: point((3,4), size=100)
+        Graphics object consisting of 1 graphics primitive
 
     ::
 
         sage: point((3,4), pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     We can plot a single complex number::
 
         sage: point(CC(1+I), pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     We can also plot a list of complex numbers::
 
         sage: point([CC(I), CC(I+1), CC(2+2*I)], pointsize=100)
+        Graphics object consisting of 1 graphics primitive
 
     """
     from sage.plot.plot import xydata_from_point_list
@@ -428,10 +467,15 @@ def point2d(points, **options):
         pass
     else:
         try:
-            if not points:
-                return Graphics()
-        except ValueError: # numpy raises a ValueError if not empty
-            pass
+            l = len(points)
+        except TypeError:
+            # argument is an iterator
+            points = list(points)
+            l = len(points)
+
+        if l == 0:
+            return Graphics()
+
     xdata, ydata = xydata_from_point_list(points)
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options))

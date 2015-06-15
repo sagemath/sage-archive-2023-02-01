@@ -140,7 +140,7 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             sage: TestSuite(RC).run() # long time
         """
         self._cartan_type = cartan_type
-        Parent.__init__(self, category=HighestWeightCrystals())
+        Parent.__init__(self, category=HighestWeightCrystals().Infinite())
         self._rc_index = self._cartan_type.index_set()
         # We store the cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = self._cartan_type.cartan_matrix()
@@ -357,7 +357,7 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
             sage: velt.parent()
             The infinity crystal of rigged configurations of type ['A', 3]
         """
-        gamma = map(int, self._folded_ct.scaling_factors())
+        gamma = [int(_) for _ in self._folded_ct.scaling_factors()]
         sigma = self._folded_ct._orbit
         n = self._folded_ct._folding.rank()
         vindex = self._folded_ct._folding.index_set()

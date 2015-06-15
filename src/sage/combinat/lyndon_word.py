@@ -21,7 +21,7 @@ from combinat import CombinatorialClass
 from sage.combinat.composition import Composition, Compositions
 from sage.rings.all import divisors, gcd, moebius, Integer
 from sage.rings.arith import factorial
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import __builtin__
 import necklace
 from integer_vector import IntegerVectors
@@ -343,7 +343,7 @@ class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
                 if c[i] != 0:
                     nonzero_indices.append(i)
             for lw in LyndonWords_evaluation(cf):
-                yield LyndonWord(map(lambda x: nonzero_indices[x-1]+1, lw), check=False)
+                yield LyndonWord([nonzero_indices[x-1]+1 for x in lw], check=False)
 
 def StandardBracketedLyndonWords(n, k):
     """

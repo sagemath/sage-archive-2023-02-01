@@ -74,9 +74,9 @@ def matching(A, B):
 
         sage: from sage.homology.examples import matching
         sage: matching([1,2], [3,4])
-        [set([(1, 3), (2, 4)]), set([(2, 3), (1, 4)])]
+        [{(1, 3), (2, 4)}, {(1, 4), (2, 3)}]
         sage: matching([0,2], [0])
-        [set([(0, 0)]), set([(2, 0)])]
+        [{(0, 0)}, {(2, 0)}]
     """
     answer = []
     if len(A) == 0 or len(B) == 0:

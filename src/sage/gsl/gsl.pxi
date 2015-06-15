@@ -1,3 +1,5 @@
+from libc.stdio cimport FILE
+
 include "math.pxi"
 cdef enum:
   GSL_SUCCESS = 0

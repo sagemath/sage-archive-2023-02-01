@@ -36,6 +36,8 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
         sage: from sage.modular.modform_hecketriangle.graded_ring import canonical_parameters
         sage: canonical_parameters(4, ZZ, 1)
         (Hecke triangle group for n = 4, Integer Ring, True, 4)
+        sage: canonical_parameters(infinity, RR, 0)
+        (Hecke triangle group for n = +Infinity, Real Field with 53 bits of precision, False, +Infinity)
     """
 
     if not (n is None):
@@ -44,7 +46,7 @@ def canonical_parameters(group, base_ring, red_hom, n=None):
     if (group == infinity):
         group = HeckeTriangleGroup(infinity)
     else:
-        try: 
+        try:
             group = HeckeTriangleGroup(ZZ(group))
         except TypeError:
             group = HeckeTriangleGroup(group.n())
@@ -85,10 +87,12 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
         INPUT:
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
+
         - ``base_ring``  -- The base_ring (default: ``ZZ``).
+
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -105,6 +109,9 @@ class QuasiMeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, U
             quasi meromorphic modular
             sage: MR.category()
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
+
+            sage: QuasiMeromorphicModularFormsRing(n=infinity)
+            QuasiMeromorphicModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
@@ -146,7 +153,7 @@ class QuasiWeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRe
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -204,7 +211,7 @@ class QuasiModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepres
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -248,6 +255,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
         return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+
     def __init__(self, group, base_ring, red_hom, n):
         r"""
         Return the graded ring of (Hecke) quasi cusp forms
@@ -261,7 +269,7 @@ class QuasiCuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresent
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -319,7 +327,7 @@ class MeromorphicModularFormsRing(FormsRing_abstract, CommutativeAlgebra, Unique
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -363,6 +371,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
 
         (group, base_ring, red_hom, n) = canonical_parameters(group, base_ring, red_hom, n)
         return super(FormsRing_abstract,cls).__classcall__(cls, group=group, base_ring=base_ring, red_hom=red_hom, n=n)
+
     def __init__(self, group, base_ring, red_hom, n):
         r"""
         Return the graded ring of (Hecke) weakly holomorphic modular forms
@@ -376,7 +385,7 @@ class WeakModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueReprese
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -433,7 +442,7 @@ class ModularFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentat
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -491,7 +500,7 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
 
         - ``red_hom``    -- If True then results of binary operations are considered
                             homogeneous whenever it makes sense (default: False).
-                            This is mainly used by the homogeneous spaces.
+                            This is mainly used by the spaces of homogeneous elements.
 
         OUTPUT:
 
@@ -508,6 +517,9 @@ class CuspFormsRing(FormsRing_abstract, CommutativeAlgebra, UniqueRepresentation
             cuspidal
             sage: MR.category()
             Category of commutative algebras over Fraction Field of Univariate Polynomial Ring in d over Complex Field with 53 bits of precision
+
+            sage: CuspFormsRing(n=infinity, base_ring=CC, red_hom=True)
+            CuspFormsRing(n=+Infinity) over Complex Field with 53 bits of precision
         """
 
         FormsRing_abstract.__init__(self, group=group, base_ring=base_ring, red_hom=red_hom, n=n)

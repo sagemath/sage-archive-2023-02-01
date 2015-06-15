@@ -388,7 +388,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         # to integer coefficients
         from sage.rings.arith import LCM
         from sage.rings.all import QQ
-        scalar = LCM(map(lambda x: QQ(x).denominator(), sym))
+        scalar = LCM([QQ(x).denominator() for x in sym])
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 
     @cached_method
@@ -462,6 +462,26 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             8
         """
         return self.ncols()
+
+    def relabel(self, relabelling):
+        """
+        Return the relabelled Cartan matrix.
+
+        EXAMPLES::
+
+            sage: CM = CartanMatrix(['C',3])
+            sage: R = CM.relabel({1:0, 2:4, 3:1}); R
+            [ 2  0 -1]
+            [ 0  2 -1]
+            [-1 -2  2]
+            sage: R.index_set()
+            (0, 1, 4)
+            sage: CM
+            [ 2 -1  0]
+            [-1  2 -2]
+            [ 0 -1  2]
+        """
+        return self.dynkin_diagram().relabel(relabelling, inplace=False).cartan_matrix()
 
     @cached_method
     def dynkin_diagram(self):

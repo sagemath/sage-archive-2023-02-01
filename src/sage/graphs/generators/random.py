@@ -277,8 +277,7 @@ def RandomBoundedToleranceGraph(n):
 
     W = n ** 2 * 2 ** n
 
-    tolrep = map(lambda l_r: (l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])),
-                 [sorted((randint(0, W), randint(0, W))) for i in range(n)])
+    tolrep = [(l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])) for l_r in [sorted((randint(0, W), randint(0, W))) for i in range(n)]]
 
     return ToleranceGraph(tolrep)
 
@@ -439,20 +438,6 @@ def RandomHolmeKim(n, m, p, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
-
-def RandomInterval(n):
-    """
-    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
-
-    TEST::
-
-        sage: g = graphs.RandomInterval(8)
-        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
-        See http://trac.sagemath.org/13283 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
-    return RandomIntervalGraph(n)
 
 def RandomIntervalGraph(n):
     """

@@ -139,7 +139,7 @@ class CartesianProductsCategory(CovariantConstructionCategory):
         EXAMPLES::
 
             sage: ModulesWithBasis(QQ).CartesianProducts() # indirect doctest
-            Category of Cartesian products of modules with basis over Rational Field
+            Category of Cartesian products of vector spaces with basis over Rational Field
 
         """
         # This method is only required for the capital `C`
@@ -157,7 +157,7 @@ class CartesianProductsCategory(CovariantConstructionCategory):
         EXAMPLES::
 
             sage: ModulesWithBasis(QQ).CartesianProducts().CartesianProducts()
-            Category of Cartesian products of modules with basis over Rational Field
+            Category of Cartesian products of vector spaces with basis over Rational Field
         """
         return self
 

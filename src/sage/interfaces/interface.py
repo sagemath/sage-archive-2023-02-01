@@ -79,6 +79,7 @@ class Interface(ParentWithBase):
 
             sage: s = Singular()
             sage: s.set_seed(107)
+            107
             sage: s.get_seed()
             107
         """
@@ -125,6 +126,13 @@ class Interface(ParentWithBase):
             1
             sage: [s.random(1,10) for i in range(5)]
             [8, 10, 4, 9, 1]
+
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.set_seed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This interpreter did not implement a set_seed function
         """
         raise NotImplementedError("This interpreter did not implement a set_seed function")
 

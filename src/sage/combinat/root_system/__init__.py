@@ -61,8 +61,8 @@ Coxeter groups
 Finite reflection groups
 ------------------------
 
-- :ref:`sage.combinat.root_system.complex_reflection_group`
-- :ref:`sage.combinat.root_system.coxeter_group_chevie`
+- :ref:`sage.combinat.root_system.reflection_group_complex`
+- :ref:`sage.combinat.root_system.reflection_group_real`
 
 .. SEEALSO::
 

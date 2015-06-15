@@ -11,10 +11,11 @@ AUTHORS:
     - For definitions and classification types of finite complex reflection groups, see http://en.wikipedia.org/wiki/Complex_reflection_group.
     - Uses the GAP3 package *chevie*.
 
-    .. warning:: works only if the GAP3 package Chevie is available.
+.. WARNING:: works only if the GAP3 package Chevie is available.
 
 .. TODO::
 
+    - Properly provide root systems for complex reflection groups
     - Element class should be unique to be able to work with large groups without creating elements multiple times
 """
 #*****************************************************************************
@@ -50,9 +51,9 @@ from sage.combinat.root_system.cartan_matrix import CartanMatrix
 UCF = UniversalCyclotomicField()
 E = UCF.gen
 
-class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
+class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
-    def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None, is_coxeter_group=False):
+    def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
         TESTS::
 
@@ -71,13 +72,14 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                 call_str = 'PermRootGroup(IdentityMat(%s),%s)'%(W_type._rank,str(W_type._M._gap_()))
             elif is_Matrix(W_type):
                 call_str = 'PermRootGroup(IdentityMat(%s),%s)'%(W_type._rank,str(W_type._gap_()))
-            elif is_coxeter_group:
+            elif W_type in ZZ or ( isinstance(W_type, tuple) and len(W_type) == 3 ):
+                call_str = 'ComplexReflectionGroup%s'%str(W_type)
+            else:
                 if W_type[0] == "I":
                     call_str = 'CoxeterGroup("I",2,%s)'%W_type[1]
                 else:
                     call_str = 'CoxeterGroup("%s",%s)'%W_type
-            else:
-                call_str = 'ComplexReflectionGroup%s'%str(W_type)
+
             W_components.append(gap3(call_str))
             X = list(W_components[-1].ReflectionType())
             if len(X) > 1:
@@ -152,8 +154,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         TESTS::
 
-            sage: W = ComplexReflectionGroup(25,[4,1,4],[1,1,4],[5,5,2]); W
-            Reducible finite complex reflection group of rank 12 and type ST25 x G(4,1,4) x A3 x I2(5)
+            sage: W = ReflectionGroup(25,[4,1,4],[1,1,4],[5,5,2]); W
+            Reducible complex reflection group of rank 12 and type ST25 x G(4,1,4) x A3 x I2(5)
             sage: for W_type in W._type: print W._irrcomp_repr_(W_type)
             ST25
              G(4,1,4)
@@ -180,15 +182,15 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup(25,[4,1,4],[1,1,4],[5,5,2]); W
-            Reducible finite complex reflection group of rank 12 and type ST25 x G(4,1,4) x A3 x I2(5)
+            sage: W = ReflectionGroup(25,[4,1,4],[1,1,4],[5,5,2]); W
+            Reducible complex reflection group of rank 12 and type ST25 x G(4,1,4) x A3 x I2(5)
         """
         type_str = ''
         for W_type in self._type:
             type_str += self._irrcomp_repr_(W_type)
             type_str += ' x '
         type_str = type_str[:-3]
-        return 'Reducible finite complex reflection group of rank %s and type %s'%(self._rank,type_str)
+        return 'Reducible complex reflection group of rank %s and type %s'%(self._rank,type_str)
 
     def __iter__(self):
         r"""
@@ -196,7 +198,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: for w in W.__iter__(): print w
             ()
             (1,4)(2,3)(5,6)
@@ -226,13 +228,13 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.index_set()
             [0, 1, 2]
-            sage: W = ComplexReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
+            sage: W = ReflectionGroup((1,1,4),index_set=[1,3,'asdf'])
             sage: W.index_set()
             [1, 3, 'asdf']
-            sage: W = ComplexReflectionGroup((1,1,4),index_set={'a':0,'b':1,'c':2})
+            sage: W = ReflectionGroup((1,1,4),index_set={'a':0,'b':1,'c':2})
             sage: W.index_set()
             ['a', 'b', 'c']
         """
@@ -248,13 +250,13 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.hyperplane_index_set()
             [0, 1, 2, 3, 4, 5]
-            sage: W = ComplexReflectionGroup((1,1,4),hyperplane_index_set=[1,3,'asdf',7,9,11])
+            sage: W = ReflectionGroup((1,1,4),hyperplane_index_set=[1,3,'asdf',7,9,11])
             sage: W.hyperplane_index_set()
             [1, 3, 'asdf', 7, 9, 11]
-            sage: W = ComplexReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+            sage: W = ReflectionGroup((1,1,4),hyperplane_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
             sage: W.hyperplane_index_set()
             ['a', 'b', 'c', 'd', 'e', 'f']
         """
@@ -271,19 +273,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
        EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.distinguished_reflections()
             Finite family {0: (1,4)(2,3)(5,6), 1: (1,3)(2,5)(4,6), 2: (1,5)(2,4)(3,6)}
 
-            sage: W = ComplexReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
+            sage: W = ReflectionGroup((1,1,3),hyperplane_index_set=['a','b','c'])
             sage: W.distinguished_reflections()
             Finite family {'a': (1,4)(2,3)(5,6), 'c': (1,5)(2,4)(3,6), 'b': (1,3)(2,5)(4,6)}
 
-            sage: W = ComplexReflectionGroup((3,1,1))
+            sage: W = ReflectionGroup((3,1,1))
             sage: W.distinguished_reflections()
             Finite family {0: (1,2,3)}
 
-            sage: W = ComplexReflectionGroup((1,1,3),(3,1,2))
+            sage: W = ReflectionGroup((1,1,3),(3,1,2))
             sage: W.distinguished_reflections()
             Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (1,7)(2,6)(5,8), 5: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 6: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 7: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28)}
         """
@@ -307,7 +309,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
        EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.distinguished_reflection(0)
             (1,4)(2,3)(5,6)
             sage: W.distinguished_reflection(1)
@@ -315,11 +317,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             sage: W.distinguished_reflection(2)
             (1,5)(2,4)(3,6)
 
-            sage: W = ComplexReflectionGroup((3,1,1),hyperplane_index_set=['a'])
+            sage: W = ReflectionGroup((3,1,1),hyperplane_index_set=['a'])
             sage: W.distinguished_reflection('a')
             (1,2,3)
 
-            sage: W = ComplexReflectionGroup((1,1,3),(3,1,2))
+            sage: W = ReflectionGroup((1,1,3),(3,1,2))
             sage: for i in range(W.nr_reflecting_hyperplanes()): print W.distinguished_reflection(i)
             (1,6)(2,5)(7,8)
             (1,5)(2,7)(6,8)
@@ -341,13 +343,13 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.reflection_index_set()
             [0, 1, 2, 3, 4, 5]
-            sage: W = ComplexReflectionGroup((1,1,4),reflection_index_set=[1,3,'asdf',7,9,11])
+            sage: W = ReflectionGroup((1,1,4),reflection_index_set=[1,3,'asdf',7,9,11])
             sage: W.reflection_index_set()
             [1, 3, 'asdf', 7, 9, 11]
-            sage: W = ComplexReflectionGroup((1,1,4),reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
+            sage: W = ReflectionGroup((1,1,4),reflection_index_set={'a':0,'b':1,'c':2,'d':3,'e':4,'f':5})
             sage: W.reflection_index_set()
             ['a', 'b', 'c', 'd', 'e', 'f']
         """
@@ -361,19 +363,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
        EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.reflections()
             Finite family {0: (1,4)(2,3)(5,6), 1: (1,3)(2,5)(4,6), 2: (1,5)(2,4)(3,6)}
 
-            sage: W = ComplexReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
+            sage: W = ReflectionGroup((1,1,3),reflection_index_set=['a','b','c'])
             sage: W.reflections()
             Finite family {'a': (1,4)(2,3)(5,6), 'c': (1,5)(2,4)(3,6), 'b': (1,3)(2,5)(4,6)}
 
-            sage: W = ComplexReflectionGroup((3,1,1))
+            sage: W = ReflectionGroup((3,1,1))
             sage: W.reflections()
             Finite family {0: (1,2,3), 1: (1,3,2)}
 
-            sage: W = ComplexReflectionGroup((1,1,3),(3,1,2))
+            sage: W = ReflectionGroup((1,1,3),(3,1,2))
             sage: W.reflections()
             Finite family {0: (1,6)(2,5)(7,8), 1: (1,5)(2,7)(6,8), 2: (3,9,15)(4,10,16)(12,17,23)(14,18,24)(20,25,29)(21,22,26)(27,28,30), 3: (3,11)(4,12)(9,13)(10,14)(15,19)(16,20)(17,21)(18,22)(23,27)(24,28)(25,26)(29,30), 4: (1,7)(2,6)(5,8), 5: (3,19)(4,25)(9,11)(10,17)(12,28)(13,15)(14,30)(16,18)(20,27)(21,29)(22,23)(24,26), 6: (4,21,27)(10,22,28)(11,13,19)(12,14,20)(16,26,30)(17,18,25)(23,24,29), 7: (3,13)(4,24)(9,19)(10,29)(11,15)(12,26)(14,21)(16,23)(17,30)(18,27)(20,22)(25,28), 8: (3,15,9)(4,16,10)(12,23,17)(14,24,18)(20,29,25)(21,26,22)(27,30,28), 9: (4,27,21)(10,28,22)(11,19,13)(12,20,14)(16,30,26)(17,25,18)(23,29,24)}
         """
@@ -389,7 +391,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
        EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.reflection(0)
             (1,4)(2,3)(5,6)
             sage: W.reflection(1)
@@ -397,7 +399,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             sage: W.reflection(2)
             (1,5)(2,4)(3,6)
 
-            sage: W = ComplexReflectionGroup((3,1,1),reflection_index_set=['a','b'])
+            sage: W = ReflectionGroup((3,1,1),reflection_index_set=['a','b'])
             sage: W.reflection('a')
             (1,2,3)
             sage: W.reflection('b')
@@ -413,7 +415,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.reflection_character()
             [2, 0, -1]
         """
@@ -426,23 +428,23 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3)); W
-            Irreducible finite complex reflection group of rank 2 and type A2
+            sage: W = ReflectionGroup((1,1,3)); W
+            Irreducible complex reflection group of rank 2 and type A2
             sage: W.is_crystallographic()
             True
 
-            sage: W = ComplexReflectionGroup((2,1,3)); W
-            Irreducible finite complex reflection group of rank 3 and type B3
+            sage: W = ReflectionGroup((2,1,3)); W
+            Irreducible complex reflection group of rank 3 and type B3
             sage: W.is_crystallographic()
             True
 
-            sage: W = ComplexReflectionGroup(23); W
-            Irreducible finite complex reflection group of rank 3 and type H3
+            sage: W = ReflectionGroup(23); W
+            Irreducible complex reflection group of rank 3 and type H3
             sage: W.is_crystallographic()
             False
 
-            sage: W = ComplexReflectionGroup((3,1,3)); W
-            Irreducible finite complex reflection group of rank 3 and type G(3,1,3)
+            sage: W = ReflectionGroup((3,1,3)); W
+            Irreducible complex reflection group of rank 3 and type G(3,1,3)
             sage: W.is_crystallographic()
             False
         """
@@ -456,7 +458,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         TESTS::
 
-            sage: W = ComplexReflectionGroup(23)                         # optional (require chevie)
+            sage: W = ReflectionGroup(23)                         # optional (require chevie)
             sage: W._element_class() is W.element_class                  # optional (require chevie)
             True
         """
@@ -468,11 +470,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.nr_irreducible_components()
             1
 
-            sage: W = ComplexReflectionGroup((1,1,3),(2,1,3))
+            sage: W = ReflectionGroup((1,1,3),(2,1,3))
             sage: W.nr_irreducible_components()
             2
         """
@@ -484,50 +486,28 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.irreducible_components()
-            [Irreducible finite complex reflection group of rank 2 and type A2]
+            [Irreducible complex reflection group of rank 2 and type A2]
 
-            sage: W = ComplexReflectionGroup((1,1,3),(2,1,3))
+            sage: W = ReflectionGroup((1,1,3),(2,1,3))
             sage: W.irreducible_components()
-            [Irreducible finite complex reflection group of rank 2 and type A2,
-            Irreducible finite complex reflection group of rank 3 and type B3]
+            [Irreducible real reflection group of rank 2 and type A2,
+            Irreducible real reflection group of rank 3 and type B3]
         """
         if self.nr_irreducible_components() == 1:
             irr_comps = [self]
         else:
+            from sage.combinat.root_system.reflection_group_real import ReflectionGroup
             irr_comps = []
             for W_type in self._type:
-                if W_type["series"] == "A":
-                    W_str = (1,1,W_type["rank"]+1)
-                elif W_type["series"] == "B":
-                    W_str = (2,1,W_type["rank"])
-                elif W_type["series"] == "D":
-                    W_str = (2,2,W_type["rank"])
-                elif W_type["series"] == "E":
-                    if W_type["rank"] == 6:
-                        W_str = 35
-                    elif W_type["rank"] == 7:
-                        W_str = 36
-                    elif W_type["rank"] == 8:
-                        W_str = 37
-                elif W_type["series"] == "F":
-                    W_str = 28
-                elif W_type["series"] == "G":
-                    W_str = (6,6,2)
-                elif W_type["series"] == "H":
-                    if W_type["rank"] == 3:
-                        W_str = 23
-                    elif W_type["rank"] == 4:
-                        W_str = 30
-                elif W_type["series"] == "I":
-                    W_str = (W_type["bond"],W_type["bond"],2)
+                if W_type["series"] in ["A","B","D","E","F","G","H","I"]:
+                    W_str = (W_type["series"],W_type["rank"])
                 elif "ST" in W_type:
                     W_str = W_type["ST"]
-
                 else:
                     raise ValueError("not yet implemented")
-                irr_comps.append( ComplexReflectionGroup(W_str) )
+                irr_comps.append( ReflectionGroup(W_str) )
         return irr_comps
 
     @cached_method
@@ -537,20 +517,20 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
             [word: , word: 0, word: 01]
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: sorted([ w.reduced_word() for w in W.conjugacy_classes_representatives() ]) # random
             [word: , word: 0, word: 01, word: 012, word: 20]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
             [word: , word: 0, word: 00, word: 1010, word: 10100, word: 100100, word: 1, word: 01, word: 001]
 
 
-            sage: W = ComplexReflectionGroup(23)
+            sage: W = ReflectionGroup(23)
             sage: [ w.reduced_word() for w in W.conjugacy_classes_representatives() ]
             [word: , word: 0, word: 01, word: 20, word: 12, word: 012, word: 0101, word: 01012, word: 012010121, word: 210120101201010]
         """
@@ -566,22 +546,22 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: for C in W.conjugacy_classes(): print sorted(C)
             [()]
             [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6), (1,5)(2,4)(3,6)]
             [(1,2,6)(3,4,5), (1,6,2)(3,5,4)]
 
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
             True
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
             True
 
-            sage: W = ComplexReflectionGroup(23)
+            sage: W = ReflectionGroup(23)
             sage: sum( len(C) for C in  W.conjugacy_classes() ) == W.cardinality()
             True
        """
@@ -594,16 +574,16 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.rank()
             2
-            sage: W = ComplexReflectionGroup((2,1,3))
+            sage: W = ReflectionGroup((2,1,3))
             sage: W.rank()
             3
-            sage: W = ComplexReflectionGroup((4,1,3))
+            sage: W = ReflectionGroup((4,1,3))
             sage: W.rank()
             3
-            sage: W = ComplexReflectionGroup((4,2,3))
+            sage: W = ReflectionGroup((4,2,3))
             sage: W.rank()
             3
         """
@@ -616,34 +596,34 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.degrees()
             [2, 3, 4]
 
-            sage: W = ComplexReflectionGroup((2,1,4))
+            sage: W = ReflectionGroup((2,1,4))
             sage: W.degrees()
             [2, 4, 6, 8]
 
-            sage: W = ComplexReflectionGroup((4,1,4))
+            sage: W = ReflectionGroup((4,1,4))
             sage: W.degrees()
             [4, 8, 12, 16]
 
-            sage: W = ComplexReflectionGroup((4,2,4))
+            sage: W = ReflectionGroup((4,2,4))
             sage: W.degrees()
             [4, 8, 12, 8]
 
-            sage: W = ComplexReflectionGroup((4,4,4))
+            sage: W = ReflectionGroup((4,4,4))
             sage: W.degrees()
             [4, 8, 12, 4]
 
         Examples of reducible types::
 
-            sage: W = ComplexReflectionGroup((1,1,4),(3,1,2)); W
-            Reducible finite complex reflection group of rank 5 and type A3 x G(3,1,2)
+            sage: W = ReflectionGroup((1,1,4),(3,1,2)); W
+            Reducible complex reflection group of rank 5 and type A3 x G(3,1,2)
             sage: W.degrees()
             [2, 3, 4, 3, 6]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(6,1,12),23) # fails in GAP3
+            sage: W = ReflectionGroup((1,1,4),(6,1,12),23) # fails in GAP3
             sage: W.degrees()
             [2, 3, 4, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 2, 6, 10]
         """
@@ -664,31 +644,31 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.codegrees()
             [0, 1, 2]
 
-            sage: W = ComplexReflectionGroup((2,1,4))
+            sage: W = ReflectionGroup((2,1,4))
             sage: W.codegrees()
             [0, 2, 4, 6]
 
-            sage: W = ComplexReflectionGroup((4,1,4))
+            sage: W = ReflectionGroup((4,1,4))
             sage: W.codegrees()
             [0, 4, 8, 12]
 
-            sage: W = ComplexReflectionGroup((4,2,4))
+            sage: W = ReflectionGroup((4,2,4))
             sage: W.codegrees()
             [0, 4, 8, 12]
 
-            sage: W = ComplexReflectionGroup((4,4,4))
+            sage: W = ReflectionGroup((4,4,4))
             sage: W.codegrees()
             [8, 0, 4, 8]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
+            sage: W = ReflectionGroup((1,1,4),(3,1,2))
             sage: W.codegrees()
             [0, 1, 2, 0, 3]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(6,1,12),23) # fails in GAP3
+            sage: W = ReflectionGroup((1,1,4),(6,1,12),23) # fails in GAP3
             sage: W.codegrees()
             [0, 1, 2, 0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 0, 4, 8]
         """
@@ -709,11 +689,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.reflection_eigenvalues_family()
             Finite family {(): [0, 0], (1,4)(2,3)(5,6): [1/2, 0], (1,6,2)(3,5,4): [1/3, 2/3]}
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: reflection_eigenvalues = W.reflection_eigenvalues_family()
             sage: for elt in sorted(reflection_eigenvalues.keys()): print elt, reflection_eigenvalues[elt]
             () [0, 0]
@@ -726,7 +706,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             (1,9,3)(2,24,16)(4,21,20)(5,13,7)(6,23,12)(8,17,19)(10,22,15)(11,14,18) [2/3, 2/3]
             (1,13,9,7,3,5)(2,14,24,18,16,11)(4,6,21,23,20,12)(8,22,17,15,19,10) [1/3, 5/6]
 
-            sage: W = ComplexReflectionGroup(23)
+            sage: W = ReflectionGroup(23)
             sage: reflection_eigenvalues = W.reflection_eigenvalues_family()
             sage: for elt in sorted(reflection_eigenvalues.keys()): print elt, reflection_eigenvalues[elt]
             () [0, 0, 0]
@@ -754,7 +734,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: for w in W: print w.reduced_word(), W.reflection_eigenvalues(w)
              [0, 0]
             0 [1/2, 0]
@@ -777,19 +757,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.simple_roots()
             [(1, 0), (0, 1)]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(2,1,2))
+            sage: W = ReflectionGroup((1,1,4),(2,1,2))
             sage: W.simple_roots()
             [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, 0, 1)]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: W.simple_roots()
             [(1, 0), (-1, 1)]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
+            sage: W = ReflectionGroup((1,1,4),(3,1,2))
             sage: W.simple_roots()
             [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, -1, 1)]
         """
@@ -803,29 +783,29 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.simple_coroots()
-            ([2, -1], [-1, 2])
+            [[2, -1], [-1, 2]]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(2,1,2))
+            sage: W = ReflectionGroup((1,1,4),(2,1,2))
             sage: W.simple_coroots()
-            ([2, -1, 0, 0, 0],
+            [[2, -1, 0, 0, 0],
              [-1, 2, -1, 0, 0],
              [0, -1, 2, 0, 0],
              [0, 0, 0, 2, -2],
-             [0, 0, 0, -1, 2])
+             [0, 0, 0, -1, 2]]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: W.simple_coroots()
-            ([-2*E(3) - E(3)^2, 0], [-1, 1])
+            [[-2*E(3) - E(3)^2, 0], [-1, 1]]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
+            sage: W = ReflectionGroup((1,1,4),(3,1,2))
             sage: W.simple_coroots()
-            ([2, -1, 0, 0, 0],
+            [[2, -1, 0, 0, 0],
              [-1, 2, -1, 0, 0],
              [0, -1, 2, 0, 0],
              [0, 0, 0, -2*E(3) - E(3)^2, 0],
-             [0, 0, 0, -1, 1])
+             [0, 0, 0, -1, 1]]
         """
         return self._gap_group.simpleCoroots.sage()
 
@@ -838,11 +818,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.independent_roots()
             [(1, 0), (0, 1)]
 
-            sage: W = ComplexReflectionGroup((4,2,3))
+            sage: W = ReflectionGroup((4,2,3))
             sage: W.simple_roots()
             [(1, 0, 0), (-E(4), 1, 0), (-1, 1, 0), (0, -1, 1)]
             sage: W.independent_roots()
@@ -869,23 +849,23 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.base_change_matrix()
             [1 0]
             [0 1]
 
-            sage: W = ComplexReflectionGroup(23)
+            sage: W = ReflectionGroup(23)
             sage: W.base_change_matrix()
             [1 0 0]
             [0 1 0]
             [0 0 1]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: W.base_change_matrix()
             [1 0]
             [1 1]
 
-            sage: W = ComplexReflectionGroup((4,2,2))
+            sage: W = ReflectionGroup((4,2,2))
             sage: W.base_change_matrix()
             [   1    0]
             [E(4)    1]
@@ -899,19 +879,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.roots()
             [(1, 0), (0, 1), (1, 1), (-1, 0), (0, -1), (-1, -1)]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: W.roots()
             [(1, 0), (-1, 1), (E(3), 0), (-E(3), 1), (0, 1), (1, -1), (0, E(3)), (1, -E(3)), (E(3)^2, 0), (-E(3)^2, 1), (E(3), -1), (E(3), -E(3)), (0, E(3)^2), (1, -E(3)^2), (-1, E(3)), (-E(3), E(3)), (E(3)^2, -1), (E(3)^2, -E(3)), (E(3), -E(3)^2), (-E(3)^2, E(3)), (-1, E(3)^2), (-E(3), E(3)^2), (E(3)^2, -E(3)^2), (-E(3)^2, E(3)^2)]
 
-            sage: W = ComplexReflectionGroup((4,2,2))
+            sage: W = ReflectionGroup((4,2,2))
             sage: W.roots()
             [(1, 0), (-E(4), 1), (-1, 1), (-1, 0), (E(4), 1), (1, 1), (0, -E(4)), (E(4), -1), (E(4), E(4)), (0, E(4)), (E(4), -E(4)), (0, 1), (1, -E(4)), (1, -1), (0, -1), (1, E(4)), (-E(4), 0), (-1, E(4)), (E(4), 0), (-E(4), E(4)), (-E(4), -1), (-E(4), -E(4)), (-1, -E(4)), (-1, -1)]
 
-            sage: W = ComplexReflectionGroup((1,1,4),(3,1,2))
+            sage: W = ReflectionGroup((1,1,4),(3,1,2))
             sage: W.roots()
             [(1, 0, 0, 0, 0), (0, 1, 0, 0, 0), (0, 0, 1, 0, 0), (0, 0, 0, 1, 0), (0, 0, 0, -1, 1), (1, 1, 0, 0, 0), (0, 1, 1, 0, 0), (1, 1, 1, 0, 0), (-1, 0, 0, 0, 0), (0, -1, 0, 0, 0), (0, 0, -1, 0, 0), (-1, -1, 0, 0, 0), (0, -1, -1, 0, 0), (-1, -1, -1, 0, 0), (0, 0, 0, E(3), 0), (0, 0, 0, -E(3), 1), (0, 0, 0, 0, 1), (0, 0, 0, 1, -1), (0, 0, 0, 0, E(3)), (0, 0, 0, 1, -E(3)), (0, 0, 0, E(3)^2, 0), (0, 0, 0, -E(3)^2, 1), (0, 0, 0, E(3), -1), (0, 0, 0, E(3), -E(3)), (0, 0, 0, 0, E(3)^2), (0, 0, 0, 1, -E(3)^2), (0, 0, 0, -1, E(3)), (0, 0, 0, -E(3), E(3)), (0, 0, 0, E(3)^2, -1), (0, 0, 0, E(3)^2, -E(3)), (0, 0, 0, E(3), -E(3)^2), (0, 0, 0, -E(3)^2, E(3)), (0, 0, 0, -1, E(3)^2), (0, 0, 0, -E(3), E(3)^2), (0, 0, 0, E(3)^2, -E(3)^2), (0, 0, 0, -E(3)^2, E(3)^2)]
         """
@@ -927,15 +907,15 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.braid_relations()
             [[[2, 1, 2], [1, 2, 1]]]
 
-            sage: W = ComplexReflectionGroup((2,1,3))
+            sage: W = ReflectionGroup((2,1,3))
             sage: W.braid_relations()
             [[[2, 1, 2, 1], [1, 2, 1, 2]], [[3, 1], [1, 3]], [[3, 2, 3], [2, 3, 2]]]
 
-            sage: W = ComplexReflectionGroup((2,2,3))
+            sage: W = ReflectionGroup((2,2,3))
             sage: W.braid_relations()
             [[[2, 1, 2], [1, 2, 1]], [[3, 1], [1, 3]], [[3, 2, 3], [2, 3, 2]]]
         """
@@ -947,11 +927,11 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: W.fundamental_invariants()
             [-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2]
 
-            sage: W = ComplexReflectionGroup((3,1,2))
+            sage: W = ReflectionGroup((3,1,2))
             sage: W.fundamental_invariants()
             [x0^3 + x1^3, x0^3*x1^3]
         """
@@ -994,7 +974,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.apply_simple_reflection_right(0)
                 (1,4)(2,3)(5,6)
                 ()
@@ -1014,7 +994,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.apply_simple_reflection_left(0)
                 (1,4)(2,3)(5,6)
                 ()
@@ -1035,7 +1015,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), w.conjugacy_class_representative().reduced_word()
                 0 0
                 1 0
@@ -1055,7 +1035,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print sorted(w.conjugacy_class())
                 [()]
                 [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6), (1,5)(2,4)(3,6)]
@@ -1092,7 +1072,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((5,1,1),index_set=['a'],hyperplane_index_set=['x'],reflection_index_set=['A','B','C','D'])
+                sage: W = ReflectionGroup((5,1,1),index_set=['a'],hyperplane_index_set=['x'],reflection_index_set=['A','B','C','D'])
                 sage: [ w.reduced_word() for w in W ]
                 [word: , word: a, word: aa, word: aaa, word: aaaa]
 
@@ -1115,7 +1095,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((5,1,1),index_set=['a'],reflection_index_set=['A','B','C','D'])
+                sage: W = ReflectionGroup((5,1,1),index_set=['a'],reflection_index_set=['A','B','C','D'])
 
                 sage: [ w.reduced_word_in_reflections() for w in W ]
                 [word: , word: A, word: B, word: C, word: D]
@@ -1146,7 +1126,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup(4)
+                sage: W = ReflectionGroup(4)
                 sage: for w in W:
                 ....:   print w.reduced_word(), w.length()
                  0
@@ -1188,19 +1168,19 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: sorted([ t.reflection_length() for t in W ])
                 [0, 1, 1, 1, 2, 2]
 
-                sage: W = ComplexReflectionGroup((2,1,2))
+                sage: W = ReflectionGroup((2,1,2))
                 sage: sorted([ t.reflection_length() for t in W ])
                 [0, 1, 1, 1, 1, 2, 2, 2]
 
-                sage: W = ComplexReflectionGroup((2,2,2))
+                sage: W = ReflectionGroup((2,2,2))
                 sage: sorted([ t.reflection_length() for t in W ])
                 [0, 1, 1, 2]
 
-                sage: W = ComplexReflectionGroup((3,1,2))
+                sage: W = ReflectionGroup((3,1,2))
                 sage: sorted([ t.reflection_length() for t in W ])
                 [0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
             """
@@ -1212,6 +1192,8 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
                     return len(self.reduced_word_in_reflections())
             else:
                 w = self.conjugacy_class_representative()
+                # the following assert a possible implementation bug and
+                # is hopefully never needed
                 assert w in self.parent().conjugacy_classes_representatives()
                 return w.reflection_length(in_unitary_group=in_unitary_group)
 
@@ -1229,7 +1211,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.right_coset_representatives() ]
                  [word: , word: 1, word: 0, word: 10, word: 01, word: 010]
                 0 [word: , word: 1, word: 10]
@@ -1253,7 +1235,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.left_coset_representatives() ]
                  [word: , word: 1, word: 0, word: 01, word: 10, word: 010]
                 0 [word: , word: 1, word: 01]
@@ -1271,7 +1253,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W:
                 ....:     print w.reduced_word()
                 ....:     print w.as_matrix()
@@ -1312,7 +1294,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W:
                 ....:     print w.reduced_word()
                 ....:     print w.fix_space()
@@ -1351,7 +1333,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup(4)
+                sage: W = ReflectionGroup(4)
                 sage: for w in W:
                 ....:     print w.reflection_eigenvalues()
                 [0, 0]
@@ -1388,7 +1370,7 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup(4)
+                sage: W = ReflectionGroup(4)
                 sage: for w in W: print w.galois_conjugates()
             """
             rk = self.parent().rank()
@@ -1406,9 +1388,9 @@ class FiniteComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generi
             Without this comparison method, the initialization of this
             permutation group fails ...
             """
-            return super(FiniteComplexReflectionGroup.Element, self).__cmp__(other)
+            return super(ComplexReflectionGroup.Element, self).__cmp__(other)
 
-class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
+class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     def _repr_(self):
         r"""
@@ -1416,11 +1398,11 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3)); W
-            Irreducible finite complex reflection group of rank 2 and type A2
+            sage: W = ReflectionGroup((1,1,3)); W
+            Irreducible complex reflection group of rank 2 and type A2
         """
         type_str = self._irrcomp_repr_(self._type[0])
-        return 'Irreducible finite complex reflection group of rank %s and type %s'%(self._rank,type_str)
+        return 'Irreducible complex reflection group of rank %s and type %s'%(self._rank,type_str)
 
     @cached_method
     def a_coxeter_element(self):
@@ -1434,19 +1416,19 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: W.a_coxeter_element().reduced_word()
             word: 012
 
-            sage: W = ComplexReflectionGroup((2,1,4))
+            sage: W = ReflectionGroup((2,1,4))
             sage: W.a_coxeter_element().reduced_word()
             word: 0123
 
-            sage: W = ComplexReflectionGroup((4,1,4))
+            sage: W = ReflectionGroup((4,1,4))
             sage: W.a_coxeter_element().reduced_word()
             word: 0123
 
-            sage: W = ComplexReflectionGroup((4,4,4))
+            sage: W = ReflectionGroup((4,4,4))
             sage: W.a_coxeter_element().reduced_word()
             word: 0123
         """
@@ -1467,11 +1449,11 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
             sage: sorted( c.reduced_word() for c in W.coxeter_elements() )
             [word: 01, word: 10]
 
-            sage: W = ComplexReflectionGroup((1,1,4))
+            sage: W = ReflectionGroup((1,1,4))
             sage: sorted( c.reduced_word() for c in W.coxeter_elements() )
             [word: 012, word: 01201, word: 120, word: 12010, word: 201, word: 210]
         """
@@ -1490,7 +1472,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup(4)
+            sage: W = ReflectionGroup(4)
             sage: sorted(W.standard_coxeter_elements())
             [(1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13),
              (1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9)]
@@ -1516,7 +1498,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
 
             sage: sorted( w.reduced_word() for w in W.elements_below_coxeter_element() )
             [word: , word: 0, word: 01, word: 010, word: 1]
@@ -1559,7 +1541,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: W = ComplexReflectionGroup((1,1,3))
+            sage: W = ReflectionGroup((1,1,3))
 
             sage: sorted( w.reduced_word() for w in W.noncrossing_partition_lattice() )
             [word: , word: 0, word: 01, word: 010, word: 1]
@@ -1627,7 +1609,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: P = ComplexReflectionGroup((1,1,3)).absolute_poset(); P
+            sage: P = ReflectionGroup((1,1,3)).absolute_poset(); P
             Finite poset containing 6 elements
 
             sage: sorted( w.reduced_word() for w in P )
@@ -1635,7 +1617,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
         """
         return self.noncrossing_partition_lattice(L=self)
 
-    class Element(FiniteComplexReflectionGroup.Element):
+    class Element(ComplexReflectionGroup.Element):
 
         @cached_in_parent_method
         def is_coxeter_element(self,which_primitive=1,test_class_repr=True):
@@ -1646,7 +1628,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), w.is_coxeter_element()
                  False
                 0 False
@@ -1670,7 +1652,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), w.is_h_regular()
                  False
                 0 False
@@ -1694,7 +1676,7 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: W = ComplexReflectionGroup((1,1,3))
+                sage: W = ReflectionGroup((1,1,3))
                 sage: for w in W: print w.reduced_word(), w.is_regular(W.coxeter_number())
                  False
                 0 False
@@ -1712,75 +1694,6 @@ class IrreducibleFiniteComplexReflectionGroup(FiniteComplexReflectionGroup):
                     if not any( V.is_subspace(H) for H in self.parent().reflecting_hyperplanes() ):
                         return True
             return False
-
-def ComplexReflectionGroup(*args,**kwds):
-    r"""
-    Construct a finite (complex) reflection group as a Sage permutation group by
-    fetching the permutation representation of the generators from chevie's database.
-
-    INPUT:
-
-    can be one of the following:
-
-    - triple `(r,p,n)` with `p` divides `r`, which denotes the group `G(r,p,n)`
-    - integer between `4v and `37`, which denotes an exeptional irreducible complex reflection group
-    - list of combinations of these two
-
-    EXAMPLES:
-
-    Finite reflection groups can be constructed from
-
-    the complex infinite family `G(r,p,n)` with `p` divides `r`::
-
-        sage: W = ComplexReflectionGroup((1,1,4)); W
-        Irreducible finite complex reflection group of rank 3 and type A3
-
-        sage: W = ComplexReflectionGroup((2,1,3)); W
-        Irreducible finite complex reflection group of rank 3 and type B3
-
-    Chevalley-Shepard-Todd exceptional classification types::
-
-        sage: W = ComplexReflectionGroup(23); W
-         Irreducible finite complex reflection group of rank 3 and type H3
-
-    lists containing the above::
-
-        sage: W = ComplexReflectionGroup((1,1,4),(2,1,3)); W
-        Reducible finite complex reflection group of rank 6 and type A3 x B3
-    """
-    assert is_chevie_available()
-    gap3.load_package("chevie")
-
-    W_types = []
-    for arg in args:
-        if type(arg) is list:
-            X = tuple(arg)
-        else:
-            X = arg
-        assert is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ), "The input is not valid."
-        if X == (2,2,2):
-            W_types.extend([(1,1,2),(1,1,2)])
-        else:
-            W_types.append(X)
-
-    for index_set_kwd in ['index_set','hyperplane_index_set','reflection_index_set']:
-        index_set = kwds.get(index_set_kwd, None)
-        if index_set is not None:
-            from sage.sets.family import Family
-            if type(index_set) in [list,tuple]:
-                kwds[index_set_kwd] = Family(index_set, lambda x: index_set.index(x))
-            elif type(index_set) is dict:
-                kwds[index_set_kwd] = Family(index_set)
-            else:
-                raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
-
-    if len(W_types) == 1:
-        cls = IrreducibleFiniteComplexReflectionGroup
-    else:
-        cls = FiniteComplexReflectionGroup
-    return cls(tuple(W_types), index_set=kwds.get('index_set', None),
-                               hyperplane_index_set=kwds.get('hyperplane_index_set', None),
-                               reflection_index_set=kwds.get('reflection_index_set', None) )
 
 def gap_factorization(w,gens,inv_dict):
     gap3.execute('W := GroupWithGenerators(%s)'%str(gens))
@@ -1841,26 +1754,6 @@ def gap_return(S,coerce_obj='self'):
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S
-
-@cached_function
-def is_chevie_available():
-    r"""
-    Tests whether the GAP3 Chevie package is available
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.coxeter_group import is_chevie_available
-        sage: is_chevie_available() # random
-        False
-        sage: is_chevie_available() in [True, False]
-        True
-    """
-    try:
-        from sage.interfaces.gap3 import gap3
-        gap3.load_package("chevie")
-        return True
-    except:
-        return False
 
 def _iterator_tracking_words(W):
     I = W.gens()

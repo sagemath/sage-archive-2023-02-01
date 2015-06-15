@@ -11,10 +11,11 @@ AUTHORS:
     - For definitions and classification types of finite complex reflection groups, see :wikipedia:`Complex_reflection_group`.
     - Uses the GAP3 package *chevie* available at `Jean Michel's website <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_
 
-.. warning:: works only if the GAP3 package Chevie is available.
+.. WARNING:: works only if the GAP3 package Chevie is available.
 
 .. TODO::
 
+    - Properly provide root systems for real reflection groups
     - Element class should be unique to be able to work with large groups without creating elements multiple times.
 """
 #*****************************************************************************
@@ -42,23 +43,23 @@ from sage.interfaces.gap3 import GAP3Record, gap3
 from sage.interfaces.gap import gap
 from sage.combinat.words.word import Word
 from sage.rings.arith import gcd, lcm
-from sage.combinat.root_system.complex_reflection_group import FiniteComplexReflectionGroup, IrreducibleFiniteComplexReflectionGroup, is_chevie_available
+from sage.combinat.root_system.reflection_group_complex import ComplexReflectionGroup, IrreducibleComplexReflectionGroup
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.combinat.root_system.coxeter_group import is_chevie_available
 
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 
 UCF = UniversalCyclotomicField()
 E = UCF.gen
 
-class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
+class RealReflectionGroup(ComplexReflectionGroup):
     def __init__(self, W_types, index_set=None, hyperplane_index_set=None, reflection_index_set=None):
         r"""
 
         TESTS::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: TestSuite(W).run()
         """
         W_types = tuple( tuple( W_type ) if isinstance(W_type,(list,tuple)) else W_type for W_type in W_types )
@@ -69,13 +70,12 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                 raise ValueError("The given Cartan type of a component is not irreducible and finite")
             cartan_types.append( W_type )
         if len(W_types) == 1:
-            cls = IrreducibleFiniteComplexReflectionGroup
+            cls = IrreducibleComplexReflectionGroup
         else:
-            cls = FiniteComplexReflectionGroup
-        cls.__init__(self, W_types, index_set=index_set,
-                                    hyperplane_index_set=hyperplane_index_set,
-                                    reflection_index_set=reflection_index_set,
-                                    is_coxeter_group = True)
+            cls = ComplexReflectionGroup
+        cls.__init__(self, W_types, index_set               = index_set,
+                                    hyperplane_index_set    = hyperplane_index_set,
+                                    reflection_index_set    = reflection_index_set)
         N = self.nr_reflections()
         self._is_positive_root = [None] + [ True ] * N + [False]*N 
 
@@ -87,30 +87,28 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2],['I',5],['I',6]); W
-            Reducible finite Coxeter group of rank 9 and type A3 x B2 x I2(5) x G2
+            sage: W = ReflectionGroup(['A',3],['B',2],['I',5],['I',6]); W
+            Reducible real reflection group of rank 9 and type A3 x B2 x I2(5) x G2
         """
         type_str = ''
         for W_type in self._type:
             type_str += self._irrcomp_repr_(W_type)
             type_str += ' x '
         type_str = type_str[:-3]
-        return 'Reducible finite Coxeter group of rank %s and type %s'%(self._rank,type_str)
+        return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
     @cached_method
     def bipartite_index_set(self):
         r"""
-        Return the bipartite index set of a finite real reflection group.
+        Return the bipartite index set of a real reflection group.
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(["A",5])
+            sage: W = ReflectionGroup(["A",5])
             sage: W.bipartite_index_set()
             [[0, 2, 4], [1, 3]]
  
-            sage: W = CoxeterGroupChevie(["A",5],index_set=['a','b','c','d','e'])
+            sage: W = ReflectionGroup(["A",5],index_set=['a','b','c','d','e'])
             sage: W.bipartite_index_set()
             [['a', 'c', 'e'], ['b', 'd']]
         """
@@ -128,15 +126,14 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.irreducible_components()
-            [Irreducible finite Coxeter group of rank 3 and type A3,
-             Irreducible finite Coxeter group of rank 2 and type B2]
+            [Irreducible real reflection group of rank 3 and type A3,
+             Irreducible real reflection group of rank 2 and type B2]
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.irreducible_components()
-            [Irreducible finite Coxeter group of rank 3 and type A3]
+            [Irreducible real reflection group of rank 3 and type A3]
         """
         if self.nr_irreducible_components() == 1:
             irr_comps = [self]
@@ -146,7 +143,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                 W_str = [ W_type["series"], W_type["rank"] ]
                 if W_type["series"] == "I":
                     W_str[1] = W_type["bond"]
-                irr_comps.append( CoxeterGroupChevie(W_str) )
+                irr_comps.append( ReflectionGroup(W_str) )
         return irr_comps
 
     def cartan_type(self):
@@ -155,12 +152,11 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.cartan_type()
             [['A', 3], ['B', 2]]
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.cartan_type()
             ['A', 3]
         """
@@ -177,8 +173,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.cartan_matrix()
             [ 2 -1  0  0  0]
             [-1  2 -1  0  0]
@@ -186,7 +181,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
             [ 0  0  0  2 -2]
             [ 0  0  0 -1  2]
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.cartan_matrix()
             [ 2 -1  0]
             [-1  2 -1]
@@ -201,8 +196,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.simple_root(0)
             (1, 0, 0)
         """
@@ -214,8 +208,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.positive_roots()
                 [(1, 0, 0, 0, 0),
                  (0, 1, 0, 0, 0),
@@ -228,7 +221,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                  (1, 1, 1, 0, 0),
                  (0, 0, 0, 2, 1)]
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.positive_roots()
             [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 1, 1)]
         """
@@ -240,8 +233,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.almost_positive_roots()
                 [(-1, 0, 0, 0, 0),
                  (0, -1, 0, 0, 0),
@@ -260,7 +252,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
                  (0, 0, 0, 2, 1)]
 
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.almost_positive_roots()
                 [(-1, 0, 0),
                  (0, -1, 0),
@@ -305,8 +297,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.fundamental_weights()
             [(3/4, 1/2, 1/4, 0, 0),
              (1/2, 1, 1/2, 0, 0),
@@ -314,7 +305,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
              (0, 0, 0, 1, 1/2),
              (0, 0, 0, 1, 1)]
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.fundamental_weights()
             [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
         """
@@ -342,12 +333,11 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: W = CoxeterGroupChevie(['A',3],['B',2])
+            sage: W = ReflectionGroup(['A',3],['B',2])
             sage: W.permutahedron()
             A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 192 vertices
 
-            sage: W = CoxeterGroupChevie(['A',3])
+            sage: W = ReflectionGroup(['A',3])
             sage: W.permutahedron()
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 24 vertices
         """
@@ -359,7 +349,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron( vertices=[ v*(~w).as_matrix() for w in self] )
 
-    class Element(FiniteComplexReflectionGroup.Element):
+    class Element(ComplexReflectionGroup.Element):
 
         reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
 
@@ -372,8 +362,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-                sage: W = CoxeterGroupChevie(["A",3])
+                    sage: W = ReflectionGroup(["A",3])
                 sage: s = W.simple_reflections()
                 sage: (s[1]*s[2]).has_left_descent(1)
                 True
@@ -400,8 +389,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
 
             EXAMPLES::
 
-                sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-                sage: W = CoxeterGroupChevie(["A",3])
+                    sage: W = ReflectionGroup(["A",3])
                 sage: s = W.simple_reflections()
                 sage: (s[1]*s[2]).has_left_descent(1)
                 True
@@ -461,7 +449,7 @@ class FiniteCoxeterGroupChevie(FiniteComplexReflectionGroup):
             Phi_plus = set(self.parent().positive_roots())
             return [ root for root in Phi_plus if self.act_on_root(root) not in Phi_plus ]
 
-class IrreducibleFiniteCoxeterGroupChevie(FiniteCoxeterGroupChevie, IrreducibleFiniteComplexReflectionGroup):
+class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexReflectionGroup):
 
     def _repr_(self):
         r"""
@@ -469,53 +457,102 @@ class IrreducibleFiniteCoxeterGroupChevie(FiniteCoxeterGroupChevie, IrreducibleF
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-            sage: for i in [2..7]: print CoxeterGroupChevie(["I",i])
-            Reducible finite Coxeter group of rank 2 and type A1 x A1
-            Irreducible finite Coxeter group of rank 2 and type A2
-            Irreducible finite Coxeter group of rank 2 and type B2
-            Irreducible finite Coxeter group of rank 2 and type I2(5)
-            Irreducible finite Coxeter group of rank 2 and type G2
-            Irreducible finite Coxeter group of rank 2 and type I2(7)
+            sage: for i in [2..7]: print ReflectionGroup(["I",i])
+            Reducible real reflection group of rank 2 and type A1 x A1
+            Irreducible real reflection group of rank 2 and type A2
+            Irreducible real reflection group of rank 2 and type B2
+            Irreducible real reflection group of rank 2 and type I2(5)
+            Irreducible real reflection group of rank 2 and type G2
+            Irreducible real reflection group of rank 2 and type I2(7)
         """
         type_str = self._irrcomp_repr_(self._type[0])
-        return 'Irreducible finite Coxeter group of rank %s and type %s'%(self._rank,type_str)
+        return 'Irreducible real reflection group of rank %s and type %s'%(self._rank,type_str)
 
-    class Element(FiniteCoxeterGroupChevie.Element,IrreducibleFiniteComplexReflectionGroup.Element):
+    class Element(RealReflectionGroup.Element,IrreducibleComplexReflectionGroup.Element):
         pass
 
-def CoxeterGroupChevie(*args,**kwds):
-    """
+def ReflectionGroup(*args,**kwds):
+    r"""
+    Construct a finite (complex or real) reflection group as a Sage
+    permutation group by fetching the permutation representation of the
+    generators from chevie's database.
+
     INPUT:
 
-     - every argument should be a finite cartan type, or coercible into; see :class:`CartanType`)
+    can be one or multiple of the following:
 
-    OUTPUT:
+    - triple `(r,p,n)` with `p` divides `r`, which denotes the group
+      `G(r,p,n)`
 
-    Return the Coxeter group as a finite reflection group, see :func:`ComplexReflectionGroup`.
+    - integer between `4 and `37`, which denotes an exeptional
+    irreducible complex reflection group
 
-    .. warning:: works only if the GAP3 package Chevie is available.
+    - finite Cartan-Killing type
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-        sage: W = CoxeterGroupChevie(["A",2]); W                  # optional (requires chevie)
-        Permutation Group with generators [(1,3)(2,5)(4,6), (1,4)(2,3)(5,6)]
+    Finite reflection groups can be constructed from
 
-        sage: W.category()                                  # optional (requires chevie)
-        Join of Category of finite permutation groups and Category of finite coxeter groups
+    Cartan-Killing classification types::
+
+        sage: W = ReflectionGroup(['A',3]); W
+         Irreducible real reflection group of rank 3 and type A3
+
+        sage: W = ReflectionGroup(['H',4]); W
+         Irreducible real reflection group of rank 4 and type H4
+
+        sage: W = ReflectionGroup(['I',5]); W
+         Irreducible real reflection group of rank 2 and type I2(5)
+
+    the complex infinite family `G(r,p,n)` with `p` divides `r`::
+
+        sage: W = ReflectionGroup((1,1,4)); W
+        Irreducible complex reflection group of rank 3 and type A3
+
+        sage: W = ReflectionGroup((2,1,3)); W
+        Irreducible complex reflection group of rank 3 and type B3
+
+    Chevalley-Shepard-Todd exceptional classification types::
+
+        sage: W = ReflectionGroup(23); W
+         Irreducible complex reflection group of rank 3 and type H3
+
+    multiples of the above::
+
+        sage: W = ReflectionGroup(['A',2],['B',2]); W
+        Reducible real reflection group of rank 4 and type A2 x B2
+
+        sage: W = ReflectionGroup(['A',2],4); W
+        Reducible complex reflection group of rank 4 and type A2 x ST4
+
+        sage: W = ReflectionGroup((4,2,2),4); W
+        Reducible complex reflection group of rank 4 and type G(4,2,2) x ST4
     """
-    assert is_chevie_available()
+    if not is_chevie_available():
+        raise ImportError("The GAP3 package 'chevie' is needed to work with (complex) reflection groups")
     gap3.load_package("chevie")
 
-    W_types = []
+    W_types     = []
+    is_complex  = False
     for arg in args:
+        # preparsing
         if type(arg) is list:
             X = tuple(arg)
         else:
             X = arg
-        assert is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple), "The input is not valid."
-        if X == ('I',2):
+
+        # precheck for valid input data
+        if not ( is_Matrix(X) or isinstance(X,CartanMatrix) or isinstance(X,tuple) or ( X in ZZ and 4 <= X <= 37 ) ):
+            raise ValueError("The input data (%s) is not valid for reflection groups."%X)
+
+        # check for real vs complex
+        elif X in ZZ or ( isinstance(X,tuple) and len(X) == 3 ):
+            is_complex = True
+
+        # transforming two reducible types
+        if X == (2,2,2):
+            W_types.extend([(1,1,2),(1,1,2)])
+        elif X == ('I',2):
             W_types.extend([('A',1),('A',1)])
         else:
             W_types.append(X)
@@ -532,9 +569,15 @@ def CoxeterGroupChevie(*args,**kwds):
                 raise ValueError('The keyword %s must be a list, tuple, or dict'%index_set_kwd)
 
     if len(W_types) == 1:
-        cls = IrreducibleFiniteCoxeterGroupChevie
+        if is_complex is True:
+            cls = IrreducibleComplexReflectionGroup
+        else:
+            cls = IrreducibleRealReflectionGroup
     else:
-        cls = FiniteCoxeterGroupChevie
+        if is_complex is True:
+            cls = ComplexReflectionGroup
+        else:
+            cls = RealReflectionGroup
     return cls(tuple(W_types), index_set=kwds.get('index_set', None),
                                hyperplane_index_set=kwds.get('hyperplane_index_set', None),
                                reflection_index_set=kwds.get('reflection_index_set', None) )

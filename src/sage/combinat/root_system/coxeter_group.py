@@ -151,8 +151,8 @@ def CoxeterGroup(data, implementation="reflection", base_ring=None, index_set=No
             return WeylGroup(cartan_type)
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
     elif implementation == "chevie":
-        from sage.combinat.root_system.coxeter_group_chevie import CoxeterGroupChevie
-        return CoxeterGroupChevie(data, index_set=index_set)
+        from sage.combinat.root_system.reflection_group_real import ReflectionGroup
+        return ReflectionGroup(data, index_set=index_set)
 
     raise NotImplementedError("Coxeter group of type {} as {} group not implemented".format(cartan_type, implementation))
 

@@ -1755,19 +1755,50 @@ class NormalFormGame(SageObject, MutableMapping):
         t += 'end\n'
         return s, t
 
-    def is_degenerate(self):
+    def is_degenerate_LA(self):
         """
+        LINEAR ALGEBRA
         A function to check whether the game is degenerate or not.
         Will return a boolean.
+
+        A two-player game is called nondegenerate if no mixed strategy of
+        support size k has more than k pure best responses. In a degenerate
+        game, this definition is violated, for example if there is a pure
+        strategy that has two pure best responses.
 
         TESTS::
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game.is_degenerate()
+            sage: degenerate_game.is_degenerate_LA()
+            True
+
+            sage: A = matrix([[2, 1], [1, 1]])
+            sage: B = matrix([[1, 1], [1, 2]])
+            sage: d_game = NormalFormGame([A, B])
+            sage: d_game.is_degenerate_LA()
             True
         """
+
+        if len(self.players) > 2:
+            raise NotImplementedError("")
+
+        M1, M2 = self.payoff_matrices()
+
+        m = M1.nrows()
+        n = M2.ncols()
+
+        a = matrix.identity(n)
+        M1 = M1.transpose()
+        A = M1.augment(a)
+
+        b = matrix.identity(m)
+        B = M2.augment(b)
+
+        return A, B
+
+
 
 
 class _Player():

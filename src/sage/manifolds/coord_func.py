@@ -66,6 +66,14 @@ class CoordFunction(SageObject):
     def __init__(self, chart):
         r"""
         Base constructor for derived classes.
+
+        TEST::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+
         """
         self._chart = chart
         self._nc = len(chart[:])    # number of coordinates
@@ -147,6 +155,18 @@ class CoordFunction(SageObject):
         - ``True`` if ``self`` is different from ``other``,  or ``False``
           otherwise
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__ne__(g)
+            True
+            sage: h = X.function(x+y)
+            sage: f.__ne__(h)
+            False
+
         """
         return not self.__eq__(other)
 
@@ -162,6 +182,19 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the addition of ``self`` and
           ``other``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__radd__(g)
+            (x + 1)*y + x
+            sage: f.__radd__(X.zero_function()) == f
+            True
+            sage: 2 + f  # indirect doctest
+            x + y + 2
 
         """
         return self.__add__(other)
@@ -179,6 +212,19 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the addition of ``self`` and
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__iadd__(g)
+            (x + 1)*y + x
+            sage: f += g; f
+            (x + 1)*y + x
+            sage: f.__iadd__(X.zero_function()) == f
+            True
+
         """
         return self.__add__(other)
 
@@ -194,6 +240,19 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the subtraction of ``self`` from
           ``other``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__rsub__(g)
+            (x - 1)*y - x
+            sage: f.__rsub__(g) == -f + g
+            True
+            sage: 2 - f  # indirect doctest
+            -x - y + 2
 
         """
         return self.__neg__().__add__(other)
@@ -211,6 +270,19 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the subtraction of ``other`` from
           ``self``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__isub__(g)
+            -(x - 1)*y + x
+            sage: f -= g; f
+            -(x - 1)*y + x
+            sage: f.__isub__(X.zero_function()) == f
+            True
+
         """
         return self.__sub__(other)
 
@@ -226,6 +298,21 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the multiplication of ``other``
           by ``self``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__rmul__(g)
+            x^2*y + x*y^2
+            sage: f.__rmul__(g) == g*f
+            True
+            sage: f.__rmul__(X.one_function()) == f
+            True
+            sage: 2*f  # indirect doctest
+            2*x + 2*y
 
         """
         return self.__mul__(other)
@@ -243,6 +330,19 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the multiplication of ``self``
           by ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__imul__(g)
+            x^2*y + x*y^2
+            sage: f *= g; f
+            x^2*y + x*y^2
+            sage: f.__imul__(X.one_function()) == f
+            True
+
         """
         return self.__mul__(other)
 
@@ -258,6 +358,19 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the division of ``other`` by
           ``self``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__rdiv__(g)
+            x*y/(x + y)
+            sage: f.__rdiv__(g) == g/f
+            True
+            sage: 2/f  # indirect doctest
+            2/(x + y)
 
         """
         return self.__invert__().__mul__(other)
@@ -275,6 +388,19 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the division of ``self`` by
           ``other``
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(x+y)
+            sage: g = X.function(x*y)
+            sage: f.__idiv__(g)
+            (x + y)/(x*y)
+            sage: f /= g; f
+            (x + y)/(x*y)
+            sage: f.__idiv__(X.one_function()) == f
+            True
+
         """
         return self.__div__(other)
 
@@ -285,18 +411,63 @@ class CoordFunction(SageObject):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f._repr_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction._repr_ not implemented
+
         """
         raise NotImplementedError("CoordFunction._repr_ not implemented")
 
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f._latex_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction._latex_ not implemented
+
         """
         raise NotImplementedError("CoordFunction._latex_ not implemented")
 
     def display(self):
         r"""
         Display the function in arrow notation.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.display()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.display not implemented
+
         """
         raise NotImplementedError("CoordFunction.display not implemented")
 
@@ -311,6 +482,20 @@ class CoordFunction(SageObject):
         expression representing the function
         (see
         :meth:`sage.manifolds.coord_func_symb.CoordFunctionSymb.expr`)
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.expr()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.expr not implemented
 
         """
         raise NotImplementedError("CoordFunction.expr not implemented")
@@ -331,12 +516,40 @@ class CoordFunction(SageObject):
         - the value `f(x^1,...,x^n)`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__call__(2,-3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__call__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__call__ not implemented")
 
     def is_zero(self):
         r"""
         Return ``True`` if the function is zero and ``False`` otherwise.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.is_zero()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.is_zero not implemented
 
         """
         raise NotImplementedError("CoordFunction.is_zero not implemented")
@@ -348,6 +561,20 @@ class CoordFunction(SageObject):
         OUTPUT:
 
         - an instance of :class:`CoordFunction`
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.copy()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.copy not implemented
 
         """
         raise NotImplementedError("CoordFunction.copy not implemented")
@@ -369,6 +596,20 @@ class CoordFunction(SageObject):
         - instance of :class:`CoordFunction` representing the partial
           derivative `\frac{\partial f}{\partial x^i}`
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.diff(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.diff not implemented
+
         """
         raise NotImplementedError("CoordFunction.diff not implemented")
 
@@ -384,6 +625,21 @@ class CoordFunction(SageObject):
 
         - ``True`` if ``self`` is equal to ``other``,  or ``False`` otherwise
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: g = CoordFunction(X)
+            sage: f.__eq__(g)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__eq__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__eq__ not implemented")
 
@@ -395,6 +651,20 @@ class CoordFunction(SageObject):
 
         - an exact copy of ``self``
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__pos__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__pos__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__pos__ not implemented")
 
@@ -405,6 +675,20 @@ class CoordFunction(SageObject):
         OUTPUT:
 
         - the opposite of the coordinate function ``self``
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__neg__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__neg__ not implemented
 
         """
         raise NotImplementedError("CoordFunction.__neg__ not implemented")
@@ -422,6 +706,20 @@ class CoordFunction(SageObject):
 
         - the inverse of the coordinate function ``self``
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__invert__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__invert__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__invert__ not implemented")
 
@@ -437,6 +735,20 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the addition of ``self`` and
           ``other``
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__add__(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__add__ not implemented
 
         """
         raise NotImplementedError("CoordFunction.__add__ not implemented")
@@ -454,6 +766,20 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the subtraction of ``other`` from
           ``self``
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__sub__(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__sub__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__sub__ not implemented")
 
@@ -469,6 +795,20 @@ class CoordFunction(SageObject):
 
         - coordinate function resulting from the multiplication of ``self`` by
           ``other``
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__mul__(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__mul__ not implemented
 
         """
         raise NotImplementedError("CoordFunction.__mul__ not implemented")
@@ -486,6 +826,20 @@ class CoordFunction(SageObject):
         - coordinate function resulting from the division of ``self`` by
           ``other``
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__div__(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__div__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__div__ not implemented")
 
@@ -497,6 +851,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\exp(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.exp()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.exp not implemented
 
         """
         raise NotImplementedError("CoordFunction.exp not implemented")
@@ -516,6 +884,20 @@ class CoordFunction(SageObject):
         - coordinate function `\log_a(f)`, where `f` is the current coordinate
           function and `a` is the base
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.log()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.log not implemented
+
         """
         raise NotImplementedError("CoordFunction.log not implemented")
 
@@ -533,6 +915,20 @@ class CoordFunction(SageObject):
         - coordinate function `f^a`, where `f` is the current coordinate
           function and `a` is the exponent
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.__pow__(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.__pow__ not implemented
+
         """
         raise NotImplementedError("CoordFunction.__pow__ not implemented")
 
@@ -546,6 +942,20 @@ class CoordFunction(SageObject):
         - coordinate function `\sqrt{f}`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.sqrt()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.sqrt not implemented
+
         """
         raise NotImplementedError("CoordFunction.sqrt not implemented")
 
@@ -557,6 +967,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\cos(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.cos()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.cos not implemented
 
         """
         raise NotImplementedError("CoordFunction.cos not implemented")
@@ -570,6 +994,20 @@ class CoordFunction(SageObject):
         - coordinate function `\sin(f)`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.sin()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.sin not implemented
+
         """
         raise NotImplementedError("CoordFunction.sin not implemented")
 
@@ -581,6 +1019,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\tan(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.tan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.tan not implemented
 
         """
         raise NotImplementedError("CoordFunction.tan not implemented")
@@ -594,6 +1046,20 @@ class CoordFunction(SageObject):
         - coordinate function `\arccos(f)`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arccos()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arccos not implemented
+
         """
         raise NotImplementedError("CoordFunction.arccos not implemented")
 
@@ -605,6 +1071,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\arcsin(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arcsin()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arcsin not implemented
 
         """
         raise NotImplementedError("CoordFunction.arcsin not implemented")
@@ -618,6 +1098,20 @@ class CoordFunction(SageObject):
         - coordinate function `\arctan(f)`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arctan()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arctan not implemented
+
         """
         raise NotImplementedError("CoordFunction.arctan not implemented")
 
@@ -629,6 +1123,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\cosh(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.cosh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.cosh not implemented
 
         """
         raise NotImplementedError("CoordFunction.cosh not implemented")
@@ -642,6 +1150,20 @@ class CoordFunction(SageObject):
         - coordinate function `\sinh(f)`, where `f` is the current coordinate
           function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.sinh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.sinh not implemented
+
         """
         raise NotImplementedError("CoordFunction.sinh not implemented")
 
@@ -653,6 +1175,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\tanh(f)`, where `f` is the current coordinate
           function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.tanh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.tanh not implemented
 
         """
         raise NotImplementedError("CoordFunction.tanh not implemented")
@@ -666,6 +1202,20 @@ class CoordFunction(SageObject):
         - coordinate function `\mathrm{arcosh}(f)`, where `f` is the current
           coordinate function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arccosh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arccosh not implemented
+
         """
         raise NotImplementedError("CoordFunction.arccosh not implemented")
 
@@ -678,6 +1228,20 @@ class CoordFunction(SageObject):
         - coordinate function `\mathrm{arsinh}(f)`, where `f` is the current
           coordinate function.
 
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arcsinh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arcsinh not implemented
+
         """
         raise NotImplementedError("CoordFunction.arcsinh not implemented")
 
@@ -689,6 +1253,20 @@ class CoordFunction(SageObject):
 
         - coordinate function `\mathrm{artanh}(f)`, where `f` is the current
           coordinate function.
+
+        TEST:
+
+        This method must be implemented by derived classes; it is not
+        implemented here::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.coord_func import CoordFunction
+            sage: f = CoordFunction(X)
+            sage: f.arctanh()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: CoordFunction.arctanh not implemented
 
         """
         raise NotImplementedError("CoordFunction.arctanh not implemented")

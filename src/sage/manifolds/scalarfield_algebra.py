@@ -359,6 +359,20 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     Element = ScalarField
 
     def __init__(self, domain):
+        r"""
+        Construct an algebra of scalar fields.
+
+        TESTS::
+
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
+            sage: CM = ScalarFieldAlgebra(M); CM
+            Algebra of scalar fields on the 2-dimensional topological manifold M
+            sage: TestSuite(CM).run()
+
+        """
         base_field = domain.base_field()
         if base_field in ['real', 'complex']:
             base_field = SR
@@ -370,10 +384,74 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         self._one = None  # unit element (to be set by method one())
 
     #### Methods required for any Parent
-    def _element_constructor_(self, coord_expression=None, name=None,
-                              latex_name=None, chart=None):
+    def _element_constructor_(self, coord_expression=None, chart=None,
+                              name=None, latex_name=None):
         r"""
-        Construct a scalarfield
+        Construct a scalar field.
+
+        INPUT:
+
+        - ``coord_expression`` -- (default: ``None``) element(s) to construct
+          the scalar field; this can be either
+
+          - a scalar field defined on a domain that encompass ``self._domain``;
+            then ``_element_constructor_`` return the restriction of
+            the scalar field to ``self._domain``
+          - a dictionary of coordinate expressions in various charts on the
+            domain, with the charts as keys;
+          - a single coordinate expression; if the argument ``chart`` is
+            ``'all'``, this expression is set to all the charts defined
+            on the open set; otherwise, the expression is set in the
+            specific chart provided by the argument ``chart``
+
+          NB: If ``coord_expression`` is ``None`` or incomplete, coordinate
+          expressions can be added after the creation of the object, by means
+          of the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
+          :meth:`set_expr`
+        - ``chart`` -- (default: ``None``) chart defining the coordinates used
+          in ``coord_expression`` when the latter is a single coordinate
+          expression; if none is provided (default), the default chart of the
+          open set is assumed. If ``chart=='all'``, ``coord_expression`` is
+          assumed to be independent of the chart (constant scalar field).
+        - ``name`` -- (default: ``None``) string; name (symbol) given to the
+          scalar field
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
+          the scalar field; if none is provided, the LaTeX symbol is set to
+          ``name``
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: CM = M.scalar_field_algebra()
+            sage: f = CM._element_constructor_(); f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f = CM._element_constructor_(coord_expression={X: x+y^2}); f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.display()
+            M --> R
+            (x, y) |--> y^2 + x
+            sage: f = CM._element_constructor_(coord_expression={X: x+y^2}, name='f'); f
+            Scalar field f on the 2-dimensional topological manifold M
+            sage: f.display()
+            f: M --> R
+               (x, y) |--> y^2 + x
+            sage: f1 = CM._element_constructor_(coord_expression=x+y^2, chart=X, name='f'); f1
+            Scalar field f on the 2-dimensional topological manifold M
+            sage: f1 == f
+            True
+            sage: g = CM._element_constructor_(f); g
+            Scalar field on the 2-dimensional topological manifold M
+            sage: g == f
+            True
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: CU = U.scalar_field_algebra()
+            sage: fU = CU._element_constructor_(f); fU
+            Scalar field on the Open subset U of the 2-dimensional topological manifold M
+            sage: fU.display()
+            U --> R
+            (x, y) |--> y^2 + x
+
         """
         if isinstance(coord_expression, ScalarField):
             if self._domain.is_subset(coord_expression._domain):
@@ -400,6 +478,18 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     def _an_element_(self):
         r"""
         Construct some element of the algebra
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: CM = M.scalar_field_algebra()
+            sage: f = CM._an_element_(); f
+            Scalar field on the 2-dimensional topological manifold M
+            sage: f.display()
+            M --> R
+            (x, y) |--> 2
+
         """
         return self.element_class(self._domain, coord_expression=2,
                                   chart='all')
@@ -408,6 +498,21 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     def _coerce_map_from_(self, other):
         r"""
         Determine whether coercion to self exists from other parent
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: CM = M.scalar_field_algebra()
+            sage: CM._coerce_map_from_(SR)
+            True
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: CU = U.scalar_field_algebra()
+            sage: CM._coerce_map_from_(CU)
+            False
+            sage: CU._coerce_map_from_(CM)
+            True
+
         """
         if other is SR:
             return True  # coercion from the base ring (multiplication by the
@@ -424,18 +529,58 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM._repr_()
+            'Algebra of scalar fields on the 2-dimensional topological manifold M'
+            sage: repr(CM)  # indirect doctest
+            'Algebra of scalar fields on the 2-dimensional topological manifold M'
+
         """
         return "Algebra of scalar fields on the {}".format(self._domain)
 
     def _latex_(self):
         r"""
         LaTeX representation of the object.
-        """
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM._latex_()
+            'C^0 \\left(M\\right)'
+            sage: latex(CM)  # indirect doctest
+            C^0 \left(M\right)
+
+         """
         return r"C^0 \left("  + self._domain._latex_() + r"\right)"
 
     def zero(self):
         r"""
         Return the zero element of the algebra.
+
+        This is nothing but the constant scalar field `0` on the manifold,
+        where `0` is the zero element of the base field.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: CM = M.scalar_field_algebra()
+            sage: z = CM.zero(); z
+            Scalar field zero on the 2-dimensional topological manifold M
+            sage: z.display()
+            zero: M --> R
+               (x, y) |--> 0
+
+        The result is cached::
+
+            sage: CM.zero() is z
+            True
+
         """
         if self._zero is None:
             coord_express = dict([(chart, chart.zero_function()) for chart
@@ -449,6 +594,26 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     def one(self):
         r"""
         Return the unit element of the algebra.
+
+        This is nothing but the constant scalar field `1` on the manifold,
+        where `1` is the unit element of the base field.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: CM = M.scalar_field_algebra()
+            sage: h = CM.one(); h
+            Scalar field 1 on the 2-dimensional topological manifold M
+            sage: h.display()
+            1: M --> R
+               (x, y) |--> 1
+
+        The result is cached::
+
+            sage: CM.one() is h
+            True
+
         """
         if self._one is None:
             coord_express = dict([(chart, chart.one_function()) for chart

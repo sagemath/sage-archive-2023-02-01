@@ -1,5 +1,5 @@
 r"""
-Finite complex reflection groups
+Complex reflection groups
 """
 #*****************************************************************************
 #  Copyright (C) 2015    Christian Stump <christian.stump at lacim.ca>
@@ -39,7 +39,7 @@ class ComplexReflectionGroups(Category_singleton):
 
     REFERENCES:
 
-    .. [LT2009] G.I.~Lehrer and D.E.~Taylor. Unitary reflection groups. Australian Mathematical Society Lecture Series, 2009.
+    .. [LT2009] G. I. Lehrer and D. E. Taylor. Unitary reflection groups. Australian Mathematical Society Lecture Series, 2009.
 
     EXAMPLES::
 
@@ -1386,7 +1386,9 @@ class ComplexReflectionGroups(Category_singleton):
                         associated to ``self``.
 
                         It is defined by `\prod_{i = 1}^n \frac{d_i + mh}{d_i}`
-                        where `d_1,\ldots,d_n` are the degrees and where `h` is the Coxeter number.
+                        where `d_1,\ldots,d_n` are the degrees and where
+                        `h` is the Coxeter number.
+                        See [Arm2006]_ for further information.
 
                         .. NOTE::
 
@@ -1395,7 +1397,7 @@ class ComplexReflectionGroups(Category_singleton):
 
                         REFERENCES:
 
-                        .. [Arm2000] D. Armstrong. Generalized noncrossing partitions and combinatorics of {C}oxeter groups. Mem. Amer. Math. Soc., 2006.
+                        .. [Arm2006] D. Armstrong. Generalized noncrossing partitions and combinatorics of {C}oxeter groups. Mem. Amer. Math. Soc., 2006.
 
                         EXAMPLES::
 
@@ -1436,16 +1438,14 @@ class ComplexReflectionGroups(Category_singleton):
                         Return the Catalan number associated to ``self``.
 
                         It is defined by `\prod_{i = 1}^n \frac{d_i + h}{d_i}`
-                        where `d_1,\ldots,d_n` are the degrees and where `h` is the Coxeter number.
+                        where `d_1,\ldots,d_n` are the degrees and where
+                        `h` is the Coxeter number.
+                        See [Arm2006]_ for further information.
 
                         .. NOTE::
 
                             - For the symmetric group `S_n`, it reduces to the Catalan number `\frac{1}{n+1}\binom{2n}{n}`.
                             - The Catalan numbers for `G(r,1,n)` all coincide for `r > 1`.
-
-                        REFERENCES:
-
-                        .. [Arm2000] D. Armstrong. Generalized noncrossing partitions and combinatorics of {C}oxeter groups. Mem. Amer. Math. Soc., 2006.
 
                         EXAMPLES::
 

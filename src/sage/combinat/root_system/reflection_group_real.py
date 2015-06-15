@@ -66,7 +66,7 @@ def ReflectionGroup(*args,**kwds):
     - triple `(r,p,n)` with `p` divides `r`, which denotes the group
       `G(r,p,n)`
 
-    - integer between `4` and `37`, which denotes an exeptional
+    - integer between `4` and `37`, which denotes an exceptional
       irreducible complex reflection group
 
     - finite Cartan-Killing type

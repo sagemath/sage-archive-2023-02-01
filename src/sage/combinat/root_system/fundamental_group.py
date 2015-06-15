@@ -491,7 +491,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
     def family(self):
         r"""
-        Returns a family indexed by special nodes whose values are the corresponding fundamental
+        Return a family indexed by special nodes whose values are the corresponding fundamental
         group elements.
 
         EXAMPLES::
@@ -507,6 +507,18 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         """
         return Family(self.special_nodes(), lambda i: self(i))
+
+    def generators(self):
+        r"""
+        Return a tuple of generators of the fundamental group.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").generators()
+            (f[0], f[1], f[6])
+        """
+        return tuple(self.family())
 
     @cached_method
     def index_set(self):

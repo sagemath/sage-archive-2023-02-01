@@ -335,22 +335,20 @@ class GroupExp_Class(UniqueRepresentation, Parent):
         """
         return GroupExpElement(self, x.value + y.value)
 
-    def generators(self):
+    def group_generators(self):
         r"""
         Return generators of ``self``.
 
         EXAMPLES::
 
-            sage: GroupExp()(ZZ).generators()
+            sage: GroupExp()(ZZ).group_generators()
             (1,)
 
         """
         if hasattr(self._G, 'gens'):
             additive_generators = self._G.gens()
-        elif hasattr(self._G, 'generators'):
-            additive_generators = self._G.generators()
         else:
-            raise(AttributeError)
+            raise AttributeError("Additive group has no method 'gens'")
         return tuple([self(x) for x in additive_generators])
 
 GroupExp_Class.Element = GroupExpElement

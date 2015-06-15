@@ -512,20 +512,14 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         """
         return Family(self.special_nodes(), lambda i: self(i))
 
-    def gens(self):
-        r"""
-        See :meth:`generators`.
-        """
-        return self.generators()
-
-    def generators(self):
+    def group_generators(self):
         r"""
         Return a tuple of generators of the fundamental group.
 
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").generators()
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").group_generators()
             (f[0], f[1], f[6])
         """
         return tuple(self.family())
@@ -541,7 +535,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             (f[0], f[1], f[6])
         """
         if self in Groups().Finite():
-            return self.gens()
+            return self.group_generators()
         else:
             raise TypeError("Infinite groups cannot be listed")
 

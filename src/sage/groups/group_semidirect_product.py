@@ -343,7 +343,7 @@ class GroupSemidirectProduct(CartesianProduct):
         """
         return self((self.cartesian_factors()[0].one(), self.cartesian_factors()[1].one()))
 
-    def generators(self):
+    def group_generators(self):
         r"""
         Return generators of ``self``.
 
@@ -353,25 +353,22 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: import __main__
             sage: __main__.twist = twist
             sage: EZ = GroupExp()(ZZ)
-            sage: GroupSemidirectProduct(EZ,EZ,twist,print_tuple=True).generators()
+            sage: GroupSemidirectProduct(EZ,EZ,twist,print_tuple=True).group_generators()
             ((1, 0), (0, 1))
 
         """
-        def gens(G):
-            if hasattr(G, 'generators'):
-                return G.generators()
-            if hasattr(G, 'gens'):
-                return G.gens()
-            else:
+        def has_gens(G):
+            if not hasattr(G, 'group_generators'):
                 return False
+            return G.group_generators()
 
         factors = self.cartesian_factors()
-        g0 = gens(factors[0])
+        g0 = has_gens(factors[0])
         if g0 is not False:
-            g1 = gens(factors[1])
+            g1 = has_gens(factors[1])
             if g1 is not False:
                 return tuple([self((x,factors[1].one())) for x in g0] + [self((factors[0].one(),x)) for x in g1])
-        raise NotImplementedError("One of the factors does not implement generators")
+        raise NotImplementedError("One of the factors does not implement 'group_generators'")
 
     def product(self, x, y):
         r"""

@@ -1024,6 +1024,17 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         """
         return self.PW0()
 
+    def group_generators(self):
+        r"""
+        Return a set of generators for the default realization of ``self``.
+
+        EXAMPLES::
+
+            sage: ExtendedAffineWeylGroup(['A',2,1]).group_generators()
+            (t[Lambdacheck[1]], t[Lambdacheck[2]], s1, s2)
+        """
+        return self.a_realization().group_generators()
+
     @cached_method
     def PW0_to_WF_func(self, x):
         r"""

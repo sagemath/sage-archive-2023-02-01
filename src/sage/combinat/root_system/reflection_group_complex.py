@@ -488,26 +488,21 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.irreducible_components()
-            [Irreducible complex reflection group of rank 2 and type A2]
+            [Irreducible real reflection group of rank 2 and type A2]
 
             sage: W = ReflectionGroup((1,1,3),(2,1,3))
             sage: W.irreducible_components()
             [Irreducible real reflection group of rank 2 and type A2,
             Irreducible real reflection group of rank 3 and type B3]
         """
-        if self.nr_irreducible_components() == 1:
-            irr_comps = [self]
-        else:
-            from sage.combinat.root_system.reflection_group_real import ReflectionGroup
-            irr_comps = []
-            for W_type in self._type:
-                if W_type["series"] in ["A","B","D","E","F","G","H","I"]:
-                    W_str = (W_type["series"],W_type["rank"])
-                elif "ST" in W_type:
-                    W_str = W_type["ST"]
-                else:
-                    raise ValueError("not yet implemented")
-                irr_comps.append( ReflectionGroup(W_str) )
+        from sage.combinat.root_system.reflection_group_real import ReflectionGroup
+        irr_comps = []
+        for W_type in self._type:
+            if W_type["series"] in ["A","B","D","E","F","G","H","I"]:
+                W_str = (W_type["series"],W_type["rank"])
+            elif "ST" in W_type:
+                W_str = W_type["ST"]
+            irr_comps.append( ReflectionGroup(W_str) )
         return irr_comps
 
     @cached_method

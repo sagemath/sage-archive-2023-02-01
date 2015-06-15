@@ -119,33 +119,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         R = [ i for i in keys if index_family[i]+1 in R ]
         return [L,R]
 
-    def irreducible_components(self):
-        r"""
-        Return a list containing the irreducible components of ``self``
-        as finite reflection groups.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',3],['B',2])
-            sage: W.irreducible_components()
-            [Irreducible real reflection group of rank 3 and type A3,
-             Irreducible real reflection group of rank 2 and type B2]
-
-            sage: W = ReflectionGroup(['A',3])
-            sage: W.irreducible_components()
-            [Irreducible real reflection group of rank 3 and type A3]
-        """
-        if self.nr_irreducible_components() == 1:
-            irr_comps = [self]
-        else:
-            irr_comps = []
-            for W_type in self._type:
-                W_str = [ W_type["series"], W_type["rank"] ]
-                if W_type["series"] == "I":
-                    W_str[1] = W_type["bond"]
-                irr_comps.append( ReflectionGroup(W_str) )
-        return irr_comps
-
     def cartan_type(self):
         r"""
         Return the Cartan type of ``self``.

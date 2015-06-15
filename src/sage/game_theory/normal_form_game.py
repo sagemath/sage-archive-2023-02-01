@@ -1755,6 +1755,20 @@ class NormalFormGame(SageObject, MutableMapping):
         t += 'end\n'
         return s, t
 
+    def is_degenerate(self):
+        """
+        A function to check whether the game is degenerate or not.
+        Will return a boolean.
+
+        TESTS::
+
+            sage: A = matrix([[3,3],[2,5],[0,6]])
+            sage: B = matrix([[3,3],[2,6],[3,1]])
+            sage: degenerate_game = NormalFormGame([A,B])
+            sage: degenerate_game.is_degenerate()
+            True
+        """
+
 
 class _Player():
     def __init__(self, num_strategies):

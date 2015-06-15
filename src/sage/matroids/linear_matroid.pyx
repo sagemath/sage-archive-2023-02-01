@@ -2878,6 +2878,31 @@ cdef class BinaryMatroid(LinearMatroid):
         """
         bitset_copy(C, (<BinaryMatrix>self._A)._M[self._prow[x]])
 
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for BinaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)     
+           
+    
+    
     cdef  __exchange_value(self, long x, long y):
         r"""
         Return the (x, y) entry of the current representation.
@@ -3815,6 +3840,29 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         bitset_copy(C, (<TernaryMatrix>self._A)._M0[self._prow[x]])
 
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for TernaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)
+        
     cdef  __exchange_value(self, long x, long y):
         r"""
         Return the (x, y) entry of the current representation.
@@ -4611,6 +4659,29 @@ cdef class QuaternaryMatroid(LinearMatroid):
         Fill bitset `C` with the incidence vector of the `B`-fundamental cocircuit using ``x``. Internal method using packed elements.
         """
         bitset_union(C, (<QuaternaryMatrix>self._A)._M0[self._prow[x]], (<QuaternaryMatrix>self._A)._M1[self._prow[x]])
+    
+    cdef __coclosure(self, bitset_t R, bitset_t F):
+        """
+        Bitpacked version of ``coclosure``. 
+        
+        This function overrides the internal function BasisExchangeMatroid.__coclosure() of the parent class.
+        The implementation should be more efficient for QuaternaryMatroid, due to the fact that in this class,
+        __fundamental_cocircuit is much faster than __fundamental_circuit.
+        """
+        bitset_complement(R, F)
+        bitset_difference(self._inside, self._current_basis, R)
+        bitset_difference(self._outside, R, self._current_basis)
+        self.__move(self._inside, self._outside)
+        
+        bitset_copy(R, F)
+        bitset_difference(self._inside, self._current_basis, F)
+        cdef long y = bitset_first(self._inside)
+        while y >= 0:
+            self.__fundamental_cocircuit(self._outside, y)
+            bitset_discard(self._outside, y)
+            if bitset_issubset(self._outside, F):
+                bitset_add(R, y)
+            y = bitset_next(self._inside, y + 1)
 
     cdef  __exchange_value(self, long x, long y):
         r"""

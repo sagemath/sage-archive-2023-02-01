@@ -836,7 +836,7 @@ def _split_syntactical_unit(s):
         ...
         SyntaxError: Syntactical group starting with '(' did not end with ')'
 
-    Numbers are not recognised:::
+    Numbers are not recognised::
 
         sage: _split_syntactical_unit('123')
         ('1', '23')

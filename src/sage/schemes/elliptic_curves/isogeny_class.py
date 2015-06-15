@@ -25,6 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+import six
 from sage.structure.sage_object import SageObject
 import constructor
 import sage.databases.cremona
@@ -537,9 +538,9 @@ class IsogenyClass_EC(SageObject):
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 over Rational Field
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + 35*x - 28 over Rational Field
         """
-        if order is None or isinstance(order, basestring) and order == self._algorithm:
+        if order is None or isinstance(order, six.string_types) and order == self._algorithm:
             return self
-        if isinstance(order, basestring):
+        if isinstance(order, six.string_types):
             if order == "lmfdb":
                 reordered_curves = sorted(self.curves, key = lambda E: E.a_invariants())
             else:

@@ -391,16 +391,16 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
         def _latex_(self):
             r"""
-            Return `\LaTeX` representation of ``self`` to draw single
-            diagrams in latex using tikz.
+            Return `\LaTeX` representation of ``self`` to draw
+            diagram algebra element in latex using tikz.
 
             EXAMPLES::
 
                 sage: R.<x> = ZZ[]
                 sage: P = PartitionAlgebra(2, x, R)
-                sage: latex(P([[1,2],[-2,-1]]))
-                \begin{tikzpicture}[scale = 0.9,thick]
-                \tikzstyle{vertex} = [shape = circle, minimum size = 9pt, inner sep = 1pt]
+                sage: latex(P([[1,2],[-2,-1]]))                
+                \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+                \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
                 \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
                 \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
                 \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
@@ -413,7 +413,41 @@ class DiagramAlgebra(CombinatorialFreeModule):
             from sage.misc.latex import latex
             latex.add_to_mathjax_avoid_list('tikzpicture')
             latex.add_package_to_preamble_if_available('tikz')
+            
+            if self == self.parent().zero():
+                return "0"
+            latex.add_to_mathjax_avoid_list('tikzpicture')
+            latex.add_package_to_preamble_if_available('tikz') #these allow the view command to work. Should be moved?
+            diagrams = self.diagrams()
+            coeffs = self.coefficients()
+            output = ""
+            output += self._latex_support_coeff(coeffs[0], leading=True) #We do not want a '+' in front of the leading term
+            output += self._latex_diagram(diagrams[0])
+            for i in zip(coeffs, diagrams)[1:]:
+                output += self._latex_support_coeff(i[0])
+                output += self._latex_diagram(i[1])
+            return output[1:-1]
 
+        def _latex_support_coeff(self, coeff, leading = False):
+            r"""
+            Return `\LaTeX` representation of a coefficient.
+            """
+            sign = ""
+            if coeff._latex_()[0] != '-' and leading == False: #put a '+' in front of each positive term except the leading one
+                sign = "+"
+            if coeff == 1:
+                coeff = "" #don't put a 1 in front of a diagram.
+            elif coeff == -1:
+                sign = "-"
+                coeff = "" #don't put -1 as a coefficient; just make it negative.
+            else:
+                coeff = coeff._latex_()
+            return sign + coeff + "\n"
+
+        def _latex_diagram(self, diagram):
+            r"""
+            Return `\LaTeX` representation of a single diagram.
+            """
             # Define the sign function
             def sgn(x):
                 if x > 0:
@@ -421,15 +455,13 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 if x < 0:
                     return -1
                 return 0
-            diagram = self.diagram()
             l1 = [] #list of blocks
             l2 = [] #lsit of nodes
             for i in list(diagram):
                 l1.append(list(i))
                 for j in list(i):
                     l2.append(j)
-            #setup beginning of picture
-            output = "\\begin{tikzpicture}[scale = 0.9,thick] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 9pt, inner sep = 1pt] \n"
+            output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
             for i in l2: #add nodes
                 output = output + "\\node[vertex] (G-%s) at (%s, %s) [shape = circle, draw] {}; \n" % (i, (abs(i)-1)*1.5, sgn(i))
             for i in l1: #add edges
@@ -466,7 +498,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
                             outVec = (sgn(xdiff)*1, -1*y1)
                             inVec = (-1*sgn(xdiff), -1*y2)
                         output = output + "\\draw (G-%s) .. controls +%s and +%s .. (G-%s); \n" % (j[0], outVec, inVec,j[1])
-            output = output + "\\end{tikzpicture}" #end picture
+            output = output + "\\end{tikzpicture} \n" #end picture
             return output
 
 class PartitionAlgebra(DiagramAlgebra):

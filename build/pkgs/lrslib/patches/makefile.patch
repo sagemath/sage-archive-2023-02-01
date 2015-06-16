@@ -1,3 +1,7 @@
+Find includes and libs in the  tree, install there.
+Use cp instead of 'install -t', which does not work on Mac OS X.
+Disable plrs build.
+
 --- patches/makefile.orig	2015-06-14 18:06:18.000000000 -0700
 +++ patches/makefile	2015-06-14 18:06:18.000000000 -0700
 @@ -1,5 +1,7 @@

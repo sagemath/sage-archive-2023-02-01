@@ -964,18 +964,18 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return I
 
     def cartan_matrix(self):
-        """
+        r"""
         Return the Cartan matrix associated with ``self``.
 
         If ``self`` is crystallographic, the returned Cartan matrix is
-        an instance of :class:`CartanMatrix`, and a :func:`matrix`
+        an instance of :class:`CartanMatrix`, and a normal matrix
         otherwise.
 
-        Let $s_1,\ldots,s_n$ be a set of reflections which generate
-        ``self`` with associated simple roots $s_1,\ldots,s_n$ and
-        simple coroots $s^\vee_i$. Then the Cartan matrix $C = (c_{ij})$
-        is given by $s^\vee_i(s_j)$. The Cartan matrix completely
-        determines the reflection representation if the $s_i$ are
+        Let `s_1,\ldots,s_n` be a set of reflections which generate
+        ``self`` with associated simple roots `s_1,\ldots,s_n` and
+        simple coroots `s^\vee_i`. Then the Cartan matrix `C = (c_{ij})`
+        is given by `s^\vee_i(s_j)`. The Cartan matrix completely
+        determines the reflection representation if the `s_i` are
         linearly independent.
 
         EXAMPLES::

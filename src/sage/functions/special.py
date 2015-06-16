@@ -152,9 +152,6 @@ REFERENCES:
 - Online Encyclopedia of Special Function
   http://algo.inria.fr/esf/index.html
 
-TODO: Resolve weird bug in commented out code in hypergeometric_U
-below.
-
 AUTHORS:
 
 - David Joyner and William Stein
@@ -726,8 +723,6 @@ class EllipticE(BuiltinFunction):
 
         E(\varphi\,|\,m)=\int_0^\varphi \sqrt{1 - m\sin(x)^2}\, dx.
 
-    Taking `\varphi = \pi/2` gives :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
-
     EXAMPLES::
 
         sage: z = var("z")
@@ -742,6 +737,18 @@ class EllipticE(BuiltinFunction):
         0.498011394498832
         sage: elliptic_e(1/2, 1/10).n(200)
         0.4980113944988315331154610406...
+
+    .. SEEALSO::
+
+        - Taking `\varphi = \pi/2` gives :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
+
+        - Taking `\varphi = \operatorname{arc\,sin}(\operatorname{sn}(u,m))` gives :func:`elliptic_eu()<sage.functions.special.EllipticEU>`.
+
+    REFERENCES:
+
+    - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_second_kind`
+
+    - :wikipedia:`Jacobi_elliptic_functions`
     """
     def __init__(self):
         """
@@ -845,6 +852,14 @@ class EllipticEC(BuiltinFunction):
         1.53075763689776
         sage: elliptic_ec(x).diff()
         1/2*(elliptic_ec(x) - elliptic_kc(x))/x
+
+    .. SEEALSO::
+
+        - :func:`elliptic_e()<sage.functions.special.EllipticE>`.
+
+    REFERENCES:
+
+    - :wikipedia:`Elliptic_integral#Complete_elliptic_integral_of_the_second_kind`
     """
     def __init__(self):
         """
@@ -914,10 +929,22 @@ class EllipticEU(BuiltinFunction):
 
     where `\tau = \mathrm{sn}(u, m)`.
 
+    Also, ``elliptic_eu(u, m) = elliptic_e(asin(sn(u,m)),m)``.
+
     EXAMPLES::
 
         sage: elliptic_eu (0.5, 0.1)
         0.496054551286597
+
+    .. SEEALSO::
+
+        - :func:`elliptic_e()<sage.functions.special.EllipticE>`.
+
+    REFERENCES:
+
+    - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_second_kind`
+
+    - :wikipedia:`Jacobi_elliptic_functions`
     """
     def __init__(self):
         r"""
@@ -1012,7 +1039,7 @@ elliptic_eu = EllipticEU()
 
 class EllipticF(BuiltinFunction):
     r"""
-    Return the incomplete elliptic integral of the first kind,
+    Return the incomplete elliptic integral of the first kind.
 
     .. math::
 
@@ -1029,6 +1056,14 @@ class EllipticF(BuiltinFunction):
         log(tan(1/4*pi + 1/2*z))
         sage: elliptic_f (0.2, 0.1)
         0.200132506747543
+
+    .. SEEALSO::
+
+        - :func:`elliptic_e()<sage.functions.special.EllipticE>`.
+
+    REFERENCES:
+
+    - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_first_kind`
     """
     def __init__(self):
         """
@@ -1121,6 +1156,18 @@ class EllipticKC(BuiltinFunction):
 
         sage: elliptic_kc(0.5)
         1.85407467730137
+
+    .. SEEALSO::
+
+        - :func:`elliptic_f()<sage.functions.special.EllipticF>`.
+
+        - :func:`elliptic_ec()<sage.functions.special.EllipticEC>`.
+
+    REFERENCES:
+
+    - :wikipedia:`Elliptic_integral#Complete_elliptic_integral_of_the_first_kind`
+
+    - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_first_kind`
     """
     def __init__(self):
         """
@@ -1206,17 +1253,9 @@ class EllipticPi(BuiltinFunction):
         sage: numerical_integral(1/(1-0.1*sin(x)^2)/sqrt(1-0.3*sin(x)^2), 0.0, 0.2)
         (0.2006650682209791, 2.227829789769088e-15)
 
-    ALGORITHM:
-
-    Numerical evaluation and symbolic manipulation are provided by `Maxima`_.
-
     REFERENCES:
 
-    - Abramowitz and Stegun: Handbook of Mathematical Functions, section 17.7
-      http://www.math.sfu.ca/~cbm/aands/
-    - Elliptic Functions in `Maxima`_
-
-    .. _`Maxima`: http://maxima.sourceforge.net/docs/manual/en/maxima_16.html#SEC91
+    - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_third_kind`
     """
     def __init__(self):
         """

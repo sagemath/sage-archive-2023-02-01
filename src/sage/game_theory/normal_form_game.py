@@ -1807,34 +1807,69 @@ class NormalFormGame(SageObject, MutableMapping):
             raise NotImplementedError("")
 
         M1, M2 = self.payoff_matrices()
-
-        # create Identity matrices of appropriate size
         m = M1.nrows()
         n = M2.ncols()
-        a = matrix.identity(n)
-        b = matrix.identity(m)
-
-        # append Identity matrices
-        A = M1.stack(a)
-        B = M2.augment(b)
-
-        # transpose because Sage prefers dealing with rows
-        B = B.transpose()
+        A, B = self._create_label_matrices(M1, M2, m, n)
 
         # create support sets
-        supp_A = list(combinations([i for i in range(n + m)], n))
-        supp_B = list(combinations([i for i in range(n + m)], m))
+        supp_A = list(combinations([i for i in range(n + m)], n+1))
+        supp_B = list(combinations([i for i in range(n + m)], m+1))
 
         for s in supp_A:
             X = A.matrix_from_rows(s)
-            if X.rank() != n:
+            if X.rank() != n+1:
                 return True
         for s in supp_B:
-            X = A.matrix_from_rows(s)
-            if X.rank() != m:
+            X = B.matrix_from_rows(s)
+            if X.rank() != m+1:
                 return True
 
         return False
+
+    def _create_label_matrices(self, A, B, m, n):
+        """
+        Creates the label equations
+
+        TESTS::
+
+            sage: A = matrix([[3,3],[2,5],[0,6]])
+            sage: B = matrix([[3,3],[2,6],[3,1]])
+            sage: degenerate_game = NormalFormGame([A,B])
+            sage: degenerate_game._create_label_matrices(A, B, 3, 2)
+            (
+            [3 3 1]  [3 2 3 1]
+            [2 5 1]  [3 6 1 1]
+            [0 6 1]  [1 0 0 0]
+            [1 0 0]  [0 1 0 0]
+            [0 1 0], [0 0 1 0]
+            )
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: prisoners_dilemma._create_label_matrices(A, B, 2, 2)
+            (
+            [2 5 1]  [2 5 1]
+            [0 4 1]  [0 4 1]
+            [1 0 0]  [1 0 0]
+            [0 1 0], [0 1 0]
+            )
+        """
+        B = B.transpose()
+
+        a = matrix.identity(n)
+        b = matrix.identity(m)
+
+        A = A.stack(a)
+        B = B.stack(b)
+
+        u = vector([1 for i in range(m)] + [0 for i in range(n)])
+        v = vector([1 for i in range(n)] + [0 for i in range(m)])
+
+        A = A.augment(u)
+        B = B.augment(v)
+
+        return A, B
 
 
 class _Player():

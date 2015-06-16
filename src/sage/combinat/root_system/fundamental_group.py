@@ -18,6 +18,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.root_system import RootSystem
+from sage.categories.category import Category
+from sage.categories.enumerated_sets import EnumeratedSets
 
 def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_linear=None):
     r"""
@@ -31,7 +33,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
     - `general_linear` -- (default: None, meaning False) In untwisted type A, if True, use the
       universal central extension
 
-    ..RUBRIC::
+    .. RUBRIC::
 
     Associated to each affine Cartan type `\tilde{X}` is an extended affine Weyl group `E`.
     Its subgroup of length-zero elements is called the fundamental group `F`.
@@ -39,12 +41,12 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
     affine Dynkin diagram. As such, every element of `F` can be viewed as a permutation of the
     set `I` of affine Dynkin nodes.
 
-    Let `0 \in I` be the distinguished affine node; it is the one whose removal produces the associated
-    finite Cartan type (call it `X`). A node `i \in I` is called *special*
+    Let `0 \in I` be the distinguished affine node; it is the one whose removal produces the
+    associated finite Cartan type (call it `X`). A node `i \in I` is called *special*
     if some automorphism of the affine Dynkin diagram, sends `0` to `i`.
     The node `0` is always special due to the identity automorphism.
-    There is a bijection of the set of special nodes with the fundamental group. We denote the image of `i` by
-    `\pi_i`. The structure of `F` is determined as follows.
+    There is a bijection of the set of special nodes with the fundamental group. We denote the
+    image of `i` by `\pi_i`. The structure of `F` is determined as follows.
 
     - `\tilde{X}` is untwisted -- `F` is isomorphic to `P^\vee/Q^\vee` where `P^\vee` and `Q^\vee` are the
     coweight and coroot lattices of type `X`. The group `P^\vee/Q^\vee` consists of the cosets `\omega_i^\vee + Q^\vee`
@@ -185,7 +187,7 @@ def FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix='pi', general_
     if cartan_type.is_finite():
         cartan_type = cartan_type.affine()
     if not cartan_type.is_affine():
-        raise NotImplementedError
+        raise NotImplementedError("Cartan type is not affine")
     if general_linear is True:
         if cartan_type.is_untwisted_affine() and cartan_type.type() == "A":
             return FundamentalGroupGL(cartan_type, prefix)
@@ -219,9 +221,9 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
             sage: x = F.an_element(); x
-            f[2]
+            f[0]
             sage: x.value()
-            2
+            0
 
         """
         return self._value
@@ -266,16 +268,13 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
-            sage: x = F.an_element(); x
-            pi[2]
-            sage: y = x*x; y
-            pi[0]
+            sage: x = F(0); y = F(2)
             sage: y.__cmp__(x)
-            -1
+            1
             sage: y.__cmp__(y)
             0
             sage: x.__cmp__(y)
-            1
+            -1
 
         """
         if self.__class__  != x.__class__:
@@ -328,7 +327,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
     """
     Element = FundamentalGroupElement
 
-    def __init__(self, cartan_type, prefix, finite = True):
+    def __init__(self, cartan_type, prefix, finite=True):
         r"""
 
         EXAMPLES::
@@ -338,7 +337,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: TestSuite(F).run()
 
         """
-
         def get_the_index(beta):
             r"""
             Given a dictionary with one key, return this key
@@ -349,69 +347,55 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         self._cartan_type = cartan_type
         self._prefix = prefix
+        self._special_nodes = self.cartan_type().special_nodes()
+        special_node = cartan_type.special_node()
+
+        # initialize dictionaries with the entries for the distinguished special node
+        # dictionary of inverse elements
+        inverse_dict = {}
+        inverse_dict[special_node] = special_node
+        # dictionary for the action of special automorphisms by permutations of the affine Dynkin nodes
+        auto_dict = {}
+        for i in cartan_type.index_set():
+            auto_dict[special_node,i] = i
+        # dictionary for the finite Weyl component of the special automorphisms
+        reduced_words_dict = {}
+        reduced_words_dict[0] = tuple([])
 
         if cartan_type.dual().is_untwisted_affine():
+            # this combines the computations for an untwisted affine type and its affine dual
             cartan_type = cartan_type.dual()
         if cartan_type.is_untwisted_affine():
             cartan_type_classical = cartan_type.classical()
             I = [i for i in cartan_type_classical.index_set()]
             Q = RootSystem(cartan_type_classical).root_lattice()
             alpha = Q.simple_roots()
-            theta = Q.highest_root()
-            self._special_nodes = tuple([0] + [i for i in I if theta[i] == 1])
-            om = RootSystem(cartan_type_classical).weight_lattice().fundamental_weights()
+            omega = RootSystem(cartan_type_classical).weight_lattice().fundamental_weights()
             W = Q.weyl_group(prefix="s")
-            fg_dict = {}
-            for j in cartan_type.index_set():
-                fg_dict[0,j] = j
-            inverse_dict = {}
-            inverse_dict[0] = 0
-            finite_action_dict = {}
-            finite_action_dict[0] = tuple([])
             for i in self._special_nodes:
-                if i == 0:
+                if i == special_node:
                     continue
-                antiwt, red = om[i].to_dominant_chamber(reduced_word=True, positive=False)
-                finite_action_dict[i] = tuple(red)
-                w0i = W.from_reduced_word(red)
-                idual = get_the_index(-antiwt)
+                antidominant_weight, reduced_word = omega[i].to_dominant_chamber(reduced_word=True, positive=False)
+                reduced_words_dict[i] = tuple(reduced_word)
+                w0i = W.from_reduced_word(reduced_word)
+                idual = get_the_index(-antidominant_weight)
                 inverse_dict[i] = idual
-                fg_dict[i,0] = i
+                auto_dict[i,special_node] = i
                 for j in I:
-                    if j != idual:
-                        fg_dict[i,j] = get_the_index(w0i.action(alpha[j]))
+                    if j == idual:
+                        auto_dict[i,j] = special_node
                     else:
-                        fg_dict[i,j] = 0
-            self._action = Family(self._special_nodes, lambda i: Family(cartan_type.index_set(), lambda j: fg_dict[i,j]))
-            self._dual_node = Family(self._special_nodes, lambda i: inverse_dict[i])
-            self._finite_action = Family(self._special_nodes, lambda i: finite_action_dict[i])
+                        auto_dict[i,j] = get_the_index(w0i.action(alpha[j]))
 
-        if cartan_type.type() == "BC" or cartan_type.dual().type() == "BC":
-            self._special_nodes = tuple([0])
-            self._action = Family({0:Family(cartan_type.index_set(), lambda i: i)})
-            self._dual_node = Family({0:0})
-            self._finite_action = Family({0:tuple([])})
+        self._action = Family(self._special_nodes, lambda i: Family(cartan_type.index_set(), lambda j: auto_dict[i,j]))
+        self._dual_node = Family(self._special_nodes, inverse_dict.__getitem__)
+        self._finite_action = Family(self._special_nodes, reduced_words_dict.__getitem__)
 
         if finite:
-            cat = Groups().Commutative().Finite()
+            cat = Category.join((Groups().Commutative().Finite(),EnumeratedSets()))
         else:
             cat = Groups().Commutative()
         Parent.__init__(self, category = cat)
-
-    def _element_constructor_(self, x):
-        r"""
-        Construct an element of ``self`` from ``x``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]).an_element() # indirect doctest
-            pi[2]
-
-        """
-        if isinstance(x, self.element_class) and x.parent() is self:
-            return x
-        return self.element_class(self, x)
 
     @cached_method
     def one(self):
@@ -493,25 +477,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         """
         return self._special_nodes
 
-    def family(self):
-        r"""
-        Return a family indexed by special nodes whose values are the corresponding fundamental
-        group elements.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f")
-            sage: fam = F.family(); fam
-            Finite family {0: f[0], 1: f[1], 6: f[6]}
-            sage: fam[0] == F(0)
-            True
-            sage: fam[6]^2
-            f[1]
-
-        """
-        return Family(self.special_nodes(), lambda i: self(i))
-
     def group_generators(self):
         r"""
         Return a tuple of generators of the fundamental group.
@@ -520,9 +485,23 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").group_generators()
-            (f[0], f[1], f[6])
+            Finite family {0: f[0], 1: f[1], 6: f[6]}
         """
-        return tuple(self.family())
+        return Family(self.special_nodes(), lambda i: self(i))
+
+    def __iter__(self):
+        r"""
+        Return the iterator for ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f")
+            sage: [x for x in F] # indirect doctest
+            [f[0], f[1], f[6]]
+        """
+        for x in self.list():
+            yield(x)
 
     def list(self):
         r"""
@@ -532,7 +511,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").list()
-            (f[0], f[1], f[6])
+            Finite family {0: f[0], 1: f[1], 6: f[6]}
         """
         if self in Groups().Finite():
             return self.group_generators()

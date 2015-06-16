@@ -19,7 +19,7 @@ AUTHORS:
     - Element class should be unique to be able to work with large groups without creating elements multiple times.
 """
 #*****************************************************************************
-#       Copyright (C) 2011-2015 Christian Stump <christian.stump at lacim.ca>
+#       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -188,7 +188,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                                     hyperplane_index_set    = hyperplane_index_set,
                                     reflection_index_set    = reflection_index_set)
         N = self.nr_reflections()
-        self._is_positive_root = [None] + [ True ] * N + [False]*N 
+        self._is_positive_root = [None] + [ True ] * N + [False]*N
 
     __iter__ = CoxeterGroups.ParentMethods.__iter__.__func__
 
@@ -218,7 +218,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             sage: W = ReflectionGroup(["A",5])
             sage: W.bipartite_index_set()
             [[0, 2, 4], [1, 3]]
- 
+
             sage: W = ReflectionGroup(["A",5],index_set=['a','b','c','d','e'])
             sage: W.bipartite_index_set()
             [['a', 'c', 'e'], ['b', 'd']]
@@ -401,7 +401,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [1 3 2]
             [3 1 3]
             [2 3 1]
-        """            
+        """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.all import MatrixSpace
 

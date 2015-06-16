@@ -19,7 +19,7 @@ AUTHORS:
     - Element class should be unique to be able to work with large groups without creating elements multiple times.
 """
 #*****************************************************************************
-#       Copyright (C) 2015 Christian Stump <christian.stump at lacim.ca>
+#       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

@@ -2,11 +2,11 @@ r"""
 Complex reflection groups
 """
 #*****************************************************************************
-#  Copyright (C) 2015    Christian Stump <christian.stump at lacim.ca>
+#       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+#*****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.all import prod
@@ -371,7 +371,7 @@ class ComplexReflectionGroups(Category_singleton):
                 sage: W=ReflectionGroup((1,1,4))
                 sage: W.some_elements()
                 [(1,7)(2,4)(5,6)(8,10)(11,12), (1,4)(2,8)(3,5)(7,10)(9,11), (2,5)(3,9)(4,6)(8,11)(10,12), (), (1,7)(2,4)(5,6)(8,10)(11,12)]
-                sage: W.order()    
+                sage: W.order()
                 24
             """
             return [self.simple_reflection(i) for i in self.index_set() ] + [ self.one(), self.an_element_force() ]
@@ -389,7 +389,7 @@ class ComplexReflectionGroups(Category_singleton):
             - ``word_type`` (optional, default: 'simple') can be
               'simple', 'distinguished', or 'all', depending on the type
               of reflections used.
-  
+
             If ``word`` is `[i_1,i_2,\ldots,i_k]`, then this returns the
             corresponding product of (simple/distinguished/all)
             reflections `t_{i_1} t_{i_2} \cdots t_{i_k}`.
@@ -601,7 +601,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflections(self, word, side = 'right'):
             r"""
-            Return the result of the (left/right) multiplication of   
+            Return the result of the (left/right) multiplication of
             ``word`` to ``self``.
 
             INPUT:
@@ -636,7 +636,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_distinguished_reflection(self, i, side = 'right'):
             r"""
-            Return the result of the (left/right) multiplication of   
+            Return the result of the (left/right) multiplication of
             the ``i`` -th distingiushed reflection to ``self``.
 
             INPUT:
@@ -700,7 +700,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_reflection(self, i, side = 'right'):
             r"""
-            Return the result of the (left/right) multiplication of   
+            Return the result of the (left/right) multiplication of
             the ``i`` -th reflection to ``self``.
 
             INPUT:
@@ -1195,7 +1195,7 @@ class ComplexReflectionGroups(Category_singleton):
                 return self.as_matrix().trace()
 
         class Irreducible(CategoryWithAxiom):
-            
+
             def example(self):
                 r"""
                 Return an example of an irreducible complex

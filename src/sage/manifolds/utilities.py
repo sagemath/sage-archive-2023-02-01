@@ -258,6 +258,74 @@ def simplify_chain_real(expr):
     #. :meth:`~sage.symbolic.expression.Expression.simplify_rational`
     #. :meth:`~sage.symbolic.expression.Expression.simplify_trig`
 
+    EXAMPLES:
+
+    We consider variables that are coordinates of a chart on a real manifold::
+
+        sage: forget()  # for doctest only
+        sage: M = TopManifold(2, 'M')
+        sage: X.<x,y> = M.chart('x:(0,1) y')
+
+    The following assumptions then hold::
+
+        sage: assumptions()
+        [x is real, x > 0, x < 1, y is real]
+
+    and we have::
+
+        sage: from sage.manifolds.utilities import simplify_chain_real
+        sage: s = sqrt(y^2)
+        sage: simplify_chain_real(s)
+        abs(y)
+
+    The above result is correct since ``y`` is real. It is obtained by
+    :meth:`~sage.symbolic.expression.Expression.simplify_real` as well,
+    but not by :meth:`~sage.symbolic.expression.Expression.simplify_full`::
+
+        sage: s.simplify_real()
+        abs(y)
+        sage: s.simplify_full()
+        sqrt(y^2)
+
+    Furthermore, we have::
+
+        sage: s = sqrt(x^2-2*x+1)
+        sage: simplify_chain_real(s)
+        -x + 1
+
+    which is correct since `x \in (0,1)`. On this example, neither
+    :meth:`~sage.symbolic.expression.Expression.simplify_real`
+    nor :meth:`~sage.symbolic.expression.Expression.simplify_full`,
+    nor :meth:`~sage.symbolic.expression.Expression.canonicalize_radical`
+    give satisfactory results::
+
+        sage: s.simplify_real()  # unsimplified output
+        sqrt(x^2 - 2*x + 1)
+        sage: s.simplify_full()  # unsimplified output
+        sqrt(x^2 - 2*x + 1)
+        sage: s.canonicalize_radical()  # wrong output since x in (0,1)
+        x - 1
+
+    Other simplifications::
+
+        sage: s = abs(sin(pi*x))
+        sage: simplify_chain_real(s)  # correct output since x in (0,1)
+        sin(pi*x)
+        sage: s.simplify_real()  # unsimplified output
+        abs(sin(pi*x))
+        sage: s.simplify_full()  # unsimplified output
+        abs(sin(pi*x))
+
+    ::
+
+        sage: s = cos(y)^2 + sin(y)^2
+        sage: simplify_chain_real(s)
+        1
+        sage: s.simplify_real()  # unsimplified output
+        cos(y)^2 + sin(y)^2
+        sage: s.simplify_full()  # OK
+        1
+
     """
     expr = expr.simplify_factorial()
     expr = expr.simplify_trig()
@@ -282,25 +350,57 @@ def simplify_chain_generic(expr):
     successively:
 
     #. :meth:`~sage.symbolic.expression.Expression.simplify_factorial`
+    #. :meth:`~sage.symbolic.expression.Expression.simplify_rectform`
     #. :meth:`~sage.symbolic.expression.Expression.simplify_trig`
     #. :meth:`~sage.symbolic.expression.Expression.simplify_rational`
-    #. :meth:`~sage.symbolic.expression.Expression.canonicalize_radical`
-    #. :func:`simplify_abs_trig`
-    #. :meth:`~sage.symbolic.expression.Expression.canonicalize_radical`
-    #. :meth:`~sage.symbolic.expression.Expression.simplify_log`
-    #. :meth:`~sage.symbolic.expression.Expression.simplify_rational`
-    #. :meth:`~sage.symbolic.expression.Expression.simplify_trig`
+    #. :meth:`~sage.symbolic.expression.Expression.expand_sum`
+
+    NB: for the time being, this is identical to
+    :meth:`~sage.symbolic.expression.Expression.simplify_full`.
+
+    EXAMPLES:
+
+    We consider variables that are coordinates of a chart on a complex
+    manifold::
+
+        sage: forget()  # for doctest only
+        sage: M = TopManifold(2, 'M', field='complex')
+        sage: X.<x,y> = M.chart()
+
+    Then neither ``x`` nor ``y`` is assumed to be real::
+
+        sage: assumptions()
+        []
+
+    Accordingly, ``simplify_chain_generic`` does not simplify
+    ``sqrt(x^2)`` to ``abs(x)``::
+
+        sage: from sage.manifolds.utilities import simplify_chain_generic
+        sage: s = sqrt(x^2)
+        sage: simplify_chain_generic(s)
+        sqrt(x^2)
+
+    This contrasts with the behavior of
+    :func:`~sage.manifolds.utilities.simplify_chain_real`.
+
+    Other simplifications::
+
+        sage: s = (x+y)^2 - x^2 -2*x*y - y^2
+        sage: simplify_chain_generic(s)
+        0
+        sage: s = (x^2 - 2*x + 1) / (x^2 -1)
+        sage: simplify_chain_generic(s)
+        (x - 1)/(x + 1)
+        sage: s = cos(2*x) - 2*cos(x)^2 + 1
+        sage: simplify_chain_generic(s)
+        0
 
     """
     expr = expr.simplify_factorial()
+    expr = expr.simplify_rectform()
     expr = expr.simplify_trig()
     expr = expr.simplify_rational()
-    expr = expr.canonicalize_radical()
-    expr = simplify_abs_trig(expr)
-    expr = expr.canonicalize_radical()
-    expr = expr.simplify_log('one')
-    expr = expr.simplify_rational()
-    expr = expr.simplify_trig()
+    expr = expr.expand_sum()
     return expr
 
 

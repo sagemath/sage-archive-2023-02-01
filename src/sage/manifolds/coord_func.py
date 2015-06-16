@@ -172,7 +172,7 @@ class CoordFunction(SageObject):
 
     def __radd__(self, other):
         r"""
-        Addition on the left with ``other``.
+        Reflected addition operator: performs ``other + self``.
 
         INPUT:
 
@@ -180,7 +180,7 @@ class CoordFunction(SageObject):
 
         OUTPUT:
 
-        - coordinate function resulting from the addition of ``self`` and
+        - coordinate function resulting from the addition of ``self`` to
           ``other``
 
         TESTS::
@@ -197,7 +197,7 @@ class CoordFunction(SageObject):
             x + y + 2
 
         """
-        return self.__add__(other)
+        return self.__add__(other)  # since + is commutative
 
     def __iadd__(self, other):
         r"""
@@ -230,7 +230,7 @@ class CoordFunction(SageObject):
 
     def __rsub__(self, other):
         r"""
-        Subtraction from ``other``.
+        Reflected subtraction operator: performs ``other - self``.
 
         INPUT:
 
@@ -288,7 +288,7 @@ class CoordFunction(SageObject):
 
     def __rmul__(self, other):
         r"""
-        Multiplication on the left with ``other``.
+        Reflected multiplication operator: performs ``other * self``.
 
         INPUT:
 
@@ -315,7 +315,7 @@ class CoordFunction(SageObject):
             2*x + 2*y
 
         """
-        return self.__mul__(other)
+        return self.__mul__(other)  # since * is commutative
 
     def __imul__(self, other):
         r"""
@@ -348,7 +348,7 @@ class CoordFunction(SageObject):
 
     def __rdiv__(self, other):
         r"""
-        Division of ``other`` by ``self``.
+        Reflected division operator: performs ``other / self``.
 
         INPUT:
 

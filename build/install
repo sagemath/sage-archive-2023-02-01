@@ -408,19 +408,6 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
 done
 echo >&5
 
-cat >&5 <<EOF
-# don't just use \`install\` since we don't want to change permissions
-\$(SAGE_LOCAL)/bin/%: \$(SAGE_SRC)/bin/%
-	cp \$< \$@
-
-# don't just use \`install -D\` since we don't want to change permissions
-# cp won't correctly setup the SAGE_EXTCODE directory structure (unlike install)
-# so we need a mkdir here to cp can copy into an existing folder
-\$(SAGE_EXTCODE)/%: \$(SAGE_SRC)/ext/%
-	@mkdir -p "\$(@D)"
-	cp \$< \$@
-EOF
-
 # Copy build/deps
 cat >&5 <<EOF
 

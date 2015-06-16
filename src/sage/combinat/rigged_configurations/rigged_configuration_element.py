@@ -148,6 +148,14 @@ class RiggedConfigurationElement(ClonableArray):
         r"""
         Construct a rigged configuration element.
 
+        .. WARNING::
+
+            This changes the vacancy numbers of the rigged partitions, so
+            if the rigged partitions comes from another rigged configuration,
+            a deep copy should be made before being passed here. We do not
+            make a deep copy here because the crystal operators generate
+            their own rigged partitions. See :trac:`17054`.
+
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])

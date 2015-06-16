@@ -3845,8 +3845,8 @@ class DiagramAutomorphism(CrystalMorphism):
         self._cache_result = bool(cache)
         if isinstance(cache, dict):
             self._cache = cache
-        ct = C.cartan_type()
-        CrystalMorphism.__init__(self, parent, ct, tuple(index_set))
+        self._index_set = tuple(index_set)
+        CrystalMorphism.__init__(self, parent, C.cartan_type())
 
     def _call_(self, x):
         """

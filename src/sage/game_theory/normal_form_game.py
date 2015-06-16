@@ -1780,6 +1780,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d_game.is_degenerate_LA()
             True
 
+            sage: M = matrix([[2, 1], [1, 1]])
+            sage: N = matrix([[1, 1], [1, 2]])
+            sage: game  = NormalFormGame([M, N])
+            sage: game.is_degenerate_LA()
+            True
+
         TESTS::
 
             sage: g = NormalFormGame()

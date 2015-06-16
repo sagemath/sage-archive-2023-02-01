@@ -1807,10 +1807,21 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: prisoners_dilemma = NormalFormGame([A, B])
             sage: prisoners_dilemma.is_degenerate_LA()
             False
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g.add_player(2)
+            sage: g.is_degenerate_LA()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Tests for Degeneracy is not yet implemented for games with more than two players.
         """
 
         if len(self.players) > 2:
-            raise NotImplementedError("")
+            raise NotImplementedError("Tests for Degeneracy is not yet "
+                                      "implemented for games with more than "
+                                      "two players.")
 
         M1, M2 = self.payoff_matrices()
         m = M1.nrows()
@@ -1834,7 +1845,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _create_label_matrices(self, A, B, m, n):
         """
-        Creates the label equations
+        Creates the label equation matrices.
 
         TESTS::
 

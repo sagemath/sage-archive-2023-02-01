@@ -10,7 +10,7 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012,2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
-#       Copyright (C) 2013 Chrisitan Stump,
+#       Copyright (C) 2013 Chrisitan Stump <christian.stump@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

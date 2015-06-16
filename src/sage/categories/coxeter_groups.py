@@ -655,39 +655,6 @@ class CoxeterGroups(Category_singleton):
             return CoxeterMatrixGroup(self.coxeter_matrix(),
                                       index_set=self.index_set())
 
-        def coxeter_matrix(self):
-            from sage.rings.integer_ring import ZZ
-            from sage.matrix.all import MatrixSpace
-
-            S = self.simple_reflections()
-            I = self.index_set()
-            I_inv = self._index_set
-            n = self.rank()
-            MS = MatrixSpace(ZZ, n)
-            m = MS(0)
-            for i in I:
-                for j in I:
-                    m[I_inv[i],I_inv[j]] = (S[i]*S[j]).order()
-            return m
-
-        def cartan_matrix(self):
-            from sage.rings.integer_ring import ZZ
-            from sage.rings.universal_cyclotomic_field.all import UCF
-            from sage.symbolic.constants import pi
-            from sage.functions.trig import cos
-
-            if self.is_crystallographic():
-                R = ZZ
-            else:
-                R = UCF
-                print "not yet working properly for not crystallographic groups!"
-            m = self.coxeter_matrix()
-            m = m.base_extend(R)
-            for i in range(m.ncols()):
-                for j in range(m.ncols()):
-                    m[i,j] = -2*cos(pi/m[i,j])
-            return m
-
         def elements_of_length(self, n):
             r"""
             Return all elements of length `n`.

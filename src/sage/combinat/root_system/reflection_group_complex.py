@@ -426,6 +426,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         Returns True if self is crystallographic, i.e., if the reflection representation of ``self``
         is defined over the rationals.
 
+        TODO::
+
+            - make this more robust and do not use the matrix
+              representation of the simple reflections.
+
         EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3)); W
@@ -447,9 +452,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             Irreducible complex reflection group of rank 3 and type G(3,1,3)
             sage: W.is_crystallographic()
             False
+
+            sage: W = ReflectionGroup((4,2,2)); W
+            Irreducible complex reflection group of rank 2 and type G(4,2,2)
+            sage: W.is_crystallographic()
+            False
         """
         from sage.rings.all import QQ
-        return all( t.as_matrix().base_ring() is QQ for t in self.simple_reflections() )
+        return self.is_real() and all( t.as_matrix().base_ring() is QQ for t in self.simple_reflections() )
 
     def _element_class(self):
         r"""
@@ -838,9 +848,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         r"""
         Returns the base change from the standard basis of the vector space of ``self`` to the basis given by the independent roots of ``self``.
 
-        FIXME:
+        TODO::
 
-        - for non-well-generated groups there is a conflict with construction of the matrix for an element
+            - for non-well-generated groups there is a conflict with construction of the matrix for an element
 
         EXAMPLES::
 
@@ -952,6 +962,51 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
         I = [ eval(p) for p in I ]
         return I
+
+    def cartan_matrix(self):
+        """
+        Return the Cartan matrix associated with ``self``.
+
+        If ``self`` is crystallographic, the returned Cartan matrix is
+        an instance of :class:`CartanMatrix`, and a :func:`matrix`
+        otherwise.
+
+        Let $s_1,\ldots,s_n$ be a set of reflections which generate
+        ``self`` with associated simple roots $s_1,\ldots,s_n$ and
+        simple coroots $s^\vee_i$. Then the Cartan matrix $C = (c_{ij})$
+        is given by $s^\vee_i(s_j)$. The Cartan matrix completely
+        determines the reflection representation if the $s_i$ are
+        linearly independent.
+
+        EXAMPLES::
+
+            sage: ReflectionGroup(['A',4]).cartan_matrix()
+            [ 2 -1  0  0]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [ 0  0 -1  2]
+
+            sage: ReflectionGroup(['H',4]).cartan_matrix()
+            [              2 E(5)^2 + E(5)^3               0               0]
+            [E(5)^2 + E(5)^3               2              -1               0]
+            [              0              -1               2              -1]
+            [              0               0              -1               2]
+
+            sage: ReflectionGroup(4).cartan_matrix()
+            [-2*E(3) - E(3)^2           E(3)^2]
+            [         -E(3)^2 -2*E(3) - E(3)^2]
+
+            sage: ReflectionGroup((4,2,2)).cartan_matrix()
+            [       2  -2*E(4)       -2]
+            [    E(4)        2 1 - E(4)]
+            [      -1 1 + E(4)        2]
+        """
+        from sage.rings.universal_cyclotomic_field import E
+        if self.is_crystallographic():
+            from sage.combinat.root_system.cartan_matrix import CartanMatrix as CartanMat
+        else:
+            from sage.matrix.all import Matrix as CartanMat
+        return CartanMat(self._gap_group.CartanMat().sage())
 
     def set_reflection_representation(self,refl_repr):
         self.one().as_matrix.clear_cache()

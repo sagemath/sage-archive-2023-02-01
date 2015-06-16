@@ -250,30 +250,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         else:
             return [ W.cartan_type() for W in self.irreducible_components() ]
 
-    @cached_method
-    def cartan_matrix(self):
-        r"""
-        Return the Cartan matrix of ``self``.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',3],['B',2])
-            sage: W.cartan_matrix()
-            [ 2 -1  0  0  0]
-            [-1  2 -1  0  0]
-            [ 0 -1  2  0  0]
-            [ 0  0  0  2 -2]
-            [ 0  0  0 -1  2]
-
-            sage: W = ReflectionGroup(['A',3])
-            sage: W.cartan_matrix()
-            [ 2 -1  0]
-            [-1  2 -1]
-            [ 0 -1  2]
-        """
-        from sage.combinat.root_system.cartan_matrix import CartanMatrix
-        return CartanMatrix(self._gap_group.CartanMat().sage())
-
     def simple_root(self,i):
         r"""
         Return the simple root with index ``i``.
@@ -406,6 +382,39 @@ class RealReflectionGroup(ComplexReflectionGroup):
         Return the fundamental weight with index ``i``.
         """
         return self.fundamental_weights()[self._index_set[i]]
+
+    def coxeter_matrix(self):
+        """
+        Return the Coxeter matrix associated to ``self``.
+
+        TODO::
+
+            Move this method to the CoxeterGroups category. The issue
+            with this is that the indexing of a Coxeter group is not
+            handled in the category, so that ``self._index_set`` is
+            not required to do what is expected here.
+
+        EXAMPLES::
+
+            sage: G = ReflectionGroup(['A',3])
+            sage: G.coxeter_matrix()
+            [1 3 2]
+            [3 1 3]
+            [2 3 1]
+        """            
+        from sage.rings.integer_ring import ZZ
+        from sage.matrix.all import MatrixSpace
+
+        S = self.simple_reflections()
+        I = self.index_set()
+        I_inv = self._index_set
+        n = self.rank()
+        MS = MatrixSpace(ZZ, n)
+        m = MS(0)
+        for i in I:
+            for j in I:
+                m[I_inv[i],I_inv[j]] = (S[i]*S[j]).order()
+        return m
 
     def permutahedron(self,point=None):
         r"""

@@ -756,6 +756,119 @@ class CFiniteSequence(FieldElement):
         R = LaurentSeriesRing(QQ, 'x', default_prec=n)
         return R(self.ogf())
 
+    def closed_form(self):
+        """
+        Return a symbolic expression in ``n`` that maps ``n`` to the n-th member of the sequence.
+
+        It is easy to show that any C-finite sequence has a closed form of the type:
+
+        .. MATH::
+
+            a_n = \sum_{i=1}^d c_i \cdot r_i^(n-s), \qquad\text{$n\ge s$, $d$ the       degree of the sequence},
+
+        with ``c_i`` constants, ``r_i`` the roots of the o.g.f. denominator, and ``s``  the offset of
+        the sequence (see for example :arxiv:`0704.2481`).
+
+        EXAMPLES::
+
+            sage: n = var('n')
+
+            sage: CFiniteSequence(x/(1-x)).closed_form()
+            1
+            sage: CFiniteSequence(x/(1-x^2)).closed_form()
+            -1/2*(-1)^n + 1/2
+            sage: CFiniteSequence(x/(1-x^3)).closed_form()
+            1/9*sqrt(3)*(sqrt(3) + 6*sin(2/3*pi*n))
+            sage: CFiniteSequence(x/(1-x^4)).closed_form()
+            1/2*I*(-I)^n - 1/2*I*(-1)^(1/2*n) - 1/4*(-1)^n + 1/4
+            sage: CFiniteSequence(x/(1+x^3)).closed_form()
+            -1/9*sqrt(3)*(sqrt(3)*cos(pi*n) + I*sqrt(3)*sin(pi*n) - 6*sin(1/3*pi*n))
+            sage: CFiniteSequence(x/(1+x^4)).closed_form()
+            -(0.1767766952966369? - 0.1767766952966369?*I)*(0.7071067811865475? + ...
+
+            sage: CFiniteSequence(x*(x^2+4*x+1)/(1-x)^5).closed_form()
+            1/4*n^4 + 1/2*n^3 + 1/4*n^2
+            sage: CFiniteSequence((1+2*x-x^2)/(1-x)^4/(1+x)^2).closed_form()
+            1/12*n^3 - 1/8*(-1)^n*(n + 1) + 3/4*n^2 + 43/24*n + 9/8
+            sage: CFiniteSequence(1/(1-x)/(1-2*x)/(1-3*x)).closed_form()
+            1/2*3^(n + 2) - 2^(n + 2) + 1/2
+            sage: CFiniteSequence(1/(1-x)^3/(1-2*x)^4).closed_form()
+            1/3*(n^3 - 3*n^2 + 20*n - 36)*2^(n + 2) + 1/2*n^2 + 19/2*n + 49
+
+            sage: CFiniteSequence((4*x+3)/(1-2*x-5*x^2)).closed_form()
+            1/12*sqrt(6)*((-5/(sqrt(6) + 1))^n*(3*sqrt(6) - 7) + 3*sqrt(6)*(5/(sqrt(6) - 1))^n + 7*(5/(sqrt(6) - 1))^n)
+            sage: CFiniteSequence(x/(1-x-x^2)).closed_form()
+            -1/5*sqrt(5)*((-2/(sqrt(5) + 1))^n - (2/(sqrt(5) - 1))^n)
+            sage: all(_.subs(n==i).simplify_full()==fibonacci(i) for i in range(10))
+            True
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.arith import lcm, binomial
+        __, parts = (self.ogf()).partial_fraction_decomposition()
+        cm = lcm([part.factor().unit().denominator() for part in parts])
+        expr = SR(0)
+        for part in parts:
+            denom = part.denominator()
+            num = part.numerator()
+            f = denom.factor()
+            assert len(f) == 1
+            denom_base = f[0][0]
+            denom_exp = f[0][1]
+            cc_denom = denom.constant_coefficient()
+            denom = denom/cc_denom
+            num = num/cc_denom
+            cc_denom_base = denom_base.constant_coefficient()
+            denom_base = denom_base/cc_denom_base
+            dl = denom_base.list()
+            term = SR(0)
+            n = SR.var('n')
+            can_simplify = True
+
+            if len(dl) == 2:
+                constant_factor = num
+                if dl[1] == -1:
+                    term = SR(constant_factor)
+                else:
+                    term = SR(constant_factor)*SR(-dl[1])**n
+                if denom_exp > 1:
+                    term *= binomial(n+denom_exp-1, denom_exp-1)
+            elif len(dl) == 3 and denom_exp == 1:
+                from sage.functions.other import sqrt
+                a0 = self[0]
+                a1 = self[1]
+                c = -dl[1]
+                d = -dl[2]
+                r1 = 2*d/(-c+sqrt(c**2+4*d))
+                r2 = 2*d/(-c-sqrt(c**2+4*d))
+                term = ((a1-c*a0+a0*r1)*r1**n-(a1-c*a0+a0*r2)*r2**n)/sqrt(c**2+4*d)
+            elif denom_exp == 1:
+                from operator import add, mul
+                from sage.rings.qqbar import QQbar
+                from sage.matrix.constructor import Matrix
+                deg = len(dl)-1
+                num_coeffs = num.coefficients(sparse=False)
+                num_coeffs += [0] * (deg - len(num_coeffs))
+                can_simplify = False
+                R = PolynomialRing(QQbar, 'X')
+                X = R.gen()
+                roots = denom_base.roots(QQbar)
+                full_prod = reduce(mul, [X-r for (r,_) in roots], 1)
+                prods = [full_prod/(X-roots[i][0]) for i in range(deg)]
+                m = Matrix(QQbar, [[prods[j].numerator().list(X)[i]
+                                   for j in range(deg)] for i in range(deg)])
+                rv = m.inverse() * Matrix(QQbar, deg, 1, num_coeffs)
+                for i in range(deg):
+                    c = rv[i][0]
+                    c.exactify()
+                    term += SR(c/roots[i][0]) * SR(1/roots[i][0])**n
+            else:
+                return []
+            expr += term
+        if can_simplify:
+            return expr.simplify_full()
+        else:
+            return expr
+
 
 class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
     r"""
@@ -1141,6 +1254,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
                 return 0
             else:
                 return CFiniteSequence(num / den)
+
 """
 .. TODO::
 

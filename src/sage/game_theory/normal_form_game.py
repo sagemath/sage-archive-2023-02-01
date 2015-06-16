@@ -3,7 +3,7 @@ Normal Form games with N players.
 
 This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 3 algorithms are implemented to compute equilibria
-of these games (``'lrs'`` - interfaced with the 'lrs' library, ``'LCP'`` interfaced
+of these games (``'lrs'`` - interfaced with the 'lrslib' library, ``'LCP'`` interfaced
 with the 'gambit' library and support enumeration built in Sage). The architecture
 for the class is based on the gambit architecture to ensure an easy transition
 between gambit and Sage.  At present the algorithms for the computation of equilibria
@@ -203,7 +203,7 @@ time spent in prison)::
 When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional 'lrs' package. To install it type ``sage -i
+  algorithm uses the optional 'lrslib' package. To install it type ``sage -i
   lrslib`` at the command line. For more information see [A2000]_.
 
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
@@ -235,7 +235,7 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-    1. ``'lrs'`` (requires 'lrs')
+    1. ``'lrs'`` (requires 'lrslib')
     2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
@@ -1224,14 +1224,14 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError("utilities have not been populated")
 
         if not algorithm:
-            if is_package_installed('lrs'):
+            if is_package_installed('lrslib'):
                 algorithm = "lrs"
             else:
                 algorithm = "enumeration"
 
         if algorithm == "lrs":
-            if not is_package_installed('lrs'):
-                raise NotImplementedError("lrs is not installed")
+            if not is_package_installed('lrslib'):
+                raise NotImplementedError("lrslib is not installed")
 
             return self._solve_lrs(maximization)
 

@@ -4,15 +4,7 @@ Disable plrs build.
 
 --- patches/makefile.orig	2015-06-14 18:06:18.000000000 -0700
 +++ patches/makefile	2015-06-14 18:06:18.000000000 -0700
-@@ -1,5 +1,7 @@
- #new makefile for lrslib-050    2012.9.27
- 
-+### modified for Sage
-+
- #contains multithread version of lrs called plrs, wrapper written by Gary Roumanis
- #if Boost libraries are not available, comment out plrs compiles     http://www.boost.org/
- 
-@@ -25,8 +27,8 @@
+@@ -25,8 +25,8 @@
  #Select a path below to give location of gmp library
  
  #cygwin
@@ -23,7 +15,7 @@ Disable plrs build.
  
  #linux at mcgill with gmp version 3
  #INCLUDEDIR = /usr/local/include
-@@ -45,7 +47,7 @@
+@@ -45,7 +45,7 @@
  LIBRARIES=$(LIB) $(SHLIB) $(SHLINK)
  
  # where to install binaries, libraries, include files
@@ -32,7 +24,7 @@ Disable plrs build.
  
  # Shared library
  SONAME ?=liblrsgmp.so.0
-@@ -107,30 +109,30 @@
+@@ -107,19 +107,19 @@
  
  install-shared: all-shared install-common
  	 mkdir -p $(DESTDIR)${prefix}/lib
@@ -56,23 +48,7 @@ Disable plrs build.
  
  fourier:	fourier.c lrslib.h lrslib.c lrsgmp.h lrsgmp.c
  	gcc -O3 -DTIMES -DSIGNALS  -DGMP -I${INCLUDEDIR} fourier.c lrslib.c lrsgmp.c -L${LIBDIR}  -lgmp -o fourier
- 
- 
--plrs:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
--		g++ -DGMP  -Wall -Wno-write-strings -Wno-sign-compare -I${BOOSTINC}  -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DGMP -o plrs plrs.cpp lrslib.c lrsgmp.c -L${BOOSTLIB} -lboost_thread -lboost_system -lgmp
-+## plrs:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
-+## 		g++ -DGMP  -Wall -Wno-write-strings -Wno-sign-compare -I${BOOSTINC}  -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DGMP -o plrs plrs.cpp lrslib.c lrsgmp.c -L${BOOSTLIB} -lboost_thread -lboost_system -lgmp
- 
--plrsmp:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
--		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DLONG -o plrs1 plrs.cpp lrslib.c lrslong.c -lboost_thread -lboost_system
--		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -o plrsmp plrs.cpp lrslib.c lrsmp.c  -lboost_thread -lboost_system
-+## plrsmp:	  	plrs.cpp plrs.hpp lrslib.c lrslib.h lrsmp.c lrsmp.h
-+## 		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -DLONG -o plrs1 plrs.cpp lrslib.c lrslong.c -lboost_thread -lboost_system
-+## 		g++ -Wall -Wno-write-strings -Wno-sign-compare -Wno-unused-variable -I${BOOSTINC}  -L${BOOSTLIB} -Wl,-rpath=${BOOSTLIB} -O3 -DPLRS -o plrsmp plrs.cpp lrslib.c lrsmp.c  -lboost_thread -lboost_system
- 
- allmp:		lrs.c lrslib.c lrslib.h lrsmp.c lrsmp.h
- 		gcc -Wall -O3 -DTIMES -DSIGNALS -o lrs lrs.c lrslib.c lrsmp.c
-@@ -142,6 +144,17 @@
+@@ -142,6 +142,17 @@
  		gcc -O3 -o setnash2 setupnash2.c lrslib.c lrsmp.c
  		gcc -O3 -o 2nash 2nash.c
  

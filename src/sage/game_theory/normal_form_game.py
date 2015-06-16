@@ -1764,7 +1764,7 @@ class NormalFormGame(SageObject, MutableMapping):
         A two-player game is called nondegenerate if no mixed strategy of
         support size k has more than k pure best responses. In a degenerate
         game, this definition is violated, for example if there is a pure
-        strategy that has two pure best responses.
+        strategy that has two pure best responses.  ([AH2002]_, [DGRB2010]_)
 
         EXAMPLES::
 
@@ -1819,15 +1819,14 @@ class NormalFormGame(SageObject, MutableMapping):
 
         REFERENCES:
 
-        .. David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard von Stengel.
+        .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard von Stengel.
            *Enumeration of Nash equilibria for two-player games.*
-           http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf
+           http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf (2010)
 
-
-        .. R. J. Aumann and S. Hart, Elsevier, eds.
-           *Algorithmic game theory.*
-           London School of Economics.
+        .. [AH2002] R. J. Aumann and S. Hart, Elsevier, eds.
+           *Computing equilibria for two-person games*
            http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
+           (2002)
         """
 
         if len(self.players) > 2:

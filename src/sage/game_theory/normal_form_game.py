@@ -1786,6 +1786,19 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: game.is_degenerate_LA()
             True
 
+            sage: a = matrix([[-75, 18, 45, 33],
+            ....:            [42, -8, -77, -18],
+            ....:            [83, 18, 11, 40],
+            ....:            [-10, -38, 76, -9]])
+            sage: b = matrix([[62, 64, 87, 51],
+            ....:            [-41, -27, -69, 52],
+            ....:            [-17, 25, -97, -82],
+            ....:            [30, 31, -1, 50]])
+            sage: d_game = NormalFormGame([a, b])
+            sage: d_game.is_degenerate_LA()
+            True
+
+
         TESTS::
 
             sage: g = NormalFormGame()

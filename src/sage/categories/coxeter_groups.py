@@ -826,8 +826,6 @@ class CoxeterGroups(Category_singleton):
                 False
                 sage: w.has_right_descent(2)
                 True
-                sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
-                True
             """
             return (~self).has_left_descent(i)
 
@@ -2007,9 +2005,6 @@ v            EXAMPLES::
                 sage: w = W.from_reduced_word([1,2,1,0,1])
                 sage: w.coxeter_sorting_word(c)
                 [2, 1, 2, 0, 1]
-
-                sage: WeylGroup(['A',2]).long_element().coxeter_sorting_word([1,2])
-                [1, 2, 1]
             """
             if hasattr(c,"reduced_word"):
                 c = c.reduced_word()
@@ -2087,52 +2082,6 @@ v            EXAMPLES::
                         return False
                 else:
                     containment_list[i] = False
-                i += 1
-                if i == n:
-                    i = 0
-            return True
-
-        def coxeter_sorting_word(self,c):
-            if hasattr(c,"reduced_word"):
-                c = c.reduced_word()
-            elif not isinstance(c,list):
-                c = list(c)
-            n = self.parent().rank()
-            pi = self
-            l = pi.length()
-            i = 0
-            sorting_word = []
-            while l > 0:
-                s = c[i]
-                if pi.has_left_descent(s):
-                    pi = pi.apply_simple_reflection_left(s)
-                    l -= 1
-                    sorting_word.append(s)
-                i += 1
-                if i == n:
-                    i = 0
-            return sorting_word
-
-        def is_coxeter_sortable(self,c,sorting_word=None):
-            if hasattr(c,"reduced_word"):
-                c = c.reduced_word()
-            elif not isinstance(c,list):
-                c = list(c)
-            if sorting_word is None:
-                sorting_word = self.coxeter_sorting_word(c)
-            n = len(c)
-            containment_list = [ True ]*n
-            l = 0
-            i = 0
-            while l < len(sorting_word):
-                s = c[i]
-                t = sorting_word[l]
-                if s == t:
-                    l += 1
-                    if not containment_list[s]:
-                        return False
-                else:
-                    containment_list[s] = False
                 i += 1
                 if i == n:
                     i = 0

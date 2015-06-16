@@ -525,7 +525,7 @@ AUTHOR:
 #*****************************************************************************
 
 from collections import MutableMapping
-from itertools import product
+from itertools import product, combinations
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
@@ -1766,7 +1766,7 @@ class NormalFormGame(SageObject, MutableMapping):
         game, this definition is violated, for example if there is a pure
         strategy that has two pure best responses.
 
-        TESTS::
+        EXAMPLES::
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -1774,11 +1774,33 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: degenerate_game.is_degenerate_LA()
             True
 
-            sage: A = matrix([[2, 1], [1, 1]])
-            sage: B = matrix([[1, 1], [1, 2]])
+            sage: A = matrix([[0, 6], [2, 5], [3, 3]])
+            sage: B = matrix([[1, 0], [0, 2], [4, 4]])
             sage: d_game = NormalFormGame([A, B])
             sage: d_game.is_degenerate_LA()
             True
+
+        TESTS::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(3)  # Adding first player with 3 strategies
+            sage: g.add_player(3)  # Adding second player with 3 strategies
+            sage: for key in g:
+            ....:     g[key] = [0, 0]
+            sage: g.is_degenerate_LA()
+            True
+
+            sage: A = matrix([[1, -1], [-1, 1]])
+            sage: B = matrix([[-1, 1], [1, -1]])
+            sage: matching_pennies = NormalFormGame([A, B])
+            sage: matching_pennies.is_degenerate_LA()
+            False
+
+            sage: A = matrix([[2, 5], [0, 4]])
+            sage: B = matrix([[2, 0], [5, 4]])
+            sage: prisoners_dilemma = NormalFormGame([A, B])
+            sage: prisoners_dilemma.is_degenerate_LA()
+            False
         """
 
         if len(self.players) > 2:
@@ -1786,19 +1808,33 @@ class NormalFormGame(SageObject, MutableMapping):
 
         M1, M2 = self.payoff_matrices()
 
+        # create Identity matrices of appropriate size
         m = M1.nrows()
         n = M2.ncols()
-
         a = matrix.identity(n)
-        M1 = M1.transpose()
-        A = M1.augment(a)
-
         b = matrix.identity(m)
+
+        # append Identity matrices
+        A = M1.stack(a)
         B = M2.augment(b)
 
-        return A, B
+        # transpose because Sage prefers dealing with rows
+        B = B.transpose()
 
+        # create support sets
+        supp_A = list(combinations([i for i in range(n + m)], n))
+        supp_B = list(combinations([i for i in range(n + m)], m))
 
+        for s in supp_A:
+            X = A.matrix_from_rows(s)
+            if X.rank() != n:
+                return True
+        for s in supp_B:
+            X = A.matrix_from_rows(s)
+            if X.rank() != m:
+                return True
+
+        return False
 
 
 class _Player():

@@ -994,10 +994,8 @@ cdef class BinaryMatrix(LeanMatrix):
         cdef long i, j
         cdef BinaryMatrix A = BinaryMatrix(self._nrows, self._ncols + self._nrows)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M[i], self._M[i], self._nrows)
             A.set(i, i)
-            for j from 0 <= j < self._ncols:
-                if self.get(i, j):
-                    A.set(i, self._nrows + j)
         return A
 
     cpdef base_ring(self):
@@ -1587,9 +1585,9 @@ cdef class TernaryMatrix(LeanMatrix):
         cdef long i, j
         cdef TernaryMatrix A = TernaryMatrix(self._nrows, self._ncols + self._nrows)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M0[i], self._M0[i], self._nrows)
+            bitset_lshift(A._M1[i], self._M1[i], self._nrows)
             A.set(i, i, 1)
-            for j from 0 <= j < self._ncols:
-                A.set(i, self._nrows + j, self.get(i, j))
         return A
 
     cpdef base_ring(self):
@@ -2122,9 +2120,9 @@ cdef class QuaternaryMatrix(LeanMatrix):
         cdef long i, j
         cdef QuaternaryMatrix A = QuaternaryMatrix(self._nrows, self._ncols + self._nrows, ring=self._gf4)
         for i from 0 <= i < self._nrows:
+            bitset_lshift(A._M0[i], self._M0[i], self._nrows)
+            bitset_lshift(A._M1[i], self._M1[i], self._nrows)
             A.set(i, i, 1)
-            for j from 0 <= j < self._ncols:
-                A.set(i, self._nrows + j, self.get(i, j))
         return A
 
     cpdef base_ring(self):

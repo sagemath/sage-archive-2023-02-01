@@ -15,7 +15,8 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle, os
+import cPickle
+import os
 
 from expect import Expect, ExpectElement, FunctionElement
 import sage.repl.preparse
@@ -221,7 +222,7 @@ class Sage(Expect):
                 os.killpg(pid, 9)
                 os.kill(pid, 9)
 
-            except (RuntimeError, OSError) as msg:
+            except (RuntimeError, OSError):
                 pass
 
             try:
@@ -385,7 +386,7 @@ class Sage(Expect):
 
             sage: sage0.console() #not tested
             ----------------------------------------------------------------------
-            | Sage Version ..., Release Date: ...                                |
+            | SageMath Version ..., Release Date: ...                            |
             | Type notebook() for the GUI, and license() for information.        |
             ----------------------------------------------------------------------
             ...
@@ -397,7 +398,7 @@ class Sage(Expect):
         EXAMPLES::
 
             sage: sage0.version()
-            'Sage Version ..., Release Date: ...'
+            'SageMath Version ..., Release Date: ...'
             sage: sage0.version() == version()
             True
         """
@@ -540,7 +541,6 @@ def reduce_load_element(s):
     return sage0('loads(base64.b32decode("%s"))'%s)
 
 
-import os
 def sage0_console():
     """
     Spawn a new Sage command-line session.
@@ -549,7 +549,7 @@ def sage0_console():
 
         sage: sage0_console() #not tested
         ----------------------------------------------------------------------
-        | Sage Version ..., Release Date: ...                                |
+        | SageMath Version ..., Release Date: ...                            |
         | Type notebook() for the GUI, and license() for information.        |
         ----------------------------------------------------------------------
         ...

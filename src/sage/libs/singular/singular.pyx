@@ -15,7 +15,6 @@ AUTHOR:
 ###############################################################################
 
 include "sage/libs/ntl/decl.pxi"
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cdef extern from "limits.h":
@@ -46,6 +45,7 @@ from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_mo
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 from sage.libs.pari.all import pari
+from sage.libs.gmp.all cimport *
 
 from sage.structure.parent_base cimport ParentWithBase
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
@@ -717,10 +717,13 @@ cdef init_libsingular():
         lib = os.environ['SAGE_LOCAL']+"/lib/libsingular."+extension
         if os.path.exists(lib):
             handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
+            if not handle:
+                err = dlerror()
+                if err:
+                    print err
             break
 
     if handle == NULL:
-        print dlerror()
         raise ImportError, "cannot load libSINGULAR library"
 
     # load SINGULAR

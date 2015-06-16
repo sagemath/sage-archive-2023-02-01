@@ -465,7 +465,7 @@ class OEIS:
                    'start':str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
-        return FancyTuple(map(OEISSequence, sequence_list))
+        return FancyTuple([OEISSequence(_) for _ in sequence_list])
 
     def find_by_subsequence(self, subsequence, max_results=3, first_result=0):
         r"""
@@ -915,16 +915,16 @@ class OEISSequence(SageObject):
             sage: fib = oeis('A000045') ; fib           # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
 
-            sage: x = fib.natural_object() ; x.parent()         # optional -- internet
-            Category of sequences in Non negative integer semiring
+            sage: x = fib.natural_object() ; x.universe()         # optional -- internet
+            Non negative integer semiring
 
         ::
 
             sage: sfib = oeis('A039834') ; sfib         # optional -- internet
             A039834: a(n+2)=-a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
-            sage: x = sfib.natural_object() ; x.parent()    # optional -- internet
-            Category of sequences in Integer Ring
+            sage: x = sfib.natural_object() ; x.universe()    # optional -- internet
+            Integer Ring
 
         TESTS::
 
@@ -933,16 +933,16 @@ class OEISSequence(SageObject):
             QQ as continued fractions
 
             sage: s = oeis._imaginary_sequence('nonn')
-            sage: s.natural_object().parent()
-            Category of sequences in Non negative integer semiring
+            sage: s.natural_object().universe()
+            Non negative integer semiring
 
             sage: s = oeis._imaginary_sequence()
-            sage: s.natural_object().parent()
-            Category of sequences in Integer Ring
+            sage: s.natural_object().universe()
+            Integer Ring
         """
         if 'cofr' in self.keywords() and not 'frac' in self.keywords():
             return ContinuedFractionField()(self.first_terms())
-        elif 'cons' in self.keywords():
+        if 'cons' in self.keywords():
             offset = self.offsets()[0]
             terms = self.first_terms() + tuple([0] * abs(offset))
             return RealLazyField()('0' + ''.join(map(str, terms[:offset])) + '.' + ''.join(map(str, terms[offset:])))
@@ -1445,7 +1445,7 @@ class OEISSequence(SageObject):
             elif format == 'raw':
                 return FancyTuple(self._fields['H'])
             elif format == 'html':
-                html(FancyTuple(map(url_absolute, self._fields['H'])))
+                html(FancyTuple([url_absolute(_) for _ in self._fields['H']]))
             elif format == 'url':
                 url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)
@@ -1524,7 +1524,7 @@ class OEISSequence(SageObject):
         """
         ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
         if fetch:
-            return FancyTuple(map(oeis.find_by_id, ref_list))
+            return FancyTuple([oeis.find_by_id(_) for _ in ref_list])
         else:
             return tuple(ref_list)
 
@@ -1637,10 +1637,9 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet, webbrowser
+            sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
-            sage: f.browse()                            # optional -- internet, webbrowser
+            sage: f.browse()                            # optional -- internet webbrowser
 
         TESTS::
 
@@ -1793,8 +1792,7 @@ class FancyTuple(tuple):
             4: 4
         """
         length = len(str(len(self)-1))
-        return '\n'.join(map(lambda i: ('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]),
-                             range(len(self))))
+        return '\n'.join((('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]) for i in range(len(self))))
 
 oeis = OEIS()
 

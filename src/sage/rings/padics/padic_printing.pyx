@@ -22,8 +22,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
+from sage.libs.gmp.mpz cimport *
 
 
 import sys

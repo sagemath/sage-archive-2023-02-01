@@ -12,7 +12,6 @@ relevant classes and this file deleted.
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
 
 from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *

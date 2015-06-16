@@ -116,6 +116,7 @@ include 'sage/libs/pari/decl.pxi'
 
 import math, sys
 
+from sage.libs.gmp.mpz cimport *
 from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.pari.gen cimport gen as pari_gen
 
@@ -132,12 +133,6 @@ from sage.misc.misc import cputime
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 from sage.rings.number_field.totallyreal_data cimport tr_data
 
-#ZZx = PolynomialRing(IntegerRing(), 'x')
-
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
 
 cpdef double odlyzko_bound_totallyreal(int n):
     r"""
@@ -389,7 +384,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         d_poly = nf.poldisc()
         counts[0] += 1
-        if d_poly > 0 and nf.polsturm_full() == n:
+        if d_poly > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d_poly))
             if d_poly > dB or d_poly <= B*da:
                 counts[1] += 1

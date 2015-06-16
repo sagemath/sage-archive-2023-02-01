@@ -186,7 +186,7 @@ class Rings(CategoryWithAxiom):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- a ring
             - ``category`` -- a subcategory of :class:`Rings`() or None
@@ -611,7 +611,7 @@ class Rings(CategoryWithAxiom):
 
             NOTE:
 
-            This is a synonyme for :meth:`quotient`.
+            This is a synonym for :meth:`quotient`.
 
             EXAMPLE::
 

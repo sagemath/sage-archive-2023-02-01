@@ -152,17 +152,63 @@ class ConjugacyClass(Parent):
         """
         return element in self.set()
 
-    @cached_method
-    def set(self):
+    def __iter__(self):
         r"""
-        Naive algorithm to give a set with all the elements of the conjugacy
-        class.
+        Naive algorithm to give the elements of the conjugacy class.
 
         .. TODO::
 
             Implement a non-naive algorithm, cf. for instance
             G. Butler: "An Inductive Schema for Computing Conjugacy Classes
             in Permutation Groups", Math. of Comp. Vol. 62, No. 205 (1994)
+
+        EXAMPLES:
+
+        Groups of permutations::
+
+            sage: G = SymmetricGroup(3)
+            sage: g = G((1,2))
+            sage: C = ConjugacyClass(G,g)
+            sage: sorted(C)
+            [(2,3), (1,2), (1,3)]
+
+        It works for infinite groups::
+
+            sage: a = matrix(ZZ,2,[1,1,0,1])
+            sage: b = matrix(ZZ,2,[1,0,1,1])
+            sage: G = MatrixGroup([a,b])        # takes 1s
+            sage: a = G(a)
+            sage: C = ConjugacyClass(G, a)
+            sage: it = iter(C)
+            sage: [next(it) for _ in range(5)]
+            [
+            [1 1]  [ 2  1]  [ 0  1]  [ 3  1]  [ 3  4]
+            [0 1], [-1  0], [-1  2], [-4 -1], [-1 -1]
+            ]
+
+        We check that two matrices are in C::
+
+            sage: b = G(b)
+            sage: m1 = b * a * ~b
+            sage: m2 = ~b * a * b
+            sage: any(x == m1 for x in C)
+            True
+            sage: any(x == m2 for x in C)
+            True
+
+        """
+        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+        g = self._representative
+        gens = self._parent.monoid_generators()
+        R = RecursivelyEnumeratedSet([g],
+                                     lambda y: [c*y*c**-1 for c in gens],
+                                     structure=None)
+        return R.breadth_first_search_iterator()
+
+    @cached_method
+    def set(self):
+        r"""
+        Return the set of elements of the conjugacy class.
 
         EXAMPLES:
 
@@ -191,16 +237,27 @@ class ConjugacyClass(Parent):
                   [[2, 2], [1, 0]], [[3, 1], [4, 4]]]
             sage: C.set() == Set(H(x) for x in S)
             True
+
+        It is not implemented for infinite groups::
+
+            sage: a = matrix(ZZ,2,[1,1,0,1])
+            sage: b = matrix(ZZ,2,[1,0,1,1])
+            sage: G = MatrixGroup([a,b])        # takes 1s
+            sage: g = G(a)
+            sage: C = ConjugacyClass(G, g)
+            sage: C.set()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Listing the elements of conjugacy classes is not implemented for infinite groups! Use the iter function instead.
         """
-        from sage.sets.set import Set
-        from sage.combinat.backtrack import TransitiveIdeal
         if self._parent.is_finite():
-            g = self._representative
-            G = self._parent
-            gens = G.gens()
-            return Set(x for x in TransitiveIdeal(lambda y: [c*y*c**-1 for c in gens], [g]))
+            from sage.sets.set import Set
+            return Set(iter(self))
+            # return Set(self) creates an infinite loop in __contains__
         else:
-            raise NotImplementedError("Listing the elements of conjugacy classes is not implemented for infinite groups!")
+            raise NotImplementedError("Listing the elements of conjugacy "
+                    "classes is not implemented for infinite groups! Use the "
+                    "iter function instead.")
 
     def list(self):
         r"""
@@ -217,7 +274,14 @@ class ConjugacyClass(Parent):
             sage: Set(L) == Set([G((1,3,2)), G((1,2,3))])
             True
         """
-        return list(self.set())
+        if self._parent.is_finite():
+            return list(iter(self))
+            # return list(self) creates an infinite loop because list calls
+            # __len__ which calls list...
+        else:
+            raise NotImplementedError("Listing the elements of conjugacy "
+                    "classes is not implemented for infinite groups! Use the "
+                    "iter function instead.")
 
     def is_real(self):
         """

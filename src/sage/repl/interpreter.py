@@ -76,7 +76,7 @@ Check that Cython source code appears in tracebacks::
     sage: shell = get_test_shell()
     sage: shell.run_cell('1/0')
     ---------------------------------------------------------------------------
-    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (build/cythonized/sage/rings/integer_ring.c:...)()
+    .../sage/rings/integer_ring.pyx in sage.rings.integer_ring.IntegerRing_class._div (.../cythonized/sage/rings/integer_ring.c:...)()
         ...         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         ...         if mpz_sgn(right.value) == 0:
         ...             raise ZeroDivisionError('Rational division by zero')
@@ -795,6 +795,14 @@ class SageTerminalApp(TerminalIPythonApp):
             ipython_dir=self.ipython_dir)
         self.shell.configurables.append(self)
         self.shell.has_sage_extensions = SAGE_EXTENSION in self.extensions
+
+        # Load the %lprun extension if available
+        try:
+            import line_profiler
+        except ImportError:
+            pass
+        else:
+            self.extensions.append('line_profiler')
 
         if self.shell.has_sage_extensions:
             self.extensions.remove(SAGE_EXTENSION)

@@ -47,6 +47,31 @@ class BackendDoctest(BackendBase):
         """
         return 'doctest'
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        Matches the IPython command line display preferences to keep
+        the differences between that and the doctests to a minimum.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(supplemental_plot='never')
+
     def install(self, **kwds):
         """
         Switch to the the doctest backend
@@ -108,7 +133,7 @@ class BackendDoctest(BackendBase):
             True
         """
         return set([
-            OutputPlainText, OutputAsciiArt, OutputLatex,
+            OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
             OutputImagePng, OutputImageGif, OutputImageJpg, 
             OutputImageSvg, OutputImagePdf, OutputImageDvi,
             OutputSceneJmol, OutputSceneCanvas3d, OutputSceneWavefront,
@@ -146,8 +171,8 @@ class BackendDoctest(BackendBase):
             Graphics object consisting of 1 graphics primitive
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        if any(isinstance(rich_output, cls)
+               for cls in [OutputPlainText, OutputAsciiArt, OutputLatex]):
             rich_output.print_to_stdout()
         else:
             plain_text.print_to_stdout()
@@ -179,8 +204,10 @@ class BackendDoctest(BackendBase):
             sage: dm.display_immediately(plt)   # indirect doctest
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        types_to_print = [OutputPlainText, OutputAsciiArt, OutputUnicodeArt]
+        if isinstance(rich_output, OutputLatex):
+            print(rich_output.mathjax(display=False))
+        elif any(isinstance(rich_output, cls) for cls in types_to_print):
             rich_output.print_to_stdout()
 
     def validate(self, rich_output):
@@ -223,6 +250,8 @@ class BackendDoctest(BackendBase):
         if isinstance(rich_output, OutputPlainText):
             pass
         elif isinstance(rich_output, OutputAsciiArt):
+            pass
+        elif isinstance(rich_output, OutputUnicodeArt):
             pass
         elif isinstance(rich_output, OutputLatex):
             assert rich_output.mathjax().startswith('<html>')

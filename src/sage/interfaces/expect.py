@@ -48,6 +48,7 @@ import time
 import gc
 import quit
 import cleaner
+import six
 from random import randrange
 
 ########################################################
@@ -61,8 +62,7 @@ from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunc
 
 from sage.structure.element import RingElement
 
-import sage.misc.sage_eval
-from sage.misc.misc import verbose, SAGE_TMP_INTERFACE
+from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 
@@ -139,9 +139,9 @@ class Expect(Interface):
             command = name
         if server is not None:
             if ulimit:
-                command = 'sage-native-execute ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
             else:
-                command = "sage-native-execute ssh -t %s %s"%(server, command)
+                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
             self.__is_remote = True
 #            eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:
@@ -179,7 +179,7 @@ class Expect(Interface):
         self.__max_startup_time = max_startup_time
 
         #Handle the log file
-        if isinstance(logfile, basestring):
+        if isinstance(logfile, six.string_types):
             self.__logfile = None
             self.__logfilename = logfile
         else:
@@ -194,17 +194,17 @@ class Expect(Interface):
         if self._expect is None:
             self._start()
         E = self._expect
-        wait=float(wait)
+        wait = float(wait)
         try:
             if alternate_prompt is None:
                 E.expect(self._prompt, timeout=wait)
             else:
                 E.expect(alternate_prompt, timeout=wait)
-        except pexpect.TIMEOUT as msg:
+        except pexpect.TIMEOUT:
             return False, E.before
-        except pexpect.EOF as msg:
+        except pexpect.EOF:
             return True, E.before
-        except Exception as msg:   # weird major problem!
+        except Exception:   # weird major problem!
             return True, E.before
         return True, E.before
 
@@ -442,7 +442,7 @@ If this all works, you can then make calls like:
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
             raise RuntimeError("unable to start %s" % self.name())
@@ -525,7 +525,7 @@ If this all works, you can then make calls like:
             # In case of is_remote(), killing the local "ssh -t" also kills the remote process it initiated
             os.killpg(E.pid, 9)
             os.kill(E.pid, 9)
-        except (RuntimeError, OSError) as msg:
+        except (RuntimeError, OSError):
             pass
         self._expect = None
         return
@@ -849,7 +849,7 @@ If this all works, you can then make calls like:
 
             if len(line)>0:
                 try:
-                    if isinstance(wait_for_prompt, basestring):
+                    if isinstance(wait_for_prompt, six.string_types):
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
@@ -917,12 +917,12 @@ If this all works, you can then make calls like:
                 self._send_interrupt()
                 try:
                     E.expect(self._prompt, timeout=timeout)
-                except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+                except (pexpect.TIMEOUT, pexpect.EOF):
                     pass
                 else:
                     success = True
                     break
-        except Exception as msg:
+        except Exception:
             pass
         if success:
             pass
@@ -1206,7 +1206,7 @@ If this all works, you can then make calls like:
             except AttributeError:
                 pass
 
-        if not isinstance(code, basestring):
+        if not isinstance(code, six.string_types):
             raise TypeError('input code must be a string.')
 
         #Remove extra whitespace
@@ -1294,7 +1294,7 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, basestring) and parent._eval_using_file_cutoff and \
+        if isinstance(value, six.string_types) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 
@@ -1348,8 +1348,7 @@ class ExpectElement(InterfaceElement):
                 if P is not None:
                     P.clear(self._name)
 
-        except (RuntimeError, ExceptionPexpect) as msg:    # needed to avoid infinite loops in some rare cases
-            #print msg
+        except (RuntimeError, ExceptionPexpect):    # needed to avoid infinite loops in some rare cases
             pass
 
 #    def _sage_repr(self):

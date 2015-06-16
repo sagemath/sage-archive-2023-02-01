@@ -1,3 +1,5 @@
+"License"
+
 import os
 import pager
 

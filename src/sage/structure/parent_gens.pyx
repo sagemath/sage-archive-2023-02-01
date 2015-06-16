@@ -107,8 +107,6 @@ def is_ParentWithAdditiveAbelianGens(x):
         sage: from sage.structure.parent_gens import is_ParentWithAdditiveAbelianGens
         sage: is_ParentWithAdditiveAbelianGens(QQ)
         False
-        sage: is_ParentWithAdditiveAbelianGens(QQ^3)
-        True
     """
     return isinstance(x, ParentWithAdditiveAbelianGens)
 
@@ -354,7 +352,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         d = dict(d)
         d['_base'] = self._base
         d['_gens'] = self._gens
-        d['_gens_dict'] = self._gens_dict
         d['_list'] = self._list
         d['_names'] = self._names
         d['_latex_names'] = self._latex_names
@@ -375,7 +372,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             pass
         self._base = d['_base']
         self._gens = d['_gens']
-        self._gens_dict = d['_gens_dict']
         self._list = d['_list']
         self._names = d['_names']
         self._latex_names = d['_latex_names']

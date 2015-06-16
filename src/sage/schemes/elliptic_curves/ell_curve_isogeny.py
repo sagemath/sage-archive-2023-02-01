@@ -1234,8 +1234,7 @@ class EllipticCurveIsogeny(Morphism):
 
         return self.__this_hash
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Function that implements comparisons between isogeny objects.
 
@@ -1265,14 +1264,11 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual() == psi.dual()
             True
         """
-        if (not isinstance(other, EllipticCurveIsogeny)):
-            return -1
-
         if (self.__kernel_polynomial is None):
             self.__init_kernel_polynomial()
 
         # We cannot just compare kernel polynomials, as was done until
-        # :trac:`11327`, as then phi and -phi compare equal, and
+        # Trac #11327, as then phi and -phi compare equal, and
         # similarly with phi and any composition of phi with an
         # automorphism of its codomain, or any post-isomorphism.
         # Comparing domains, codomains and rational maps seems much
@@ -1282,7 +1278,9 @@ class EllipticCurveIsogeny(Morphism):
         if t: return t
         t = cmp(self.codomain(), other.codomain())
         if t: return t
-        return  cmp(self.rational_maps(), other.rational_maps())
+        return cmp(self.rational_maps(), other.rational_maps())
+
+    __cmp__ = _cmp_
 
     def __neg__(self):
         r"""

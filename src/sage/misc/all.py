@@ -50,7 +50,7 @@ from fpickle import pickle_function, unpickle_function
 
 from dist import install_scripts
 
-from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
+from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade, package_versions
 
 from pager import pager
 
@@ -76,9 +76,9 @@ from sage_eval import sage_eval, sageobj
 from sage_input import sage_input
 
 from cython import cython_lambda, cython_create_local_so
-from cython_c import cython
-pyrex = cython # synonym -- for now
-sagex = cython # synonym -- for now
+from cython_c import cython_compile as cython
+lazy_import("sage.misc.cython_c", "cython_compile", "pyrex", deprecation=9552)
+lazy_import("sage.misc.cython_c", "cython_compile", "sagex", deprecation=9552)
 
 from persist import save, load, dumps, loads, db, db_save
 
@@ -136,7 +136,6 @@ from functional import (additive_order,
                         round,
                         quotient,
                         quo,
-                        show,
                         isqrt,
                         squarefree_part,
                         symbolic_sum as sum,
@@ -144,7 +143,7 @@ from functional import (additive_order,
                         zero)
 
 
-from latex import LatexExpr, latex, view, pretty_print, pretty_print_default
+from latex import LatexExpr, latex, view, pretty_print_default
 
 from trace import trace
 
@@ -199,6 +198,5 @@ class logstr(str):
         return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 
 
-import messaging
+lazy_import("sage.misc", "messaging", deprecation=18140)
 
-from ascii_art import ascii_art

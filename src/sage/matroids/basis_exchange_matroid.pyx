@@ -1010,6 +1010,92 @@ cdef class BasisExchangeMatroid(Matroid):
         self.__pack(self._input, F)
         return self.__is_independent(self._input)
 
+
+    # connectivity
+    
+    cpdef components(self):
+        """
+        Return an iterable containing the components of the matroid.
+
+        A *component* is an inclusionwise maximal connected subset of the
+        matroid. A subset is *connected* if the matroid resulting from
+        deleting the complement of that subset is
+        :meth:`connected <sage.matroids.matroid.Matroid.is_connected>`.
+
+        OUTPUT:
+
+        A list of subsets.
+
+        .. SEEALSO::
+
+            :meth:`M.is_connected() <sage.matroids.matroid.Matroid.is_connected>`,
+            :meth:`M.delete() <sage.matroids.matroid.Matroid.delete>`
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import setprint
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: setprint(M.components())
+            [{0, 1, 3, 4}, {2, 5}]
+        """
+        if len(self._E)==0:
+            return SetSystem(self._E)
+        cdef bitset_t *comp
+        comp = <bitset_t*>sage_malloc((self.full_rank()) * sizeof(bitset_t))
+        e = bitset_first(self._current_basis)
+        i=0
+        while e>=0:
+            bitset_init(comp[i], self._bitset_size)
+            self.__fundamental_cocircuit(comp[i], e)
+            e=bitset_next(self._current_basis, e+1)
+            i=i+1
+        
+        cdef bitset_t active_rows
+        bitset_init(active_rows,self.full_rank()+1)
+        bitset_set_first_n(active_rows, self.full_rank())
+        i=0
+        while i>=0:
+            j = bitset_first(active_rows)
+            while j>=0 and j<i:
+                if not bitset_are_disjoint(comp[i], comp[j]):
+                    bitset_union(comp[i], comp[i], comp[j])
+                    bitset_discard(active_rows, j)
+                j = bitset_next(active_rows, j+1) 
+            i = bitset_next(active_rows, i+1)
+        
+        res = SetSystem(self._E)
+        i = bitset_first(active_rows)
+        while i>=0:
+            res._append(comp[i])
+            i = bitset_next(active_rows, i+1)
+        
+        cdef bitset_t loop, loops
+        bitset_init(loops, self._bitset_size)
+        bitset_set_first_n(loops, len(self))
+        i = bitset_first(active_rows)
+        while i>=0:
+            bitset_difference(loops, loops, comp[i])
+            i = bitset_next(active_rows, i+1)
+        
+        bitset_init(loop, self._bitset_size)
+        bitset_clear(loop)
+        e = bitset_first(loops)
+        while e>=0:
+            bitset_add(loop, e)
+            res._append(loop)
+            bitset_discard(loop, e)
+            e = bitset_next(loops, e+1)
+        
+        bitset_free(loops)
+        bitset_free(loop)    
+        bitset_free(active_rows)
+        for i in xrange(self.full_rank()):
+            bitset_free(comp[i])           
+        return res
+        
+        
     # enumeration
 
     cpdef f_vector(self):
@@ -1881,6 +1967,83 @@ cdef class BasisExchangeMatroid(Matroid):
             repeat = nxksrd(self._input, self._groundset_size, self._matroid_rank, True)
         return True
 
+    cpdef _isomorphism(self, other):
+        """
+        Returns an isomorphism form ``self`` to ``other``, if one exists.
+
+        Internal version that performs no checks on input.
+
+        INPUT:
+
+        - ``other`` -- A matroid.
+
+        OUTPUT:
+
+        A dictionary, or ``None``
+
+        EXAMPLES::
+
+            sage: from sage.matroids.advanced import *
+            sage: M1 = matroids.Wheel(3)
+            sage: M2 = matroids.CompleteGraphic(4)
+            sage: morphism = M1._isomorphism(M2)
+            sage: M1._is_isomorphism(M2, morphism)
+            True
+            sage: M1 = matroids.named_matroids.Fano()
+            sage: M2 = matroids.named_matroids.NonFano()
+            sage: M1._isomorphism(M2) is None
+            True
+
+        """
+        if not isinstance(other, BasisExchangeMatroid):
+            import basis_matroid
+            other = basis_matroid.BasisMatroid(other)
+        if self is other:
+            return {e:e for e in self.groundset()}
+        if len(self) != len(other):
+            return None
+        if self.full_rank() != other.full_rank():
+            return None
+        if self.full_rank() == 0 or self.full_corank() == 0:
+            return {self.groundset_list()[i]: other.groundset_list()[i] for i in xrange(len(self))}
+        
+        if self._weak_invariant() != other._weak_invariant():
+            return None
+        PS = self._weak_partition()
+        PO = other._weak_partition()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self.__is_isomorphism(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._strong_invariant() != other._strong_invariant():
+            return False
+        PS = self._strong_partition()
+        PO = other._strong_partition()
+        if len(PS) == len(self) and len(PO) == len(other):
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PS[i])] = min(PO[i])
+            if self.__is_isomorphism(other, morphism):
+                return morphism
+            else:
+                return None
+
+        if self._heuristic_invariant() == other._heuristic_invariant():
+            PHS = self._heuristic_partition()
+            PHO = other._heuristic_partition()
+            morphism = {}
+            for i in xrange(len(self)):
+                morphism[min(PHS[i])] = min(PHO[i])
+            if self.__is_isomorphism(other, morphism):
+                return morphism
+
+        return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO) 
+        
     cpdef _is_isomorphic(self, other):
         """
         Test if ``self`` is isomorphic to ``other``.
@@ -1899,11 +2062,11 @@ cdef class BasisExchangeMatroid(Matroid):
 
             sage: from sage.matroids.advanced import *
             sage: M1 = BasisMatroid(matroids.Wheel(3))
-            sage: M2 = BasisMatroid(matroids.CompleteGraphic(4))
+            sage: M2 = matroids.CompleteGraphic(4)
             sage: M1._is_isomorphic(M2)
             True
             sage: M1 = BasisMatroid(matroids.named_matroids.Fano())
-            sage: M2 = BasisMatroid(matroids.named_matroids.NonFano())
+            sage: M2 = matroids.named_matroids.NonFano()
             sage: M1._is_isomorphic(M2)
             False
 
@@ -1951,7 +2114,7 @@ cdef class BasisExchangeMatroid(Matroid):
             morphism = {}
             for i in xrange(len(self)):
                 morphism[min(PHS[i])] = min(PHO[i])
-            if self._is_isomorphism(other, morphism):
+            if self.__is_isomorphism(other, morphism):
                 return True
 
         return self._characteristic_setsystem()._isomorphism(other._characteristic_setsystem(), PS, PO) is not None

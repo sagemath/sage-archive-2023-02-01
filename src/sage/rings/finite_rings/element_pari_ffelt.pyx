@@ -19,6 +19,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement
@@ -381,7 +382,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         x.construct(self.val)
         return x
 
-    cdef int _cmp_c_impl(FiniteFieldElement_pari_ffelt self, Element other) except -2:
+    cpdef int _cmp_(FiniteFieldElement_pari_ffelt self, Element other) except -2:
         """
         Comparison of finite field elements.
 

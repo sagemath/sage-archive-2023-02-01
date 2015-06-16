@@ -1816,6 +1816,18 @@ class NormalFormGame(SageObject, MutableMapping):
             Traceback (most recent call last):
             ...
             NotImplementedError: Tests for Degeneracy is not yet implemented for games with more than two players.
+
+        REFERENCES:
+
+        .. David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard von Stengel.
+           *Enumeration of Nash equilibria for two-player games.*
+           http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf
+
+
+        .. R. J. Aumann and S. Hart, Elsevier, eds.
+           *Algorithmic game theory.*
+           London School of Economics.
+           http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
         """
 
         if len(self.players) > 2:
@@ -1828,7 +1840,7 @@ class NormalFormGame(SageObject, MutableMapping):
         n = M2.ncols()
         A, B = self._create_label_matrices(M1, M2, m, n)
 
-        # create support sets
+        # create all subsets of rows
         supp_A = list(combinations([i for i in range(n + m)], n+1))
         supp_B = list(combinations([i for i in range(n + m)], m+1))
 

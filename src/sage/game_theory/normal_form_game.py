@@ -1798,6 +1798,26 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d_game.is_degenerate_LA()
             True
 
+        The game Rock-Paper-Scissors is an example of a non-degenerate game.::
+
+            sage: A = matrix([[0, -1, 1],
+            ....:             [1, 0, -1],
+            ....:             [-1, 1, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g.is_degenerate_LA()
+            False
+
+        Whereas Rock-Paper-Scissors-Lizard-Spock is degenerate because for
+        every pure strategy there are two best responses.::
+
+            sage: A = matrix([[0, -1, 1, 1, -1],
+            ....:             [1, 0, -1, -1, 1],
+            ....:             [-1, 1, 0, 1 , -1],
+            ....:             [-1, 1, -1, 0, 1],
+            ....:             [1, -1, 1, -1, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g.is_degenerate_LA()
+            True
 
         TESTS::
 
@@ -1895,6 +1915,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [1 0 0]  [1 0 0]
             [0 1 0], [0 1 0]
             )
+
         """
         B = B.transpose()
 

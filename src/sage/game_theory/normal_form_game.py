@@ -1757,7 +1757,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def is_degenerate_LA(self):
         """
-        LINEAR ALGEBRA
         A function to check whether the game is degenerate or not.
         Will return a boolean.
 
@@ -1939,17 +1938,20 @@ class NormalFormGame(SageObject, MutableMapping):
             )
 
         """
+        # transpose because sage prefers dealing with rows
         B = B.transpose()
 
         a = matrix.identity(n)
         b = matrix.identity(m)
 
+        # append the identity matrices
         A = A.stack(a)
         B = B.stack(b)
 
         u = vector([1 for i in range(m)] + [0 for i in range(n)])
         v = vector([1 for i in range(n)] + [0 for i in range(m)])
 
+        # append vector to complete the inequalities
         A = A.augment(u)
         B = B.augment(v)
 

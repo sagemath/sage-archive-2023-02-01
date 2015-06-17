@@ -442,7 +442,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     class Element(ComplexReflectionGroup.Element):
 
-        reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
+        # the following is more conceptual but appears to be slower when
+        # iterating through the group
+        #reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
 
         def has_left_descent(self, i):
             r"""
@@ -488,7 +490,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
             if not isinstance(positive, bool):
                 raise TypeError("%s is not a boolean"%(bool))
 
-            if i not in self.hyperplane_index_set():
+            if i not in self.parent().hyperplane_index_set():
                 raise ValueError("The given index %s is not in the index set"%i)
 
             negative = not positive

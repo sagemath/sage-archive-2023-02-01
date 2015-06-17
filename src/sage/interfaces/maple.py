@@ -1098,7 +1098,7 @@ class MapleElement(ExpectElement):
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
             sage: print latex(maple(pi - e^3))                   # optional - maple
             \pi-{{\rm e}^{3}}
-            sage: print maple(pi - e^3)._latex_()                # optional -- requires maple
+            sage: print maple(pi - e^3)._latex_()                # optional - maple
             \pi-{{\rm e}^{3}}
  
         .. note::
@@ -1120,7 +1120,7 @@ class MapleElement(ExpectElement):
             sage: m = maple('x^2 + 5*y')                            # optional - maple
             sage: m.sage()                                          # optional - maple
             x^2 + 5*y
-            sage: m._sage_()                                        # optional - requires maple
+            sage: m._sage_()                                        # optional - maple
             x^2 + 5*y
 
         ::

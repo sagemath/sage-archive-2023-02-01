@@ -3500,7 +3500,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Finally checking the cycles are a free set::
 
-            sage: basis_as_vectors = map( cycle_to_vector, basis )
+            sage: basis_as_vectors = [cycle_to_vector(_) for _ in basis]
             sage: edge_space.span(basis_as_vectors).rank() == len(basis)
             True
 
@@ -10414,7 +10414,7 @@ class GenericGraph(GenericGraph_pyx):
             2
             ...
             2
-            4
+            3
             sage: for i in G.degree_iterator(labels=True):
             ...    print i
             ((0, 1), 3)
@@ -10422,7 +10422,7 @@ class GenericGraph(GenericGraph_pyx):
             ((0, 0), 2)
             ...
             ((0, 3), 2)
-            ((1, 1), 4)
+            ((0, 2), 3)
 
         ::
 
@@ -10439,8 +10439,8 @@ class GenericGraph(GenericGraph_pyx):
             ((0, 1), 6)
             ((1, 2), 6)
             ...
-            ((0, 3), 4)
-            ((1, 1), 6)
+            ((1, 0), 4)
+            ((0, 2), 6)
         """
         if vertices is None:
             vertices = self
@@ -10661,7 +10661,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g=graphs.PathGraph(1000)
             sage: g.subgraph(range(10)) # uses the 'add' algorithm
-            Subgraph of (Path Graph): Graph on 10 vertices
+            Subgraph of (Path graph): Graph on 10 vertices
 
 
 
@@ -14132,8 +14132,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None), (3, 0, None)]
         """
-        self.add_path(vertices)
-        self.add_edge(vertices[-1], vertices[0])
+        if vertices:
+            self.add_path(vertices)
+            self.add_edge(vertices[-1], vertices[0])
 
     def add_path(self, vertices):
         """
@@ -14168,6 +14169,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None), (1, 2, None), (2, 3, None)]
         """
+        if not vertices:
+            return
         vert1 = vertices[0]
         for v in vertices[1:]:
             self.add_edge(vert1, v)
@@ -14211,7 +14214,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
-            complement(Path Graph): Graph on 5 vertices
+            complement(Path graph): Graph on 5 vertices
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
@@ -14794,7 +14797,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g=graphs.PathGraph(4)
             sage: g.transitive_closure()
-            Transitive closure of Path Graph: Graph on 4 vertices
+            Transitive closure of Path graph: Graph on 4 vertices
             sage: g.transitive_closure()==graphs.CompleteGraph(4)
             True
             sage: g=DiGraph({0:[1,2], 1:[3], 2:[4,5]})
@@ -15169,12 +15172,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.LadderGraph(3) #TODO!!!!
             sage: g.layout_spring()
-            {0: [1.28..., -0.943...],
-             1: [1.57..., -0.101...],
-             2: [1.83..., 0.747...],
-             3: [0.531..., -0.757...],
-             4: [0.795..., 0.108...],
-             5: [1.08..., 0.946...]}
+            {0: [1.28..., -0.94...],
+             1: [1.57..., -0.10...],
+             2: [1.83..., 0.74...],
+             3: [0.53..., -0.75...],
+             4: [0.79..., 0.10...],
+             5: [1.08..., 0.94...]}
             sage: g = graphs.LadderGraph(7)
             sage: g.plot(layout = "spring")
             Graphics object consisting of 34 graphics primitives
@@ -15496,7 +15499,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g = digraphs.ButterflyGraph(2)
-            sage: g.layout_graphviz() # optional - dot2tex, graphviz
+            sage: g.layout_graphviz()  # optional - dot2tex graphviz
             {('...', ...): [...,...],
              ('...', ...): [...,...],
              ('...', ...): [...,...],
@@ -15509,7 +15512,8 @@ class GenericGraph(GenericGraph_pyx):
              ('...', ...): [...,...],
              ('...', ...): [...,...],
              ('...', ...): [...,...]}
-            sage: g.plot(layout = "graphviz") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz")  # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
 
         Note: the actual coordinates are not deterministic
 
@@ -15517,14 +15521,21 @@ class GenericGraph(GenericGraph_pyx):
         ``dot`` layout program. One may specify an alternative layout
         program::
 
-            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex, graphviz
-            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g = graphs.BalancedTree(5,2)
-            sage: g.plot(layout = "graphviz", prog = "circo") # optional - dot2tex, graphviz
+            sage: g.plot(layout = "graphviz", prog = "circo")  # optional - dot2tex graphviz
+            Graphics object consisting of 62 graphics primitives
 
-        TODO: put here some cool examples showcasing graphviz features.
+        .. TODO::
+
+            Put here some cool examples showcasing graphviz features.
 
         This requires ``graphviz`` and the ``dot2tex`` spkg. Here are
         some installation tips:
@@ -15536,8 +15547,10 @@ class GenericGraph(GenericGraph_pyx):
          - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
            and install it with ``sage -i dot2tex-2.8.?.spkg``
 
-        TODO: use the graphviz functionality of Networkx 1.0 once it
-        will be merged into Sage.
+        .. TODO::
+
+            Use the graphviz functionality of Networkx 1.0 once it
+            will be merged into Sage.
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"
@@ -15752,6 +15765,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``save_pos`` - save position computed during plotting
 
         .. NOTE::
+
+            - This method supports any parameter accepted by
+              :meth:`sage.plot.graphics.Graphics.show`.
 
             - See the documentation of the :mod:`sage.graphs.graph_plot` module
               for information and examples of how to define parameters that will
@@ -16874,7 +16890,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: H = graphs.HoffmanSingletonGraph()
             sage: evals = H.spectrum()
-            sage: lap = map(lambda x : 7 - x, evals)
+            sage: lap = [7-x for x in evals]
             sage: lap.sort(reverse=True)
             sage: lap == H.spectrum(laplacian=True)
             True

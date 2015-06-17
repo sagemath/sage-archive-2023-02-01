@@ -1474,8 +1474,7 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
         """
         # get a list of the elements and switch to a tuple
         # representation
-        set_ = list(self)
-        set_ = [tuple(map(tuple, x)) for x in set_]
+        set_ = [tuple(tuple(_) for _ in x) for x in list(self)]
         return (set_, [(a,b) for a in set_ for b in set_ if _is_a_cover(a,b)])
 
     def cover_relations(self):
@@ -1782,7 +1781,7 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
 
     def __iter__(self):
         """
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: list(TruncatedStaircases(4, [2,3]))
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]

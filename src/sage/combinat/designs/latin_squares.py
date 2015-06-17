@@ -543,7 +543,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
     if compare:
         from sage.env import SAGE_SHARE
         handbook_file = open(SAGE_SHARE+"/combinatorial_designs/MOLS_table.txt",'r')
-        hb = map(int,handbook_file.readlines()[9].split(','))
+        hb = [int(_) for _ in handbook_file.readlines()[9].split(',')]
         handbook_file.close()
 
     # choose an appropriate width (needs to be >= 3 because "+oo" should fit)
@@ -551,8 +551,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
         from sage.rings.integer import Integer
         width = max(3,Integer(stop-1).ndigits(10))
 
-    from string import join
-    print " "*(width+2) + join("{i:>{width}}".format(i=i,width=width) for i in range(20))
+    print " "*(width+2) + "".join("{i:>{width}}".format(i=i,width=width) for i in range(20))
     print " "*(width+1) + "_"*((width+1)*20),
     for i in range(start,stop):
         if i%20==0:

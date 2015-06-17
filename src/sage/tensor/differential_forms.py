@@ -346,9 +346,8 @@ class DifferentialForms(Algebra):
             'Algebra of differential forms in the variables x, y, z'
         """
 
-        from string import join
         return "Algebra of differential forms in the variables " + \
-            ', '.join([str(var) for var in self._patch.coordinates()])
+            ', '.join(str(var) for var in self._patch.coordinates())
 
 
     def _latex_(self):

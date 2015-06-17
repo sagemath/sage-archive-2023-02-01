@@ -1083,7 +1083,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
               1  3
               2  4
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
 
     def to_kirillov_reshetikhin_crystal(self):

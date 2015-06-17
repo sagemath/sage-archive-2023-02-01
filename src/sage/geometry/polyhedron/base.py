@@ -12,7 +12,7 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
+import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
 from sage.misc.all import cached_method, prod
@@ -646,7 +646,7 @@ class Polyhedron_base(Element):
                     continue
                 elif opt is False:
                     return False
-                elif isinstance(opt, (basestring, list, tuple)):
+                elif isinstance(opt, (six.string_types, list, tuple)):
                     merged['color'] = opt
                 else:
                     merged.update(opt)
@@ -2928,12 +2928,13 @@ class Polyhedron_base(Element):
         method to enumerate vertices and inequalities::
 
             sage: def get_idx(rep): return rep.index()
-            sage: map(get_idx, face.ambient_Hrepresentation())
+            sage: [get_idx(_) for _ in face.ambient_Hrepresentation()]
             [4]
-            sage: map(get_idx, face.ambient_Vrepresentation())
+            sage: [get_idx(_) for _ in face.ambient_Vrepresentation()]
             [0, 1, 2, 3, 4, 5, 6, 7]
 
-            sage: [ (map(get_idx, face.ambient_Vrepresentation()), map(get_idx, face.ambient_Hrepresentation()))
+            sage: [ ([get_idx(_) for _ in face.ambient_Vrepresentation()], 
+            ...      [get_idx(_) for _ in face.ambient_Hrepresentation()])
             ...     for face in p.faces(3) ]
             [([0, 1, 2, 3, 4, 5, 6, 7], [4]),
              ([0, 1, 2, 3, 8, 9, 10, 11], [5]),
@@ -4279,7 +4280,7 @@ class Polyhedron_base(Element):
         def pivot(indexed):
             return [indexed[i] for i in pivots]
 
-        vertices = map(pivot, self.vertices())
-        rays = map(pivot, self.rays())
-        lines = map(pivot, self.lines())
+        vertices = [pivot(_) for _ in self.vertices()]
+        rays = [pivot(_) for _ in self.rays()]
+        lines = [pivot(_) for _ in self.lines()]
         return Polyhedron(vertices=vertices, rays=rays, lines=lines, base_ring=self.base_ring())

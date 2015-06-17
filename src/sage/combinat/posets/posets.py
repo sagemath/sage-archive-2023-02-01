@@ -1238,8 +1238,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             [1, 5, 3, 15]
             sage: H.edges()
             [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
-            sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
-            sage: view(H, tight_page=True) # optional - dot2tex
+            sage: H.set_latex_options(format="dot2tex")   # optional - dot2tex
+            sage: view(H, tight_page=True)  # optional - dot2tex, not tested (opens external window)
         """
         G = DiGraph(self._hasse_diagram).relabel(self._list, inplace=False)
         from sage.graphs.dot2tex_utils import have_dot2tex
@@ -1251,7 +1251,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def _latex_(self):
         r"""
-        Returns a latex method for the poset.
+        Return a latex method for the poset.
 
         EXAMPLES::
 
@@ -1261,7 +1261,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             %%
             \node (node_1) at (6.0...bp,57.0...bp) [draw,draw=none] {$2$};
               \node (node_0) at (6.0...bp,7.0...bp) [draw,draw=none] {$1$};
-              \draw [black,<-] (node_1) ..controls (6.0...bp,31.269...bp) and (6.0...bp,20.287...bp)  .. (node_0);
+              \draw [black,->] (node_0) ..controls (...bp,...bp) and (...bp,...bp)  .. (node_1);
             %
             \end{tikzpicture}
         """
@@ -1944,7 +1944,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_incomparable_chain_free(self, m, n = None):
         r"""
-        Returns ``True`` if the poset is `(m+n)`-free (that is, there is no pair
+        Return ``True`` if the poset is `(m+n)`-free (that is, there is no pair
         of incomparable chains of lengths `m` and `n`), and ``False`` if not.
 
         If ``m`` is a tuple of pairs of chain lengths, returns ``True`` if the poset
@@ -2049,7 +2049,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if m < 0 or n < 0:
             raise ValueError("%s and %s must be nonnegative integers." % (m, n))
         twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
-        return self.hasse_diagram().transitive_closure().subgraph_search(twochains, induced = True) is None
+        return self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced = True) is None
 
     def is_lequal(self, x, y):
         """
@@ -2936,7 +2936,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
-            sage: map(Q.upper_covers,Q.list())
+            sage: [Q.upper_covers(_) for _ in Q.list()]
             [[2], [2], [3], [4], []]
         """
         return [x for x in self.upper_covers_iterator(y)]
@@ -2963,7 +2963,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
-            sage: map(Q.lower_covers,Q.list())
+            sage: [Q.lower_covers(_) for _ in Q.list()]
             [[], [], [1, 0], [2], [3]]
         """
         return [x for x in self.lower_covers_iterator(y)]
@@ -3955,12 +3955,13 @@ class FinitePoset(UniqueRepresentation, Parent):
     def canonical_label(self):
         """
         Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
-        is the number of elements in ``self``) that is isomorphic to ``self``
-        and invariant in the isomorphism class.
+        is the number of elements in the poset) that is isomorphic to this
+        poset and invariant in the isomorphism class.
 
         .. SEEALSO::
 
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+            - Canonical labeling of directed graphs:
+              :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
 
         EXAMPLES::
 
@@ -3970,7 +3971,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: Q.list() # random
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
@@ -3983,29 +3984,39 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
             sage: Q = P.canonical_label()
-            sage: Q.list()
+            sage: sorted(Q.list())
             [0, 1, 2, 3, 4, 5]
             sage: Q.is_isomorphic(P)
             True
+
+        Canonical labeling of (semi)lattice returns (semi)lattice::
+
+            sage: D=DiGraph({'a':['b','c']})
+            sage: P=Poset(D)
+            sage: ML=MeetSemilattice(D)
+            sage: P.canonical_label()
+            Finite poset containing 3 elements
+            sage: ML.canonical_label()
+            Finite meet-semilattice containing 3 elements
 
         TESTS::
 
             sage: P = Poset(digraphs.Path(10), linear_extension = True)
             sage: Q = P.canonical_label()
-            sage: Q.linear_extension()
+            sage: Q.linear_extension() # random
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: Q.cover_relations()
+            sage: Q.cover_relations() # random
             [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9]]
             sage: P = Poset(digraphs.Path(10))
             sage: Q = P.canonical_label()
-            sage: Q.linear_extension()
+            sage: Q.linear_extension() # random
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: Q.is_isomorphic(P)
             True
         """
-        P = Poset(DiGraph(self._hasse_diagram).canonical_label(), linear_extension=self._with_linear_extension,
-                  category=self.category(), facade=self._is_facade)
-        return P.relabel(range(len(self._elements)))
+        canonical_label = self._hasse_diagram.canonical_label(certify=True)[1]
+        canonical_label = {self._elements[v]:i for v,i in canonical_label.iteritems()}
+        return self.relabel(canonical_label)
 
     def with_linear_extension(self, linear_extension):
         """
@@ -4028,7 +4039,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         We check that we can pass in a list of elements of ``P`` instead::
 
-            sage: Q = P.with_linear_extension(map(P, [1,3,2,6,4,12]))
+            sage: Q = P.with_linear_extension([P(_) for _ in [1,3,2,6,4,12]])
             sage: list(Q)
             [1, 3, 2, 6, 4, 12]
             sage: Q.cover_relations()
@@ -4254,16 +4265,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             count = seedlist[0][1] * 2
             seedlist.insert(0, (current_randstate().long_seed(), count))
         if direction == 'up':
-            return map(self._vertex_to_element,
-                       [i for i, x in enumerate(state) if x == 1])
+            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 1]
         if direction == 'antichain':
-            return map(self._vertex_to_element,
-                       [i for i, x in enumerate(state)
-                        if x == 0 and all(state[j] == 1
-                                          for j in hd.upper_covers_iterator(i))])
+            return [self._vertex_to_element(i) for i,x in enumerate(state)
+                        if x == 0 and all(state[j] == 1 for j in hd.upper_covers_iterator(i))]
         else:  # direction is assumed to be 'down'
-            return map(self._vertex_to_element, [i for i, x in enumerate(state)
-                                                 if x == 0])
+            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
     def order_filter(self,elements):
         """
@@ -5202,11 +5209,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_slender(self):
         r"""
-        Return whether the poset ``self`` is slender or not.
+        Return ``True`` if the poset is slender, and ``False`` otherwise.
 
-        It is assumed for this method that ``self`` is a finite graded poset.
-        A finite poset `P` is called slender if every rank 2 interval contains
-        three or four elements. See [Stan2009]_.
+        A finite graded poset is called slender if every rank 2
+        interval contains three or four elements, as defined in
+        [Stan2009]_. (This notion of "slender" is unrelated to
+        the eponymous notion defined by Graetzer and Kelly in
+        "The Free $\mathfrak{m}$-Lattice on the Poset $H$",
+        Order 1 (1984), 47--65.)
+
+        This function *does not* check if the poset is graded or not.
+        Instead it just returns ``True`` if the poset does not contain
+        5 distinct elements `x`, `y`, `a`, `b` and `c` such that
+        `x \lessdot a,b,c \lessdot y` where `\lessdot` is the covering
+        relation.
 
         EXAMPLES::
 
@@ -5228,11 +5244,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         for x in self:
             d = {}
-            S = self.upper_covers(x)
-            Y = [ c for y in S for c in self.upper_covers(y) ]
-            for y in Y:
-                d[y] = d.get(y,0) + 1
-            if not all( d[y]<3 for y in d.keys() ):
+            for y in self.upper_covers(x):
+                for c in self.upper_covers(y):
+                    d[c] = d.get(c,0) + 1
+            if not all( y < 3 for y in d.itervalues() ):
                 return False
         return True
 

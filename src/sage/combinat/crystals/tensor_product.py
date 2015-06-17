@@ -47,6 +47,7 @@ from sage.combinat.tableau import Tableau
 from letters import CrystalOfLetters
 from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
+from sage.structure.element import get_coercion_model
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -843,6 +844,31 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         """
         return self.cartesian_product.cardinality()
 
+    @cached_method
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.B(['A',4], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['A', 4]
+            sage: T = crystals.infinity.Tableaux(['A',4])
+            sage: T.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+            sage: TP = crystals.TensorProduct(B, T)
+            sage: TP.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
+
 class TensorProductOfCrystalsElement(ImmutableListWithParent):
     r"""
     A class for elements of tensor products of crystals.
@@ -893,7 +919,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
               3  3  3     2
              -4 -4 -4
         """
-        from sage.misc.ascii_art import ascii_art, AsciiArt
+        from sage.typeset.ascii_art import ascii_art, AsciiArt
         s = ascii_art(self[0])
         s._baseline = s._h // 2
         ret = s
@@ -1836,8 +1862,7 @@ class CrystalOfTableaux(CrystalOfWords):
         # The column canonical tableau, read by columns
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
         if invert:
-            f = lambda x : -x if x == type[1] else x
-            module_generator = map(f, module_generator)
+            module_generator = [(-x if x == type[1] else x) for x in module_generator]
         return self(list=[self.letters(x) for x in module_generator])
 
     def _element_constructor_(self, *args, **options):

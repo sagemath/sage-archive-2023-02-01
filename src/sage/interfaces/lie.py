@@ -837,7 +837,7 @@ class LiEElement(ExpectElement):
                 xpos = term.find('X')
                 coef = eval(term[:xpos].strip())
                 exps = eval(term[xpos+1:].strip())
-                monomial = prod(map(lambda i: x[i]**exps[i] , range(nvars)))
+                monomial = prod([x[i]**exps[i] for i in range(nvars)])
                 pol += coef * monomial
 
             return pol

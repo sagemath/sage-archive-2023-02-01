@@ -3097,7 +3097,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # called "primitve collections" such that
         # 1) I is not contained in a face
         # 2) if you remove any one entry j, then I-{j} is contained in a facet
-        facets = map(frozenset, [ c.ambient_ray_indices() for c in self.generating_cones() ])
+        facets = [frozenset(c.ambient_ray_indices()) for c in self.generating_cones()]
         # print "facets = " + str(facets)
         all_points = frozenset( range(0,self.nrays()) )
         d_max = max(map(len,facets))+1

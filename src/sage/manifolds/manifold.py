@@ -1560,3 +1560,218 @@ class TopManifold(TopManifoldSubset):
 
         """
         return self._one_scalar_field
+
+    def _Hom_(self, other, category=None):
+        r"""
+        Construct the set of morphisms (i.e. continuous maps)
+        ``self`` --> ``other``.
+
+        INPUT:
+
+        - ``other`` -- an open subset of some topological manifold over the
+          same field as ``self``
+        - ``category`` -- (default: ``None``) not used here (to ensure
+          compatibility with generic hook ``_Hom_``)
+
+        OUTPUT:
+
+        - the homset Hom(U,V), where U is ``self`` and V is ``other``
+
+        See class
+        :class:`~sage.manifolds.manifold_homset.TopManifoldHomset`
+        for more documentation.
+
+        """
+        from sage.manifolds.manifold_homset import TopManifoldHomset
+        return TopManifoldHomset(self, other)
+
+    def continuous_map(self, codomain, coord_functions=None, chart1=None,
+                       chart2=None, name=None, latex_name=None):
+        r"""
+        Define a continuous map between the current topological manifold
+        and another topological manifold over the same topological field.
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``codomain`` -- the map codomain (the arrival manifold or some
+          subset of it)
+        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
+          either
+
+          - (i) a dictionary of
+            the coordinate expressions (as lists (or tuples) of the
+            coordinates of the image expressed in terms of the coordinates of
+            the considered point) with the pairs of charts (chart1, chart2)
+            as keys (chart1 being a chart on ``self`` and chart2 a chart on
+            ``codomain``)
+          - (ii) a single coordinate expression in a given pair of charts, the
+            latter being provided by the arguments ``chart1`` and ``chart2``
+
+          In both cases, if the dimension of the arrival manifold is 1,
+          a single coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``self`` defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``self``
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``codomain`` defining the arrival coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``codomain``
+        - ``name`` -- (default: ``None``) name given to the continuous
+          map
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          continuous map; if none is provided, the LaTeX symbol is set to
+          ``name``
+
+        OUTPUT:
+
+        - the continuous map, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLES:
+
+        A mapping between an open subset of `S^2` covered by regular spherical
+        coordinates and `\RR^3`::
+
+            sage: Manifold._clear_cache_() # for doctests only
+            sage: M = Manifold(2, 'S^2')
+            sage: U = M.open_subset('U')
+            sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+            sage: N = Manifold(3, 'R^3', r'\RR^3')
+            sage: c_cart.<x,y,z> = N.chart()  # Cartesian coord. on R^3
+            sage: Phi = U.continuous_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
+            ....:                      name='Phi', latex_name=r'\Phi') ; Phi
+            continuous map 'Phi' from the open subset 'U' of the
+             2-dimensional manifold 'S^2' to the 3-dimensional manifold 'R^3'
+
+        The same definition, but with a dictionary with pairs of charts as
+        keys (case (i) above)::
+
+            sage: Phi1 = U.continuous_map(N,
+            ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph), cos(th))},
+            ....:        name='Phi', latex_name=r'\Phi')
+            sage: Phi1 == Phi
+            True
+
+        The continuous map acting on a point::
+
+            sage: p = U.point((pi/2, pi)) ; p
+            point on 2-dimensional manifold 'S^2'
+            sage: Phi(p)
+            point on 3-dimensional manifold 'R^3'
+            sage: Phi(p).coord(c_cart)
+            (-1, 0, 0)
+            sage: Phi1(p) == Phi(p)
+            True
+
+        See the documentation of class
+        :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
+        examples.
+
+        """
+        homset = Hom(self, codomain)
+        if coord_functions is None:
+            coord_functions = {}
+        if not isinstance(coord_functions, dict):
+            # Turn coord_functions into a dictionary:
+            if chart1 is None:
+                chart1 = self._def_chart
+            elif chart1 not in self._atlas:
+                raise ValueError("{} is not a chart ".format(chart1) +
+                                 "defined on the {}".format(self))
+            if chart2 is None:
+                chart2 = codomain._def_chart
+            elif chart2 not in codomain._atlas:
+                raise ValueError("{} is not a chart ".format(chart2) +
+                                 " defined on the {}".format(codomain))
+            coord_functions = {(chart1, chart2): coord_functions}
+        return homset(coord_functions, name=name, latex_name=latex_name)
+
+    def homeomorphism(self, codomain, coord_functions=None, chart1=None,
+                       chart2=None, name=None, latex_name=None):
+        r"""
+        Define a homeomorphism between ``self`` and another open subset
+        (possibly on another manifold).
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``codomain`` -- mapping's codomain (the arrival manifold or some
+          subset of it)
+        - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
+          either
+
+          - (i) a dictionary of
+            the coordinate expressions (as lists (or tuples) of the
+            coordinates of the image expressed in terms of the coordinates of
+            the considered point) with the pairs of charts (chart1, chart2)
+            as keys (chart1 being a chart on ``self`` and chart2 a chart on
+            ``codomain``)
+          - (ii) a single coordinate expression in a given pair of charts, the
+            latter being provided by the arguments ``chart1`` and ``chart2``
+
+          In both cases, if the dimension of the arrival manifold is 1,
+          a single coordinate expression can be passed instead of a tuple with
+          a single element
+        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``self`` defining the start coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``self``
+        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
+          on ``codomain`` defining the arrival coordinates involved in
+          ``coord_functions`` for case (ii); if none is provided, the
+          coordinates are assumed to refer to the default chart of ``codomain``
+        - ``name`` -- (default: ``None``) name given to the homeomorphism
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          homeomorphism; if none is provided, the LaTeX symbol is set to
+          ``name``
+
+        OUTPUT:
+
+        - the homeomorphism, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLE:
+
+        A homeomorphism between two 2-dimensional subsets::
+
+            sage: Manifold._clear_cache_() # for doctests only
+            sage: M = Manifold(2, 'M', r'{\cal M}')
+            sage: U = M.open_subset('U')
+            sage: c_xv.<x,y> = U.chart(r'x:(-pi/2,+oo) y:(-pi/2,+oo)')
+            sage: N = Manifold(2, 'N', r'{\cal N}')
+            sage: V = N.open_subset('V')
+            sage: c_zt.<z,t> = V.chart(r'z t')
+            sage: Phi = U.homeomorphism(V, (arctan(x), arctan(y)), name='Phi',
+            ....:                        latex_name=r'\Phi')
+
+        See the documentation of class
+        :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
+        examples.
+
+        """
+        homset = Hom(self, codomain)
+        if coord_functions is None:
+            coord_functions = {}
+        if not isinstance(coord_functions, dict):
+            # Turn coord_functions into a dictionary:
+            if chart1 is None:
+                chart1 = self._def_chart
+            elif chart1 not in self._atlas:
+                raise ValueError("{} is not a chart ".format(chart1) +
+                                 "defined on the {}".format(self))
+            if chart2 is None:
+                chart2 = codomain._def_chart
+            elif chart2 not in codomain._atlas:
+                raise ValueError("{} is not a chart ".format(chart2) +
+                                 " defined on the {}".format(codomain))
+            coord_functions = {(chart1, chart2): coord_functions}
+        return homset(coord_functions, name=name, latex_name=latex_name,
+                      is_homeomorphism=True)
+

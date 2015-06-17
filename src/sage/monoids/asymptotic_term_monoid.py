@@ -226,7 +226,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: any(lt1.can_absorb(t) for t in [ot1, ot2])
             False
             sage: lt1.can_absorb(LT(x^5, 1, start=0))
-            True
+            False
             sage: lt1.can_absorb(et1)
             True
         """
@@ -241,7 +241,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             if isinstance(other, ExactTerm):
                 return other <= self
             elif isinstance(other, LTermGeneric):
-                return True
+                return other <= self
             else:
                 return False
         elif isinstance(self, ExactTerm):
@@ -1551,8 +1551,8 @@ class LTermGeneric(TermWithCoefficient):
         sage: lt_ZZ * lt_QQ
         72 * L(x^3, 42)
         sage: lt_QQ.can_absorb(lt_ZZ)
-        True
-        sage: lt_QQ.absorb(lt_ZZ)
+        False
+        sage: lt_ZZ.absorb(lt_QQ)
         Traceback (most recent call last):
         ...
         NotImplementedError: Not yet implemented

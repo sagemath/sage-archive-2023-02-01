@@ -4658,7 +4658,7 @@ cdef class Matroid(SageObject):
 
         - Bridges based: The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
         - Matroid intersection based: Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
-        sets `S`, `T` with `|S| = |T| = 2`.
+          sets `S`, `T` with `|S| = |T| = 2`.
 
         EXAMPLES::
 

@@ -52,6 +52,10 @@ Bibliography
 .. [HongKang2002] J. Hong and S.-J. Kang. *Introduction to Quantum
    Groups and Crystal Bases*. AMS Graduate Studies in Mathematics,
    American Mathematical Society, 2002.
+   
+.. [HongLee2008] J. Hong and H. Lee. Young tableaux and crystal 
+   `B(\infty)` for finite simple Lie algebras. *J. Algebra*, 
+   320:3680--3693, 2008.
 
 .. [HoweEtAl2005] R. Howe, E.-C.Tan, and J. F. Willenbring. Stable
    branching rules for classical symmetric pairs. *Transactions of the
@@ -79,6 +83,10 @@ Bibliography
 .. [KashiwaraNakashima1994] M. Kashiwara and T. Nakashima. Crystal
    graphs for representations of the `q`-analogue of classical Lie
    algebras. *Journal Algebra*, 165(2):295--345, 1994.
+
+.. [KimShin2010] J.-A. Kim and D.-U. Shin. Generalized Young walls and 
+   crystal bases for quantum affine algebra of type `A`. *Proc. Amer. 
+   Math. Soc.*, 138(11):3877--3889, 2010.
 
 .. [King1975] R. C. King. Branching rules for classical Lie groups
    using tensor and spinor methods. *Journal of Physics A*,
@@ -125,7 +133,11 @@ Bibliography
 
 .. [Rubenthaler2008] H. Rubenthaler, 
    The (A2,G2) duality in E6, octonions and the triality principle.
-   Trans. Amer. Math. Soc. 360 (2008), no. 1, 347–367 
+   Trans. Amer. Math. Soc. 360 (2008), no. 1, 347–367.
+   
+.. [SalisburyScrimshaw2015] B. Salisbury and T. Scrimshaw. A rigged 
+   configuration model for `B(\infty)`. *J. Combin. Theory Ser. A*, 
+   133:29--57, 2015.
 
 .. [SchillingTingley2011] A. Schilling, P. Tingley.
    Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.

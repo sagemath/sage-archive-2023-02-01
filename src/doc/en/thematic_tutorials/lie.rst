@@ -23,6 +23,8 @@ algorithms. We will cover only some of these.
    lie/crystals
    lie/affine_finite_crystals
    lie/affine_hw_crystals
+   lie/elementary_crystals
+   lie/infinity_crystals
    lie/iwahori_hecke_algebra
    lie/kazhdan_lusztig_polynomials
    lie/bibliography

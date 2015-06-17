@@ -111,9 +111,37 @@ crystal is simply the rank of the underlying type::
      2|0|1|2|0|
 
 In the ``weight`` method for this model, we can choose whether to view weights
-in the root lattice or in the extended weight lattice::
+in the extended weight lattice (by default) or in the root lattice::
 
+    sage: y.f_string([0,1,2,2,2,1,0,0,1,2]).weight()
+    Lambda[0] + Lambda[1] - 2*Lambda[2] - 3*delta
+    sage: y.f_string([0,1,2,2,2,1,0,0,1,2]).weight(root_lattice=True)
+    -3*alpha[0] - 3*alpha[1] - 4*alpha[2]
 
+As before, we need to indicate a specific subcrystal when attempting to view
+the crystal graph::
+
+    sage: Y = crystals.infinity.GeneralizedYoungWalls(2)
+    sage: SY = Y.subcrystal(max_depth=3)
+    sage: GY = Y.digraph(subset=SY)
+    sage: view(GY, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
+
+.. image:: ../media/YinfA21.png
+   :scale: 50
+   :align: center
+
+One can also make irreducible highest weight crystals using generalized Young
+walls::
+
+    sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+    sage: YLa = crystals.GeneralizedYoungWalls(2,La[0])
+    sage: SYLa = YLa.subcrystal(max_depth=3)
+    sage: GYLa = YLa.digraph(subset=SYLa)
+    sage: view(GYLa, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
+
+.. image:: ../media/YLa0.png
+   :scale: 50
+   :align: center
 
 
 Modified Nakajima monomials

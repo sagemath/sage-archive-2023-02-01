@@ -1807,8 +1807,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.is_degenerate_LA()
             False
 
-        Whereas Rock-Paper-Scissors-Lizard-Spock is degenerate because for
-        every pure strategy there are two best responses.::
+        Whereas `Rock-Paper-Scissors-Lizard-Spock
+        <http://www.samkass.com/theories/RPSSL.html>`_ is degenerate because
+        for every pure strategy there are two best responses.::
 
             sage: A = matrix([[0, -1, 1, 1, -1],
             ....:             [1, 0, -1, -1, 1],

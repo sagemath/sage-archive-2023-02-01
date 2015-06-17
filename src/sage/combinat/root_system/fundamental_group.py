@@ -481,6 +481,11 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         r"""
         Return a tuple of generators of the fundamental group.
 
+        .. WARNING::
+
+        This returns the entire group, a necessary behavior because it
+        is used in :meth:`__iter__`.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
@@ -500,23 +505,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: [x for x in F] # indirect doctest
             [f[0], f[1], f[6]]
         """
-        for x in self.list():
-            yield(x)
-
-    def list(self):
-        r"""
-        Return a tuple containing all the elements of the fundamental group.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['E',6,1],prefix="f").list()
-            Finite family {0: f[0], 1: f[1], 6: f[6]}
-        """
-        if self in Groups().Finite():
-            return self.group_generators()
-        else:
-            raise TypeError("Infinite groups cannot be listed")
+        return iter(self.group_generators())
 
     @cached_method
     def index_set(self):

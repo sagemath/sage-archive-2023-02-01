@@ -385,7 +385,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         Return the Coxeter matrix associated to ``self``.
 
-        TODO::
+        .. TODO::
 
             Move this method to the CoxeterGroups category. The issue
             with this is that the indexing of a Coxeter group is not

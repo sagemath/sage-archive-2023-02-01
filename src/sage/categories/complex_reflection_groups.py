@@ -144,7 +144,8 @@ class ComplexReflectionGroups(Category_singleton):
         @abstract_method(optional=True)
         def hyperplane_index_set(self):
             r"""
-            Return the index set of the reflection hyperplanes of ``self``.
+            Return the index set of the reflection hyperplanes of
+            ``self``.
 
             EXAMPLES::
 
@@ -202,7 +203,8 @@ class ComplexReflectionGroups(Category_singleton):
             r"""
             Return the `i`-th reflection of ``self``.
 
-            For `i` in `1,\dots,N`, this gives the `i`-th reflection of ``self``.
+            For `i` in `1,\dots,N`, this gives the `i`-th reflection of
+            ``self``.
 
             EXAMPLES::
 
@@ -243,9 +245,10 @@ class ComplexReflectionGroups(Category_singleton):
             reflections of ``self``, indexed by
             :meth:`hyperplane_index_set`.
 
-            These are the reflections in ``self`` acting on the complement
-            of the fixed hyperplane `H` as `\operatorname{exp}(2 \pi i / n)`, where `n`
-            is the order of the reflection subgroup fixing `H`.
+            These are the reflections in ``self`` acting on the
+            complement of the fixed hyperplane `H` as
+            `\operatorname{exp}(2 \pi i / n)`, where `n` is the order of
+            the reflection subgroup fixing `H`.
 
            EXAMPLES::
 
@@ -286,8 +289,8 @@ class ComplexReflectionGroups(Category_singleton):
         @cached_method
         def reflections(self):
             r"""
-            Return a finite family containing the reflections of ``self``,
-            indexed by :meth:`reflection_index_set`.
+            Return a finite family containing the reflections of
+            ``self``, indexed by :meth:`reflection_index_set`.
 
            EXAMPLES::
 
@@ -505,7 +508,7 @@ class ComplexReflectionGroups(Category_singleton):
 
         def apply_simple_reflection(self, i, side = 'right'):
             """
-            Return ``self`` multiplied by the simple reflection ``s[i]``.
+            Return ``self`` * ``s[i]``.
 
             INPUT:
 

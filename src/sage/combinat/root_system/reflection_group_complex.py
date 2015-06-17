@@ -178,7 +178,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def _repr_(self):
         r"""
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -194,7 +194,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def __iter__(self):
         r"""
-        Returns an iterator going through all elements in ``self``.
+        Return an iterator going through all elements in ``self``.
 
         EXAMPLES::
 
@@ -242,7 +242,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def index_set(self):
         r"""
-        Returns the index set of the simple reflections of ``self``.
+        Return the index set of the simple reflections of ``self``.
 
         EXAMPLES::
 
@@ -264,7 +264,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def hyperplane_index_set(self):
         r"""
-        Returns the index set of the hyperplanes of ``self``.
+        Return the index set of the hyperplanes of ``self``.
 
         EXAMPLES::
 
@@ -283,13 +283,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def distinguished_reflections(self):
         r"""
-        Returns a finite family containing the distinguished reflections of ``self``,
-        indexed by ``self.hyperplane_index_set()``.
+        Return a finite family containing the distinguished reflections of ``self``,
+        indexed by :meth:`hyperplane_index_set`.
+
         These are the reflections in ``self`` acting on the complement
         of the fixed hyperplane `H` as `\operatorname{exp}(2 \pi i / n)`, where `n`
         is the order of the reflection subgroup fixing `H`.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.distinguished_reflections()
@@ -320,12 +321,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def distinguished_reflection(self, i):
         r"""
-        Returns the ``i``-th distinguished reflection of ``self``.
+        Return the ``i``-th distinguished reflection of ``self``.
+
         These are the reflections in ``self`` acting on the complement
         of the fixed hyperplane `H` as `\operatorname{exp}(2 \pi i / n)`, where `n`
         is the order of the reflection subgroup fixing `H`.
 
-       EXAMPLES::
+        EXAMPLES::
 
             sage: W = ReflectionGroup((1,1,3))
             sage: W.distinguished_reflection(0)
@@ -357,7 +359,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def reflection_index_set(self):
         r"""
-        Returns the index set of the reflections of ``self``.
+        Return the index set of the reflections of ``self``.
 
         EXAMPLES::
 
@@ -376,8 +378,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def reflections(self):
         r"""
-        Returns a finite family containing the reflections of ``self``,
-        indexed by ``self.reflection_index_set()``.
+        Return a finite family containing the reflections of ``self``,
+        indexed by :meth:`self.reflection_index_set`.
 
        EXAMPLES::
 
@@ -405,7 +407,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def reflection(self,i):
         r"""
-        Returns the ``i``-th reflection of ``self``
+        Return the ``i``-th reflection of ``self``.
 
        EXAMPLES::
 
@@ -429,7 +431,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def reflection_character(self):
         r"""
-        Returns the reflection characters of ``self``.
+        Return the reflection characters of ``self``.
 
         EXAMPLES::
 
@@ -441,10 +443,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def is_crystallographic(self):
         r"""
-        Returns True if self is crystallographic, i.e., if the reflection representation of ``self``
-        is defined over the rationals.
+        Return ``True`` if self is crystallographic.
 
-        TODO::
+        This is, if the field of definition is the rational field.
+
+        .. TODO::
 
             - make this more robust and do not use the matrix
               representation of the simple reflections.
@@ -494,7 +497,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def nr_irreducible_components(self):
         r"""
-        Returns the number of irreducible components of ``self``.
+        Return the number of irreducible components of ``self``.
 
         EXAMPLES::
 
@@ -510,7 +513,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def irreducible_components(self):
         r"""
-        Returns a list containing the irreducible components of ``self`` as finite reflection groups.
+        Return a list containing the irreducible components of ``self``
+        as finite reflection groups.
 
         EXAMPLES::
 
@@ -536,7 +540,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def conjugacy_classes_representatives(self):
         r"""
-        Returns the shortest representatives of the conjugacy classes of ``self``.
+        Return the shortest representatives of the conjugacy classes of
+        ``self``.
 
         EXAMPLES::
 
@@ -565,7 +570,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def conjugacy_classes(self):
         r"""
-        Returns the conjugacy classes of ``self``.
+        Return the conjugacy classes of ``self``.
 
         EXAMPLES::
 
@@ -593,7 +598,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def rank(self):
         r"""
-        Returns the rank of ``self``. This is the dimension of the underlying vector space.
+        Return the rank of ``self``.
+
+        This is the dimension of the underlying vector space.
 
         EXAMPLES::
 
@@ -615,7 +622,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def degrees(self):
         r"""
-        Returns the degrees of ``self`` ordered within each irreducible component of ``self``.
+        Return the degrees of ``self`` ordered within each irreducible
+        component of ``self``.
 
         EXAMPLES::
 
@@ -663,7 +671,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def codegrees(self):
         r"""
-        Returns the codegrees of ``self`` ordered within each irreducible component of ``self``.
+        Return the codegrees of ``self`` ordered within each irreducible
+        component of ``self``.
 
         EXAMPLES::
 
@@ -707,8 +716,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def reflection_eigenvalues_family(self):
         r"""
-        Returns the reflection eigenvalues of ``self`` as a finite family indexed by the class representatives of ``self``.
-        An eigenvalue `\zeta_n^k` is returned as the quotient `k/n` in the rationals.
+        Return the reflection eigenvalues of ``self`` as a finite family
+        indexed by the class representatives of ``self``.
+
+        OUTPUT:
+
+        - list with entries `k/n` representing the eigenvalue `\zeta_n^k`.
 
         EXAMPLES::
 
@@ -751,9 +764,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def reflection_eigenvalues(self,w,test_class_repr=True):
         r"""
-        Returns the reflection eigenvalue of ``w`` in ``self``.
+        Return the reflection eigenvalue of ``w`` in ``self``.
 
-        .. seealso:: :meth:`reflection_eigenvalues_family`
+        .. SEEALSO:: :meth:`reflection_eigenvalues_family`
 
         EXAMPLES::
 
@@ -775,8 +788,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def simple_roots(self):
         r"""
-        Returns the *simple roots* of ``self``. These are the roots
-        corresponding to the simple reflections.
+        Return the simple roots of ``self``.
+
+        These are the roots corresponding to the simple reflections.
 
         EXAMPLES::
 
@@ -801,8 +815,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def simple_coroots(self):
         r"""
-        Returns the *simple coroots* of ``self``. These are the coroots
-        corresponding to the simple reflections.
+        Return the simple coroots of ``self``.
+
+        These are the coroots corresponding to the simple reflections.
 
         EXAMPLES::
 
@@ -835,9 +850,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def independent_roots(self):
         r"""
-        Returns a collection of simple roots generating the underlying vector space of ``self``.
-        For well-generated groups, these are all simple roots. Otherwise, a linearly independent
-        subset of the simple roots is chosen.
+        Return a collection of simple roots generating the underlying
+        vector space of ``self``.
+
+        For well-generated groups, these are all simple roots.
+        Otherwise, a linearly independent subset of the simple roots is
+        chosen.
 
         EXAMPLES::
 
@@ -864,9 +882,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def base_change_matrix(self):
         r"""
-        Returns the base change from the standard basis of the vector space of ``self`` to the basis given by the independent roots of ``self``.
+        Return the base change from the standard basis of the vector
+        space of ``self`` to the basis given by the independent roots of
+        ``self``.
 
-        TODO::
+        .. TODO::
 
             - for non-well-generated groups there is a conflict with construction of the matrix for an element
 
@@ -898,7 +918,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def roots(self):
         r"""
-        Returns all roots corresponding to all reflections of ``self``.
+        Return all roots corresponding to all reflections of ``self``.
 
         EXAMPLES::
 
@@ -926,7 +946,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def braid_relations(self):
         r"""
-        Returns the braid relations of ``self``.
+        Return the braid relations of ``self``.
 
         EXAMPLES::
 
@@ -946,7 +966,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def fundamental_invariants(self):
         r"""
-        Returns the fundamental invariants of ``self``.
+        Return the fundamental invariants of ``self``.
 
         EXAMPLES::
 
@@ -1038,7 +1058,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def apply_simple_reflection_right(self,i):
             r"""
-            Returns the product of ``self`` with the ``i``-th simple reflection.
+            Return the product of ``self`` with the ``i``-th simple
+            reflection.
 
             EXAMPLES::
 
@@ -1058,7 +1079,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def apply_simple_reflection_left(self,i):
             r"""
-            Returns the product of ``self`` with the ``i``-th simple reflection.
+            Return the product of the ``i``-th simple reflection with
+            ``self``.
 
             EXAMPLES::
 
@@ -1079,7 +1101,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def conjugacy_class_representative(self):
             r"""
-            Returns a representative of the conjugacy class of ``self``.
+            Return a representative of the conjugacy class of ``self``.
 
             EXAMPLES::
 
@@ -1099,7 +1121,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def conjugacy_class(self):
             r"""
-            Returns the conjugacy class of ``self``.
+            Return the conjugacy class of ``self``.
 
             EXAMPLES::
 
@@ -1136,7 +1158,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def reduced_word(self):
             r"""
-            Returns a word in the simple reflections to obtain ``self``
+            Return a word in the simple reflections to obtain ``self``.
 
             EXAMPLES::
 
@@ -1144,7 +1166,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: [ w.reduced_word() for w in W ]
                 [word: , word: a, word: aa, word: aaa, word: aaaa]
 
-            .. seealso:: :meth:`reduced_word_in_reflections`
+            .. SEEALSO:: :meth:`reduced_word_in_reflections`
             """
             W = self.parent()
             if self._reduced_word is None:
@@ -1159,7 +1181,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def reduced_word_in_reflections(self):
             r"""
-            Returns a word in the reflections to obtain ``self``
+            Return a word in the reflections to obtain ``self``.
 
             EXAMPLES::
 
@@ -1168,7 +1190,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: [ w.reduced_word_in_reflections() for w in W ]
                 [word: , word: A, word: B, word: C, word: D]
 
-            .. seealso:: :meth:`reduced_word`
+            .. SEEALSO:: :meth:`reduced_word`
             """
             W = self.parent()
             if self == W.one():
@@ -1189,8 +1211,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def length(self):
             r"""
-            Returns the length of ``self`` in generating reflections. This is
-            the minimal numbers of generating reflections needed to obtain ``self``.
+            Return the length of ``self`` in generating reflections.
+
+            This is the minimal numbers of generating reflections needed
+            to obtain ``self``.
 
             EXAMPLES::
 
@@ -1227,8 +1251,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def reflection_length(self, in_unitary_group=False):
             r"""
-            Returns the reflection length of ``self``. This is
-            the minimal numbers of reflections needed to obtain ``self``.
+            Return the reflection length of ``self``.
+
+            This is the minimal numbers of reflections needed to obtain
+            ``self``.
 
             INPUT:
 
@@ -1275,7 +1301,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def right_coset_representatives(self):
             r"""
-            Returns the right coset representatives of ``self``.
+            Return the right coset representatives of ``self``.
 
             EXAMPLES::
 
@@ -1297,9 +1323,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def left_coset_representatives(self):
             r"""
-            Returns the left coset representatives of ``self``.
+            Return the left coset representatives of ``self``.
 
-            .. seealso:: :meth:`right_coset_representatives`
+            .. SEEALSO:: :meth:`right_coset_representatives`
 
             EXAMPLES::
 
@@ -1317,7 +1343,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def as_matrix(self):
             r"""
-            Returns ``self`` as a matrix acting on the underlying vector space.
+            Return ``self`` as a matrix acting on the underlying vector
+            space.
 
             EXAMPLES::
 
@@ -1357,8 +1384,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def fix_space(self):
             r"""
-            Returns the fix space of ``self``. This is the sub vector space of the
-            underlying vector space on which ``self`` acts trivially.
+            Return the fix space of ``self``.
+
+            This is the sub vector space of the underlying vector space
+            on which ``self`` acts trivially.
 
             EXAMPLES::
 
@@ -1434,7 +1463,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         @cached_in_parent_method
         def galois_conjugates(self):
             r"""
-            Returns all Galois conjugates of ``self``.
+            Return all Galois conjugates of ``self``.
 
             EXAMPLES::
 
@@ -1532,7 +1561,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     def _repr_(self):
         r"""
-        Returns the string representation of ``self``.
+        Return the string representation of ``self``.
 
         EXAMPLES::
 
@@ -1545,8 +1574,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def a_coxeter_element(self):
         r"""
-        Returns a Coxeter element of a well-generated, irreducible reflection group. This is an element
-        having a regular eigenvector (a vector not contained in any recflecting hyperplane of ``self``).
+        Return a Coxeter element of a well-generated, irreducible
+        reflection group.
+
+        This is an element having a regular eigenvector (a vector not
+        contained in any recflecting hyperplane of ``self``).
 
         REMARK:
 
@@ -1578,7 +1610,8 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def coxeter_elements(self):
         r"""
-        Returns the (unique) conjugacy class in ``self`` containing all Coxeter elements.
+        Return the (unique) conjugacy class in ``self`` containing all
+        Coxeter elements.
 
         REMARK:
 
@@ -1600,8 +1633,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def standard_coxeter_elements(self):
         r"""
-        Returns all standard Coxeter elements in ``self``. This is the set of all
-        elements in self obtained from any product of the simple reflections in ``self``.
+        Return all standard Coxeter elements in ``self``.
+
+        This is the set of all elements in self obtained from any
+        product of the simple reflections in ``self``.
 
         REMARK:
 
@@ -1622,7 +1657,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
     def elements_below_coxeter_element(self, c=None):
         r"""
-        Returns all elements in ``self`` in the interval `[1,c]` in the
+        Return all elements in ``self`` in the interval `[1,c]` in the
         absolute order of ``self``.
 
         This order is defines by `\omega \leq_R \tau \Leftrightarrow \ell_R(\omega) + \ell_R(\omega^{-1} \tau) = \ell_R(\tau)`,
@@ -1666,9 +1701,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None):
         r"""
-        Returns the the interval `[1,c]` in the absolute order of ``self`` as a finite lattice.
+        Return the the interval `[1,c]` in the absolute order of
+        ``self`` as a finite lattice.
 
-        .. seealso:: :meth:`elements_below_coxeter_element`
+        .. SEEALSO:: :meth:`elements_below_coxeter_element`
 
         REMARK:
 
@@ -1744,9 +1780,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def absolute_poset(self):
         r"""
-        Returns the poset induced by the absolute order of ``self`` as a finite lattice.
+        Return the poset induced by the absolute order of ``self`` as a
+        finite lattice.
 
-        .. seealso:: :meth:`noncrossing_partition_lattice`
+        .. SEEALSO:: :meth:`noncrossing_partition_lattice`
 
         EXAMPLES::
 
@@ -1763,9 +1800,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         @cached_in_parent_method
         def is_coxeter_element(self,which_primitive=1,test_class_repr=True):
             r"""
-            Returns True if ``self`` is a Coxeter element.
+            Return True if ``self`` is a Coxeter element.
 
-            .. seealso:: :meth:`a_coxeter_element`
+            .. SEEALSO:: :meth:`a_coxeter_element`
 
             EXAMPLES::
 
@@ -1787,9 +1824,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         @cached_in_parent_method
         def is_h_regular(self,test_class_repr=True):
             r"""
-            Returns True if self is regular. I.e., self has an eigenvector
-            with eigenvalue `h` and which does not lie in any reflecting hyperplane.
-            Here, `h` denotes the *Coxeter number* of ``self.parent()``.
+            Return ``True`` if self is regular.
+
+            This is if ``self`` has an eigenvector with eigenvalue `h`
+            and which does not lie in any reflecting hyperplane.
+            Here, `h` denotes the Coxeter number.
 
             EXAMPLES::
 
@@ -1811,9 +1850,10 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
         @cached_in_parent_method
         def is_regular(self,h,test_class_repr=True):
             r"""
-            Returns True if self is regular. I.e., self has an eigenvector
-            with eigenvalue `h` and which does not lie in any reflecting hyperplane.
-            Here, `h` denotes the *Coxeter number* of ``self.parent()``.
+            Return ``True`` if self is regular.
+
+            This is, if ``self`` has an eigenvector with eigenvalue
+            ``h`` and which does not lie in any reflecting hyperplane.
 
             EXAMPLES::
 

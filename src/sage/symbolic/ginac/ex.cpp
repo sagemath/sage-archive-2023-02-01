@@ -255,6 +255,16 @@ bool ex::is_polynomial(const ex & vars) const
 		return bp->is_polynomial(vars);
 }
 
+bool ex::is_zero() const {
+#ifndef _MSC_VER
+	  extern const ex _ex0;
+#endif
+        if (!is_exactly_a<numeric>(*this))
+                return is_equal(_ex0);
+        numeric num = ex_to<numeric>(*this);
+        return num.is_zero();
+}
+
 /** Check whether expression is zero or zero matrix. */
 bool ex::is_zero_matrix() const
 {

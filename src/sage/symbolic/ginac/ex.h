@@ -224,12 +224,7 @@ public:
 	// comparison
 	int compare(const ex & other) const;
 	bool is_equal(const ex & other) const;
-	bool is_zero() const { 
-#ifndef _MSC_VER
-	  extern const ex _ex0;
-#endif
-	  return is_equal(_ex0); 
-	}
+	bool is_zero() const;
 	bool is_zero_matrix() const;
         bool is_integer_one() const;
         bool is_integer_pmone() const;

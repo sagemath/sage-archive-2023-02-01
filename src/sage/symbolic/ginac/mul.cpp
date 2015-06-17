@@ -686,7 +686,7 @@ ex mul::eval(int level) const
 	size_t seq_size = seq.size();
 	if (overall_coeff.is_zero()) {
 		// *(...,x;0) -> 0
-		return _ex0;
+		return overall_coeff;
 	} else if (seq_size==0) {
 		// *(;c) -> c
 		return overall_coeff;

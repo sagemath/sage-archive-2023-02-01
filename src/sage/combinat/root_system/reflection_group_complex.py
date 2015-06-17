@@ -1299,48 +1299,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                     return w
 
         @cached_in_parent_method
-        def right_coset_representatives(self):
-            r"""
-            Return the right coset representatives of ``self``.
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.right_coset_representatives() ]
-                 [word: , word: 1, word: 0, word: 10, word: 01, word: 010]
-                0 [word: , word: 1, word: 10]
-                1 [word: , word: 0, word: 01]
-                01 [word: ]
-                10 [word: ]
-                010 [word: , word: 1, word: 0]
-            """
-            W = self.parent()
-            T = W.reflections()
-            T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
-            S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = '+gap_return(S,coerce_obj='W'))
-            return L
-
-        def left_coset_representatives(self):
-            r"""
-            Return the left coset representatives of ``self``.
-
-            .. SEEALSO:: :meth:`right_coset_representatives`
-
-            EXAMPLES::
-
-                sage: W = ReflectionGroup((1,1,3))
-                sage: for w in W: print w.reduced_word(), [ v.reduced_word() for v in w.left_coset_representatives() ]
-                 [word: , word: 1, word: 0, word: 01, word: 10, word: 010]
-                0 [word: , word: 1, word: 01]
-                1 [word: , word: 0, word: 10]
-                01 [word: ]
-                10 [word: ]
-                010 [word: , word: 1, word: 0]
-            """
-            return [ w**-1 for w in self.right_coset_representatives() ]
-
-        @cached_in_parent_method
         def as_matrix(self):
             r"""
             Return ``self`` as a matrix acting on the underlying vector

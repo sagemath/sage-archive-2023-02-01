@@ -4637,7 +4637,7 @@ cdef class Matroid(SageObject):
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is 3-connected,
-          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 3-connectivity:
 
@@ -4656,7 +4656,9 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+        - Bridges based: The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+        - Matroid intersection based: Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+        sets `S`, `T` with `|S| = |T| = 2`.
 
         EXAMPLES::
 
@@ -4708,7 +4710,7 @@ cdef class Matroid(SageObject):
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is 3-connected,
-          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
 
@@ -4717,7 +4719,7 @@ cdef class Matroid(SageObject):
         ALGORITHM:
 
         Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
-        sets `S`,`T` with `|S| = |T| = 2`.
+        sets `S`, `T` with `|S| = |T| = 2`.
 
         EXAMPLES::
 
@@ -4806,7 +4808,7 @@ cdef class Matroid(SageObject):
 
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is 3-connected,
-          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
 
@@ -4838,7 +4840,7 @@ cdef class Matroid(SageObject):
         """
         # The 5 stages of the algorithm
         if certificate:
-            raise NotImplementedError()
+            raise NotImplementedError("The Bixby-Cunningham algorithm does not return a separation.")
         # Stage 0, special cases
         if self.size() <= 1:
             return True

@@ -2,7 +2,14 @@
 
 cd src
 
-./bootstrap --prefix=$SAGE_LOCAL
+./bootstrap --prefix=$SAGE_LOCAL \
+    --system-bzip2 \
+    --system-zlib \
+    -- \
+    -DCMAKE_PREFIX_PATH=$SAGE_LOCAL/lib \
+    -DBZIP2_INCLUDE_DIR=$SAGE_LOCAL/include \
+    -DZLIB_INCLUDE_DIR=$SAGE_LOCAL/include
+
 if [ $? -ne 0 ]; then
     echo >&2 "Error configuring CMake."
     exit 1

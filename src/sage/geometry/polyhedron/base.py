@@ -3402,7 +3402,7 @@ class Polyhedron_base(Element):
             sage: I = Polyhedron([(0,0), (1,1)])
             sage: I.volume()
             0
-            sage: I.volume(engine='lrs')
+            sage: I.volume(engine='lrs') #optional - lrslib
             1.0
         """
         if engine=='lrs':

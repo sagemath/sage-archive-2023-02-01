@@ -4641,9 +4641,10 @@ cdef class Matroid(SageObject):
         - ``algorithm`` -- (default: ``None``); specify which algorithm 
           to compute 3-connectivity:
 
-          - ``None`` -- the method itself decides on an algorithm.
-          - ``"BC"`` -- Bixby and Cunningham's algorithm [BC79]_.
-          - ``"naive"`` -- the naive algorithm through definition.
+          - ``None`` -- The most appropriate algorithm is chosen automatically.
+          - ``"bridges"`` -- Bixby and Cunningham's algorithm, based on bridges [BC79]_.
+            Note that this cannot return a separator.
+          - ``"intersection"`` An algorithm based on matroid intersection.
 
         OUTPUT:
 
@@ -4666,6 +4667,10 @@ cdef class Matroid(SageObject):
             ....:                              [0, 0, 1, 0, 0, 1]])
             sage: M.is_3connected()
             False
+            sage: M.is_3connected() == M.is_3connected(algorithm="bridges")
+            True
+            sage: M.is_3connected() == M.is_3connected(algorithm="intersection")
+            True
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
@@ -4685,17 +4690,17 @@ cdef class Matroid(SageObject):
         certificate = certificate or separation
         if algorithm == None:
             if certificate:
-                return self._is_3connected_naive(True)
+                return self._is_3connected_CE(True)
             else:
                 return self._is_3connected_BC()
-        if algorithm == "BC":
+        if algorithm == "bridges":
             return self._is_3connected_BC(separation)
-        if algorithm == "naive":
-            return self._is_3connected_naive(separation)
+        if algorithm == "intersection":
+            return self._is_3connected_CE(separation)
         raise ValueError("Not a valid algorithm.")
 
 
-    cpdef _is_3connected_naive(self, certificate=False):
+    cpdef _is_3connected_CE(self, certificate=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
 
@@ -4716,24 +4721,24 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: matroids.Uniform(2, 3)._is_3connected_naive()
+            sage: matroids.Uniform(2, 3)._is_3connected_CE()
             True
             sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
             ....:                              [0, 1, 0, 1, 2, 0],
             ....:                              [0, 0, 1, 0, 0, 1]])
-            sage: M._is_3connected_naive()
+            sage: M._is_3connected_CE()
             False
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
-            sage: N._is_3connected_naive()
+            sage: N._is_3connected_CE()
             False
-            sage: matroids.named_matroids.BetsyRoss()._is_3connected_naive()
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_CE()
             True
             sage: M = matroids.named_matroids.R6()
-            sage: M._is_3connected_naive()
+            sage: M._is_3connected_CE()
             False
-            sage: B, X = M._is_3connected_naive(True)
+            sage: B, X = M._is_3connected_CE(True)
             sage: M.connectivity(X)
             1
         """

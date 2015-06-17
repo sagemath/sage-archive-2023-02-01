@@ -374,7 +374,7 @@ class ScalarField(CommutativeAlgebraElement):
         sage: (f-c)+c == f
         True
 
-    We may add a number (interpretted as a constant scalar field) to a scalar
+    We may add a number (interpreted as a constant scalar field) to a scalar
     field::
 
         sage: s = f + 1 ; s
@@ -385,10 +385,27 @@ class ScalarField(CommutativeAlgebraElement):
         on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
         True
+
+    The number can represented by a symbolic variable::
+
         sage: s = a + f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s == c + f
         True
+
+    However if the symbolic variable is a chart coordinate, the addition
+    is performed only on the chart domain::
+
+        sage: s = f + x; s
+        Scalar field on the 2-dimensional topological manifold M
+        sage: s.display()
+        M --> R
+        on U: (x, y) |--> (x^3 + x*y^2 + x + 1)/(x^2 + y^2 + 1)
+        sage: s = f + u; s
+        Scalar field on the 2-dimensional topological manifold M
+        sage: s.display()
+        M --> R
+        on V: (u, v) |--> (u^3 + (u + 1)*v^2 + u^2 + u)/(u^2 + v^2 + 1)
 
     The addition of two scalar fields with different domains is possible if
     the domain of one of them is a subset of the domain of the other; the
@@ -414,7 +431,8 @@ class ScalarField(CommutativeAlgebraElement):
 
     In Sage framework, the addition of `f` and `g` is permitted because
     there is a *coercion* of the parent of `f`, namely `C^0(M)`, to
-    the parent of `g`, namely `C^0(U)`::
+    the parent of `g`, namely `C^0(U)` (see
+    :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)::
 
         sage: CM = M.scalar_field_algebra()
         sage: CU = U.scalar_field_algebra()
@@ -444,6 +462,20 @@ class ScalarField(CommutativeAlgebraElement):
         M --> R
         on U: (x, y) |--> a/(x^2 + y^2 + 1)
         on V: (u, v) |--> (a*u^2 + a*v^2)/(u^2 + v^2 + 1)
+
+    However, if the symbolic variable is a chart coordinate, the multiplication
+    is performed only in the corresponding chart::
+
+        sage: s = x*f; s
+        Scalar field on the 2-dimensional topological manifold M
+        sage: s.display()
+        M --> R
+        on U: (x, y) |--> x/(x^2 + y^2 + 1)
+        sage: s = u*f; s
+        Scalar field on the 2-dimensional topological manifold M
+        sage: s.display()
+        M --> R
+        on V: (u, v) |--> (u^3 + u*v^2)/(u^2 + v^2 + 1)
 
     Some tests::
 
@@ -1932,15 +1964,19 @@ class ScalarField(CommutativeAlgebraElement):
                                              other._latex_name)
         return result
 
-    def _lmul_(self, number):
+    def _rmul_(self, number):
         r"""
-        Multiplication on the left of a scalar field by a number.
+        Reflected multiplication operator: performs ``number * self``
+
+        This implements the multiplication of a scalar field on the left
+        by a number.
 
         INPUT:
 
-        - ``number`` -- an element of the ring on which the algebra is defined;
-          mathematically, this should be an element of the topological field
-          on which the manifold is constructed
+        - ``number`` -- an element of the ring on which the scalar field
+          algebra is defined; this should be an element of the topological
+          field on which the manifold is constructed (possibly represented
+          by a symbolic expression)
 
         OUPUT:
 
@@ -1951,21 +1987,21 @@ class ScalarField(CommutativeAlgebraElement):
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x+y}, name='f')
-            sage: s = f._lmul_(2); s
+            sage: s = f._rmul_(2); s
             Scalar field on the 2-dimensional topological manifold M
             sage: s.display()
             M --> R
             (x, y) |--> 2*x + 2*y
             sage: s == 2*f
             True
-            sage: f._lmul_(pi).display()
+            sage: f._rmul_(pi).display()
             M --> R
             (x, y) |--> pi*x + pi*y
-            sage: f._lmul_(pi) == pi*f
+            sage: f._rmul_(pi) == pi*f
             True
-            sage: f._lmul_(0) == M.zero_scalar_field()
+            sage: f._rmul_(0) == M.zero_scalar_field()
             True
-            sage: f._lmul_(1) == f
+            sage: f._rmul_(1) == f
             True
 
         """
@@ -1996,26 +2032,33 @@ class ScalarField(CommutativeAlgebraElement):
             result._express[chart] = number * expr
         return result
 
-    def _rmul_(self, number):
+    def _lmul_(self, number):
         r"""
-        Multiplication on the right of a scalar field by a number.
+        Multiplication on the right: performs ``self * number``
+
+        This differs from ``_mul_(self, other)`` by the fact that ``number``
+        is not assumed to be a scalar field defined on the same domain as
+        ``self``, contrary to ``other`` in ``_mul_(self, other)``. In
+        practice, ``number`` is a an element of the field on which the
+        scalar field algebra is defined
 
         INPUT:
 
-        - ``number`` -- an element of the ring on which the algebra is defined;
-          mathematically, this should be an element of the topological field
-          on which the manifold is constructed
+        - ``number`` -- an element of the ring on which the scalar field
+          algebra is defined; this should be an element of the topological
+          field on which the manifold is constructed (possibly represented
+          by a symbolic expression)
 
         OUPUT:
 
-        - the scalar field ``number*self``
+        - the scalar field ``self*number``
 
         TESTS::
 
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x+y}, name='f')
-            sage: s = f._rmul_(2); s
+            sage: s = f._lmul_(2); s
             Scalar field on the 2-dimensional topological manifold M
             sage: s.display()
             M --> R
@@ -2024,7 +2067,7 @@ class ScalarField(CommutativeAlgebraElement):
             True
 
         """
-        return self._lmul_(number) # since the algebra is commutative
+        return self._rmul_(number) # since the algebra is commutative
 
 
     #########  End of CommutativeAlgebraElement arithmetic operators ########

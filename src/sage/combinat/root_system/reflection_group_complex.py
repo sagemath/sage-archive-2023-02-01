@@ -213,11 +213,29 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         else:
             self._elements = []
             inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
-            for w,word in _iterator_tracking_words(self):
+            for w,word in self._iterator_tracking_words():
                 if w._reduced_word is None:
                     w._reduced_word = [inv_dict[i] for i in word]
                 self._elements.append(w)
                 yield w
+
+    def _iterator_tracking_words(self):
+        I = self.gens()
+        index_list = range(len(I))
+
+        level_set_old   = set(                      )
+        level_set_cur   = set([ (self.one(), tuple()) ])
+        while level_set_cur:
+            level_set_new = set()
+            for x, word in level_set_cur:
+                yield x, word
+                for i in index_list:
+                    y = x._mul_(I[i])
+                    if y not in level_set_old:
+                        level_set_old.add(y)
+                        level_set_new.add((y,word+tuple([i])))
+            level_set_old = set( elt[0] for elt in level_set_cur )
+            level_set_cur = level_set_new
 
     __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
 
@@ -1824,74 +1842,57 @@ def gap_factorization(w,gens,inv_dict):
     fac = gap3('MinimalWord(W,%s)'%str(w)).sage()
     return [ inv_dict[i-1] for i in fac ]
 
-gap_factorization_code = '# MinimalWord(G,w) \n \
-# given a permutation group G find some expression of minimal length in the \n \
-# generators of G and their inverses of the element w (an inverse is \n \
-# representated by a negative index). \n \
-# To speed up  later calls to  the same function  the fields G.base, G.words, \n \
-# G.nbwordslength are kept. \n \
-MinimalWord:=function(G,w) \n \
-  local decode,i,p,g,h,n,bag,nbe,nbf,new,gens,inds; \n \
-# to save space elements of G are represented as image of the base, and \n \
-# words are represented as: index of previous elt, last generator applied; \n \
-  if not IsBound(G.base) then \n \
-    StabChain(G);g:=G; G.base:=[]; \n \
-    while IsBound(g.orbit) do Add(G.base,g.orbit[1]); g:=g.stabilizer; od; \n \
-  fi; \n \
-  w:=OnTuples(G.base,w); \n \
-  if not IsBound(G.words) then \n \
-    G.words:=[G.base]; G.lastmult:=[[0,0]]; \n \
-    G.nbwordslength:=[1]; \n \
-  fi; \n \
-  gens:=ShallowCopy(G.generators);inds:=[1..Length(gens)]; \n \
-#  for g in G.generators do \n \
-#    if g<>g^-1 then Add(gens,g^-1);Add(inds,-Position(gens,g));fi; \n \
-#  od; \n \
-  bag:=Set(G.words); \n \
-  nbe:=0;nbf:=0; \n \
-  decode:=function(i)local w;w:=[]; \n \
-    while i<>1 do Add(w,G.lastmult[i][2]); i:=G.lastmult[i][1];od; \n \
-    return Reversed(w); \n \
-  end; \n \
-  while true do \n \
-    if w in bag then return decode(Position(G.words,w));fi; \n \
-    new:=Length(G.words); \n \
-    for g in [1..Length(gens)] do \n \
-      for h in [1+Sum(G.nbwordslength{[1..Length(G.nbwordslength)-1]})..new] do \n \
-         n:=OnTuples(G.words[h],gens[g]); \n \
-         if n in bag then \n \
-           nbe:=nbe+1;# if nbe mod 500=1 then Print(".\c");fi; \n \
-         else \n \
-           nbf:=nbf+1;# if nbf mod 500=1 then Print("*\c");fi; \n \
-       Add(G.words,n);Add(G.lastmult,[h,inds[g]]);AddSet(bag,n); \n \
-         fi; \n \
-       od; \n \
-    od; \n \
-    Add(G.nbwordslength,Length(G.words)-new); \n \
-    Print("\n",G.nbwordslength[Length(G.nbwordslength)]," elements of length ", \n \
-      Length(G.nbwordslength)-1); \n \
-  od; \n \
-end;'
+gap_factorization_code = """
+# MinimalWord(G,w)
+# given a permutation group G find some expression of minimal length in the
+# generators of G and their inverses of the element w (an inverse is
+# representated by a negative index).
+# To speed up  later calls to  the same function  the fields G.base, G.words,
+# G.nbwordslength are kept.
+MinimalWord:=function(G,w)
+  local decode,i,p,g,h,n,bag,nbe,nbf,new,gens,inds;
+  # to save space elements of G are represented as image of the base, and
+  # words are represented as: index of previous elt, last generator applied;
+  if not IsBound(G.base) then
+    StabChain(G);g:=G; G.base:=[];
+    while IsBound(g.orbit) do Add(G.base,g.orbit[1]); g:=g.stabilizer; od;
+  fi;
+  w:=OnTuples(G.base,w);
+  if not IsBound(G.words) then
+    G.words:=[G.base]; G.lastmult:=[[0,0]];
+    G.nbwordslength:=[1];
+  fi;
+  gens:=ShallowCopy(G.generators);inds:=[1..Length(gens)];
+  #  for g in G.generators do
+  #    if g<>g^-1 then Add(gens,g^-1);Add(inds,-Position(gens,g));fi;
+  #  od;
+  bag:=Set(G.words);
+  nbe:=0;nbf:=0;
+  decode:=function(i)local w;w:=[];
+    while i<>1 do Add(w,G.lastmult[i][2]); i:=G.lastmult[i][1];od;
+    return Reversed(w);
+  end;
+  while true do
+    if w in bag then return decode(Position(G.words,w));fi;
+    new:=Length(G.words);
+    for g in [1..Length(gens)] do
+      for h in [1+Sum(G.nbwordslength{[1..Length(G.nbwordslength)-1]})..new] do
+         n:=OnTuples(G.words[h],gens[g]);
+         if n in bag then
+           nbe:=nbe+1;# if nbe mod 500=1 then Print(".\c");fi;
+         else
+           nbf:=nbf+1;# if nbf mod 500=1 then Print("*\c");fi;
+       Add(G.words,n);Add(G.lastmult,[h,inds[g]]);AddSet(bag,n);
+         fi;
+       od;
+    od;
+    Add(G.nbwordslength,Length(G.words)-new);
+    Print("\n",G.nbwordslength[Length(G.nbwordslength)]," elements of length ",
+      Length(G.nbwordslength)-1);
+  od;
+end;"""
 
 def gap_return(S,coerce_obj='self'):
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S
-
-def _iterator_tracking_words(W):
-    I = W.gens()
-    index_list = range(len(I))
-    elements = [ (W.one(),[]) ]
-    elements_set = set( x[0] for x in elements )
-    done = 0
-    yield (W.one(),[])
-    while done < len(elements):
-        x,word = elements[done]
-        for i in index_list:
-            y = W.product(x,I[i])
-            if y not in elements_set:
-                elements.append((y,word+[i]))
-                elements_set.add(y)
-                yield elements[-1]
-        done+=1
-    return

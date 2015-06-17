@@ -190,8 +190,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
         N = self.nr_reflections()
         self._is_positive_root = [None] + [ True ] * N + [False]*N
 
-    __iter__ = CoxeterGroups.ParentMethods.__iter__.__func__
-
     def _repr_(self):
         r"""
         Return the string representation of ``self``.
@@ -463,8 +461,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 False
             """
             W = self.parent()
-            if i not in W.hyperplane_index_set():
-                raise ValueError("The given index %s is not in the index set"%i)
             return not W._is_positive_root[self(W._index_set[i]+1)]
 
         def has_descent(self, i, side='left', positive=False):
@@ -491,6 +487,9 @@ class RealReflectionGroup(ComplexReflectionGroup):
             """
             if not isinstance(positive, bool):
                 raise TypeError("%s is not a boolean"%(bool))
+
+            if i not in self.hyperplane_index_set():
+                raise ValueError("The given index %s is not in the index set"%i)
 
             negative = not positive
 

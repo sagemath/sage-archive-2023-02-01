@@ -439,6 +439,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: E = ExtendedAffineWeylGroup(["D",3,2])
+            sage: E in Groups().Infinite()
+            True
             sage: TestSuite(E).run()
         
         """
@@ -566,7 +568,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         self._extended = True
 
-        Parent.__init__(self, category = Groups().WithRealizations())
+        Parent.__init__(self, category = Groups().WithRealizations().Infinite())
 
         # create the realizations (they are cached)
         PW0 = self.PW0()
@@ -792,18 +794,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
         """
         return self.fundamental_group().special_nodes()
-
-    def is_finite(self):
-        r"""
-        Return whether the root system is of finite type.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineWeylGroup(['A',3,1]).is_finite()
-            False
-
-        """
-        return False
 
     def lattice(self):
         r"""

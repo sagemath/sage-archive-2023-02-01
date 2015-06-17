@@ -334,6 +334,8 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
+            sage: F in Groups().Commutative().Finite()
+            True
             sage: TestSuite(F).run()
 
         """
@@ -394,7 +396,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         if finite:
             cat = Category.join((Groups().Commutative().Finite(),EnumeratedSets()))
         else:
-            cat = Groups().Commutative()
+            cat = Groups().Commutative().Infinite()
         Parent.__init__(self, category = cat)
 
     @cached_method
@@ -609,6 +611,8 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
+            sage: F in Groups().Commutative().Infinite()
+            True
             sage: TestSuite(F).run()
 
         """

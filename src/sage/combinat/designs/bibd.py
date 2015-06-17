@@ -1234,96 +1234,9 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         l = self._lambd
         return "({},{},{})-Balanced Incomplete Block Design".format(v,k,l)
 
-    def blocking_set(self):
+    def arc(self, s=None):
         r"""
-        Return the blocking set which has the smallest cardinality.
-
-        A blocking set is a set of points in a projective plane which every
-        line intersects and which does not contain an entire line.
-
-        A committee is a blocking set of smallest size. This function returns
-        a committee.
-
-        The cardinality of a blocking set of a `2-(v,k,\lambda)` design is,
-        if `k \neq 3`:
-
-        .. MATH::
-
-            \frac{v}{2} - \frac{1}{2k} \sqrt{k^2v^2-4kv^2+4kv} \leq s \leq 
-            \frac{v}{2} + \frac{1}{2k} \sqrt{k^2v^2-4kv^2+4kv}
-
-        For more information, see :wikipedia:`Blocking_set` and [Dr85]_.
-        
-        REFERENCES:
-
-        .. [Dr85] David A. Drake, Blocking Sets in Block Designs
-           Journal of combinatorial theory, Series A 40, 459-462 (1985)
-
-        EXAMPLE::
-
-            sage: B = designs.balanced_incomplete_block_design(16, 4)
-            sage: B.blocking_set()
-            [2, 5, 6, 7, 8, 10, 11, 15]
-
-        TESTS::
-
-            sage: for v in [1,4,13,16]:
-            ....:     B = designs.balanced_incomplete_block_design(v, 4)
-            ....:     S = len(B.blocking_set())
-            ....:     (S, '>', ceil(v/2-sqrt(16 * v**2 - 16 * v**2 + 16*v)/8))
-            ....:     
-            (0, '>', 0)
-            (1, '>', 1)
-            (6, '>', 5)
-            (8, '>', 6)
-
-            sage: for v in [1, 5, 21, 25, 41, 45]:
-            ....:     B = designs.balanced_incomplete_block_design(v, 5)
-            ....:     S = len(B.blocking_set())
-            ....:     (S, '>',  ceil(v/2-sqrt(25 * v**2 - 20 * v**2 + 20*v)/10))
-            ....:     
-            (0, '>', 0)
-            (1, '>', 1)
-            (7, '>', 6)
-            (9, '>', 7)
-            (14, '>', 11)
-            (16, '>', 12)
-
-            sage: designs.balanced_incomplete_block_design(7, 3).blocking_set()
-            Traceback (most recent call last):
-            ...
-            EmptySetError: There is no blocking set in this incidence structure.
-
-            sage: i3 = [v for v in xrange(50) if designs.balanced_incomplete_block_design(v,3,existence=True)]
-            sage: i3
-            [1, 3, 7, 9, 13, 15, 19, 21, 25, 27, 31, 33, 37, 39, 43, 45, 49]
-            sage: for v in i3:
-            ....:     try:
-            ....:         (designs.balanced_incomplete_block_design(v, 3).blocking_set(), v)
-            ....:     except:
-            ....:         pass
-            ....:     
-            ([], 1)
-            ([0], 3)     
-
-        """
-    
-        p = MixedIntegerLinearProgram(maximization=False)
-        b = p.new_variable(binary=True)
-        p.set_objective(p.sum(b[v] for v in self._points))
-        for i in self._blocks:
-            p.add_constraint(p.sum(b[k] for k in i) >= 1)
-            p.add_constraint(p.sum(b[k] for k in i) <= len(i)-1)
-        try:
-            p.solve()
-            r = p.get_values(b)
-            return [i for (i,j) in r.items() if j == 1]
-        except MIPSolverException :
-            raise EmptySetError('There is no blocking set in this incidence structure.')
-
-    def arc(self):
-        r"""
-        Return the arc which has the highest cardinality.
+        Return the `(s,n)`-arc which has the highest cardinality.
 
         A n-arc in a projective plane is a set of n points, no three colinears.
 
@@ -1340,12 +1253,15 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             sage: designs.balanced_incomplete_block_design(25, 3).arc()
             [0, 2, 4, 6, 12, 13, 14, 15, 16, 19, 23]
         """
-    
+        if s == None:
+            s = 2
+        if s >= len(self._blocks[0]):
+            return self._points
         p = MixedIntegerLinearProgram()
         b = p.new_variable(binary=True)
         p.set_objective(p.sum(b[v] for v in self._points))
         for i in self._blocks:
-            p.add_constraint(p.sum(b[k] for k in i) <= 2)
+            p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve()
         r = p.get_values(b)
         return [i for (i,j) in r.items() if j == 1]

@@ -1762,11 +1762,28 @@ class NormalFormGame(SageObject, MutableMapping):
         Will return a boolean.
 
         A two-player game is called nondegenerate if no mixed strategy of
-        support size k has more than k pure best responses. In a degenerate
-        game, this definition is violated, for example if there is a pure
-        strategy that has two pure best responses.  ([AH2002]_, [DGRB2010]_)
+        support size k has more than k pure best responses [NN2007]_. In a
+        degenerate game, this definition is violated, for example if there
+        is a pure strategy that has two pure best responses.
 
-        EXAMPLES::
+        In [AH2002]_ a theorem is given, giving an equivalent algebraic
+        definition of nondegenerate games:
+
+        "The game defined by the two :math:`m\\times n` matrices :math:`(A,B)`
+        is degenerate if for any support of player 1: :math:`s_1` and support
+        for player 2: :math:`s_2` the rows of :math:`[I_m B(s_2)^T]` and
+        :math:`[I_n A(s_1)]` are linearly independent (:math:`A(s_1)` is the
+        matrix made from selecting rows indicated by :math:`s_1` from
+        :math:`A`)."
+
+        Thus to check if a game is degenerate, this algorithm starts by
+        looping over all possible support combinations and checking if the
+        augmented matrices have rank equal to the corresponding number of
+        columns.
+
+        EXAMPLES:
+
+        Here is an example of a degenerate game given in [DGRB2010]_::
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -1774,11 +1791,15 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: degenerate_game.is_degenerate_LA()
             True
 
+        Here is an example of a degenerate game given in [NN2007]_::
+
             sage: A = matrix([[0, 6], [2, 5], [3, 3]])
             sage: B = matrix([[1, 0], [0, 2], [4, 4]])
             sage: d_game = NormalFormGame([A, B])
             sage: d_game.is_degenerate_LA()
             True
+
+        Here are some other examples of degenerate games::
 
             sage: M = matrix([[2, 1], [1, 1]])
             sage: N = matrix([[1, 1], [1, 2]])

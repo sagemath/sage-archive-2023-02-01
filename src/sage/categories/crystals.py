@@ -1397,7 +1397,7 @@ class Crystals(Category_singleton):
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
             if index_set is None:
                 if HighestWeightCrystals() not in self.parent().categories():
-                    raise ValueError, "This is not a highest weight crystals!"
+                    raise ValueError("This is not a highest weight crystals!")
                 index_set = self.index_set()
             for i in index_set:
                 next = self.f(i)

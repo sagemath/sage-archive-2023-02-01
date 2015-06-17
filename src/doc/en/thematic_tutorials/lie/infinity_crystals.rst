@@ -143,6 +143,12 @@ walls::
    :scale: 50
    :align: center
 
+In the highest weight crystals, however, weights are always elements of the
+extended affine weight lattice::
+
+    sage: YLa.highest_weight_vector().f_string([0,1,2,0]).weight()
+    -Lambda[0] + Lambda[1] + Lambda[2] - 2*delta
+
 
 Modified Nakajima monomials
 ---------------------------

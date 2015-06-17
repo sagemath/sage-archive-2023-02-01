@@ -277,6 +277,7 @@ from sage.categories.fields import Fields
 from sage.categories.sets_cat import Sets
 #*# After #18175, this should become
 # from sage.categories.manifolds import Manifolds
+from sage.categories.homset import Hom
 from sage.misc.latex import latex
 from sage.manifolds.subset import TopManifoldSubset
 from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
@@ -490,7 +491,7 @@ class TopManifold(TopManifoldSubset):
         # the unit scalar field:
         self._one_scalar_field = self._scalar_field_algebra.one()
         # the identity map on self:
-        #*# self._identity_map = Hom(self, self).one()
+        self._identity_map = Hom(self, self).one()
 
     def _repr_(self):
         r"""
@@ -1774,4 +1775,29 @@ class TopManifold(TopManifoldSubset):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_homeomorphism=True)
+
+    def identity_map(self):
+        r"""
+        Identity map of the manifold.
+
+        The identity map of a topological manifold `M` is the trivial
+        homeomorphism
+
+        .. MATH::
+
+            \begin{array}{cccc}
+            \mathrm{Id}_M: & M & \longrightarrow & M \\
+                & p \longmapsto & p
+            \end{array}
+
+        See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
+        complete documentation.
+
+        OUTPUT:
+
+        - the identity map, as an instance of
+          :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        """
+        return self._identity_map
 

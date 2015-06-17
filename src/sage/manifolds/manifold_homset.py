@@ -70,25 +70,26 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
         sage: N = TopManifold(3, 'N')
         sage: Y.<u,v,w> = N.chart()
         sage: H = Hom(M, N) ; H
-        Set of Morphisms from 2-dimensional manifold 'M' to 3-dimensional
-         manifold 'N' in Category of sets
+        Set of Morphisms from 2-dimensional topological manifold M to
+         3-dimensional topological manifold N in Category of sets
         sage: type(H)
-        <class 'sage.geometry.manifolds.manifold_homset.TopManifoldHomset_with_category'>
+        <class 'sage.manifolds.manifold_homset.TopManifoldHomset_with_category'>
         sage: H.category()
         Category of homsets of sets
         sage: latex(H)
         \mathrm{Hom}\left(M,N\right)
         sage: H.domain()
-        2-dimensional manifold 'M'
+        2-dimensional topological manifold M
         sage: H.codomain()
-        3-dimensional manifold 'N'
+        3-dimensional topological manifold N
 
     An element of ``H`` is a continuous map from ``M`` to ``N``::
 
         sage: H.Element
         <class 'sage.manifolds.continuous_map.ContinuousMap'>
         sage: f = H.an_element() ; f
-        continuous map from the 2-dimensional manifold 'M' to the 3-dimensional manifold 'N'
+        Continuous map from the 2-dimensional topological manifold M to the
+         3-dimensional topological manifold N
         sage: f.display()
         M --> N
            (x, y) |--> (u, v, w) = (0, 0, 0)
@@ -101,7 +102,8 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
     *endomorphisms* in the category of topological manifolds::
 
         sage: E = Hom(M, M) ; E
-        Set of Morphisms from 2-dimensional manifold 'M' to 2-dimensional manifold 'M' in Category of sets
+        Set of Morphisms from 2-dimensional topological manifold M to
+         2-dimensional topological manifold M in Category of sets
         sage: E.category()
         Category of endsets of sets
         sage: E.is_endomorphism_set()
@@ -122,7 +124,7 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
     The identity element of the monoid is of course the identity map of ``M``::
 
         sage: E.one()
-        identity map 'Id_M' of the 2-dimensional manifold 'M'
+        Identity map Id_M of the 2-dimensional topological manifold M
         sage: E.one() is M.identity_map()
         True
         sage: E.one().display()
@@ -192,15 +194,15 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: N = TopManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N) ; H
-            Set of Morphisms from 2-dimensional manifold 'M' to 3-dimensional
-             manifold 'N' in Category of sets
+            Set of Morphisms from 2-dimensional topological manifold M to
+             3-dimensional topological manifold N in Category of sets
             sage: TestSuite(H).run()
 
         Test for an endomorphism set::
 
             sage: E = Hom(M, M) ; E
-            Set of Morphisms from 2-dimensional manifold 'M' to 2-dimensional
-             manifold 'M' in Category of sets
+            Set of Morphisms from 2-dimensional topological manifold M to
+             2-dimensional topological manifold M in Category of sets
             sage: TestSuite(E).run()
 
         """
@@ -311,13 +313,13 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N)
             sage: f = H._element_constructor_({(X, Y): [x+y, x-y, x*y]}, name='f') ; f
-            continuous map 'f' from the 2-dimensional manifold 'M' to
-             the 3-dimensional manifold 'N'
+            Continuous map f from the 2-dimensional topological manifold M to
+             the 3-dimensional topological manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x - y, x*y)
             sage: id = Hom(M, M)._element_constructor_({}, is_identity=True) ; id
-            identity map 'Id_M' of the 2-dimensional manifold 'M'
+            Identity map Id_M of the 2-dimensional topological manifold M
             sage: id.display()
             Id_M: M --> M
                (x, y) |--> (x, y)
@@ -347,15 +349,15 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: f = H._an_element_() ; f
-            continuous map from the 2-dimensional manifold 'M' to the
-             3-dimensional manifold 'N'
+            Continuous map from the 2-dimensional topological manifold M to the
+             3-dimensional topological manifold N
             sage: f.display()
             M --> N
                (x, y) |--> (u, v, w) = (0, 0, 0)
             sage: p = M((-2,3)) ; p
-            point on 2-dimensional manifold 'M'
+            Point on the 2-dimensional topological manifold M
             sage: f(p)
-            point on 3-dimensional manifold 'N'
+            Point on the 3-dimensional topological manifold N
             sage: f(p).coord(Y)
             (0, 0, 0)
             sage: TestSuite(f).run()
@@ -407,8 +409,8 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: f = H.__call__({(X, Y): [x+y, x-y, x*y]}, name='f') ; f
-            continuous map 'f' from the 2-dimensional manifold 'M' to
-             the 3-dimensional manifold 'N'
+            Continuous map f from the 2-dimensional topological manifold M to
+             the 3-dimensional topological manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x - y, x*y)
@@ -443,12 +445,12 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: H = Hom(M, M) ; H
-            Set of Morphisms from 2-dimensional manifold 'M' to 2-dimensional
-             manifold 'M' in Category of sets
+            Set of Morphisms from 2-dimensional topological manifold M to
+             2-dimensional topological manifold M in Category of sets
             sage: H in Monoids()
             True
             sage: H.one()
-            identity map 'Id_M' of the 2-dimensional manifold 'M'
+            Identity map Id_M of the 2-dimensional topological manifold M
             sage: H.one().parent() is H
             True
             sage: H.one().display()
@@ -468,8 +470,9 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: Hom(M, N).one()
             Traceback (most recent call last):
             ...
-            TypeError: the Set of Morphisms from 2-dimensional manifold 'M' to
-             3-dimensional manifold 'N' in Category of sets is not a monoid
+            TypeError: the Set of Morphisms from 2-dimensional topological
+             manifold M to 3-dimensional topological manifold N in Category of
+             sets is not a monoid
 
         """
         if self._one is None:

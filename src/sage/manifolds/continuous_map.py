@@ -110,15 +110,15 @@ class ContinuousMap(Morphism):
         ....:  (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]}, \
         ....: name='Phi', latex_name=r'\Phi')
         sage: Phi
-        continuous map 'Phi' from the 2-dimensional manifold 'S^2' to
-         the 3-dimensional manifold 'R^3'
+        Continuous map Phi from the 2-dimensional topological manifold S^2 to
+         the 3-dimensional topological manifold R^3
         sage: Phi.parent()
-        Set of Morphisms from 2-dimensional manifold 'S^2' to 3-dimensional
-         manifold 'R^3' in Category of sets
+        Set of Morphisms from 2-dimensional topological manifold S^2 to
+         3-dimensional topological manifold R^3 in Category of sets
         sage: Phi.parent() is Hom(M, N)
         True
         sage: type(Phi)
-        <class 'sage.geometry.manifolds.diffmapping.ManifoldHomset_with_category.element_class'>
+        <class 'sage.manifolds.continuous_map.TopManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
@@ -169,7 +169,7 @@ class ContinuousMap(Morphism):
 
         sage: np = M.point((0,0), chart=c_uv)  # the North pole
         sage: Phi(np)
-        point on 3-dimensional manifold 'R^3'
+        Point on the 3-dimensional topological manifold R^3
         sage: Phi(np).coord() # Cartesian coordinates
         (0, 0, 1)
         sage: sp = M.point((0,0), chart=c_xy)  # the South pole
@@ -186,8 +186,8 @@ class ContinuousMap(Morphism):
         sage: Psi = N.continuous_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
         ....:                      latex_name=r'\Psi')
         sage: Psi
-        continuous map 'Psi' from the 3-dimensional manifold 'R^3' to
-         the 2-dimensional manifold 'R^2'
+        Continuous map Psi from the 3-dimensional topological manifold R^3 to
+         the 2-dimensional topological manifold R^2
         sage: Psi.display()
         Psi: R^3 --> R^2
            (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
@@ -196,8 +196,8 @@ class ContinuousMap(Morphism):
     `S^2\rightarrow \RR^2`::
 
         sage: ster = Psi*Phi ; ster
-        continuous map from the 2-dimensional manifold 'S^2' to the
-         2-dimensional manifold 'R^2'
+        Continuous map from the 2-dimensional topological manifold S^2 to the
+         2-dimensional topological manifold R^2
 
     Let us test on the South pole (``sp``) that ``ster`` is indeed the
     composite of ``Psi`` and ``Phi``::
@@ -222,25 +222,18 @@ class ContinuousMap(Morphism):
         sage: Phi = M.continuous_map(N, {(c_xy, c_N): x^2+y^2, \
         ....: (c_uv, c_N): 1/(u^2+v^2)})  # not ...[1/(u^2+v^2)] or (1/(u^2+v^2),)
 
-    If the arrival manifold is the field of real numbers `\RR` (represented
-    by :class:`~sage.geometry.manifolds.manifold.RealLine`), the action on a
-    point returns a real number, i.e. the canonical coordinate of the image
-    point, and not the image point itself::
-
-        sage: Phi = M.continuous_map(RealLine(), x^2+y^2)
-        sage: Phi(M.point((1,2)))
-        5
-
     An example of continuous map `\RR \rightarrow \RR^2`::
 
-        sage: R.<t> = RealLine()   # field R with canonical coordinate t
-        sage: R2 = TopManifold(2, 'R^2') # R^2
+        sage: R = TopManifold(1, 'R')  # field R
+        sage: T.<t> = R.chart()  # canonical chart on R
+        sage: R2 = TopManifold(2, 'R^2')  # R^2
         sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
         sage: Phi = R.continuous_map(R2, [cos(t), sin(t)], name='Phi') ; Phi
-        Curve 'Phi' in the 2-dimensional manifold 'R^2'
+        Continuous map Phi from the 1-dimensional topological manifold R to
+         the 2-dimensional topological manifold R^2
         sage: Phi.parent()
-        Set of Morphisms from field R of real numbers to 2-dimensional manifold
-         'R^2' in Category of sets
+        Set of Morphisms from 1-dimensional topological manifold R to
+         2-dimensional topological manifold R^2 in Category of sets
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
@@ -254,11 +247,12 @@ class ContinuousMap(Morphism):
         sage: Phi = D.homeomorphism(R2, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
         ....:                        name='Phi', latex_name=r'\Phi')
         sage: Phi
-        homeomorphism 'Phi' from the open subset 'D' of the 2-dimensional
-         manifold 'R^2' to the 2-dimensional manifold 'R^2'
+        Homeomorphism Phi from the Open subset D of the 2-dimensional
+         topological manifold R^2 to the 2-dimensional topological manifold R^2
         sage: Phi.parent()
-        Set of Morphisms from open subset 'D' of the 2-dimensional manifold
-         'R^2' to 2-dimensional manifold 'R^2' in Category of facade sets
+        Set of Morphisms from Open subset D of the 2-dimensional topological
+         manifold R^2 to 2-dimensional topological manifold R^2 in Category
+         of facade sets
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -269,15 +263,15 @@ class ContinuousMap(Morphism):
 
         sage: p = D.point((1/2,0))
         sage: q = Phi(p) ; q
-        point on 2-dimensional manifold 'R^2'
+        Point on the 2-dimensional topological manifold R^2
         sage: q.coord()
         (1/3*sqrt(3), 0)
 
     The inverse homeomorphism is computed by means of the method :meth:`inverse`::
 
         sage: Phi.inverse()
-        homeomorphism 'Phi^(-1)' from the 2-dimensional manifold 'R^2' to the
-         open subset 'D' of the 2-dimensional manifold 'R^2'
+        Homeomorphism Phi^(-1) from the 2-dimensional topological manifold R^2
+         to the Open subset D of the 2-dimensional topological manifold R^2
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to get the
     inverse::
@@ -305,18 +299,21 @@ class ContinuousMap(Morphism):
     A special case of homeomorphism: the identity map of the open unit disk::
 
         sage: id = D.identity_map() ; id
-        identity map 'Id_D' of the open subset 'D' of the 2-dimensional manifold 'R^2'
+        Identity map Id_D of the Open subset D of the 2-dimensional topological
+         manifold R^2
         sage: latex(id)
         \mathrm{Id}_{D}
         sage: id.parent()
-        Set of Morphisms from open subset 'D' of the 2-dimensional manifold 'R^2' to open subset 'D' of the 2-dimensional manifold 'R^2' in Category of facade sets
+        Set of Morphisms from Open subset D of the 2-dimensional topological
+         manifold R^2 to Open subset D of the 2-dimensional topological
+         manifold R^2 in Category of facade sets
         sage: id.parent() is Hom(D, D)
         True
 
     The identity map acting on a point::
 
         sage: id(p)
-        point on 2-dimensional manifold 'R^2'
+        Point on the 2-dimensional topological manifold R^2
         sage: id(p) == p
         True
         sage: id(p) is p
@@ -349,7 +346,8 @@ class ContinuousMap(Morphism):
             sage: N = TopManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y, x*y, x-y)}, name='f') ; f
-            continuous map 'f' from the 2-dimensional manifold 'M' to the 3-dimensional manifold 'N'
+            Continuous map f from the 2-dimensional topological manifold M to
+             the 3-dimensional topological manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x*y, x - y)
@@ -358,7 +356,7 @@ class ContinuousMap(Morphism):
         The identity map::
 
             sage: f = Hom(M,M)({}, is_identity=True) ; f
-            identity map 'Id_M' of the 2-dimensional manifold 'M'
+            Identity map Id_M of the 2-dimensional topological manifold M
             sage: f.display()
             Id_M: M --> M
                (x, y) |--> (x, y)
@@ -443,22 +441,22 @@ class ContinuousMap(Morphism):
             sage: Y.<u,v> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y,x*y)})
             sage: f._repr_()
-            "continuous map from the 2-dimensional manifold 'M' to the
-             2-dimensional manifold 'N'"
+            'Continuous map from the 2-dimensional topological manifold M to
+             the 2-dimensional topological manifold N'
             sage: f = Hom(M,N)({(X,Y): (x+y,x*y)}, name='f')
             sage: f._repr_()
-            "continuous map 'f' from the 2-dimensional manifold 'M' to
-             the 2-dimensional manifold 'N'"
+            'Continuous map f from the 2-dimensional topological manifold M to
+             the 2-dimensional topological manifold N'
             sage: f = Hom(M,N)({(X,Y): (x+y,x-y)}, name='f', is_homeomorphism=True)
             sage: f._repr_()
-            "homeomorphism 'f' from the 2-dimensional manifold 'M' to the
-             2-dimensional manifold 'N'"
+            'Homeomorphism f from the 2-dimensional topological manifold M to
+             the 2-dimensional topological manifold N'
             sage: f = Hom(M,M)({(X,X): (x+y,x-y)}, name='f', is_homeomorphism=True)
             sage: f._repr_()
-            "homeomorphism 'f' of the 2-dimensional manifold 'M'"
+            'Homeomorphism f of the 2-dimensional topological manifold M'
             sage: f = Hom(M,M)({}, name='f', is_identity=True)
             sage: f._repr_()
-            "identity map 'f' of the 2-dimensional manifold 'M'"
+            'Identity map f of the 2-dimensional topological manifold M'
 
         """
         if self._is_identity:
@@ -586,14 +584,14 @@ class ContinuousMap(Morphism):
             sage: rot = M.continuous_map(M, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2), name='R')
             sage: p = M.point((1,2), name='p')
             sage: q = rot(p) ; q
-            point 'R(p)' on 2-dimensional manifold 'R^2'
+            Point R(p) on the 2-dimensional topological manifold R^2
             sage: q.coord()
             (-sqrt(3) + 1/2, 1/2*sqrt(3) + 1)
 
         Image computed after some change of coordinates::
 
             sage: c_spher.<r,ph> = M.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # spherical coord. on the plane
-            sage: ch = c_spher.coord_change(c_cart, r*cos(ph), r*sin(ph))
+            sage: ch = c_spher.transition_map(c_cart, [r*cos(ph), r*sin(ph)])
             sage: p1 = M.point((sqrt(5), arctan(2)), chart=c_spher) # p1 is defined only in terms of c_spher
             sage: q1 = rot(p1) # but the computation of the action of rot is still possible
             sage: q1 == q
@@ -611,7 +609,6 @@ class ContinuousMap(Morphism):
         # NB: checking that ``point`` belongs to the mapping's domain has been
         # already performed by Map.__call__(); this check is therefore not
         # repeated here.
-        from manifold import RealLine
         if self._is_identity:
             return point
         dom = self._domain
@@ -639,24 +636,20 @@ class ContinuousMap(Morphism):
                   "compute the action of the {} on the {}".format(self, point))
         coord_map = self._coord_expression[(chart1, chart2)]
         y = coord_map(*(point._coordinates[chart1]))
-        if isinstance(self._codomain._manifold, RealLine):
-            # special case of a mapping to R
-            return y[0]
+        if point._name is None or self._name is None:
+            res_name = None
         else:
-            if point._name is None or self._name is None:
-                res_name = None
-            else:
-                res_name = self._name + '(' + point._name + ')'
-            if point._latex_name is None or self._latex_name is None:
-                res_latex_name = None
-            else:
-                res_latex_name = self._latex_name + r'\left(' + \
-                                 point._latex_name + r'\right)'
-            # The image point is created as an element of the domain of chart2:
-            dom2 = chart2.domain()
-            return dom2.element_class(dom2, coords=y, chart=chart2,
-                                      name=res_name, latex_name=res_latex_name,
-                                      check_coords=False)
+            res_name = self._name + '(' + point._name + ')'
+        if point._latex_name is None or self._latex_name is None:
+            res_latex_name = None
+        else:
+            res_latex_name = self._latex_name + r'\left(' + \
+                             point._latex_name + r'\right)'
+        # The image point is created as an element of the domain of chart2:
+        dom2 = chart2.domain()
+        return dom2.element_class(dom2, coords=y, chart=chart2,
+                                  name=res_name, latex_name=res_latex_name,
+                                  check_coords=False)
     #
     # Morphism methods
     #
@@ -1012,34 +1005,40 @@ class ContinuousMap(Morphism):
             Phi: M --> N
                (u, v) |--> (x, y, z) = (u*v, u/v, u + v)
             sage: Phi.coord_functions(c_uv, c_xyz)
-            functions (u*v, u/v, u + v) on the chart (M, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: Phi.coord_functions() # equivalent to above since 'uv' and 'xyz' are default charts
-            functions (u*v, u/v, u + v) on the chart (M, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: type(Phi.coord_functions())
             <class 'sage.manifolds.coord_func.MultiCoordFunction'>
 
         Coordinate representation in other charts::
 
             sage: c_UV.<U,V> = M.chart()  # new chart on M
-            sage: ch_uv_UV = c_uv.coord_change(c_UV, u-v, u+v)
+            sage: ch_uv_UV = c_uv.transition_map(c_UV, [u-v, u+v])
             sage: ch_uv_UV.inverse()(U,V)
             (1/2*U + 1/2*V, -1/2*U + 1/2*V)
             sage: c_XYZ.<X,Y,Z> = N.chart() # new chart on N
-            sage: ch_xyz_XYZ = c_xyz.coord_change(c_XYZ, 2*x-3*y+z, y+z-x, -x+2*y-z)
+            sage: ch_xyz_XYZ = c_xyz.transition_map(c_XYZ, [2*x-3*y+z, y+z-x, -x+2*y-z])
             sage: ch_xyz_XYZ.inverse()(X,Y,Z)
             (3*X + Y + 4*Z, 2*X + Y + 3*Z, X + Y + Z)
             sage: Phi.coord_functions(c_UV, c_xyz)
-            functions (-1/4*U^2 + 1/4*V^2, -(U + V)/(U - V), V) on the chart (M, (U, V))
+            Coordinate functions (-1/4*U^2 + 1/4*V^2, -(U + V)/(U - V), V) on
+             the Chart (M, (U, V))
             sage: Phi.coord_functions(c_uv, c_XYZ)
-            functions (((2*u + 1)*v^2 + u*v - 3*u)/v, -((u - 1)*v^2 - u*v - u)/v, -((u + 1)*v^2 + u*v - 2*u)/v) on the chart (M, (u, v))
+            Coordinate functions (((2*u + 1)*v^2 + u*v - 3*u)/v,
+             -((u - 1)*v^2 - u*v - u)/v, -((u + 1)*v^2 + u*v - 2*u)/v) on the
+             Chart (M, (u, v))
             sage: Phi.coord_functions(c_UV, c_XYZ)
-            functions (-1/2*(U^3 - (U - 2)*V^2 + V^3 - (U^2 + 2*U + 6)*V - 6*U)/(U - V), 1/4*(U^3 - (U + 4)*V^2 + V^3 - (U^2 - 4*U + 4)*V - 4*U)/(U - V), 1/4*(U^3 - (U - 4)*V^2 + V^3 - (U^2 + 4*U + 8)*V - 8*U)/(U - V)) on the chart (M, (U, V))
+            Coordinate functions (-1/2*(U^3 - (U - 2)*V^2 + V^3 - (U^2 + 2*U + 6)*V
+             - 6*U)/(U - V), 1/4*(U^3 - (U + 4)*V^2 + V^3 - (U^2 - 4*U + 4)*V - 4*U)/(U - V),
+             1/4*(U^3 - (U - 4)*V^2 + V^3 - (U^2 + 4*U + 8)*V - 8*U)/(U - V))
+             on the Chart (M, (U, V))
 
         Coordinate representation w.r.t. a subchart in the domain::
 
             sage: A = M.open_subset('A', coord_def={c_uv: u>0})
             sage: Phi.coord_functions(c_uv.restrict(A), c_xyz)
-            functions (u*v, u/v, u + v) on the chart (A, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (A, (u, v))
 
         Coordinate representation w.r.t. a superchart in the codomain::
 
@@ -1047,14 +1046,14 @@ class ContinuousMap(Morphism):
             sage: c_xyz_B = c_xyz.restrict(B)
             sage: Phi1 = M.continuous_map(B, {(c_uv, c_xyz_B): (u*v, u/v, u+v)})
             sage: Phi1.coord_functions(c_uv, c_xyz_B) # definition charts
-            functions (u*v, u/v, u + v) on the chart (M, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
             sage: Phi1.coord_functions(c_uv, c_xyz) # c_xyz = superchart of c_xyz_B
-            functions (u*v, u/v, u + v) on the chart (M, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
 
         Coordinate representation w.r.t. a pair (subchart, superchart)::
 
             sage: Phi1.coord_functions(c_uv.restrict(A), c_xyz)
-            functions (u*v, u/v, u + v) on the chart (A, (u, v))
+            Coordinate functions (u*v, u/v, u + v) on the Chart (A, (u, v))
 
         """
         dom1 = self._domain; dom2 = self._codomain
@@ -1199,11 +1198,11 @@ class ContinuousMap(Morphism):
         Expressions in other charts::
 
             sage: c_UV.<U,V> = M.chart()  # new chart on M
-            sage: ch_uv_UV = c_uv.coord_change(c_UV, u-v, u+v)
+            sage: ch_uv_UV = c_uv.transition_map(c_UV, [u-v, u+v])
             sage: ch_uv_UV.inverse()(U,V)
             (1/2*U + 1/2*V, -1/2*U + 1/2*V)
             sage: c_XYZ.<X,Y,Z> = N.chart() # new chart on N
-            sage: ch_xyz_XYZ = c_xyz.coord_change(c_XYZ, 2*x-3*y+z, y+z-x, -x+2*y-z)
+            sage: ch_xyz_XYZ = c_xyz.transition_map(c_XYZ, [2*x-3*y+z, y+z-x, -x+2*y-z])
             sage: ch_xyz_XYZ.inverse()(X,Y,Z)
             (3*X + Y + 4*Z, 2*X + Y + 3*Z, X + Y + Z)
             sage: Phi.expr(c_UV, c_xyz)
@@ -1227,7 +1226,7 @@ class ContinuousMap(Morphism):
         Expression of the rotation in terms of Cartesian coordinates::
 
             sage: c_cart.<x,y> = M.chart() # Declaration of Cartesian coordinates
-            sage: ch_spher_cart = c_spher.coord_change(c_cart, r*cos(ph), r*sin(ph)) # relation to spherical coordinates
+            sage: ch_spher_cart = c_spher.transition_map(c_cart, [r*cos(ph), r*sin(ph)]) # relation to spherical coordinates
             sage: ch_spher_cart.set_inverse(sqrt(x^2+y^2), atan2(y,x))
             Check of the inverse coordinate transformation:
                r == r
@@ -1269,7 +1268,7 @@ class ContinuousMap(Morphism):
             sage: c_cart = c_xy.restrict(U) # Cartesian coordinates on U
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # spherical coordinates on U
             sage: # Links between spherical coordinates and Cartesian ones:
-            sage: ch_cart_spher = c_cart.coord_change(c_spher, sqrt(x*x+y*y), atan2(y,x))
+            sage: ch_cart_spher = c_cart.transition_map(c_spher, [sqrt(x*x+y*y), atan2(y,x)])
             sage: ch_cart_spher.set_inverse(r*cos(ph), r*sin(ph))
             Check of the inverse coordinate transformation:
                x == x
@@ -1292,8 +1291,8 @@ class ContinuousMap(Morphism):
         The expression in Cartesian coordinates has been erased::
 
             sage: rot._coord_expression
-            {(chart (U, (r, ph)),
-              chart (U, (r, ph))): functions (r, 1/3*pi + ph) on the chart (U, (r, ph))}
+            {(Chart (U, (r, ph)),
+              Chart (U, (r, ph))): Coordinate functions (r, 1/3*pi + ph) on the Chart (U, (r, ph))}
 
         It is recovered (thanks to the known change of coordinates) by a call
         to :meth:`display`::
@@ -1365,7 +1364,7 @@ class ContinuousMap(Morphism):
             sage: c_cart = c_xy.restrict(U) # Cartesian coordinates on U
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # spherical coordinates on U
             sage: # Links between spherical coordinates and Cartesian ones:
-            sage: ch_cart_spher = c_cart.coord_change(c_spher, sqrt(x*x+y*y), atan2(y,x))
+            sage: ch_cart_spher = c_cart.transition_map(c_spher, [sqrt(x*x+y*y), atan2(y,x)])
             sage: ch_cart_spher.set_inverse(r*cos(ph), r*sin(ph))
             Check of the inverse coordinate transformation:
                x == x
@@ -1409,8 +1408,8 @@ class ContinuousMap(Morphism):
 
             sage: rot.set_expr(c_spher, c_spher, (r, ph+pi/3))
             sage: rot._coord_expression
-            {(chart (U, (r, ph)),
-              chart (U, (r, ph))): functions (r, 1/3*pi + ph) on the chart (U, (r, ph))}
+            {(Chart (U, (r, ph)),
+              Chart (U, (r, ph))): Coordinate functions (r, 1/3*pi + ph) on the Chart (U, (r, ph))}
 
         It is recovered (thanks to the known change of coordinates) by a call
         to :meth:`display`::
@@ -1487,15 +1486,16 @@ class ContinuousMap(Morphism):
             sage: c_xy_D = c_xy.restrict(D)
             sage: U = D.open_subset('U', coord_def={c_xy_D: x^2+y^2>1/2}) # the annulus 1/2 < r < 1
             sage: Phi.restrict(U)
-            continuous map 'Phi' from the open subset 'U' of the
-             2-dimensional manifold 'R^2' to the 2-dimensional manifold 'R^2'
+            Continuous map Phi from the Open subset U of the 2-dimensional
+             topological manifold R^2 to the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).parent()
-            Set of Morphisms from open subset 'U' of the 2-dimensional manifold
-             'R^2' to 2-dimensional manifold 'R^2' in Category of facade sets
+            Set of Morphisms from Open subset U of the 2-dimensional topological
+             manifold R^2 to 2-dimensional topological manifold R^2 in Category
+             of facade sets
             sage: Phi.domain()
-            open subset 'D' of the 2-dimensional manifold 'R^2'
+            Open subset D of the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).domain()
-            open subset 'U' of the 2-dimensional manifold 'R^2'
+            Open subset U of the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).display()
             Phi: U --> R^2
                (x, y) |--> (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
@@ -1508,9 +1508,11 @@ class ContinuousMap(Morphism):
         The restriction of the identity map::
 
             sage: id = D.identity_map() ; id
-            identity map 'Id_D' of the open subset 'D' of the 2-dimensional manifold 'R^2'
+            Identity map Id_D of the Open subset D of the 2-dimensional
+             topological manifold R^2
             sage: id.restrict(U)
-            identity map 'Id_U' of the open subset 'U' of the 2-dimensional manifold 'R^2'
+            Identity map Id_U of the Open subset U of the 2-dimensional
+             topological manifold R^2
             sage: id.restrict(U) is U.identity_map()
             True
 
@@ -1518,11 +1520,11 @@ class ContinuousMap(Morphism):
 
             sage: Phi = D.continuous_map(M, [x/sqrt(1+x^2+y^2), y/sqrt(1+x^2+y^2)])
             sage: Phi
-            continuous map from the open subset 'D' of the
-             2-dimensional manifold 'R^2' to the 2-dimensional manifold 'R^2'
+            Continuous map from the Open subset D of the 2-dimensional
+             topological manifold R^2 to the 2-dimensional topological manifold R^2
             sage: Phi.restrict(D, subcodomain=D)
-            continuous map from the open subset 'D' of the
-             2-dimensional manifold 'R^2' to itself
+            Continuous map from the Open subset D of the 2-dimensional
+             topological manifold R^2 to itself
 
         """
         from sage.categories.homset import Hom
@@ -1597,7 +1599,7 @@ class ContinuousMap(Morphism):
             sage: # A pi/3 rotation around the origin:
             sage: rot = M.homeomorphism(M, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2), name='R')
             sage: rot.inverse()
-            homeomorphism 'R^(-1)' of the 2-dimensional manifold 'R^2'
+            Homeomorphism R^(-1) of the 2-dimensional topological manifold R^2
             sage: rot.inverse().display()
             R^(-1): R^2 --> R^2
                (x, y) |--> (1/2*sqrt(3)*y + 1/2*x, -1/2*sqrt(3)*x + 1/2*y)
@@ -1615,7 +1617,6 @@ class ContinuousMap(Morphism):
         """
         from sage.symbolic.ring import SR
         from sage.symbolic.relation import solve
-        from sage.geometry.manifolds.utilities import simplify_chain
         if self._inverse is not None:
             return self._inverse
         if not self._is_homeo:
@@ -1646,7 +1647,7 @@ class ContinuousMap(Morphism):
         for i in range(n1):
             x = inv_functions[i]
             try:
-                inv_functions[i] = simplify_chain(x)
+                inv_functions[i] = chart2._simplify(x)
             except AttributeError:
                 pass
         if self._name is None:

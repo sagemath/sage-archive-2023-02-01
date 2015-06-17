@@ -993,6 +993,20 @@ class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
             return None
         return super(CrystalOfNakajimaMonomialsElement, self).f(i)
 
+    def weight(self):
+        r"""
+        Return the weight of ``self`` as an element of the weight lattice.
+
+        EXAMPLES::
+
+            sage: La = RootSystem("A2").weight_lattice().fundamental_weights()
+            sage: M = crystals.NakajimaMonomials("A2",La[1]+La[2])
+            sage: M.module_generators[0].weight()
+            (2, 1, 0)
+        """
+        P = self.parent().weight_lattice_realization()
+        return P(self.weight_in_root_lattice()) + P(self.parent().hw)
+
 class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
     r"""
     Let `\widetilde{\mathcal{M}}` be `\widehat{\mathcal{M}}` as a set, and with
@@ -1136,5 +1150,5 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         """
         if not self.cartan_type().is_finite():
             return Infinity
-        return super(CrystalOfNakajimaMonomials, self).cardinality()
+        return super(InfinityCrystalOfNakajimaMonomials, self).cardinality()
 

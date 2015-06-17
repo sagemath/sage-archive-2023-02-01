@@ -132,9 +132,9 @@ class RegularCrystals(Category_singleton):
 
             EXAMPLES::
 
-                sage: La = RootSystem(['A',2,1]).weight_space().fundamental_weights()
+                sage: La = RootSystem(['A',2,1]).weight_space(extended=True).fundamental_weights()
                 sage: B = crystals.LSPaths(La[0])
-                sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+                sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
                 sage: C = crystals.GeneralizedYoungWalls(2, La[0])
                 sage: H = Hom(B, C)
                 sage: from sage.categories.highest_weight_crystals import HighestWeightCrystalMorphism

@@ -565,7 +565,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             BC3~
             sage: D.subtype([1,2,3])
             O---O=<=O
-            1   2   3   
+            1   2   3
             C3
         """
         return self.cartan_matrix().subtype(index_set).dynkin_diagram()

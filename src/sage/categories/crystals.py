@@ -275,9 +275,9 @@ class Crystals(Category_singleton):
                 sage: for _ in range(5): next(g)
                 (-Lambda[0] + Lambda[2],)
                 (Lambda[0] - Lambda[1] + delta,)
-                (Lambda[1] - Lambda[2] + delta,)
-                (-Lambda[0] + Lambda[2] + delta,)
                 (Lambda[1] - Lambda[2],)
+                (Lambda[0] - Lambda[1],)
+                (Lambda[1] - Lambda[2] + delta,)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)
                 [(-Lambda[0] + Lambda[2],),
@@ -292,17 +292,10 @@ class Crystals(Category_singleton):
             """
             if index_set is None:
                 index_set = self.index_set()
-            if max_depth < float('inf'):
-                return RecursivelyEnumeratedSet(self.module_generators,
-                                                lambda x: [x.f(i) for i in index_set]
-                                                        + [x.e(i) for i in index_set],
-                                                structure=None, enumeration='breadth',
-                                                max_depth=max_depth).__iter__()
-            return RecursivelyEnumeratedSet(self.module_generators,
-                                            lambda x: [x.f(i) for i in index_set]
-                                                    + [x.e(i) for i in index_set],
-                                            structure=None,
-                                            enumeration='naive').__iter__()
+            succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            R = RecursivelyEnumeratedSet(self.module_generators, succ, structure=None)
+            return R.breadth_first_search_iterator(max_depth)
+
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both", contained=None,
@@ -352,7 +345,7 @@ class Crystals(Category_singleton):
                 sage: len(S)
                 6
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
-                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
@@ -391,23 +384,17 @@ class Crystals(Category_singleton):
 
             # TODO: Make this work for virtual crystals as well
             if direction == 'both':
-                subset = RecursivelyEnumeratedSet(generators, 
-                                                  lambda x: [x.f(i) for i in index_set]
-                                                          + [x.e(i) for i in index_set],
-                                                  structure=None, enumeration='breadth',
-                                                  max_depth=max_depth)
+                succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
             elif direction == 'upper':
-                subset = RecursivelyEnumeratedSet(generators, 
-                                                  lambda x: [x.e(i) for i in index_set],
-                                                  structure=None, enumeration='breadth',
-                                                  max_depth=max_depth)
+                succ = lambda x: [x.e(i) for i in index_set]
             elif direction == 'lower':
-                subset = RecursivelyEnumeratedSet(generators, 
-                                                  lambda x: [x.f(i) for i in index_set],
-                                                  structure=None, enumeration='breadth',
-                                                  max_depth=max_depth)
+                succ = lambda x: [x.f(i) for i in index_set]
             else:
                 raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+
+            subset = RecursivelyEnumeratedSet(generators, succ,
+                                              structure=None, enumeration='breadth',
+                                              max_depth=max_depth)
 
             # We perform the filtering here since checking containment
             #   in a frozenset should be fast
@@ -1502,7 +1489,7 @@ class Crystals(Category_singleton):
                 sage: C = crystals.KirillovReshetikhin(['A',3,1], 1, 2)
                 sage: elt = C(1,4)
                 sage: list(elt.subcrystal(index_set=[1,3]))
-                [[[1, 4]], [[2, 4]], [[2, 3]], [[1, 3]]]
+                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], max_depth=1))
                 [[[1, 4]], [[2, 4]], [[1, 3]]]
                 sage: list(elt.subcrystal(index_set=[1,3], direction='upper'))

@@ -423,11 +423,11 @@ unset R_PROFILE
 # Provide empty files to appease some R packages' installation scripts.
 R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
 if ! [ -a "$R_MAKEVARS_SITE" ] ; then
-    echo "## Empty site-wide Makevars file for Sage's R" >> "$R_MAKEVARS_SITE"
+    echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
 fi
 R_MAKEVARS_USER="$DOT_SAGE/SagesRMakevars.user"} && export R_MAKEVARS_USER
 if ! [ -a "$R_MAKEVARS_USER" ] ; then
-    echo "## Empty user-specific Makevars file for Sage's R" >> "$R_MAKEVARS_USER"
+    echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
 fi
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX

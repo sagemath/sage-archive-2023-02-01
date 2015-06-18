@@ -35,6 +35,7 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import RingElement
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
@@ -241,10 +242,11 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (M, (x, y))
             sage: type(X)
             <class 'sage.manifolds.chart.Chart'>
+            sage: assumptions() # no assumptions on x,y set by X._init_coordinates
+            []
             sage: TestSuite(X).run()
 
         """
-        from sage.symbolic.ring import SR
         if not isinstance(domain, TopManifold):
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
@@ -258,27 +260,17 @@ class Chart(UniqueRepresentation, SageObject):
             coord_list = coordinates.split()
         else:
             coord_list = [coordinates]
-        n = self._manifold._dim
-        if len(coord_list) != n:
+        if len(coord_list) != self._manifold.dim():
             raise ValueError("the list of coordinates must contain " +
-                             "{} elements".format(n))
-        xx_list = [] # will contain the coordinates as Sage symbolic variables
-        for coord_field in coord_list:
-            coord_properties = coord_field.split(':')
-            coord_symb = coord_properties[0].strip() # the coordinate symbol
-            # LaTeX symbol:
-            coord_latex = None
-            for prop in coord_properties[1:]:
-                coord_latex = prop.strip()
-            # Construction of the coordinate as some Sage's symbolic variable:
-            coord_var = SR.var(coord_symb, latex_name=coord_latex)
-            xx_list.append(coord_var)
-        self._xx = tuple(xx_list)
-        # End of the treatment of the coordinates
-
+                             "{} elements".format(self._manifold.dim()))
+        # The treatment of coordinates is performed by a seperate method,
+        # _init_coordinates, which sets self._xx and
+        # which may be redefined for subclasses (for instance RealChart).
+        self._init_coordinates(coord_list)
+        #
         # Additional restrictions on the coordinates
         self._restrictions = []  # to be set with method add_restrictions()
-
+        #
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the fist defined chart
         # is considered as the default chart
@@ -305,14 +297,46 @@ class Chart(UniqueRepresentation, SageObject):
         self._dom_restrict = {} # dict. of the restrictions of self to
                                 # subsets of self._domain, with the
                                 # subsets as keys
-        # The null function of the coordinates:
-        #*# self._zero_function = CoordFunctionSymb(self, 0)
-        # Expression in self of the zero scalar fields of open sets containing
-        # the domain of self:
-        for dom in self._domain._supersets:
-            if hasattr(dom, '_zero_scalar_field'):
-                # dom is an open set
-                dom._zero_scalar_field._express[self] = self._zero_function
+
+    def _init_coordinates(self, coord_list):
+        r"""
+        Initialization of the coordinates as symbolic variables.
+
+        This method must be redefined by derived classes in order to take
+        into account specificities (e.g. enforcing real coordinates).
+
+        INPUT:
+
+        - ``coord_list`` -- list of coordinate fields, which items in each
+          field separated by ":"; there are at most 2 items per field:
+          the coordinate name and the coordinate LaTeX symbol
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M', field='complex')
+            sage: X.<z1, z2> = M.chart()
+            sage: X._init_coordinates(['z1', 'z2'])
+            sage: X
+            Chart (M, (z1, z2))
+            sage: X._init_coordinates([r'z1:\zeta_1', r'z2:\zeta_2'])
+            sage: X
+            Chart (M, (z1, z2))
+            sage: latex(X)
+            \left(M,({\zeta_1}, {\zeta_2})\right)
+
+        """
+        xx_list = [] # will contain the coordinates as Sage symbolic variables
+        for coord_field in coord_list:
+            coord_properties = coord_field.split(':')
+            coord_symb = coord_properties[0].strip() # the coordinate symbol
+            # LaTeX symbol:
+            coord_latex = None
+            for prop in coord_properties[1:]:
+                coord_latex = prop.strip()
+            # Construction of the coordinate as some Sage's symbolic variable:
+            coord_var = SR.var(coord_symb, latex_name=coord_latex)
+            xx_list.append(coord_var)
+        self._xx = tuple(xx_list)
 
     def _repr_(self):
         r"""
@@ -1003,34 +1027,55 @@ class RealChart(Chart):
 
         TESTS::
 
+            sage: forget()  # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
             sage: type(X)
             <class 'sage.manifolds.chart.RealChart'>
+            sage: assumptions()  # assumptions set in X._init_coordinates
+            [x is real, y is real]
             sage: TestSuite(X).run()
 
         """
-        from sage.symbolic.ring import SR
+        Chart.__init__(self, domain, coordinates=coordinates, names=names)
+
+    def _init_coordinates(self, coord_list):
+        r"""
+        Initialization of the coordinates as symbolic variables.
+
+        This method must be redefined by derived classes in order to take
+        into account specificities (e.g. enforcing real coordinates).
+
+        INPUT:
+
+        - ``coord_list`` -- list of coordinate fields, which items in each
+          field separated by ":"; there are at most 3 items per field:
+          the coordinate name, the coordinate LaTeX symbol and the coordinate
+          range
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: X._init_coordinates(['x', 'y'])
+            sage: X
+            Chart (M, (x, y))
+            sage: latex(X)
+            \left(M,(x, y)\right)
+            sage: X.coord_range()
+            x: (-oo, +oo); y: (-oo, +oo)
+            sage: X._init_coordinates([r'x1:\xi:(0,1)', r'y1:\eta'])
+            sage: X
+            Chart (M, (x1, y1))
+            sage: latex(X)
+            \left(M,({\xi}, {\eta})\right)
+            sage: X.coord_range()
+            x1: (0, 1); y1: (-oo, +oo)
+
+        """
         from sage.symbolic.assumptions import assume
-        if not isinstance(domain, TopManifold):
-            raise TypeError("the first argument must be an open subset of " +
-                            "a topological manifold")
-        if coordinates == '':
-            for x in names:
-                coordinates += x + ' '
-        self._manifold = domain.manifold()
-        self._domain = domain
-        # Treatment of the coordinates:
-        if ' ' in coordinates:
-            coord_list = coordinates.split()
-        else:
-            coord_list = [coordinates]
-        n = self._manifold._dim
-        if len(coord_list) != n:
-            raise ValueError("the list of coordinates must contain " +
-                             "{} elements".format(n))
         xx_list = [] # will contain the coordinates as Sage symbolic variables
         bounds_list = [] # will contain the coordinate bounds
         for coord_field in coord_list:
@@ -1077,45 +1122,6 @@ class RealChart(Chart):
             bounds_list.append(((xmin, xmin_included), (xmax, xmax_included)))
         self._xx = tuple(xx_list)
         self._bounds = tuple(bounds_list)
-        # End of the treatment of the coordinates
-
-        # Additional restrictions on the coordinates
-        self._restrictions = []  # to be set with method add_restrictions()
-
-        # The chart is added to the domain's atlas, as well as to all the
-        # atlases of the domain's supersets; moreover the fist defined chart
-        # is considered as the default chart
-        for sd in self._domain._supersets:
-            # the chart is added in the top charts only if its coordinates have
-            # not been used:
-            for chart in sd._atlas:
-                if self._xx == chart._xx:
-                    break
-            else:
-                sd._top_charts.append(self)
-            sd._atlas.append(self)
-            if sd._def_chart is None:
-                sd._def_chart = self
-        # The chart is added to the list of the domain's covering charts:
-        self._domain._covering_charts.append(self)
-        # Initialization of the set of charts that are restrictions of the
-        # current chart to subsets of the chart domain:
-        self._subcharts = set([self])
-        # Initialization of the set of charts which the current chart is a
-        # restriction of:
-        self._supercharts = set([self])
-        #
-        self._dom_restrict = {} # dict. of the restrictions of self to
-                                # subsets of self._domain, with the
-                                # subsets as keys
-        # The null function of the coordinates:
-        #*# self._zero_function = CoordFunctionSymb(self, 0)
-        # Expression in self of the zero scalar fields of open sets containing
-        # the domain of self:
-        for dom in self._domain._supersets:
-            if hasattr(dom, '_zero_scalar_field'):
-                # dom is an open set
-                dom._zero_scalar_field._express[self] = self._zero_function
 
     def coord_bounds(self, i=None):
         r"""
@@ -1147,6 +1153,8 @@ class RealChart(Chart):
 
         Some coordinate bounds on a 2-dimensional manifold::
 
+            sage: forget()  # for doctests only
+            sage: TopManifold._clear_cache_()  # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart('x y:[0,1)')
             sage: c_xy.coord_bounds(0)  # x in (-oo,+oo) (the default)
@@ -1630,8 +1638,8 @@ class CoordChange(SageObject):
                              + "must be provided")
         self._chart1 = chart1
         self._chart2 = chart2
-        #*# when MultiFunctionChart will be implemented:
-        # self._transf = MultiFunctionChart(chart1, *transformations)
+        #*# when MultiCoordFunction will be implemented (trac #18640):
+        # self._transf = chart1.multifunction(*transformations)
         #*# for now:
         self._transf = transformations
         self._inverse = None
@@ -1704,7 +1712,9 @@ class CoordChange(SageObject):
             (3, -1)
 
         """
-        #*# for now
+        #*# When MultiCoordFunction is implemented (trac #18640):
+        # return self._transf(*coords)
+        #*# for now:
         substitutions = dict([(self._chart1._xx[j], coords[j]) for j in
                                                               range(self._n1)])
         return tuple(self._transf[i].subs(substitutions).simplify_full()
@@ -1743,7 +1753,6 @@ class CoordChange(SageObject):
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
 
         """
-        from sage.symbolic.ring import SR
         from sage.symbolic.relation import solve
         if self._inverse is not None:
             return self._inverse
@@ -1758,53 +1767,39 @@ class CoordChange(SageObject):
                             "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
-        coord_domain = ['real' for i in range(n2)]
+        if self._chart1.domain().base_field() == 'real':
+            coord_domain = ['real' for i in range(n2)]
+        elif self._chart1.domain().base_field() == 'complex':
+            coord_domain = ['complex' for i in range(n2)]
+        else:
+            coord_domain = [None for i in range(n2)]
         for i in range(n2):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'
         xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
                                                            for i in range(n2) ]
-        #*# when MultiFunctionChart will be implemented:
-        # equations = [ xp2[i] == self._transf._functions[i]._express
-        #                                                   for i in range(n2) ]
+        #*# when MultiCoordFunction will be implemented (trac #18640):
+        # xx2 = self._transf.expr()
         #*# for now:
-        equations = [ xp2[i] == self._transf[i] for i in range(n2) ]
+        xx2 = self._transf
+        equations = [ xp2[i] == xx2[i] for i in range(n2) ]
         try:
             solutions = solve(equations, *x1, solution_dict=True)
         except RuntimeError:
             raise RuntimeError("the system could not be solved; use " +
                                "set_inverse() to set the inverse manually")
-        #!# This should be the Python 2.7 form:
-        #           substitutions = {xp2[i]: x2[i] for i in range(n2)}
-        # Here we use a form compatible with Python 2.6:
-        substitutions = dict([(xp2[i], x2[i]) for i in range(n2)])
+        substitutions = dict(zip(xp2, x2))
         if len(solutions) == 1:
             x2_to_x1 = [solutions[0][x1[i]].subs(substitutions)
                                                             for i in range(n1)]
-            for transf in x2_to_x1:
-                try:
-                    transf = simplify_chain(transf)
-                #*# when MultiFunctionChart will be implemented:
-                # except AttributeError:
-                #*# for now:
-                except NameError, AttributeError:
-                    pass
         else:
             list_x2_to_x1 = []
             for sol in solutions:
                 if x2[0] in sol:
-                    raise ValueError("(he system could not be solved; use " +
+                    raise ValueError("the system could not be solved; use " +
                                      "set_inverse() to set the inverse " +
                                      "manually")
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]
-                for transf in x2_to_x1:
-                    try:
-                        transf = simplify_chain(transf)
-                    #*# when MultiFunctionChart will be implemented:
-                    # except AttributeError:
-                    #*# for now:
-                    except NameError, AttributeError:
-                        pass
                 if self._chart1.valid_coordinates(*x2_to_x1):
                     list_x2_to_x1.append(x2_to_x1)
             if len(list_x2_to_x1) == 0:
@@ -1870,7 +1865,6 @@ class CoordChange(SageObject):
                ph == arctan2(r*sin(ph), r*cos(ph))
                x == sqrt(x^3 + y^2)*x/sqrt(x^2 + y^2)
                y == sqrt(x^3 + y^2)*y/sqrt(x^2 + y^2)
-            sage: # the check clearly fails
 
         """
         if 'check' in kwds:
@@ -1924,7 +1918,7 @@ class CoordChange(SageObject):
             raise ValueError("composition not possible: " +
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
-        #*# after MultiFunctionChart has been implemented:
+        #*# when MultiCoordFunction will be implemented (trac #18640):
         # transf = self(*(other._transf.expr()))
         #*# for now:
         transf = self(*(other._transf))
@@ -1961,7 +1955,7 @@ class CoordChange(SageObject):
         """
         if dom2 is None:
             dom2 = dom1
-        #*# after MultiFunctionChart has been implemented:
+        #*# when MultiCoordFunction will be implemented (trac #18640):
         # return CoordChange(self._chart1.restrict(dom1),
         #                   self._chart2.restrict(dom2), *(self._transf.expr()))
         #*# for now:
@@ -2002,7 +1996,7 @@ class CoordChange(SageObject):
         from sage.tensor.modules.format_utilities import FormattedExpansion
         coords2 = self._chart2[:]
         n2 = len(coords2)
-        #*# after MultiFunctionChart has been implemented:
+        #*# when MultiCoordFunction will be implemented (trac #18640):
         # expr = self._transf.expr()
         #*# for now:
         expr = self._transf

@@ -377,6 +377,17 @@ class RealReflectionGroup(ComplexReflectionGroup):
     def root_to_reflection(self,root):
         r"""
         Return the reflection along the given ``root``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])
+            sage: for beta in W.roots(): print W.root_to_reflection(beta)
+            (1,4)(2,3)(5,6)
+            (1,3)(2,5)(4,6)
+            (1,5)(2,4)(3,6)
+            (1,4)(2,3)(5,6)
+            (1,3)(2,5)(4,6)
+            (1,5)(2,4)(3,6)
         """
         Phi = self.roots()
         R = self.reflections()
@@ -390,6 +401,14 @@ class RealReflectionGroup(ComplexReflectionGroup):
     def reflection_to_positive_root(self,r):
         r"""
         Return the positive root orthogonal to the given reflection.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])
+            sage: for r in W.reflections(): print W.reflection_to_positive_root(r)
+            (1, 0)
+            (0, 1)
+            (1, 1)
         """
         Phi = self.roots()
         N = len(Phi)/2
@@ -428,6 +447,12 @@ class RealReflectionGroup(ComplexReflectionGroup):
     def fundamental_weight(self,i):
         r"""
         Return the fundamental weight with index ``i``.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])
+            sage: [ W.fundamental_weight(i) for i in W.index_set() ]
+            [(3/4, 1/2, 1/4), (1/2, 1, 1/2), (1/4, 1/2, 3/4)]
         """
         return self.fundamental_weights()[self._index_set[i]]
 
@@ -509,10 +534,10 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [(), (1,7)(2,4)(5,6)(8,10)(11,12), (1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,12,3,2)(4,11,10,5)(6,9,8,7)]
             [()]
         """
-        from sage.combinat.root_system.reflection_group_complex import gap_return
+        from sage.combinat.root_system.reflection_group_complex import _gap_return
         J_inv = [ self._index_set[j]+1 for j in J ]
         S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(self._gap_group._name,self._gap_group._name,J_inv)))
-        exec('L = '+gap_return(S))
+        exec('L = ' + _gap_return(S))
         return L
 
     class Element(ComplexReflectionGroup.Element):
@@ -530,7 +555,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                    sage: W = ReflectionGroup(["A",3])
+                sage: W = ReflectionGroup(["A",3])
                 sage: s = W.simple_reflections()
                 sage: (s[1]*s[2]).has_left_descent(1)
                 True
@@ -555,11 +580,11 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
             EXAMPLES::
 
-                    sage: W = ReflectionGroup(["A",3])
+                sage: W = ReflectionGroup(["A",3])
                 sage: s = W.simple_reflections()
-                sage: (s[1]*s[2]).has_left_descent(1)
+                sage: (s[1]*s[2]).has_descent(1)
                 True
-                sage: (s[1]*s[2]).has_left_descent(2)
+                sage: (s[1]*s[2]).has_descent(2)
                 False
             """
             if not isinstance(positive, bool):
@@ -633,12 +658,12 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 10 [word: ]
                 010 [word: , word: 1, word: 0]
             """
-            from sage.combinat.root_system.reflection_group_complex import gap_return
+            from sage.combinat.root_system.reflection_group_complex import _gap_return
             W = self.parent()
             T = W.reflections()
             T_fix = [ i+1 for i in T.keys() if self.fix_space().is_subspace(T[i].fix_space()) ]
             S = str(gap3('ReducedRightCosetRepresentatives(%s,ReflectionSubgroup(%s,%s))'%(W._gap_group._name,W._gap_group._name,T_fix)))
-            exec('L = '+gap_return(S,coerce_obj='W'))
+            exec('L = ' + _gap_return(S,coerce_obj='W'))
             return L
 
         def left_coset_representatives(self):
@@ -681,3 +706,4 @@ class IrreducibleRealReflectionGroup(RealReflectionGroup, IrreducibleComplexRefl
 
     class Element(RealReflectionGroup.Element,IrreducibleComplexReflectionGroup.Element):
         pass
+

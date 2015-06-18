@@ -340,6 +340,22 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return [ self._index_set_inverse[i] for i in xrange(len(self._index_set)) ]
 
     def series(self):
+        r"""
+        Return the series of the classification type to which ``self``
+        belongs.
+
+        For real reflection groups, these are the Cartan-Killing
+        classification types "A","B","C","D","E","F","G","H","I", and
+        for complx non-real reflection groups these are the
+        Shephard-Todd classification type "ST".
+
+        EXAMPLES:
+
+            sage: ReflectionGroup((1,1,3)).series()
+            ['A']
+            sage: ReflectionGroup((3,1,3)).series()
+            ['ST']
+        """
         return [ self._type[i]['series'] for i in range(len(self._type)) ]
 
     @cached_method
@@ -645,7 +661,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         if self._conjugacy_classes_representatives is None:
             S = str(gap3('List(ConjugacyClasses(%s),Representative)'%self._gap_group._name))
-            exec('self._conjugacy_classes_representatives='+gap_return(S))
+            exec('self._conjugacy_classes_representatives=' + _gap_return(S))
         return self._conjugacy_classes_representatives
 
     @cached_method
@@ -1127,11 +1143,61 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.matrix.all import Matrix as CartanMat
         return CartanMat(self._gap_group.CartanMat().sage())
 
-    def set_reflection_representation(self,refl_repr):
+    def set_reflection_representation(self,refl_repr=None):
+        r"""
+        Set the reflection representation of ``self``.
+
+        INPUT:
+
+        - ``refl_repr`` -- a dictionary representing the matrices of the
+          generators of ``self`` with keys given by the index set, or
+          ``None`` to reset to the default reflection representation.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((1,1,3))
+            sage: for w in W: print w.as_matrix()
+            [1 0]
+            [0 1]
+            [-1  0]
+            [ 1  1]
+            [ 1  1]
+            [ 0 -1]
+            [-1 -1]
+            [ 1  0]
+            [ 0  1]
+            [-1 -1]
+            [ 0 -1]
+            [-1  0]
+
+            sage: W.set_reflection_representation({0:matrix([[0,1,0],[1,0,0],[0,0,1]]),1:matrix([[1,0,0],[0,0,1],[0,1,0]])})
+            sage: for w in W: print w.as_matrix()
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            [0 0 1]
+            [1 0 0]
+            [0 0 1]
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+
+            sage: W.set_reflection_representation()
+        """
         self.one().as_matrix.clear_cache()
-        if set( refl_repr.keys() ) != set( self.index_set() ):
+        if refl_repr is None or set( refl_repr.keys() ) == set( self.index_set() ):
+            self._reflection_representation = refl_repr
+        else:
             raise ValueError("The reflection representation must be defined for the complete index set.")
-        self._reflection_representation = refl_repr
 
     class Element(PermutationGroupElement):
 
@@ -1253,7 +1319,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if self._reduced_word is None:
                 inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
                 gens = [ W.simple_reflection(i) for i in W.index_set() ]
-                word = gap_factorization(self,gens,inv_dict)
+                word = _gap_factorization(self,gens,inv_dict)
                 self._reduced_word = Word(word)
             elif isinstance(self._reduced_word, list):
                 self._reduced_word = Word(self._reduced_word)
@@ -1287,7 +1353,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             else:
                 inv_dict = dict( (W._reflection_index_set[i],i) for i in W._reflection_index_set.keys() )
                 gens = [ W.reflection(i) for i in W.reflection_index_set() ]
-                return Word(gap_factorization(self,gens,inv_dict))
+                return Word(_gap_factorization(self,gens,inv_dict))
 
         @cached_in_parent_method
         def length(self):
@@ -1371,13 +1437,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 # is hopefully never needed
                 assert w in self.parent().conjugacy_classes_representatives()
                 return w.reflection_length(in_unitary_group=in_unitary_group)
-
-        @cached_in_parent_method
-        def conjugacy_class_representative(self):
-            conj = self.parent().conjugacy_classes()
-            for w in conj.keys():
-                if self in conj[w]:
-                    return w
 
         @cached_in_parent_method
         def as_matrix(self):
@@ -1597,8 +1656,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         def __cmp__(self, other):
             r"""
+            Compare ``self`` with ``other``.
+
             Without this comparison method, the initialization of this
             permutation group fails ...
+
+            TESTS::
+
+                sage: W = ReflectionGroup((1,1,3))
+                sage: a,b = W.gens()
+                sage: a.__cmp__(b)
+                1
+                sage: b.__cmp__(a)
+                -1
             """
             return super(ComplexReflectionGroup.Element, self).__cmp__(other)
 
@@ -1746,7 +1816,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
     @cached_method
     def noncrossing_partition_lattice(self, c=None, L=None):
         r"""
-        Return the the interval `[1,c]` in the absolute order of
+        Return the interval `[1,c]` in the absolute order of
         ``self`` as a finite lattice.
 
         .. SEEALSO:: :meth:`elements_below_coxeter_element`
@@ -1791,6 +1861,51 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             return P
 
     def generalized_noncrossing_partitions(self, m, c=None, positive=False):
+        r"""
+        Return the set of all chains of length ``m`` in the noncrossing
+        partition lattice of ``self``, see
+        :meth:`noncrossing_partition_lattice`.
+
+        REMARK:
+
+        - ``self`` is assumed to be well-generated.
+
+        INPUT:
+
+        - c -- (default:None) if an element ``c`` in ``self`` is given,
+               it is used as the maximal element in the interval.
+
+        - positive -- (default:False) if ``True``, only those
+                      generalized noncrossing partitions of full support
+                      are returned.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((1,1,3))
+
+            sage: sorted( [ w.reduced_word() for w in chain ] for chain in W.generalized_noncrossing_partitions(2) )
+            [[word: , word: , word: 01],
+             [word: , word: 0, word: 1],
+             [word: , word: 01, word: ],
+             [word: , word: 010, word: 0],
+             [word: , word: 1, word: 010],
+             [word: 0, word: , word: 1],
+             [word: 0, word: 1, word: ],
+             [word: 01, word: , word: ],
+             [word: 010, word: , word: 0],
+             [word: 010, word: 0, word: ],
+             [word: 1, word: , word: 010],
+             [word: 1, word: 010, word: ]]
+
+            sage: sorted( [ w.reduced_word() for w in chain ] for chain in W.generalized_noncrossing_partitions(2, positive=True) )
+            [[word: , word: 01, word: ],
+             [word: , word: 010, word: 0],
+             [word: 0, word: 1, word: ],
+             [word: 01, word: , word: ],
+             [word: 010, word: , word: 0],
+             [word: 010, word: 0, word: ],
+             [word: 1, word: 010, word: ]]
+        """
         from sage.combinat.combination import Combinations
         NC = self.noncrossing_partition_lattice(c=c)
         one = self.one()
@@ -2044,13 +2159,35 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                         return True
             return False
 
-def gap_factorization(w,gens,inv_dict):
+def _gap_factorization(w,gens,inv_dict):
+    r"""
+    Return a factorization of ``w`` using the generators ``gens`` under
+    the index dict ``inv_dict``.
+
+    .. WARNING::
+
+        This is only available through GAP3 and chevie.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.reflection_group_complex import _gap_factorization
+        sage: W = ReflectionGroup((1,1,3))
+        sage: inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
+        sage: gens = [ W.simple_reflection(i) for i in W.index_set() ]
+        sage: for w in W: print _gap_factorization(w,gens,inv_dict)
+        []
+        [0]
+        [1]
+        [0, 1]
+        [1, 0]
+        [0, 1, 0]
+    """
     gap3.execute('W := GroupWithGenerators(%s)'%str(gens))
-    gap3.execute(gap_factorization_code)
+    gap3.execute(_gap_factorization_code)
     fac = gap3('MinimalWord(W,%s)'%str(w)).sage()
     return [ inv_dict[i-1] for i in fac ]
 
-gap_factorization_code = """
+_gap_factorization_code = """
 # MinimalWord(G,w)
 # given a permutation group G find some expression of minimal length in the
 # generators of G and their inverses of the element w (an inverse is
@@ -2100,7 +2237,19 @@ MinimalWord:=function(G,w)
   od;
 end;"""
 
-def gap_return(S,coerce_obj='self'):
+def _gap_return(S,coerce_obj='self'):
+    r"""
+    Return the string ``S`` after a few modifications are done.
+
+    This is a stupid internal function to take gap output as a string,
+    replace a few things, to then turn it into a sage object.
+
+    TESTS::
+
+        sage: from sage.combinat.root_system.reflection_group_complex import _gap_return
+        sage: _gap_return("[ (), (1,4)(2,3)(5,6), (1,6,2)(3,5,4) ]")
+        "[self('()',check=False),self('(1,4)(2,3)(5,6)',check=False),self('(1,6,2)(3,5,4)',check=False)]"
+    """
     S = S.replace(' ','').replace('\n','')
     S = S.replace(',(','\',check=False),%s(\'('%coerce_obj).replace('[','[%s(\''%coerce_obj).replace(']','\',check=False)]')
     return S

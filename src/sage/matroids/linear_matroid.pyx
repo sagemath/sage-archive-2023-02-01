@@ -111,7 +111,7 @@ Methods
 include 'sage/data_structures/bitset.pxi'
 
 from sage.matroids.matroid cimport Matroid
-from basis_exchange_matroid cimport BasisExchangeMatroid
+from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
 from utilities import newlabel
@@ -3081,10 +3081,41 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: M1._is_isomorphic(matroids.Wheel(3))
             True
         """
-        if type(other) == BinaryMatroid:
+        if isinstance(other, BinaryMatroid):
             return self.is_field_isomorphic(other)
         else:
             return LinearMatroid._is_isomorphic(self, other)
+
+
+    cpdef _is_isomorphism(self, other, morphism):
+        r"""
+        Test if a given bijection is an isomorphism.
+
+        Version of ``is_isomorphism()`` that does no type checking
+        of ``morphism``.
+
+        INPUT:
+
+        - ``other`` -- A matroid instance.
+        - ``morphism`` -- a dictionary mapping the groundset of ``self`` to
+          the groundset of ``other``
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano() \ ['a']
+            sage: N = matroids.named_matroids.Fano() \ ['b']
+            sage: morphism = {'b':'a', 'c':'c', 'd':'e', 'e':'d', 'f':'f', 'g':'g'}
+            sage: M._is_isomorphism(N, morphism)
+            True
+        """
+        if isinstance(other, BinaryMatroid):
+            return self.is_field_isomorphism(other, morphism)
+        else:
+            return LinearMatroid._is_isomorphism(self, other, morphism)
 
     # invariants
     cpdef _make_invariant(self):
@@ -3544,6 +3575,66 @@ cdef class BinaryMatroid(LinearMatroid):
 
             sage: M = Matroid(Matrix(GF(2), [[]]))
             sage: M.is_valid()
+            True
+        """
+        return True
+
+    # representability
+
+    cpdef binary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a binary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A binary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a binary matroid, so just return ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.binary_matroid() 
+            <sage.matroids.matroid.Matroid.binary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.binary_matroid() is N
+            True
+        """
+        return self
+
+    cpdef is_binary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a binary matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_binary()
             True
         """
         return True
@@ -5845,6 +5936,68 @@ cdef class RegularMatroid(LinearMatroid):
         M = LinearMatroid(ring=QQ, reduced_matrix=self.representation(self.basis(), True, False))
         CR = M.cross_ratios()
         return CR.issubset(set([1]))
+
+    # representation
+
+    cpdef binary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a binary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A binary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just cast ``self`` to a BinaryMatroid.
+
+        .. SEEALSO::
+
+            :meth:`M.binary_matroid() 
+            <sage.matroids.matroid.Matroid.binary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.binary_matroid()
+            Binary matroid of rank 5 on 10 elements, type (1, None)
+
+        """
+        A, E = self.representation(B = self.basis(), reduced = False, labels = True)
+        return BinaryMatroid(matrix = A, groundset = E)
+
+    cpdef is_binary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_binary()
+            True
+        """
+        return True
 
     # Copying, loading, saving
 

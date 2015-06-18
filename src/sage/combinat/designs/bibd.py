@@ -1238,22 +1238,46 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         r"""
         Return the `(s,n)`-arc which has the highest cardinality.
 
-        A n-arc in a projective plane is a set of n points, no three colinears.
+        A `(s,n)`-arc is a set of n points so that in each block there are
+        at most ``s`` of them.
 
         For more informations : :wikipedia:`Arc_(projective_geometry)`
 
+        INPUT:
+
+        - ``s`` (integer) - number of points from the arc in each block
+
         EXAMPLES::
 
-            sage: designs.balanced_incomplete_block_design(13, 3).arc()
+            sage: B = designs.balanced_incomplete_block_design(13, 3)
+            sage: B.arc()
             [1, 3, 6, 7, 9, 11]
+            sage: B.is_t_design(return_parameters=True)
+            (True, (2, 13, 3, 1))
+            sage: r = (13-1)/(3-1)
+            sage: 1 + (r-1)*1
+            6
+            sage: len(B.arc())
+            6
 
             sage: designs.balanced_incomplete_block_design(7, 2).arc()
             [0, 1, 2, 3, 4, 5, 6]
 
             sage: designs.balanced_incomplete_block_design(25, 3).arc()
             [0, 2, 4, 6, 12, 13, 14, 15, 16, 19, 23]
+        
+            sage: B = designs.balanced_incomplete_block_design(25, 4)
+            sage: B.arc(3)
+            [0, 2, 3, 4, 6, 7, 8, 9, 10, 15, 16, 19, 21, 23, 24]
+            sage: B.is_t_design(return_parameters=True)
+            (True, (2, 25, 4, 1))
+            sage: r = (25-1)/(4-1)
+            sage: 1 + (r-1)*2
+            15
+            sage: len(B.arc(3))
+            15
         """
-        if s == None:
+        if s is None:
             s = 2
         if s >= len(self._blocks[0]):
             return self._points

@@ -5507,7 +5507,6 @@ cdef class Expression(CommutativeRingElement):
         maxima._eval_line('load(coeflist)')
         if x is None:
             x = self.default_variable()
-        x = self.parent().var(repr(x))
         G = f.coeffs(x)
         from sage.calculus.calculus import symbolic_expression_from_maxima_string
         S = symbolic_expression_from_maxima_string(repr(G))

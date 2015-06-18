@@ -21,11 +21,12 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2011-2015 Christian Stump <christian.stump at gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.misc.all import prod, add
 from sage.misc.cachefunc import cached_function, cached_method, cached_in_parent_method
 from sage.categories.category import Category

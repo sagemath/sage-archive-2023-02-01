@@ -208,7 +208,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self._can_absorb_(other)
 
 
-    def absorb(self, other):
+    def absorb(self, other, check=True):
         r"""
         Absorb the asymptotic term ``other``, yielding a new
         asymptotic term (or ``None``). For a more detailed
@@ -218,6 +218,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
         INPUT:
 
         - ``other`` -- an asymptotic term.
+
+        - ``check`` -- a boolean. If ``check`` is True (default),
+          then ``can_absorb`` is called before absorption.
 
         OUTPUT:
 
@@ -283,11 +286,20 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et2.absorb(et4)
             sage: repr(et4.absorb(et2))
             'None'
+
+        TESTS:
+
+        When disabling the ``check`` flag, absorb might produce
+        wrong results::
+
+            sage: et1.absorb(ot2, check=False)
+            O(x)
         """
         from sage.structure.element import have_same_parent
 
-        if not self.can_absorb(other):
-            raise ArithmeticError('%s cannot absorb %s' % (self, other))
+        if check:
+            if not self.can_absorb(other):
+                raise ArithmeticError('%s cannot absorb %s' % (self, other))
 
         if have_same_parent(self, other):
             return self._absorb_(other)

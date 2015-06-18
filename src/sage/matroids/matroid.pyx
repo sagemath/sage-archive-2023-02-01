@@ -4797,7 +4797,7 @@ cdef class Matroid(SageObject):
             Q_rows=set([])
             Q_cols=set([])
             
-            Z = (self.groundset()-X)-P_cols
+            Z = Y-P_cols
 
             for z in Z:
                 nP_cols = set(P_cols)
@@ -4820,8 +4820,57 @@ cdef class Matroid(SageObject):
             return True, None
         return True
 
+    cpdef _is_4connected_shifting(self, certificate=False):
+        if not self._is_3connected_shifting(self):
+            return self._is_3connected_shifting(certificate)
+
+        # build the table
+        X = set(self.basis())
+        Y = set(self.groundset()-X)
+        
+        # the larger side has rank 0
+        all_P_rows=[set(t) for t in combinations(X, 2)]
+        all_P_cols=[set(t) for t in combinations(Y, 2)]
+        for P_rows in all_P_rows:
+            for P_cols in all_P_cols:
+                Q_rows=set([])
+                Q_cols=set([])
+                Z = Y-P_cols
+                sol,cert = self._shifting_all(X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, 3)
+                if sol:
+                    return False, cert
+        # both sides have rank 1
+        for px in X:
+            for py in Y:
+                for qx in X-set([px]):
+                    for qy in Y-set([py]):
+                        Z = Y-set([py,qy])
+                        sol,cert = self._shifting_all(X, Y, set([px]), set([py]), set([qx]), set([qy]), Z, 3)
+                        if sol:
+                            if certificate:
+                                return False, cert
+                            else:
+                                return False
+        if certificate:
+            return True, None
+        return True
+        
     cpdef _rk(self,X,Xp,Yp):
         return self.rank(Yp|(X-Xp)) - len(X-Xp)
+
+    cpdef _shifting_all(self, X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, m):
+        for z in Z:
+            nP_cols = set(P_cols)
+            nP_cols.add(z)
+            nQ_cols = set(Q_cols)
+            nQ_cols.add(z)
+            sol,cert = self._shifting(X,Y,(P_rows,nP_cols),(Q_rows,Q_cols),m)
+            if sol:
+                return True, cert
+            sol,cert = self._shifting(X,Y,(P_rows,P_cols),(Q_rows,nQ_cols),m)
+            if sol:
+                return True, cert
+        return False, None
 
     cpdef _shifting(self, X, Y, R_12, R_21, m):
         # Returns true if there is a m-separator
@@ -4832,15 +4881,21 @@ cdef class Matroid(SageObject):
         if len(X_1|Y_1) < m:
             return False, None
 
-        #rowshifts
-        for x in X-(X_1|X_2):
-            if(self._rk(X, X_2|set([x]), Y_1)>self._rk(X, X_2, Y_1)):
-                X_1 = X_1|set([x])
-        #colshifts
-        for y in Y-(Y_1|Y_2):
-            if(self._rk(X, X_1, Y_2|set([y]))>self._rk(X, X_1, Y_2)):
-                Y_1 = Y_1|set([y])
-
+        while True:
+            #rowshifts
+            rowshift = False
+            for x in X-(X_1|X_2):
+                if(self._rk(X, X_2|set([x]), Y_1)>self._rk(X, X_2, Y_1)):
+                    X_1 = X_1|set([x])
+                    rowshift = True
+            #colshifts
+            colshift = False
+            for y in Y-(Y_1|Y_2):
+                if(self._rk(X, X_1, Y_2|set([y]))>self._rk(X, X_1, Y_2)):
+                    Y_1 = Y_1|set([y])
+                    colshift = True
+            if (colshift==False and rowshift==False):
+                break
         X_2 = X-X_1
         Y_2 = Y-Y_1
         S_2 = X_2|Y_2

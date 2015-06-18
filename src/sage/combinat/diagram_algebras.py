@@ -59,15 +59,15 @@ def partition_diagrams(k):
     if k in ZZ:
         for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
             yield i
-    # Else k in 1/2 ZZ
-    k += ZZ(1) / ZZ(2)
-    for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
-        sp = list(sp)
-        for i in range(len(sp)):
-            if k in sp[i]:
-                sp[i] += Set([-k])
-                break
-        yield SetPartition(sp)
+    elif k-1/2 in ZZ: # Else k in 1/2 ZZ
+        k += ZZ(1) / ZZ(2)
+        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
+            sp = list(sp)
+            for i in range(len(sp)):
+                if k in sp[i]:
+                    sp[i] += Set([-k])
+                    break
+            yield SetPartition(sp)
 
 def brauer_diagrams(k):
     r"""
@@ -89,15 +89,13 @@ def brauer_diagrams(k):
         [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     if k in ZZ:
-        for i in  SetPartition(list(x)) for x in
-                SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)],
-                               [2 for j in range(1,k+1)] ):
-                yield i
-    # Else k in 1/2 ZZ
+        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
+                yield SetPartition(list(i))
+    elif k-1/2 in ZZ: # Else k in 1/2 ZZ
     k += ZZ(1) / ZZ(2)
-    for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
-                            [2 for j in range(1, k)] ):
-        yield SetPartition(list(i) + [Set([k, -k])])
+        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
+                                [2 for j in range(1, k)] ):
+            yield SetPartition(list(i) + [Set([k, -k])])
 
 def temperley_lieb_diagrams(k):
     r"""

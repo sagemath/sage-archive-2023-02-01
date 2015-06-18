@@ -187,7 +187,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
                                     hyperplane_index_set    = hyperplane_index_set,
                                     reflection_index_set    = reflection_index_set)
         N = self.nr_reflections()
-        self._is_positive_root = [None] + [ True ] * N + [False]*N
+        self._is_positive_root = [None] + [True]*N + [False]*N
 
     def _repr_(self):
         r"""

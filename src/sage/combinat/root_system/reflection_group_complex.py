@@ -278,9 +278,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         level_set_cur   = [ (self.one(), tuple()) ]
         level_set_old   = set([ self.one() ] )
-        it = 0
         while level_set_cur:
-            it += 1
             level_set_new = []
             for x, word in level_set_cur:
                 yield x, word

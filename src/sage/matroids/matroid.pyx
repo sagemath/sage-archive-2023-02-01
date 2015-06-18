@@ -312,10 +312,11 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
+from sage.graphs.graph import Graph
+from sage.misc.superseded import deprecation
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -4630,10 +4631,10 @@ cdef class Matroid(SageObject):
         N2 = self.minor(S,T)
         return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
 
-    cpdef is_3connected(self, separation=False):
+    cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""
-        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
-
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
 
         A `k`-*separation* in a matroid is a partition `(X, Y)` of the
         groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
@@ -4641,9 +4642,16 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``separation`` -- (default: ``False``) a boolean; if ``True``,
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is 3-connected,
-          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+        - ``algorithm`` -- (default: ``None``); specify which algorithm 
+          to compute 3-connectivity:
+
+          - ``None`` -- The most appropriate algorithm is chosen automatically.
+          - ``"bridges"`` -- Bixby and Cunningham's algorithm, based on bridges [BC79]_.
+            Note that this cannot return a separator.
+          - ``"intersection"`` An algorithm based on matroid intersection.
 
         OUTPUT:
 
@@ -4655,13 +4663,9 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
-        sets `S`,`T` with `|S| = |T| = 2`.
-
-        .. TODO::
-
-            Implement the more efficient 3-connectivity algorithm
-            from [BC79]_ which runs in `O(|E|^3)` time.
+        - Bridges based: The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+        - Matroid intersection based: Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+          sets `S`, `T` with `|S| = |T| = 2`.
 
         EXAMPLES::
 
@@ -4672,6 +4676,10 @@ cdef class Matroid(SageObject):
             ....:                              [0, 0, 1, 0, 0, 1]])
             sage: M.is_3connected()
             False
+            sage: M.is_3connected() == M.is_3connected(algorithm="bridges")
+            True
+            sage: M.is_3connected() == M.is_3connected(algorithm="intersection")
+            True
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
@@ -4683,6 +4691,63 @@ cdef class Matroid(SageObject):
             sage: M.is_3connected()
             False
             sage: B, X = M.is_3connected(True)
+            sage: M.connectivity(X)
+            1
+        """
+        if separation:
+            deprecation(18539, "Use `certificate` in place of `separation`")
+        certificate = certificate or separation
+        if algorithm == None:
+            if certificate:
+                return self._is_3connected_CE(True)
+            else:
+                return self._is_3connected_BC()
+        if algorithm == "bridges":
+            return self._is_3connected_BC(separation)
+        if algorithm == "intersection":
+            return self._is_3connected_CE(separation)
+        raise ValueError("Not a valid algorithm.")
+
+
+    cpdef _is_3connected_CE(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+        sets `S`, `T` with `|S| = |T| = 2`.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_CE()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_CE()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_CE()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_CE()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_CE()
+            False
+            sage: B, X = M._is_3connected_CE(True)
             sage: M.connectivity(X)
             1
         """
@@ -4708,7 +4773,7 @@ cdef class Matroid(SageObject):
                 J = N1._intersection_augmentation(N2, w, I)
             # check if connectivity between S,T is <2
             if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
-                if separation:
+                if certificate:
                     return False, S.union(J[1])
                 else:
                     return False
@@ -4732,14 +4797,166 @@ cdef class Matroid(SageObject):
                     J = N1._intersection_augmentation(N2, w, I)
                 # check if connectivity between S,T is <2
                 if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
-                    if separation:
+                    if certificate:
                         return False, S.union(J[1])
                     else:
                         return False
-        if separation:
+        if certificate:
             return True, None
         else:
             return True
+
+    cpdef _is_3connected_BC(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_BC()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_BC()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_BC()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_BC()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_BC()
+            False
+        """
+        # The 5 stages of the algorithm
+        if certificate:
+            raise NotImplementedError("The Bixby-Cunningham algorithm does not return a separation.")
+        # Stage 0, special cases
+        if self.size() <= 1:
+            return True
+        if self.size() <= 3 and self.full_rank()==1 and not self.loops():
+            return True
+        if self.size() <= 3 and self.full_corank()==1 and not self.coloops():
+            return True
+        # testing loop and coloop are fast operations, hence apply them first
+        if self.loops() or self.coloops():
+            return False
+        if not (self.is_connected() and self.is_simple() and self.is_cosimple()):
+            return False
+        basis = self.basis()
+        fund_cocircuits = set([self._fundamental_cocircuit(basis, e) for e in basis])
+        return self._is_3connected_BC_recursion(self.basis(), fund_cocircuits)
+
+    cpdef _is_3connected_BC_recursion(self, basis, fund_cocircuits):
+        r"""
+        A helper function for ``_is_3connected_BC``. This method assumes the 
+        matroid is both simple and cosimple. Under the assumption, it return 
+        ``True`` if the matroid is 3-connected, ``False`` otherwise. 
+
+        INPUT:
+        - ``basis`` -- a basis of the matroid.
+        - ``fund_cocircuits`` -- a iterable of some fundamental cocircuits with 
+        respect to ``basis``. It must contain all separating fundamental cocircuits. 
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2, 3)
+            sage: B = M.basis()
+            sage: M._is_3connected_BC_recursion(B, 
+            ....:   [M.fundamental_cocircuit(B, e) for e in B])
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: B = M.basis()
+            sage: M._is_3connected_BC_recursion(B, 
+            ....:   [M.fundamental_cocircuit(B, e) for e in B])
+            False
+
+        .. NOTE::
+
+        The function does not check its input at all. You may want to make
+        sure the matroid is both simple and cosimple.
+        """
+        # Step 1: base case
+        if self.rank() <= 2:
+            return True
+        # Step 2: Find a separating B-fundamental cocircuit Y
+        separating = False
+        while fund_cocircuits:
+            Y = fund_cocircuits.pop()
+            bridges = self.delete(Y).components()  # O(r(M)|E|) time.
+            if len(bridges)>1:
+                separating = True
+                break
+        if not separating:
+            return True
+
+        # Step 3: Check the avoidance graph of Y
+        Y_components = {}
+        B_segments   = []
+        for B in bridges:
+            # M/(E\(B union Y)) is called a Y-component
+            M = self.contract(self.groundset() - (B | Y))
+            Y_components[B] = M
+            s = set(Y)
+            parallel_classes = []
+            while len(s)>0:
+                e = s.pop()
+                parallel_class = M._closure(frozenset([e]))
+                s -= parallel_class
+                parallel_classes.append(parallel_class)
+            B_segments.append(frozenset(parallel_classes))
+        # build the avoidance graph
+        d = {}
+        for i in range(len(B_segments)):
+            d[i] = []
+            for j in range(len(B_segments)):
+                if i!= j:
+                    # avoidance check
+                    avoid = False
+                    for S in B_segments[i]:
+                        for T in B_segments[j]:
+                            if Y - S <= T:
+                                avoid = True
+                                break
+                        if avoid:
+                            break
+                    if not avoid:
+                        d[i].append(j)
+        G = Graph(d);
+        if not G.is_connected():
+            return False
+        # Step 4: Apply algorithm recursively
+        for B, M in Y_components.iteritems():
+            N = M.simplify()
+            new_basis = basis & (B | Y)
+            # the set of fundamental cocircuit that might be separating for N
+            cocirc = set([M._fundamental_cocircuit(new_basis, e) for e in new_basis])
+            cocirc &= fund_cocircuits
+            fund_cocircuits -= cocirc
+            cocirc = set([x & N.groundset() for x in cocirc])
+            if not N._is_3connected_BC_recursion(new_basis, cocirc):
+                return False
+        return True
 
     # representability
 

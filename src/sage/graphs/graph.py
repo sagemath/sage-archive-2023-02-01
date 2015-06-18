@@ -3787,7 +3787,7 @@ class Graph(GenericGraph):
         r"""
         Return the chromatic symmetric function of ``self``.
 
-        Let `G` be a graph. The chormatic symmetric function `X_G` was
+        Let `G` be a graph. The chromatic symmetric function `X_G` was
         described in [Stanley95]_, specifically Theorem 2.5 states that
 
         .. MATH::
@@ -3807,7 +3807,7 @@ class Graph(GenericGraph):
             sage: s(XG)
             30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
 
-        Not all graphs has a postive Schur expansion::
+        Not all graphs have a postive Schur expansion::
 
             sage: G = graphs.ClawGraph()
             sage: XG = G.chromatic_symmetric_function(); XG

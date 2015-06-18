@@ -41,7 +41,7 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
     the class :class:`TopManifoldHomset` implements the set
     `\mathrm{Hom}(U,V)` of morphisms (i.e. continuous maps) `U\rightarrow V`,
     where `U` is an open subset of `M` and `V` an open subset of `N`.
-    Note that, as open subsets of toplogical manifolds, `U` and `V` are
+    Note that, as open subsets of topological manifolds, `U` and `V` are
     topological manifolds by themselves.
 
     This is a Sage *parent* class, whose *element* class is

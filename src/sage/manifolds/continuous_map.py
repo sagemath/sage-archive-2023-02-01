@@ -124,7 +124,7 @@ class ContinuousMap(Morphism):
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
-    The mapping can be initialized by the method
+    It is possible to create the map via the method
     :meth:`~sage.manifolds.manifold.TopManifold.continuous_map`
     only in a single pair of charts: the argument ``coord_functions`` is then
     a mere list of coordinate expressions (and not a dictionary) and the
@@ -165,7 +165,7 @@ class ContinuousMap(Morphism):
         sage: TestSuite(Phi).run()
         sage: TestSuite(Phi1).run()
 
-    The mapping acts on points::
+    The map acts on points::
 
         sage: np = M.point((0,0), chart=c_uv)  # the North pole
         sage: Phi(np)
@@ -176,8 +176,8 @@ class ContinuousMap(Morphism):
         sage: Phi(sp).coord() # Cartesian coordinates
         (0, 0, -1)
 
-    Differential mappings can be composed by means of the operator ``*``: let
-    us introduce the mapping `\RR^3\rightarrow \RR^2` corresponding to
+    Continuous maps can be composed by means of the operator ``*``: let
+    us introduce the map `\RR^3\rightarrow \RR^2` corresponding to
     the projection from the point `(X,Y,Z)=(0,0,1)` onto the equatorial plane
     `Z=0`::
 
@@ -192,7 +192,7 @@ class ContinuousMap(Morphism):
         Psi: R^3 --> R^2
            (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
 
-    Then we compose ``Psi`` with ``Phi``, thereby getting a mapping
+    Then we compose ``Psi`` with ``Phi``, thereby getting a map
     `S^2\rightarrow \RR^2`::
 
         sage: ster = Psi*Phi ; ster
@@ -309,6 +309,8 @@ class ContinuousMap(Morphism):
          manifold R^2 in Category of facade sets
         sage: id.parent() is Hom(D, D)
         True
+        sage: id is Hom(D,D).one()  # the identity element of the monoid Hom(D,D)
+        True
 
     The identity map acting on a point::
 
@@ -392,18 +394,18 @@ class ContinuousMap(Morphism):
             # Construction of a generic continuous map
             if is_homeomorphism:
                 self._is_homeo = True
-                if domain._manifold.dim() != codomain._manifold.dim():
+                if domain.dim() != codomain.dim():
                     raise ValueError("for a homeomorphism, the source " +
                                      "manifold and target manifold must " +
                                      "have the same dimension")
             if coord_functions is not None:
-                n2 = self._codomain._manifold._dim
+                n2 = self._codomain.dim()
                 for chart_pair, expression in coord_functions.iteritems():
-                    if chart_pair[0] not in self._domain._atlas:
+                    if chart_pair[0] not in self._domain.atlas():
                         raise ValueError("{} is not a chart ".format(
                                                               chart_pair[0]) +
                                      "defined on the {}".format(self._domain))
-                    if chart_pair[1] not in self._codomain._atlas:
+                    if chart_pair[1] not in self._codomain.atlas():
                         raise ValueError("{} is not a chart ".format(
                                                               chart_pair[1]) +
                                    " defined on the {}".format(self._codomain))
@@ -511,6 +513,20 @@ class ContinuousMap(Morphism):
 
         - True if ``self`` is equal to ``other``,  or False otherwise
 
+        TESTS::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: N = TopManifold(2, 'N')
+            sage: Y.<u,v> = N.chart()
+            sage: f = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='f')
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='g')
+            sage: f.__eq__(g)
+            True
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 1]}, name='g')
+            sage: f.__eq__(g)
+            False
+
         """
         if not isinstance(other, ContinuousMap):
             return False
@@ -540,6 +556,20 @@ class ContinuousMap(Morphism):
 
         - True if ``self`` is different from ``other``,  or False otherwise
 
+        TESTS::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: N = TopManifold(2, 'N')
+            sage: Y.<u,v> = N.chart()
+            sage: f = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='f')
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='g')
+            sage: f.__ne__(g)
+            False
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 1]}, name='g')
+            sage: f.__ne__(g)
+            True
+
         """
         return not self.__eq__(other)
 
@@ -548,6 +578,20 @@ class ContinuousMap(Morphism):
         Old-style (Python 2) comparison operator.
 
         This is provisory, until migration to Python 3 is achieved.
+
+        TESTS::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: N = TopManifold(2, 'N')
+            sage: Y.<u,v> = N.chart()
+            sage: f = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='f')
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 2*x*y*z]}, name='g')
+            sage: f.__cmp__(g)
+            0
+            sage: g = M.continuous_map(N, {(X,Y): [x+y+z, 1]}, name='g')
+            sage: f.__cmp__(g)
+            -1
 
         """
         if self.__eq__(other):
@@ -606,7 +650,7 @@ class ContinuousMap(Morphism):
             True
 
         """
-        # NB: checking that ``point`` belongs to the mapping's domain has been
+        # NB: checking that ``point`` belongs to the map's domain has been
         # already performed by Map.__call__(); this check is therefore not
         # repeated here.
         if self._is_identity:
@@ -721,8 +765,26 @@ class ContinuousMap(Morphism):
 
         OUTPUT:
 
-        - the composite mapping ``self*other``, as an instance of
+        - the composite map ``self*other``, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        TESTS::
+
+            sage: M = TopManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: N = TopManifold(2, 'N')
+            sage: Y.<u,v> = N.chart()
+            sage: Q = TopManifold(4, 'Q')
+            sage: Z.<a,b,c,d> = Q.chart()
+            sage: f = N.continuous_map(Q, [u+v, u*v, 1+u, 2-v])
+            sage: g = M.continuous_map(N, [x+y+z, x*y*z])
+            sage: s = f._composition_(g, Hom(M,Q)); s
+            Continuous map from the 3-dimensional topological manifold M to the 4-dimensional topological manifold Q
+            sage: s.display()
+            M --> Q
+               (x, y, z) |--> (a, b, c, d) = ((x*y + 1)*z + x + y, x*y*z^2 + (x^2*y + x*y^2)*z, x + y + z + 1, -x*y*z + 2)
+            sage: s == f*g
+            True
 
         """
         # This method is invoked by Map._composition (single underscore),
@@ -766,8 +828,26 @@ class ContinuousMap(Morphism):
 
         OUTPUT:
 
-        - the composite mapping ``self*other``, as an instance of
+        - the composite map ``self*other``, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.continuous_map(M, [x+y, x*y], name='f')
+            sage: g = M.continuous_map(M, [1-y, 2+x], name='g')
+            sage: s = f._mul_(g); s
+            Continuous map from the 2-dimensional topological manifold M to itself
+            sage: s.display()
+            M --> M
+               (x, y) |--> (x - y + 3, -(x + 2)*y + x + 2)
+            sage: s == f*g
+            True
+            sage: f._mul_(M.identity_map()) == f
+            True
+            sage: M.identity_map()._mul_(f) == f
+            True
 
         """
         from sage.categories.homset import Hom
@@ -781,6 +861,17 @@ class ContinuousMap(Morphism):
     def _init_derived(self):
         r"""
         Initialize the derived quantities
+
+        TEST::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.homeomorphism(M, [x+y, x-y])
+            sage: f._init_derived()
+            sage: f._restrictions
+            {}
+            sage: f._inverse
+
         """
         self._restrictions = {} # dict. of restrictions to subdomains of
                                 # self._domain
@@ -792,53 +883,24 @@ class ContinuousMap(Morphism):
     def _del_derived(self):
         r"""
         Delete the derived quantities
+
+
+        TEST::
+
+            sage: M = TopManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.homeomorphism(M, [x+y, x-y])
+            sage: f^(-1)
+            Homeomorphism of the 2-dimensional topological manifold M
+            sage: f._inverse  # was set by f^(-1)
+            Homeomorphism of the 2-dimensional topological manifold M
+            sage: f._del_derived()
+            sage: f._inverse  # has been set to None by _del_derived()
+
         """
         self._restrictions.clear()
         if not self._is_identity:
             self._inverse = None
-
-    def _display_expression(self, chart1, chart2, result):
-        r"""
-        Helper function for :meth:`display`.
-        """
-        from sage.misc.latex import latex
-        try:
-            expression = self.expr(chart1, chart2)
-            coords1 = chart1[:]
-            if len(coords1) == 1:
-                coords1 = coords1[0]
-            coords2 = chart2[:]
-            if len(coords2) == 1:
-                coords2 = coords2[0]
-            if chart1._domain == self._domain:
-                result._txt += "   "
-                result._latex += " & "
-            else:
-                result._txt += "on " + chart1._domain._name + ": "
-                result._latex += r"\mbox{on}\ " + latex(chart1._domain) + \
-                                r": & "
-            result._txt += repr(coords1) + " |--> "
-            result._latex += latex(coords1) + r"& \longmapsto & "
-            if chart2 == chart1:
-                if len(expression) == 1:
-                    result._txt += repr(expression[0]) + "\n"
-                    result._latex += latex(expression[0]) + r"\\"
-                else:
-                    result._txt += repr(expression) + "\n"
-                    result._latex += latex(expression) + r"\\"
-            else:
-                if len(expression) == 1:
-                    result._txt += repr(coords2[0]) + " = " + \
-                                  repr(expression[0]) + "\n"
-                    result._latex += latex(coords2[0]) + " = " + \
-                                    latex(expression[0]) + r"\\"
-                else:
-                    result._txt += repr(coords2) + " = " + \
-                                  repr(expression) + "\n"
-                    result._latex += latex(coords2) + " = " + \
-                                    latex(expression) + r"\\"
-        except (TypeError, ValueError):
-            pass
 
     def display(self, chart1=None, chart2=None):
         r"""
@@ -850,13 +912,13 @@ class ContinuousMap(Morphism):
 
         INPUT:
 
-        - ``chart1`` -- (default: ``None``) chart on the mapping's domain; if ``None``,
+        - ``chart1`` -- (default: ``None``) chart on the map's domain; if ``None``,
           the display is performed on all the charts on the start manifold
-          in which the mapping is known or computable via some change of
+          in which the map is known or computable via some change of
           coordinates
-        - ``chart2`` -- (default: ``None``) chart on the mapping's codomain; if
+        - ``chart2`` -- (default: ``None``) chart on the map's codomain; if
           None, the display is performed on all the charts on the codomain
-          in which the mapping is known or computable via some change of
+          in which the map is known or computable via some change of
           coordinates
 
         The output is either text-formatted (console mode) or LaTeX-formatted
@@ -892,7 +954,7 @@ class ContinuousMap(Morphism):
             \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3 \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto & \left(X, Y, Z\right) = \left(\frac{2 \, x}{x^{2} + y^{2} + 1}, \frac{2 \, y}{x^{2} + y^{2} + 1}, \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right) \end{array}
 
         If the argument ``chart2`` is not specified, the display is performed
-        on all the charts on the arrival manifold in which the mapping is known
+        on all the charts on the arrival manifold in which the map is known
         or computable via some change of coordinates (here only one chart:
         c_cart)::
 
@@ -902,7 +964,7 @@ class ContinuousMap(Morphism):
 
         Similarly, if the argument ``chart1`` is omitted, the display is
         performed on all the charts on the start manifold in which the
-        mapping is known or computable via some change of coordinates::
+        map is known or computable via some change of coordinates::
 
             sage: Phi.display(chart2=c_cart)
             Phi: S^2 --> R^3
@@ -910,7 +972,7 @@ class ContinuousMap(Morphism):
             on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
         If neither ``chart1`` nor ``chart2`` is specified, the display is
-        performed on all the pair of charts in which the mapping is known or
+        performed on all the pair of charts in which the map is known or
         computable via some change of coordinates::
 
             sage: Phi.display()
@@ -918,7 +980,7 @@ class ContinuousMap(Morphism):
             on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
-        If a chart covers entirely the mapping's domain, the mention "on ..."
+        If a chart covers entirely the map's domain, the mention "on ..."
         is omitted::
 
             sage: Phi.restrict(U).display()
@@ -935,6 +997,50 @@ class ContinuousMap(Morphism):
         """
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import FormattedExpansion
+
+        def _display_expression(self, chart1, chart2, result):
+            r"""
+            Helper function for :meth:`display`.
+            """
+            from sage.misc.latex import latex
+            try:
+                expression = self.expr(chart1, chart2)
+                coords1 = chart1[:]
+                if len(coords1) == 1:
+                    coords1 = coords1[0]
+                coords2 = chart2[:]
+                if len(coords2) == 1:
+                    coords2 = coords2[0]
+                if chart1._domain == self._domain:
+                    result._txt += "   "
+                    result._latex += " & "
+                else:
+                    result._txt += "on " + chart1._domain._name + ": "
+                    result._latex += r"\mbox{on}\ " + latex(chart1._domain) + \
+                                    r": & "
+                result._txt += repr(coords1) + " |--> "
+                result._latex += latex(coords1) + r"& \longmapsto & "
+                if chart2 == chart1:
+                    if len(expression) == 1:
+                        result._txt += repr(expression[0]) + "\n"
+                        result._latex += latex(expression[0]) + r"\\"
+                    else:
+                        result._txt += repr(expression) + "\n"
+                        result._latex += latex(expression) + r"\\"
+                else:
+                    if len(expression) == 1:
+                        result._txt += repr(coords2[0]) + " = " + \
+                                      repr(expression[0]) + "\n"
+                        result._latex += latex(coords2[0]) + " = " + \
+                                        latex(expression[0]) + r"\\"
+                    else:
+                        result._txt += repr(coords2) + " = " + \
+                                      repr(expression) + "\n"
+                        result._latex += latex(coords2) + " = " + \
+                                        latex(expression) + r"\\"
+            except (TypeError, ValueError):
+                pass
+
         result = FormattedExpansion()
         if self._name is None:
             symbol = ""
@@ -952,17 +1058,17 @@ class ContinuousMap(Morphism):
         if chart1 is None:
             if chart2 is None:
                 for ch1 in self._domain._top_charts:
-                    for ch2 in self._codomain._atlas:
-                        self._display_expression(ch1, ch2, result)
+                    for ch2 in self._codomain.atlas():
+                        _display_expression(self, ch1, ch2, result)
             else:
                 for ch1 in self._domain._top_charts:
-                    self._display_expression(ch1, chart2, result)
+                    _display_expression(self, ch1, chart2, result)
         else:
             if chart2 is None:
-                for ch2 in self._codomain._atlas:
-                    self._display_expression(chart1, ch2, result)
+                for ch2 in self._codomain.atlas():
+                    _display_expression(self, chart1, ch2, result)
             else:
-                self._display_expression(chart1, chart2, result)
+                _display_expression(self, chart1, chart2, result)
         result._txt = result._txt[:-1]
         result._latex = result._latex[:-2] + r"\end{array}"
         return result
@@ -979,9 +1085,9 @@ class ContinuousMap(Morphism):
 
         INPUT:
 
-        - ``chart1`` -- (default: ``None``) chart on the mapping's domain; if ``None``,
+        - ``chart1`` -- (default: ``None``) chart on the map's domain; if ``None``,
           the domain's default chart is assumed
-        - ``chart2`` -- (default: ``None``) chart on the mapping's codomain; if
+        - ``chart2`` -- (default: ``None``) chart on the map's codomain; if
           None,  the codomain's default chart is assumed
 
         OUTPUT:
@@ -992,7 +1098,7 @@ class ContinuousMap(Morphism):
 
         EXAMPLES:
 
-        Differential mapping from a 2-dimensional manifold to a 3-dimensional
+        Continuous map from a 2-dimensional manifold to a 3-dimensional
         one::
 
             sage: TopManifold._clear_cache_() # for doctests only
@@ -1148,9 +1254,9 @@ class ContinuousMap(Morphism):
 
             # 4/ If this point is reached, the demanded value cannot be
             # computed
-            raise ValueError("The expression of the mapping in the pair of " +
+            raise ValueError("the expression of the map in the pair of " +
                 "charts (" + str(chart1) + ", " + str(chart2) + ") cannot " +
-                "be computed by means of known changes of charts.")
+                "be computed by means of known changes of charts")
 
         return self._coord_expression[(chart1, chart2)]
 
@@ -1164,9 +1270,9 @@ class ContinuousMap(Morphism):
 
         INPUT:
 
-        - ``chart1`` -- (default: ``None``) chart on the mapping's domain; if ``None``,
+        - ``chart1`` -- (default: ``None``) chart on the map's domain; if ``None``,
           the domain's default chart is assumed
-        - ``chart2`` -- (default: ``None``) chart on the mapping's codomain; if
+        - ``chart2`` -- (default: ``None``) chart on the map's codomain; if
           None, the codomain's default chart is assumed
 
         OUTPUT:
@@ -1176,7 +1282,7 @@ class ContinuousMap(Morphism):
 
         EXAMPLES:
 
-        Differential mapping from a 2-dimensional manifold to a 3-dimensional
+        Continuous map from a 2-dimensional manifold to a 3-dimensional
         one::
 
             sage: TopManifold._clear_cache_() # for doctests only
@@ -1241,17 +1347,17 @@ class ContinuousMap(Morphism):
 
     def set_expr(self, chart1, chart2, coord_functions):
         r"""
-        Set a new coordinate representation of the mapping.
+        Set a new coordinate representation of the continuous map.
 
         The expressions with respect to other charts are deleted, in order to
         avoid any inconsistency. To keep them, use :meth:`add_expr` instead.
 
         INPUT:
 
-        - ``chart1`` -- chart for the coordinates on the mapping's domain
-        - ``chart2`` -- chart for the coordinates on the mapping's codomain
+        - ``chart1`` -- chart for the coordinates on the map's domain
+        - ``chart2`` -- chart for the coordinates on the map's codomain
         - ``coord_functions`` -- the coordinate symbolic expression of the
-          mapping in the above charts: list (or tuple) of the coordinates of
+          map in the above charts: list (or tuple) of the coordinates of
           the image expressed in terms of the coordinates of the considered
           point; if the dimension of the arrival manifold is 1, a single
           expression is expected (not a list with a single element)
@@ -1300,25 +1406,27 @@ class ContinuousMap(Morphism):
             sage: rot.display(c_cart, c_cart)
             R: U --> U
                (x, y) |--> (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
+
             sage: rot._coord_expression  # random (dictionary output)
-            {(chart (U, (x, y)),
-              chart (U, (x, y))): functions (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y) on the chart (U, (x, y)),
-             (chart (U, (r, ph)),
-              chart (U, (r, ph))): functions (r, 1/3*pi + ph) on the chart (U, (r, ph))}
+            {(Chart (U, (x, y)),
+              Chart (U, (x, y))): Coordinate functions (-1/2*sqrt(3)*y + 1/2*x,
+              1/2*sqrt(3)*x + 1/2*y) on the Chart (U, (x, y)),
+             (Chart (U, (r, ph)),
+              Chart (U, (r, ph))): Coordinate functions (r, 1/3*pi + ph) on the Chart (U, (r, ph))}
 
         """
         if self._is_identity:
             raise NotImplementedError("set_expr() must not be used for the " +
                                       "identity map")
-        if chart1 not in self._domain._atlas:
+        if chart1 not in self._domain.atlas():
             raise ValueError("The " + str(chart1) +
                " has not been defined on the " + str(self._domain))
-        if chart2 not in self._codomain._atlas:
+        if chart2 not in self._codomain.atlas():
             raise ValueError("The " + str(chart2) +
               " has not been defined on the " + str(self._codomain))
         self._coord_expression.clear()
         self._del_derived()
-        n2 = self._codomain._manifold._dim
+        n2 = self._codomain.dim()
         if n2 > 1:
             if len(coord_functions) != n2:
                 raise ValueError(str(n2) +
@@ -1331,24 +1439,24 @@ class ContinuousMap(Morphism):
 
     def add_expr(self, chart1, chart2, coord_functions):
         r"""
-        Set a new coordinate representation of the mapping.
+        Set a new coordinate representation of the continuous map.
 
         The previous expressions with respect to other charts are kept. To
         clear them, use :meth:`set_expr` instead.
 
         INPUT:
 
-        - ``chart1`` -- chart for the coordinates on the mapping's domain
-        - ``chart2`` -- chart for the coordinates on the mapping's codomain
+        - ``chart1`` -- chart for the coordinates on the map's domain
+        - ``chart2`` -- chart for the coordinates on the map's codomain
         - ``coord_functions`` -- the coordinate symbolic expression of the
-          mapping in the above charts: list (or tuple) of the coordinates of
+          map in the above charts: list (or tuple) of the coordinates of
           the image expressed in terms of the coordinates of the considered
           point; if the dimension of the arrival manifold is 1, a single
           expression is expected (not a list with a single element)
 
         .. WARNING::
 
-            If the mapping has already expressions in other charts, it
+            If the map has already expressions in other charts, it
             is the user's responsability to make sure that the expression
             to be added is consistent with them.
 
@@ -1398,10 +1506,11 @@ class ContinuousMap(Morphism):
         representations of the continuous map::
 
             sage: rot._coord_expression # random (dictionary output)
-            {(chart (U, (x, y)),
-              chart (U, (x, y))): functions (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y) on the chart (U, (x, y)),
-             (chart (U, (r, ph)),
-              chart (U, (r, ph))): functions (r, 1/3*pi + ph) on the chart (U, (r, ph))}
+            {(Chart (U, (x, y)),
+              Chart (U, (x, y))): Coordinate functions (-1/2*sqrt(3)*y + 1/2*x,
+              1/2*sqrt(3)*x + 1/2*y) on the Chart (U, (x, y)),
+             (Chart (U, (r, ph)),
+              Chart (U, (r, ph))): Coordinate functions (r, 1/3*pi + ph) on the Chart (U, (r, ph))}
 
         If, on the contrary, we use :meth:`set_expr`, the expression in
         Cartesian coordinates is lost::
@@ -1417,11 +1526,13 @@ class ContinuousMap(Morphism):
             sage: rot.display(c_cart, c_cart)
             R: U --> U
                (x, y) |--> (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
-            sage: rot._coord_expression  # random (dictionary output)
-            {(chart (U, (x, y)),
-              chart (U, (x, y))): functions (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y) on the chart (U, (x, y)),
-             (chart (U, (r, ph)),
-              chart (U, (r, ph))): functions (r, 1/3*pi + ph) on the chart (U, (r, ph))}
+
+            sage: rot._coord_expression # random (dictionary output)
+            {(Chart (U, (x, y)),
+              Chart (U, (x, y))): Coordinate functions (-1/2*sqrt(3)*y + 1/2*x,
+              1/2*sqrt(3)*x + 1/2*y) on the Chart (U, (x, y)),
+             (Chart (U, (r, ph)),
+              Chart (U, (r, ph))): Coordinate functions (r, 1/3*pi + ph) on the Chart (U, (r, ph))}
 
         The rotation can be applied to a point by means of either coordinate
         system::
@@ -1437,13 +1548,13 @@ class ContinuousMap(Morphism):
         if self._is_identity:
             raise NotImplementedError("add_expr() must not be used for the " +
                                       "identity map")
-        if chart1 not in self._domain._atlas:
+        if chart1 not in self._domain.atlas():
             raise ValueError("The " + str(chart1) +
                " has not been defined on the " + str(self._domain))
-        if chart2 not in self._codomain._atlas:
+        if chart2 not in self._codomain.atlas():
             raise ValueError("The " + str(chart2) +
               " has not been defined on the " + str(self._codomain))
-        n2 = self._codomain._manifold._dim
+        n2 = self._codomain.dim()
         if n2 > 1:
             if len(coord_functions) != n2:
                 raise ValueError(str(n2) +

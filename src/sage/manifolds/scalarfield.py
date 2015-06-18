@@ -1081,7 +1081,7 @@ class ScalarField(CommutativeAlgebraElement):
             change = self._domain._coord_changes[(chart, from_chart)]
             # old coordinates expressed in terms of the new ones:
             coords = [ change._transf._functions[i]._express
-                       for i in range(self._manifold._dim) ]
+                       for i in range(self._manifold.dim()) ]
             new_expr = self._express[from_chart](*coords)
             self._express[chart] = chart.function(new_expr)
             self._del_derived()

@@ -1582,6 +1582,16 @@ class TopManifold(TopManifoldSubset):
         :class:`~sage.manifolds.manifold_homset.TopManifoldHomset`
         for more documentation.
 
+        TESTS::
+
+            sage: M = TopManifold(2, 'M')
+            sage: N = TopManifold(3, 'N')
+            sage: H = M._Hom_(N); H
+            Set of Morphisms from 2-dimensional topological manifold M to
+             3-dimensional topological manifold N in Category of sets
+            sage: H is Hom(M, N)
+            True
+
         """
         from sage.manifolds.manifold_homset import TopManifoldHomset
         return TopManifoldHomset(self, other)
@@ -1615,9 +1625,9 @@ class TopManifold(TopManifoldSubset):
           a single coordinate expression can be passed instead of a tuple with
           a single element
         - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``self`` defining the start coordinates involved in
+          on the current manifold defining the start coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the default chart of ``self``
+          coordinates are assumed to refer to the manifold's default chart
         - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
           on ``codomain`` defining the arrival coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
@@ -1635,19 +1645,19 @@ class TopManifold(TopManifoldSubset):
 
         EXAMPLES:
 
-        A mapping between an open subset of `S^2` covered by regular spherical
-        coordinates and `\RR^3`::
+        A continuous map between an open subset of `S^2` covered by regular
+        spherical coordinates and `\RR^3`::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2')
+            sage: TopManifold._clear_cache_() # for doctests only
+            sage: M = TopManifold(2, 'S^2')
             sage: U = M.open_subset('U')
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
-            sage: N = Manifold(3, 'R^3', r'\RR^3')
+            sage: N = TopManifold(3, 'R^3', r'\RR^3')
             sage: c_cart.<x,y,z> = N.chart()  # Cartesian coord. on R^3
             sage: Phi = U.continuous_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
-            ....:                      name='Phi', latex_name=r'\Phi') ; Phi
-            continuous map 'Phi' from the open subset 'U' of the
-             2-dimensional manifold 'S^2' to the 3-dimensional manifold 'R^3'
+            ....:                        name='Phi', latex_name=r'\Phi')
+            sage: Phi
+            Continuous map Phi from the Open subset U of the 2-dimensional topological manifold S^2 to the 3-dimensional topological manifold R^3
 
         The same definition, but with a dictionary with pairs of charts as
         keys (case (i) above)::
@@ -1661,9 +1671,9 @@ class TopManifold(TopManifoldSubset):
         The continuous map acting on a point::
 
             sage: p = U.point((pi/2, pi)) ; p
-            point on 2-dimensional manifold 'S^2'
+            Point on the 2-dimensional topological manifold S^2
             sage: Phi(p)
-            point on 3-dimensional manifold 'R^3'
+            Point on the 3-dimensional topological manifold R^3
             sage: Phi(p).coord(c_cart)
             (-1, 0, 0)
             sage: Phi1(p) == Phi(p)
@@ -1695,16 +1705,15 @@ class TopManifold(TopManifoldSubset):
     def homeomorphism(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
-        Define a homeomorphism between ``self`` and another open subset
-        (possibly on another manifold).
+        Define a homeomorphism between the current manifold and another one.
 
         See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
         complete documentation.
 
         INPUT:
 
-        - ``codomain`` -- mapping's codomain (the arrival manifold or some
-          subset of it)
+        - ``codomain`` -- codomain of the homeomorphism (the arrival manifold
+          or some subset of it)
         - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
           either
 
@@ -1721,9 +1730,9 @@ class TopManifold(TopManifoldSubset):
           a single coordinate expression can be passed instead of a tuple with
           a single element
         - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``self`` defining the start coordinates involved in
+          on the current manifold defining the start coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
-          coordinates are assumed to refer to the default chart of ``self``
+          coordinates are assumed to refer to the manifold's default chart
         - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
           on ``codomain`` defining the arrival coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
@@ -1740,17 +1749,31 @@ class TopManifold(TopManifoldSubset):
 
         EXAMPLE:
 
-        A homeomorphism between two 2-dimensional subsets::
+        Homeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M', r'{\cal M}')
-            sage: U = M.open_subset('U')
-            sage: c_xv.<x,y> = U.chart(r'x:(-pi/2,+oo) y:(-pi/2,+oo)')
-            sage: N = Manifold(2, 'N', r'{\cal N}')
-            sage: V = N.open_subset('V')
-            sage: c_zt.<z,t> = V.chart(r'z t')
-            sage: Phi = U.homeomorphism(V, (arctan(x), arctan(y)), name='Phi',
-            ....:                        latex_name=r'\Phi')
+            sage: TopManifold._clear_cache_() #  for doctests only
+            sage: M = TopManifold(2, 'M')  # the open unit disk
+            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
+            sage: c_xy.add_restrictions(x^2+y^2<1)
+            sage: N = TopManifold(2, 'N')  # R^2
+            sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
+            sage: Phi = M.homeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
+            ....:                       name='Phi', latex_name=r'\Phi')
+            sage: Phi
+            Homeomorphism Phi from the 2-dimensional topological manifold M to
+             the 2-dimensional topological manifold N
+            sage: Phi.display()
+            Phi: M --> N
+               (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+
+        The inverse homeomorphism::
+
+            sage: Phi^(-1)
+            Homeomorphism Phi^(-1) from the 2-dimensional topological
+             manifold N to the 2-dimensional topological manifold M
+            sage: (Phi^(-1)).display()
+            Phi^(-1): N --> M
+               (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
 
         See the documentation of class
         :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
@@ -1787,7 +1810,7 @@ class TopManifold(TopManifoldSubset):
 
             \begin{array}{cccc}
             \mathrm{Id}_M: & M & \longrightarrow & M \\
-                & p \longmapsto & p
+                & p & \longmapsto & p
             \end{array}
 
         See :class:`~sage.manifolds.continuous_map.ContinuousMap` for a
@@ -1797,6 +1820,30 @@ class TopManifold(TopManifoldSubset):
 
         - the identity map, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
+
+        EXAMPLE:
+
+        Identity map of a complex manifold::
+
+            sage: M = TopManifold(2, 'M', field='complex')
+            sage: X.<x,y> = M.chart()
+            sage: id = M.identity_map(); id
+            Identity map Id_M of the Complex 2-dimensional topological manifold M
+            sage: id.parent()
+            Set of Morphisms from Complex 2-dimensional topological manifold M
+             to Complex 2-dimensional topological manifold M in Category of sets
+            sage: id.display()
+            Id_M: M --> M
+               (x, y) |--> (x, y)
+
+        The identity map acting on a point::
+
+            sage: p = M((1+I, 3-I), name='p'); p
+            Point p on the Complex 2-dimensional topological manifold M
+            sage: id(p)
+            Point p on the Complex 2-dimensional topological manifold M
+            sage: id(p) == p
+            True
 
         """
         return self._identity_map

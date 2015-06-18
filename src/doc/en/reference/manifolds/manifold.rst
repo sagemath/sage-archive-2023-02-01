@@ -19,3 +19,8 @@ Topological manifolds
    sage/manifolds/scalarfield_algebra
 
    sage/manifolds/scalarfield
+
+   sage/manifolds/manifold_homset
+
+   sage/manifolds/continuous_map
+

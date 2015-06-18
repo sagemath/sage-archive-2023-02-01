@@ -759,9 +759,9 @@ class GenericGrowthGroup(
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(G_ZZ._coerce_map_from_(G_QQ))
+            sage: bool(G_ZZ.has_coerce_map_from(G_QQ))  # indirect doctest
             False
-            sage: bool(G_QQ._coerce_map_from_(G_ZZ))
+            sage: bool(G_QQ.has_coerce_map_from(G_ZZ))  # indirect doctest
             True
         """
         if isinstance(S, GenericGrowthGroup):
@@ -1043,7 +1043,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: P2 = agg.MonomialGrowthGroup(ZZ, PolynomialRing(ZZ, 'x').gen())
+            sage: P2 = agg.MonomialGrowthGroup(ZZ, ZZ['x'].gen())
             sage: P3 = agg.MonomialGrowthGroup(ZZ, SR.var('x'))
             sage: P1 is P2 and P2 is P3
             True
@@ -1077,7 +1077,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Monomial Growth Group in x over Integer Ring
             sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
             Monomial Growth Group in n over Rational Field
-            sage: agg.MonomialGrowthGroup(ZZ, PolynomialRing(ZZ, 'y').gen())
+            sage: agg.MonomialGrowthGroup(ZZ, ZZ['y'].gen())
             Monomial Growth Group in y over Integer Ring
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
             Monomial Growth Group in log(x) over Rational Field
@@ -1187,12 +1187,14 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         ::
 
-            sage: P(PolynomialRing(ZZ, 'x').gen()^2)  # indirect doctest
+            sage: PR.<x> = ZZ[]; x.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: P(x^2)  # indirect doctest
             x^2
 
         ::
 
-            sage: PSR.<x> = PowerSeriesRing(ZZ)
+            sage: PSR.<x> = ZZ[[]]
             sage: P(x^42)  # indirect doctest
             x^42
             sage: P(x^12 + O(x^17))
@@ -1202,7 +1204,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         ::
 
-            sage: R.<w,x> = PolynomialRing(ZZ)
+            sage: R.<w,x> = ZZ[]
             sage: P(x^4242)  # indirect doctest
             x^4242
             sage: P(w^4242)  # indirect doctest
@@ -1212,9 +1214,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         ::
 
-            sage: PSR.<w,x> = PowerSeriesRing(ZZ)
+            sage: PSR.<w,x> = ZZ[[]]
             sage: P(x^7)  # indirect doctest
             x^7
+            sage: P(w^7)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert w^7.
         """
         if data == 1:
             return self.base().zero()
@@ -1242,12 +1248,15 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if self._var_ == str(data.variables()[0]):
                     return data.degree()
         elif isinstance(P, PowerSeriesRing_generic):
-            if hasattr(data, 'variables') and len(data.variables()) > 1:
-                pass
-            elif data.is_monomial():
-                if str(data) == str(data.truncate()):  # see trac ticket 18595
-                    if self._var_ in (str(var) for var in P.gens()):
+            if hasattr(data, 'variables') and len(data.variables()) == 1:
+                from sage.rings.integer_ring import ZZ
+                if data.is_monomial() and data.precision_absolute() not in ZZ:
+                    if self._var_ == str(data.variables()[0]):
                         return data.degree()
+            elif self._var_ == str(data.variable()[0]):
+                from sage.rings.integer_ring import ZZ
+                if data.is_monomial() and data.precision_absolute() not in ZZ:
+                    return data.degree()
 
 
     def _coerce_map_from_(self, S):
@@ -1267,18 +1276,18 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P_x_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(P_x_ZZ._coerce_map_from_(P_x_QQ))
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
             False
-            sage: bool(P_x_QQ._coerce_map_from_(P_x_ZZ))
+            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
             True
             sage: P_y_ZZ = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: bool(P_y_ZZ._coerce_map_from_(P_x_ZZ))
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
             False
-            sage: bool(P_x_ZZ._coerce_map_from_(P_y_ZZ))
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
             False
-            sage: bool(P_y_ZZ._coerce_map_from_(P_x_QQ))
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
             False
-            sage: bool(P_x_QQ._coerce_map_from_(P_y_ZZ))
+            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
             False
         """
         if super(MonomialGrowthGroup, self)._coerce_map_from_(S):

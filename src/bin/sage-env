@@ -419,10 +419,15 @@ fi
 # Make sure that a system-wide R installation does not interfere
 unset R_HOME
 unset R_PROFILE
-# On Mac OS X, do not use the global Makevars.site and ~/.R/Makevars when installing R packages
-if [ `uname` = "Darwin" ]; then
-    R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
-    R_MAKEVARS_USER="$SAGE_LOCAL/lib/R/share/Makevars.user" && export R_MAKEVARS_USER
+# Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
+# Provide empty files to appease some R packages' installation scripts.
+R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+if ! [ -a $R_MAKEVARS_SITE ] ; then
+    echo "## Empty site-wide Makevars file for Sage's R" >> $R_MAKEVARS_SITE
+fi
+R_MAKEVARS_USER=$"$DOT_SAGE/SagesRMakevars.user" && export R_MAKEVARS_USER
+if ! [ -a $R_MAKEVARS_USER ] ; then
+    echo "## Empty user-specific Makevars file for Sages R" >> $R_MAKEVARS_USER
 fi
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX

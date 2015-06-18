@@ -641,6 +641,15 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.interfaces
+    ##
+    ################################
+
+    Extension('sage.interfaces.sagespawn',
+              sources = ['sage/interfaces/sagespawn.pyx']),
+
+    ################################
+    ##
     ## sage.libs
     ##
     ################################

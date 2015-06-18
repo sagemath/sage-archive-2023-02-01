@@ -1414,10 +1414,6 @@ class NormalFormGame(SageObject, MutableMapping):
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
             sage: gg.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
             [[(0, 1), (0, 1)], [(0, 1), (1, 0)], [(1, 0), (0, 1)], [(1, 0), (1, 0)]]
-            sage: gg.obtain_nash(algorithm='lp-glpk', maximization=False)
-            [[(1.0, 0.0), (1.0, 0.0)]]
-            sage: gg.obtain_nash(algorithm='LCP', maximization=False) # optional - gambit
-            [[(1.0, 0.0), (1.0, 0.0)]]
 
         Note that outputs for all algorithms are as lists of lists of
         tuples and the equilibria have been sorted so that all algorithms give
@@ -1489,7 +1485,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return self._solve_LCP(maximization)
 
         if algorithm.startswith('lp-'):
-            return self._solve_LP(solver=algorithm[3:], maximization=maximization)
+            return self._solve_LP(solver=algorithm[3:])
 
         if algorithm == "enumeration":
             return self._solve_enumeration(maximization)
@@ -1557,7 +1553,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(lrs_output).format_lrs()
         return sorted(nasheq)
 
-    def _solve_LCP(self, maximization):
+    def _solve_LCP(self, maximization=True):
         r"""
         Solves a NormalFormGame using Gambit's LCP algorithm.
 
@@ -1574,7 +1570,7 @@ class NormalFormGame(SageObject, MutableMapping):
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_gambit_LP(self, maximization=True):
+    def _solve_gambit_LP(self):
         r"""
         Solves a constant sum NormalFormGame using Gambit's LP implementation
 
@@ -1596,12 +1592,12 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if Game is None:
             raise NotImplementedError("gambit is not installed")
-        g = self._as_gambit_game(maximization = maximization)
+        g = self._as_gambit_game()
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
-    def _solve_LP(self, solver='glpk', maximization=True):
+    def _solve_LP(self, solver='glpk'):
         r"""
         Solves a constant sum NormalFormGame using the specified LP solver.
 
@@ -1653,18 +1649,14 @@ class NormalFormGame(SageObject, MutableMapping):
         if not self.is_constant_sum():
             raise ValueError("Input game needs to be a two player constant sum game")
         if solver == 'gambit':
-            return self._solve_gambit_LP(maximization)
-
-        sgn = 1
-        if not maximization:
-            sgn = -1
+            return self._solve_gambit_LP()
 
         strategy_sizes = [p.num_strategies for p in self.players]
 
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         y = p.new_variable(nonnegative=True)
         v = p.new_variable(nonnegative=False)
-        p.add_constraint(sgn * self.payoff_matrices()[0] * y - v[0] <= 0)
+        p.add_constraint(self.payoff_matrices()[0] * y - v[0] <= 0)
         p.add_constraint(matrix([[1] * strategy_sizes[1]]) * y == 1)
         p.set_objective(v[0])
         p.solve()
@@ -1673,7 +1665,7 @@ class NormalFormGame(SageObject, MutableMapping):
         p = MixedIntegerLinearProgram(maximization=False, solver=solver)
         x = p.new_variable(nonnegative=True)
         u = p.new_variable(nonnegative=False)
-        p.add_constraint(sgn * -self.payoff_matrices()[0].T * x - u[0] <= 0)
+        p.add_constraint(-self.payoff_matrices()[0].T * x - u[0] <= 0)
         p.add_constraint(matrix([[1] * strategy_sizes[0]]) * x == 1)
         p.set_objective(u[0])
         p.solve()

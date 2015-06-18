@@ -1080,7 +1080,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             weight = self.lattice().from_vector(vector([ZZ((ispecial-r)/self._n)]*self._n))
             if r != ZZ(0):
                 weight = weight + self.lattice_basis()[r]
-                wo = W.from_reduced_word(self.fundamental_group().finite_action(r))
+                wo = W.from_reduced_word(self.fundamental_group().reduced_word(r))
             else:
                 wo = W.one()
         elif ispecial == 0:
@@ -1088,7 +1088,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             wo = W.one()
         else:
             weight = self.lattice_basis()[ispecial]
-            wo = W.from_reduced_word(self.fundamental_group().finite_action(ispecial))
+            wo = W.from_reduced_word(self.fundamental_group().reduced_word(ispecial))
         return PW0((weight,wo))
 
     class Realizations(Category_realization_of_parent):

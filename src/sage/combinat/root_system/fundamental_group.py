@@ -18,6 +18,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 from sage.combinat.root_system.root_system import RootSystem
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.categories.category import Category
 from sage.categories.enumerated_sets import EnumeratedSets
 
@@ -207,6 +208,11 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
             sage: TestSuite(x).run()
 
         """
+        try:
+            if x.parent() == parent:
+                return x
+        except AttributeError:
+            pass
         if x not in parent.special_nodes():
             raise ValueError("%s is not a special node" % x)
         self._value = x
@@ -214,35 +220,37 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
     def value(self):
         r"""
-        Returns the special node which indexes the special automorphism `self`.
+        Return the special node which indexes the special automorphism `self`.
 
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
-            sage: x = F.an_element(); x
-            f[0]
+            sage: F.special_nodes()
+            (0, 1, 2, 3, 4)
+            sage: x = F(4); x
+            f[4]
             sage: x.value()
-            0
-
+            4
         """
         return self._value
 
     def _repr_(self):
         r"""
+        Return a string representing `self`.
+
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1], prefix="f")
             sage: F(2)^3 # indirect doctest
             f[1]
-
         """
         return self.parent()._prefix + "[" + repr(self.value()) + "]"
 
     def inverse(self):
         r"""
-        Returns the inverse element of `self`.
+        Return the inverse element of `self`.
 
         EXAMPLES::
 
@@ -309,12 +317,12 @@ class FundamentalGroupElement(MultiplicativeGroupElement):
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
-            sage: la = RootSystem(F.cartan_type()).weight_lattice().an_element(); la
+            sage: wt = RootSystem(F.cartan_type()).weight_lattice().an_element(); wt
             2*Lambda[0] + 2*Lambda[1] + 3*Lambda[2]
-            sage: F(3).act_on_affine_lattice(la)
+            sage: F(3).act_on_affine_lattice(wt)
             2*Lambda[0] + 3*Lambda[1] + 2*Lambda[3]
 
-        warning::
+        .. WARNING::
 
             Doesn't work on ambient spaces.
 
@@ -391,7 +399,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         self._action = Family(self._special_nodes, lambda i: Family(cartan_type.index_set(), lambda j: auto_dict[i,j]))
         self._dual_node = Family(self._special_nodes, inverse_dict.__getitem__)
-        self._finite_action = Family(self._special_nodes, reduced_words_dict.__getitem__)
+        self._reduced_words = Family(self._special_nodes, reduced_words_dict.__getitem__)
 
         if finite:
             cat = Category.join((Groups().Commutative().Finite(),EnumeratedSets()))
@@ -402,7 +410,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
     @cached_method
     def one(self):
         r"""
-        Returns the identity element of the fundamental group.
+        Return the identity element of the fundamental group.
 
         EXAMPLES::
 
@@ -416,7 +424,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
     def product(self, x, y):
         r"""
-        Returns the product of `x` and `y`.
+        Return the product of `x` and `y`.
 
         EXAMPLES::
 
@@ -441,7 +449,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]).cartan_type()
             ['A', 3, 1]
-
         """
         return self._cartan_type
 
@@ -454,9 +461,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1]) # indirect doctest
             Fundamental group of type ['A', 3, 1]
-
         """
-
         return "Fundamental group of type %s"%self.cartan_type()
 
     def special_nodes(self):
@@ -525,7 +530,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
     def action(self, i):
         r"""
-        Returns a function which permutes the affine Dynkin node set by the `i`-th special automorphism.
+        Return a function which permutes the affine Dynkin node set by the `i`-th special automorphism.
 
         EXAMPLES::
 
@@ -541,7 +546,7 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
     def dual_node(self, i):
         r"""
-        Returns the node that indexes the inverse of the `i`-th element.
+        Return the node that indexes the inverse of the `i`-th element.
 
         EXAMPLES::
 
@@ -555,15 +560,14 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             sage: H = FundamentalGroupOfExtendedAffineWeylGroup(['D',5,1])
             sage: [(i, H.dual_node(i)) for i in H.special_nodes()]
             [(0, 0), (1, 1), (4, 5), (5, 4)]
-
         """
         return self._dual_node[i]
 
-    def finite_action(self, i):
+    def reduced_word(self, i):
         r"""
-        Returns a reduced word for the finite Weyl group element associated with the `i`-th special automorphism.
+        Return a reduced word for the finite Weyl group element associated with the `i`-th special automorphism.
 
-        More precisely, for each special node `i`, `self.finite_action(i)` is a reduced word for
+        More precisely, for each special node `i`, `self.reduced_word(i)` is a reduced word for
         the element `v` in the finite Weyl group such that in the extended affine Weyl group,
         the `i`-th special automorphism is equal to `t v` where `t` is a translation element.
 
@@ -571,13 +575,11 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',3,1])
-            sage: [(i, F.finite_action(i)) for i in F.special_nodes()]
+            sage: [(i, F.reduced_word(i)) for i in F.special_nodes()]
             [(0, ()), (1, (1, 2, 3)), (2, (2, 1, 3, 2)), (3, (3, 2, 1))]
 
         """
-        return self._finite_action[i]
-
-from sage.rings.finite_rings.integer_mod import Mod
+        return self._reduced_words[i]
 
 class FundamentalGroupGLElement(FundamentalGroupElement):
     def act_on_classical_ambient(self, wt):
@@ -640,21 +642,20 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
     @cached_method
     def one(self):
         r"""
-        Returns the identity element of the fundamental group.
+        Return the identity element of the fundamental group.
 
         EXAMPLES::
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).one()
             pi[0]
-
         """
         from sage.rings.integer_ring import ZZ
         return self(ZZ(0))
 
     def product(self, x, y):
         r"""
-        Returns the product of `x` and `y`.
+        Return the product of `x` and `y`.
 
         EXAMPLES::
 
@@ -666,13 +667,12 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             pi[5]
             sage: F(1)*F(3)^(-1)
             pi[-2]
-
         """
         return self(x.value()+y.value())
 
     def _repr_(self):
         r"""
-        A string representing the fundamental group.
+        Return A string representing the fundamental group.
 
         EXAMPLES::
 
@@ -711,10 +711,22 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).an_element()
             pi[5]
-
         """
         from sage.rings.integer_ring import ZZ
         return self(ZZ(5))
+
+    def some_elements(self):
+        r"""
+        Return some elements of `self`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True).some_elements()
+            [pi[-2], pi[2], pi[5]]
+        """
+        from sage.rings.integer_ring import ZZ
+        return [self(ZZ(i)) for i in [-2, 2, 5]]
 
     def action(self, i):
         r"""
@@ -730,7 +742,8 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
             1
 
         """
-        return lambda j: Mod(i + j, self._n)
+        from sage.rings.integer_ring import ZZ
+        return lambda j: ZZ(Mod(i + j, self._n))
 
     def dual_node(self, i):
         r"""
@@ -746,7 +759,7 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
         return -i
 
     @cached_method
-    def finite_action(self, i):
+    def reduced_word(self, i):
         r"""
         A reduced word for the finite permutation part of the
         special automorphism indexed by `i`.
@@ -759,11 +772,12 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
             sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
             sage: F = FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1], general_linear=True)
-            sage: F.finite_action(10)
+            sage: F.reduced_word(10)
             (1, 2)
 
         """
-        i = Mod(i, self._n)
+        from sage.rings.integer_ring import ZZ
+        i = ZZ(Mod(i, self._n))
         if i == 0:
             return tuple([])
         om = self.cartan_type().classical().root_system().weight_lattice().fundamental_weight(i)

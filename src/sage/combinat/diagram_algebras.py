@@ -92,7 +92,7 @@ def brauer_diagrams(k):
         for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
                 yield SetPartition(list(i))
     elif k-1/2 in ZZ: # Else k in 1/2 ZZ
-    k += ZZ(1) / ZZ(2)
+        k += ZZ(1) / ZZ(2)
         for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
                                 [2 for j in range(1, k)] ):
             yield SetPartition(list(i) + [Set([k, -k])])

@@ -1755,7 +1755,7 @@ class NormalFormGame(SageObject, MutableMapping):
         t += 'end\n'
         return s, t
 
-    def is_degenerate_LA(self):
+    def is_degenerate(self):
         """
         A function to check whether the game is degenerate or not.
         Will return a boolean.
@@ -1787,7 +1787,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game.is_degenerate_LA()
+            sage: degenerate_game.is_degenerate()
             True
 
         Here is an example of a degenerate game given in [NN2007]_::
@@ -1795,7 +1795,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[0, 6], [2, 5], [3, 3]])
             sage: B = matrix([[1, 0], [0, 2], [4, 4]])
             sage: d_game = NormalFormGame([A, B])
-            sage: d_game.is_degenerate_LA()
+            sage: d_game.is_degenerate()
             True
 
         Here are some other examples of degenerate games::
@@ -1803,7 +1803,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: M = matrix([[2, 1], [1, 1]])
             sage: N = matrix([[1, 1], [1, 2]])
             sage: game  = NormalFormGame([M, N])
-            sage: game.is_degenerate_LA()
+            sage: game.is_degenerate()
             True
 
             sage: a = matrix([[-75, 18, 45, 33],
@@ -1815,7 +1815,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:            [-17, 25, -97, -82],
             ....:            [30, 31, -1, 50]])
             sage: d_game = NormalFormGame([a, b])
-            sage: d_game.is_degenerate_LA()
+            sage: d_game.is_degenerate()
             True
 
         The game Rock-Paper-Scissors is an example of a non-degenerate game.::
@@ -1824,7 +1824,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [1, 0, -1],
             ....:             [-1, 1, 0]])
             sage: g = NormalFormGame([A])
-            sage: g.is_degenerate_LA()
+            sage: g.is_degenerate()
             False
 
         Whereas `Rock-Paper-Scissors-Lizard-Spock
@@ -1837,7 +1837,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [-1, 1, -1, 0, 1],
             ....:             [1, -1, 1, -1, 0]])
             sage: g = NormalFormGame([A])
-            sage: g.is_degenerate_LA()
+            sage: g.is_degenerate()
             True
 
         TESTS::
@@ -1847,26 +1847,26 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.add_player(3)  # Adding second player with 3 strategies
             sage: for key in g:
             ....:     g[key] = [0, 0]
-            sage: g.is_degenerate_LA()
+            sage: g.is_degenerate()
             True
 
             sage: A = matrix([[1, -1], [-1, 1]])
             sage: B = matrix([[-1, 1], [1, -1]])
             sage: matching_pennies = NormalFormGame([A, B])
-            sage: matching_pennies.is_degenerate_LA()
+            sage: matching_pennies.is_degenerate()
             False
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])
             sage: prisoners_dilemma = NormalFormGame([A, B])
-            sage: prisoners_dilemma.is_degenerate_LA()
+            sage: prisoners_dilemma.is_degenerate()
             False
 
             sage: g = NormalFormGame()
             sage: g.add_player(2)
             sage: g.add_player(2)
             sage: g.add_player(2)
-            sage: g.is_degenerate_LA()
+            sage: g.is_degenerate()
             Traceback (most recent call last):
             ...
             NotImplementedError: Tests for Degeneracy is not yet implemented for games with more than two players.

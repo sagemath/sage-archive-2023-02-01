@@ -895,7 +895,10 @@ class SkewTableau(ClonableList):
         EXAMPLES::
 
             sage: stlist = [[None, None, 3], [None, 1, 3], [2, 2]]
-            sage: SkewTableau(stlist).to_list() == stlist
+            sage: st = SkewTableau(stlist)
+            sage: st.to_list()
+            [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: st.to_list() == stlist
             True
 
         """
@@ -907,7 +910,7 @@ class SkewTableau(ClonableList):
 
         Both tableaux must be standard, and the shape of ``t2`` must extend
         the shape of ``self``, that is, ``self.outer_shape() == t2.inner_shape()``.
-        Then this function computes the pair of tableaux ``(t2_new,self_new)``
+        Then this function computes the pair of tableaux ``(t2_new, self_new)``
         obtained by using jeu de taquin slides to move the boxes of ``t2`` behind
         the boxes of ``self``.
 
@@ -919,14 +922,14 @@ class SkewTableau(ClonableList):
 
         OUTPUT:
 
-        - ``t2_new,self_new`` -- a pair of standard SkewTableaux with
+        - ``t2_new, self_new`` -- a pair of standard SkewTableaux with
           ``t2_new.outer_shape() == self_new.inner_shape()``
 
         EXAMPLES::
 
             sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
-            sage: (t2_new,t1_new) = t1.shuffle(t2)
+            sage: (t2_new, t1_new) = t1.shuffle(t2)
             sage: t1_new
             [[None, None, None, 2], [None, None, 1], [None, 3, 4]]
             sage: t2_new

@@ -4734,6 +4734,123 @@ cdef class Matroid(SageObject):
         else:
             return True
 
+    cpdef _is_3connected_shifting(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        .. TODO::
+
+            Make it faster, actually compute a spanning tree.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_shifting()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_shifting()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_shifting()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_shifting()
+            False
+            sage: B, X = M._is_3connected_shifting(True)
+            sage: M.connectivity(X)
+            1
+        """
+        # build the table
+        if not self.is_connected():
+            return False
+        X = set(self.basis())
+        Y = set(self.groundset()-X)
+        
+        # Todo: actually find a spanning tree...
+        spanning_tree = []
+        for f in Y:
+            for e in (X & self.fundamental_circuit(X,f)):
+                spanning_tree.append((e,f))
+
+        for (x,y) in spanning_tree:
+            P_rows=set([x])
+            P_cols=set([y])
+            Q_rows=set([])
+            Q_cols=set([])
+            
+            Z = (self.groundset()-X)-P_cols
+
+            for z in Z:
+                nP_cols = set(P_cols)
+                nP_cols.add(z)
+                nQ_cols = set(Q_cols)
+                nQ_cols.add(z)
+                sol,cert = self._shifting(X,Y,(P_rows,nP_cols),(Q_rows,Q_cols),2)
+                if sol:
+                    if certificate:
+                        return False, cert
+                    else:
+                        return False
+                sol,cert = self._shifting(X,Y,(P_rows,P_cols),(Q_rows,nQ_cols),2)
+                if sol:
+                    if certificate:
+                        return False, cert
+                    else:
+                        return False
+        if certificate:
+            return True, None
+        return True
+
+    cpdef _rk(self,X,Xp,Yp):
+        return self.rank(Yp|(X-Xp)) - len(X-Xp)
+
+    cpdef _shifting(self, X, Y, R_12, R_21, m):
+        # Returns true if there is a m-separator
+        X_1, Y_2 = R_12
+        X_2, Y_1 = R_21
+        if self._rk(X, X_1, Y_2) + self._rk(X, X_2, Y_1)!= m-1:
+            return False, None
+        if len(X_1|Y_1) < m:
+            return False, None
+
+        #rowshifts
+        for x in X-(X_1|X_2):
+            if(self._rk(X, X_2|set([x]), Y_1)>self._rk(X, X_2, Y_1)):
+                X_1 = X_1|set([x])
+        #colshifts
+        for y in Y-(Y_1|Y_2):
+            if(self._rk(X, X_1, Y_2|set([y]))>self._rk(X, X_1, Y_2)):
+                Y_1 = Y_1|set([y])
+
+        X_2 = X-X_1
+        Y_2 = Y-Y_1
+        S_2 = X_2|Y_2
+        if len(S_2) < m:
+            return False, None
+        if (self._rk(X, X_1, Y_2) + self._rk(X, X_2, Y_1)==m-1):
+            return True, S_2
+        else:
+            return False, None
+
     # matroid k-closed
 
     cpdef is_k_closed(self, int k):

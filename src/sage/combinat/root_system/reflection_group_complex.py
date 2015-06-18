@@ -43,13 +43,10 @@ from sage.matrix.matrix import is_Matrix
 from sage.interfaces.gap3 import GAP3Record, gap3
 from sage.interfaces.gap import gap
 from sage.combinat.words.word import Word
-from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField, E
 from sage.rings.arith import gcd, lcm
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
-
-UCF = UniversalCyclotomicField()
-E = UCF.gen
 
 class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
@@ -1378,8 +1375,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 Vector space of degree 2 and dimension 1 over Universal Cyclotomic Field
                 Basis matrix:
                 [ 1 -1]
+
+                sage: W = ReflectionGroup(23)
+                sage: W.an_element().fix_space()
+                Vector space of degree 3 and dimension 2 over Universal Cyclotomic Field
+                Basis matrix:
+                [0 1 0]
+                [0 0 1]
             """
-            return (self.as_matrix()-identity_matrix(UCF,self.parent().rank())).right_kernel()
+            return (self.as_matrix()-identity_matrix(QQ,self.parent().rank())).right_kernel()
 
         @cached_in_parent_method
         def reflection_eigenvalues(self,test_class_repr=True):
@@ -1499,13 +1503,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
             """
             rk = self.parent().rank()
-            M = self.as_matrix()
-            L = [ UCF(x) for x in M.list() ]
-            m = lcm( [ x.conductor() for x in L ] )
-            L_gals = [ x.galois_conjugates(m) for x in L ]
+            M = self.as_matrix().list()
+            m = lcm( [ x.conductor() if hasattr(x,"conductor") else 1 for x in M ] )
+            M_gals = [ x.galois_conjugates(m) if hasattr(x,"galois_conjugates") else [x] for x in M ]
             conjugates = []
-            for i in range(len(L_gals[0])):
-                conjugates.append( Matrix(rk, [ X[i] for X in L_gals ] ) )
+            for i in range(len(M_gals[0])):
+                conjugates.append( Matrix(rk, [ X[i] for X in M_gals ] ) )
             return conjugates
 
         def __cmp__(self, other):
@@ -1823,12 +1826,15 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 01 True
                 10 True
                 010 False
+
+                sage: W = ReflectionGroup(23)
+                sage: for w in W: print w.reduced_word(), w.is_regular(W.coxeter_number())
             """
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
-                    M = Matrix(UCF,(self.as_matrix()-E(ev.denom(),ev.numer())*identity_matrix(self.parent().rank())))
+                    M = self.as_matrix() - E(ev.denom(),ev.numer())*identity_matrix(self.parent().rank())
                     V = M.right_kernel()
                     if not any( V.is_subspace(H) for H in self.parent().reflecting_hyperplanes() ):
                         return True

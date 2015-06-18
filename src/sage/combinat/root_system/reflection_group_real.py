@@ -48,10 +48,7 @@ from sage.categories.coxeter_groups import CoxeterGroups
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.coxeter_group import is_chevie_available
 
-from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-
-UCF = UniversalCyclotomicField()
-E = UCF.gen
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField, E
 
 def ReflectionGroup(*args,**kwds):
     r"""
@@ -205,6 +202,40 @@ class RealReflectionGroup(ComplexReflectionGroup):
             type_str += ' x '
         type_str = type_str[:-3]
         return 'Reducible real reflection group of rank %s and type %s'%(self._rank,type_str)
+
+    def _iterator_tracking_words(self):
+        r"""
+        Return an iterator through the elements of ``self`` together
+        with the words in the simple generators.
+
+        The iterator is a breadth first search through the right weak
+        order of ``self``.
+
+        .. REMARK::
+
+            In order to save space, the fact that the right weak order
+            is graded is used.
+
+        EXAMPLES::
+
+            sage: tba
+        """
+        I = self.gens()
+        index_list = range(len(I))
+
+        level_set_old   = set(                      )
+        level_set_cur   = set([ (self.one(), tuple()) ])
+        while level_set_cur:
+            level_set_new = set()
+            for x, word in level_set_cur:
+                yield x, word
+                for i in index_list:
+                    y = x._mul_(I[i])
+                    if y not in level_set_old:
+                        level_set_old.add(y)
+                        level_set_new.add((y,word+tuple([i])))
+            level_set_old = set( elt[0] for elt in level_set_cur )
+            level_set_cur = level_set_new
 
     @cached_method
     def bipartite_index_set(self):

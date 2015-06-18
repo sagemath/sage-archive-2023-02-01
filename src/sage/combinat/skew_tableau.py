@@ -901,7 +901,7 @@ class SkewTableau(ClonableList):
         """
         return [list(row) for row in self]
 
-    def shuffle(self,t2):
+    def shuffle(self, t2):
         r"""
         Shuffles ``self`` with ``t2`` using jeu de taquin.
 
@@ -937,7 +937,7 @@ class SkewTableau(ClonableList):
             True
 
         """
-        return self.parent().shuffle(self,t2)
+        return self.parent().shuffle(self, t2)
 
 
     def standardization(self, check=True):
@@ -1575,7 +1575,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
         The shape of ``t2`` must extend the shape of ``t1``, that is, 
         ``t1.outer_shape() == t2.inner_shape()``. Then this function computes
-        the pair of tableaux ``(t2_new,t1_new)`` obtained by using jeu de
+        the pair of tableaux ``(t2_new, t1_new)`` obtained by using jeu de
         taquin slides to move the boxes of ``t2`` behind the boxes of ``t1``.
 
         The entries of ``t2_new`` are obtained by performing successive inwards
@@ -1594,12 +1594,12 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - ``t1,t2`` -- a pair of standard SkewTableaux with
+        - ``t1, t2`` -- a pair of standard SkewTableaux with
           ``t1.outer_shape() == t2.inner_shape()``
 
         OUTPUT:
 
-        - ``t2_new,t1_new`` -- a pair of standard SkewTableaux with
+        - ``t2_new, t1_new`` -- a pair of standard SkewTableaux with
           ``t2_new.outer_shape() == t1_new.inner_shape()``
 
         EXAMPLES::
@@ -1607,7 +1607,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs = SkewTableaux()
             sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
-            sage: (t2_new,t1_new) = STs.shuffle(t1,t2)
+            sage: (t2_new, t1_new) = STs.shuffle(t1, t2)
             sage: t1_new
             [[None, None, None, 2], [None, None, 1], [None, 3, 4]]
             sage: t2_new
@@ -1622,7 +1622,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs = SkewTableaux()
             sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
-            sage: (t1,t2) == STs.shuffle(*STs.shuffle(t1,t2))
+            sage: (t1, t2) == STs.shuffle(*STs.shuffle(t1, t2))
             True
 
         Both tableaux must be standard::
@@ -1630,13 +1630,13 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs = SkewTableaux()
             sage: t1 = SkewTableau([[None, 1, 2], [2, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
-            sage: STs.shuffle(t1,t2)
+            sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
             ValueError: The tableaux must be standard
             sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 6]])
-            sage: STs.shuffle(t1,t2)
+            sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
             ValueError: The tableaux must be standard
@@ -1646,7 +1646,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs = SkewTableaux()
             sage: t1 = SkewTableau([[None, None, None], [1]])
             sage: t2 = SkewTableau([[None], [None], [1]])
-            sage: STs.shuffle(t1,t2)
+            sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
             ValueError: The shapes must be adjacent
@@ -1658,12 +1658,12 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs = SkewTableaux()
             sage: t1 = SkewTableau([[None]])
             sage: t2 = SkewTableau([[None, 1, 2], [3, 4]])
-            sage: (t2_new,t1_new) = STs.shuffle(t1,t2)
+            sage: (t2_new, t1_new) = STs.shuffle(t1, t2)
             sage: t1_new
             [[None, None, None], [None, None]]
             sage: t2_new == t2
             True
-            sage: STs.shuffle(t2_new,t1_new) == (t1,t2)
+            sage: STs.shuffle(t2_new, t1_new) == (t1, t2)
             True
 
         """
@@ -1692,7 +1692,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
             next_t2 = t2_new.slide(corner)
             # find the vacated square by comparing the outer shapes before
             # and after the slide
-            (x,y) = SkewPartition([t2_new.outer_shape(),next_t2.outer_shape()]).cells()[0]
+            (x, y) = SkewPartition([t2_new.outer_shape(), next_t2.outer_shape()]).cells()[0]
             t1_new[x][y] = i
             t2_new = next_t2
 

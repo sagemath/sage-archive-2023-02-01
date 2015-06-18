@@ -7544,7 +7544,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(nfinit0(self.g, flag, prec_bits_to_words(precision)))
 
-    def nfisisom(self, gen other):
+    def nfisisom(self, other):
         """
         nfisisom(x, y): Determine if the number fields defined by x and y
         are isomorphic. According to the PARI documentation, this is much
@@ -7580,9 +7580,20 @@ cdef class gen(gen_auto):
             sage: H = NumberField(x^2-2,'alpha')
             sage: F._pari_().nfisisom(H._pari_())
             0
+
+        TESTS:
+
+        This method converts its second argument (:trac:`18728`)::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: L.<b> = NumberField(x^2 + 3)
+            sage: pari(K).nfisisom(L)
+            [-1/2*y - 1/2, 1/2*y - 1/2]
+
         """
+        cdef gen t0 = objtogen(other)
         pari_catch_sig_on()
-        return P.new_gen(nfisisom(self.g, other.g))
+        return P.new_gen(nfisisom(self.g, t0.g))
 
     def nfrootsof1(self):
         """

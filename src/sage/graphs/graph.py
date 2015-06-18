@@ -3795,7 +3795,8 @@ class Graph(GenericGraph):
             X_G = \sum_{F \subseteq E(G)} (-1)^{|F|} p_{\lambda(F)},
 
         where `\lambda(F)` is the partition of the sizes of the connected
-        components of the subgraph induced by the edges `F`.
+        components of the subgraph induced by the edges `F` and `p_{\mu}`
+        is the powersum symmetric function.
 
         INPUT:
 

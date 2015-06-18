@@ -166,11 +166,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            For example, an :class:`OTerm`
-            is able to *absorb* another :class:`OTerm` or an
-            :class:`ExactTerm` with weaker (or equal) growth. For more
-            information see :class:`OTerm`, :class:`ExactTerm`, and
-            :class:`LTermGeneric`.
+            This method calls `_can_absorb_`, which is implemented
+            separately for exact terms, `O` terms, and `L` terms.
 
         EXAMPLES:
 
@@ -230,27 +227,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: lt1.can_absorb(et1)
             True
         """
-        if not isinstance(other, GenericTerm):
-            raise TypeError('%s is not an asymptotic term' % other)
-        if isinstance(self, OTerm):
-            if isinstance(other, (OTerm, LTermGeneric, ExactTerm)):
-                return other <= self
-            else:
-                return False
-        elif isinstance(self, LTermGeneric):
-            if isinstance(other, ExactTerm):
-                return other <= self
-            elif isinstance(other, LTermGeneric):
-                return other <= self
-            else:
-                return False
-        elif isinstance(self, ExactTerm):
-            if isinstance(other, ExactTerm):
-                return self.growth == other.growth
-            else:
-                return False
-        else:
-            return False
+        return self._can_absorb_(other)
 
 
     def absorb(self, other):
@@ -354,6 +331,38 @@ class GenericTerm(sage.structure.element.MonoidElement):
                                                self._absorb_(other))
         except TypeError:
             return False
+
+
+    def _can_absorb_(self, other):
+        r"""
+        Checks, whether this generic term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Generic terms are not able to absorb any other term.
+            Therefore, this method just returns ``False``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: GG = agg.GenericGrowthGroup(ZZ)
+            sage: GT = atm.GenericTermMonoid(GG)
+            sage: t1, t2 = GT(GG(raw_element=21)), GT(GG(raw_element=42))
+            sage: t1.can_absorb(t2)  # indirect doctest
+            False
+            sage: t2.can_absorb(t1)  # indirect doctest
+            False
+        """
+        return False
 
 
     def _absorb_(self, other):
@@ -898,6 +907,37 @@ class OTerm(GenericTerm):
             O(x^3)
         """
         return 'O(%s)' % self.growth
+
+
+    def _can_absorb_(self, other):
+        r"""
+        Checks, whether this `O` term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            An :class:`OTerm` can absorb any other asymptotic term
+            with weaker or equal growth.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: OT = atm.TermMonoid('O', agg.MonomialGrowthGroup(ZZ, 'x'))
+            sage: t1, t2 = OT(x^21), OT(x^42)
+            sage: t1.can_absorb(t2)  # indirect doctest
+            False
+            sage: t2.can_absorb(t1)  # indirect doctest
+            True
+        """
+        return other <= self
 
 
     def _absorb_(self, other):
@@ -1604,6 +1644,43 @@ class LTermGeneric(TermWithCoefficient):
         return '%s * L(%s, %s)' % (self.coefficient, self.growth, self.start)
 
 
+    def _can_absorb_(self, other):
+        r"""
+        Checks, whether this `L` term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            `L` terms can absorb exact terms and other `L` terms with
+            smaller or equal growth.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: LT = atm.TermMonoid('L', agg.MonomialGrowthGroup(ZZ, 'x'), ZZ)
+            sage: ET = atm.TermMonoid('exact', agg.MonomialGrowthGroup(ZZ, 'x'), ZZ)
+            sage: lt1, lt2 = LT(x, 1, 0), LT(x^3, 1, 0)
+            sage: et = ET(x^2, 1)
+            sage: lt1.can_absorb(lt2)  # indirect doctest
+            False
+            sage: lt1.can_absorb(et)  # indirect doctest
+            False
+            sage: lt2.can_absorb(lt1)  # indirect doctest
+            True
+            sage: lt2.can_absorb(et)  # indirect doctest
+            True
+        """
+        return isinstance(other, (LTermGeneric, ExactTerm)) and other <= self
+
+
     def _absorb_(self, other):
         r"""
         Absorb the `L` term ``other`` by this `L` term.
@@ -1965,6 +2042,40 @@ class ExactTerm(TermWithCoefficient):
             2 * x^2
         """
         return '%s * %s' % (self.coefficient, self.growth)
+
+
+    def _can_absorb_(self, other):
+        r"""
+        Checks, whether this exact term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            For :class:`ExactTerm`, absorption corresponds to
+            addition. This means that an exact term can absorb
+            only other exact terms with the same growth.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: ET = atm.TermMonoid('exact', agg.MonomialGrowthGroup(ZZ, 'x'), ZZ)
+            sage: t1, t2, t3 = ET(x^21, 1), ET(x^21, 2), ET(x^42, 1)
+            sage: t1.can_absorb(t2)  # indirect doctest
+            True
+            sage: t2.can_absorb(t1)  # indirect doctest
+            True
+            sage: t1.can_absorb(t3) or t3.can_absorb(t1) # indirect doctest
+            False
+        """
+        return isinstance(other, ExactTerm) and self.growth == other.growth
 
 
     def _absorb_(self, other):

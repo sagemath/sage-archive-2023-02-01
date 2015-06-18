@@ -489,6 +489,10 @@ ext_modules = [
     Extension('sage.graphs.base.dense_graph',
               sources = ['sage/graphs/base/dense_graph.pyx']),
 
+    Extension('sage.graphs.base.boost_graph',
+              sources = ['sage/graphs/base/boost_graph.pyx'],
+              language = 'c++'),
+
     ################################
     ##
     ## sage.groups

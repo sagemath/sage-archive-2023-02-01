@@ -341,10 +341,10 @@ class Magma(Expect):
 
         EXAMPLES::
 
-            sage: m = Magma()
-            sage: m.set_seed(1)
+            sage: m = Magma() # optional - magma
+            sage: m.set_seed(1) # optional - magma
             1
-            sage: [m.Random(100) for i in range(5)]
+            sage: [m.Random(100) for i in range(5)] # optional - magma
             [95, 20, 61, 59, 24]
         """
         if seed is None:

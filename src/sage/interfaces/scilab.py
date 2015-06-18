@@ -239,11 +239,11 @@ class Scilab(Expect):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.scilab import Scilab
-            sage: s = Scilab()
-            sage: s.set_seed(1)
+            sage: from sage.interfaces.scilab import Scilab # optional - scilab
+            sage: s = Scilab() # optional - scilab
+            sage: s.set_seed(1) # optional - scilab
             1
-            sage: [s.rand() for i in range(5)]
+            sage: [s.rand() for i in range(5)] # optional - scilab
             [
             <BLANKLINE>
                  0.6040239,

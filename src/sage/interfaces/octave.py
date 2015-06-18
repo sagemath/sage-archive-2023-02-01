@@ -202,10 +202,10 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: o = Octave()
-            sage: o.set_seed(1)
+            sage: o = Octave() # optional - octave
+            sage: o.set_seed(1) # optional - octave
             1
-            sage: [o.rand() for i in range(5)]
+            sage: [o.rand() for i in range(5)] # optional - octave
             [ 0.134364,  0.847434,  0.763775,  0.255069,  0.495435]
         """
         if seed is None:

@@ -661,7 +661,7 @@ class Polyomino(SageObject):
             [[0, 0, 0], [1, 2, 1]]
         """
         zipped_coords = zip(*self)
-        return [map(min, zipped_coords), map(max, zipped_coords)]
+        return [[min(_) for _ in zipped_coords], [max(_) for _ in zipped_coords]]
 
     def translated(self, box):
         r"""
@@ -1674,7 +1674,7 @@ class TilingSolver(SageObject):
         the number of iterations (default value 0, which means to iterate
         forever). To iterate 4 times with half a second between each frame::
 
-            sage: a.show(delay=50, iterations=4) # optional
+            sage: a.show(delay=50, iterations=4)  # optional -- ImageMagick
 
         Limit the number of frames::
 

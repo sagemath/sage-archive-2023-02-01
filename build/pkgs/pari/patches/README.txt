@@ -7,8 +7,6 @@ Patches to configuration files:
 * get_config_options.patch (Leif Leonhardy): Catch invalid arguments to
   "--graphic" (and treat such as an error) since otherwise strange
   compilation errors might occur (cf. #9722, too).
-* get_fltk.patch (Leif Leonhardy): do an extra check for the FLTK
-  include dir (cf. #9722).
 * get_dlcflags.patch (Jeroen Demeyer): Add -fno-common to DLCFLAGS on
   Darwin. Submitted upstream, but upstream only applied it for PowerPC.
   Since this doesn't break anything and only improves performance, add

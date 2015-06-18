@@ -55,7 +55,7 @@ from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import generic_power
+from sage.structure.element import generic_power, MultiplicativeGroupElement
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
@@ -178,7 +178,7 @@ class NumberFieldIdeal(Ideal_generic):
             gens = gens[0]
             if gens.type() == "t_MAT":
                 # Assume columns are generators
-                gens = map(field, field.pari_zk() * gens)
+                gens = [field(_) for _ in field.pari_zk() * gens]
             elif gens.type() == "t_VEC":
                 # Assume prime ideal form
                 self._pari_prime = gens
@@ -459,7 +459,7 @@ class NumberFieldIdeal(Ideal_generic):
             [1/17, 1/17*a, a^2 - 8/17*a - 13/17]
         """
         K = self.number_field()
-        return map(K, K.pari_zk() * hnf)
+        return [K(_) for _ in K.pari_zk() * hnf]
 
     def __repr__(self):
         """
@@ -1686,7 +1686,7 @@ def is_NumberFieldIdeal(x):
     return isinstance(x, NumberFieldIdeal)
 
 
-class NumberFieldFractionalIdeal(NumberFieldIdeal):
+class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
     r"""
     A fractional ideal in a number field.
     """
@@ -1802,7 +1802,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         return [x[0] for x in self.factor()]
 
-    def __div__(self, other):
+    def _div_(self, other):
         """
         Return the quotient self / other.
 
@@ -1813,11 +1813,14 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I = K.ideal(2/(5+a))
             sage: J = K.ideal(17+a)
             sage: I/J
-            Fractional ideal (-17/1420*a + 1/284)
+            Fractional ideal (-11/1420*a + 9/284)
             sage: (I/J) * J == I
             True
         """
-        return self * other.__invert__()
+        K = self.ring()
+        if self.ngens() == 1 and other.ngens() == 1:
+            return K.ideal(self.gen(0) / other.gen(0))
+        return K.ideal(K.pari_nf().idealdiv(self, other))
 
     def __invert__(self):
         """
@@ -2071,7 +2074,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)(map(R.coordinates, self.basis()))
+        M = MatrixSpace(ZZ,n)([R.coordinates(_) for _ in self.basis()])
 
         D = M.hermite_form()
         d = [D[i,i] for i in range(n)]
@@ -2209,7 +2212,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         M = diagonal_matrix(ZZ, invs)
         if subgp_gens:
-            Units = Matrix(ZZ, map(self.ideallog, subgp_gens))
+            Units = Matrix(ZZ, [self.ideallog(_) for _ in subgp_gens])
             M = M.stack(Units)
 
         A, U, V = M.smith_form()
@@ -2610,7 +2613,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        L = map(ZZ, k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2)))
+        L = [ZZ(_) for _ in k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2))]
 
         if gens is None:
             return L
@@ -2628,7 +2631,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         # reduce the resulting logarithm of x so it is lexicographically
         # minimal.
 
-        mat = matrix(ZZ, map(self.ideallog, gens)).augment(identity_matrix(ZZ, len(gens)))
+        mat = matrix(ZZ, [self.ideallog(_) for _ in gens]).augment(identity_matrix(ZZ, len(gens)))
         mat = mat.stack( diagonal_matrix(ZZ, invs).augment(zero_matrix(ZZ, len(invs), len(gens))))
         hmat = mat.hermite_form()
         A = hmat[0:len(invs), 0:len(invs)]

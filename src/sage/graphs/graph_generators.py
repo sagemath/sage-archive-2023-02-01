@@ -208,6 +208,7 @@ __append_to_doc(
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
+     "SierpinskiGasketGraph",
      "SymplecticGraph",
      "trees",
      "triangulations",
@@ -821,13 +822,13 @@ class GraphGenerators():
 
             sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
             sage: print next(gen) # optional nauty
-            >A nauty-geng -d0D3 n=4 e=0-6
+            >A geng -d0D3 n=4 e=0-6
         """
         import subprocess
         from sage.misc.package import is_package_installed
         if not is_package_installed("nauty"):
             raise TypeError("the optional nauty package is not installed")
-        sp = subprocess.Popen("nauty-geng {0}".format(options), shell=True,
+        sp = subprocess.Popen("geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
         if debug:
@@ -1143,6 +1144,7 @@ class GraphGenerators():
              19: [14, 20, 15],
              20: [17, 19, 18]}
             sage: g.plot3d(layout='spring')  # optional buckygen
+            Graphics3d Object
 
         REFERENCE:
 
@@ -1939,6 +1941,7 @@ class GraphGenerators():
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
+    SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)

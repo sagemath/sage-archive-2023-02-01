@@ -494,7 +494,7 @@ def rectangular_box_points(box_min, box_max, polyhedron=None,
 
     Optionally, return the information about the saturated inequalities as well::
 
-        sage: cube = polytopes.n_cube(3)
+        sage: cube = polytopes.cube()
         sage: cube.Hrepresentation(0)
         An inequality (0, 0, -1) x + 1 >= 0
         sage: cube.Hrepresentation(1)

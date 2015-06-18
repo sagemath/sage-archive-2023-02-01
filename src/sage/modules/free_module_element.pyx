@@ -1616,7 +1616,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v=vector(RDF,[1,2,3])
             sage: v.norm(5)
             3.077384885394063
-            sage: v.norm(pi/2)
+            sage: v.norm(pi/2)    #abs tol 1e-15
             4.216595864704748
             sage: _=var('a b c d p'); v=vector([a, b, c, d])
             sage: v.norm(p)
@@ -1668,7 +1668,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         s = sum([a**p for a in abs_self])
         return s**(__one__/p)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -2006,25 +2006,24 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(ZZ, 4, range(4))
+            sage: maple(v)  # optional - maple
             Vector[row](4, [0,1,2,3])
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [2/3,0,5/4])
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: maple(v)                                           #optional
+            sage: P.<x> = ZZ[]
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
         """
         return "Vector[row](%s)"%(str(self.list()))
-
 
     def degree(self):
         """
@@ -4532,7 +4531,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                     v[i] = prod
         return left._new_c(v)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare two sparse free module elements.
 

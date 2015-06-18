@@ -905,7 +905,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Comparison of finite field elements.
         """

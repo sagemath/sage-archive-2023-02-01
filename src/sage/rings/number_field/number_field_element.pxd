@@ -1,8 +1,7 @@
-include "sage/ext/cdefs.pxi"
 include "sage/libs/ntl/decl.pxi"
 
-import sage.structure.element
 cimport sage.structure.element
+from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement
@@ -34,7 +33,8 @@ cdef class NumberFieldElement(FieldElement):
     cpdef ModuleElement _sub_(self, ModuleElement right)
     cpdef ModuleElement _neg_(self)
 
-    cdef bint is_rational_c(self)
+    cpdef bint is_rational(self)
+    cpdef bint is_one(self)
     cdef int _randomize(self, num_bound, den_bound, distribution) except -1
 
 

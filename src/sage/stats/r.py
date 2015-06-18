@@ -1,14 +1,23 @@
-##########################################################################
-#
+"""
+T-test using R
+
+TESTS::
+
+    sage: import rpy2
+"""
+
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #                     2007 Mike Hansen   <mhansen@gmail.com>
 #                     2008 Harald Schilly <harald.schilly@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#
-##########################################################################
+#*****************************************************************************
+
 
 from sage.interfaces.r import R
 
@@ -20,13 +29,16 @@ def ttest(x,y,conf_level = 0.95, **kw):
    T-Test using R
 
    Arguments:
-      x, y -- vectors of same length
-      conf_level -- confidence level of the interval, [0,1) in percent
+
+   - x, y -- vectors of same length
+   - conf_level -- confidence level of the interval, [0,1) in percent
 
    Result:
+
       Tuple: (p-value, R return object)
 
-   Example:
+   Example::
+
       sage: a, b = ttest([1,2,3,4,5],[1,2,3,3.5,5.121]); a
       0.941026372027427
    """

@@ -41,11 +41,6 @@ TODO:
   ``sage/sets/recursively_enumerated_set.pyx`` into a class named
   ``RecursivelyEnumeratedSet_forest`` in a later ticket. 
 
-- ``TransitiveIdeal`` and ``TransitiveIealGraded`` are used in the code of
-  ``sage/combinat``, ``sage/categories`` and ``sage/groups`` at least.
-  These should be updated to use ``RecursivelyEnumeratedSet`` in a later
-  ticket for speed improvements.
-
 - Once the deprecation has been there for enough time: delete
   ``TransitiveIdeal`` and ``TransitiveIealGraded``.
 

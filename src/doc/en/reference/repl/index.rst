@@ -65,7 +65,6 @@ this works using a modified displayhook in Python.
    sage/repl/display/fancy_repr
    sage/repl/display/util
    
-
 Display Backend Infrastructure
 ------------------------------
 
@@ -80,10 +79,23 @@ Display Backend Infrastructure
    sage/repl/rich_output/output_graphics3d
    sage/repl/rich_output/output_catalog
    
-   sage/repl/rich_output/backend_base   
+   sage/repl/rich_output/backend_base
    sage/repl/rich_output/backend_test
    sage/repl/rich_output/backend_doctest
    sage/repl/rich_output/backend_ipython
+   sage/repl/rich_output/backend_sagenb
 
+Miscellaneous
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/ext/interactive_constructors_c
+
+   sage/repl/display/jsmol_iframe
+   sage/repl/image
+   sage/repl/inputhook
+   sage/repl/ipython_tests
 
 .. include:: ../footer.txt

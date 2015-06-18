@@ -1,4 +1,4 @@
-include "sage/ext/cdefs.pxi"
+from libc.stdio cimport FILE
 
 include "math.pxi"
 cdef enum:

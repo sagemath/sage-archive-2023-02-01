@@ -37,6 +37,7 @@ AUTHORS:
 #*****************************************************************************
 
 import operator
+import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
@@ -166,20 +167,20 @@ class Interface(ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
         except TypeError:
             raise
-        except AttributeError as msg:
+        except AttributeError:
             pass
         try:
             return self._coerce_impl(x, use_special=False)
         except TypeError as msg:
             try:
                 return cls(self, str(x), name=name)
-            except TypeError as msg2:
+            except TypeError:
                 raise TypeError(msg)
 
     def _coerce_from_special_method(self, x):
@@ -209,7 +210,7 @@ class Interface(ParentWithBase):
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
-            except AttributeError as msg:
+            except AttributeError:
                 pass
 
         if isinstance(x, (list, tuple)):

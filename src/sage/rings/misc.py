@@ -1,3 +1,5 @@
+"Miscellaneous utilities"
+
 ###########################################################################
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>               #
 #  Distributed under the terms of the GNU General Public License (GPL)    #

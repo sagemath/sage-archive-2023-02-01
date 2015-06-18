@@ -1,61 +1,34 @@
-from string import join
-import os
-from sage.symbolic.all import I, pi
-from sage.functions.log import exp
-from sage.graphs.all import DiGraph, Graph, graphs, digraphs
-from copy import deepcopy
-from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
-from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix, identity_matrix
-from sage.interfaces.singular import singular
-from sage.combinat.combinat import CombinatorialClass
-from sage.combinat.set_partition import SetPartitions
-from sage.homology.simplicial_complex import SimplicialComplex
-from sage.plot.colors import rainbow
-from sage.env import SAGE_LOCAL
-
 r"""
-To calculate linear systems associated with divisors, 4ti2 must be installed.
-One way to do this is to run sage -i to install glpk, then 4ti2.  See
-http://sagemath.org/download-packages.html to get the exact names of these
-packages.  An alternative is to install 4ti2 separately, then point the
-following variable to the correct path.
-"""
-
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
-
-r"""
-Sage Sandpiles
+Sandpiles
 
 Functions and classes for mathematical sandpiles.
 
 Version: 2.3
 
 AUTHOR:
-    -- Marshall Hampton (2010-1-10) modified for inclusion as a module
-       within Sage library.
 
-    -- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
-       replaced elementary_divisors() with invariant_factors(), added show() for
-       SandpileConfig and SandpileDivisor.
+- Marshall Hampton (2010-1-10) modified for inclusion as a module within Sage
+  library.
 
-    -- David Perkinson (2010-9-18): removed is_undirected, added show(), added
-       verbose arguments to several functions to display SandpileConfigs and divisors as
-       lists of integers
+- David Perkinson (2010-12-14) added show3d(), fixed bug in resolution(),
+  replaced elementary_divisors() with invariant_factors(), added show() for
+  SandpileConfig and SandpileDivisor.
 
-    -- David Perkinson (2010-12-19): created separate SandpileConfig, SandpileDivisor, and
-       Sandpile classes
+- David Perkinson (2010-9-18): removed is_undirected, added show(), added
+  verbose arguments to several functions to display SandpileConfigs and
+  divisors as lists of integers
 
-    -- David Perkinson (2009-07-15): switched to using config_to_list instead
-       of .values(), thus fixing a few bugs when not using integer labels for
-       vertices.
+- David Perkinson (2010-12-19): created separate SandpileConfig,
+  SandpileDivisor, and Sandpile classes
 
-    -- David Perkinson (2009): many undocumented improvements
+- David Perkinson (2009-07-15): switched to using config_to_list instead of
+  .values(), thus fixing a few bugs when not using integer labels for vertices.
 
-    -- David Perkinson (2008-12-27): initial version
+- David Perkinson (2009): many undocumented improvements
 
-EXAMPLES::
+- David Perkinson (2008-12-27): initial version
+
+EXAMPLES:
 
 A weighted directed graph given as a Python dictionary::
 
@@ -221,13 +194,38 @@ Distribution of avalanche sizes::
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
+
+To calculate linear systems associated with divisors, 4ti2 must be installed.
+One way to do this is to run sage -i to install glpk, then 4ti2.  See
+http://sagemath.org/download-packages.html to get the exact names of these
+packages.  An alternative is to install 4ti2 separately, then point the
+following variable to the correct path.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import os
+from sage.symbolic.all import I, pi
+from sage.functions.log import exp
+from sage.graphs.all import DiGraph, Graph, graphs, digraphs
+from copy import deepcopy
+from sage.rings.all import PolynomialRing, QQ, ZZ, lcm
+from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator, srange
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.interfaces.singular import singular
+from sage.combinat.combinat import CombinatorialClass
+from sage.combinat.set_partition import SetPartitions
+from sage.homology.simplicial_complex import SimplicialComplex
+from sage.plot.colors import rainbow
+from sage.env import SAGE_LOCAL
+
+path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
 
 class Sandpile(DiGraph):
     """
@@ -586,7 +584,7 @@ class Sandpile(DiGraph):
             [ 0 -1  0 -1  2  0]
             [ 0  0 -1 -1  0  2]
 
-        NOTES::
+        NOTES:
 
         The function ``laplacian_matrix`` should be avoided.  It returns the
         indegree version of the laplacian.
@@ -1338,7 +1336,7 @@ class Sandpile(DiGraph):
 
         list (of maximal superstables)
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: S=sandlib('riemann-roch2')
             sage: S.max_superstables()
@@ -1982,7 +1980,7 @@ class Sandpile(DiGraph):
             return self._resolution
         else:
             r = ['R^'+str(i) for i in self._betti]
-            return join(r,' <-- ')
+            return ' <-- '.join(r)
 
     def _set_groebner(self):
         r"""
@@ -2106,7 +2104,7 @@ class Sandpile(DiGraph):
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]
-        sol = [map(eval,[j.replace('i','I') for j in k]) for k in sol]
+        sol = [[eval(j.replace('i','I')) for j in k] for k in sol]
         return sol
 
     def _set_points(self):
@@ -4095,21 +4093,21 @@ class SandpileDivisor(dict):
         mat_file.write(str(n)+' ')
         mat_file.write(str(n)+'\n')
         for r in L:
-            mat_file.write(join(map(str,r)))
+            mat_file.write(''.join(map(str,r)))
             mat_file.write('\n')
         mat_file.close()
         # relations file
         rel_file = open(lin_sys_rel,'w')
         rel_file.write('1 ')
         rel_file.write(str(n)+'\n')
-        rel_file.write(join(['>']*n))
+        rel_file.write(''.join(['>']*n))
         rel_file.write('\n')
         rel_file.close()
         # right-hand side file
         rhs_file = open(lin_sys_rhs,'w')
         rhs_file.write('1 ')
         rhs_file.write(str(n)+'\n')
-        rhs_file.write(join([str(-i) for i in self.values()]))
+        rhs_file.write(''.join([str(-i) for i in self.values()]))
         rhs_file.write('\n')
         rhs_file.close()
         # sign file
@@ -4123,7 +4121,7 @@ class SandpileDivisor(dict):
         by this vector, we transform any solution into a nonnegative solution.
         What if the vector in the kernel does not have full support though?
         """
-        sign_file.write(join(['2']*n))  # so maybe a 1 could go here
+        sign_file.write(''.join(['2']*n))  # so maybe a 1 could go here
         sign_file.write('\n')
         sign_file.close()
         # compute
@@ -4147,14 +4145,14 @@ class SandpileDivisor(dict):
         a = a.split('\n')
         # a starts with two numbers. We are interested in the first one
         num_homog = int(a[0].split()[0])
-        homog = [map(int,i.split()) for i in a[1:-1]]
+        homog = [[int(_) for _ in i.split()] for i in a[1:-1]]
         ## second, the inhomogeneous points
         zinhom_file = open(lin_sys_zinhom,'r')
         b = zinhom_file.read()
         zinhom_file.close()
         b = b.split('\n')
         num_inhomog = int(b[0].split()[0])
-        inhomog = [map(int,i.split()) for i in b[1:-1]]
+        inhomog = [[int(_) for _ in i.split()] for i in b[1:-1]]
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 
@@ -4725,9 +4723,11 @@ def grid_sandpile(m,n):
     The mxn grid sandpile.  Each nonsink vertex has degree 4.
 
     INPUT:
+
     ``m``, ``n`` - positive integers
 
     OUTPUT:
+
     Sandpile with sink named ``sink``.
 
     EXAMPLES::
@@ -5308,8 +5308,8 @@ def firing_vector(S,D,E):
 
     INPUT:
 
-    - ``S`` -Sandpile
-    ``D``, ``E`` - tuples (representing linearly equivalent divisors)
+    - ``S`` - Sandpile
+    - ``D``, ``E`` - tuples (representing linearly equivalent divisors)
 
     OUTPUT:
 

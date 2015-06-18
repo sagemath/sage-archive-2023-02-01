@@ -3797,6 +3797,11 @@ class Graph(GenericGraph):
         where `\lambda(F)` is the partition of the sizes of the connected
         components of the subgraph induced by the edges `F`.
 
+        INPUT:
+
+        - ``R`` -- (optional) the base ring for the symmetric functions;
+          this uses `\ZZ` by default
+
         EXAMPLES::
 
             sage: s = SymmetricFunctions(ZZ).s()

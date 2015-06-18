@@ -912,7 +912,7 @@ Sandpile
 
 - :ref:`min_recurrents <min_recurrents>` --- The minimal recurrent elements.
 
-- :ref:`nonsink_vertices <nonsink_vertices>` --- The names of the nonsink vertices.
+- :ref:`nonsink_vertices <nonsink_vertices>` --- The nonsink vertices.
 
 - :ref:`nonspecial_divisors <nonspecial_divisors>` --- The nonspecial divisors.
 
@@ -1089,14 +1089,9 @@ EXAMPLES::
 
 The support-complexes with non-trivial homology.  (See NOTE.)
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list (of pairs [divisors, corresponding simplicial complex])
-
 
 EXAMPLES::
 
@@ -1133,10 +1128,6 @@ EXAMPLES::
 **burning_config()**
 
 The minimal burning configuration.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1191,10 +1182,6 @@ EXAMPLES::
 **burning_script()**
 
 A script for the minimal burning configuration.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1251,10 +1238,6 @@ EXAMPLES::
 The canonical divisor.  This is the divisor with `\deg(v)-2` grains of
 sand on each vertex (not counting loops).  Only for undirected graphs.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 SandpileDivisor
@@ -1280,10 +1263,6 @@ EXAMPLES::
 
 A dictionary of dictionaries representing a directed graph.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 dict
@@ -1307,10 +1286,6 @@ EXAMPLES::
 
 The genus: (# non-loop edges) - (# vertices) + 1.  Only defined for undirected graphs.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 integer
@@ -1330,10 +1305,6 @@ EXAMPLES::
 
 A Groebner basis for the homogeneous toppling ideal.  It is computed
 with respect to the standard sandpile ordering (see ``ring``).
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1385,10 +1356,6 @@ EXAMPLES::
 
 The size of the sandpile group.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 integer
@@ -1408,10 +1375,6 @@ EXAMPLES::
 The number of superstable configurations in each degree.  Equivalently,
 this is the list of first differences of the Hilbert function of the
 (homogeneous) toppling ideal.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1476,7 +1439,7 @@ EXAMPLES::
     max_stable_div           -- The maximal stable divisor.
     max_superstables         -- The maximal superstable configurations.
     min_recurrents           -- The minimal recurrent elements.
-    nonsink_vertices         -- The names of the nonsink vertices.
+    nonsink_vertices         -- The nonsink vertices.
     nonspecial_divisors      -- The nonspecial divisors.
     out_degree               -- The out-degree of a vertex or a list of all out-degrees.
     picard_representatives   -- Representatives of the divisor classes of degree d in the Picard group.
@@ -1509,10 +1472,6 @@ EXAMPLES::
 **hilbert_function()**
 
 The Hilbert function of the homogeneous toppling ideal.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1566,8 +1525,6 @@ INPUT:
 
 ``verbose`` -- (default: ``True``) boolean
 
-None
-
 OUTPUT:
 
 SandpileConfig or a list of integers  If ``verbose`` is ``False``, the
@@ -1615,10 +1572,6 @@ EXAMPLES::
 
 The invariant factors of the sandpile group.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list of integers
@@ -1637,10 +1590,6 @@ EXAMPLES::
 
 Is the underlying graph undirected?  ``True`` if `(u,v)` is and edge if
 and only if `(v,u)` is an edge, each edge with the same weight.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1714,10 +1663,6 @@ group is isomorphic to the direct sum of the cyclic group of order
 **laplacian()**
 
 The Laplacian matrix of the graph.  Its *rows* encode the vertex firing rules.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1829,10 +1774,6 @@ REFERENCES:
 
 The maximal stable configuration.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 SandpileConfig (the maximal stable configuration)
@@ -1851,10 +1792,6 @@ EXAMPLES::
 **max_stable_div()**
 
 The maximal stable divisor.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -1946,15 +1883,11 @@ EXAMPLES::
 
 **nonsink_vertices()**
 
-The names of the nonsink vertices.
-
-INPUT:
-
-None
+The nonsink vertices.
 
 OUTPUT:
 
-None
+list of vertices
 
 EXAMPLES::
 
@@ -2064,10 +1997,6 @@ EXAMPLES::
 Generators for the multiplicative group of zeros of the sandpile
 ideal.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list of complex numbers
@@ -2091,10 +2020,6 @@ single generator for the group of solutions.
 
 The postulation number of the toppling ideal.  This is the
 largest weight of a superstable configuration of the graph.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2157,10 +2082,6 @@ EXAMPLES::
 
 The reduced Laplacian matrix of the graph.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 matrix
@@ -2193,10 +2114,6 @@ EXAMPLES::
 A copy of the sandpile with vertex names permuted.  After reordering,
 vertex `u` comes before vertex `v` in the list of vertices if `u` is
 closer to the sink.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2265,10 +2182,6 @@ EXAMPLES::
 
 The ring containing the homogeneous toppling ideal.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 ring
@@ -2300,10 +2213,6 @@ INPUT:
 
 ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
-OUTPUT:
-
-None
-
 EXAMPLES::
 
     sage: S = Sandpile({0:[], 1:[0,3,4], 2:[0,3,5], 3:[2,5], 4:[1,1], 5:[2,4]})
@@ -2322,10 +2231,6 @@ INPUT:
 
 ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
-OUTPUT:
-
-None
-
 EXAMPLES::
 
     sage: S = sandpiles.House()
@@ -2338,10 +2243,6 @@ EXAMPLES::
 **sink()**
 
 The sink vertex.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2369,10 +2270,6 @@ matrices `D, U, V` such that `ULV = D` where `L` is the transpose of the
 Laplacian, `D` is diagonal, and  `U` and `V` are invertible over the
 integers.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list of integer matrices
@@ -2397,10 +2294,6 @@ EXAMPLES::
 
 Approximations of the complex affine zeros of the sandpile
 ideal.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2461,10 +2354,6 @@ EXAMPLES::
 **stationary_density()**
 
 The stationary density of the sandpile.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2582,10 +2471,6 @@ EXAMPLES::
 
 The Tutte polynomial.  Only defined for undirected sandpile graphs.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 polynomial
@@ -2608,10 +2493,6 @@ EXAMPLES::
 
 The unsaturated, homogeneous toppling ideal.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 ideal
@@ -2631,10 +2512,6 @@ EXAMPLES::
 **version()**
 
 The version number of Sage Sandpiles.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2657,10 +2534,6 @@ EXAMPLES::
 
 The all-zero configuration.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 SandpileConfig
@@ -2678,10 +2551,6 @@ EXAMPLES::
 **zero_div()**
 
 The all-zero divisor.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -2892,10 +2761,6 @@ SandpileConfig
 
    The stabilized configuration.
 
-   INPUT:
-
-   None
-
    OUTPUT:
 
    ``SandpileConfig``
@@ -3058,10 +2923,6 @@ SandpileConfig
 
    The additive inverse of the configuration.
 
-   INPUT:
-
-   None
-
    OUTPUT:
 
    SandpileConfig
@@ -3208,10 +3069,6 @@ REFERENCES:
 
 The degree of the configuration.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 integer
@@ -3230,10 +3087,6 @@ EXAMPLES::
 **dualize()**
 
 The difference with the maximal stable configuration.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -3360,10 +3213,6 @@ EXAMPLES::
 
 Fire all unstable vertices.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 SandpileConfig
@@ -3457,10 +3306,6 @@ EXAMPLES::
 
 Is the configuration recurrent?
 
-INPUT:
-
-None
-
 OUTPUT:
 
 boolean
@@ -3480,10 +3325,6 @@ EXAMPLES::
 **is_stable()**
 
 Is the configuration stable?
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -3506,10 +3347,6 @@ EXAMPLES::
 **is_superstable()**
 
 Is the configuration superstable?
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -3558,10 +3395,6 @@ EXAMPLES::
 
 The order of the equivalent recurrent element.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 integer
@@ -3589,10 +3422,6 @@ EXAMPLES::
 **sandpile()**
 
 The configuration's underlying sandpile.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -3626,11 +3455,6 @@ INPUT:
 - ``directed`` -- (optional) whether to draw directed edges
 
 - ``kwds`` -- (optional) arguments passed to the show method for Graph
-
-
-OUTPUT:
-
-None
 
 EXAMPLES::
 
@@ -3681,10 +3505,6 @@ EXAMPLES::
 
 The vertices containing sand.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list - support of the configuration
@@ -3706,10 +3526,6 @@ EXAMPLES::
 
 The unstable vertices.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list of vertices
@@ -3729,10 +3545,6 @@ EXAMPLES::
 
 The values of the configuration as a list.  The list is sorted in the
 order of the vertices.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -3992,10 +3804,6 @@ SandpileDivisor
 
    The additive inverse of the divisor.
 
-   INPUT:
-
-   None
-
    OUTPUT:
 
    SandpileDivisor
@@ -4038,10 +3846,6 @@ SandpileDivisor
 **Dcomplex()**
 
 The support-complex. (See NOTE.)
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -4100,10 +3904,6 @@ EXAMPLES::
 
 The Betti numbers for the support-complex.  (See NOTE.)
 
-INPUT:
-
-None
-
 OUTPUT:
 
 dictionary of integers
@@ -4128,10 +3928,6 @@ EXAMPLES::
 
 The degree of the divisor.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 integer
@@ -4150,10 +3946,6 @@ EXAMPLES::
 **dualize()**
 
 The difference with the maximal stable divisor.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -4265,10 +4057,6 @@ EXAMPLES::
 **fire_unstable()**
 
 Fire all unstable vertices.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -4437,10 +4225,6 @@ EXAMPLES::
 Is the divisor `q`-reduced?  This would mean that `self = c + kq` where
 `c` is superstable, `k` is an integer, and `q` is the sink vertex.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 boolean
@@ -4545,10 +4329,6 @@ EXAMPLES::
 
 The polytope determinining the complete linear system.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 polytope
@@ -4586,13 +4366,9 @@ The integer points inside divisor's polytope.  The polytope referred to
 here is the one determining the divisor's complete linear system (see the
 documentation for ``polytope``).
 
-INPUT:
-
-None
-
 OUTPUT:
 
-None
+tuple of integer vectors
 
 EXAMPLES::
 
@@ -4708,10 +4484,6 @@ EXAMPLES::
 
 The divisor's underlying sandpile.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 Sandpile
@@ -4740,10 +4512,6 @@ INPUT:
 - ``directed`` -- (optional) whether to draw directed edges
 
 - ``kwds`` -- (optional) arguments passed to the show method for Graph
-
-OUTPUT:
-
-None
 
 EXAMPLES::
 
@@ -4798,10 +4566,6 @@ INPUT:
 
 ``with_firing_vector`` -- (default: ``False``) boolean
 
-OUTPUT:
-
-None
-
 EXAMPLES::
 
     sage: s = sandpiles.Complete(4)
@@ -4818,10 +4582,6 @@ EXAMPLES::
 **support()**
 
 List of vertices at which the divisor is nonzero.
-
-INPUT:
-
-None
 
 OUTPUT:
 
@@ -4844,10 +4604,6 @@ EXAMPLES::
 
 The unstable vertices.
 
-INPUT:
-
-None
-
 OUTPUT:
 
 list of vertices
@@ -4867,10 +4623,6 @@ EXAMPLES::
 
 The values of the divisor as a list.  The list is sorted in the order of
 the vertices.
-
-INPUT:
-
-None
 
 OUTPUT:
 

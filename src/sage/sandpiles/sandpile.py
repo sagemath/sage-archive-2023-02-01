@@ -359,10 +359,6 @@ class Sandpile(DiGraph):
         r"""
         The version number of Sage Sandpiles.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         string
@@ -425,7 +421,7 @@ class Sandpile(DiGraph):
             max_stable_div           -- The maximal stable divisor.
             max_superstables         -- The maximal superstable configurations.
             min_recurrents           -- The minimal recurrent elements.
-            nonsink_vertices         -- The names of the nonsink vertices.
+            nonsink_vertices         -- The nonsink vertices.
             nonspecial_divisors      -- The nonspecial divisors.
             out_degree               -- The out-degree of a vertex or a list of all out-degrees.
             picard_representatives   -- Representatives of the divisor classes of degree d in the Picard group.
@@ -652,10 +648,6 @@ class Sandpile(DiGraph):
 
         ``name`` -- name of an internal method
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Complete(5)
@@ -741,10 +733,6 @@ class Sandpile(DiGraph):
         r"""
         The name of the sandpile.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         string
@@ -764,14 +752,6 @@ class Sandpile(DiGraph):
     def _repr_(self):
         r"""
         String representation of self.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -793,10 +773,6 @@ class Sandpile(DiGraph):
 
         ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = Sandpile({0:[], 1:[0,3,4], 2:[0,3,5], 3:[2,5], 4:[1,1], 5:[2,4]})
@@ -817,10 +793,6 @@ class Sandpile(DiGraph):
 
         ``kwds`` -- (optional) arguments passed to the show method for Graph or DiGraph
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.House()
@@ -835,10 +807,6 @@ class Sandpile(DiGraph):
     def dict(self):
         r"""
         A dictionary of dictionaries representing a directed graph.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -861,10 +829,6 @@ class Sandpile(DiGraph):
         r"""
         The sink vertex.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         sink vertex
@@ -885,10 +849,6 @@ class Sandpile(DiGraph):
     def laplacian(self):
         r"""
         The Laplacian matrix of the graph.  Its *rows* encode the vertex firing rules.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -914,10 +874,6 @@ class Sandpile(DiGraph):
     def reduced_laplacian(self):
         r"""
         The reduced Laplacian matrix of the graph.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -948,10 +904,6 @@ class Sandpile(DiGraph):
         r"""
         The size of the sandpile group.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         integer
@@ -968,14 +920,6 @@ class Sandpile(DiGraph):
         r"""
         Initialize the variable holding the maximal stable configuration.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        NONE
-
         EXAMPLES::
 
             sage: S = sandpiles.House()
@@ -989,10 +933,6 @@ class Sandpile(DiGraph):
     def max_stable(self):
         r"""
         The maximal stable configuration.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -1011,14 +951,6 @@ class Sandpile(DiGraph):
         r"""
         Initialize the variable holding the maximal stable divisor.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        NONE
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -1032,10 +964,6 @@ class Sandpile(DiGraph):
     def max_stable_div(self):
         r"""
         The maximal stable divisor.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -1054,14 +982,6 @@ class Sandpile(DiGraph):
     def _set_out_degrees(self):
         r"""
         Initialize the variable holding the out-degrees.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        NONE
 
         EXAMPLES::
 
@@ -1103,14 +1023,6 @@ class Sandpile(DiGraph):
     def _set_in_degrees(self):
         """
         Initialize the variable holding the in-degrees.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        NONE
 
         EXAMPLES::
 
@@ -1190,10 +1102,6 @@ class Sandpile(DiGraph):
         r"""
         The minimal burning configuration.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         dict (configuration)
@@ -1246,10 +1154,6 @@ class Sandpile(DiGraph):
         r"""
         A script for the minimal burning configuration.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         dict
@@ -1300,15 +1204,11 @@ class Sandpile(DiGraph):
 
     def nonsink_vertices(self):
         r"""
-        The names of the nonsink vertices.
-
-        INPUT:
-
-        None
+        The nonsink vertices.
 
         OUTPUT:
 
-        None
+        list of vertices
 
         EXAMPLES::
 
@@ -1342,10 +1242,6 @@ class Sandpile(DiGraph):
         r"""
         The all-zero configuration.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         SandpileConfig
@@ -1375,14 +1271,6 @@ class Sandpile(DiGraph):
         Computes ``_identity``, the variable holding the identity configuration
         of the sandpile group, when ``identity()`` is first called by a user.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -1401,8 +1289,6 @@ class Sandpile(DiGraph):
         INPUT:
 
         ``verbose`` -- (default: ``True``) boolean
-
-        None
 
         OUTPUT:
 
@@ -1428,14 +1314,6 @@ class Sandpile(DiGraph):
         """
         Computes ``_recurrents``, the variable holding the list of recurrent
         configurations, when ``recurrents()`` is first called by a user.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -1514,14 +1392,6 @@ class Sandpile(DiGraph):
         Computes ``_superstables``, the variable holding the list of superstable
         configurations, when ``superstables()`` is first called by a user.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Diamond()
@@ -1581,14 +1451,6 @@ class Sandpile(DiGraph):
         r"""
         A minimal list of generators for the sandpile group.
 
-        INPUT:
-
-        None
-
-        OUTPUT
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Cycle(3)
@@ -1638,10 +1500,6 @@ class Sandpile(DiGraph):
         r"""
         The genus: (# non-loop edges) - (# vertices) + 1.  Only defined for undirected graphs.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         integer
@@ -1663,10 +1521,6 @@ class Sandpile(DiGraph):
         Is the underlying graph undirected?  ``True`` if `(u,v)` is and edge if
         and only if `(v,u)` is an edge, each edge with the same weight.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         boolean
@@ -1685,14 +1539,6 @@ class Sandpile(DiGraph):
         r"""
         Computes the minimal recurrent elements.  If the underlying graph is
         undirected, these are the recurrent elements of least degree.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -1790,10 +1636,6 @@ class Sandpile(DiGraph):
         r"""
         The Tutte polynomial.  Only defined for undirected sandpile graphs.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         polynomial
@@ -1817,14 +1659,6 @@ class Sandpile(DiGraph):
     def _set_avalanche_polynomial(self):
         """
         Compute the avalanche polynomial.  See ``self.avalanche_polynomial`` for details.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         Examples::
 
@@ -1944,10 +1778,6 @@ class Sandpile(DiGraph):
         The canonical divisor.  This is the divisor with `\deg(v)-2` grains of
         sand on each vertex (not counting loops).  Only for undirected graphs.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         SandpileDivisor
@@ -1975,14 +1805,6 @@ class Sandpile(DiGraph):
         Computes the variable holding the elementary divisors of the sandpile
         group when ``invariant_factors()`` is first called by the user.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Grid(2,2)
@@ -1998,10 +1820,6 @@ class Sandpile(DiGraph):
     def invariant_factors(self):
         r"""
         The invariant factors of the sandpile group.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2021,14 +1839,6 @@ class Sandpile(DiGraph):
         homogeneous toppling ideal, the first differences of the Hilbert
         function, and the postulation number for the zero-set of the sandpile
         ideal when any one of these is called by the user.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -2051,10 +1861,6 @@ class Sandpile(DiGraph):
         this is the list of first differences of the Hilbert function of the
         (homogeneous) toppling ideal.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         list of nonnegative integers
@@ -2073,10 +1879,6 @@ class Sandpile(DiGraph):
     def hilbert_function(self):
         r"""
         The Hilbert function of the homogeneous toppling ideal.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2097,10 +1899,6 @@ class Sandpile(DiGraph):
         The postulation number of the toppling ideal.  This is the
         largest weight of a superstable configuration of the graph.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         nonnegative integer
@@ -2117,14 +1915,6 @@ class Sandpile(DiGraph):
         r"""
         Compute the Smith Normal Form for the transpose of the Laplacian.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
@@ -2140,10 +1930,6 @@ class Sandpile(DiGraph):
         matrices `D, U, V` such that `ULV = D` where `L` is the transpose of the
         Laplacian, `D` is diagonal, and  `U` and `V` are invertible over the
         integers.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2168,10 +1954,6 @@ class Sandpile(DiGraph):
         A copy of the sandpile with vertex names permuted.  After reordering,
         vertex `u` comes before vertex `v` in the list of vertices if `u` is
         closer to the sink.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2209,14 +1991,6 @@ class Sandpile(DiGraph):
     def _set_jacobian_representatives(self):
         r"""
         Find representatives for the elements of the Jacobian group.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES:
 
@@ -2504,14 +2278,6 @@ class Sandpile(DiGraph):
         r"""
         Set the stationary density of the sandpile.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
@@ -2540,10 +2306,6 @@ class Sandpile(DiGraph):
     def stationary_density(self):
         r"""
         The stationary density of the sandpile.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2597,10 +2359,6 @@ class Sandpile(DiGraph):
         r"""
         The all-zero divisor.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         SandpileDivisor
@@ -2616,14 +2374,6 @@ class Sandpile(DiGraph):
     def _set_betti_complexes(self):
         r"""
         Compute the value return by the ``betti_complexes`` method.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -2654,10 +2404,6 @@ class Sandpile(DiGraph):
     def betti_complexes(self):
         r"""
         The support-complexes with non-trivial homology.  (See NOTE.)
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2726,14 +2472,6 @@ class Sandpile(DiGraph):
         r"""
         Set up polynomial ring for the sandpile.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Complete(4)
@@ -2772,14 +2510,6 @@ class Sandpile(DiGraph):
         r"""
         Create the saturated lattice ideal for the sandpile.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -2794,10 +2524,6 @@ class Sandpile(DiGraph):
     def unsaturated_ideal(self):
         r"""
         The unsaturated, homogeneous toppling ideal.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -2845,10 +2571,6 @@ class Sandpile(DiGraph):
         r"""
         The ring containing the homogeneous toppling ideal.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         ring
@@ -2873,14 +2595,6 @@ class Sandpile(DiGraph):
     def _set_resolution(self):
         r"""
         Compute the free resolution of the homogeneous toppling ideal.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -2962,14 +2676,6 @@ class Sandpile(DiGraph):
         Computes a Groebner basis for the homogeneous toppling ideal with
         respect to the standard sandpile ordering (see ``ring``).
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -2983,10 +2689,6 @@ class Sandpile(DiGraph):
         r"""
         A Groebner basis for the homogeneous toppling ideal.  It is computed
         with respect to the standard sandpile ordering (see ``ring``).
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3039,10 +2741,6 @@ class Sandpile(DiGraph):
         Approximations of the complex affine zeros of the sandpile
         ideal.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         list of complex numbers
@@ -3088,14 +2786,6 @@ class Sandpile(DiGraph):
         Generators for the multiplicative group of zeros of the sandpile
         ideal.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -3117,10 +2807,6 @@ class Sandpile(DiGraph):
         r"""
         Generators for the multiplicative group of zeros of the sandpile
         ideal.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3335,10 +3021,6 @@ class SandpileConfig(dict):
 
         ``memo`` -- (optional) dict
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -3361,10 +3043,6 @@ class SandpileConfig(dict):
         INPUT:
 
         ``key``, ``item`` -- objects
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -3397,10 +3075,6 @@ class SandpileConfig(dict):
         INPUT:
 
         ``name`` -- name of an internal method
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 
@@ -3435,10 +3109,6 @@ class SandpileConfig(dict):
         r"""
         Compute and store the degree of the configuration.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         integer
@@ -3456,10 +3126,6 @@ class SandpileConfig(dict):
     def deg(self):
         r"""
         The degree of the configuration.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3557,10 +3223,6 @@ class SandpileConfig(dict):
     def __neg__(self):
         r"""
         The additive inverse of the configuration.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3835,10 +3497,6 @@ class SandpileConfig(dict):
         r"""
         The configuration's underlying sandpile.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         Sandpile
@@ -3858,10 +3516,6 @@ class SandpileConfig(dict):
         r"""
         The values of the configuration as a list.  The list is sorted in the
         order of the vertices.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3885,10 +3539,6 @@ class SandpileConfig(dict):
     def dualize(self):
         r"""
         The difference with the maximal stable configuration.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -3973,10 +3623,6 @@ class SandpileConfig(dict):
         r"""
         The unstable vertices.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         list of vertices
@@ -3994,10 +3640,6 @@ class SandpileConfig(dict):
     def fire_unstable(self):
         r"""
         Fire all unstable vertices.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -4021,14 +3663,6 @@ class SandpileConfig(dict):
     def _set_stabilize(self):
         r"""
         Computes the stabilized configuration and its firing vector.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -4091,10 +3725,6 @@ class SandpileConfig(dict):
         r"""
         The stabilized configuration.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         ``SandpileConfig``
@@ -4113,10 +3743,6 @@ class SandpileConfig(dict):
     def support(self):
         r"""
         The vertices containing sand.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -4218,10 +3844,6 @@ class SandpileConfig(dict):
         r"""
         The order of the equivalent recurrent element.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         integer
@@ -4250,10 +3872,6 @@ class SandpileConfig(dict):
         r"""
         Is the configuration stable?
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         boolean
@@ -4277,14 +3895,6 @@ class SandpileConfig(dict):
         r"""
         Sets the equivalent recurrent configuration and the corresponding
         firing vector.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -4351,14 +3961,6 @@ class SandpileConfig(dict):
         r"""
         Computes and stores whether the configuration is recurrent.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Diamond()
@@ -4381,10 +3983,6 @@ class SandpileConfig(dict):
         r"""
         Is the configuration recurrent?
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         boolean
@@ -4403,10 +4001,6 @@ class SandpileConfig(dict):
         r"""
         Sets the superstable configuration equivalent to the given
         configuration and its corresponding firing vector.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -4466,10 +4060,6 @@ class SandpileConfig(dict):
         r"""
         Computes and stores whether ``config`` is superstable.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         boolean
@@ -4492,10 +4082,6 @@ class SandpileConfig(dict):
     def is_superstable(self):
         r"""
         Is the configuration superstable?
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -4594,11 +4180,6 @@ class SandpileConfig(dict):
         - ``directed`` -- (optional) whether to draw directed edges
 
         - ``kwds`` -- (optional) arguments passed to the show method for Graph
-
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -4783,10 +4364,6 @@ class SandpileDivisor(dict):
 
         memo -- (optional) dict
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Cycle(6)
@@ -4809,10 +4386,6 @@ class SandpileDivisor(dict):
         INPUT:
 
         ``key``, ``item`` -- objects
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -4851,10 +4424,6 @@ class SandpileDivisor(dict):
         INPUT:
 
         ``name`` -- name of an internal method
-
-        OUTPUT:
-
-        None.
 
         EXAMPLES::
 
@@ -4910,10 +4479,6 @@ class SandpileDivisor(dict):
         r"""
         Compute and store the degree of the divisor.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         integer
@@ -4931,10 +4496,6 @@ class SandpileDivisor(dict):
     def deg(self):
         r"""
         The degree of the divisor.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5102,10 +4663,6 @@ class SandpileDivisor(dict):
         r"""
         The additive inverse of the divisor.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         SandpileDivisor
@@ -5241,10 +4798,6 @@ class SandpileDivisor(dict):
         r"""
         The divisor's underlying sandpile.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         Sandpile
@@ -5264,10 +4817,6 @@ class SandpileDivisor(dict):
         r"""
         The values of the divisor as a list.  The list is sorted in the order of
         the vertices.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5291,10 +4840,6 @@ class SandpileDivisor(dict):
     def dualize(self):
         r"""
         The difference with the maximal stable divisor.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5374,10 +4919,6 @@ class SandpileDivisor(dict):
         r"""
         The unstable vertices.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         list of vertices
@@ -5395,10 +4936,6 @@ class SandpileDivisor(dict):
     def fire_unstable(self):
         r"""
         Fire all unstable vertices.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5421,14 +4958,6 @@ class SandpileDivisor(dict):
     def _set_q_reduced(self):
         r"""
         The linearly equivalent `q`-reduced divisor.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -5480,10 +5009,6 @@ class SandpileDivisor(dict):
         r"""
         Is the divisor `q`-reduced?  This would mean that `self = c + kq` where
         `c` is superstable, `k` is an integer, and `q` is the sink vertex.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5638,10 +5163,6 @@ class SandpileDivisor(dict):
         r"""
         Computes and stores the complete linear system of a divisor.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         dict - ``{num_homog: int, homog:list, num_inhomog:int, inhomog:list}``
@@ -5739,10 +5260,6 @@ class SandpileDivisor(dict):
         r"""
         The complete linear system (deprecated: use ``polytope_integer_pts``).
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         dict - ``{num_homog: int, homog:list, num_inhomog:int, inhomog:list}``
@@ -5780,14 +5297,6 @@ class SandpileDivisor(dict):
         r"""
         Compute the polyhedron determining the linear system for D.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
@@ -5804,10 +5313,6 @@ class SandpileDivisor(dict):
     def polytope(self):
         r"""
         The polytope determinining the complete linear system.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -5843,14 +5348,6 @@ class SandpileDivisor(dict):
         Record the integer lattice points inside the polytope determining the
         complete linear system (see the documentation for ``polytope``).
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
@@ -5867,13 +5364,9 @@ class SandpileDivisor(dict):
         here is the one determining the divisor's complete linear system (see the
         documentation for ``polytope``).
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
-        None
+        tuple of integer vectors
 
         EXAMPLES::
 
@@ -5895,14 +5388,6 @@ class SandpileDivisor(dict):
     def _set_effective_div(self):
         r"""
         Compute all of the linearly equivalent effective divisors linearly.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -6001,10 +5486,6 @@ class SandpileDivisor(dict):
         INPUT:
 
         ``verbose`` -- (default: ``False``)  boolean
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -6138,10 +5619,6 @@ class SandpileDivisor(dict):
         INPUT:
 
         ``verbose`` -- (default: ``False``) boolean
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -6345,14 +5822,6 @@ class SandpileDivisor(dict):
         r"""
         Tuple of Weierstrass vertices.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Diamond()
@@ -6398,10 +5867,6 @@ class SandpileDivisor(dict):
         r"""
         List of vertices at which the divisor is nonzero.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         list representing the support of the divisor
@@ -6421,14 +5886,6 @@ class SandpileDivisor(dict):
         r"""
         Computes the simplicial complex determined by the supports of the
         linearly equivalent effective divisors.
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -6465,10 +5922,6 @@ class SandpileDivisor(dict):
         r"""
         The support-complex. (See NOTE.)
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         simplicial complex
@@ -6494,10 +5947,6 @@ class SandpileDivisor(dict):
     def betti(self):
         r"""
         The Betti numbers for the support-complex.  (See NOTE.)
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -6591,14 +6040,6 @@ class SandpileDivisor(dict):
         `D_i` by firing all unstable vertices of `D_i` stabilize?  If so,
         save the resulting cycle, otherwise save ``[]``.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: S = sandpiles.Complete(4)
@@ -6653,14 +6094,6 @@ class SandpileDivisor(dict):
         r"""
         The stabilization of the divisor.  If not stabilizable, return an error.
 
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Diamond()
@@ -6690,10 +6123,6 @@ class SandpileDivisor(dict):
 
         ``with_firing_vector`` -- (default: ``False``) boolean
 
-        OUTPUT:
-
-        None
-
         EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
@@ -6719,10 +6148,6 @@ class SandpileDivisor(dict):
         - ``directed`` -- (optional) whether to draw directed edges
 
         - ``kwds`` -- (optional) arguments passed to the show method for Graph
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 

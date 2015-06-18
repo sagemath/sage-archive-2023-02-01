@@ -127,6 +127,8 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
     We plot a histogram::
 
         sage: from sage.stats.distributions.discrete_gaussian_lattice import DiscreteGaussianDistributionLatticeSampler
+        sage: import warnings
+        sage: warnings.simplefilter('ignore', UserWarning)
         sage: D = DiscreteGaussianDistributionLatticeSampler(identity_matrix(2), 3.0)
         sage: S = [D() for _ in range(2^12)]
         sage: l = [vector(v.list() + [S.count(v)]) for v in set(S)]

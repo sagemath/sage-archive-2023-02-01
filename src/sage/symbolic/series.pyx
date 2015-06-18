@@ -76,6 +76,14 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 cdef class SymbolicSeries(Expression):
     def __init__(self, SR):
+        """
+        Trivial constructor.
+
+        EXAMPLES::
+
+            sage: loads(dumps((x+x^3).series(x,2)))
+            1*x + Order(x^2)
+        """
         Expression.__init__(self, SR, 0)
         self._parent = SR
 

@@ -276,19 +276,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         I = self.gens()
         index_list = range(len(I))
 
-        level_set_cur   = set([ (self.one(), tuple()) ])
+        level_set_cur   = [ (self.one(), tuple()) ]
         level_set_old   = set([ self.one() ] )
         it = 0
         while level_set_cur:
             it += 1
-            level_set_new = set()
+            level_set_new = []
             for x, word in level_set_cur:
                 yield x, word
                 for i in index_list:
                     y = x._mul_(I[i])
                     if y not in level_set_old:
                         level_set_old.add(y)
-                        level_set_new.add((y,word+tuple([i])))
+                        level_set_new.append((y,word+tuple([i])))
             level_set_cur = level_set_new
 
     def store_elements(self,store=True):

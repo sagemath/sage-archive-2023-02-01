@@ -218,6 +218,16 @@ class RealReflectionGroup(ComplexReflectionGroup):
             In order to save space, the fact that the right weak order
             is graded is used.
 
+        .. TODO::
+
+            This algorithm could be still much optimized:
+
+            - the right weak order is self-dual under the action of the
+              longest element, so one only needs to search through the
+              first half.
+
+            - the coset decomposition used in chevie is much quicker.
+
         EXAMPLES::
 
             sage: tba

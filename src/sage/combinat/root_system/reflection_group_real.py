@@ -223,7 +223,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         I = self.gens()
         index_list = range(len(I))
 
-        level_set_old   = set(                      )
+        level_set_old   = set(                         )
         level_set_cur   = set([ (self.one(), tuple()) ])
         while level_set_cur:
             level_set_new = set()

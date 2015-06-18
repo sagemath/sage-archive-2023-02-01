@@ -216,13 +216,42 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 self._elements.append(w)
                 yield w
 
-    def _iterator_tracking_words(self):
+    # This is the default implementation for any group with generators
+    # I leave it here in case it is needed at some point.
+    #def _iterator_tracking_words(self):
+        #I = self.gens()
+        #index_list = range(len(I))
+        #elements = [ (self.one(),tuple()) ]
+        #elements_set = set( x[0] for x in elements )
+        #while elements:
+            #x,word = elements.pop()
+            #yield x,word
+            #for i in index_list:
+                #y = x._mul_(I[i])
+                #if y not in elements_set:
+                    #elements.append((y,word+tuple([i])))
+                    #elements_set.add(y)
+
+    def _iterator_tracking_words_new(self):
+        r"""
+        Return an iterator through the elements of ``self`` together
+        with the words in the simple generators.
+
+        The iterator is a breadth first search through the graph of the
+        elements of the group with generators.
+
+        EXAMPLES::
+
+            sage: tba
+        """
         I = self.gens()
         index_list = range(len(I))
 
-        level_set_old   = set(                      )
         level_set_cur   = set([ (self.one(), tuple()) ])
+        level_set_old   = set([ self.one() ] )
+        it = 0
         while level_set_cur:
+            it += 1
             level_set_new = set()
             for x, word in level_set_cur:
                 yield x, word
@@ -231,7 +260,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                     if y not in level_set_old:
                         level_set_old.add(y)
                         level_set_new.add((y,word+tuple([i])))
-            level_set_old = set( elt[0] for elt in level_set_cur )
             level_set_cur = level_set_new
 
     __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__

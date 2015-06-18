@@ -8274,7 +8274,9 @@ class GenericGraph(GenericGraph_pyx):
             graph library is not reliable. The result could be wrong.
             [1, [[0, 1]], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
 
-        However, Boost algorithm still contains bugs if the input is directed::
+        However, the Boost algorithm is not reliable if the input is directed
+        (see https://svn.boost.org/trac/boost/ticket/11406 for
+        more information)::
 
             sage: g = digraphs.Path(3)
             sage: g.edge_connectivity()

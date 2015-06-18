@@ -41,14 +41,14 @@ cdef extern from "boost_interface.cpp":
         int num_edges()
         result_ec edge_connectivity()
         pass
-    
+
 ctypedef BoostGraph[vecS, vecS, undirectedS, vecS] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS] BoostVecDiGraph
-    
+
 ctypedef fused BoostVecGenGraph:
     BoostVecGraph
     BoostVecDiGraph
-        
+
 ctypedef fused BoostGenGraph:
     BoostVecGraph
     BoostVecDiGraph

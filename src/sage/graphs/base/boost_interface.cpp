@@ -24,13 +24,16 @@ class BoostGraph
 /*
  * This generic class wraps a Boost graph, in order to make it Cython-friendly.
  *
+ * In particular, it allows to "keep together" the Boost graph and the vector
+ * *vertices: these two variables are generic, and Cython is not able to deal
+ * with them properly, since it does not support generic classes.
+ *
  * Vertices are numbers from 0 to n-1, where n is the total number of vertices:
  * this class takes care of the relation between number i and the corresponding
  * Boost vertex descriptor (which might be any object, depending on the value of
- * VertexListS).
- * In particular, (*vertices)[i] contains the Boost vertex corresponding to number
- * i, while to transform a Boost vertex v into a number we use vertex properties,
- * and the syntax is (*graph)[v].
+ * VertexListS). In particular, (*vertices)[i] contains the Boost vertex
+ * corresponding to number i, while to transform a Boost vertex v into a number
+ * we use vertex properties, and the syntax is (*graph)[v].
 */
 {
     typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
@@ -64,6 +67,8 @@ public:
     void add_vertex() {
         (*vertices).push_back(boost::add_vertex((*vertices).size(), *graph));
     }
+
+
 
     void add_edge(int u, int v) {
         boost::add_edge((*vertices)[u], (*vertices)[v], *graph);

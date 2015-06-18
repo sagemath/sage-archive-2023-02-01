@@ -2824,9 +2824,6 @@ cdef class BinaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = GF2_zero
         self._one = GF2_one
 
@@ -3516,9 +3513,9 @@ cdef class BinaryMatroid(LinearMatroid):
         2-separations especially), it is easy to implement.
         """
         global GF2
+        cdef int r, c
         B= self.basis()
-        Bl = [e for e in B]
-        C = [self._cocircuit((self.groundset() - B) | set([e])) for e in Bl]
+        C = [self._fundamental_cocircuit(B,e) for e in B]
 
         c = 1
         col = {}
@@ -3527,36 +3524,27 @@ cdef class BinaryMatroid(LinearMatroid):
                 if e is not f:
                     col[e, f] = c
                     c += 1
-        M = {}
+        M = []
         r = 0
         for e in xrange(len(B)):
             for f in xrange(e):
                 for g in xrange(f):
                     if not C[e].issuperset(C[f] & C[g]):
-                        M[(r, col[e, f])] = 1
-                        M[(r, col[e, g])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[e,f], col[e,g]])
                         r += 1
                     if not C[f].issuperset(C[e] & C[g]):
-                        M[(r, col[f, e])] = 1
-                        M[(r, col[f, g])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[f,e], col[f,g]])
                         r += 1
                     if not C[g].issuperset(C[e] & C[f]):
-                        M[(r, col[g, e])] = 1
-                        M[(r, col[g, f])] = 1
-                        M[(r, 0)] = 0
+                        M.append([col[g,e], col[g,f]])
                         r += 1
                     if len(C[e] & C[f] & C[g]) > 0:
-                        M[(r, col[e, f])] = 1
-                        M[(r, col[e, g])] = 1
-                        M[(r, col[f, e])] = 1
-                        M[(r, col[f, g])] = 1
-                        M[(r, col[g, e])] = 1
-                        M[(r, col[g, f])] = 1
-                        M[(r, 0)] = 1
+                        M.append([0,col[e,f], col[e,g], col[f,e], col[f,g], col[g,e], col[g,f]])
                         r += 1
-        m = sage.matrix.constructor.Matrix(GF2, r, c, M)
+        cdef BinaryMatrix m = BinaryMatrix(r,c)
+        for r in range(len(M)):
+            for c in M[r]:
+                m.set(r,c)
         # now self is graphic iff there is a binary vector x so that M*x = 0 and x_0 = 1, so:
         return BinaryMatroid(m).corank(frozenset([0])) > 0
 
@@ -3876,9 +3864,6 @@ cdef class TernaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = GF3_zero
         self._one = GF3_one
         self._two = GF3_minus_one
@@ -4694,9 +4679,6 @@ cdef class QuaternaryMatroid(LinearMatroid):
             for r from 0 <= r < self._A.nrows():
                 self._prow[r] = r
 
-        L = []
-        for i from 0 <= i < self._A.ncols():
-            L.append(self._prow[i])
         self._zero = (<QuaternaryMatrix>self._A)._zero
         self._one = (<QuaternaryMatrix>self._A)._one
         self._x_zero = (<QuaternaryMatrix>self._A)._x_zero

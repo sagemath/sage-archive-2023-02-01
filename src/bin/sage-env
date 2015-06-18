@@ -426,7 +426,7 @@ if ! [ -f "$R_MAKEVARS_SITE" ] ; then
     if ! [ -a "$R_MAKEVARS_SITE" ] ; then
 	echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
     else
-	>&2 "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+	>&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
     fi
 fi
 R_MAKEVARS_USER="$DOT_SAGE/SagesRMakevars.user" && export R_MAKEVARS_USER
@@ -434,7 +434,7 @@ if ! [ -f "$R_MAKEVARS_USER" ] ; then
     if ! [ -a "$R_MAKEVARS_USER" ] ; then
 	echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
     else
-	>&2 "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
+	>&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
     fi
 fi
 

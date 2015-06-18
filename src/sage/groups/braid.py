@@ -61,7 +61,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
+import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
@@ -1197,7 +1197,7 @@ def BraidGroup(n=None, names='s'):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             n = len(names.split(','))
         else:
             names = list(names)

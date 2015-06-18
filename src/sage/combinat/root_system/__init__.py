@@ -35,6 +35,7 @@ Cartan datum
 - :ref:`sage.combinat.root_system.dynkin_diagram`
 - :ref:`sage.combinat.root_system.cartan_matrix`
 - :ref:`sage.combinat.root_system.coxeter_matrix`
+- :ref:`sage.combinat.root_system.coxeter_type`
 
 Root systems
 ------------

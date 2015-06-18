@@ -128,7 +128,11 @@ class SageSpawn(spawn):
         cdef int fd = self.child_fd
         if fd != -1:
             if self.quit_string is not None:
-                self.sendline(self.quit_string)
+                try:
+                    # This can fail if the process already exited
+                    self.sendline(self.quit_string)
+                except OSError:
+                    pass
             close(fd)
             self.child_fd = -1
             self.closed = 1

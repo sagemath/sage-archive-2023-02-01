@@ -105,6 +105,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         self._reflection_index_set = reflection_index_set
 
         self._elements = None
+        self._store_elements = False
         self._conjugacy_classes = {}
         self._conjugacy_classes_representatives = None
         self._reflection_representation = None
@@ -209,12 +210,14 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             for w in self._elements:
                 yield w
         else:
-            self._elements = []
+            if self._store_elements:
+                self._elements = []
             inv_dict = dict( (self._index_set[i],i) for i in self._index_set.keys() )
             for w,word in self._iterator_tracking_words():
                 if w._reduced_word is None:
                     w._reduced_word = [inv_dict[i] for i in word]
-                self._elements.append(w)
+                if self._store_elements:
+                    self._elements.append(w)
                 yield w
 
     # This is the default implementation for any group with generators
@@ -233,7 +236,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                     #elements.append((y,word+tuple([i])))
                     #elements_set.add(y)
 
-    def _iterator_tracking_words_new(self):
+    def _iterator_tracking_words(self):
         r"""
         Return an iterator through the elements of ``self`` together
         with the words in the simple generators.
@@ -243,7 +246,32 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: tba
+            sage: W = ReflectionGroup(4)
+            sage: for w in W._iterator_tracking_words(): print w
+            ((), ())
+            ((1,5,13)(2,6,10)(3,7,14)(4,8,15)(9,16,22)(11,12,17)(18,19,23)(20,21,24), (1,))
+            ((1,3,9)(2,4,7)(5,10,18)(6,11,16)(8,12,19)(13,15,20)(14,17,21)(22,23,24), (0,))
+            ((1,9,3)(2,7,4)(5,18,10)(6,16,11)(8,19,12)(13,20,15)(14,21,17)(22,24,23), (0, 0))
+            ((1,10,4,12,21,22)(2,11,19,24,13,3)(5,15,7,17,16,23)(6,18,8,20,14,9), (1, 0))
+            ((1,13,5)(2,10,6)(3,14,7)(4,15,8)(9,22,16)(11,17,12)(18,23,19)(20,24,21), (1, 1))
+            ((1,7,6,12,23,20)(2,8,17,24,9,5)(3,16,10,19,15,21)(4,14,11,22,18,13), (0, 1))
+            ((1,2,12,24)(3,6,19,20)(4,17,22,5)(7,11,23,13)(8,21,9,10)(14,16,18,15), (1, 0, 1))
+            ((1,14,12,18)(2,15,24,16)(3,22,19,4)(5,6,17,20)(7,10,23,21)(8,11,9,13), (0, 1, 1))
+            ((1,15,12,16)(2,18,24,14)(3,17,19,5)(4,20,22,6)(7,9,23,8)(10,11,21,13), (1, 1, 0))
+            ((1,16,12,15)(2,14,24,18)(3,5,19,17)(4,6,22,20)(7,8,23,9)(10,13,21,11), (0, 0, 1))
+            ((1,18,12,14)(2,16,24,15)(3,4,19,22)(5,20,17,6)(7,21,23,10)(8,13,9,11), (1, 0, 0))
+            ((1,4,21)(2,19,13)(3,11,24)(5,7,16)(6,8,14)(9,18,20)(10,12,22)(15,17,23), (1, 0, 1, 0))
+            ((1,17,13,12,5,11)(2,20,10,24,6,21)(3,23,14,19,7,18)(4,9,15,22,8,16), (0, 1, 1, 0))
+            ((1,6,23)(2,17,9)(3,10,15)(4,11,18)(5,8,24)(7,12,20)(13,14,22)(16,19,21), (1, 0, 1, 1))
+            ((1,19,9,12,3,8)(2,22,7,24,4,23)(5,21,18,17,10,14)(6,13,16,20,11,15), (1, 0, 0, 1))
+            ((1,20,23,12,6,7)(2,5,9,24,17,8)(3,21,15,19,10,16)(4,13,18,22,11,14), (1, 1, 0, 0))
+            ((1,22,21,12,4,10)(2,3,13,24,19,11)(5,23,16,17,7,15)(6,9,14,20,8,18), (0, 0, 1, 1))
+            ((1,8,3,12,9,19)(2,23,4,24,7,22)(5,14,10,17,18,21)(6,15,11,20,16,13), (1, 0, 1, 0, 1))
+            ((1,21,4)(2,13,19)(3,24,11)(5,16,7)(6,14,8)(9,20,18)(10,22,12)(15,23,17), (0, 1, 1, 0, 0))
+            ((1,11,5,12,13,17)(2,21,6,24,10,20)(3,18,7,19,14,23)(4,16,8,22,15,9), (0, 1, 1, 0, 1))
+            ((1,23,6)(2,9,17)(3,15,10)(4,18,11)(5,24,8)(7,20,12)(13,22,14)(16,21,19), (1, 0, 0, 1, 1))
+            ((1,12)(2,24)(3,19)(4,22)(5,17)(6,20)(7,23)(8,9)(10,21)(11,13)(14,18)(15,16), (1, 0, 1, 0, 1, 0))
+            ((1,24,12,2)(3,20,19,6)(4,5,22,17)(7,13,23,11)(8,10,9,21)(14,15,18,16), (0, 1, 1, 0, 0, 1))
         """
         I = self.gens()
         index_list = range(len(I))
@@ -262,6 +290,33 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                         level_set_old.add(y)
                         level_set_new.add((y,word+tuple([i])))
             level_set_cur = level_set_new
+
+    def store_elements(self,store=True):
+        r"""
+        Set a flag whether or not to store the elements of ``self``
+        when iterating through ``self``.
+
+        INPUT:
+
+        - ``store`` -- (optional, default: ``True) Boolean whether or
+          not to store the elements of ``self`` on iteration.
+
+        This can be useful for faster iterations later on.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((1,1,3))
+            sage: for w in W: pass
+            sage: W._elements is None
+            True
+            sage: W._store_elements
+            False
+            sage: W.store_elements()
+            sage: for w in W: pass
+            sage: len(W._elements) == W.cardinality()
+            True
+        """
+        self._store_elements = store
 
     __len__ = ComplexReflectionGroups.Finite.ParentMethods.cardinality.__func__
 
@@ -1248,29 +1303,29 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: for w in W:
                 ....:   print w.reduced_word(), w.length()
                  0
-                0 1
                 1 1
+                0 1
                 00 2
-                01 2
                 10 2
                 11 2
-                001 3
-                010 3
+                01 2
+                101 3
                 011 3
-                100 3
                 110 3
-                0010 4
-                0011 4
-                0100 4
+                001 3
+                100 3
+                1010 4
                 0110 4
+                1011 4
                 1001 4
                 1100 4
-                00100 5
-                00110 5
-                01001 5
+                0011 4
+                10101 5
                 01100 5
-                001001 6
-                001100 6
+                01101 5
+                10011 5
+                101010 6
+                011001 6
             """
             return len( self.reduced_word() )
 
@@ -1380,28 +1435,28 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 ....:     print w.reduced_word()
                 ....:     print w.fix_space()
                 <BLANKLINE>
-                Vector space of degree 2 and dimension 2 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 2 over Rational Field
                 Basis matrix:
                 [1 0]
                 [0 1]
                 0
-                Vector space of degree 2 and dimension 1 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 1 over Rational Field
                 Basis matrix:
                 [0 1]
                 1
-                Vector space of degree 2 and dimension 1 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 1 over Rational Field
                 Basis matrix:
                 [1 0]
                 01
-                Vector space of degree 2 and dimension 0 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 0 over Rational Field
                 Basis matrix:
                 []
                 10
-                Vector space of degree 2 and dimension 0 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 0 over Rational Field
                 Basis matrix:
                 []
                 010
-                Vector space of degree 2 and dimension 1 over Universal Cyclotomic Field
+                Vector space of degree 2 and dimension 1 over Rational Field
                 Basis matrix:
                 [ 1 -1]
 
@@ -1429,8 +1484,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [1/3, 0]
                 [2/3, 0]
                 [1/6, 1/2]
-                [1/6, 1/2]
                 [2/3, 0]
+                [1/6, 1/2]
                 [1/4, 3/4]
                 [1/4, 3/4]
                 [1/4, 3/4]
@@ -1462,18 +1517,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 sage: for w in W: print w.galois_conjugates()
                 [[1 0]
                 [0 1]]
-                [[   1    0]
-                [   0 E(3)], [     1      0]
-                [     0 E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
                 [ 2/3*E(3) + 4/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
+                [[   1    0]
+                [   0 E(3)], [     1      0]
+                [     0 E(3)^2]]
                 [[     1      0]
                 [     0 E(3)^2], [   1    0]
                 [   0 E(3)]]
-                [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                 [ 4/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
@@ -1481,50 +1533,53 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 [ 2/3*E(3) + 4/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
+                [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                 [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
-                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                 [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]]
-                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
-                [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
-                [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
-                [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
-                [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
-                [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
+                [[ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
+                [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
+                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                [ 4/3*E(3) + 2/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]]
                 [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                 [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                 [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
                 [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
                 [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
+                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
+                [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
+                [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]]
                 [[   -1     0]
                 [    0 -E(3)], [     -1       0]
                 [      0 -E(3)^2]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                 [ 2/3*E(3) + 4/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                 [ 4/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
-                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
-                [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
-                [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
-                [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
+                [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]
+                [ 2/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]
+                [-2/3*E(3) + 2/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2]]
                 [[     -1       0]
                 [      0 -E(3)^2], [   -1     0]
                 [    0 -E(3)]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
                 [-4/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) + 1/3*E(3)^2]
                 [-2/3*E(3) - 4/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
+                [[ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                [-2/3*E(3) - 4/3*E(3)^2  2/3*E(3) + 1/3*E(3)^2], [-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                [-4/3*E(3) - 2/3*E(3)^2  1/3*E(3) + 2/3*E(3)^2]]
+                [[-1/3*E(3) + 1/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2]
+                [ 2/3*E(3) - 2/3*E(3)^2 -2/3*E(3) - 1/3*E(3)^2], [ 1/3*E(3) - 1/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]
+                [-2/3*E(3) + 2/3*E(3)^2 -1/3*E(3) - 2/3*E(3)^2]]
                 [[-1  0]
                 [ 0 -1]]
                 [[-1/3*E(3) + 1/3*E(3)^2  1/3*E(3) - 1/3*E(3)^2]
@@ -1858,6 +1913,126 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
                 sage: W = ReflectionGroup(23)
                 sage: for w in W: print w.reduced_word(), w.is_regular(W.coxeter_number())
+                 False
+                2 False
+                0 False
+                1 False
+                21 False
+                10 False
+                12 False
+                20 False
+                01 False
+                102 True
+                210 True
+                010 False
+                012 True
+                101 False
+                201 True
+                212 False
+                2010 False
+                1012 False
+                2101 False
+                0101 False
+                0102 False
+                2102 False
+                1021 False
+                0121 False
+                1010 False
+                10121 True
+                01012 False
+                10210 False
+                10120 False
+                21010 False
+                21012 False
+                20101 False
+                20102 False
+                01010 False
+                01021 False
+                21021 True
+                210210 False
+                102101 False
+                101210 False
+                010120 False
+                201021 False
+                210101 False
+                101201 False
+                010121 False
+                201012 False
+                210102 False
+                010210 False
+                210121 False
+                2010210 True
+                2101012 False
+                0101201 False
+                1021012 False
+                0101210 True
+                2010212 False
+                1012010 False
+                2102101 False
+                1012101 False
+                2102102 False
+                2101021 False
+                0102101 False
+                10121010 False
+                21010210 False
+                20102101 False
+                01021012 False
+                21010121 False
+                10210120 False
+                10120101 False
+                20102102 False
+                01012010 False
+                10210121 False
+                21021021 False
+                01012101 False
+                201021012 False
+                010121010 False
+                010120101 True
+                012010121 True
+                210210210 True
+                102101201 False
+                210102102 False
+                101201012 True
+                210102101 True
+                101210101 True
+                101210102 True
+                201021021 True
+                2010210121 False
+                2101021012 False
+                2102102102 False
+                2010210210 False
+                2102102101 False
+                0101201012 False
+                1012101021 False
+                0101210101 False
+                1012010120 False
+                2101021021 False
+                0101210102 False
+                20102101210 False
+                01012101021 True
+                01012010120 True
+                21010210120 True
+                21021021021 False
+                21010210121 True
+                20102102101 True
+                10121010212 False
+                10121010210 True
+                201021012101 False
+                210102101210 False
+                210210210210 False
+                010121010210 False
+                101210102120 False
+                010121010212 False
+                210102101201 False
+                2010210121010 False
+                2102102102102 True
+                0101210102102 False
+                2010210121012 True
+                1012101021201 False
+                01012101021021 False
+                20102101210102 False
+                21021021021021 False
+                210120101201010 False
             """
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
             for ev in evs:

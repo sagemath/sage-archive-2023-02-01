@@ -1192,10 +1192,10 @@ class ComplexReflectionGroups(Category_singleton):
                     sage: [ t.character_value() for t in W ]
                     [2, 0, 0, 0, 0, 0, 0, -2]
 
-                    sage: W = ReflectionGroup((3,1,2)); W
-                    Irreducible complex reflection group of rank 2 and type G(3,1,2)
+                    sage: W = ReflectionGroup((3,1,1)); W
+                    Irreducible complex reflection group of rank 1 and type G(3,1,1)
                     sage: [ t.character_value() for t in W ]
-                    [2, -E(3)^2, 0, -E(3), 0, 0, 0, 0, 0, -E(3)^2, 0, 0, 2*E(3), -E(3), 0, -1, -1, 2*E(3)^2]
+                    [1, E(3), E(3)^2]
                 """
                 return self.as_matrix().trace()
 

@@ -287,6 +287,7 @@ REFERENCES
 ..  [Oxley1] James Oxley, "Matroid theory", Oxford University Press, 1992.
 ..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
 ..  [Pen12] R. Pendavingh, On the evaluation at (-i, i) of the Tutte polynomial of a binary matroid. Preprint: http://arxiv.org/abs/1203.0910
+..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid representations over partial fields, Journal of Combinatorial Theory, Series B, Volume 100, Issue 1, January 2010, Pages 36–67
 
 AUTHORS:
 

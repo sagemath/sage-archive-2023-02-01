@@ -29,7 +29,7 @@ from sage.rings.all import ZZ, QQ, FiniteField, GF
 from sage.graphs.all import BipartiteGraph
 from pprint import pformat
 from sage.structure.all import SageObject
-
+from sage.rings.number_field.number_field import NumberField
 
 def setprint(X):
     """
@@ -389,6 +389,7 @@ def lift_cross_ratios(A, lift_map = None):
       ``lift_map[x]*lift_map[y] = lift_map[z]``
     - if ``x, y`` are keys of ``lift_map``, and ``x*y`` is not, then there is no key ``z`` 
       of ``lift_map`` such that ``lift_map[x]*lift_map[y] = lift_map[z]``
+
     Finally, there are global conditions on the target ring which depend on the matroid 
     ``M`` represented by ``[ I A ]``. If ``M`` has a Fano minor, then in the target ring we 
     must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must 
@@ -424,12 +425,7 @@ def lift_cross_ratios(A, lift_map = None):
         [-z + 1, z]
         sage: M.is_isomorphism(N, {e:e for e in M.groundset()})
         True
-    
-    REFERENCES
-    ==========
 
-    ..  [BPvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid representations over partial fields, 
-        Journal of Combinatorial Theory, Series B, Volume 100, Issue 1, January 2010, Pages 36–67    
     """
     from sage.graphs.graph import Graph
     
@@ -563,7 +559,6 @@ def lift_map(target):
         `(Q(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
 
     """
-    from sage.rings.number_field.number_field import NumberField
     if target == "reg":
         R = GF(3)
         return {R(1): ZZ(1)}

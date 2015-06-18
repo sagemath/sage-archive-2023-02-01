@@ -227,7 +227,7 @@ class SkewTableau(ClonableList):
             sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr([list(row) for row in self])
+        return repr(self.to_list())
 
     # See #18024. CombinatorialObject provided __str__, though ClonableList
     # doesn't. Emulate the old functionality. Possibly remove when
@@ -796,7 +796,7 @@ class SkewTableau(ClonableList):
             sage: st
             [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = [list(x) for x in self]
+        new_st = self.to_list()
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
@@ -887,6 +887,19 @@ class SkewTableau(ClonableList):
             inner_corners = rect.inner_shape().corners()
 
         return rect.to_tableau()
+
+    def to_list(self):
+        r"""
+        Returns a (mutable) list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: stlist = [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: SkewTableau(stlist).to_list() == stlist
+            True
+
+        """
+        return [list(row) for row in self]
 
     def standardization(self, check=True):
         r"""
@@ -1062,7 +1075,7 @@ class SkewTableau(ClonableList):
 
         # result_tab is going to be the result tableau (as a list of lists);
         # we will build it up step by step, starting with a deep copy of self.
-        result_tab = [list(row) for row in self]
+        result_tab = self.to_list()
         for i in rows:
             if i >= l:
                 continue
@@ -1516,6 +1529,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
                     st[i][j] = word[w_count]
                     w_count += 1
         return self.element_class(self, st)
+
 
 class StandardSkewTableaux(SkewTableaux):
     """

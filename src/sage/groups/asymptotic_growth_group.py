@@ -759,9 +759,9 @@ class GenericGrowthGroup(
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(G_ZZ._coerce_map_from_(G_QQ))
+            sage: bool(G_ZZ.has_coerce_map_from(G_QQ))  # indirect doctest
             False
-            sage: bool(G_QQ._coerce_map_from_(G_ZZ))
+            sage: bool(G_QQ.has_coerce_map_from(G_ZZ))  # indirect doctest
             True
         """
         if isinstance(S, GenericGrowthGroup):
@@ -1267,18 +1267,18 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P_x_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(P_x_ZZ._coerce_map_from_(P_x_QQ))
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
             False
-            sage: bool(P_x_QQ._coerce_map_from_(P_x_ZZ))
+            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
             True
             sage: P_y_ZZ = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: bool(P_y_ZZ._coerce_map_from_(P_x_ZZ))
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
             False
-            sage: bool(P_x_ZZ._coerce_map_from_(P_y_ZZ))
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
             False
-            sage: bool(P_y_ZZ._coerce_map_from_(P_x_QQ))
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
             False
-            sage: bool(P_x_QQ._coerce_map_from_(P_y_ZZ))
+            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
             False
         """
         if super(MonomialGrowthGroup, self)._coerce_map_from_(S):

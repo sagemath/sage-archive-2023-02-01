@@ -864,24 +864,24 @@ class NormalFormGame(SageObject, MutableMapping):
             utility_vector = [float(game[strategy_profile][i]) for i in range(len(self.players))]
             self.utilities[strategy_profile] = utility_vector
 
-    def _as_gambit_game(self, as_integer=False, maximization=True):
+    def _gambit_(self, as_integer=False, maximization=True):
         r"""
         Creates a Gambit game from a ``NormalFormGame`` object
 
         INPUT:
 
         - ``as_integer`` - Boolean value which states whether the gambit representation should have
-                           the payoffs represented as integers or decimals.
+          the payoffs represented as integers or decimals.
 
         - ``maximization`` - Whether a player is trying to maximize their
-                             utility or minimize it.
+          utility or minimize it.
 
         TESTS::
 
             sage: from gambit import Game
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: g = NormalFormGame([A])
-            sage: gg = g._as_gambit_game() # optional - gambit
+            sage: gg = g._gambit_() # optional - gambit
             sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
@@ -899,7 +899,7 @@ class NormalFormGame(SageObject, MutableMapping):
             1 2 3 4
             <BLANKLINE>
 
-            sage: gg = g._as_gambit_game(as_integer=True) # optional - gambit
+            sage: gg = g._gambit_(as_integer=True) # optional - gambit
             sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
@@ -921,7 +921,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: B = matrix([[3, 2], [5.5, 4]])
             sage: g = NormalFormGame([A, B])
-            sage: gg = g._as_gambit_game() # optional - gambit
+            sage: gg = g._gambit_() # optional - gambit
             sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
@@ -939,7 +939,7 @@ class NormalFormGame(SageObject, MutableMapping):
             1 2 3 4
             <BLANKLINE>
 
-            sage: gg = g._as_gambit_game(as_integer = True) # optional - gambit
+            sage: gg = g._gambit_(as_integer = True) # optional - gambit
             sage: gg # optional - gambit
             NFG 1 R "" { "1" "2" }
             <BLANKLINE>
@@ -1569,7 +1569,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: c._solve_LCP(maximization=True) # optional - gambit
             [[(0.0, 1.0), (0.0, 1.0)]]
         """
-        g = self._as_gambit_game(maximization)
+        g = self._gambit_(maximization)
         output = ExternalLCPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
@@ -1596,7 +1596,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if Game is None:
             raise NotImplementedError("gambit is not installed")
-        g = self._as_gambit_game(maximization = maximization)
+        g = self._gambit_(maximization = maximization)
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)

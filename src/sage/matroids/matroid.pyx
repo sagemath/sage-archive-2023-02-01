@@ -4782,6 +4782,8 @@ cdef class Matroid(SageObject):
         # build the table
         if not self.is_connected():
             return False
+        if(2*self.rank()>self.size()):
+            return self.dual()._is_3connected_shifting(certificate)
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
@@ -4823,7 +4825,8 @@ cdef class Matroid(SageObject):
     cpdef _is_4connected_shifting(self, certificate=False):
         if not self._is_3connected_shifting(self):
             return self._is_3connected_shifting(certificate)
-
+        if(2*self.rank()>self.size()):
+            return self.dual()._is_4connected_shifting(certificate)
         # build the table
         X = set(self.basis())
         Y = set(self.groundset()-X)

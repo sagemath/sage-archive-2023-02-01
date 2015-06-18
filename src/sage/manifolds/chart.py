@@ -352,7 +352,6 @@ class Chart(UniqueRepresentation, SageObject):
             xx_list.append(coord_var)
         self._xx = tuple(xx_list)
 
-
     def _repr_(self):
         r"""
         String representation of the object.
@@ -1968,7 +1967,6 @@ class CoordChange(SageObject):
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
 
         """
-        from sage.symbolic.ring import SR
         from sage.symbolic.relation import solve
         from sage.manifolds.utilities import simplify_chain_real, \
                                              simplify_chain_generic
@@ -2019,7 +2017,7 @@ class CoordChange(SageObject):
             list_x2_to_x1 = []
             for sol in solutions:
                 if x2[0] in sol:
-                    raise ValueError("(he system could not be solved; use " +
+                    raise ValueError("the system could not be solved; use " +
                                      "set_inverse() to set the inverse " +
                                      "manually")
                 x2_to_x1 = [sol[x1[i]].subs(substitutions) for i in range(n1)]

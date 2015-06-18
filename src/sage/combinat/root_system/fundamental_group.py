@@ -515,6 +515,18 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
         return iter(self.group_generators())
 
     @cached_method
+    def an_element(self):
+        r"""
+        Return an element of ``self``.
+
+        EXAMPLES::
+            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
+            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',4,1],prefix="f").an_element()
+            f[4]
+        """
+        return [x for x in self][-1]
+
+    @cached_method
     def index_set(self):
         r"""
         The node set of the affine Cartan type of ``self``.

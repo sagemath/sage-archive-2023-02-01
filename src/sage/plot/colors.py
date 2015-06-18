@@ -20,7 +20,7 @@ comprises the "official" W3C CSS3_ / SVG_ colors.
 For a list of color maps in Sage, evaluate::
 
     sage: sorted(colormaps)
-    ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', ...]
+    [u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', ...]
 
 These are imported from matplotlib's cm_ module.
 
@@ -1349,7 +1349,7 @@ def get_cmap(cmap):
     and color names.  For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        ['Accent', 'Accent_r', 'Blues', 'Blues_r', ...]
+        [u'Accent', u'Accent_r', u'Blues', u'Blues_r', ...]
 
     See :func:`rgbcolor` for valid list/tuple element formats.
 
@@ -1410,7 +1410,7 @@ class Colormaps(collections.MutableMapping):
     For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        ['Accent', 'Accent_r', 'Blues', 'Blues_r', ...]
+        [u'Accent', u'Accent_r', u'Blues', u'Blues_r', ...]
     """
     def __init__(self):
         """
@@ -1657,7 +1657,7 @@ class Colormaps(collections.MutableMapping):
             sage: maps = Colormaps()
             sage: count = len(maps)
             sage: maps.popitem()
-            ('Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
+            (u'Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
             sage: count - 1 == len(maps)
             True
         """

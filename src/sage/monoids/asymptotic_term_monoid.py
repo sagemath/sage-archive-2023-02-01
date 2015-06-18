@@ -1451,17 +1451,23 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P = atm.TermWithCoefficientMonoid(MG, ZZ)
             sage: t1 = P(x^2, 5); t1  # indirect doctest
             Asymptotic Term with coefficient 5 and growth x^2
 
         TESTS::
 
-            sage: P(x)
+            sage: P(5 * x^5)
+            Asymptotic Term with coefficient 5 and growth x^5
+            sage: P(MG.gen()^10)
             Traceback (most recent call last):
             ...
             ValueError: Coefficient is not specified. Cannot continue.
+            sage: P(MG.gen()^10, coefficient=10)
+            Asymptotic Term with coefficient 10 and growth x^10
+            sage: P(x^123)
+            Asymptotic Term with coefficient 1 and growth x^123
         """
         if type(data) == self.element_class and data.parent() == self:
             return data
@@ -1471,8 +1477,36 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             raise ValueError('No input specified. Cannot continue.')
         else:
             try:
-                data = self.growth_group()(data)
-                return self.element_class(self, data, coefficient)
+                if coefficient is not None:
+                    data = self.growth_group()(data)
+                    return self.element_class(self, data, coefficient)
+                else:
+                    P = data.parent()
+                    from sage.symbolic.ring import SR
+                    import operator
+                    if P is SR:
+                        if 'mul' in str(data.operator()):
+                            # in 6.7, mul in SR is mul_varargs from
+                            # sage.interfaces.maxima_lib. after a rebase to
+                            # sage 6.8, this comparison can be fixed to
+                            # --> if data.operator() == operator.mul
+                            data, coef_tmp = data.operands()
+                            data = self.growth_group()(data)
+                        elif data.operator() == operator.pow:
+                            coef_tmp = 1
+                            data = self.growth_group()(data)
+                    else:
+                        coeffs = data.coefficients()
+                        if type(coeffs) == list:
+                            # (multivariate) polynomial ring
+                            coef_tmp = coeffs[0]
+                            data = self.growth_group()(data / coef_tmp)
+                        elif type(coeffs) == dict:
+                            # power series ring
+                            coef_tmp = coeffs.values()[0]
+                            data = self.growth_group()(data / coef_tmp)
+
+                    return self.element_class(self, data, coef_tmp)
             except:
                 if coefficient is None:
                     raise ValueError('Coefficient is not specified. '
@@ -2018,6 +2052,23 @@ class ExactTerm(TermWithCoefficient):
         True
         sage: ET(x^2, 42).absorb(ET(x^2, -42)) is None
         True
+
+    Exact terms can also be created by converting monomials with
+    coefficient from the symbolic ring, or a suitable polynomial
+    or power series ring::
+
+        sage: x = var('x'); x.parent()
+        Symbolic Ring
+        sage: ET(5*x^2)
+        5 * x^2
+        sage: x = ZZ['x'].gen(); x.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: ET(5*x^2)
+        5 * x^2
+        sage: x = ZZ[['x']].gen(); x.parent()
+        Power Series Ring in x over Integer Ring
+        sage: ET(5*x^2)
+        5 * x^2
     """
 
     def _repr_(self):

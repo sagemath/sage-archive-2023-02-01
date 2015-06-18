@@ -57,9 +57,9 @@ def partition_diagrams(k):
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     if k in ZZ:
-        return SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ).list()
+        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
+            yield i
     # Else k in 1/2 ZZ
-    L = []
     k += ZZ(1) / ZZ(2)
     for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
         sp = list(sp)
@@ -67,8 +67,7 @@ def partition_diagrams(k):
             if k in sp[i]:
                 sp[i] += Set([-k])
                 break
-        L.append(SetPartition(sp))
-    return L
+        yield SetPartition(sp)
 
 def brauer_diagrams(k):
     r"""
@@ -90,16 +89,15 @@ def brauer_diagrams(k):
         [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     if k in ZZ:
-        return [SetPartition(list(x)) for x in
+        for i in  SetPartition(list(x)) for x in
                 SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)],
-                               [2 for j in range(1,k+1)] )]
+                               [2 for j in range(1,k+1)] ):
+                yield i
     # Else k in 1/2 ZZ
-    L = []
     k += ZZ(1) / ZZ(2)
     for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
                             [2 for j in range(1, k)] ):
-        L.append(SetPartition(list(i) + [Set([k, -k])]))
-    return L
+        yield SetPartition(list(i) + [Set([k, -k])])
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -121,11 +119,9 @@ def temperley_lieb_diagrams(k):
         [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     B = brauer_diagrams(k)
-    T = []
     for i in B:
         if is_planar(i) == True:
-            T.append(i)
-    return T
+            yield i
 
 def planar_diagrams(k):
     r"""
@@ -148,11 +144,9 @@ def planar_diagrams(k):
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     A = partition_diagrams(k)
-    P = []
     for i in A:
         if is_planar(i) == True:
-            P.append(i)
-    return P
+            yield i
 
 def ideal_diagrams(k):
     r"""
@@ -173,11 +167,9 @@ def ideal_diagrams(k):
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     A = partition_diagrams(k)
-    I = []
     for i in A:
         if propagating_number(i) < k:
-            I.append(i)
-    return I
+            yield i
 
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""

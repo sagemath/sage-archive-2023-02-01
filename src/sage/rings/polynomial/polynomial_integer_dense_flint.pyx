@@ -1079,8 +1079,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def degree(self, gen=None):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
+        Return the degree of this polynomial.
+
+        The zero polynomial has degree -1.
 
         EXAMPLES::
 
@@ -1093,8 +1094,15 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             0
             sage: R(0).degree()
             -1
+
+        TESTS::
+
+            sage: type(x.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        return fmpz_poly_degree(self.__poly)
+        cdef Integer deg = PY_NEW(Integer)
+        mpz_set_si(deg.value, fmpz_poly_degree(self.__poly))
+        return deg
 
     def pseudo_divrem(self, B):
         """

@@ -233,10 +233,10 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         self.diagram_func = diagram_func
         self.order = order
         Element = AbstractPartitionDiagram
-        self.element_class = Element
 
     def __iter__(self):
-        return (self.element_class(self, i) for i in self.diagram_func(self.order))
+        for i in self.diagram_func(self.order):
+            yield self.element_class(self, i)
     
     def __repr__(self):
         return "%s diagrams of order %s" % (self.diagram_func.__name__.split("_")[1].title(), str(self.order))

@@ -3636,6 +3636,8 @@ SandpileDivisor
 
 - :ref:`values <values-divisor>` --- The values of the divisor as a list.
 
+- :ref:`weierstrass_div <weierstrass_div-divisor>` --- The Weierstrass divisor.
+
 - :ref:`weierstrass_gap_seq <weierstrass_gap_seq-divisor>` --- The Weierstrass gap sequence at the given vertex.
 
 - :ref:`weierstrass_pts <weierstrass_pts-divisor>` --- The Weierstrass points (vertices).
@@ -4142,6 +4144,7 @@ EXAMPLES::
     support                -- List of vertices at which the divisor is nonzero.
     unstable               -- The unstable vertices.
     values                 -- The values of the divisor as a list.
+    weierstrass_div        -- The Weierstrass divisor.
     weierstrass_gap_seq    -- The Weierstrass gap sequence at the given vertex.
     weierstrass_pts        -- The Weierstrass points (vertices).
     weierstrass_rank_seq   -- The Weierstrass rank sequence at the given vertex.
@@ -4640,6 +4643,41 @@ EXAMPLES::
     [2, 0, 1]
     sage: S.vertices()
     [1, 'a', 'b']
+
+
+---
+
+.. _weierstrass_div-divisor:
+
+**weierstrass_div(verbose=True)**
+
+The Weierstrass divisor.  Its value at a vertex is the weight of that
+vertex as a Weierstrass point.  (See
+``SandpileDivisor.weierstrass_gap_seq``.)
+
+INPUT:
+
+``verbose`` -- (default: ``True``) boolean
+
+OUTPUT:
+
+SandpileDivisor
+
+EXAMPLES::
+
+    sage: s = sandpiles.Diamond()
+    sage: D = SandpileDivisor(s,[4,2,1,0])
+    sage: [D.weierstrass_rank_seq(v) for v in s]
+    [(5, 4, 3, 2, 1, 0, 0, -1),
+     (5, 4, 3, 2, 1, 0, -1),
+     (5, 4, 3, 2, 1, 0, 0, 0, -1),
+     (5, 4, 3, 2, 1, 0, 0, -1)]
+    sage: D.weierstrass_div()
+    {0: 1, 1: 0, 2: 2, 3: 1}
+    sage: k5 = sandpiles.Complete(5)
+    sage: K = k5.canonical_divisor()
+    sage: K.weierstrass_div()
+    {0: 9, 1: 9, 2: 9, 3: 9, 4: 9}
 
 ---
 

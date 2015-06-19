@@ -24,7 +24,7 @@ NEW METHODS
 
 **SandpileConfig**: burst_size, help.
 
-**SandpileDivisor**:  help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt, polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold, stabilize, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
+**SandpileDivisor**:  help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt, polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold, stabilize, weierstrass_div, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
 
 DEPRECATED
 
@@ -4279,6 +4279,7 @@ class SandpileDivisor(dict):
             support                -- List of vertices at which the divisor is nonzero.
             unstable               -- The unstable vertices.
             values                 -- The values of the divisor as a list.
+            weierstrass_div        -- The Weierstrass divisor.
             weierstrass_gap_seq    -- The Weierstrass gap sequence at the given vertex.
             weierstrass_pts        -- The Weierstrass points (vertices).
             weierstrass_rank_seq   -- The Weierstrass rank sequence at the given vertex.
@@ -5862,6 +5863,44 @@ class SandpileDivisor(dict):
             rks = [self.weierstrass_rank_seq(v) for v in self._weierstrass_pts]
             return zip(self._weierstrass_pts, rks)
         return self._weierstrass_pts
+
+    def weierstrass_div(self, verbose=True):
+        r"""
+        The Weierstrass divisor.  Its value at a vertex is the weight of that
+        vertex as a Weierstrass point.  (See
+        ``SandpileDivisor.weierstrass_gap_seq``.)
+
+        INPUT:
+
+        ``verbose`` -- (default: ``True``) boolean
+
+        OUTPUT:
+
+        SandpileDivisor
+
+        EXAMPLES::
+
+            sage: s = sandpiles.Diamond()
+            sage: D = SandpileDivisor(s,[4,2,1,0])
+            sage: [D.weierstrass_rank_seq(v) for v in s]
+            [(5, 4, 3, 2, 1, 0, 0, -1),
+             (5, 4, 3, 2, 1, 0, -1),
+             (5, 4, 3, 2, 1, 0, 0, 0, -1),
+             (5, 4, 3, 2, 1, 0, 0, -1)]
+            sage: D.weierstrass_div()
+            {0: 1, 1: 0, 2: 2, 3: 1}
+            sage: k5 = sandpiles.Complete(5)
+            sage: K = k5.canonical_divisor()
+            sage: K.weierstrass_div()
+            {0: 9, 1: 9, 2: 9, 3: 9, 4: 9}
+        """
+        s = self.sandpile()
+        D = [self.weierstrass_gap_seq(v, True)[1] for v in s.vertices()]
+        D = SandpileDivisor(s, D)
+        if verbose:
+            return D
+        else:
+            return D.values()
 
     def support(self):
         r"""

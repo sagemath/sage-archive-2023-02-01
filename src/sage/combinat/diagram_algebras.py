@@ -34,23 +34,9 @@ from sage.rings.all import ZZ
 import math
 import operator
 
-def _partition_diagrams_iter(k):
-    if k in ZZ:
-        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
-            yield i
-    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
-        k = ZZ(k + ZZ(1) / ZZ(2))
-        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
-            sp = list(sp)
-            for i in range(len(sp)):
-                if k in sp[i]:
-                    sp[i] += Set([-k])
-                    break
-            yield SetPartition(sp)
-
 def partition_diagrams(k):
     r"""
-    Return a list of all partition diagrams of order ``k``.
+    Return a generator of all partition diagrams of order ``k``.
 
     A partition diagram of order `k \in \ZZ` to is a set partition of
     `\{1, \dots, k, -1, \ldots, -k\}`. If we have `k - 1/2 \in ZZ`, then
@@ -65,31 +51,32 @@ def partition_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.partition_diagrams(2)
+        sage: list(da.partition_diagrams(2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 1}, {-1, 2}},
          {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}},
          {{-2, 1}, {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: da.partition_diagrams(3/2)
+        sage: list(da.partition_diagrams(3/2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
-    return list(_partition_diagrams_iter(k))
-
-def _brauer_diagrams_iter(k):
     if k in ZZ:
-        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
-                yield SetPartition(list(i))
+        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
+            yield i
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
-                                [2 for j in range(1, k)] ):
-            yield SetPartition(list(i) + [Set([k, -k])])
+        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
+            sp = list(sp)
+            for i in range(len(sp)):
+                if k in sp[i]:
+                    sp[i] += Set([-k])
+                    break
+            yield SetPartition(sp)
 
 def brauer_diagrams(k):
     r"""
-    Return a list of all Brauer diagrams of order ``k``.
+    Return a generator of all Brauer diagrams of order ``k``.
 
     A Brauer diagram of order `k` is a partition diagram of order `k`
     with block size 2.
@@ -101,22 +88,23 @@ def brauer_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.brauer_diagrams(2)
+        sage: list(da.brauer_diagrams(2))
         [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: da.brauer_diagrams(5/2)
+        sage: list(da.brauer_diagrams(5/2))
         [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
-    return list(_brauer_diagrams_iter(k))
-
-def _temperley_lieb_diagrams_iter(k):
-    B = brauer_diagrams(k)
-    for i in B:
-        if is_planar(i) == True:
-            yield i
+    if k in ZZ:
+        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
+                yield SetPartition(list(i))
+    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
+        k = ZZ(k + ZZ(1) / ZZ(2))
+        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
+                                [2 for j in range(1, k)] ):
+            yield SetPartition(list(i) + [Set([k, -k])])
 
 def temperley_lieb_diagrams(k):
     r"""
-    Return a list of all Temperley--Lieb diagrams of order ``k``.
+    Return a generator of all Temperley--Lieb diagrams of order ``k``.
 
     A Temperley--Lieb diagram of order `k` is a partition diagram of order `k`
     with block size  2 and is planar.
@@ -128,22 +116,19 @@ def temperley_lieb_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.temperley_lieb_diagrams(2)
+        sage: list(da.temperley_lieb_diagrams(2))
         [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: da.temperley_lieb_diagrams(5/2)
+        sage: list(da.temperley_lieb_diagrams(5/2))
         [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
-    return list(_temperley_lieb_diagrams_iter(k))
-
-def _planar_diagrams_iter(k):
-    A = partition_diagrams(k)
-    for i in A:
+    B = brauer_diagrams(k)
+    for i in B:
         if is_planar(i) == True:
             yield i
 
 def planar_diagrams(k):
     r"""
-    Return a list of all planar diagrams of order ``k``.
+    Return a generator of all planar diagrams of order ``k``.
 
     A planar diagram of order `k` is a partition diagram of order `k`
     that has no crossings.
@@ -151,27 +136,24 @@ def planar_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.planar_diagrams(2)
+        sage: list(da.planar_diagrams(2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1, 1}},
          {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}}, {{-2}, {-1, 2}, {1}},
          {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1}, {-1}, {2}},
          {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: da.planar_diagrams(3/2)
+        sage: list(da.planar_diagrams(3/2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
-    return list(_planar_diagrams_iter(k))
-
-def _ideal_diagrams_iter(k):
     A = partition_diagrams(k)
     for i in A:
-        if propagating_number(i) < k:
+        if is_planar(i) == True:
             yield i
-
+            
 def ideal_diagrams(k):
     r"""
-    Return a list of all "ideal" diagrams of order ``k``.
+    Return a generator of all "ideal" diagrams of order ``k``.
 
     An ideal diagram of order `k` is a partition diagram of order `k` with
     propagating number less than `k`.
@@ -179,15 +161,18 @@ def ideal_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.ideal_diagrams(2)
+        sage: list(da.ideal_diagrams(2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}}, {{-2}, {-1, 1, 2}},
          {{-2, 1, 2}, {-1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1},
          {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: da.ideal_diagrams(3/2)
+        sage: list(da.ideal_diagrams(3/2))
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
-    return list(_ideal_diagrams_iter(k))
+    A = partition_diagrams(k)
+    for i in A:
+        if propagating_number(i) < k:
+            yield i
 
 class AbstractPartitionDiagram(ClonableArray):
     r"""
@@ -243,7 +228,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             yield self.element_class(self, i)
     
     def __repr__(self):
-        return "%s diagrams of order %s" % (self.diagram_func.__name__.split("_")[1].title(), str(self.order))
+        return "%s diagrams of order %s" % (self.diagram_func.__name__.replace("_diagrams","").replace("_","").title(), str(self.order))
 
     def __contains__(self, obj):
         return obj in self.list()
@@ -253,23 +238,23 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 
 class PartitionDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
-        super(PartitionDiagrams, self).__init__(_partition_diagrams_iter, order, category=category)
+        super(PartitionDiagrams, self).__init__(partition_diagrams, order, category=category)
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
-        super(BrauerDiagrams, self).__init__(_brauer_diagrams_iter, order, category=category)
+        super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
 
 class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
-        super(TemperleyLiebDiagrams, self).__init__(_temperley_lieb_diagrams_iter, order, category=category)
+        super(TemperleyLiebDiagrams, self).__init__(temperley_lieb_diagrams, order, category=category)
 
 class PlanarDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
-        super(PlanarDiagrams, self).__init__(_planar_diagrams_iter, order, category=category)
+        super(PlanarDiagrams, self).__init__(planar_diagrams, order, category=category)
 
 class IdealDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
-        super(IdealDiagrams, self).__init__(_ideal_diagrams_iter, order, category=category)
+        super(IdealDiagrams, self).__init__(ideal_diagrams, order, category=category)
         
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""
@@ -347,7 +332,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D([{1,2},{-1,-2}]) == b_elt
             True
         """
-        if set_partition in self.basis().keys():
+        if self.basis().keys().is_parent_of(set_partition):
             return self.basis()[set_partition]
 
         sp = self._base_diagrams(set_partition) # attempt conversion
@@ -420,6 +405,10 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D.product_on_basis(sp, sp)
             x*P[{{-2, -1}, {1, 2}}]
         """
+        if not self.basis().keys().is_parent_of(d1):
+            d1 = self.basis().keys()(d1)
+        if not self.basis().keys().is_parent_of(d2):
+            d2 = self.basis().keys()(d2)
         (composite_diagram, loops_removed) = d1.compose(d2)
         return self.term(composite_diagram, self._q**loops_removed)
 
@@ -998,7 +987,7 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
         sage: T = TemperleyLiebAlgebra(2, x, R); T
         Temperley-Lieb Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
         sage: T.basis()
-        Lazy family (Term map from Temperley diagrams of order 2 to Temperley-Lieb Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring(i))_{i in Temperley diagrams of order 2}
+        Lazy family (Term map from Temperleylieb diagrams of order 2 to Temperley-Lieb Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring(i))_{i in Temperleylieb diagrams of order 2}
         sage: b = T.basis().list()
         sage: b
         [T[{{-2, 2}, {-1, 1}}], T[{{-2, -1}, {1, 2}}]]

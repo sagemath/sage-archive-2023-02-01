@@ -26,7 +26,7 @@ AUTHORS:
 
 from sage.matrix.constructor import Matrix
 from sage.rings.all import ZZ, QQ, FiniteField, GF
-from sage.graphs.all import BipartiteGraph
+from sage.graphs.all import BipartiteGraph, Graph
 from pprint import pformat
 from sage.structure.all import SageObject
 from sage.rings.number_field.number_field import NumberField
@@ -359,7 +359,7 @@ def get_nonisomorphic_matroids(MSet):
 # Partial fields and lifting
 
 def lift_cross_ratios(A, lift_map = None):
-    """
+    r"""
     Return a matrix which arises from the given matrix by lifting cross ratios.
 
     INPUT:
@@ -379,21 +379,23 @@ def lift_cross_ratios(A, lift_map = None):
 
     This method will create a unique candidate representation ``Z``, but will not verify
     if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
-    conditions of the lift theorem (see [PvZ]_) hold for the lift_map in combination with
-    the matrix ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are
-    keys of ``lift_map``, and
-
-    - if ``x, y`` are keys of ``lift_map``, and ``x+y == 1`` then
-      ``lift_map[x] + lift_map[y] = lift_map[1]``
-    - if ``x, y, z`` are keys of ``lift_map``, and ``x*y == z`` then
-      ``lift_map[x]*lift_map[y] = lift_map[z]``
-    - if ``x, y`` are keys of ``lift_map``, and ``x*y`` is not, then there is no key ``z``
-      of ``lift_map`` such that ``lift_map[x]*lift_map[y] = lift_map[z]``
+    conditions of the lift theorem (see [PvZ]_) hold for the lift map in combination with
+    the matrix ``A``. 
+    
+    For a lift map `f` and a matrix `A` these conditions are as follows. First of all 
+    `f: S \rightarrow T` is a bijection, where `S` is a subset of the source ring and 
+    `T` is a subset of the target ring. The matrix `A` has entries from the source ring, 
+    and each cross ratio of `A` is contained in `S`. Moreover:
+    
+    - `1 \in S`, `1\in T`, and `f(1) = 1`;
+    - if `x, y\in S`, then `x+y = 1` if and only if `f(x)+f(y)=1`;
+    - if `x, y, z\in S`, then `xy = z` if and only if `f(x)f(y)=f(z)`;
+    - if `x, y\in S`, then `xy\in S` if and only if `f(x)f(y)\in T`.
 
     Finally, there are global conditions on the target ring which depend on the matroid
-    ``M`` represented by ``[ I A ]``. If ``M`` has a Fano minor, then in the target ring we
-    must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must
-    have ``1+1 != 0``.
+    `M` represented by the extended matrix `[ I A ]`. If `M` has a Fano minor, then in the 
+    target ring we must have `1+1 = 0`. If `M` has a NonFano minor, then in the target ring 
+    we must have `1+1 \neq 0`.
 
     Several such lift maps can be created by the function
     :meth:`lift_map() <sage.matroids.utilities.lift_map>`
@@ -427,8 +429,6 @@ def lift_cross_ratios(A, lift_map = None):
         True
 
     """
-    from sage.graphs.graph import Graph
-    
     for s,t in lift_map.iteritems():
         source_ring = s.parent()
         target_ring = t.parent()
@@ -516,7 +516,6 @@ def lift_cross_ratios(A, lift_map = None):
         H.add_edge(edge)
 
     # compute each entry of Z as the product of lifted cross ratios
-    from sage.matrix.constructor import Matrix
     Z = Matrix(target_ring, A.nrows(), A.ncols())
     for entry, monomial in F.iteritems():
         Z[entry] = plus_one2
@@ -558,7 +557,7 @@ def lift_map(target):
     - `gm`: a lift map from `GF(19)` to the golden mean partial field
         `(Q(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
 
-    The example below shows that the latter map satisfies the three necessary conditions of
+    The example below shows that the latter map satisfies three necessary conditions stated in
     :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
 
     EXAMPLES::
@@ -566,12 +565,13 @@ def lift_map(target):
         sage: lm = lift_map('gm')
         sage: for x in lm:
         ....:     for y in lm:
-        ....:         if x+y == 1 and lm[x]+lm[y] != lm[1]:
+        ....:         if (x+y == 1) is not (lm[x]+lm[y] == lm[1]):
         ....:             print 'not a proper lift map'
-        ....:         if x*y in lm and lm[x]*lm[y] != lm[x*y]:
+        ....:         if (x*y in lm) is not (lm[x]*lm[y] in lm.values()):    
         ....:             print 'not a proper lift map'
-        ....:         if x*y not in lm and lm[x]*lm[y] in lm.values():    
-        ....:             print 'not a proper lift map'
+        ....:         for z in lm:
+        ....:             if (x*y==z) is not (lm[x]*lm[y]==lm[z]):
+        ....:                 print 'not a proper lift map'
         ....:             
 
     """

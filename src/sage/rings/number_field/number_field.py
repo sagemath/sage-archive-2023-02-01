@@ -4158,42 +4158,48 @@ class NumberField_generic(number_field_base.NumberField):
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
-        List of all possible composite number fields formed from self and
-        other, together with (optionally) embeddings into the compositum;
-        see the documentation for both_maps below.
-
-        If preserve_embedding is True and if self and other both have
-        embeddings into the same ambient field, or into fields which are
-        contained in a common field, only the compositum respecting
-        both embeddings is returned.  If one (or both) of self or other
-        does not have an embedding or preserve_embedding is False,
-        all possible composite number fields are returned.
+        Return the possible composite number fields formed from
+        ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` - a number field
+        - ``other`` -- number field
 
-        - ``names`` - generator name for composite fields
+        - ``names`` -- generator name for composite fields
 
-        - ``both_maps`` - (default: False)  if True, return quadruples
-          (F, self_into_F, other_into_F, k) such that self_into_F is an
-          embedding of self in F, other_into_F is an embedding of in F,
-          and k is an integer such that F.gen() equals
-          other_into_F(other.gen()) + k*self_into_F(self.gen())
-          or has the value Infinity in which case F.gen() equals
-          self_into_F(self.gen()), or is None (which happens when other is a
-          relative number field).
-          If both self and other have embeddings into an ambient field, then
-          F will have an embedding with respect to which both self_into_F
-          and other_into_F will be compatible with the ambient embeddings.
+        - ``both_maps`` -- boolean (default: ``False``)
 
-        - ``preserve_embedding`` - (default: True) if self and other have
-          ambient embeddings, then return only the compatible compositum.
+        - ``preserve_embedding`` -- boolean (default: True)
 
         OUTPUT:
 
-        -  ``list`` - list of the composite fields, possibly with maps.
+        A list of the composite fields, possibly with maps.
 
+        If ``both_maps`` is ``True``, the list consists of quadruples
+        ``(F, self_into_F, other_into_F, k)`` such that
+        ``self_into_F`` is an embedding of ``self`` in ``F``,
+        ``other_into_F`` is an embedding of in ``F``, and ``k`` is one
+        of the following:
+
+        - an integer such that ``F.gen()`` equals
+          ``other_into_F(other.gen()) + k*self_into_F(self.gen())``;
+
+        - ``Infinity``, in which case ``F.gen()`` equals
+          ``self_into_F(self.gen())``;
+
+        - ``None`` (when ``other`` is a relative number field).
+
+        If both ``self`` and ``other`` have embeddings into an ambient
+        field, then each ``F`` will have an embedding with respect to
+        which both ``self_into_F`` and ``other_into_F`` will be
+        compatible with the ambient embeddings.
+
+        If ``preserve_embedding`` is ``True`` and if ``self`` and
+        ``other`` both have embeddings into the same ambient field, or
+        into fields which are contained in a common field, only the
+        compositum respecting both embeddings is returned.  In all
+        other cases, all possible composite number fields are
+        returned.
 
         EXAMPLES::
 
@@ -4215,7 +4221,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f(K1.0), g(K2.0)
             (a, -a)
 
-        With preserve_embedding set to False, the embeddings are ignored::
+        With ``preserve_embedding`` set to ``False``, the embeddings
+        are ignored::
 
             sage: K1.composite_fields(K2, preserve_embedding=False)
             [Number Field in a with defining polynomial x^4 - 2,
@@ -4229,7 +4236,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f(K1.0), g(K3.0)
             (1/240*a0^5 - 41/120*a0, 1/120*a0^5 + 19/60*a0)
 
-        If no embeddings are specified, the maps into the composite are chosen arbitrarily::
+        If no embeddings are specified, the maps into the compositum
+        are chosen arbitrarily::
 
             sage: Q1.<a> = NumberField(x^4 + 10*x^2 + 1)
             sage: Q2.<b> = NumberField(x^4 + 16*x^2 + 4)
@@ -4242,7 +4250,8 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Number Field in c with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
               Defn: a |--> 19/14400*c^7 + 137/1800*c^5 + 2599/3600*c^3 + 8/15*c
 
-        This is just one of four embeddings of Q1 into F::
+        This is just one of four embeddings of ``Q1`` into ``F``::
+
             sage: Hom(Q1, F).order()
             4
 
@@ -4307,6 +4316,25 @@ class NumberField_generic(number_field_base.NumberField):
               -1)]
             sage: M, f, g, k = C[0]
             sage: M.gen() == g(b) + k*f(a)
+            True
+
+        This also fixes the bugs reported at :trac:`14164` and
+        :trac:`18243`::
+
+            sage: R.<x> = QQ[]
+            sage: f = 6*x^5 + x^4 + x^2 + 5*x + 7
+            sage: r = f.roots(QQbar, multiplicities=False)
+            sage: F1 = NumberField(f.monic(), 'a', embedding=r[0])
+            sage: F2 = NumberField(f.monic(), 'a', embedding=r[1])
+            sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
+            True
+
+            sage: f = x^8 - 3*x^7 + 61/3*x^6 - 9*x^5 + 298*x^4 + 458*x^3 + 1875*x^2 + 4293*x + 3099
+            sage: F1 = NumberField(f, 'z', embedding=-1.18126721294295 + 3.02858651117832j)
+            sage: F2 = NumberField(f, 'z', embedding=-1.18126721294295 - 3.02858651117832j)
+            sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
         """
         if not isinstance(other, NumberField_generic):

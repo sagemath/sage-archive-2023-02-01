@@ -776,8 +776,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         comp_num = self.dynkin_diagram().connected_components_number()
         # consider the empty matrix to be indecomposable
         return comp_num <= 1
-        
-    @cached_method
+
     def principal_submatrices(self, proper=False):
         """
         Return a list of all principal submatrices of ``self``.
@@ -808,27 +807,27 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     @cached_method
     def indecomposable_blocks(self):
         """
-        Return a list of all indecomposable blocks of ``self``.
+        Return a tuple of all indecomposable blocks of ``self``.
         
         EXAMPLES::
         
             sage: M = CartanMatrix(['A',2])
             sage: M.indecomposable_blocks()
-            [
+            (
             [ 2 -1]
             [-1  2]
-            ]
+            )
             sage: M = CartanMatrix([['A',2,1],['A',3,1]])
             sage: M.indecomposable_blocks()
-            [
+            (
             [ 2 -1  0 -1]            
             [-1  2 -1  0]  [ 2 -1 -1]
             [ 0 -1  2 -1]  [-1  2 -1]
             [-1  0 -1  2], [-1 -1  2]
-            ]
+            )
         """
         subgraphs = self.dynkin_diagram().connected_components_subgraphs()
-        return [CartanMatrix(subg._matrix_().rows()) for subg in subgraphs]
+        return tuple(CartanMatrix(subg._matrix_().rows()) for subg in subgraphs)
 
 def is_generalized_cartan_matrix(M):
     """

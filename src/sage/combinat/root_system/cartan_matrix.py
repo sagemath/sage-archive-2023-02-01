@@ -28,6 +28,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.misc import powerset
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
@@ -618,13 +619,16 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         return self.dynkin_diagram().row(i)
 
+    @cached_method
     def is_finite(self):
         """
         Return ``True`` if ``self`` is a finite type or ``False`` otherwise.
         
-        A generalized Cartan matrix is finite if it is positive definite. Such a 
-        matrix may consist of multiple blocks of Cartan matrices having finite
-        Cartan type.
+        A generalized Cartan matrix is finite if the determinant of all its
+        principal submatrices (see :meth:`principal_submatrices`) is positive. 
+        Such matrices have a positive definite symmetrized matrix. Note that a 
+        finite matrix may consist of multiple blocks of Cartan matrices each 
+        having finite Cartan type.
 
         EXAMPLES::
 
@@ -639,9 +643,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             False
         """
         if self._cartan_type is None:
-            return self.is_positive_definite()
+            if not self.is_symmetrizable():
+                return False
+            return self.symmetrized_matrix().is_positive_definite() 
         return self._cartan_type.is_finite()
 
+    @cached_method
     def is_affine(self):
         """
         Return ``True`` if ``self`` is an affine type or ``False`` otherwise.
@@ -663,15 +670,16 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             False
         """
         if self._cartan_type is None:
-            if not self.det() == 0:
+            if self.det() != 0:
                 return False
             for b in self.indecomposable_blocks():
-                if not b.det() >= 0 or not all(
+                if b.det() < 0 or not all(
                     a.det() > 0 for a in b.principal_submatrices(proper=True)): 
                     return False
             return True
         return self._cartan_type.is_affine()
     
+    @cached_method
     def is_hyperbolic(self, compact=False):
         """
         Return if ``True`` if ``self`` is a (compact) hyperbolic type 
@@ -703,19 +711,18 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if not self.is_indefinite() or not self.is_indecomposable():
             return False
         
-        from sage.misc.misc import powerset
         D = self.dynkin_diagram()
-        iset = list(D.index_set())
-        for l in powerset(iset):
-            if l != [] and l != iset:
-                subg = D.subgraph(vertices=l)
-                if subg.is_connected():
-                    if compact and not subg.is_finite():
-                        return False
-                    elif not subg.is_finite() and not subg.is_affine():
-                        return False
+        verts = tuple(D.vertex_iterator())
+        for v in verts:
+            l = set(verts)-set((v,))
+            subg = D.subgraph(vertices=l)
+            if compact and not subg.is_finite():
+                return False
+            elif not subg.is_finite() and not subg.is_affine():
+                return False
         return True
     
+    @cached_method
     def is_lorentzian(self):
         """
         Return ``True`` if ``self`` is a Lorentzian type or ``False`` otherwise.
@@ -734,8 +741,9 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         if self.det() >= 0:
             return False
-        return len([x for x in self.eigenvalues() if x < 0]) == 1
-                
+        return sum(1 for x in self.eigenvalues() if x < 0) == 1
+        
+    @cached_method        
     def is_indefinite(self):
         """
         Return if ``self`` is an indefinite type or ``False`` otherwise.
@@ -751,7 +759,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         return not self.is_finite() and not self.is_affine()
                 
-        
+    @cached_method
     def is_indecomposable(self):
         """
         Return if ``self`` is an indecomposable matrix or ``False`` otherwise.
@@ -769,6 +777,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         # consider the empty matrix to be indecomposable
         return comp_num <= 1
         
+    @cached_method
     def principal_submatrices(self, proper=False):
         """
         Return a list of all principal submatrices of ``self``.
@@ -789,14 +798,14 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             [[], [2], [2]]
             
         """
-        from sage.misc.misc import powerset
         iset = range(self.ncols());
         ret = []
         for l in powerset(iset):
             if not proper or (proper and l != iset):
                 ret.append(self.matrix_from_rows_and_columns(l,l))
         return ret
-        
+    
+    @cached_method
     def indecomposable_blocks(self):
         """
         Return a list of all indecomposable blocks of ``self``.

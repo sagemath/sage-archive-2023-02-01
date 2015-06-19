@@ -75,18 +75,18 @@ class CoxeterType(object):
 
             sage: CoxeterType.samples()
             [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-            Coxeter type of ['B', 1], Coxeter type of ['B', 5],
-            Coxeter type of ['C', 1], Coxeter type of ['C', 5],
-            Coxeter type of ['D', 4], Coxeter type of ['D', 5],
-            Coxeter type of ['E', 6], Coxeter type of ['E', 7],
-            Coxeter type of ['E', 8], Coxeter type of ['F', 4],
-            Coxeter type of ['H', 3], Coxeter type of ['H', 4],
-            Coxeter type of ['I', 10], Coxeter type of ['A', 2, 1],
-            Coxeter type of ['B', 5, 1], Coxeter type of ['C', 5, 1],
-            Coxeter type of ['D', 5, 1], Coxeter type of ['E', 6, 1],
-            Coxeter type of ['E', 7, 1], Coxeter type of ['E', 8, 1],
-            Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1],
-            Coxeter type of ['A', 1, 1]]
+             Coxeter type of ['B', 1], Coxeter type of ['B', 5],
+             Coxeter type of ['C', 1], Coxeter type of ['C', 5],
+             Coxeter type of ['D', 4], Coxeter type of ['D', 5],
+             Coxeter type of ['E', 6], Coxeter type of ['E', 7],
+             Coxeter type of ['E', 8], Coxeter type of ['F', 4],
+             Coxeter type of ['H', 3], Coxeter type of ['H', 4],
+             Coxeter type of ['I', 10], Coxeter type of ['A', 2, 1],
+             Coxeter type of ['B', 5, 1], Coxeter type of ['C', 5, 1],
+             Coxeter type of ['D', 5, 1], Coxeter type of ['E', 6, 1],
+             Coxeter type of ['E', 7, 1], Coxeter type of ['E', 8, 1],
+             Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1],
+             Coxeter type of ['A', 1, 1]]
 
         The finite, affine and crystallographic options allow
         respectively for restricting to (non) finite, (non) affine,
@@ -94,46 +94,44 @@ class CoxeterType(object):
 
             sage: CoxeterType.samples(finite=True)
             [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-            Coxeter type of ['B', 1], Coxeter type of ['B', 5],
-            Coxeter type of ['C', 1], Coxeter type of ['C', 5],
-            Coxeter type of ['D', 4], Coxeter type of ['D', 5],
-            Coxeter type of ['E', 6], Coxeter type of ['E', 7],
-            Coxeter type of ['E', 8], Coxeter type of ['F', 4],
-            Coxeter type of ['H', 3], Coxeter type of ['H', 4],
-            Coxeter type of ['I', 10]]
+             Coxeter type of ['B', 1], Coxeter type of ['B', 5],
+             Coxeter type of ['C', 1], Coxeter type of ['C', 5],
+             Coxeter type of ['D', 4], Coxeter type of ['D', 5],
+             Coxeter type of ['E', 6], Coxeter type of ['E', 7],
+             Coxeter type of ['E', 8], Coxeter type of ['F', 4],
+             Coxeter type of ['H', 3], Coxeter type of ['H', 4],
+             Coxeter type of ['I', 10]]
 
             sage: CoxeterType.samples(affine=True)
             [Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
-            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
-            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
-            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
-            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1]]
+             Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+             Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+             Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+             Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1]]
 
             sage: CoxeterType.samples(crystallographic=True)
             [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-            Coxeter type of ['B', 1], Coxeter type of ['B', 5],
-            Coxeter type of ['C', 1], Coxeter type of ['C', 5],
-            Coxeter type of ['D', 4], Coxeter type of ['D', 5],
-            Coxeter type of ['E', 6], Coxeter type of ['E', 7],
-            Coxeter type of ['E', 8], Coxeter type of ['F', 4],
-            Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
-            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
-            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
-            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
-            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1]]
+             Coxeter type of ['B', 1], Coxeter type of ['B', 5],
+             Coxeter type of ['C', 1], Coxeter type of ['C', 5],
+             Coxeter type of ['D', 4], Coxeter type of ['D', 5],
+             Coxeter type of ['E', 6], Coxeter type of ['E', 7],
+             Coxeter type of ['E', 8], Coxeter type of ['F', 4],
+             Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
+             Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+             Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+             Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+             Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1]]
 
             sage: CoxeterType.samples(crystallographic=False)
-            [Coxeter type of ['H', 3], Coxeter type of ['H', 4], Coxeter type of ['I', 10]]
+            [Coxeter type of ['H', 3],
+             Coxeter type of ['H', 4],
+             Coxeter type of ['I', 10]]
 
         .. TODO:: add some reducible Coxeter types (suggestions?)
 
         TESTS::
 
             sage: for ct in CoxeterType.samples(): TestSuite(ct).run()
-            sage: CartanType.samples(crystalographic=False)
-            doctest:...: DeprecationWarning: use the option 'crystallographic' instead of 'crystalographic'
-            See http://trac.sagemath.org/14673 for details.
-            [['I', 5], ['H', 3], ['H', 4]]
         """
         result = self._samples()
         if crystallographic is not None:
@@ -149,34 +147,36 @@ class CoxeterType(object):
         """
         Return a sample of all implemented Coxeter types.
 
-        .. NOTE:: This is intended to be used through :meth:`samples`.
+        .. NOTE::
+
+            This is intended to be used through :meth:`samples`.
 
         EXAMPLES::
 
             sage: CoxeterType._samples()
             [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-            Coxeter type of ['B', 1], Coxeter type of ['B', 5],
-            Coxeter type of ['C', 1], Coxeter type of ['C', 5],
-            Coxeter type of ['D', 4], Coxeter type of ['D', 5],
-            Coxeter type of ['E', 6], Coxeter type of ['E', 7],
-            Coxeter type of ['E', 8], Coxeter type of ['F', 4],
-            Coxeter type of ['H', 3], Coxeter type of ['H', 4],
-            Coxeter type of ['I', 10], Coxeter type of ['A', 2, 1],
-            Coxeter type of ['B', 5, 1], Coxeter type of ['C', 5, 1],
-            Coxeter type of ['D', 5, 1], Coxeter type of ['E', 6, 1],
-            Coxeter type of ['E', 7, 1], Coxeter type of ['E', 8, 1],
-            Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1],
-            Coxeter type of ['A', 1, 1]]
+             Coxeter type of ['B', 1], Coxeter type of ['B', 5],
+             Coxeter type of ['C', 1], Coxeter type of ['C', 5],
+             Coxeter type of ['D', 4], Coxeter type of ['D', 5],
+             Coxeter type of ['E', 6], Coxeter type of ['E', 7],
+             Coxeter type of ['E', 8], Coxeter type of ['F', 4],
+             Coxeter type of ['H', 3], Coxeter type of ['H', 4],
+             Coxeter type of ['I', 10], Coxeter type of ['A', 2, 1],
+             Coxeter type of ['B', 5, 1], Coxeter type of ['C', 5, 1],
+             Coxeter type of ['D', 5, 1], Coxeter type of ['E', 6, 1],
+             Coxeter type of ['E', 7, 1], Coxeter type of ['E', 8, 1],
+             Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1],
+             Coxeter type of ['A', 1, 1]]
         """
-        finite = [CoxeterType(t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
+        finite = [CoxeterType(t)   for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
                                             ['C', 1], ['C', 5], ['D', 4], ['D', 5],
                                             ['E', 6], ['E', 7], ['E', 8], ['F', 4],
                                             ['H', 3], ['H', 4], ['I', 10]]]
 
-        affine = [CoxeterType(t)      for t in ['A', 2, 1], ['B', 5, 1],
-                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
-                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
-                                            ['G', 2, 1], ['A', 1, 1]]
+        affine = [CoxeterType(t)  for t in ['A', 2, 1], ['B', 5, 1],
+                                           ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
+                                           ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
+                                           ['G', 2, 1], ['A', 1, 1]]
 
         return finite + affine
 
@@ -554,3 +554,4 @@ class CoxeterTypeFromCartanType(SageObject, CoxeterType, UniqueRepresentation):
             False
         """
         return self._cartan_type.is_simply_laced()
+

@@ -561,6 +561,7 @@ def lift_map(target):
     :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
 
     EXAMPLES::
+
         sage: from sage.matroids.utilities import lift_map
         sage: lm = lift_map('gm')
         sage: for x in lm:

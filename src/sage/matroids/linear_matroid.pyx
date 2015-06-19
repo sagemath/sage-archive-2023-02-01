@@ -3470,9 +3470,11 @@ cdef class BinaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                             groundset=[self._E[c] for c in C],
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<BinaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return BinaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
                              basis=bas,
                              keep_initial_representation=False)
 
@@ -4417,11 +4419,13 @@ cdef class TernaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                              groundset=[self._E[c] for c in C],
-                              basis=bas,
-                              keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<TernaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return TernaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -5127,11 +5131,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                                 groundset=[self._E[c] for c in C],
-                                 basis=bas,
-                                 keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<QuaternaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return QuaternaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""

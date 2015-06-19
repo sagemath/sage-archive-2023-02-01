@@ -355,7 +355,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
             sage: R.<x> = ZZ[]
             sage: P = PartitionAlgebra(2, x, R)
-            sage: latex(P([[1,2],[-2,-1]]))                
+            sage: latex(P([[1,2],[-2,-1]])) # indirect doctest               
             \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
             \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
             \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
@@ -387,7 +387,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         for i in l2: #add nodes
             output = output + "\\node[vertex] (G-%s) at (%s, %s) [shape = circle, draw] {}; \n" % (i, (abs(i)-1)*1.5, sgn(i))
         for i in l1: #add edges
-            if (len(i) > 1):
+            if len(i) > 1:
                 l4 = list(i)
                 posList = []
                 negList = []
@@ -402,18 +402,18 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 l5 = l4[:] #deep copy
                 for j in range(len(l5)):
                     l5[j-1] = l4[j] #create a permuted list
-                if (len(l4) == 2):
+                if len(l4) == 2:
                     l4.pop()
                     l5.pop() #pops to prevent duplicating edges
                 for j in zip(l4, l5):
                     xdiff = abs(j[1])-abs(j[0])
                     y1 = sgn(j[0])
                     y2 = sgn(j[1])
-                    if ((y2-y1) == 0 and abs(xdiff) < 5): #if nodes are close to each other on same row
+                    if y2-y1 == 0 and abs(xdiff) < 5: #if nodes are close to each other on same row
                         diffCo = (0.5+0.1*(abs(xdiff)-1)) #gets bigger as nodes are farther apart; max value of 1; min value of 0.5.
                         outVec = (sgn(xdiff)*diffCo, -1*diffCo*y1)
                         inVec = (-1*diffCo*sgn(xdiff), -1*diffCo*y2)
-                    elif ((y2-y1) != 0 and abs(xdiff) == 1): #if nodes are close enough curviness looks bad.
+                    elif y2-y1 != 0 and abs(xdiff) == 1: #if nodes are close enough curviness looks bad.
                         outVec = (sgn(xdiff)*0.75, -1*y1)
                         inVec = (-1*sgn(xdiff)*0.75, -1*y2)
                     else:

@@ -1476,7 +1476,7 @@ class Tableau(ClonableList):
         """
         return all(row[i]<row[i+1] for row in self for i in range(len(row)-1))
 
-    def is_row_increasing(self,weak=False):
+    def is_row_increasing(self, weak=False):
         r"""
         Return ``True`` if the entries in each row are in increasing order and ``False`` otherwise.
 
@@ -1493,14 +1493,14 @@ class Tableau(ClonableList):
             sage: Tableau([[2, 1]]).is_row_increasing(weak=True)
             False
         """
-        def test(a,b):
+        def test(a, b):
             if weak:
                 return a <= b
             else:
                 return a < b
-        return all(test(row[i],row[i+1]) for row in self for i in range(len(row)-1))
+        return all(test(row[i], row[i+1]) for row in self for i in range(len(row) - 1))
 
-    def is_column_increasing(self,weak=False):
+    def is_column_increasing(self, weak=False):
         r"""
         Return ``True`` if the entries in each column are in increasing order and ``False`` otherwise.
 
@@ -1517,14 +1517,14 @@ class Tableau(ClonableList):
             sage: Tableau([[2], [1]]).is_column_increasing(weak=True)
             False
         """
-        def test(a,b):
+        def test(a, b):
             if weak:
                 return a <= b
             else:
                 return a < b
         def tworow(a, b):
             return all(test(a[i], b_i) for i, b_i in enumerate(b))
-        return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
+        return all(tworow(self[r], self[r+1]) for r in range(len(self) - 1))
 
     def is_column_strict(self):
         """
@@ -1556,6 +1556,29 @@ class Tableau(ClonableList):
         def tworow(a, b):
             return all(a[i] < b_i for i, b_i in enumerate(b))
         return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
+
+    def is_semistandard(self):
+        r"""
+        Return ``True`` if ``self`` is a semistandard tableau and ``False``
+        otherwise.
+
+        A tableau is semistandard if its rows weakly increase and its columns
+        strictly increase.
+
+        EXAMPLES::
+
+            sage: Tableau([[1,1],[1,2]]).is_semistandard()
+            False
+            sage: Tableau([[1,2],[1,2]]).is_semistandard()
+            False
+            sage: Tableau([[1,1],[2,2]]).is_semistandard()
+            True
+            sage: Tableau([[1,2],[2,3]]).is_semistandard()
+            True
+            sage: Tableau([[4,1],[3,2]]).is_semistandard()
+            False
+        """
+        return self.is_row_increasing(weak=True) and self.is_column_increasing()
 
     def is_standard(self):
         """
@@ -2182,9 +2205,11 @@ class Tableau(ClonableList):
             res = res.schensted_insert(i,left=left)
         return res
 
-    def reverse_bump(self,corner):
-        """
+    def reverse_bump(self, corner):
+        r"""
         Reverse row bump the entry of ``self`` at ``corner``.
+
+        This is the reverse of Schensted's row-insertion algorithm.
     
         INPUT:
     
@@ -2207,18 +2232,18 @@ class Tableau(ClonableList):
     
         ::
     
-            sage: T = Tableau([[1,1,2,2,4],[2,3,3],[3,4],[4]])
-            sage: T.reverse_bump((2,1))
+            sage: T = Tableau([[1, 1, 2, 2, 4], [2, 3, 3], [3, 4], [4]])
+            sage: T.reverse_bump((2, 1))
             ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
-            sage: T == T.reverse_bump((2,1))[0].bump(2)
+            sage: T == T.reverse_bump((2, 1))[0].bump(2)
             True
-            sage: T.reverse_bump((3,0))
+            sage: T.reverse_bump((3, 0))
             ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
-            sage: T.reverse_bump((1,1))
+            sage: T.reverse_bump((1, 1))
             Traceback (most recent call last):
             ...
             ValueError: (1, 1) is not an outer corner
-            sage: Tableau([[2,2,1],[3,3]]).reverse_bump((0,2))
+            sage: Tableau([[2, 2, 1], [3, 3]]).reverse_bump((0, 2))
             Traceback (most recent call last):
             ...
             ValueError: Reverse bumping is only defined for semistandard tableaux
@@ -2227,9 +2252,9 @@ class Tableau(ClonableList):
 
         ::
 
-            sage: Tableau([[1]]).reverse_bump((0,0))
+            sage: Tableau([[1]]).reverse_bump((0, 0))
             ([], 1)
-            sage: Tableau([]).reverse_bump((0,0))
+            sage: Tableau([]).reverse_bump((0, 0))
             Traceback (most recent call last):
             ...
             ValueError: (0, 0) is not an outer corner
@@ -2243,21 +2268,21 @@ class Tableau(ClonableList):
         """
         if corner not in self.corners():
             raise ValueError("%s is not an outer corner" % str(corner))
-        if not (self.is_row_increasing(weak=True) and self.is_column_increasing(weak=False)):
+        if not (self.is_semistandard()):
             raise ValueError("Reverse bumping is only defined for semistandard tableaux")
 
         new_t = self.to_list()
-        (r,c) = corner
+        (r, c) = corner
         to_move = new_t[r][c]
         
-        # delete square (r,c) from the tableau
+        # delete square (r, c) from the tableau
         if len(new_t[r]) > 1:
             new_t[r] = new_t[r][:-1]
         else: # (if the square was the only entry of its row, delete the row)
             new_t = new_t[:-1]
         
         while r > 0:
-            # starting from (r-1,c), find the rightmost entry of row r-1
+            # starting from (r-1, c), find the rightmost entry of row r-1
             # that is strictly smaller than to_move
             while c+1 < len(new_t[r-1]) and new_t[r-1][c+1] < to_move:
                 c = c+1

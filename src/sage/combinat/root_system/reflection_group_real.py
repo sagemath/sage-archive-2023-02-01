@@ -553,8 +553,32 @@ class RealReflectionGroup(ComplexReflectionGroup):
                 sage: [ w._reduced_word for w in W ]
                 [[], [0], [1], [0, 1], [1, 0], [0, 1, 0]]
             """
-            W = self.parent()
             self._reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__(self)
+
+        def length(self):
+            r"""
+            Return the length of ``self`` in generating reflections.
+
+            This is the minimal numbers of generating reflections needed
+            to obtain ``self``.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])
+                sage: for w in W:
+                ....:   print w.reduced_word(), w.length()
+                 0
+                0 1
+                1 1
+                01 2
+                10 2
+                010 3
+            """
+            if not self._reduced_word is None:
+                return len(self._reduced_word)
+            else:
+                N = self.parent().nr_reflections()
+                return sum( 1 for i in range(N) if not self.parent()._is_positive_root[self(i+1)] )
 
         def has_left_descent(self, i):
             r"""

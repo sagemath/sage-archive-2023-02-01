@@ -1385,7 +1385,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 gens = [ W.reflection(i) for i in W.reflection_index_set() ]
                 return Word(_gap_factorization(self,gens,inv_dict))
 
-        @cached_in_parent_method
         def length(self):
             r"""
             Return the length of ``self`` in generating reflections.
@@ -1423,7 +1422,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 001001 6
                 001100 6
             """
-            return len( self.reduced_word() )
+            if not self._reduced_word is None:
+                return len(self._reduced_word)
+            else:
+                return len( self.reduced_word() )
 
         @cached_in_parent_method
         def reflection_length(self, in_unitary_group=False):

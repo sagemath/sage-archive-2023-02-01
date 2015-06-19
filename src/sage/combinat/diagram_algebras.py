@@ -30,6 +30,20 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
 import math
 
+def _partition_diagrams_iter(k):
+    if k in ZZ:
+        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
+            yield i
+    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
+        k = ZZ(k + ZZ(1) / ZZ(2))
+        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
+            sp = list(sp)
+            for i in range(len(sp)):
+                if k in sp[i]:
+                    sp[i] += Set([-k])
+                    break
+            yield SetPartition(sp)
+
 def partition_diagrams(k):
     r"""
     Return a list of all partition diagrams of order ``k``.
@@ -47,28 +61,27 @@ def partition_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.partition_diagrams(2))
+        sage: da.partition_diagrams(2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 1}, {-1, 2}},
          {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}},
          {{-2, 1}, {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.partition_diagrams(3/2))
+        sage: da.partition_diagrams(3/2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
+    return list(_partition_diagrams_iter(k))
+
+def _brauer_diagrams_iter(k):
     if k in ZZ:
-        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
-            yield i
+        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
+                yield SetPartition(list(i))
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
-            sp = list(sp)
-            for i in range(len(sp)):
-                if k in sp[i]:
-                    sp[i] += Set([-k])
-                    break
-            yield SetPartition(sp)
+        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
+                                [2 for j in range(1, k)] ):
+            yield SetPartition(list(i) + [Set([k, -k])])
 
 def brauer_diagrams(k):
     r"""
@@ -84,19 +97,18 @@ def brauer_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.brauer_diagrams(2))
+        sage: da.brauer_diagrams(2)
         [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: list(da.brauer_diagrams(5/2))
+        sage: da.brauer_diagrams(5/2)
         [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
-    if k in ZZ:
-        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
-                yield SetPartition(list(i))
-    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
-        k = ZZ(k + ZZ(1) / ZZ(2))
-        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
-                                [2 for j in range(1, k)] ):
-            yield SetPartition(list(i) + [Set([k, -k])])
+    return list(_brauer_diagrams_iter(k))
+
+def _temperley_lieb_diagrams_iter(k):
+    B = brauer_diagrams(k)
+    for i in B:
+        if is_planar(i) == True:
+            yield i
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -112,13 +124,16 @@ def temperley_lieb_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.temperley_lieb_diagrams(2))
+        sage: da.temperley_lieb_diagrams(2)
         [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: list(da.temperley_lieb_diagrams(5/2))
+        sage: da.temperley_lieb_diagrams(5/2)
         [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
-    B = brauer_diagrams(k)
-    for i in B:
+    return list(_temperley_lieb_diagrams_iter(k))
+
+def _planar_diagrams_iter(k):
+    A = partition_diagrams(k)
+    for i in A:
         if is_planar(i) == True:
             yield i
 
@@ -132,19 +147,22 @@ def planar_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.planar_diagrams(2))
+        sage: da.planar_diagrams(2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1, 1}},
          {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}}, {{-2}, {-1, 2}, {1}},
          {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1}, {-1}, {2}},
          {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.planar_diagrams(3/2))
+        sage: da.planar_diagrams(3/2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
+    return list(_planar_diagrams_iter(k))
+
+def _ideal_diagrams_iter(k):
     A = partition_diagrams(k)
     for i in A:
-        if is_planar(i) == True:
+        if propagating_number(i) < k:
             yield i
 
 def ideal_diagrams(k):
@@ -157,18 +175,15 @@ def ideal_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.ideal_diagrams(2))
+        sage: da.ideal_diagrams(2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}}, {{-2}, {-1, 1, 2}},
          {{-2, 1, 2}, {-1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1},
          {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.ideal_diagrams(3/2))
+        sage: da.ideal_diagrams(3/2)
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
-    A = partition_diagrams(k)
-    for i in A:
-        if propagating_number(i) < k:
-            yield i
+    return list(_ideal_diagrams_iter(k))
 
 class PartitionDiagrams(CombinatorialClass):
     r"""

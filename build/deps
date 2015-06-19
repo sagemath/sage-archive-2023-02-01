@@ -102,47 +102,47 @@ $(INST)/prereq: ../configure
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 sagelib: \
-		 $(INST)/$(ATLAS) \
-		 $(INST)/$(CEPHES) \
-		 $(INST)/$(CLIQUER) \
-		 $(INST)/$(CYTHON) \
-		 $(INST)/$(ECL) \
-		 $(INST)/$(ECLIB) \
-		 $(INST)/$(ECM) \
-		 $(INST)/$(FLINT) \
-		 $(INST)/$(LIBFPLLL) \
-		 $(INST)/$(LIBGD) \
-		 $(INST)/$(GIVARO) \
-		 $(INST)/$(GLPK) \
-		 $(INST)/$(GSL) \
-		 $(INST)/$(IML) \
-		 $(INST)/$(JINJA2) \
-		 $(INST)/$(LCALC) \
-		 $(INST)/$(LRCALC) \
-		 $(INST)/$(LIBGAP) \
-		 $(INST)/$(LIBPNG) \
-		 $(INST)/$(LINBOX) \
-		 $(INST)/$(M4RI) \
-		 $(INST)/$(M4RIE) \
-		 $(INST)/$(MPC) \
-		 $(INST)/$(MPFI) \
-		 $(INST)/$(MPFR) \
-		 $(INST)/$(SAGE_MP_LIBRARY) \
-		 $(INST)/$(NTL) \
-		 $(INST)/$(NUMPY) \
-		 $(INST)/$(PARI) \
-		 $(INST)/$(PLANARITY) \
-		 $(INST)/$(POLYBORI) \
-		 $(INST)/$(PPL) \
-		 $(INST)/$(PYNAC) \
-		 $(INST)/$(PYTHON) \
-		 $(INST)/$(RATPOINTS) \
-		 $(INST)/$(READLINE) \
-		 $(INST)/$(RW) \
-		 $(INST)/$(SINGULAR) \
-		 $(INST)/$(SIX) \
-		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(ZN_POLY)
+		$(INST)/$(ATLAS) \
+		$(INST)/$(CEPHES) \
+		$(INST)/$(CLIQUER) \
+		$(INST)/$(CYTHON) \
+		$(INST)/$(ECL) \
+		$(INST)/$(ECLIB) \
+		$(INST)/$(ECM) \
+		$(INST)/$(FLINT) \
+		$(INST)/$(LIBFPLLL) \
+		$(INST)/$(LIBGD) \
+		$(INST)/$(GIVARO) \
+		$(INST)/$(GLPK) \
+		$(INST)/$(GSL) \
+		$(INST)/$(IML) \
+		$(INST)/$(JINJA2) \
+		$(INST)/$(LCALC) \
+		$(INST)/$(LRCALC) \
+		$(INST)/$(LIBGAP) \
+		$(INST)/$(LIBPNG) \
+		$(INST)/$(LINBOX) \
+		$(INST)/$(M4RI) \
+		$(INST)/$(M4RIE) \
+		$(INST)/$(MPC) \
+		$(INST)/$(MPFI) \
+		$(INST)/$(MPFR) \
+		$(INST)/$(SAGE_MP_LIBRARY) \
+		$(INST)/$(NTL) \
+		$(INST)/$(NUMPY) \
+		$(INST)/$(PARI) \
+		$(INST)/$(PLANARITY) \
+		$(INST)/$(POLYBORI) \
+		$(INST)/$(PPL) \
+		$(INST)/$(PYNAC) \
+		$(INST)/$(PYTHON) \
+		$(INST)/$(RATPOINTS) \
+		$(INST)/$(READLINE) \
+		$(INST)/$(RW) \
+		$(INST)/$(SINGULAR) \
+		$(INST)/$(SIX) \
+		$(INST)/$(SYMMETRICA) \
+		$(INST)/$(ZN_POLY)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		$(PIPE) 'time $(MAKE) sage 2>&1' 'tee -a $(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \

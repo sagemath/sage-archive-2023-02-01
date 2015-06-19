@@ -376,7 +376,8 @@ class Polytopes():
 
         r12 = base_ring.one() / 2
         z = base_ring.zero()
-        pts = [[z, s1*r12, s2*g/2] for s1,s2 in itertools.product([1,-1],repeat=2)]
+        pts = [[z, s1 * r12, s2 * g / 2]
+               for s1, s2 in itertools.product([1, -1], repeat=2)]
         verts = [p(v) for p in AlternatingGroup(3) for v in pts]
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
@@ -807,45 +808,24 @@ class Polytopes():
              [-1, 0,  0], [0, 1, 0], [0, -1, 0]]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
-    def snub_cube(self, exact=True):
+    def snub_cube(self):
         """
         Return a snub cube.
 
         The snub cube is an Archimedean solid. It has 24 vertices and 38 faces.
+        For more information see the :wikipedia:`Snub_cube`.
 
-        INPUT:
-
-        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
-          approximate ring for the coordinates.
-
-        If ``exact=True``, the coefficients will belong to the algebraic
-        real field AA and if ``exact=False`` it will
-        be the real double field.
+        It uses the real double field for the coordinates.
 
         EXAMPLES::
 
-            sage: sc = polytopes.snub_cube()  # VERY LONG TIME !
-            sage: sc.f_vector()
-            (1, 24, 60, 38, 1)
-            sage: sc.volume()
-            5.288715111507165?
-
-        Its non exact version::
-
-            sage: sc = polytopes.snub_cube(exact=False)
-            sage: sc.base_ring()
-            Real Double Field
+            sage: sc = polytopes.snub_cube()
             sage: sc.f_vector()
             (1, 24, 60, 38, 1)
         """
-        if exact:
-            x = polygen(QQ, 'x')
-            z = AA.polynomial_root(x ** 3 + x ** 2 + x - 1, RIF(0.54, 0.56))
-            base_ring = AA
-        else:
-            base_ring = RDF
-            tsqr33 = 3 * base_ring(33).sqrt()
-            z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
+        base_ring = RDF
+        tsqr33 = 3 * base_ring(33).sqrt()
+        z = ((17 + tsqr33).cube_root() - (-17 + tsqr33).cube_root() - 1) / 3
 
         verts = []
         z2 = z ** 2
@@ -908,6 +888,68 @@ class Polytopes():
             20
         """
         return self.icosahedron(exact=exact, base_ring=base_ring).edge_truncation()
+
+    def icosidodecahedron(self, exact=True, base_ring=None):
+        """
+        Return the icosidodecahedron.
+
+        The icosidodecahedron is an Archimedean solid.
+        It has 32 faces and 30 vertices. For more information, see the
+        :wikipedia:`Icosidodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
+          will be the real double field.
+
+        EXAMPLES::
+
+            sage: bb = polytopes.icosidodecahedron()   # long time - 6secs
+            sage: bb.f_vector()                # long time
+            (1, 30, 60, 32, 1)
+            sage: bb.base_ring()               # long time
+            Number Field in sqrt5 with defining polynomial x^2 - 5
+
+        A much faster implementation using floating point approximations::
+
+            sage: bb = polytopes.icosidodecahedron(exact=False)
+            sage: bb.f_vector()
+            (1, 30, 60, 32, 1)
+            sage: bb.base_ring()
+            Real Double Field
+
+        Its faces are 5 regular pentagons and 6 regular hexagons::
+
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            20
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 5)
+            12
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(5, 'sqrt5')
+            sqrt5 = K.gen()
+            g = (1 + sqrt5) / 2
+            base_ring = K
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            g = (1 + base_ring(5).sqrt()) / 2
+
+        r12 = base_ring.one() / 2
+        z = base_ring.zero()
+        pts = [[g, 0, 0], [-g, 0, 0]]
+        pts += [[s1 * base_ring.one() / 2, s2 * g / 2, s3 * (1 + g)/2]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        verts = pts
+        verts += [[v[1], v[2], v[0]] for v in pts]
+        verts += [[v[2], v[0], v[1]] for v in pts]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
 
     def pentakis_dodecahedron(self, exact=True, base_ring=None):
         """
@@ -1212,7 +1254,7 @@ class Polytopes():
             sage: four_cube.ehrhart_polynomial()    # optional - latte_int
             16*t^4 + 32*t^3 + 24*t^2 + 8*t + 1
         """
-        return Polyhedron(vertices = list(itertools.product([1,-1], repeat=dim)))
+        return Polyhedron(vertices=list(itertools.product([1, -1], repeat=dim)))
 
     def cube(self):
         r"""

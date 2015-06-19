@@ -622,8 +622,9 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         """
         Return ``True`` if ``self`` is a finite type or ``False`` if unknown.
         
-        An indecomposable generalized Cartan matrix is finite if it has positive
-        determinant and if all its principal minors are positive.
+        A generalized Cartan matrix is finite if it is positive definite. Such a 
+        matrix may consist of multiple blocks of Cartan matrices having finite
+        Cartan type.
 
         EXAMPLES::
 
@@ -637,18 +638,17 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M.is_finite()
             False
         """
-        if not self.is_indecomposable():
-            return False
         if self._cartan_type is None:
-            return all(a.det() > 0 for a in self.principal_submatrices())
+            return self.is_positive_definite()
         return self._cartan_type.is_finite()
 
     def is_affine(self):
         """
         Return ``True`` if ``self`` is an affine type or ``False`` otherwise.
         
-        An indecomposable generalized Cartan matrix is affine if it has zero
-        determinant and if all its proper principal minors are positive.
+        A generalized Cartan matrix is affine if all of its indecomposable 
+        blocks are either finite (see :meth:`is_finite`) or have zero 
+        determinant with all proper principal minors positive.
 
         EXAMPLES::
 
@@ -662,11 +662,14 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M.is_affine()
             False
         """
-        if not self.is_indecomposable():
-            return False
         if self._cartan_type is None:
-            return self.det() == 0 and all(
-                a.det() > 0 for a in self.principal_submatrices(proper=True)) 
+            if not self.det() == 0:
+                return False
+            for b in self.indecomposable_blocks():
+                if not b.det() >= 0 and all(
+                    a.det() > 0 for a in b.principal_submatrices(proper=True)): 
+                    return False
+            return True
         return self._cartan_type.is_affine()
     
     def is_hyperbolic(self, compact=False):

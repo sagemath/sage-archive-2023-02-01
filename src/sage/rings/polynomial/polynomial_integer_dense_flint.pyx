@@ -57,6 +57,8 @@ from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.rings.integer cimport smallInteger
+
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -1100,9 +1102,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: type(x.degree())
             <type 'sage.rings.integer.Integer'>
         """
-        cdef Integer deg = PY_NEW(Integer)
-        mpz_set_si(deg.value, fmpz_poly_degree(self.__poly))
-        return deg
+        return smallInteger(fmpz_poly_degree(self.__poly))
 
     def pseudo_divrem(self, B):
         """

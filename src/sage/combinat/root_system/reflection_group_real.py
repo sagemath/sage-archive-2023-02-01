@@ -542,9 +542,19 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
     class Element(ComplexReflectionGroup.Element):
 
-        # the following is more conceptual but appears to be slower when
-        # iterating through the group
-        #reduced_word = cached_in_parent_method(CoxeterGroups.ElementMethods.reduced_word.__func__)
+        def _compute_reduced_word(self):
+            r"""
+            Computes a reduced word and stores it into ``self._redcued_word``.
+
+            TESTS::
+
+                sage: W = ReflectionGroup(['A',2])
+                sage: for w in W: w._reduced_word = None; w._compute_reduced_word()
+                sage: [ w._reduced_word for w in W ]
+                [[], [0], [1], [0, 1], [1, 0], [0, 1, 0]]
+            """
+            W = self.parent()
+            self._reduced_word = CoxeterGroups.ElementMethods.reduced_word.__func__(self)
 
         def has_left_descent(self, i):
             r"""

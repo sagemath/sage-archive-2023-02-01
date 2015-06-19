@@ -1300,7 +1300,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             W._conjugacy_classes[self] = orbit_set
             return orbit_set
 
-        @cached_in_parent_method
         def reduced_word(self):
             r"""
             Return a word in the simple reflections to obtain ``self``.
@@ -1315,13 +1314,30 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             """
             W = self.parent()
             if self._reduced_word is None:
-                inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
-                gens = [ W.simple_reflection(i) for i in W.index_set() ]
-                word = _gap_factorization(self,gens,inv_dict)
-                self._reduced_word = Word(word)
+                self._compute_reduced_word()
             elif isinstance(self._reduced_word, list):
                 self._reduced_word = Word(self._reduced_word)
             return self._reduced_word
+
+        def _compute_reduced_word(self):
+            r"""
+            Computes a reduced word and stores it into ``self._redcued_word``.
+
+            TESTS::
+
+                sage: W = ReflectionGroup((5,1,1))
+                sage: w = W.an_element()
+                sage: w._reduced_word is None
+                True
+                sage: w._compute_reduced_word()
+                sage: w._reduced_word
+                [0]
+            """
+            W = self.parent()
+            inv_dict = dict( (W._index_set[i],i) for i in W._index_set.keys() )
+            gens = [ W.simple_reflection(i) for i in W.index_set() ]
+            word = _gap_factorization(self,gens,inv_dict)
+            self._reduced_word = word
 
         @cached_in_parent_method
         def reduced_word_in_reflections(self):

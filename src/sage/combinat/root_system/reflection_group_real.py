@@ -76,26 +76,26 @@ def ReflectionGroup(*args,**kwds):
 
     Cartan-Killing classification types::
 
-        sage: W = ReflectionGroup(['A',3]); W
-         Irreducible real reflection group of rank 3 and type A3
+        sage: W = ReflectionGroup(['A',3]); W                           # optional - chevie
+         Irreducible real reflection group of rank 3 and type A3        # optional - chevie
 
-        sage: W = ReflectionGroup(['H',4]); W
+        sage: W = ReflectionGroup(['H',4]); W                           # optional - chevie
          Irreducible real reflection group of rank 4 and type H4
 
-        sage: W = ReflectionGroup(['I',5]); W
+        sage: W = ReflectionGroup(['I',5]); W                           # optional - chevie
          Irreducible real reflection group of rank 2 and type I2(5)
 
     the complex infinite family `G(r,p,n)` with `p` divides `r`::
 
-        sage: W = ReflectionGroup((1,1,4)); W
+        sage: W = ReflectionGroup((1,1,4)); W                           # optional - chevie
         Irreducible complex reflection group of rank 3 and type A3
 
-        sage: W = ReflectionGroup((2,1,3)); W
+        sage: W = ReflectionGroup((2,1,3)); W                           # optional - chevie
         Irreducible complex reflection group of rank 3 and type B3
 
     Chevalley-Shepard-Todd exceptional classification types::
 
-        sage: W = ReflectionGroup(23); W
+        sage: W = ReflectionGroup(23); W                                # optional - chevie
          Irreducible complex reflection group of rank 3 and type H3
 
     multiples of the above::

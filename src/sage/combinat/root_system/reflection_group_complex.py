@@ -1199,7 +1199,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     class Element(PermutationGroupElement):
 
-        _reduced_word=None
+        _reduced_word = None
 
         def apply_simple_reflection_right(self,i):
             r"""
@@ -1315,7 +1315,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             W = self.parent()
             if self._reduced_word is None:
                 self._compute_reduced_word()
-            elif isinstance(self._reduced_word, list):
+            if isinstance(self._reduced_word, list):
                 self._reduced_word = Word(self._reduced_word)
             return self._reduced_word
 
@@ -1347,23 +1347,39 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             EXAMPLES::
 
                 sage: W = ReflectionGroup((5,1,1),index_set=['a'],reflection_index_set=['A','B','C','D'])
-
                 sage: [ w.reduced_word_in_reflections() for w in W ]
                 [word: , word: A, word: B, word: C, word: D]
 
+
+                sage: W = ReflectionGroup(['A',2],index_set=['a','b'],reflection_index_set=['A','B','C'])
+                sage: [ (w.reduced_word(), w.reduced_word_in_reflections()) for w in W ]
+                [(word: , word: ),
+                 (word: a, word: A),
+                 (word: b, word: B),
+                 (word: ab, word: AB),
+                 (word: ba, word: AC),
+                 (word: aba, word: C)]
+
             .. SEEALSO:: :meth:`reduced_word`
             """
-            W = self.parent()
-            if self == W.one():
+            if self.is_one():
                 return Word([])
+
+            W = self.parent()
             if W.is_real():
-                R = W.reflections()
                 r = self.reflection_length()
-                for i in range(len(R)):
-                    t = R[i]
-                    w = t*self
-                    if w.reflection_length() < r:
-                        return Word([i]) + w.reduced_word_in_reflections()
+                R = W.reflections()
+                I = W.reflection_index_set()
+                word = []
+                while r > 0:
+                    for i in I:
+                        w = R[i]._mul_(self)
+                        if w.reflection_length() < r:
+                            word += [i]
+                            r -= 1
+                            self = w
+                            break
+                return Word(word)
             else:
                 inv_dict = dict( (W._reflection_index_set[i],i) for i in W._reflection_index_set.keys() )
                 gens = [ W.reflection(i) for i in W.reflection_index_set() ]
@@ -2047,7 +2063,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 1 False
                 2 False
                 01 False
-                20 False
+                02 False
                 10 False
                 12 False
                 21 False
@@ -2116,7 +2132,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 21010210 False
                 010102101 True
                 010121010 False
-                012010121 True
+                010121012 True
                 010210102 False
                 012101021 True
                 021010210 False
@@ -2161,7 +2177,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 01010210102101 False
                 01012101021012 False
                 10102101021012 False
-                210120101201010 False
+                010102101021012 False
             """
             evs = self.reflection_eigenvalues(test_class_repr=test_class_repr)
             for ev in evs:

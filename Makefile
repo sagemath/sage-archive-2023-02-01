@@ -109,42 +109,33 @@ micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 
-TESTPRELIMS = local/bin/sage-starts
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
-test: all # i.e. build and doc
-	$(TESTPRELIMS)
+test: all
 	$(TESTALL) --logfile=logs/test.log
 
 check: test
 
-testall: all # i.e. build and doc
-	$(TESTPRELIMS)
+testall: all
 	$(TESTALL) --optional=all --logfile=logs/testall.log
 
-testlong: all # i.e. build and doc
-	$(TESTPRELIMS)
+testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
-testalllong: all # i.e. build and doc
-	$(TESTPRELIMS)
+testalllong: all
 	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
 
-ptest: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
-ptestall: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestall: all
 	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
 
-ptestlong: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
-ptestalllong: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestalllong: all
 	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
 
 

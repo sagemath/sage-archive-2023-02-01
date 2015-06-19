@@ -333,27 +333,6 @@ class Mwrank_class(Expect):
         """
         mwrank_console()
 
-    def quit(self, verbose=False):
-        """
-        Quit the mwrank process using kill -9 (so exit doesn't dump core, etc.).
-
-        INPUT:
-
-        - ``verbose`` -- ignored
-
-        EXAMPLES::
-
-            sage: m = Mwrank()
-            sage: e = m('1 2 3 4 5')
-            sage: m.quit()
-        """
-        if self._expect is None: return
-        try:
-            os.kill(self._expect.pid, 9)
-        except OSError:
-            pass
-        self._expect = None
-
 
 # An instance
 mwrank = Mwrank()

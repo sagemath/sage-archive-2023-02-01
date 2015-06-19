@@ -546,16 +546,16 @@ def lift_map(target):
 
     Depending on the value of ``target``, the following lift maps will be created:
 
-    - `reg`: a lift map from `GF(3)` to the regular partial field `(Z, <-1>)`.
+    - "reg": a lift map from `\GF3` to the regular partial field `(\ZZ, <-1>)`.
 
-    - `sru`: a lift map from `GF(7)` to the
-        sixth-root-of-unity partial field `(Q(z) <z>)`, where `z` is a sixth-root.
-        The map sends 3 to `z`.
+    - "sru": a lift map from `\GF7` to the
+      sixth-root-of-unity partial field `(\QQ(z), <z>)`, where `z` is a sixth root
+      of unity. The map sends 3 to `z`.
 
-    - `dyadic`: a lift map from `GF(11)` to the dyadic partial field `(Q, <-1, 2>)`.
+    - "dyadic": a lift map from `\GF{11}` to the dyadic partial field `(\QQ, <-1, 2>)`.
 
-    - `gm`: a lift map from `GF(19)` to the golden mean partial field
-        `(Q(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
+    - "gm": a lift map from `\GF{19}` to the golden mean partial field
+      `(\QQ(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
 
     The example below shows that the latter map satisfies three necessary conditions stated in
     :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`

@@ -3304,21 +3304,20 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrs
+            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrslib
             8.0
-            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrs
+            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrslib
             64.0
-            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrs
+            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrslib
             2.0
 
         REFERENCES:
 
              David Avis's lrs program.
         """
-        if is_package_installed('lrs') != True:
-            print 'You must install the optional lrs package ' \
-                  'for this function to work'
-            raise NotImplementedError
+        if not is_package_installed('lrslib'):
+            raise NotImplementedError('You must install the optional lrslib package '
+                                       'for this function to work')
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -3375,6 +3374,17 @@ class Polyhedron_base(Element):
             sage: polytopes.twenty_four_cell().volume()
             2
 
+        Volume of the same polytopes, using the optional package lrslib
+        (which requires a rational polytope).  For mysterious historical
+        reasons, Sage casts lrs's exact answer to a float::
+
+            sage: I3 = polytopes.hypercube(3)
+            sage: I3.volume(engine='lrs') #optional - lrslib
+            8.0
+            sage: C24 = polytopes.twenty_four_cell()
+            sage: C24.volume(engine='lrs') #optional - lrslib
+            2.0
+
         If the base ring is exact, the answer is exact::
 
             sage: P5 = polytopes.regular_polygon(5)
@@ -3386,11 +3396,14 @@ class Polyhedron_base(Element):
             sage: numerical_approx(_)
             2.18169499062491
 
-        Volume of the same polytopes, using the optional package lrs::
+        Different engines may have different ideas on the definition
+        of volume of a lower-dimensional object::
 
-            sage: P5 = polytopes.regular_polygon(5, base_ring=RDF)
-            sage: P5.volume(engine='lrs') #optional - lrs
-            2.37764129...
+            sage: I = Polyhedron([(0,0), (1,1)])
+            sage: I.volume()
+            0
+            sage: I.volume(engine='lrs') #optional - lrslib
+            1.0
         """
         if engine=='lrs':
             return self._volume_lrs(**kwds)

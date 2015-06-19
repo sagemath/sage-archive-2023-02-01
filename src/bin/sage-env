@@ -266,8 +266,15 @@ if [ -f $SAGE_LOCAL/toolchain/toolchain-env ]; then
   source $SAGE_LOCAL/toolchain/toolchain-env
 fi
 
+# setting of the variable UNAME (describing the o.s.)
+# On Cygwin the result of `uname` depends on the version of Windows
+# it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
+# CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
+# Currently, this information is of no use to us so we discard it.
+export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
+
 # Mac OS X-specific setup
-if [ `uname` = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
@@ -395,7 +402,7 @@ export LD_LIBRARY_PATH
 
 # The following is needed for OS X (especially for the
 # Singular install).
-if [ `uname` = "Darwin" ]; then
+if [ "$UNAME" = "Darwin" ]; then
     if [ -z "${SAGE_ORIG_DYLD_LIBRARY_PATH_SET}" ]; then
         SAGE_ORIG_DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH && export SAGE_ORIG_DYLD_LIBRARY_PATH
         SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
@@ -436,12 +443,6 @@ MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
 ############ compilation flags
 
-# On Cygwin the result of `uname` depends on the version of Windows
-# it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
-# CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
-# Currently, this information is of no use to us so we discard it.
-export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
-
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when
 # code is being built as part of Sage.
@@ -453,7 +454,7 @@ if [ -z "$CC" ]; then
     # default C compiler as some older versions of XCode 4 ship broken
     # versions of GCC which fail to bootstrap GCC-4.6.3.
     # See http://trac.sagemath.org/sage_trac/ticket/12820
-    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = Darwin ] && [ `uname -r | cut -d. -f1` -ge 11 ]; then
+    if [ "$SAGE_BUILD_TOOLCHAIN" = yes ] && [ "$UNAME" = "Darwin" ] && [ "$MACOSX_VERSION" -ge 11 ]; then
         CC=`which clang 2>/dev/null`
         CXX=`which clang++ 2>/dev/null`
     fi

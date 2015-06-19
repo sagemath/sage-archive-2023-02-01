@@ -3575,6 +3575,70 @@ cdef class gen(gen_auto):
         sig_on()
         return P.new_gen(nf_rnfeq(self.g, t0.g))
 
+    def _nf_nfzk(self, rnfeq):
+        """
+        Return data for constructing relative number field elements
+        from elements of the base field.
+
+        INPUT:
+
+        - ``rnfeq`` -- relative number field data as returned by
+          :meth:`_nf_rnfeq`
+
+        .. NOTE::
+
+            The output of this method is suitable for the method
+            :meth:`_nfeltup`.
+
+        TESTS::
+
+            sage: nf = pari('nfinit(y^2 - 2)')
+            sage: nf._nf_nfzk(nf._nf_rnfeq('x^2 - 3'))
+            ([2, -x^3 + 9*x], 1/2)
+
+        """
+        cdef GEN zknf, czknf
+        cdef gen t0 = objtogen(rnfeq)
+        cdef gen zk, czk
+        sig_on()
+        nf_nfzk(self.g, t0.g, &zknf, &czknf)
+        zk = P.new_gen_noclear(zknf)
+        czk = P.new_gen(czknf)
+        return zk, czk
+
+    def _nfeltup(self, x, zk, czk):
+        """
+        Construct a relative number field element from an element of
+        the base field.
+
+        INPUT:
+
+        - ``x`` -- element of the base field
+
+        - ``zk``, ``czk`` -- relative number field data as returned by
+          :meth:`_nf_nfzk`
+
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltup` that only
+            needs the output of :meth:`_nf_nfzk`, not a full PARI
+            ``rnf`` structure.  This method may raise errors or return
+            undefined results if called with invalid arguments.
+
+        TESTS::
+
+            sage: nf = pari('nfinit(y^2 - 2)')
+            sage: zk, czk = nf._nf_nfzk(nf._nf_rnfeq('x^2 - 3'))
+            sage: nf._nfeltup('y', zk, czk)
+            -1/2*x^3 + 9/2*x
+
+        """
+        cdef gen t0 = objtogen(x)
+        cdef gen t1 = objtogen(zk)
+        cdef gen t2 = objtogen(czk)
+        sig_on()
+        return P.new_gen(nfeltup(self.g, t0.g, t1.g, t2.g))
+
     reverse = deprecated_function_alias(20219, gen_auto.polrecip)
 
     def eval(self, *args, **kwds):

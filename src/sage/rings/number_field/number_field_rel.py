@@ -1152,7 +1152,8 @@ class NumberField_relative(NumberField_generic):
         element = self.base_field().coerce(element)
         element = to_abs_base(element)
         # Express element as a polynomial in the absolute generator of self
-        expr_x = self._pari_rnfeq()._eltreltoabs(element._pari_polynomial())
+        zk, czk = self._pari_nfzk()
+        expr_x = self._pari_base_nf()._nfeltup(element._pari_polynomial(), zk, czk)
         # We do NOT call self(...) because this code is called by
         # __init__ before we initialize self.gens(), and self(...)
         # uses self.gens()
@@ -1551,6 +1552,22 @@ class NumberField_relative(NumberField_generic):
         f = self.pari_absolute_base_polynomial()
         g = self.pari_relative_polynomial()
         return f._nf_rnfeq(g)
+
+    @cached_method
+    def _pari_nfzk(self):
+        """
+        Return PARI data needed for constructing relative number field
+        elements from elements of the base field.
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^2 - 2)
+            sage: L.<b> = K.extension(x^2 - 3)
+            sage: L._pari_nfzk()
+            ([2, -x^3 + 9*x], 1/2)
+
+        """
+        return self._pari_base_nf()._nf_nfzk(self._pari_rnfeq())
 
     @cached_method
     def _pari_relative_structure(self):

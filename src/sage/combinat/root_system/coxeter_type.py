@@ -28,7 +28,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 
 
-class CoxeterType(object):
+class CoxeterType(SageObject):
     """
     Abstract class for Coxeter types.
     """
@@ -391,7 +391,7 @@ class CoxeterType(object):
         return bilinear
 
 
-class CoxeterTypeFromCartanType(SageObject, CoxeterType, UniqueRepresentation):
+class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
     """
     A Coxeter type associated to a Cartan type.
     """

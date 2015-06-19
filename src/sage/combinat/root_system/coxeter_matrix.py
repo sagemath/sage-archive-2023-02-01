@@ -35,7 +35,6 @@ from sage.combinat.root_system.coxeter_type import CoxeterType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
 
-
 class CoxeterMatrix(CoxeterType):
     r"""
     A Coxeter matrix.
@@ -428,29 +427,35 @@ class CoxeterMatrix(CoxeterType):
         EXAMPLES::
 
             sage: [CM.coxeter_type() for CM in CoxeterMatrix.samples()]
-            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-             Coxeter type of ['B', 5], Coxeter type of ['D', 4],
-             Coxeter type of ['D', 5], Coxeter type of ['E', 6],
-             Coxeter type of ['E', 7], Coxeter type of ['E', 8],
-             Coxeter type of ['F', 4], Coxeter type of ['H', 3],
-             Coxeter type of ['H', 4], Coxeter type of ['I', 10],
-             Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
-             Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
-             Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
-             Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
-             Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1],
-             [ 1 -2]
-             [-2  1],
-             [ 1 -1 -1]
-             [-1  1 -1]
-             [-1 -1  1],
-             [1 2 3]
-             [2 1 7]
-             [3 7 1],
-             [ 1 -2  3  2]
-             [-2  1  2  3]
-             [ 3  2  1 -8]
-             [ 2  3 -8  1]]
+            [
+            Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            <BLANKLINE>
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4],
+            <BLANKLINE>
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6],
+            <BLANKLINE>
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            <BLANKLINE>
+            Coxeter type of ['F', 4], Coxeter type of ['H', 3],
+            <BLANKLINE>
+            Coxeter type of ['H', 4], Coxeter type of ['I', 10],
+            <BLANKLINE>
+            Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
+            <BLANKLINE>
+            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+            <BLANKLINE>
+            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+            <BLANKLINE>
+            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+            <BLANKLINE>
+                                                                      [ 1 -2]
+            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1], [-2  1],
+            <BLANKLINE>
+                                 [ 1 -2  3  2]
+            [ 1 -1 -1]  [1 2 3]  [-2  1  2  3]
+            [-1  1 -1]  [2 1 7]  [ 3  2  1 -8]
+            [-1 -1  1], [3 7 1], [ 2  3 -8  1]
+            ]
 
         The finite, affine and crystallographic options allow
         respectively for restricting to (non) finite, (non) affine,
@@ -483,22 +488,17 @@ class CoxeterMatrix(CoxeterType):
              Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1]]
 
             sage: CoxeterMatrix.samples(crystallographic=False)
-            [[1 3 2]
-             [3 1 5]
-             [2 5 1], [1 3 2 2]
-             [3 1 3 2]
-             [2 3 1 5]
-             [2 2 5 1], [ 1 10]
-             [10  1], [ 1 -1]
-             [-1  1], [ 1 -2]
-             [-2  1], [ 1 -1 -1]
-             [-1  1 -1]
-             [-1 -1  1], [1 2 3]
-             [2 1 7]
-             [3 7 1], [ 1 -2  3  2]
-             [-2  1  2  3]
-             [ 3  2  1 -8]
-             [ 2  3 -8  1]]
+            [
+                     [1 3 2 2]                                                
+            [1 3 2]  [3 1 3 2]                             [ 1 -1 -1]  [1 2 3]
+            [3 1 5]  [2 3 1 5]  [ 1 10]  [ 1 -1]  [ 1 -2]  [-1  1 -1]  [2 1 7]
+            [2 5 1], [2 2 5 1], [10  1], [-1  1], [-2  1], [-1 -1  1], [3 7 1],
+            <BLANKLINE>
+            [ 1 -2  3  2]
+            [-2  1  2  3]
+            [ 3  2  1 -8]
+            [ 2  3 -8  1]
+            ]
 
         .. TODO:: add some reducible Coxeter types (suggestions?)
 
@@ -527,29 +527,35 @@ class CoxeterMatrix(CoxeterType):
         EXAMPLES::
 
             sage: [CM.coxeter_type() for CM in CoxeterMatrix._samples()]
-            [Coxeter type of ['A', 1], Coxeter type of ['A', 5],
-             Coxeter type of ['B', 5], Coxeter type of ['D', 4],
-             Coxeter type of ['D', 5], Coxeter type of ['E', 6],
-             Coxeter type of ['E', 7], Coxeter type of ['E', 8],
-             Coxeter type of ['F', 4], Coxeter type of ['H', 3],
-             Coxeter type of ['H', 4], Coxeter type of ['I', 10],
-             Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
-             Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
-             Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
-             Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
-             Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1],
-             [ 1 -2]
-             [-2  1],
-             [ 1 -1 -1]
-             [-1  1 -1]
-             [-1 -1  1],
-             [1 2 3]
-             [2 1 7]
-             [3 7 1],
-             [ 1 -2  3  2]
-             [-2  1  2  3]
-             [ 3  2  1 -8]
-             [ 2  3 -8  1]]
+            [
+            Coxeter type of ['A', 1], Coxeter type of ['A', 5],
+            <BLANKLINE>
+            Coxeter type of ['B', 5], Coxeter type of ['D', 4],
+            <BLANKLINE>
+            Coxeter type of ['D', 5], Coxeter type of ['E', 6],
+            <BLANKLINE>
+            Coxeter type of ['E', 7], Coxeter type of ['E', 8],
+            <BLANKLINE>
+            Coxeter type of ['F', 4], Coxeter type of ['H', 3],
+            <BLANKLINE>
+            Coxeter type of ['H', 4], Coxeter type of ['I', 10],
+            <BLANKLINE>
+            Coxeter type of ['A', 2, 1], Coxeter type of ['B', 5, 1],
+            <BLANKLINE>
+            Coxeter type of ['C', 5, 1], Coxeter type of ['D', 5, 1],
+            <BLANKLINE>
+            Coxeter type of ['E', 6, 1], Coxeter type of ['E', 7, 1],
+            <BLANKLINE>
+            Coxeter type of ['E', 8, 1], Coxeter type of ['F', 4, 1],
+            <BLANKLINE>
+                                                                      [ 1 -2]
+            Coxeter type of ['G', 2, 1], Coxeter type of ['A', 1, 1], [-2  1],
+            <BLANKLINE>
+                                 [ 1 -2  3  2]
+            [ 1 -1 -1]  [1 2 3]  [-2  1  2  3]
+            [-1  1 -1]  [2 1 7]  [ 3  2  1 -8]
+            [-1 -1  1], [3 7 1], [ 2  3 -8  1]
+            ]
         """
         finite = [CoxeterMatrix(t)  for t in [['A', 1], ['A', 5], ['B', 5],
                                               ['D', 4], ['D', 5], ['E', 6], ['E', 7],
@@ -621,21 +627,54 @@ class CoxeterMatrix(CoxeterType):
             return (CoxeterMatrix, (self._coxeter_type,))
         return (CoxeterMatrix, (self._matrix, self._index_set))
 
-    def __repr__(self):
+    def _repr_(self):
         """
         String representation of the Coxeter matrix.
         
         EXAMPLES::
 
-            sage: CM = CoxeterMatrix(['A',3]);CM
+            sage: CM = CoxeterMatrix(['A',3]); CM
             [1 3 2]
             [3 1 3]
             [2 3 1]
-            sage: CM = CoxeterMatrix([[1,-3/2],[-3/2,1]]);CM
+            sage: CM = CoxeterMatrix([[1,-3/2],[-3/2,1]]); CM
             [   1 -3/2]
             [-3/2    1]
         """
         return self._matrix.__repr__()
+
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix(['A',3])
+            sage: CM._repr_option('ascii_art')
+            True
+        """
+        if key == 'ascii_art' or key == 'element_ascii_art':
+            return self._matrix.nrows() > 1
+        return super(CoxeterMatrix, self)._repr_option(key)
+
+    def _latex_(self):
+        r"""
+        Latex representation of the Coxeter matrix.
+        
+        EXAMPLES::
+
+            sage: CM = CoxeterMatrix(['A',3])
+            sage: latex(CM)
+            \left(\begin{array}{rrr}
+            1 & 3 & 2 \\
+            3 & 1 & 3 \\
+            2 & 3 & 1
+            \end{array}\right)
+        """
+        return self._matrix._latex_()
+
 
     def __iter__(self):
         """

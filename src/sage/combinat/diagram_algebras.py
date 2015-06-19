@@ -230,13 +230,13 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
     This is a class that generates partition diagrams. Its primary use is to serve as basis keys for diagram algebras, but diagrams also have properties in their own right. Furthermore, this class is meant to be extended to create more efficient contains methods. 
     """
+    Element = AbstractPartitionDiagram
     def __init__(self, diagram_func, order, category = None):
         if category == None:
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
         self.diagram_func = diagram_func
         self.order = order
-        Element = AbstractPartitionDiagram
 
     def __iter__(self):
         for i in self.diagram_func(self.order):

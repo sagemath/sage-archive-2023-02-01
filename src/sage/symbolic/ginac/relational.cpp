@@ -376,6 +376,27 @@ relational::safe_bool relational::make_safe_bool(bool cond) const
 	return cond? &safe_bool_helper::nonnull : nullptr;
 }
 
+static relational::operators flip(relational::operators op);
+
+static relational::operators flip(relational::operators op)
+{
+        switch (op) {
+		case relational::equal:
+		case relational::not_equal:
+                        return op;
+		case relational::less:
+			return relational::greater;
+		case relational::less_or_equal:
+			return relational::greater_or_equal;
+		case relational::greater:
+			return relational::less;
+		case relational::greater_or_equal:
+			return relational::less_or_equal;
+		default:
+			throw(std::logic_error("invalid relational operator"));
+        }
+}
+
 /** Cast the relational into a boolean, mainly for evaluation within an
  *  if-statement.  Note that (a<b) == false does not imply (a>=b) == true in
  *  the general symbolic case.  A false result means the comparison is either
@@ -408,6 +429,21 @@ relational::operator relational::safe_bool() const
 		}
 		return make_safe_bool(false);
 	}
+
+        if (unlikely(is_exactly_a<infinity>(lh)) or unlikely(is_exactly_a<infinity>(rh))) {
+                infinity inf;
+                ex other = rh;
+                operators oper = o;
+                if (unlikely(is_exactly_a<infinity>(rh))) {
+                        other = lh;
+                        inf = ex_to<infinity>(rh);
+                        oper = flip(o);
+                }
+                else {
+                        inf = ex_to<infinity>(lh);
+                }
+                return make_safe_bool(inf.compare_other_type(other, oper));
+        }
 
 	const ex df = lh-rh;
 	if (!is_exactly_a<numeric>(df))

@@ -26,6 +26,7 @@
 #include "basic.h"
 #include "numeric.h"
 #include "ex.h"
+#include "relational.h"
 
 #include <string>
 
@@ -57,6 +58,9 @@ public:
 	const ex & get_direction() const { return direction; };
 	const infinity & operator *= (const ex & rhs);
 	const infinity & operator += (const ex & rhs);
+
+	bool compare_other_type(const ex & other,
+		relational::operators op) const;
 
 protected:
 	ex derivative(const symbol & s) const;

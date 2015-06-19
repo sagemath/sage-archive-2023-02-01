@@ -6708,6 +6708,66 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(bnrclassno(self.g, t0.g))
 
+    def eltabstorel(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POLMOD`` with ``t_POLMOD`` coefficients.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
+            sage: f_abs = rnfeq[0]; f_abs
+            x^4 + 6*x^2 + 1
+            sage: x_rel = rnfeq.eltabstorel(x); x_rel
+            Mod(x + Mod(-y, y^2 + 1), x^2 + 2)
+            sage: f_abs(x_rel)
+            Mod(0, x^2 + 2)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel(self.g, t0.g))
+
+    def eltabstorel_lift(self, x):
+        """
+        Return the relative number field element corresponding to `x`.
+
+        The result is a ``t_POL`` with ``t_POLMOD`` coefficients.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
+            sage: rnfeq.eltabstorel_lift(x)
+            x + Mod(-y, y^2 + 1)
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltabstorel_lift(self.g, t0.g))
+
+    def eltreltoabs(self, x):
+        """
+        Return the absolute number field element corresponding to `x`.
+
+        The result is a ``t_POL``.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
+            sage: rnfeq.eltreltoabs(x)
+            1/2*x^3 + 7/2*x
+            sage: rnfeq.eltreltoabs('y')
+            1/2*x^3 + 5/2*x
+
+        """
+        cdef gen t0 = objtogen(x)
+        pari_catch_sig_on()
+        return P.new_gen(eltreltoabs(self.g, t0.g))
+
     def galoisinit(self, den=None):
         """
         Calculate the Galois group of ``self``.
@@ -7617,6 +7677,22 @@ cdef class gen(gen_auto):
         """
         pari_catch_sig_on()
         return P.new_gen(nfsubfields(self.g, d))
+
+    def nf_rnfeq(self, relpol):
+        """
+        Return data for converting number field elements between
+        absolute and relative representation.
+
+        TESTS::
+
+            sage: K = pari('y^2 + 1').nfinit()
+            sage: K.nf_rnfeq(x^2 + 2)
+            [x^4 + 6*x^2 + 1, 1/2*x^3 + 5/2*x, -1, y^2 + 1, x^2 + 2]
+
+        """
+        cdef gen t0 = objtogen(relpol)
+        pari_catch_sig_on()
+        return P.new_gen(nf_rnfeq(self.g, t0.g))
 
     def rnfidealdown(self, x):
         r"""

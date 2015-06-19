@@ -620,7 +620,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
     def is_finite(self):
         """
-        Return ``True`` if ``self`` is a finite type or ``False`` if unknown.
+        Return ``True`` if ``self`` is a finite type or ``False`` otherwise.
         
         A generalized Cartan matrix is finite if it is positive definite. Such a 
         matrix may consist of multiple blocks of Cartan matrices having finite
@@ -666,7 +666,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if not self.det() == 0:
                 return False
             for b in self.indecomposable_blocks():
-                if not b.det() >= 0 and all(
+                if not b.det() >= 0 or not all(
                     a.det() > 0 for a in b.principal_submatrices(proper=True)): 
                     return False
             return True

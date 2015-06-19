@@ -193,7 +193,7 @@ base ring::
     a*d + e_2
     sage: y = A(p) + A(r)
     sage: y
-    a*d + b*d
+    b*d + a*d
 
 :class:`~sage.quivers.algebra.QuiverAlgebras` are `\NN`-graded algebras.
 The grading is given by assigning to each basis element the length of the

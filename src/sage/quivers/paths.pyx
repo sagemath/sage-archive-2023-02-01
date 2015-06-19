@@ -575,6 +575,31 @@ cdef class QuiverPath(MonoidElement):
             return (None, None, None)
         return (self[:i], self[i:], P[self._path.length-i:])
 
+    cpdef tuple complement(self, QuiverPath subpath):
+        """
+        Return a pair ``(a,b)`` of paths s.t. ``self==a*subpath*b``,
+        or ``(None, None)`` if ``subpath`` is not a subpath of this path.
+
+        NOTE:
+
+        ``a`` is chosen of minimal length.
+
+        EXAMPLES::
+
+            sage: S = DiGraph({1:{1:['a','b','c','d']}}).path_semigroup()
+            sage: S.inject_variables()
+            Defining e_1, a, b, c, d
+            sage: (b*c*a*d*b*a*d*d).complement(a*d)
+            (b*c, b*a*d*d)
+            sage: (b*c*a*d*b).complement(a*c)
+            (None, None)
+            
+        """
+        cdef size_t i = biseq_contains(self._path, subpath._path, 0)
+        if i == -1:
+            return (None, None)
+        return self[:i], self[i+len(subpath):]
+
     cpdef bint has_subpath(self, QuiverPath subpath) except -1:
         """
         Tells whether this path contains a given sub-path.

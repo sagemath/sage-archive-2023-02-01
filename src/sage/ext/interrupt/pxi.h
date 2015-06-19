@@ -4,5 +4,5 @@
  * struct_signals.h and macros.h must be separate files.
  */
 #include "interrupt/struct_signals.h"
-#include "build/cythonized/sage/ext/interrupt/interrupt_api.h"
+#include "interrupt/interrupt_api.h"
 #include "interrupt/macros.h"

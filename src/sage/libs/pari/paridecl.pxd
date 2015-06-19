@@ -28,10 +28,10 @@ from libc.stdio cimport FILE
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list
 
-from sage.libs.flint.types cimport ulong
-
 cdef extern from "sage/libs/pari/parisage.h":
     char* PARIVERSION
+
+    ctypedef unsigned long ulong "pari_ulong"
 
     ctypedef long* GEN
     ctypedef char* byteptr

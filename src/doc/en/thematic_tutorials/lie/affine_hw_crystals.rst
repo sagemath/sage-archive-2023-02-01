@@ -39,7 +39,7 @@ associated digraph::
      (Lambda[0] - Lambda[2] + Lambda[3], Lambda[1])]
 
     sage: G = LS.digraph(subset = C)
-    sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+    sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
 .. image:: ../media/LScrystal.png
    :scale: 50
@@ -56,7 +56,7 @@ can use the direction option in subcrystal::
     sage: C = LS.subcrystal(max_depth=2, direction = 'both')
     sage: G = LS.digraph(subset = C)
     sage: G.set_latex_options(edge_options = lambda (u,v,label): ({}))
-    sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+    sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
 .. image:: ../media/level_zero_crystal.png
    :scale: 50

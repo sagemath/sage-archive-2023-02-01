@@ -25,6 +25,7 @@ all:
 # All targets except for the base packages
 all-sage: \
      $(STANDARD_PACKAGES) \
+     $(OPTIONAL_INSTALLED_PACKAGES) \
      $(INST)/$(SAGE_MP_LIBRARY) \
      $(INST)/sage \
      $(EXTCODE) \
@@ -49,7 +50,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(IPYTHON)
+SAGERUNTIME = $(SCRIPTS) $(INST)/sage $(INST)/$(IPYTHON) $(INST)/$(PEXPECT)
 
 ###############################################################################
 # Building the base system

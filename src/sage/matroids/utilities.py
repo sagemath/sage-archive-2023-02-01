@@ -360,50 +360,50 @@ def get_nonisomorphic_matroids(MSet):
 
 def lift_cross_ratios(A, lift_map = None):
     """
-    Return a matrix which arises from the given matrix by lifting cross ratios. 
+    Return a matrix which arises from the given matrix by lifting cross ratios.
 
     INPUT:
-    
+
     - ``A`` -- a matrix over a ring ``source_ring``.
-    - ``lift_map`` -- a python dictionary, mapping each cross ratio of ``A`` to some element 
+    - ``lift_map`` -- a python dictionary, mapping each cross ratio of ``A`` to some element
       of a target ring, and such that ``lift_map[source_ring(1)] = target_ring(1)``.
-    
+
     OUTPUT:
 
     - ``Z`` -- a matrix over the ring ``target_ring``.
-         
-    The intended use of this method is to create a (reduced) matrix representation of a 
-    matroid ``M`` over a ring ``target_ring``, given a (reduced) matrix representation of 
-    ``A`` of ``M`` over a ring ``source_ring`` and a map ``lift_map`` from ``source_ring`` 
+
+    The intended use of this method is to create a (reduced) matrix representation of a
+    matroid ``M`` over a ring ``target_ring``, given a (reduced) matrix representation of
+    ``A`` of ``M`` over a ring ``source_ring`` and a map ``lift_map`` from ``source_ring``
     to ``target_ring``.
-    
-    This method will create a unique candidate representation ``Z``, but will not verify 
-    if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the 
-    conditions of the lift theorem (see _[PvZ]) hold for the lift_map in combination with 
-    the matrix ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are 
-    keys of ``lift_map``, and 
-    
-    - if ``x, y`` are keys of ``lift_map``, and ``x+y == 1`` then 
+
+    This method will create a unique candidate representation ``Z``, but will not verify
+    if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
+    conditions of the lift theorem (see [PvZ]_) hold for the lift_map in combination with
+    the matrix ``A``. These conditions that all cross ratios of ``A`` as well as ``1`` are
+    keys of ``lift_map``, and
+
+    - if ``x, y`` are keys of ``lift_map``, and ``x+y == 1`` then
       ``lift_map[x] + lift_map[y] = lift_map[1]``
-    - if ``x, y, z`` are keys of ``lift_map``, and ``x*y == z`` then 
+    - if ``x, y, z`` are keys of ``lift_map``, and ``x*y == z`` then
       ``lift_map[x]*lift_map[y] = lift_map[z]``
-    - if ``x, y`` are keys of ``lift_map``, and ``x*y`` is not, then there is no key ``z`` 
+    - if ``x, y`` are keys of ``lift_map``, and ``x*y`` is not, then there is no key ``z``
       of ``lift_map`` such that ``lift_map[x]*lift_map[y] = lift_map[z]``
 
-    Finally, there are global conditions on the target ring which depend on the matroid 
-    ``M`` represented by ``[ I A ]``. If ``M`` has a Fano minor, then in the target ring we 
-    must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must 
+    Finally, there are global conditions on the target ring which depend on the matroid
+    ``M`` represented by ``[ I A ]``. If ``M`` has a Fano minor, then in the target ring we
+    must have ``1+1 == 0``. If ``M`` has a NonFano minor, then in the target ring we must
     have ``1+1 != 0``.
-    
+
     Several such lift maps can be created by the function
     :meth:`lift_map() <sage.matroids.utilities.lift_map>`
-    
+
     .. SEEALSO::
 
         :meth:`lift_map() <sage.matroids.utilities.lift_map>`
-    
+
     EXAMPLES::
-    
+
         sage: from sage.matroids.advanced import lift_cross_ratios, lift_map, LinearMatroid
         sage: R = GF(7)
         sage: to_sixth_root_of_unity = lift_map('sru')
@@ -433,21 +433,21 @@ def lift_cross_ratios(A, lift_map = None):
         source_ring = s.parent()
         target_ring = t.parent()
         break
-    plus_one1 = source_ring(1)    
+    plus_one1 = source_ring(1)
     minus_one1 = source_ring(-1)
     plus_one2 = target_ring(1)
     minus_one2 = target_ring(-1)
-        
+
     G = Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
-    
+
     # write the entries of (a scaled version of) A as products of cross ratios of A
     T = G.min_spanning_tree()
-    # - fix a tree of the support graph G to units (= empty dict, product of 0 terms) 
+    # - fix a tree of the support graph G to units (= empty dict, product of 0 terms)
     F = {entry[2]: dict() for entry in T}
     W = set(G.edges()) - set(T)
     H = G.subgraph(edges = T)
-    while W: 
-        # - find an edge in W to process, closing a circuit in H which is induced in G 
+    while W:
+        # - find an edge in W to process, closing a circuit in H which is induced in G
         edge = W.pop()
         path = H.shortest_path(edge[0], edge[1])
         retry = True
@@ -467,10 +467,10 @@ def lift_cross_ratios(A, lift_map = None):
             v = path[i]
             w = path[i+1]
             if v[1] == 0:
-                entries.append((v[0],w[0])) 
+                entries.append((v[0],w[0]))
             else:
                 entries.append((w[0],v[0]))
-        # - compute the cross ratio `cr` of this whirl            
+        # - compute the cross ratio `cr` of this whirl
         cr = A[entry]
         div = True
         for entry2 in entries:
@@ -478,59 +478,59 @@ def lift_cross_ratios(A, lift_map = None):
                 cr = cr/A[entry2]
             else:
                 cr = cr* A[entry2]
-            div = not div   
-        
-        monomial = dict()    
+            div = not div
+
+        monomial = dict()
         if len(path) % 4 == 0:
             if not cr == plus_one1:
-                monomial[cr] = 1 
-        else: 
+                monomial[cr] = 1
+        else:
             cr = -cr
             if not cr ==plus_one1:
                 monomial[cr] = 1
             if  monomial.has_key(minus_one1):
                 monomial[minus_one1] = monomial[minus_one1] + 1
             else:
-                monomial[minus_one1] = 1   
-            
+                monomial[minus_one1] = 1
+
         if cr != plus_one1 and not cr in lift_map:
-            raise ValueError("Input matrix has a cross ratio "+str(cr)+", which is not in the lift_map")    
+            raise ValueError("Input matrix has a cross ratio "+str(cr)+", which is not in the lift_map")
         # - write the entry as a product of cross ratios of A
-        div = True                  
+        div = True
         for entry2 in entries:
             if div:
                 for cr, degree in F[entry2].iteritems():
                     if monomial.has_key(cr):
                         monomial[cr] = monomial[cr]+ degree
                     else:
-                        monomial[cr] = degree   
+                        monomial[cr] = degree
             else:
                 for cr, degree in F[entry2].iteritems():
                     if monomial.has_key(cr):
                         monomial[cr] = monomial[cr] - degree
                     else:
                         monomial[cr] = -degree
-            div = not div  
+            div = not div
         F[entry] = monomial
         # - current edge is done, can be used in next iteration
-        H.add_edge(edge)  
-     
-    # compute each entry of Z as the product of lifted cross ratios  
-    from sage.matrix.constructor import Matrix                    
+        H.add_edge(edge)
+
+    # compute each entry of Z as the product of lifted cross ratios
+    from sage.matrix.constructor import Matrix
     Z = Matrix(target_ring, A.nrows(), A.ncols())
     for entry, monomial in F.iteritems():
-        Z[entry] = plus_one2      
+        Z[entry] = plus_one2
         for cr,degree in monomial.iteritems():
             if cr == minus_one1:
                 Z[entry] = Z[entry] * (minus_one2**degree)
             else:
                 Z[entry] = Z[entry] * (lift_map[cr]**degree)
-    
+
     return Z
-        
+
 def lift_map(target):
     """
-    Create a lift map, to be used for lifting the cross ratios of a matroid 
+    Create a lift map, to be used for lifting the cross ratios of a matroid
     representation.
 
     .. SEEALSO::
@@ -539,48 +539,61 @@ def lift_map(target):
 
     INPUT:
 
-    - ``target``, a string describing the target (partial) field.
+    - ``target`` -- a string describing the target (partial) field.
 
     OUTPUT:
 
-    - a dictionary.
+    - a dictionary
 
     Depending on the value of ``target``, the following lift maps will be created:
 
     - `reg`: a lift map from `GF(3)` to the regular partial field `(Z, <-1>)`.
 
-    - `sru`: a lift map from `GF(7)` to the 
+    - `sru`: a lift map from `GF(7)` to the
         sixth-root-of-unity partial field `(Q(z) <z>)`, where `z` is a sixth-root.
         The map sends 3 to `z`.
-    
+
     - `dyadic`: a lift map from `GF(11)` to the dyadic partial field `(Q, <-1, 2>)`.
 
     - `gm`: a lift map from `GF(19)` to the golden mean partial field
         `(Q(t), <-1,t>)`, where `t` is a root of `t^2-t-1`. The map sends `5` to `t`.
 
+    The example below shows that the latter map satisfies the three necessary conditions of
+    :meth:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+
+    EXAMPLES::
+        sage: from sage.matroids.utilities import lift_map
+        sage: lm = lift_map('gm')
+        sage: for x in lm:
+        ....:     for y in lm:
+        ....:         if x+y == 1 and lm[x]+lm[y] != lm[1]:
+        ....:             print 'not a proper lift map'
+        ....:         if x*y in lm and lm[x]*lm[y] != lm[x*y]:
+        ....:             print 'not a proper lift map'
+        ....:         if x*y not in lm and lm[x]*lm[y] in lm.values():    
+        ....:             print 'not a proper lift map'
+        ....:             
+
     """
     if target == "reg":
         R = GF(3)
         return {R(1): ZZ(1)}
-        
+
     if target == "sru":
         R = GF(7)
         z = ZZ['z'].gen()
         S = NumberField(z*z-z+1, 'z')
         return { R(1): S(1), R(3): S(z), R(3)**(-1): S(z)**5}
-        
+
     if target == "dyadic":
         R = GF(11)
         return {R(1):QQ(1), R(-1):QQ(-1), R(2):QQ(2), R(6): QQ(1/2)}
-        
-    if target == "gm":    
+
+    if target == "gm":
         R = GF(19)
         t = QQ['t'].gen()
         G = NumberField(t*t-t-1, 't')
-        return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t), 
+        return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t),
             R(5)**(-1): G(t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
-            
+
     raise NotImplementedError(target)
-        
-    
-            

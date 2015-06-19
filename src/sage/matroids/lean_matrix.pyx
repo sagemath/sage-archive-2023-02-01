@@ -1168,7 +1168,7 @@ cdef class BinaryMatrix(LeanMatrix):
 
     cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
         """
-        Return a submatrix indexed by indicated rows and columns, as well as 
+        Return a submatrix indexed by indicated rows and columns, as well as
         the column order of the resulting submatrix.
         """
         cdef BinaryMatrix A = BinaryMatrix(len(rows), len(columns))
@@ -1191,7 +1191,7 @@ cdef class BinaryMatrix(LeanMatrix):
             else:
                 cols[g] = c
                 g = g+1
-        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
         gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
@@ -1846,7 +1846,7 @@ cdef class TernaryMatrix(LeanMatrix):
 
     cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
         """
-        Return a submatrix indexed by indicated rows and columns, as well as 
+        Return a submatrix indexed by indicated rows and columns, as well as
         the column order of the resulting submatrix.
         """
         cdef TernaryMatrix A = TernaryMatrix(len(rows), len(columns))
@@ -1869,7 +1869,7 @@ cdef class TernaryMatrix(LeanMatrix):
             else:
                 cols[g] = c
                 g = g+1
-        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
         gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
@@ -1907,7 +1907,7 @@ cdef class TernaryMatrix(LeanMatrix):
         sage_free(gaps)
         sage_free(cols)
         bitset_free(mask)
-        return A, order    
+        return A, order
 
     def __richcmp__(left, right, op):
         """
@@ -2433,7 +2433,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
 
     cdef matrix_from_rows_and_columns_reordered(self, rows, columns):
         """
-        Return a submatrix indexed by indicated rows and columns, as well as 
+        Return a submatrix indexed by indicated rows and columns, as well as
         the column order of the resulting submatrix.
         """
         cdef QuaternaryMatrix A = QuaternaryMatrix(len(rows), len(columns), ring = self._gf4)
@@ -2456,7 +2456,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
             else:
                 cols[g] = c
                 g = g+1
-        # write [ c for c in range(lc) if c not in columns] as array `gaps`        
+        # write [ c for c in range(lc) if c not in columns] as array `gaps`
         cdef mp_bitcnt_t *gaps
         gaps = <mp_bitcnt_t*>sage_malloc(lc*sizeof(mp_bitcnt_t))
         bitset_complement(mask, mask)
@@ -2477,7 +2477,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
             row0_2 = A._M0[r]
             row1_2 = A._M1[r]
             bitset_intersection(row0_2, row0, mask) # yes, this is safe
-            bitset_intersection(row1_2, row1, mask) 
+            bitset_intersection(row1_2, row1, mask)
             for g in xrange(lg):
                 p = cols[g]
                 q = gaps[g]

@@ -26,6 +26,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypercube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.icosahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.icosidodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Kirkman_icosahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.parallelotope`
@@ -39,6 +40,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.snub_cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_cube`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`
@@ -923,7 +925,7 @@ class Polytopes():
             sage: bb.base_ring()
             Real Double Field
 
-        Its faces are 5 regular pentagons and 6 regular hexagons::
+        Its faces are 20 triangles and 12 regular pentagons::
 
             sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
             20
@@ -945,6 +947,70 @@ class Polytopes():
         z = base_ring.zero()
         pts = [[g, 0, 0], [-g, 0, 0]]
         pts += [[s1 * base_ring.one() / 2, s2 * g / 2, s3 * (1 + g)/2]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        verts = pts
+        verts += [[v[1], v[2], v[0]] for v in pts]
+        verts += [[v[2], v[0], v[1]] for v in pts]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
+
+    def truncated_dodecahedron(self, exact=True, base_ring=None):
+        """
+        Return the truncated dodecahedron.
+
+        The truncated dodecahedron is an Archimedean solid.
+        It has 32 faces and 60 vertices. For more information, see the
+        :wikipedia:`Truncated dodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
+          will be the real double field.
+
+        EXAMPLES::
+
+            sage: bb = polytopes.truncated_dodecahedron()   # long time - 6secs
+            sage: bb.f_vector()                # long time
+            (1, 60, 90, 32, 1)
+            sage: bb.base_ring()               # long time
+            Number Field in sqrt5 with defining polynomial x^2 - 5
+
+        A much faster implementation using floating point approximations::
+
+            sage: bb = polytopes.truncated_dodecahedron(exact=False)
+            sage: bb.f_vector()
+            (1, 60, 90, 32, 1)
+            sage: bb.base_ring()
+            Real Double Field
+
+        Its faces are 20 triangles and 12 regular decagons::
+
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            20
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 10)
+            12
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(5, 'sqrt5')
+            sqrt5 = K.gen()
+            g = (1 + sqrt5) / 2
+            base_ring = K
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            g = (1 + base_ring(5).sqrt()) / 2
+
+        z = base_ring.zero()
+        pts = [[z, s1 * base_ring.one() / g, s2 * (2 + g)]
+                for s1, s2 in itertools.product([1, -1], repeat=2)]
+        pts += [[s1 * base_ring.one() / g, s2 * g, s3 * (2 * g)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * g, s2 * base_ring(2), s3 * (g ** 2)]
                 for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
         verts = pts
         verts += [[v[1], v[2], v[0]] for v in pts]

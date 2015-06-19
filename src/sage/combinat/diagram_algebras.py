@@ -209,6 +209,12 @@ class AbstractPartitionDiagram(ClonableArray):
     def __eq__(self, other):
         if hasattr(other, '_base_diagram'):
             return self._base_diagram == other._base_diagram
+        elif:
+            try:
+                other2 = self.parent(other)
+                return self == other2
+            except TypeError, ValueError:
+                return False
         else:
             return False
         

@@ -382,18 +382,31 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         else:
             return catalan_number(self.order-1/2)
 
+    def __contains__(self, obj):
+        if obj not in BrauerDiagrams(self.order):
+            return False
+        if obj.propagating_number() != self.order:
+            return False
+        return True
+
 class PlanarDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(PlanarDiagrams, self).__init__(planar_diagrams, order, category=category)
     def cardinality(self):
         if self.order in ZZ:
-            return binomial(2*self.order, self.order)
+            return catalan_number(2*self.order)
         else:
-            return binomial(2*(self.order-1/2), self.order-1/2)
+            return catalan_number(2*self.order-1)
+
+    def __contains__(self, obj):
+        return super(PlanarDiagrams, self).__contains__(obj) and obj.propagating_number() == self.order
 
 class IdealDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(IdealDiagrams, self).__init__(ideal_diagrams, order, category=category)
+
+    def __contains__(self, obj):
+        return super(IdealDiagrams, self).__contains__(obj) and obj.propagating_number() < self.order
         
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""

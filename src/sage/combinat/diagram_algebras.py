@@ -464,7 +464,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         r"""
         INPUT:
 
-        -``D1_D2_pi``-- a list or tuple where the first entry is a list of arcs on the top of the diagram
+        -``D1_D2_pi``-- a list or tuple where the first entry is a list of arcs on the top of the diagram, the second entry is a list of arcs on the bottom of the diagram, and the third entry is a permutation on the free nodes.
         
         A Brauer diagram can be represented as a triple where the first entry is a list of arcs on the top row of the diagram, the second entry is a list of arcs on the bottom row of the diagram, and the third entry is a permutation on the remaining nodes. For more information, see [GL]_.
 

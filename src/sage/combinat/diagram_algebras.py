@@ -26,6 +26,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.set_partition import SetPartitions, SetPartition
+from sage.combinat.partition import Partitions
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
@@ -51,28 +52,32 @@ def partition_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.partition_diagrams(2))
+        sage: [SetPartition(p) for p in da.partition_diagrams(2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 1}, {-1, 2}},
          {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}},
          {{-2, 1}, {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.partition_diagrams(3/2))
+        sage: [SetPartition(p) for p in da.partition_diagrams(3/2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     if k in ZZ:
-        for i in SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] ):
-            yield i
+        S = SetPartitions( range(1, k+1) + [-j for j in range(1, k+1)] )
+        for p in Partitions(2*k):
+            for i in S._iterator_part(p):
+                yield i
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        for sp in SetPartitions( range(1, k+1) + [-j for j in range(1, k)] ):
-            sp = list(sp)
-            for i in range(len(sp)):
-                if k in sp[i]:
-                    sp[i] += Set([-k])
-                    break
-            yield SetPartition(sp)
+        S = SetPartitions( range(1, k+1) + [-j for j in range(1, k)] )
+        for p in Partitions(2*k-1):
+            for sp in S._iterator_part(p):
+                sp = list(sp)
+                for i in range(len(sp)):
+                    if k in sp[i]:
+                        sp[i] += Set([-k])
+                        break
+                yield sp
 
 def brauer_diagrams(k):
     r"""
@@ -88,19 +93,22 @@ def brauer_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.brauer_diagrams(2))
+        sage: [SetPartition(p) for p in da.brauer_diagrams(2)]
         [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: list(da.brauer_diagrams(5/2))
+        sage: [SetPartition(p) for p in da.brauer_diagrams(5/2)]
         [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     if k in ZZ:
-        for i in SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)], [2 for j in range(1,k+1)] ):
-                yield SetPartition(list(i))
-    elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
+        S = SetPartitions( range(1,k+1) + [-j for j in range(1,k+1)],
+                           [2 for j in range(1,k+1)] )
+        for i in S._iterator_part(S.parts):
+            yield list(i)
+    elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        for i in SetPartitions( range(1, k) + [-j for j in range(1, k)],
-                                [2 for j in range(1, k)] ):
-            yield SetPartition(list(i) + [Set([k, -k])])
+        S = SetPartitions( range(1, k) + [-j for j in range(1, k)],
+                           [2 for j in range(1, k)] )
+        for i in S._iterator_part(S.parts):
+            yield list(i) + [[k, -k]]
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -116,14 +124,14 @@ def temperley_lieb_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.temperley_lieb_diagrams(2))
+        sage: [SetPartition(p) for p in da.temperley_lieb_diagrams(2)]
         [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
-        sage: list(da.temperley_lieb_diagrams(5/2))
+        sage: [SetPartition(p) for p in da.temperley_lieb_diagrams(5/2)]
         [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     B = brauer_diagrams(k)
     for i in B:
-        if is_planar(i) == True:
+        if is_planar(i):
             yield i
 
 def planar_diagrams(k):
@@ -136,13 +144,13 @@ def planar_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.planar_diagrams(2))
+        sage: [SetPartition(p) for p in da.planar_diagrams(2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}},
          {{-2}, {-1, 1, 2}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1, 1}},
          {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}}, {{-2}, {-1, 2}, {1}},
          {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1}, {-1}, {2}},
          {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.planar_diagrams(3/2))
+        sage: [SetPartition(p) for p in da.planar_diagrams(3/2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 2}, {-1, 1}},
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
@@ -161,12 +169,12 @@ def ideal_diagrams(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: list(da.ideal_diagrams(2))
+        sage: [SetPartition(p) for p in da.ideal_diagrams(2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, -1, 1}, {2}}, {{-2}, {-1, 1, 2}},
          {{-2, 1, 2}, {-1}}, {{-2, -1}, {1, 2}}, {{-2, -1}, {1}, {2}},
          {{-2}, {-1, 2}, {1}}, {{-2, 2}, {-1}, {1}}, {{-2}, {-1, 1}, {2}}, {{-2, 1},
          {-1}, {2}}, {{-2}, {-1}, {1, 2}}, {{-2}, {-1}, {1}, {2}}]
-        sage: list(da.ideal_diagrams(3/2))
+        sage: [SetPartition(p) for p in da.ideal_diagrams(3/2)]
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     A = partition_diagrams(k)
@@ -174,7 +182,7 @@ def ideal_diagrams(k):
         if propagating_number(i) < k:
             yield i
 
-class AbstractPartitionDiagram(ClonableArray):
+class AbstractPartitionDiagram(SetPartition):
     r"""
     This class represents a single partition diagram, that is used as a basis key for a diagram algebra element
     """
@@ -213,7 +221,12 @@ class AbstractPartitionDiagram(ClonableArray):
 
 class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
-    This is a class that generates partition diagrams. Its primary use is to serve as basis keys for diagram algebras, but diagrams also have properties in their own right. Furthermore, this class is meant to be extended to create more efficient contains methods. 
+    This is a class that generates partition diagrams.
+
+    Thee primary use of this class is to serve as basis keys for
+    diagram algebras, but diagrams also have properties in their
+    own right. Furthermore, this class is meant to be extended to
+    create more efficient contains methods.
     """
     Element = AbstractPartitionDiagram
     def __init__(self, diagram_func, order, category = None):
@@ -268,21 +281,21 @@ class DiagramAlgebra(CombinatorialFreeModule):
         sage: R.<x> = QQ[]
         sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
         sage: sorted(D.basis())
-        [P[{{-2}, {-1}, {1}, {2}}],
-         P[{{-2}, {-1}, {1, 2}}],
-         P[{{-2}, {-1, 1}, {2}}],
-         P[{{-2}, {-1, 1, 2}}],
-         P[{{-2}, {-1, 2}, {1}}],
-         P[{{-2, -1}, {1}, {2}}],
-         P[{{-2, -1}, {1, 2}}],
-         P[{{-2, -1, 1}, {2}}],
-         P[{{-2, -1, 1, 2}}],
-         P[{{-2, -1, 2}, {1}}],
-         P[{{-2, 1}, {-1}, {2}}],
-         P[{{-2, 1}, {-1, 2}}],
-         P[{{-2, 1, 2}, {-1}}],
-         P[{{-2, 2}, {-1}, {1}}],
-         P[{{-2, 2}, {-1, 1}}]]
+        [P{{-2}, {-1}, {1}, {2}},
+         P{{-2}, {-1}, {1, 2}},
+         P{{-2}, {-1, 1}, {2}},
+         P{{-2}, {-1, 1, 2}},
+         P{{-2}, {-1, 2}, {1}},
+         P{{-2, -1}, {1}, {2}},
+         P{{-2, -1}, {1, 2}},
+         P{{-2, -1, 1}, {2}},
+         P{{-2, -1, 1, 2}},
+         P{{-2, -1, 2}, {1}},
+         P{{-2, 1}, {-1}, {2}},
+         P{{-2, 1}, {-1, 2}},
+         P{{-2, 1, 2}, {-1}},
+         P{{-2, 2}, {-1}, {1}},
+         P{{-2, 2}, {-1, 1}}]
     """
     def __init__(self, k, q, base_ring, prefix, diagrams, category=None):
         r"""
@@ -311,7 +324,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         if category is None:
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
-                    category=category, prefix=prefix)
+                    category=category, prefix=prefix, bracket=False)
 
     def _element_constructor_(self, set_partition):
         r"""
@@ -324,7 +337,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: sp = da.to_set_partition( [[1,2], [-1,-2]] )
             sage: b_elt = D(sp); b_elt
-            P[{{-2, -1}, {1, 2}}]
+            P{{-2, -1}, {1, 2}}
             sage: b_elt in D
             True
             sage: D([[1,2],[-1,-2]]) == b_elt
@@ -352,7 +365,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: sp = da.PartitionDiagrams(2)( [[1,2], [-1,-2]] )
             sage: D[sp]
-            P[{{-2, -1}, {1, 2}}]
+            P{{-2, -1}, {1, 2}}
         """
         i = self._base_diagrams(i)
         if i in self.basis().keys():
@@ -403,12 +416,12 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: sp = da.PartitionDiagrams(2)([[1,2],[-1,-2]])
             sage: D.product_on_basis(sp, sp)
-            x*P[{{-2, -1}, {1, 2}}]
+            x*P{{-2, -1}, {1, 2}}
         """
-        if not self.basis().keys().is_parent_of(d1):
-            d1 = self.basis().keys()(d1)
-        if not self.basis().keys().is_parent_of(d2):
-            d2 = self.basis().keys()(d2)
+        if not self._indices.is_parent_of(d1):
+            d1 = self._indices(d1)
+        if not self._indices.is_parent_of(d2):
+            d2 = self._indices(d2)
         (composite_diagram, loops_removed) = d1.compose(d2)
         return self.term(composite_diagram, self._q**loops_removed)
 
@@ -634,26 +647,27 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: R.<x> = ZZ[]
         sage: P = PartitionAlgebra(2, x, R)
         sage: P
-        Partition Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
+        Partition Algebra of rank 2 with parameter x
+         over Univariate Polynomial Ring in x over Integer Ring
         sage: P.basis().list()
-        [P[{{-2, -1, 1, 2}}], P[{{-2, -1, 2}, {1}}],
-         P[{{-2, -1, 1}, {2}}], P[{{-2}, {-1, 1, 2}}],
-         P[{{-2, 1, 2}, {-1}}], P[{{-2, 1}, {-1, 2}}],
-         P[{{-2, 2}, {-1, 1}}], P[{{-2, -1}, {1, 2}}],
-         P[{{-2, -1}, {1}, {2}}], P[{{-2}, {-1, 2}, {1}}],
-         P[{{-2, 2}, {-1}, {1}}], P[{{-2}, {-1, 1}, {2}}],
-         P[{{-2, 1}, {-1}, {2}}], P[{{-2}, {-1}, {1, 2}}],
-         P[{{-2}, {-1}, {1}, {2}}]]
+        [P{{-2, -1, 1, 2}}, P{{-2, -1, 2}, {1}},
+         P{{-2, -1, 1}, {2}}, P{{-2}, {-1, 1, 2}},
+         P{{-2, 1, 2}, {-1}}, P{{-2, 1}, {-1, 2}},
+         P{{-2, 2}, {-1, 1}}, P{{-2, -1}, {1, 2}},
+         P{{-2, -1}, {1}, {2}}, P{{-2}, {-1, 2}, {1}},
+         P{{-2, 2}, {-1}, {1}}, P{{-2}, {-1, 1}, {2}},
+         P{{-2, 1}, {-1}, {2}}, P{{-2}, {-1}, {1, 2}},
+         P{{-2}, {-1}, {1}, {2}}]
         sage: E = P([[1,2],[-2,-1]]); E
-        P[{{-2, -1}, {1, 2}}]
+        P{{-2, -1}, {1, 2}}
         sage: E in P.basis().list()
         True
         sage: E^2
-        x*P[{{-2, -1}, {1, 2}}]
+        x*P{{-2, -1}, {1, 2}}
         sage: E^5
-        x^4*P[{{-2, -1}, {1, 2}}]
+        x^4*P{{-2, -1}, {1, 2}}
         sage: (P([[2,-2],[-1,1]]) - 2*P([[1,2],[-1,-2]]))^2
-        (4*x-4)*P[{{-2, -1}, {1, 2}}] + P[{{-2, 2}, {-1, 1}}]
+        (4*x-4)*P{{-2, -1}, {1, 2}} + P{{-2, 2}, {-1, 1}}
 
     One can work with partition algebras using a symbol for the parameter,
     leaving the base ring unspecified. This implies that the underlying
@@ -674,7 +688,7 @@ class PartitionAlgebra(DiagramAlgebra):
 
         sage: P = PA.basis().list()
         sage: PA.one()
-        P[{{-2, 2}, {-1, 1}}]
+        P{{-2, 2}, {-1, 1}}
         sage: PA.one()*P[7] == P[7]
         True
         sage: P[7]*PA.one() == P[7]
@@ -690,7 +704,7 @@ class PartitionAlgebra(DiagramAlgebra):
         Partition Algebra of rank 2 with parameter q over
          Univariate Polynomial Ring in q over Real Field with 53 bits of precision
         sage: PA([[1,2],[-1,-2]])
-        1.00000000000000*B[{{-2, -1}, {1, 2}}]
+        1.00000000000000*B{{-2, -1}, {1, 2}}
         sage: PA = PartitionAlgebra(2, 5, base_ring=ZZ, prefix='B')
         sage: PA
         Partition Algebra of rank 2 with parameter 5 over Integer Ring
@@ -705,9 +719,9 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: g = SetPartitionsAk(1).list()
         sage: a = A[g[1]]
         sage: a
-        P[{{-1}, {1}}]
+        P{{-1}, {1}}
         sage: a*a
-        17*P[{{-1}, {1}}]
+        17*P{{-1}, {1}}
 
     REFERENCES:
 
@@ -757,7 +771,8 @@ class PartitionAlgebra(DiagramAlgebra):
 
             sage: R.<q> = QQ[]
             sage: PartitionAlgebra(2, q, R)
-            Partition Algebra of rank 2 with parameter q over Univariate Polynomial Ring in q over Rational Field
+            Partition Algebra of rank 2 with parameter q
+             over Univariate Polynomial Ring in q over Rational Field
         """
         return "Partition Algebra of rank %s with parameter %s over %s"%(self._k,
                 self._q, self.base_ring())
@@ -809,7 +824,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: BA = BrauerAlgebra(2, x, R)
             sage: E = BA([[1,2],[-1,-2]])
             sage: lifted = BA.lift(E); lifted
-            B[{{-2, -1}, {1, 2}}]
+            B{{-2, -1}, {1, 2}}
             sage: lifted.parent() is BA.ambient()
             True
         """
@@ -837,7 +852,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: BA.retract(E) in BA
             True
         """
-        if x not in self.ambient() or reduce(operator.mul,[ (i in self.basis().keys()) for i in x.support()]) == 0:
+        if x not in self.ambient() or reduce(operator.mul, [(i in self._indices) for i in x.support()]) == 0:
             raise ValueError("{0} cannot retract to {1}".format(x, self))
         monomial_indices = x.support()
         monomial_coefficients = x.coefficients()
@@ -878,18 +893,21 @@ class BrauerAlgebra(SubPartitionAlgebra):
         sage: R.<x> = ZZ[]
         sage: B = BrauerAlgebra(2, x, R)
         sage: B
-        Brauer Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
+        Brauer Algebra of rank 2 with parameter x
+         over Univariate Polynomial Ring in x over Integer Ring
         sage: B.basis()
-        Lazy family (Term map from Brauer diagrams of order 2 to Brauer Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring(i))_{i in Brauer diagrams of order 2}
+        Lazy family (Term map from Brauer diagrams of order 2 to Brauer Algebra
+         of rank 2 with parameter x over Univariate Polynomial Ring in x
+         over Integer Ring(i))_{i in Brauer diagrams of order 2}
         sage: b = B.basis().list()
         sage: b
-        [B[{{-2, 1}, {-1, 2}}], B[{{-2, 2}, {-1, 1}}], B[{{-2, -1}, {1, 2}}]]
+        [B{{-2, 1}, {-1, 2}}, B{{-2, 2}, {-1, 1}}, B{{-2, -1}, {1, 2}}]
         sage: b[2]
-        B[{{-2, -1}, {1, 2}}]
+        B{{-2, -1}, {1, 2}}
         sage: b[2]^2
-        x*B[{{-2, -1}, {1, 2}}]
+        x*B{{-2, -1}, {1, 2}}
         sage: b[2]^5
-        x^4*B[{{-2, -1}, {1, 2}}]
+        x^4*B{{-2, -1}, {1, 2}}
     """
     @staticmethod
     def __classcall_private__(cls, k, q, base_ring=None, prefix="B"):
@@ -929,7 +947,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
             sage: R.<q> = QQ[]
             sage: BrauerAlgebra(2, q, R)
-            Brauer Algebra of rank 2 with parameter q over Univariate Polynomial Ring in q over Rational Field
+            Brauer Algebra of rank 2 with parameter q
+             over Univariate Polynomial Ring in q over Rational Field
         """
         return "Brauer Algebra of rank %s with parameter %s over %s"%(self._k, self._q, self.base_ring())
 
@@ -943,7 +962,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: BA = BrauerAlgebra(2, q, R)
             sage: sp = SetPartition([[1,2], [-1,-2]])
             sage: b_elt = BA(sp); b_elt
-            B[{{-2, -1}, {1, 2}}]
+            B{{-2, -1}, {1, 2}}
             sage: b_elt in BA
             True
             sage: BA([[1,2],[-1,-2]]) == b_elt
@@ -985,14 +1004,18 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
 
         sage: R.<x> = ZZ[]
         sage: T = TemperleyLiebAlgebra(2, x, R); T
-        Temperley-Lieb Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
+        Temperley-Lieb Algebra of rank 2 with parameter x
+         over Univariate Polynomial Ring in x over Integer Ring
         sage: T.basis()
-        Lazy family (Term map from Temperleylieb diagrams of order 2 to Temperley-Lieb Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring(i))_{i in Temperleylieb diagrams of order 2}
+        Lazy family (Term map from Temperleylieb diagrams of order 2
+         to Temperley-Lieb Algebra of rank 2 with parameter x
+         over Univariate Polynomial Ring in x over
+         Integer Ring(i))_{i in Temperleylieb diagrams of order 2}
         sage: b = T.basis().list()
         sage: b
-        [T[{{-2, 2}, {-1, 1}}], T[{{-2, -1}, {1, 2}}]]
+        [T{{-2, 2}, {-1, 1}}, T{{-2, -1}, {1, 2}}]
         sage: b[1]
-        T[{{-2, -1}, {1, 2}}]
+        T{{-2, -1}, {1, 2}}
         sage: b[1]^2 == x*b[1]
         True
         sage: b[1]^5 == x^4*b[1]
@@ -1036,7 +1059,8 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
 
             sage: R.<q> = QQ[]
             sage: TemperleyLiebAlgebra(2, q, R)
-            Temperley-Lieb Algebra of rank 2 with parameter q over Univariate Polynomial Ring in q over Rational Field
+            Temperley-Lieb Algebra of rank 2 with parameter q
+             over Univariate Polynomial Ring in q over Rational Field
         """
         return "Temperley-Lieb Algebra of rank %s with parameter %s over %s"%(self._k,
                 self._q, self.base_ring())
@@ -1051,7 +1075,7 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
             sage: TL = TemperleyLiebAlgebra(2, q, R)
             sage: sp = SetPartition([[1,2], [-1,-2]])
             sage: b_elt = TL(sp); b_elt
-            T[{{-2, -1}, {1, 2}}]
+            T{{-2, -1}, {1, 2}}
             sage: b_elt in TL
             True
             sage: TL([[1,2],[-1,-2]]) == b_elt
@@ -1095,13 +1119,13 @@ class PlanarAlgebra(SubPartitionAlgebra):
         sage: Pl = PlanarAlgebra(2, x, R); Pl
         Planar Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
         sage: Pl.basis().list()
-        [Pl[{{-2, -1, 1, 2}}], Pl[{{-2, -1, 2}, {1}}],
-         Pl[{{-2, -1, 1}, {2}}], Pl[{{-2}, {-1, 1, 2}}],
-         Pl[{{-2, 1, 2}, {-1}}], Pl[{{-2, 2}, {-1, 1}}],
-         Pl[{{-2, -1}, {1, 2}}], Pl[{{-2, -1}, {1}, {2}}],
-         Pl[{{-2}, {-1, 2}, {1}}], Pl[{{-2, 2}, {-1}, {1}}],
-         Pl[{{-2}, {-1, 1}, {2}}], Pl[{{-2, 1}, {-1}, {2}}],
-         Pl[{{-2}, {-1}, {1, 2}}], Pl[{{-2}, {-1}, {1}, {2}}]]
+        [Pl{{-2, -1, 1, 2}}, Pl{{-2, -1, 2}, {1}},
+         Pl{{-2, -1, 1}, {2}}, Pl{{-2}, {-1, 1, 2}},
+         Pl{{-2, 1, 2}, {-1}}, Pl{{-2, 2}, {-1, 1}},
+         Pl{{-2, -1}, {1, 2}}, Pl{{-2, -1}, {1}, {2}},
+         Pl{{-2}, {-1, 2}, {1}}, Pl{{-2, 2}, {-1}, {1}},
+         Pl{{-2}, {-1, 1}, {2}}, Pl{{-2, 1}, {-1}, {2}},
+         Pl{{-2}, {-1}, {1, 2}}, Pl{{-2}, {-1}, {1}, {2}}]
         sage: E = Pl([[1,2],[-1,-2]])
         sage: E^2 == x*E
         True
@@ -1146,7 +1170,8 @@ class PlanarAlgebra(SubPartitionAlgebra):
 
             sage: R.<x> = ZZ[]
             sage: Pl = PlanarAlgebra(2, x, R); Pl
-            Planar Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Integer Ring
+            Planar Algebra of rank 2 with parameter x
+             over Univariate Polynomial Ring in x over Integer Ring
         """
         return "Planar Algebra of rank %s with parameter %s over %s"%(self._k,
                 self._q, self.base_ring())
@@ -1171,15 +1196,16 @@ class PropagatingIdeal(SubPartitionAlgebra):
 
         sage: R.<x> = QQ[]
         sage: I = PropagatingIdeal(2, x, R); I
-        Propagating Ideal of rank 2 with parameter x over Univariate Polynomial Ring in x over Rational Field
+        Propagating Ideal of rank 2 with parameter x
+         over Univariate Polynomial Ring in x over Rational Field
         sage: I.basis().list()
-        [I[{{-2, -1, 1, 2}}], I[{{-2, -1, 2}, {1}}],
-         I[{{-2, -1, 1}, {2}}], I[{{-2}, {-1, 1, 2}}],
-         I[{{-2, 1, 2}, {-1}}], I[{{-2, -1}, {1, 2}}],
-         I[{{-2, -1}, {1}, {2}}], I[{{-2}, {-1, 2}, {1}}],
-         I[{{-2, 2}, {-1}, {1}}], I[{{-2}, {-1, 1}, {2}}],
-         I[{{-2, 1}, {-1}, {2}}], I[{{-2}, {-1}, {1, 2}}],
-         I[{{-2}, {-1}, {1}, {2}}]]
+        [I{{-2, -1, 1, 2}}, I{{-2, -1, 2}, {1}},
+         I{{-2, -1, 1}, {2}}, I{{-2}, {-1, 1, 2}},
+         I{{-2, 1, 2}, {-1}}, I{{-2, -1}, {1, 2}},
+         I{{-2, -1}, {1}, {2}}, I{{-2}, {-1, 2}, {1}},
+         I{{-2, 2}, {-1}, {1}}, I{{-2}, {-1, 1}, {2}},
+         I{{-2, 1}, {-1}, {2}}, I{{-2}, {-1}, {1, 2}},
+         I{{-2}, {-1}, {1}, {2}}]
         sage: E = I([[1,2],[-1,-2]])
         sage: E^2 == x*E
         True
@@ -1271,7 +1297,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
                 sage: I = PropagatingIdeal(2, x, R)
                 sage: E = I([[1,2],[-1,-2]])
                 sage: E^2
-                x*I[{{-2, -1}, {1, 2}}]
+                x*I{{-2, -1}, {1, 2}}
                 sage: E^0
                 Traceback (most recent call last):
                 ...
@@ -1322,7 +1348,7 @@ def is_planar(sp):
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows
-                if len(bn) == 0 or len(bp) == 0:
+                if not bn or not bp:
                     continue
 
                 #Make sure that if min(bp) > max(ap)
@@ -1352,11 +1378,11 @@ def is_planar(sp):
                         #Make sure we make the numbers negative again
                         #if we are in the bottom row
                         if row is ap:
-                            sr = Set(rng)
+                            sr = set(rng)
                         else:
-                            sr = Set((-1*x for x in rng))
+                            sr = set((-1*x for x in rng))
 
-                        sj = Set(to_consider[j])
+                        sj = set(to_consider[j])
                         intersection = sr.intersection(sj)
                         if intersection:
                             if sj != intersection:
@@ -1498,27 +1524,28 @@ def to_set_partition(l, k=None):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.to_set_partition([[1,-1],[2,-2]]) == da.identity_set_partition(2)
+        sage: f = lambda sp: SetPartition(da.to_set_partition(sp))
+        sage: f([[1,-1],[2,-2]]) == SetPartition(da.identity_set_partition(2))
         True
     """
     if k is None:
         if l == []:
-            return SetPartition([])
+            return []
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
+    to_be_added = set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:
-        spart = Set(part)
+        spart = set(part)
         to_be_added -= spart
         sp.append(spart)
 
     for singleton in to_be_added:
-        sp.append(Set([singleton]))
+        sp.append(set([singleton]))
 
-    return SetPartition(sp)
+    return sp
 
 def to_Brauer_partition(l, k=None):
     r"""
@@ -1528,13 +1555,15 @@ def to_Brauer_partition(l, k=None):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.to_Brauer_partition([[1,2],[-1,-2]]) == SetPartition([[1,2],[-1,-2]])
+        sage: f = lambda sp: SetPartition(da.to_Brauer_partition(sp))
+        sage: f([[1,2],[-1,-2]]) == SetPartition([[1,2],[-1,-2]])
         True
-        sage: da.to_Brauer_partition([[1,3],[-1,-3]]) == SetPartition([[1,3],[-3,-1],[2,-2]])
+        sage: f([[1,3],[-1,-3]]) == SetPartition([[1,3],[-3,-1],[2,-2]])
         True
-        sage: da.to_Brauer_partition([[1,2],[-1,-2]], k=4) == SetPartition([[1,2],[-1,-2],[3,-3],[4,-4]])
+        sage: f([[1,-4],[-3,-1],[3,4]]) == SetPartition([[-3,-1],[2,-2],[1,-4],[3,4]])
         True
-        sage: da.to_Brauer_partition([[1,-4],[-3,-1],[3,4]]) == SetPartition([[-3,-1],[2,-2],[1,-4],[3,4]])
+        sage: p = SetPartition([[1,2],[-1,-2],[3,-3],[4,-4]])
+        sage: SetPartition(da.to_Brauer_partition([[1,2],[-1,-2]], k=4)) == p
         True
     """
     L = to_set_partition(l, k=k)
@@ -1546,9 +1575,9 @@ def to_Brauer_partition(l, k=None):
     for i in L2:
         if len(i) >= 3:
             raise ValueError("blocks must have size at most 2, but {0} has {1}".format(i, len(i)))
-        if (len(i) == 2):
+        if len(i) == 2:
             paired.append(i)
-        if (len(i) == 1):
+        if len(i) == 1:
             not_paired.append(i)
     if any(i[0] in j or -1*i[0] in j for i in not_paired for j in paired):
         raise ValueError("unable to convert {0} to a Brauer partition due to the invalid block {1}".format(l, i))
@@ -1565,13 +1594,13 @@ def identity_set_partition(k):
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
-        sage: da.identity_set_partition(2)
+        sage: SetPartition(da.identity_set_partition(2))
         {{-2, 2}, {-1, 1}}
     """
     if k in ZZ:
-        return SetPartition( [[i,-i] for i in range(1, k + 1)] )
+        return [[i,-i] for i in range(1, k + 1)]
     # Else k in 1/2 ZZ
-    return SetPartition( [[i, -i] for i in range(1, k + ZZ(3)/ZZ(2))] )
+    return [[i, -i] for i in range(1, k + ZZ(3)/ZZ(2))]
 
 def set_partition_composition(sp1, sp2):
     r"""
@@ -1584,7 +1613,8 @@ def set_partition_composition(sp1, sp2):
         sage: import sage.combinat.diagram_algebras as da
         sage: sp1 = da.to_set_partition([[1,-2],[2,-1]])
         sage: sp2 = da.to_set_partition([[1,-2],[2,-1]])
-        sage: da.set_partition_composition(sp1, sp2) == (da.identity_set_partition(2), 0)
+        sage: p, c = da.set_partition_composition(sp1, sp2)
+        sage: (SetPartition(p), c) == (SetPartition(da.identity_set_partition(2)), 0)
         True
     """
     g = pair_to_graph(sp1, sp2)
@@ -1600,9 +1630,9 @@ def set_partition_composition(sp1, sp2):
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set((x[0] for x in new_cc)) )
+            res.append( set((x[0] for x in new_cc)) )
 
-    return (SetPartition(Set(res)), total_removed)
+    return (res, total_removed)
 
 ##########################################################################
 # END BORROWED CODE

@@ -206,7 +206,7 @@ class AbstractPartitionDiagram(SetPartition):
             try:
                 other2 = self.parent(other)
                 return self == other2
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 return False
         
     def base_diagram(self):

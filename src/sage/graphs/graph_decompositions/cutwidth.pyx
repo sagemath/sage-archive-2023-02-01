@@ -275,7 +275,7 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
 
     # We have a (strongly) connected graph and we call the desired algorithm
     if algorithm == "exponential":
-        return cutwidth_exp(G, lower_bound=cut_off)
+        return cutwidth_dyn(G, lower_bound=cut_off)
 
     else:
         raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))

@@ -35,8 +35,8 @@ AUTHOR:
 - James Campbell and Vince Knight (06-2014)
 """
 from sage.game_theory.normal_form_game import NormalFormGame
-import sage.matrix.constructor
-import sage.functions.generalized
+from sage.matrix.constructor import matrix
+from sage.functions.generalized import sign
 
 
 def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
@@ -116,7 +116,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     """
     if not (T > R > P > S):
         raise TypeError("The input values for a Prisoners Dilemma must be of the form T > R > P > S.")
-    A = sage.matrix.constructor.matrix([[R, S], [T, P]])
+    A = matrix([[R, S], [T, P]])
     g = NormalFormGame([A, A.transpose()])
     g.rename('Prisoners dilemma - ' + repr(g))
     return g
@@ -190,8 +190,8 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     """
     if not (A > B  and  D > C and a > c and d > b):
         raise TypeError("The input values for a Coordination game must be of the form A > B, D > C, a > c and d > b.")
-    A = sage.matrix.constructor.matrix([[A, C], [B, D]])
-    B = sage.matrix.constructor.matrix([[a, c], [b, d]])
+    A = matrix([[A, C], [B, D]])
+    B = matrix([[a, c], [b, d]])
     g = NormalFormGame([A, B])
     g.rename('Coordination game - ' + repr(g))
     return g
@@ -355,8 +355,8 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     """
     if not (A < B  and  D < C and a < c and d < b):
         raise TypeError("The input values for an Anti coordination game must be of the form A < B, D < C, a < c and d < b.")
-    A = sage.matrix.constructor.matrix([[A, C], [B, D]])
-    B = sage.matrix.constructor.matrix([[a, c], [b, d]])
+    A = matrix([[A, C], [B, D]])
+    B = matrix([[a, c], [b, d]])
     g = NormalFormGame([A, B])
     g.rename('Anti coordination game - ' + repr(g))
     return g
@@ -487,8 +487,8 @@ def Pigs():
         [[(1, 0), (0, 1)]]
 
     """
-    A = sage.matrix.constructor.matrix([[3, 1], [6, 0]])
-    B = sage.matrix.constructor.matrix([[1, 4], [-1, 0]])
+    A = matrix([[3, 1], [6, 0]])
+    B = matrix([[1, 4], [-1, 0]])
     g = NormalFormGame([A, B])
     g.rename('Pigs - ' + repr(g))
     return g
@@ -504,7 +504,7 @@ def MatchingPennies():
     if not then player 2 wins.
 
     This can be modeled as a zero sum normal form game with the following
-    sage.matrix.constructor.matrix [Webb]_:
+    matrix [Webb]_:
 
     .. MATH::
 
@@ -524,7 +524,7 @@ def MatchingPennies():
         sage: g.obtain_nash()
         [[(1/2, 1/2), (1/2, 1/2)]]
     """
-    A = sage.matrix.constructor.matrix([[1, -1], [-1, 1]])
+    A = matrix([[1, -1], [-1, 1]])
     g = NormalFormGame([A])
     g.rename('Matching pennies - ' + repr(g))
     return g
@@ -545,7 +545,7 @@ def RPS():
     the tie.
 
     This can be modeled as a zero sum normal form game with the following
-    sage.matrix.constructor.matrix [Webb]_:
+    matrix [Webb]_:
 
     .. MATH::
 
@@ -563,7 +563,7 @@ def RPS():
         sage: g.obtain_nash()
         [[(1/3, 1/3, 1/3), (1/3, 1/3, 1/3)]]
     """
-    A = sage.matrix.constructor.matrix([[0, -1, 1], [1, 0, -1], [-1, 1, 0]])
+    A = matrix([[0, -1, 1], [1, 0, -1], [-1, 1, 0]])
     g = NormalFormGame([A])
     g.rename('Rock-Paper-Scissors - ' + repr(g))
     return g
@@ -593,7 +593,7 @@ def RPSLS():
     - (and as it always has) Rock crushes Scissors
 
     This can be modeled as a zero sum normal form game with the following
-    sage.matrix.constructor.matrix:
+    matrix:
 
     .. MATH::
 
@@ -613,7 +613,7 @@ def RPSLS():
         sage: g.obtain_nash()
         [[(1/5, 1/5, 1/5, 1/5, 1/5), (1/5, 1/5, 1/5, 1/5, 1/5)]]
     """
-    A = sage.matrix.constructor.matrix([[0, -1, 1, 1, -1],
+    A = matrix([[0, -1, 1, 1, -1],
                 [1, 0, -1, -1, 1],
                 [-1, 1, 0, 1 , -1],
                 [-1, 1, -1, 0, 1],
@@ -775,8 +775,7 @@ def TravellersDilemma(max_value=10):
         [[(0, 0, 0, 1), (0, 0, 0, 1)]]
 
     """
-    A = sage.matrix.constructor.matrix([[min(i, j) + 2 *
-        sage.functions.generalized.sign(j - i) for j in range(max_value, 1, -1)] for i in range(max_value, 1, -1)])
+    A = matrix([[min(i, j) + 2 * sign(j - i) for j in range(max_value, 1, -1)] for i in range(max_value, 1, -1)])
     g = NormalFormGame([A, A.transpose()])
     g.rename('Travellers dilemma - ' + repr(g))
     return g

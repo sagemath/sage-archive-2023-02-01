@@ -22,3 +22,8 @@ CMake is distributed under the OSI-approved BSD 3-clause License.
 == Upstream Contact ==
 
  * cmake-developers@cmake.org
+
+== Dependencies ==
+
+* zlib
+* bzip2

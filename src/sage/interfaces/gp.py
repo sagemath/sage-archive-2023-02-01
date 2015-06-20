@@ -618,23 +618,22 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
-    def quit(self, verbose=False, timeout=0.25):
+    def _reset_expect(self):
         """
-        Terminate the GP process.
+        Reset state of the GP interface.
 
         EXAMPLES::
 
             sage: a = gp('10'); a
             10
-            sage: gp.quit()
+            sage: gp.quit()  # indirect doctest
             sage: a
             <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
-            sage: gp(pi)
-            3.1415926535897932384626433832795028842    # 64-bit
-            3.141592653589793238462643383              # 32-bit
+            sage: gp("30!")
+            265252859812191058636308480000000
         """
         self.__var_store_len = 0
-        Expect.quit(self, verbose=verbose, timeout=timeout)
+        Expect._reset_expect(self)
 
     def console(self):
         """

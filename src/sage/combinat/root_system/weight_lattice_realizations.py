@@ -1039,7 +1039,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
             .. WARNING::
 
-            Implemented for finite Cartan type.
+                Implemented for finite Cartan type.
 
             EXAMPLES::
 

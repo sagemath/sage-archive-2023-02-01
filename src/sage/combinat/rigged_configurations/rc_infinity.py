@@ -30,6 +30,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
 from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurationOptions
+from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
 class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
@@ -173,7 +174,25 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             sage: ascii_art(RC(partition_list=[[1],[1,1],[1]], rigging_list=[[0],[-1,-1],[0]]))
             0[ ]0  -2[ ]-1  0[ ]0
                    -2[ ]-1
+
+        TESTS:
+
+        Check that :trac:`17054` is fixed::
+
+            sage: RC = RiggedConfigurations(['A',2,1], [[1,1]]*4 + [[2,1]]*4)
+            sage: B = crystals.infinity.RiggedConfigurations(['A',2])
+            sage: x = RC().f_string([2,2,1,1,2,1,2,1])
+            sage: ascii_art(x)
+            0[ ][ ][ ][ ]-4  0[ ][ ][ ][ ]0
+            sage: ascii_art(B(x))
+            -4[ ][ ][ ][ ]-4  -4[ ][ ][ ][ ]0
+            sage: x == RC().f_string([2,2,1,1,2,1,2,1])
+            True
         """
+        if isinstance(lst, RiggedConfigurationElement):
+            lst = [p._clone() for p in lst] # Make a deep copy
+        elif isinstance(lst, list) and bool(lst) and isinstance(lst[0], RiggedPartition):
+            lst = [p._clone() for p in lst] # Make a deep copy
         return self.element_class(self, lst, **options)
 
     def _calc_vacancy_number(self, partitions, a, i, **options):

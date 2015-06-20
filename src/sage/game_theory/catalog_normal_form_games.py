@@ -54,7 +54,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     This can be modeled as a normal form game using the following two matrices
     [Webb]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             R&S\\
@@ -67,16 +67,16 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
             S&P\\
             \end{pmatrix}
 
-    Where :math:`T > R > P > S`.
+    Where `T > R > P > S`.
 
-    - :math:`R` denotes the reward received for cooperating.
-    - :math:`S` denotes the 'sucker' utility.
-    - :math:`P` denotes the utility for punishing the other player.
-    - :math:`T` denotes the temptation payoff.
+    - `R` denotes the reward received for cooperating.
+    - `S` denotes the 'sucker' utility.
+    - `P` denotes the utility for punishing the other player.
+    - `T` denotes the temptation payoff.
 
     An often used version [Webb]_ is the following:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             -2&-5\\
@@ -106,7 +106,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
         sage: g.obtain_nash()
         [[(0, 1), (0, 1)]]
 
-    If we pass values that fail the defining requirement: :math:`T > R > P > S` we get an error message::
+    If we pass values that fail the defining requirement: `T > R > P > S` we get an error message::
 
         sage: g = game_theory.normal_form_games.PrisonersDilemma(R=-1, P=-2, S=0, T=5)
         Traceback (most recent call last):
@@ -133,7 +133,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     In general these are represented as a normal form game using the
     following two matrices:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             A&C\\
@@ -145,11 +145,11 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
             b&d\\
             \end{pmatrix}
 
-    Where :math:`A > B, D > C` and :math:`a > c, d > b`.
+    Where `A > B, D > C` and `a > c, d > b`.
 
     An often used version is the following:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             10&0\\
@@ -181,7 +181,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
         sage: g.obtain_nash()
         [[(0, 1), (0, 1)], [(2/3, 1/3), (4/11, 7/11)], [(1, 0), (1, 0)]]
 
-    Note that an error is returned if the defining inequalities are not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
+    Note that an error is returned if the defining inequalities are not obeyed `A > B, D > C` and `a > c, d > b`::
 
         sage: g = game_theory.normal_form_games.CoordinationGame(A=9, a=6, B=0, b=1, C=2, c=10, D=4, d=11)
         Traceback (most recent call last):
@@ -208,7 +208,7 @@ def BattleOfTheSexes():
     This can be modeled as a normal form game using the following two matrices
     [Webb]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             3&1\\
@@ -254,7 +254,7 @@ def StagHunt():
     This can be modeled as a normal form game using the following two matrices
     [Skyrms]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             5&0\\
@@ -298,7 +298,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     In general these are represented as a normal form game using the
     following two matrices:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             A&C\\
@@ -310,11 +310,11 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
             b&d\\
             \end{pmatrix}
 
-    Where :math:`A < B, D < C` and :math:`a < c, d < b`.
+    Where `A < B, D < C` and `a < c, d < b`.
 
     An often used version is the following:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             3&1\\
@@ -346,7 +346,7 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
         sage: g.obtain_nash()
         [[(0, 1), (1, 0)], [(2/7, 5/7), (1/3, 2/3)], [(1, 0), (0, 1)]]
 
-    Note that an error is returned if the defining inequality is not obeyed :math:`A > B, D > C` and :math:`a > c, d > b`::
+    Note that an error is returned if the defining inequality is not obeyed `A > B, D > C` and `a > c, d > b`::
 
         sage: g = game_theory.normal_form_games.AntiCoordinationGame(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
@@ -366,19 +366,19 @@ def HawkDove(v=2, c=3):
     r"""
     Return a Hawk Dove game.
 
-    Suppose two birds of prey must share a limited resource :math:`v`.
+    Suppose two birds of prey must share a limited resource `v`.
     The birds can act like a hawk or a dove.
 
     - If a dove meets a hawk, the hawk takes the resources.
     - If two doves meet they share the resources.
     - If two hawks meet, one will win (with equal expectation) and take the
-      resources while the other will suffer a cost of :math:`c` where
-      :math:`c>v`.
+      resources while the other will suffer a cost of `c` where
+      `c>v`.
 
     This can be modeled as a normal form game using the following two matrices
     [Webb]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             v/2-c&v\\
@@ -391,9 +391,9 @@ def HawkDove(v=2, c=3):
             v&v/2\\
             \end{pmatrix}
 
-    Here are the games with the default values of :math:`v=2` and :math:`c=3`.
+    Here are the games with the default values of `v=2` and `c=3`.
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             -2&2\\
@@ -427,7 +427,7 @@ def HawkDove(v=2, c=3):
         [[(0, 1), (1, 0)], [(1/6, 5/6), (1/6, 5/6)], [(1, 0), (0, 1)]]
 
     Note that an error is returned if the defining inequality is not obeyed
-    :math:`c < v`:
+    `c < v`:
 
         sage: g = game_theory.normal_form_games.HawkDove(v=5, c=1)
         Traceback (most recent call last):
@@ -460,9 +460,9 @@ def Pigs():
 
     This can be modeled as a normal form game using the following two matrices
     [McMillan]_ (we assume that the dominant pig's utilities are given by
-    :math:`A`):
+    `A`):
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             3&1\\
@@ -506,7 +506,7 @@ def MatchingPennies():
     This can be modeled as a zero sum normal form game with the following
     matrix [Webb]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             1&-1\\
@@ -547,7 +547,7 @@ def RPS():
     This can be modeled as a zero sum normal form game with the following
     matrix [Webb]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             0 & -1 & 1\\
@@ -595,7 +595,7 @@ def RPSLS():
     This can be modeled as a zero sum normal form game with the following
     matrix:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             0 & -1 & 1 & 1 & -1\\
@@ -634,7 +634,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     This can be modeled as a particular type of anti coordination game
     following two matrices:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             A&C\\
@@ -646,12 +646,12 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
             b&d\\
             \end{pmatrix}
 
-    Where :math:`A < B, D < C` and :math:`a < c, d < b` but with the extra
-    condition that :math:`A>C` and :math:`a>b`.
+    Where `A < B, D < C` and `a < c, d < b` but with the extra
+    condition that `A>C` and `a>b`.
 
     Here are the numeric values used by default [Watson]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             0&-1\\
@@ -687,7 +687,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
         [[(0, 1), (1, 0)], [(99/101, 2/101), (99/101, 2/101)], [(1, 0), (0, 1)]]
 
     Note that an error is returned if the defining inequalities are not obeyed
-    :math:`B > A > C > D` and :math:`c > a > b > d`::
+    `B > A > C > D` and `c > a > b > d`::
 
         sage: g = game_theory.normal_form_games.Chicken(A=8, a=3, B=4, b=2, C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
@@ -726,7 +726,7 @@ def TravellersDilemma(max_value=10):
     This can be modeled as a normal form game using the following two matrices
     [Basu]_:
 
-    .. math::
+    .. MATH::
 
         A = \begin{pmatrix}
             10 & 7  & 6 & 5 & 4 & 3 & 2 & 1 & 0\\

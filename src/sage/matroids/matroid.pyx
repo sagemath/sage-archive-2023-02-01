@@ -5129,38 +5129,48 @@ cdef class Matroid(SageObject):
         """
         if basis is None:
             basis = self.basis()
-        basis = list(basis)
-        bdx = {basis[i]:i for i in range(len(B))}
-        E = list(self.groundset())
+        basis = sorted(basis)
+        bdx = {basis[i]:i for i in range(len(basis))}
+        E = sorted(self.groundset())
         idx = { E[i]:i for i in range(len(E)) }
         A = TernaryMatrix(len(basis), len(E))
         for e in basis:
-            A.set(bdx[e], idx[e],1)
-        entries = [(e, f) for e in basis for f in self._fundamental_cocircuit(basis, e).difference([e])]
-        G = Graph(edges = entries)
+            A.set(bdx[e], idx[e], 1)
+        entries = [(e, f, (e,f)) for e in basis for f in self._fundamental_cocircuit(basis, e).difference([e])]
+        G = Graph(entries)
         T = G.min_spanning_tree()
         for edge in T:
-            A.set(bdx[edge[0]],idx[edge[1]],1)
+            e,f = edge[2]
+            A.set(bdx[e],idx[f], 1)
         W = set(G.edges()) - set(T)
         H = G.subgraph(edges = T)
         while W:
             edge = W.pop()
-            path = H.shortest_path(edge[0], edge[1])
+            e,f = edge[2] 
+            path = H.shortest_path(e, f)
             retry = True
             while retry:
+                #print edge, path
                 retry = False
                 for edge2 in W:
                     if edge2[0] in path and edge2[1] in path:
                         W.add(edge)
                         edge = edge2
                         W.remove(edge)
-                        path = H.shortest_path(edge[0], edge[1])
+                        e,f = edge[2] 
+                        path = H.shortest_path(e, f)
                         retry = True
                         break
-            if (len(path) % 4 == 0) is not self.is_independent(basis.symmetric_difference(path)):
-                A.set(bdx[edge[0]],idx[edge[1]],1)
+            x = 1
+            for i in range(len(path)-1):
+                if i%2 == 0:
+                    x = x * A.get(bdx[path[i]], idx[path[i+1]])
+                else:
+                    x = x * A.get(bdx[path[i+1]], idx[path[i]])    
+            if (len(path) % 4 == 0) == self.is_dependent(set(basis).symmetric_difference(path)):
+                A.set(bdx[e],idx[f],x)
             else:
-                A.set(bdx[edge[0]],idx[edge[1]],-1)
+                A.set(bdx[e],idx[f],-x) 
             H.add_edge(edge)
         from sage.matroids.linear_matroid import TernaryMatroid
         return TernaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)

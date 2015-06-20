@@ -5133,15 +5133,35 @@ cdef class Matroid(SageObject):
         bdx = {basis[i]:i for i in range(len(B))}
         E = list(self.groundset())
         idx = { E[i]:i for i in range(len(E)) }
-
+        A = TernaryMatrix(len(basis), len(E))
+        for e in basis:
+            A.set(bdx[e], idx[e],1)
         entries = [(e, f) for e in basis for f in self._fundamental_cocircuit(basis, e).difference([e])]
         G = Graph(edges = entries)
         T = G.min_spanning_tree()
-        #TODO
-
-
-        A = TernaryMatrix(len(basis), len(E))
-
+        for edge in T:
+            A.set(bdx[edge[0]],idx[edge[1]],1)
+        W = set(G.edges()) - set(T)
+        H = G.subgraph(edges = T)
+        while W:
+            edge = W.pop()
+            path = H.shortest_path(edge[0], edge[1])
+            retry = True
+            while retry:
+                retry = False
+                for edge2 in W:
+                    if edge2[0] in path and edge2[1] in path:
+                        W.add(edge)
+                        edge = edge2
+                        W.remove(edge)
+                        path = H.shortest_path(edge[0], edge[1])
+                        retry = True
+                        break
+            if (len(path) % 4 == 0) is not self.is_independent(basis.symmetric_difference(path)):
+                A.set(bdx[edge[0]],idx[edge[1]],1)
+            else:
+                A.set(bdx[edge[0]],idx[edge[1]],-1)
+            H.add_edge(edge)
         from sage.matroids.linear_matroid import TernaryMatroid
         return TernaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
 
@@ -5239,7 +5259,7 @@ cdef class Matroid(SageObject):
             True
 
         """
-        return self.binary_matroid(randomized_tests=randomized_tests, verify=True) is not None
+        return self.ternary_matroid(randomized_tests=randomized_tests, verify=True) is not None
 
     # matroid k-closed
 

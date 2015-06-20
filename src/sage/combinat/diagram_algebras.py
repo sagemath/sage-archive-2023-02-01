@@ -310,6 +310,16 @@ class BrauerDiagram(AbstractPartitionDiagram):
 
         if 'curt' is True, return bijection on free nodes as a one-line notation (standardized to look like a permutation),
         else, return the honest mapping, a list of pairs `(i,-j)` describing the bijection on free nodes.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: elm = bd([[1,2],[-2,-3],[3,-1]])
+            sage: elm.bipartition_triple()
+            ([(1, 2)], [(-3, -2)], [1])
+            sage: elm.bipartition_triple(curt=False)
+            ([(1, 2)], [(-3, -2)], [[3, -1]])
         """
         diagram = self.diagram()
         top = []
@@ -329,6 +339,17 @@ class BrauerDiagram(AbstractPartitionDiagram):
         r"""
         Returns the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
         If two_line=True, then it returns it as a two-row list (inputs,outputs).
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: elm = bd([[1,2],[-2,-3],[3,-1]])
+            sage: elm.bijection_on_free_nodes()
+            [[3, -1]]
+            sage: elm2 = bd([[1,-2],[2,-3],[3,-1]])
+            sage: elm2.bijection_on_free_nodes(two_line=True)
+            [[1, 2, 3], [-2, -3, -1]]
         """
         terms = sorted([sorted(list(v),reverse=True) for v in self.diagram() if max(v)>0 and min(v)<0])
         if two_line:
@@ -339,6 +360,14 @@ class BrauerDiagram(AbstractPartitionDiagram):
         r"""
         Similar to self.bijection_on_free_nodes()...
         Returns the bijection in one-line notation, re-indexed and treated as a permutation.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: elm = bd([[1,2],[-2,-3],[3,-1]])
+            sage: elm.perm()
+            [1]
         """
         def standardize(lst):
             # given any list [i1,i2,...,ir] with distinct positive integer entries,
@@ -366,6 +395,17 @@ class BrauerDiagram(AbstractPartitionDiagram):
         Returns False otherwise.
 
         TODO: Come up with a better name?
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: elm = bd([[1,2],[-1,-2],[3,-3]])
+            sage: elm.is_elementary_symmetric()
+            True
+            sage: elm2 = bd([[1,2],[-1,-3],[3,-2]])
+            sage: elm2.is_elementary_symmetric()
+            False
         """
         (D1,D2,pi) = self.bipartition_triple()
         D1 = sorted([sorted(map(abs,x)) for x in D1])
@@ -428,7 +468,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
-            sage: TestSuite(pd).run()
+            sage: TestSuite(pd).run() # long time
         """
         if category == None:
             category = FiniteEnumeratedSets()

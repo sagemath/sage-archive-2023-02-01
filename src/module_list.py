@@ -462,6 +462,9 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
 
+    Extension('sage.graphs.graph_decompositions.cutwidth',
+              sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 

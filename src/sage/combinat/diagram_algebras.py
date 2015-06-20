@@ -186,7 +186,38 @@ def ideal_diagrams(k):
 
 class AbstractPartitionDiagram(SetPartition):
     r"""
-    This class represents a single partition diagram, that is used as a basis key for a diagram algebra element
+    This class represents a single partition diagram, that is used as a basis
+    key for a diagram algebra element. A partition diagram should be a partition
+    of the set  `\{1, \dots, k, -1, \dots, -k\}. Each such set 
+    partition is regarded as a graph on nodes `\{1, \dots, k, -1, \dots, -k\}`
+    arranged in two rows, with nodes `1, \dots, k` in the top row from left to
+    right and with nodes `-1, \dots, -k` in the bottom row from left to right,
+    and an edge connecting two nodes if and only if the nodes lie in the same
+    subset of the set partition.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+        sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+        sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+        sage: pd1
+        {{-2, -1}, {1, 2}}
+        sage: pd1 == pd2
+        True
+        sage: pd1 == [[1,2],[-1,-2]]
+        True
+        sage: pd1 == ((-2,-1),(2,1))
+        True
+        sage: pd1 == SetPartition([[1,2],[-1,-2]])
+        True
+        sage: pd3 = da.AbstractPartitionDiagram(pd, [[1,-2],[-1,2]])
+        sage: pd1 == pd3
+        False
+        sage: pd4 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]])
+        Traceback (most recent call last):
+        ...
+        ValueError: this does not represent two rows of vertices
     """
     def __init__(self, parent, d):
         self._base_diagram = tuple(sorted([tuple(sorted(i)) for i in d]))
@@ -212,12 +243,28 @@ class AbstractPartitionDiagram(SetPartition):
                 return False
         
     def base_diagram(self):
-        return self._base_diagram
+        r"""
+        Returns the underlying implementation of the diagram
+        """
+        return self._base_diagram #note, this works because self._base_diagram is immutable
     
     def diagram(self):
+        r"""
+        Returns the underlying implementation of the diagram
+        """
         return self.base_diagram()
     
     def compose(self, other):
+        r"""
+        Composes two diagrams and returns a tuple where the first entry is the composite diagram and the second entry is how many loop were removed. Note, this is not really meant to be called directly, but it works to call it this way if desired.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd([[1,2],[-1,-2]]).compose(pd([[1,2],[-1,-2]]))
+            ({{-2, -1}, {1, 2}}, 1)
+        """
         (composite_diagram, loops_removed) = set_partition_composition(self._base_diagram, other._base_diagram)
         return (self.__class__(self.parent(), composite_diagram), loops_removed)
 
@@ -253,9 +300,48 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     diagram algebras, but diagrams also have properties in their
     own right. Furthermore, this class is meant to be extended to
     create more efficient contains methods.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+        sage: pd
+        Partition diagrams of order 2
+        sage: [i for i in pd]
+        [{{-2, -1, 1, 2}},
+         {{-2, -1, 2}, {1}},
+         {{-2, -1, 1}, {2}},
+         {{-2}, {-1, 1, 2}},
+         {{-2, 1, 2}, {-1}},
+         {{-2, 1}, {-1, 2}},
+         {{-2, 2}, {-1, 1}},
+         {{-2, -1}, {1, 2}},
+         {{-2, -1}, {1}, {2}},
+         {{-2}, {-1, 2}, {1}},
+         {{-2, 2}, {-1}, {1}},
+         {{-2}, {-1, 1}, {2}},
+         {{-2, 1}, {-1}, {2}},
+         {{-2}, {-1}, {1, 2}},
+         {{-2}, {-1}, {1}, {2}}]
+        sage: pd.an_element() in pd
+        True
+        sage: elm = pd([[1,2],[-1,-2]]); elm
+        {{-2, -1}, {1, 2}}
+        sage: elm in pd
+        True
+
     """
     Element = AbstractPartitionDiagram
     def __init__(self, diagram_func, order, category = None):
+        r"""
+        See :class:`AbstractPartitionDiagram` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: TestSuite(pd).run()
+        """
         if category == None:
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
@@ -270,12 +356,17 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         return "%s diagrams of order %s" % (self.diagram_func.__name__.replace("_diagrams","").replace("_","").title(), str(self.order))
 
     def __contains__(self, obj):
-        if len(obj.base_diagram()) > 0:
+        if not hasattr(obj, '_base_diagram'):
+            try:
+                obj = self._element_constructor_(obj)
+            except (ValueError, TypeError):
+                return False
+        if len(obj.base_diagram()) > 0: #what is the empty behavoir?
             tst = sorted(flatten(obj.base_diagram()))
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 return False
-            else:
-                return True
+            return True
+        return self.order == 0
 
     def _element_constructor_(self, d):
         return self.element_class(self, d)
@@ -383,9 +474,11 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
             return catalan_number(self.order-1/2)
 
     def __contains__(self, obj):
+        if not hasattr(obj, '_base_diagram'):
+            obj = self._element_constructor_(obj)
         if obj not in BrauerDiagrams(self.order):
             return False
-        if obj.propagating_number() != self.order:
+        if not is_planar(obj):
             return False
         return True
 
@@ -399,7 +492,9 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
             return catalan_number(2*self.order-1)
 
     def __contains__(self, obj):
-        return super(PlanarDiagrams, self).__contains__(obj) and obj.propagating_number() == self.order
+        if not hasattr(obj, '_base_diagram'):
+            obj = self._element_constructor_(obj)
+        return super(PlanarDiagrams, self).__contains__(obj) and is_planar(obj)
 
 class IdealDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):

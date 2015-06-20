@@ -301,6 +301,11 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     own right. Furthermore, this class is meant to be extended to
     create more efficient contains methods.
 
+    INPUT:
+
+    -``diagram_func`` - generator. This is a function that can create the type of diagram desired.
+    -``order`` - integer or integer + 1/2. This is the order of the diagrams.
+
     EXAMPLES:
 
         sage: import sage.combinat.diagram_algebras as da
@@ -372,21 +377,51 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         return self.element_class(self, d)
 
 class PartitionDiagrams(AbstractPartitionDiagrams):
+    r"""
+    This class represents all partition diagrams of integer or integer + 1/2 order.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pd = da.PartitionDiagrams(3)
+        sage: pd.an_element() in pd
+        True
+        sage: pd.cardinality() == len(pd.list())
+        True
+    """
     def __init__(self, order, category = None):
         super(PartitionDiagrams, self).__init__(partition_diagrams, order, category=category)
     def cardinality(self):
+        r"""
+        The cardinality of partition diagrams of integer order `n` is the `2n`th Bell number.
+        """
         if self.order in ZZ:
             return bell_number(2*self.order)
         else:
             return bell_number(2*(self.order-1/2))
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
+    r"""
+    This class represents all Brauer diagrams of integer or integer + 1/2 order. For more information on Brauer diagrams, see `class: BrauerAlgebra`.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: bd = da.BrauerDiagrams(3)
+        sage: bd.an_element() in bd
+        True
+        sage: bd.cardinality() == len(bd.list())
+        True
+    """
     def __init__(self, order, category = None):
         super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
     def __contains__(self, obj):
         return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
 
     def cardinality(self):
+        r"""
+        The cardinality of the Brauer diagrams of integer order `k` is `(2k-1)!!`. 
+        """
         if self.order in ZZ:
             return (2*self.order-1).multifactorial(2)
         else:
@@ -431,7 +466,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
         -``D1_D2_pi``-- a list or tuple where the first entry is a list of arcs on the top of the diagram
         
-        A Brauer diagram can be represented as a triple where the first entry is a list of arcs on the top of the diagram, the second entry is a list of arcs on the bottom of the diagram, and the third entry is a permutation on the remaining nodes. For more information, see [GL]_.
+        A Brauer diagram can be represented as a triple where the first entry is a list of arcs on the top row of the diagram, the second entry is a list of arcs on the bottom row of the diagram, and the third entry is a permutation on the remaining nodes. For more information, see [GL]_.
 
         REFERENCES:
 
@@ -464,10 +499,25 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         return self(SP) # could pass 'SetPartition' ?
         
 class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
+    r"""
+    This class represents all Temperley--Lieb diagrams of integer or integer + 1/2 order. For more information on Temperley--Lieb diagrams, see `class: TemperleyLiebAlgebra`.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: td = da.TemperleyLiebDiagrams(3)
+        sage: td.an_element() in td
+        True
+        sage: td.cardinality() == len(td.list())
+        True
+    """
     def __init__(self, order, category = None):
         super(TemperleyLiebDiagrams, self).__init__(temperley_lieb_diagrams, order, category=category)
         
     def cardinality(self):
+        r"""
+        The cardinality of the Temperley--Lieb diagrams of integer order `k` is the `k`th Catalan number.
+        """
         if self.order in ZZ:
             return catalan_number(self.order)
         else:
@@ -483,9 +533,24 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         return True
 
 class PlanarDiagrams(AbstractPartitionDiagrams):
+    r"""
+    This class represents all planar diagrams of integer or integer + 1/2 order.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: pld = da.PlanarDiagrams(3)
+        sage: pld.an_element() in pld
+        True
+        sage: pld.cardinality() == len(pld.list())
+        True
+    """
     def __init__(self, order, category = None):
         super(PlanarDiagrams, self).__init__(planar_diagrams, order, category=category)
     def cardinality(self):
+        r"""
+        The cardinality of all planar diagrams of order `k` is the `2k`th Catalan number.
+        """
         if self.order in ZZ:
             return catalan_number(2*self.order)
         else:
@@ -497,10 +562,24 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         return super(PlanarDiagrams, self).__contains__(obj) and is_planar(obj)
 
 class IdealDiagrams(AbstractPartitionDiagrams):
+    r"""
+    This class represents all "ideal" diagrams of integer or integer + 1/2 order.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: id = da.IdealDiagrams(3)
+        sage: id.an_element() in id
+        True
+        sage: id.cardinality() == len(id.list())
+        True
+    """
     def __init__(self, order, category = None):
         super(IdealDiagrams, self).__init__(ideal_diagrams, order, category=category)
 
     def __contains__(self, obj):
+        if not hasattr(obj, '_base_diagram'):
+            obj = self._element_constructor_(obj)
         return super(IdealDiagrams, self).__contains__(obj) and obj.propagating_number() < self.order
         
 class DiagramAlgebra(CombinatorialFreeModule):

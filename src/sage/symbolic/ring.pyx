@@ -564,7 +564,14 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: SR.symbol() # temporary variable
             symbol...
+
+        We propagate the domain to the assumptions database::
+
+            sage: n = var('n', domain='integer')
+            sage: solve([n^2 == 3],n)
+            []
         """
+        from sage.symbolic.assumptions import assume
         cdef GSymbol symb
         cdef Expression e
 
@@ -583,6 +590,7 @@ cdef class SymbolicRing(CommutativeRing):
                 symb.set_texname(latex_name)
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac(domain))
+                assume(e, domain)
             GEx_construct_symbol(&e._gobj, symb)
 
             return e
@@ -595,11 +603,13 @@ cdef class SymbolicRing(CommutativeRing):
             if name is None: # Check if we need a temporary anonymous new symbol
                 symb = ginac_new_symbol()
                 if domain is not None:
+                    assume(e, domain)
                     symb.set_domain(sage_domain_to_ginac(domain))
             else:
                 if latex_name is None:
                     latex_name = latex_variable_name(name)
                 if domain is not None:
+                    assume(e, domain)
                     domain = sage_domain_to_ginac(domain)
                 else:
                     domain = domain_complex

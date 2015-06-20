@@ -291,6 +291,89 @@ class AbstractPartitionDiagram(SetPartition):
             if min(part) < 0 and max(part) > 0:
                 pn += 1
         return pn
+
+class BrauerDiagram(AbstractPartitionDiagram):
+    def __init__(self, parent, d):
+        super(BrauerDiagram, self).__init__(parent,d)
+
+    def check(self):
+        super(BrauerDiagram, self).check()
+        if [len(i) for i in self] != [2]*len(self):
+            raise ValueError, "The diagram is a valid partition diagram, but not al blocks have block size 2."
+
+    def bipartition_triple(self,curt=True):
+        r"""
+        a la Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
+        D1 is a partition of the top nodes;
+        D2 is a partition of the bottom nodes;
+        pi is the induced permutation on the free nodes.
+
+        if 'curt' is True, return bijection on free nodes as a one-line notation (standardized to look like a permutation),
+        else, return the honest mapping, a list of pairs `(i,-j)` describing the bijection on free nodes.
+        """
+        diagram = self.diagram()
+        top = []
+        bottom = []
+        for v in diagram:
+            if min(v)>0:
+                top+=[v]
+            if max(v)<0:
+                bottom+=[v]
+        if curt:
+            perm = self.perm()
+        else:
+            perm = self.bijection_on_free_nodes()
+        return (top,bottom,perm)
+    
+    def bijection_on_free_nodes(self,two_line=False):
+        r"""
+        Returns the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
+        If two_line=True, then it returns it as a two-row list (inputs,outputs).
+        """
+        terms = sorted([sorted(list(v),reverse=True) for v in self.diagram() if max(v)>0 and min(v)<0])
+        if two_line:
+            terms = [[terms[j][i] for j in range(len(terms))] for i in range(2)]
+        return terms
+
+    def perm(self):
+        r"""
+        Similar to self.bijection_on_free_nodes()...
+        Returns the bijection in one-line notation, re-indexed and treated as a permutation.
+        """
+        def standardize(lst):
+            # given any list [i1,i2,...,ir] with distinct positive integer entries,
+            # return naturally associated permutation of [r].
+            # probably already defined somewhere in Permutations/Compositions/list/etc.
+            std = range(1,len(lst)+1)
+            j = 0
+            for i in range(max(lst)+1):
+                if i in lst:
+                    j +=1
+                    std[lst.index(i)]=j
+            return std
+        long_form = self.bijection_on_free_nodes()
+        if long_form==[]:
+            return long_form
+        else:
+            short_form = map(abs,[v[1] for v in long_form])
+            short_form = standardize(short_form)
+            return short_form
+        
+    def is_elementary_symmetric(self):
+        r"""
+        Let (D1,D2,pi) be the Graham-Lehrer representation of the Brauer diagram.
+        Returns True if (D1==D2 and pi==Identity)
+        Returns False otherwise.
+
+        TODO: Come up with a better name?
+        """
+        (D1,D2,pi) = self.bipartition_triple()
+        D1 = sorted([sorted(map(abs,x)) for x in D1])
+        D2 = sorted([sorted(map(abs,x)) for x in D2])
+        if D1==D2 and pi == list(range(1,len(pi)+1)):
+            return True
+        else:
+            return False
     
 class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
@@ -413,6 +496,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd.cardinality() == len(bd.list())
         True
     """
+    Element = BrauerDiagram
     def __init__(self, order, category = None):
         super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
     def __contains__(self, obj):

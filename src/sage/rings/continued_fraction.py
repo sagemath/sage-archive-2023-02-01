@@ -336,11 +336,11 @@ class ContinuedFraction_base(SageObject):
 
         INPUT:
 
-        - ``nterms`` - the maximum number of terms to use
+        - ``nterms`` -- the maximum number of terms to use
 
-        - ``unicode`` - (default ``False``) whether to use unicode character
+        - ``unicode`` -- (default ``False``) whether to use unicode character
 
-        - ``join`` - (default ``True``) if ``False`` instead of returning a
+        - ``join`` -- (default ``True``) if ``False`` instead of returning a
           string return a list of string, each of them representing a line
 
         EXAMPLES::

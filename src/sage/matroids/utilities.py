@@ -380,25 +380,23 @@ def lift_cross_ratios(A, lift_map = None):
     This method will create a unique candidate representation ``Z``, but will not verify
     if ``Z`` is indeed a representation of ``M``. However, this is guaranteed if the
     conditions of the lift theorem (see [PvZ]_) hold for the lift map in combination with
-    the matrix ``A``. 
-    
-    For a lift map `f` and a matrix `A` these conditions are as follows. First of all 
-    `f: S \rightarrow T` is a bijection, where `S` is a subset of the source ring and 
-    `T` is a subset of the target ring. The matrix `A` has entries from the source ring, 
-    and each cross ratio of `A` is contained in `S`. Moreover:
-    
-    - `1 \in S`, `1\in T`, and `f(1) = 1`;
-    - if `x, y\in S`, then `x+y = 1` if and only if `f(x)+f(y)=1`;
-    - if `x, y, z\in S`, then `xy = z` if and only if `f(x)f(y)=f(z)`;
-    - if `x, y\in S`, then `xy\in S` if and only if `f(x)f(y)\in T`.
+    the matrix ``A``.
 
-    Finally, there are global conditions on the target ring which depend on the matroid
-    `M` represented by the extended matrix `[ I A ]`. If `M` has a Fano minor, then in the 
-    target ring we must have `1+1 = 0`. If `M` has a NonFano minor, then in the target ring 
-    we must have `1+1 \neq 0`.
+    For a lift map `f` and a matrix `A` these conditions are as follows. First of all
+    `f: S \rightarrow T`, where `S` is a set of invertible elements of the source ring and
+    `T` is a set of invertible elements of the target ring. The matrix `A` has entries
+    from the source ring, and each crossratio of `A` is contained in `S`. Moreover:
 
-    Several such lift maps can be created by the function
-    :meth:`lift_map() <sage.matroids.utilities.lift_map>`
+    - `1 \in S`, `1\in T`;
+    - for all `x in S`: `f(x) = 1` if and only if `x = 1`;
+    - for all `x, y\in S`: if `x+y = 0` then `f(x)+f(y)=0`;
+    - for all `x, y\in S`: if `x+y = 1` then `f(x)+f(y)=1`;
+    - for all `x, y, z\in S`: if  `xy = z` then `f(x)f(y)=f(z)`.
+
+    Any ring homorphism `h: P \rightarrow R` induces a lift map from the set of units `S` of
+    `P` to the set of units `T` of `R`. There exist lift maps which do not arise in
+    this manner. Several such maps can be created by the function
+    :meth:`lift_map() <sage.matroids.utilities.lift_map>`.
 
     .. SEEALSO::
 
@@ -565,15 +563,16 @@ def lift_map(target):
         sage: from sage.matroids.utilities import lift_map
         sage: lm = lift_map('gm')
         sage: for x in lm:
+        ....:     if (x == 1) is not (lm[x] == 1):
+        ....:         print 'not a proper lift map'
         ....:     for y in lm:
-        ....:         if (x+y == 1) is not (lm[x]+lm[y] == lm[1]):
+        ....:         if (x+y == 0) and not (lm[x]+lm[y] == 0):
         ....:             print 'not a proper lift map'
-        ....:         if (x*y in lm) is not (lm[x]*lm[y] in lm.values()):    
+        ....:         if (x+y == 1) and not (lm[x]+lm[y] == 1):
         ....:             print 'not a proper lift map'
         ....:         for z in lm:
-        ....:             if (x*y==z) is not (lm[x]*lm[y]==lm[z]):
+        ....:             if (x*y==z) and not (lm[x]*lm[y]==lm[z]):
         ....:                 print 'not a proper lift map'
-        ....:             
 
     """
     if target == "reg":

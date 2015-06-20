@@ -437,7 +437,7 @@ In the following we create the game (with a max value of 10) and solve it::
     sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(K, 1, -1)]  for i in range(K, 1, -1)])
     sage: g = NormalFormGame([A, B])
     sage: g.obtain_nash(algorithm='lrs') # optional - lrslib
-    [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
+    [[(0, 0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1)]]
     sage: g.obtain_nash(algorithm='LCP') # optional - gambit
     [[(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0)]]
 

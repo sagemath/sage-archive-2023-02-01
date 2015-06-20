@@ -30,9 +30,9 @@ vertices.
     :widths: 30, 70
     :delim: |
 
-    :meth:`cutwidth` | Returns the cutwidth of the given graph and the corresponding linear ordering of the vertices
-    :meth:`cutwidth_dyn` | Computes the cutwidth of `G` using an exponential time and space algorithm based on dynamic programming
-    :meth:`width_of_cut_decomposition` | Returns the width of the cut decomposition induced by the linear ordering `L` of the vertices of `G`
+    :meth:`cutwidth` | Return the cutwidth of the graph and the corresponding vertex ordering.
+    :meth:`cutwidth_dyn` | Compute the cutwidth of `G` using an exponential time and space algorithm based on dynamic programming
+    :meth:`width_of_cut_decomposition` | Return the width of the cut decomposition induced by the linear ordering `L` of the vertices of `G`
 
 
 Exponential algorithm for cutwidth
@@ -156,11 +156,137 @@ def width_of_cut_decomposition(G, L):
     return max(cpt)
 
 
+
+
+################################################################################
+# Front end method for cutwidth
+################################################################################
+
+def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
+    r"""
+    Return the cutwidth of the graph and the corresponding vertex ordering.
+
+    INPUT:
+
+    - ``G`` -- a Graph or a DiGraph
+
+    - ``algorithm`` -- (default: ``"exponential"``) Specify the algorithm to use
+      among
+
+      - ``exponential`` -- Use an exponential time and space algorithm based on
+        dynamic programming. This algorithm only works on graphs with strictly
+        less than 32 vertices.
+
+    - ``cut_off`` -- (default: None) This parameter is used to stop the search
+      as soon as a solution with width at most ``cut_off`` is found, if any. If
+      this bound cannot be reached, the best solution found is returned.
+
+    - ``verbose`` (boolean) -- whether to display information on the
+      computations.
+
+    OUTPUT:
+
+    A pair ``(cost, ordering)`` representing the optimal ordering of the
+    vertices and its cost.
+
+    EXAMPLES:
+
+    Cutwidth of a Complete Graph::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: G = graphs.CompleteGraph(5)
+        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        6
+        sage: K = graphs.CompleteGraph(6)
+        sage: cw,L = cutwidth(K, algorithm="exponential"); cw
+        9
+        sage: cw,L = cutwidth(K+K, algorithm="exponential"); cw
+        9
+
+    The cutwidth of a `p\times q` Grid Graph with `p\leq q` is `p+1`::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: G = graphs.Grid2dGraph(3,3)
+        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        4
+        sage: G = graphs.Grid2dGraph(3,5)
+        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        5
+
+    TESTS:
+
+    Given a wrong algorithm::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: cutwidth(Graph(), algorithm="SuperFast")
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
+
+    Given anything else than a Graph::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: cutwidth(range(4))
+        Traceback (most recent call last):
+        ...
+        ValueError: The parameter must be a Graph.
+    """
+    from sage.graphs.graph import Graph
+
+    CC = []
+    if isinstance(G, Graph):
+        if not G.is_connected():
+            # We decompose the graph into connected components.
+            CC = G.connected_components()
+
+    else:
+        raise ValueError('The parameter must be a Graph.')
+
+
+    if CC:
+        # The graph has several connected components. We solve the problem on
+        # each of them and order partial solutions in the same order than in
+        # list CC. The cutwidth is the maximum over all these subgraphs.
+        cw, L = 0, []
+        for V in CC:
+
+            if len(V)==1:
+                # We can directly add this vertex to the solution
+                L.extend(V)
+
+            else:
+                # We build the connected subgraph and do a recursive call to get
+                # its cutwidth and corresponding ordering
+                H = G.subgraph(V)
+                cwH,LH = cutwidth(H, algorithm = algorithm,
+                                  cut_off      = cut_off,
+                                  verbose      = verbose)
+
+                # We update the cutwidth and ordering
+                cw = max(cw, cwH)
+                L.extend(LH)
+
+                # We also update the cut_off parameter that could speed up
+                # resolution for other components
+                cut_off = max(cut_off, cw)
+
+        return cw, L
+
+
+    # We have a (strongly) connected graph and we call the desired algorithm
+    if algorithm == "exponential":
+        return cutwidth_exp(G, lower_bound=cut_off)
+
+    else:
+        raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
+
+
+
 ################################################################################
 # Dynamic Programming algorithm for cutwidth
 ################################################################################
 
-def cutwidth_dyn(G, lower_bound=0, verbose=False):
+def cutwidth_dyn(G, lower_bound=0):
     """
     Dynamic programming algorithm for the cutwidth of a Graph.
 
@@ -175,9 +301,6 @@ def cutwidth_dyn(G, lower_bound=0, verbose=False):
 
     - ``lower_bound`` -- (default: 0) the algorithm returns a solution with cost
       larger or equal to that bound.
-
-    - ``verbose`` (boolean) -- whether to display information on the
-      computations.
 
     OUTPUT:
 

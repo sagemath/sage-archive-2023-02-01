@@ -28,7 +28,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
 from sage.combinat.permutation import Permutation
-from sage.combinat.combinat import bell_number
+from sage.combinat.combinat import (bell_number, catalan_number)
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
@@ -284,7 +284,10 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(PartitionDiagrams, self).__init__(partition_diagrams, order, category=category)
     def cardinality(self):
-        return bell_number(2*self.order)
+        if self.order in ZZ:
+            return bell_number(2*self.order)
+        else:
+            return bell_number(2*(self.order-1/2))
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
@@ -372,10 +375,21 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(TemperleyLiebDiagrams, self).__init__(temperley_lieb_diagrams, order, category=category)
+        
+    def cardinality(self):
+        if self.order in ZZ:
+            return catalan_number(self.order)
+        else:
+            return catalan_number(self.order-1/2)
 
 class PlanarDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(PlanarDiagrams, self).__init__(planar_diagrams, order, category=category)
+    def cardinality(self):
+        if self.order in ZZ:
+            return binomial(2*self.order, self.order)
+        else:
+            return binomial(2*(self.order-1/2), self.order-1/2)
 
 class IdealDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):

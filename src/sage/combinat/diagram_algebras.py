@@ -219,6 +219,30 @@ class AbstractPartitionDiagram(SetPartition):
         (composite_diagram, loops_removed) = set_partition_composition(self._base_diagram, other._base_diagram)
         return (self.__class__(self.parent(), composite_diagram), loops_removed)
 
+    def propagating_number(self):
+        r"""
+        Returns the propagating number of the diagram. The
+        propagating number is the number of blocks with both a positive and
+        negative number.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: d1 = pd([[1,-2],[2,-1]])
+            sage: d1.propagating_number()
+            2
+            sage: d2 = pd([[1,2],[-2,-1]])
+            sage: d2.propagating_number()
+            0
+            
+        """
+        pn = 0
+        for part in self._base_diagram:
+            if min(part) < 0 and max(part) > 0:
+                pn += 1
+        return pn
+    
 class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
     This is a class that generates partition diagrams.

@@ -448,7 +448,6 @@ class WeightSpace(CombinatorialFreeModule):
             return basis[i]
         return self.module_morphism(on_basis = functools.partial(basis_value, basis), codomain=L)
 
-
 class WeightSpaceElement(CombinatorialFreeModuleElement):
 
     def scalar(self, lambdacheck):
@@ -555,5 +554,20 @@ class WeightSpaceElement(CombinatorialFreeModuleElement):
         """
         return self.parent().to_ambient_space_morphism()(self)
 
+    def to_weight_space(self):
+        r"""
+        Map ``self`` to the weight space.
+
+        Since `self.parent()` is the weight space, this map just returns ``self``.
+        This overrides the generic method in `WeightSpaceRealizations`.
+
+        EXAMPLES::
+
+            sage: mu = CartanType(['A',2]).root_system().weight_lattice().an_element(); mu
+            2*Lambda[1] + 2*Lambda[2]
+            sage: mu.to_weight_space()
+            2*Lambda[1] + 2*Lambda[2]
+        """
+        return self
 
 WeightSpace.Element = WeightSpaceElement

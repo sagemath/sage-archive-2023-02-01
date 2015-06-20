@@ -7,7 +7,7 @@ AUTHORS:
 - Daniel Orr (2012): initial version
 - Anne Schilling (2012): initial version
 - Mark Shimozono (2012): initial version
-- Nicolas Thiery (2012): initial version
+- Nicolas M. Thiery (2012): initial version
 - Mark Shimozono (2013): twisted affine root systems, multiple realizations, GL_n
 """
 
@@ -16,7 +16,7 @@ AUTHORS:
 #                     2012 Daniel Orr <danorr at live.unc.edu>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
 #                     2012 Mark Shimozono <mshimo at math.vt.edu>
-#                     2012 Nicolas Thiery <nthiery at users.sf.net>
+#                     2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #                     2013 Mark Shimozono
 #
@@ -125,7 +125,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     - `BC_n` (`A_{2n}^{(2)}`): `L = M = P`
     - Dual of `BC_n` (`A_{2n}^{(2)\dagger}`): `L = M = P^\vee`
 
-    The styles "PvW0" and "W0Pv" use the following lattices for `E`.
+    The styles "PvW0" and "W0Pv" use the following lattices.
 
     - Untwisted affine: The weight lattice of the dual finite Cartan type.
     - Dual untwisted affine: The same as for "PW0" and "W0P".
@@ -154,9 +154,12 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     There are isomorphisms
 
-    `W \cong M \rtimes W_0 \cong W_0 \ltimes M`
+    .. MATH::
 
-    `E \cong L \rtimes W_0 \cong W_0 \ltimes L`
+        \begin{align*}
+            W &\cong M \rtimes W_0 \cong W_0 \ltimes M \\
+            E &\cong L \rtimes W_0 \cong W_0 \ltimes L
+        \end{align*}
 
     .. RUBRIC:: Fundamental group of affine Dynkin automorphisms
 
@@ -168,7 +171,9 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     There are isomorphisms
 
-    `E \cong F \ltimes W \cong W \rtimes F`
+    .. MATH::
+
+        E \cong F \ltimes W \cong W \rtimes F
 
     An affine Dynkin node is *special* if it is conjugate to the zero node under some
     affine Dynkin automorphism.
@@ -217,9 +222,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
         sage: FW = E.FW(); FW
         Extended affine Weyl group of type ['A', 2, 1] realized by Semidirect product of Fundamental group of type ['A', 2, 1] acting on Weyl Group of type ['A', 2, 1] (as a matrix group acting on the root lattice)
 
-    When the realizations are constructed from each other as above, there are built-in coercions between them.
-
-    ::
+    When the realizations are constructed from each other as above, there are built-in coercions between them. ::
 
         sage: F = E.fundamental_group()
         sage: x = WF.from_reduced_word([0,1,2]) * WF(F(2)); x
@@ -233,27 +236,21 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
         sage: PvW0(x)
         t[Lambda[1] + 2*Lambda[2]] * s1*s2*s1
 
-    The translation lattice and its distinguished basis are obtained from ``E``.
-
-    ::
+    The translation lattice and its distinguished basis are obtained from ``E``.::
 
         sage: L = E.lattice(); L
         Coweight lattice of the Root system of type ['A', 2]
         sage: b = E.lattice_basis(); b
         Finite family {1: Lambdacheck[1], 2: Lambdacheck[2]}
 
-    Translation lattice elements can be coerced into any realization.
-
-    ::
+    Translation lattice elements can be coerced into any realization.::
 
         sage: PW0(b[1]-b[2])
         t[Lambdacheck[1] - Lambdacheck[2]]
         sage: FW(b[1]-b[2])
         pi[2] * S0*S1
 
-    The dual form of the translation lattice and its basis are similarly obtained.
-
-    ::
+    The dual form of the translation lattice and its basis are similarly obtained.::
 
         sage: Lv = E.dual_lattice(); Lv
         Weight lattice of the Root system of type ['A', 2]
@@ -262,25 +259,21 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
         sage: FW(bv[1]-bv[2])
         pi[2] * S0*S1
 
-    The abstract fundamental group is accessed from ``E``.
-
-    ::
+    The abstract fundamental group is accessed from ``E``.::
 
         sage: F = E.fundamental_group(); F
         Fundamental group of type ['A', 2, 1]
 
-    Its elements are indexed by the set of special nodes of the affine Dynkin diagram.
+    Its elements are indexed by the set of special nodes of the affine Dynkin diagram.::
 
-    ::
-
-        sage: E.special_nodes()
+        sage: E.cartan_type().special_nodes()
         (0, 1, 2)
-        sage: [F(i) for i in E.special_nodes()]
+        sage: F.special_nodes()
+        (0, 1, 2)
+        sage: [F(i) for i in F.special_nodes()]
         [pi[0], pi[1], pi[2]]
 
-    There is a coercion from the fundamental group into each realization:
-
-    ::
+    There is a coercion from the fundamental group into each realization:::
 
         sage: F(2)
         pi[2]
@@ -292,9 +285,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
         s2*s1 * t[-Lambda[1]]
 
     Using ``E`` one may access the classical and affine Weyl groups and their morphisms
-    into each realization.
-
-    ::
+    into each realization.::
 
         sage: W0 = E.classical_weyl(); W0
         Weyl Group of type ['A', 2] (as a matrix group acting on the coweight lattice)
@@ -328,16 +319,12 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
         sage: x.parent() == y.parent()
         False
 
-    An element can be created directly from a reduced word.
-
-    ::
+    An element can be created directly from a reduced word.::
 
         sage: PW0.from_reduced_word([2,1,0])
         t[Lambdacheck[1] - 2*Lambdacheck[2]] * s1
 
-    Here is a demonstration of the printing options.
-
-    ::
+    Here is a demonstration of the printing options.::
 
         sage: E = ExtendedAffineWeylGroup(["A",2,1], affine="sx", classical="Sx",translation="x",fundamental="pix")
         sage: PW0 = E.PW0()
@@ -377,7 +364,9 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     extended affine Weyl groups. We make the following nonstandard definition: the
     extended affine Weyl group `W_e(GL_n)` is defined by
 
-    `W_e(GL_n) = P(GL_n) \rtimes W`
+    .. MATH::
+
+        W_e(GL_n) = P(GL_n) \rtimes W
 
     where `W` is the finite Weyl group (the symmetric group `S_n`) and `P(GL_n)` is the weight lattice
     of `GL_n`, which is usually identified with the lattice `\ZZ^n` of `n`-tuples of integers::
@@ -389,11 +378,15 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     There is an isomorphism
 
-    `W_e(GL_n) = \ZZ \ltimes W_a`
+    .. MATH::
+
+        W_e(GL_n) = \ZZ \ltimes W_a
 
     where the group of integers `\ZZ` (with generator `\pi`) acts on `W_a` by
 
-    `\pi\, s_i\, \pi^{-1} = s_{i+1}`
+    .. MATH::
+
+        \pi\, s_i\, \pi^{-1} = s_{i+1}
 
     and the indices of the simple reflections are taken modulo `n`::
 
@@ -780,19 +773,6 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         """
         return self._fundamental_group
 
-    @cached_method
-    def special_nodes(self):
-        r"""
-        Return the set of special nodes.
-
-        EXAMPLES::
-
-            sage: ExtendedAffineWeylGroup(['D',4,2]).special_nodes()
-            (0, 3)
-
-        """
-        return self.fundamental_group().special_nodes()
-
     def lattice(self):
         r"""
         Return the translation lattice for ``self``.
@@ -1143,7 +1123,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                     sage: E = ExtendedAffineWeylGroup(['A',3,1])
                     sage: PW0=E.PW0()
-                    sage: Is = E.special_nodes()
+                    sage: Is = F.special_nodes()
                     sage: F = E.fundamental_group()
                     sage: [(i, PW0.fundamental_group_morphism(F(i))) for i in Is]
                     [(0, 1), (1, t[Lambdacheck[1]] * s1*s2*s3), (2, t[Lambdacheck[2]] * s2*s3*s1*s2), (3, t[Lambdacheck[3]] * s3*s2*s1)]

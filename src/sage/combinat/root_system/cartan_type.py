@@ -454,6 +454,7 @@ from sage.sets.family import Family
 from sage.misc.superseded import deprecated_function_alias
 from sage.misc.decorators import rename_keyword
 from sage.misc.misc import union
+from __builtin__ import sorted
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
@@ -1882,6 +1883,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
             (1, 2, 3)
         """
 
+    @cached_method
     def special_nodes(self):
         r"""
         Return the set of special nodes of the affine Dynkin diagram.
@@ -1901,12 +1903,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
             sage: CartanType(['A',4,2]).special_nodes()
             (0,)
         """
-        special_node = self.special_node()
-        autos = self.dynkin_diagram().automorphism_group(edge_labels=True)
-        special_nodes = []
-        for x in autos:
-            special_nodes = union(special_nodes, x.orbit(special_node))
-        return tuple(special_nodes)
+        return tuple(sorted(self.dynkin_diagram().automorphism_group(edge_labels=True).orbit(self.special_node())))
 
     @abstract_method
     def classical(self):

@@ -14,6 +14,7 @@ from weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
 from sage.modules.free_module_element import vector
+from sage.categories.homset import End
 
 class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     r"""
@@ -355,9 +356,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             sage: f(p)==p
             True
         """
-        def id(x):
-            return x
-        return id
+        return End(self).identity()
 
 class AmbientSpaceElement(CombinatorialFreeModuleElement):
     # For backward compatibility
@@ -494,39 +493,6 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         v1 = self.parent()._v1
         x = x - (x.inner_product(v0)/2)*v0
         return  x - (x.inner_product(v1)/6)*v1
-
-    def to_weight_space(self, base_ring = None):
-        r"""
-        Map ``self`` to the weight space.
-
-        ..warning::
-
-            Implemented for finite Cartan type.
-
-        EXAMPLES::
-
-            sage: b = CartanType(['B',2]).root_system().ambient_space().from_vector(vector([1,-2])); b
-            (1, -2)
-            sage: b.to_weight_space()
-            3*Lambda[1] - 4*Lambda[2]
-            sage: b = CartanType(['B',2]).root_system().ambient_space().from_vector(vector([1/2,0])); b
-            (1/2, 0)
-            sage: b.to_weight_space()
-            1/2*Lambda[1]
-            sage: b.to_weight_space(ZZ)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this rational to integer
-            sage: b = CartanType(['G',2]).root_system().ambient_space().from_vector(vector([4,-5,1])); b
-            (4, -5, 1)
-            sage: b.to_weight_space()
-            -6*Lambda[1] + 5*Lambda[2]
-
-        """
-        L = self.parent()
-        if base_ring is None:
-            base_ring = L.base_ring()
-        return L.root_system.weight_lattice().from_vector(vector(base_ring, [self.scalar(v) for v in L.simple_coroots()]))
 
     def to_ambient(self):
         r"""

@@ -357,8 +357,8 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
 
         self._cartan_type = cartan_type
         self._prefix = prefix
-        self._special_nodes = self.cartan_type().special_nodes()
         special_node = cartan_type.special_node()
+        self._special_nodes = cartan_type.special_nodes()
 
         # initialize dictionaries with the entries for the distinguished special node
         # dictionary of inverse elements
@@ -463,26 +463,6 @@ class FundamentalGroupOfExtendedAffineWeylGroup_Class(UniqueRepresentation, Pare
             Fundamental group of type ['A', 3, 1]
         """
         return "Fundamental group of type %s"%self.cartan_type()
-
-    def special_nodes(self):
-        r"""
-        The set of nodes of the Dynkin diagram of the affine Cartan type of ``self``
-        which are conjugate to the `0` node.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.root_system.fundamental_group import FundamentalGroupOfExtendedAffineWeylGroup
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['D',4,1]).special_nodes()
-            (0, 1, 3, 4)
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['A',2,1]).special_nodes()
-            (0, 1, 2)
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['C',3,1]).special_nodes()
-            (0, 3)
-            sage: FundamentalGroupOfExtendedAffineWeylGroup(['D',4,2]).special_nodes()
-            (0, 3)
-
-        """
-        return self._special_nodes
 
     def group_generators(self):
         r"""
@@ -633,7 +613,6 @@ class FundamentalGroupGL(FundamentalGroupOfExtendedAffineWeylGroup_Class):
 
         FundamentalGroupOfExtendedAffineWeylGroup_Class.__init__(self, cartan_type, prefix, finite=False)
         from sage.rings.integer_ring import ZZ
-        self._special_nodes = ZZ
         self._n = cartan_type.n + 1
 
     def _element_constructor_(self, x):

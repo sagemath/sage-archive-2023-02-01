@@ -1784,8 +1784,8 @@ class NormalFormGame(SageObject, MutableMapping):
 
         Here is an example of a degenerate game given in [DGRB2010]_::
 
-            sage: A = matrix([[3,3],[2,5],[0,6]])
-            sage: B = matrix([[3,3],[2,6],[3,1]])
+            sage: A = matrix([[3, 3], [2, 5], [0, 6]])
+            sage: B = matrix([[3, 3], [2, 6], [3, 1]])
             sage: degenerate_game = NormalFormGame([A,B])
             sage: degenerate_game.is_degenerate()
             True
@@ -1847,6 +1847,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.add_player(3)  # Adding second player with 3 strategies
             sage: for key in g:
             ....:     g[key] = [0, 0]
+            sage: g.is_degenerate()
+            True
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
             sage: g.is_degenerate()
             True
 

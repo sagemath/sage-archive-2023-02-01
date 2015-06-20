@@ -388,7 +388,7 @@ def lift_cross_ratios(A, lift_map = None):
     from the source ring, and each crossratio of `A` is contained in `S`. Moreover:
 
     - `1 \in S`, `1\in T`;
-    - for all `x in S`: `f(x) = 1` if and only if `x = 1`;
+    - for all `x \in S`: `f(x) = 1` if and only if `x = 1`;
     - for all `x, y\in S`: if `x+y = 0` then `f(x)+f(y)=0`;
     - for all `x, y\in S`: if `x+y = 1` then `f(x)+f(y)=1`;
     - for all `x, y, z\in S`: if  `xy = z` then `f(x)f(y)=f(z)`.

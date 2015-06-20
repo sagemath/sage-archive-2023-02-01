@@ -4469,7 +4469,7 @@ cdef class TernaryMatroid(LinearMatroid):
         EXAMPLES::
 
             sage: N = matroids.named_matroids.NonFano()
-            sage: N.binary_matroid() is N
+            sage: N.ternary_matroid() is N
             True
         """
         return self

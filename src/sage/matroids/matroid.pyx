@@ -5146,7 +5146,7 @@ cdef class Matroid(SageObject):
         H = G.subgraph(edges = T)
         while W:
             edge = W.pop()
-            e,f = edge[2] 
+            e,f = edge[2]
             path = H.shortest_path(e, f)
             retry = True
             while retry:
@@ -5166,11 +5166,11 @@ cdef class Matroid(SageObject):
                 if i%2 == 0:
                     x = x * A.get(bdx[path[i]], idx[path[i+1]])
                 else:
-                    x = x * A.get(bdx[path[i+1]], idx[path[i]])    
+                    x = x * A.get(bdx[path[i+1]], idx[path[i]])
             if (len(path) % 4 == 0) == self.is_dependent(set(basis).symmetric_difference(path)):
                 A.set(bdx[e],idx[f],x)
             else:
-                A.set(bdx[e],idx[f],-x) 
+                A.set(bdx[e],idx[f],-x)
             H.add_edge(edge)
         from sage.matroids.linear_matroid import TernaryMatroid
         return TernaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
@@ -5196,10 +5196,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        First, compare the binary matroids local to two random bases.
+        First, compare the ternary matroids local to two random bases.
         If these matroids are not  isomorphic, return ``None``. This
         test is performed ``randomized_tests`` times. Next, if ``verify``
-        is ``True``, test if a binary matroid local to some basis is
+        is ``True``, test if a ternary matroid local to some basis is
         isomorphic to ``self``.
 
         .. SEEALSO::
@@ -5214,7 +5214,7 @@ cdef class Matroid(SageObject):
             True
             sage: N = matroids.named_matroids.NonFano()
             sage: N.ternary_matroid()
-            ...
+            NonFano: Ternary matroid of rank 3 on 7 elements, type 0-
 
         """
         M = self._local_ternary_matroid()
@@ -5240,7 +5240,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``randomized_tests`` -- (default: 1) an integer; the number of
-          times a certain necessary condition for being binary is tested,
+          times a certain necessary condition for being ternary is tested,
           using randomization
 
         OUTPUT:
@@ -5249,10 +5249,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        First, compare the binary matroids local to two random bases.
+        First, compare the ternary matroids local to two random bases.
         If these matroids are not  isomorphic, return ``False``. This
         test is performed ``randomized_tests`` times. Next, test if a
-        binary matroid local to some basis is isomorphic to ``self``.
+        ternary matroid local to some basis is isomorphic to ``self``.
 
         .. SEEALSO::
 

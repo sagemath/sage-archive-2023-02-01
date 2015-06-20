@@ -69,3 +69,86 @@ Methods
 #                        http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+
+
+################################################################################
+# Function for testing the validity of a linear vertex ordering
+#
+# A linear ordering `L` of the vertices of a graph `G` is valid if all vertices
+# of `G` are in `L`, and if `L` contains no other vertex and no duplicated
+# vertices.
+################################################################################
+from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering
+
+
+################################################################################
+# Measurement function of the width of some layout
+################################################################################
+
+def width_of_cut_decomposition(G, L):
+    r"""
+    Returns the width of the cut decomposition induced by the linear ordering
+    `L` of the vertices of `G`.
+
+    If `G` is an instance of :mod:`Graph <sage.graphs.graph>`, this function
+    returns the width `cw_L(G)` of the cut decomposition induced by the linear
+    ordering `L` of the vertices of `G`.
+
+    .. MATH::
+
+        cw_L(G) =  \max_{0\leq i< |V|-1} |\{(u,w)\in E(G)\mid u\in L[:i]\text{ and }w\in V(G)\setminus L[:i]\}|
+
+    INPUT:
+
+    - ``G`` -- a Graph
+
+    - ``L`` -- a linear ordering of the vertices of ``G``
+
+    EXAMPLES:
+
+    Cut decomposition of a Cycle graph::
+
+        sage: from sage.graphs.graph_decompositions import cutwidth
+        sage: G = graphs.CycleGraph(6)
+        sage: L = G.vertices()
+        sage: cutwidth.width_of_cut_decomposition(G, L)
+        2
+
+    Cut decomposition of a Path graph::
+
+        sage: from sage.graphs.graph_decompositions import cutwidth
+        sage: P = graphs.PathGraph(6)
+        sage: cutwidth.width_of_cut_decomposition(P, [0, 1, 2, 3, 4, 5])
+        1
+        sage: cutwidth.width_of_cut_decomposition(P, [5, 0, 1, 2, 3, 4])
+        2
+        sage: cutwidth.width_of_cut_decomposition(P, [0, 2, 4, 1, 3, 5])
+        5
+
+    TESTS:
+
+    Giving a wrong linear ordering::
+
+        sage: from sage.graphs.graph_decompositions import cutwidth
+        sage: cutwidth.width_of_cut_decomposition(Graph(), ['a','b'])
+        Traceback (most recent call last):
+        ...
+        ValueError: The input linear vertex ordering L is not valid for G.
+    """
+    if not is_valid_ordering(G, L):
+        raise ValueError("The input linear vertex ordering L is not valid for G.")
+
+    position = dict( (u,i) for i,u in enumerate(L) )
+
+    cpt = [0]*len(L)
+    for u,v in G.edge_iterator(labels=None):
+        x,y = position[u],position[v]
+        if x>y:
+            x,y = y,x
+        for i in range(x,y):
+            cpt[i] += 1
+
+    return max(cpt)
+
+

@@ -27,6 +27,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
+from sage.combinat.permutation import Permutation
+from sage.combinat.combinat import bell_number
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
@@ -268,7 +270,12 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         return "%s diagrams of order %s" % (self.diagram_func.__name__.replace("_diagrams","").replace("_","").title(), str(self.order))
 
     def __contains__(self, obj):
-        return obj in self.list()
+        if len(obj.base_diagram()) > 0:
+            tst = sorted(flatten(obj.base_diagram()))
+            if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
+                return False
+            else:
+                return True
 
     def _element_constructor_(self, d):
         return self.element_class(self, d)
@@ -276,11 +283,92 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
 class PartitionDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(PartitionDiagrams, self).__init__(partition_diagrams, order, category=category)
+    def cardinality(self):
+        return bell_number(2*self.order)
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
+    def __contains__(self, obj):
+        return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
 
+    def cardinality(self):
+        if self.order in ZZ:
+            return (2*self.order-1).multifactorial(2)
+        else:
+            return (2*(self.order-1/2)-1).multifactorial(2)
+
+    def symmetric_diagrams(self,l=None,perm=None):
+        r"""
+        Returns the list of brauer diagrams with symmetric placement of `l` arcs,
+        and with free nodes permuted according to `perm`.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(4)
+            sage: bd.symmetric_diagrams(l=1,perm=[2,1])
+            [{{-4, -3}, {-2, 1}, {-1, 2}, {3, 4}},
+             {{-4, -2}, {-3, 1}, {-1, 3}, {2, 4}},
+             {{-4, 1}, {-3, -2}, {-1, 4}, {2, 3}},
+             {{-4, -1}, {-3, 2}, {-2, 3}, {1, 4}},
+             {{-4, 2}, {-3, -1}, {-2, 4}, {1, 3}},
+             {{-4, 3}, {-3, 4}, {-2, -1}, {1, 2}}]
+             
+        """
+        # perm = permutation on free nodes
+        # l = number of arcs
+        n = self.order
+        if l is None:
+            l = 0
+        if perm is None:
+            perm = Permutation([i for i in range(1,n+1-2*l)])
+        out = []
+        partition_shape = [2 for i in range(l)]+[1 for i in range(n-2*l)]
+        for sp in SetPartitions(n,partition_shape):
+            sp0 = [block for block in sp if len(block)==2]
+            diag = self.from_bipartition_triple((sp0,sp0,perm))
+            out.append(diag)
+        return out
+    
+    def from_bipartition_triple(self,D1_D2_pi):
+        r"""
+        INPUT:
+
+        -``D1_D2_pi``-- a list or tuple where the first entry is a list of arcs on the top of the diagram
+        
+        A Brauer diagram can be represented as a triple where the first entry is a list of arcs on the top of the diagram, the second entry is a list of arcs on the bottom of the diagram, and the third entry is a permutation on the remaining nodes. For more information, see [GL]_.
+
+        REFERENCES:
+
+        .. [GL] J.J. Graham and G.I. Lehrer, Cellular algebras.
+                Inventiones mathematicae 123 (1996), 1--34.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(4)
+            sage: bd.from_bipartition_triple([[[1,2]],[[3,4]],[2,1]])
+            {{-4, -3}, {-2, 3}, {-1, 4}, {1, 2}}
+        """
+        try:
+            (D1,D2,pi) = tuple(D1_D2_pi)
+        except ValueError:
+            raise ValueError("Argument %s not in correct form; must be a tuple (D1,D2,pi)." % D1_D2_pi)
+        D1 = [map(abs,b) for b in D1 if len(b)==2] # not needed if argument correctly passed at outset.
+        D2 = [map(abs,b) for b in D2 if len(b)==2] # ditto.
+        nD2 = [map(lambda i: -i,b) for b in D2]
+        pi = Permutation(pi)
+        nn = Set(range(1,self.order+1))
+        dom = sorted(list(nn.difference(Set(flatten(map(list,D1))))))
+        rng = sorted(list(nn.difference(Set(flatten(map(list,D2))))))
+        SP0 = D1+nD2
+        if len(pi) != len(dom):
+            raise ValueError("In the tuple (D1,D2,pi)=%s, pi must be a permutation of %s (indicating a permutation on the free nodes of the diagram)"%((D1,D2,pi),self.order-2*len(D1)))
+        Perm = [[dom[i],-rng[pi[i]-1]] for i in range(len(pi))]
+        SP = SP0+Perm
+        return self(SP) # could pass 'SetPartition' ?
+        
 class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     def __init__(self, order, category = None):
         super(TemperleyLiebDiagrams, self).__init__(temperley_lieb_diagrams, order, category=category)

@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+import sage_bootstrap
+
+print('done')
+
+from sage_bootstrap.config import Configuration
+
+print(Configuration())

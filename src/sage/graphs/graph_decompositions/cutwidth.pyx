@@ -74,6 +74,7 @@ include 'sage/ext/interrupt.pxi'
 include 'fast_digraph.pyx'
 from libc.stdint cimport uint8_t
 from sage.ext.memory cimport check_allocarray
+from sage.rings.integer_ring import ZZ
 
 
 ################################################################################
@@ -162,7 +163,7 @@ def width_of_cut_decomposition(G, L):
 # Front end method for cutwidth
 ################################################################################
 
-def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
+def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
     r"""
     Return the cutwidth of the graph and the corresponding vertex ordering.
 
@@ -177,8 +178,8 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
         dynamic programming. This algorithm only works on graphs with strictly
         less than 32 vertices.
 
-    - ``cut_off`` -- (default: None) This parameter is used to stop the search
-      as soon as a solution with width at most ``cut_off`` is found, if any. If
+    - ``cut_off`` -- (default: 0) This parameter is used to stop the search as
+      soon as a solution with width at most ``cut_off`` is found, if any. If
       this bound cannot be reached, the best solution found is returned.
 
     - ``verbose`` (boolean) -- whether to display information on the
@@ -211,7 +212,7 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
         4
         sage: G = graphs.Grid2dGraph(3,5)
         sage: cw,L = cutwidth(G, algorithm="exponential"); cw
-        5
+        4
 
     TESTS:
 
@@ -230,6 +231,14 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
         Traceback (most recent call last):
         ...
         ValueError: The parameter must be a Graph.
+
+    Giving a wrong type cut off::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: cutwidth(Graph(), cut_off='toto')
+        Traceback (most recent call last):
+        ...
+        ValueError: The specified cut off parameter must be an integer.
     """
     from sage.graphs.graph import Graph
 
@@ -242,6 +251,8 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
     else:
         raise ValueError('The parameter must be a Graph.')
 
+    if not cut_off in ZZ:
+        raise ValueError("The specified cut off parameter must be an integer.")
 
     if CC:
         # The graph has several connected components. We solve the problem on
@@ -266,16 +277,12 @@ def cutwidth(G, algorithm="exponential", cut_off=None, verbose=False):
                 cw = max(cw, cwH)
                 L.extend(LH)
 
-                # We also update the cut_off parameter that could speed up
-                # resolution for other components
-                cut_off = max(cut_off, cw)
-
         return cw, L
 
 
     # We have a (strongly) connected graph and we call the desired algorithm
     if algorithm == "exponential":
-        return cutwidth_dyn(G, lower_bound=cut_off)
+        return cutwidth_dyn(G)
 
     else:
         raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
@@ -340,7 +347,6 @@ def cutwidth_dyn(G, lower_bound=0):
         ValueError: The specified lower bound must be an integer.
     """
     from sage.graphs.graph import Graph
-    from sage.rings.integer_ring import ZZ
     if not isinstance(G, Graph):
         raise ValueError("The parameter must be a Graph.")
 

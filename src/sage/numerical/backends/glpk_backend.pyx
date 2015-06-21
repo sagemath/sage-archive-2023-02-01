@@ -2050,7 +2050,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
             sage: lp.eval_tab_row(0)
-            Exception RuntimeError: ...
+            Exception MIPSolverException: ...
             sage: lp.solve()
             0
             sage: lp.eval_tab_row(0)
@@ -2060,23 +2060,36 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_row(5)
             ([1, 2, 4], [2.0, -4.0, 2.0])
             sage: lp.eval_tab_row(1)
-            Exception RuntimeError: ...
+            Exception MIPSolverException: ...
             sage: lp.eval_tab_row(-1)
             Exception ValueError: ...
 
         """
-        cdef int n = glp_get_num_cols(self.lp)
-        cdef int * c_indices = <int*> sage_malloc((n+1)*sizeof(int))
-        cdef double * c_values = <double*> sage_malloc((n+1)*sizeof(double))
+        cdef int n = glp_get_num_rows(self.lp)
         cdef list indices = []
         cdef list values = []
         cdef int i,j
 
         if k < 0 or i >= n + glp_get_num_rows(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
-        sig_str('GLPK : basis factorization does not exist')
-        i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
-        sig_off()
+
+        cdef int * c_indices = <int*> sage_malloc((n+1)*sizeof(int))
+        if c_indices == NULL:
+            raise MemoryError("failed to allocate %s bytes" % ((n+1)*sizeof(int)))
+        cdef double * c_values = <double*> sage_malloc((n+1)*sizeof(double))
+        if c_values == NULL:
+            sage_free(c_indices)
+            raise MemoryError("failed to allocate %s bytes" % ((n+1)*sizeof(double)))
+
+        try:
+            sig_on()
+            i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
+            sig_off()
+        except Exception:
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MIPSolverException('GLPK : basis factorization does not exist')
+
         for 0 < j <= i:
             indices.append(c_indices[j]-1)
             values.append(c_values[j])
@@ -2132,7 +2145,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: import sage.numerical.backends.glpk_backend as backend
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_only)
             sage: lp.eval_tab_col(1)
-            Exception RuntimeError: ...
+            Exception MIPSolverException: ...
             sage: lp.solve()
             0
             sage: lp.eval_tab_col(1)
@@ -2142,23 +2155,36 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.eval_tab_col(4)
             ([0, 5, 3], [-2.0, 2.0, -1.25])
             sage: lp.eval_tab_col(0)
-            Exception RuntimeError: .....
+            Exception MIPSolverException: .....
             sage: lp.eval_tab_col(-1)
             Exception ValueError: ...
 
         """
         cdef int m = glp_get_num_rows(self.lp)
-        cdef int * c_indices = <int*> sage_malloc((m+1)*sizeof(int))
-        cdef double * c_values = <double*> sage_malloc((m+1)*sizeof(double))
         cdef list indices = []
         cdef list values = []
         cdef int i,j
 
         if k < 0 or i >= m + glp_get_num_cols(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
-        sig_str('GLPK : basis factorization does not exist')
-        i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
-        sig_off()
+
+        cdef int * c_indices = <int*> sage_malloc((m+1)*sizeof(int))
+        if c_indices == NULL:
+            raise MemoryError("failed to allocate %s bytes" % ((m+1)*sizeof(int)))
+        cdef double * c_values = <double*> sage_malloc((m+1)*sizeof(double))
+        if c_values == NULL:
+            sage_free(c_indices)
+            raise MemoryError("failed to allocate %s bytes" % ((m+1)*sizeof(double)))
+
+        try:
+            sig_on()
+            i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
+            sig_off()
+        except Exception:
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MIPSolverException('GLPK : basis factorization does not exist')
+
         for 0 < j <= i:
             indices.append(c_indices[j]-1)
             values.append(c_values[j])
@@ -2313,6 +2339,11 @@ glp_undef = GLP_UNDEF
 glp_opt = GLP_OPT
 glp_feas = GLP_FEAS
 glp_nofeas = GLP_NOFEAS
+
+glp_bs = GLP_BS
+glp_nl = GLP_NL
+glp_nu = GLP_NU
+glp_nf = GLP_NF
 
 cdef enum more_parameter_values:
   simplex_only, simplex_then_intopt, intopt_only

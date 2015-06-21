@@ -18,9 +18,14 @@ Note that argparse is not part of Python 2.6, so we cannot rely on it here.
 
 import os
 import sys
+from textwrap import dedent
 import logging
 log = logging.getLogger()
 
+from sage_bootstrap.env import SAGE_DISTFILES
+from sage_bootstrap.download import Download
+from sage_bootstrap.mirror_list import MirrorList
+from sage_bootstrap.tarball import Tarball
 
 
 class CmdlineSubcommands(object):
@@ -35,7 +40,6 @@ class CmdlineSubcommands(object):
         self.extra_args = argv[2:]
 
     def print_help(self):
-        from textwrap import dedent
         print(dedent(self.__doc__).lstrip())
         
     def run(self):
@@ -84,4 +88,55 @@ class SagePkgApplication(CmdlineSubcommands):
         Find the tarball filename given a package name
         """
         pass
+    
+
+class SageDownloadFileApplication(object):    
+    """
+    USAGE:
+    
+        sage-download-file --print-fastest-mirror
+    
+    Print out the fastest mirror. All further arguments are ignored in
+    that case.
+    
+        sage-download-file [--quiet] url-or-tarball [destination]
+    
+    The single mandatory argument can be a http:// url or a tarball
+    filename. In the latter case, the tarball is downloaded from the
+    mirror network and its checksum is verified.
+    
+    If the destination is not specified:
+    * a url will be downloaded and the content written to stdout
+    * a tarball will be saved under {SAGE_DISTFILES}
+    """
+    
+    def run(self):
+        progress = True
+        url = None
+        destination = None
+        for arg in sys.argv[1:]:
+            if arg.startswith('--print-fastest-mirror'):
+                print(MirrorList().fastest)
+                sys.exit(0)
+            if arg.startswith('--quiet'):
+                progress = False
+                continue
+            if url is None:
+                url = arg
+                continue
+            if destination is None:
+                destination = arg
+                continue
+            raise ValueError('too many arguments')
+        if url is None:
+            print(dedent(self.__doc__.format(SAGE_DISTFILES=SAGE_DISTFILES)))
+            sys.exit(1)
+        if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
+            Download(url, destination, progress=progress, ignore_errors=True).run()
+        else:
+            # url is a tarball name
+            tarball = Tarball(url)
+            tarball.download()
+            if destination is not None:
+                tarball.save_as(destination)
     

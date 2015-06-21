@@ -7,6 +7,7 @@ variables:
 
 * ``SAGE_ROOT``
 * ``SAGE_SRC``
+* ``SAGE_DISTFILES``
 """
 
 
@@ -23,17 +24,25 @@ variables:
 import os
 
 
-
-try:
-    SAGE_SRC = os.environ['SAGE_SRC']
-except KeyError:
-    SAGE_SRC = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
 try:
     SAGE_ROOT = os.environ['SAGE_ROOT']
 except KeyError:
-    SAGE_ROOT = os.path.dirname(SAGE_SRC)
+    SAGE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))))
+
+SAGE_SRC = os.environ.get('SAGE_SRC',
+    os.path.join(SAGE_ROOT, 'src'))
+SAGE_DISTFILES = os.environ.get('SAGE_DISTFILES',
+    os.path.join(SAGE_ROOT, 'upstream'))
 
 
-assert os.path.isfile(os.path.join(SAGE_ROOT, 'configure.ac'))
-assert os.path.isfile(os.path.join(SAGE_SRC, 'sage_bootstrap', 'setup.py'))
+assert os.path.isfile(os.path.join(SAGE_ROOT, 'configure.ac')), SAGE_ROOT
+assert os.path.isfile(os.path.join(SAGE_SRC, 'sage_bootstrap', 'setup.py')), SAGE_SRC
+
+try:
+    # SAGE_DISTFILES does not exist in a fresh git clone
+    os.mkdir(SAGE_DISTFILES)
+except OSError:
+    pass
+
+assert os.path.isdir(SAGE_DISTFILES)

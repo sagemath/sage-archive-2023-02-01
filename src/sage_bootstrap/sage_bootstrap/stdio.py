@@ -41,3 +41,8 @@ REAL_STDERR = sys.stderr
 def init_streams(config):
    if not config.interactive:
       sys.stdout = UnbufferedStream(REAL_STDOUT)
+
+
+def flush():
+   REAL_STDOUT.flush()
+   REAL_STDERR.flush()

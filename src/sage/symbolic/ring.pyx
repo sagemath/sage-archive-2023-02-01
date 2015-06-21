@@ -808,31 +808,31 @@ cdef unsigned sage_domain_to_ginac(object domain) except -1:
         ...
         ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
     """
-        # convert the domain argument to something easy to parse
-        if domain is RR or domain == 'real':
-            return domain_real
-        elif domain == 'positive':
-            return domain_positive
-        elif domain is CC or domain == 'complex':
-            return domain_complex
-        elif domain is ZZ or domain == 'integer':
-            pass
-        else:
-            raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        return domain_real
+    elif domain == 'positive':
+        return domain_positive
+    elif domain is CC or domain == 'complex':
+        return domain_complex
+    elif domain is ZZ or domain == 'integer':
+        pass
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 cdef sage_domain_to_maxima(Expression v, object domain) except +:
-        from sage.symbolic.assumptions import assume
-        # convert the domain argument to something easy to parse
-        if domain is RR or domain == 'real':
-            assume(v, 'real')
-        elif domain == 'positive':
-            assume(v>0)
-        elif domain is CC or domain == 'complex':
-            assume(v, 'complex')
-        elif domain is ZZ or domain == 'integer':
-            assume(v, 'integer')
-        else:
-            raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+    from sage.symbolic.assumptions import assume
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        assume(v, 'real')
+    elif domain == 'positive':
+        assume(v>0)
+    elif domain is CC or domain == 'complex':
+        assume(v, 'complex')
+    elif domain is ZZ or domain == 'integer':
+        assume(v, 'integer')
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 cdef class NumpyToSRMorphism(Morphism):
     r"""

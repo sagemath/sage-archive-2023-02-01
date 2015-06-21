@@ -37,8 +37,9 @@ The matplotlib mailing lists: see http://sourceforge.net/projects/matplotlib
 == Build Instructions/Changes ==
 
  * NOTE: To drastically cut down on spkg size, we delete the internal
-   testing images.  To do this, we repackage the tarball by removing
-   the contents of lib/matplotlib/tests/baseline_images/*
+   testing images. To do this, we repackage the tarball by removing
+   the contents of lib/matplotlib/tests/baseline_images/*, this is
+   done by the spkg-src script.
 
  * setup.py.patch: disable loading of Tests. Otherwise, setup.py
    raises an error because it can't find the deleted files

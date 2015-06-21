@@ -3901,6 +3901,24 @@ class DiagramAutomorphism(CrystalMorphism):
         """
         return "Diagram automorphism"
 
+    def is_isomorphism(self):
+        """
+        Return ``True`` as ``self`` is a crystal isomorphism.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
+            sage: K.promotion().is_isomorphism()
+            True
+        """
+        return True
+
+    # All of these are consequences of being an isomorphism
+    is_surjective = is_isomorphism
+    is_embedding = is_isomorphism
+    is_strict = is_isomorphism
+    __nonzero__ = is_isomorphism
+
 class DiagramAutomorphismInverse(DiagramAutomorphism):
     r"""
     The inverse promotion operator.

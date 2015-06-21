@@ -135,7 +135,7 @@ class Crystals(Category_singleton):
                 return examples.HighestWeightCrystalOfTypeA(**kwds)
 
     class MorphismMethods:
-        @abstract_method(optional=True)
+        @cached_method
         def is_isomorphism(self):
             """
             Check if ``self`` is a crystal isomorphism.
@@ -148,8 +148,20 @@ class Crystals(Category_singleton):
                 sage: psi.is_isomorphism()
                 False
             """
+            if self.domain().cardinality() != self.codomain().cardinality():
+                return False
+            if self.domain().cardinality() == float('inf'):
+                raise NotImplementedError("unable to determine if an isomorphism")
 
-        @abstract_method(optional=True)
+            index_set = self._cartan_type.index_set()
+            G = self.domain().digraph(index_set=index_set)
+            if self.codomain().cardinality() != G.num_verts():
+                return False
+            H = self.codomain().digraph(index_set=index_set)
+            return G.is_isomorphic(H, edge_labels=True)
+
+        # TODO: This could be moved to sets
+        @cached_method
         def is_embedding(self):
             """
             Check if ``self`` is an injective crystal morphism.
@@ -161,9 +173,30 @@ class Crystals(Category_singleton):
                 sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
                 sage: psi.is_embedding()
                 True
-            """
 
-        @abstract_method(optional=True)
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: B = crystals.infinity.Tableaux(['A',2])
+                sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
+                sage: W = crystals.elementary.T(['A',2], La[1]+La[2])
+                sage: T = W.tensor(B)
+                sage: mg = T(W.module_generators[0], B.module_generators[0])
+                sage: psi = Hom(C,T)([mg])
+                sage: psi.is_embedding()
+                True
+            """
+            if self.domain().cardinality() > self.codomain().cardinality():
+                return False
+            if self.domain().cardinality() == float('inf'):
+                raise NotImplementedError("unable to determine if an embedding")
+            S = set()
+            for x in self.domain():
+                y = self(x)
+                if y is None or y in S:
+                    return False
+                S.add(y)
+            return True
+
+        @cached_method
         def is_strict(self):
             """
             Check if ``self`` is a strict crystal morphism.
@@ -176,6 +209,15 @@ class Crystals(Category_singleton):
                 sage: psi.is_strict()
                 True
             """
+            if self.domain().cardinality() == float('inf'):
+                raise NotImplementedError("unable to determine if strict")
+            index_set = self._cartan_type.index_set()
+            for x in self.domain():
+                y = self(x)
+                if any(self(x.f(i)) != y.f(i) or self(x.e(i)) != y.e(i)
+                       for i in index_set):
+                    return False
+            return True
 
     class ParentMethods:
 
@@ -576,8 +618,6 @@ class Crystals(Category_singleton):
             elif codomain not in Crystals():
                 raise ValueError("the codomain must be a crystal")
 
-            if category is None:
-                category = self.category()
             homset = Hom(self, codomain, category=category)
             return homset(on_gens, cartan_type, index_set, generators,
                           automorphism, virtualization, scaling_factors, check)
@@ -1596,6 +1636,8 @@ class CrystalMorphism(Morphism):
         """
         return self._cartan_type
 
+    # This is needed because is_injective is defined in a superclass, so
+    #   we can't overwrite it with the category
     def is_injective(self):
         """
         Return if ``self`` is an injective crystal morphism.
@@ -1607,9 +1649,48 @@ class CrystalMorphism(Morphism):
             sage: psi.is_injective()
             False
         """
-        # This is needed because is_injective is defined in a superclass, so
-        #   we can't overwrite it with the category
         return self.is_embedding()
+
+    # This is here because is_surjective is defined in a superclass, so
+    #   we can't overwrite it with the category
+    # TODO: This could be moved to sets
+    @cached_method
+    def is_surjective(self):
+        """
+        Check if ``self`` is a surjective crystal morphism.
+
+        EXAMPLES::
+
+            sage: B = crystals.Tableaux(['C',2], shape=[1,1])
+            sage: C = crystals.Tableaux(['C',2], ([2,1], [1,1]))
+            sage: psi = B.crystal_morphism(C.module_generators[1:], codomain=C)
+            sage: psi.is_surjective()
+            False
+            sage: im_gens = [None, B.module_generators[0]]
+            sage: psi = C.crystal_morphism(im_gens, codomain=B)
+            sage: psi.is_surjective()
+            True
+
+            sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: B = crystals.infinity.Tableaux(['A',2])
+            sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
+            sage: W = crystals.elementary.T(['A',2], La[1]+La[2])
+            sage: T = W.tensor(B)
+            sage: mg = T(W.module_generators[0], B.module_generators[0])
+            sage: psi = Hom(C,T)([mg])
+            sage: psi.is_surjective()
+            False
+        """
+        if self.domain().cardinality() == float('inf'):
+            raise NotImplementedError("unable to determine if surjective")
+        if self.domain().cardinality() < self.codomain().cardinality():
+            return False
+        S = set(self.codomain())
+        for x in self.domain():
+            S.discard(self(x))
+            if not S:
+                return True
+        return False
 
     def __call__(self, x, *args, **kwds):
         """
@@ -1649,8 +1730,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
     - ``scaling_factors`` -- (optional) a dictionary whose keys are in
       the index set of the domain and whose values are scaling factors
       for the weight, `\varepsilon` and `\varphi`
-    - ``gens`` -- (optional) a list of generators to define the morphism;
-      the default is to use the highest weight vectors of the crystal
+    - ``gens`` -- (optional) a finite list of generators to define the
+      morphism; the default is to use the highest weight vectors of the crystal
     - ``check`` -- (default: ``True``) check if the crystal morphism is valid
     """
     def __init__(self, parent, on_gens, cartan_type=None,
@@ -1811,6 +1892,23 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             elif op == 'f':
                 cur = cur.e_string(s)
         return cur
+
+    def __nonzero__(self):
+        """
+        Return if ``self`` is a non-zero morphism.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.Elementary(['A',2], 2)
+            sage: H = Hom(B, B)
+            sage: psi = H(B.module_generators)
+            sage: bool(psi)
+            True
+            sage: psi = H(lambda x: None)
+            sage: bool(psi)
+            False
+        """
+        return any(self._on_gens(mg) is not None for mg in self._gens)
 
     # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):

@@ -5102,11 +5102,8 @@ cdef class Matroid(SageObject):
 
     cpdef _local_ternary_matroid(self, basis=None):
         r"""
-        Return a ternary matroid `M` so that relative to a fixed basis `B`,
-         - `X` is a basis of ``self`` if and only if `X` is a basis of `M`
-           for all subsets `X` of the ground set such that
-           `|X \setminus B| \leq 1`.
-         - if ...
+        Return a ternary matroid `M` so that if ``self`` is ternary, then `M` is field
+        isomorphic to ``self``.
 
         INPUT:
 
@@ -5115,6 +5112,21 @@ cdef class Matroid(SageObject):
         OUTPUT:
 
         A :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`.
+
+        ALGORITHM:
+        
+        Suppose `A` is a reduced `B\times E\setminus B` matrix representation of `M`
+        relative to the given basis `B`. Define the graph `G` with `V(G) = E(M)`, so
+        that `e, f` are adjacent if and only if `B\triangle \{e, f\}` is a basis
+        of `M`. Then `A_{ef}` is nonzero if and only `e,f` are adjacent in `G`.
+        Moreover, if `C` is an induced circuit of `G`, then `M\(E\C\B)/(B\C)` is either
+        a wheel or a whirl, and over `\gf{3}` this determines `\prod_{ef\in E(C)} A_{ef}`.
+        Together these properties determine `A` up to scaling of rows and columns of `A`.
+
+        The reduced matrix representation `A` is now constructed by fixing a spanning
+        forest of `G` and setting the corresponding entries of `A` to one. Then one by
+        one the remaining entries of `A` are fixed using an induced circuit `C` consisting
+        of the next entry and entries which already have been fixed.
 
         EXAMPLES::
 

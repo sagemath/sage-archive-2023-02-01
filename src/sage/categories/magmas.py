@@ -635,6 +635,17 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Unital()]
 
+        class Realizations(RealizationsCategory):
+
+            class ParentMethods:
+
+                @cached_method
+                def one(self):
+                    r"""
+                    Return the unit element of ``self``.
+                    """
+                    return(self(self.realization_of().a_realization().one()))
+
     class ParentMethods:
 
         def product(self, x, y):

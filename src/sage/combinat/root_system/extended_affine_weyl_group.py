@@ -118,14 +118,14 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. RUBRIC:: Translation lattices
 
-    The styles "PW0" and "W0P" use the following lattices.
+    The styles "PW0" and "W0P" use the following lattices:
 
     - Untwisted affine: `L = P^\vee`, `M = Q^\vee`
     - Dual of untwisted affine: `L = P`, `M = Q`
     - `BC_n` (`A_{2n}^{(2)}`): `L = M = P`
     - Dual of `BC_n` (`A_{2n}^{(2)\dagger}`): `L = M = P^\vee`
 
-    The styles "PvW0" and "W0Pv" use the following lattices.
+    The styles "PvW0" and "W0Pv" use the following lattices:
 
     - Untwisted affine: The weight lattice of the dual finite Cartan type.
     - Dual untwisted affine: The same as for "PW0" and "W0P".
@@ -484,10 +484,20 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
         self._I0 = self._ct0.index_set()
         self._ct0v = self._ct0.dual()
         self._R0v = self._ct0v.root_system()
-        self._a0check = self._cartan_type.acheck()[0]
+        self._a0check = self._cartan_type.acheck()[self._cartan_type.special_node()]
 
-        # `BC` (`A_{2n}^{(2)\dagger}`) is considered untwisted and its dual is considered twisted
-        self._untwisted = (self._cartan_type.is_untwisted_affine() or self._cartan_type.dual().type() == 'BC')
+        if self._cartan_type.is_untwisted_affine():
+            self._type = 'untwisted'
+        elif self._cartan_type.dual().is_untwisted_affine():
+            self._type = 'dual_untwisted'
+        elif self._a0check == 1:
+            # if there are three root lengths with the special affine node extra short
+            self._type = 'special_extra_short'
+        else:
+            # if there are three root lengths with the special affine node extra long
+            self._type = 'special_extra_long'
+        # this boolean is used to decide which translation lattice to use
+        self._untwisted = (self._type in ('untwisted', 'special_extra_long'))
 
         # fundamental group
         self._fundamental_group = FundamentalGroupOfExtendedAffineWeylGroup(cartan_type, prefix=self._prefixf, general_linear=self._general_linear)
@@ -502,16 +512,18 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 self._basis_name = 'Lambdacheck'
                 self._simpleR0 = self._R0.root_lattice().simple_roots()
             self._basis = self._lattice.fundamental_weights()
-            if self._cartan_type.dual().type() == 'BC':
-                # A_{2n}^{(2)} dual
+            if self._type == 'special_extra_long':
                 self._special_root = self._R0.coroot_lattice().highest_root()
-                self._special_translation = self._lattice.fundamental_weight(1)
+                # get the node adjacent to the special affine node
+                # the [0] is just taking the first and only list element among the neighbors of the distinguished node
+                node_adjacent_to_special = self._cartan_type.dynkin_diagram().neighbors(self._cartan_type.special_node())[0]
+                self._special_translation = self._lattice.fundamental_weight(node_adjacent_to_special)
             else:
                 # untwisted affine case
                 self._special_root = self._R0.root_lattice().highest_root().associated_coroot()
                 self._special_translation = self._special_root
             self._special_translation_covector = self._special_root.associated_coroot()
-            # in the "Pv" realization, the weight lattice of dual type is used for translations
+            # in the "Pv" realization for the untwisted case, the weight lattice of dual type is used for translations
             if self._general_linear:
                 self._dual_lattice = self._lattice
             else:
@@ -523,10 +535,10 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._basis = self._lattice.fundamental_weights()
             self._basis_name = 'Lambda'
             self._simpleR0 = self._R0.coroot_lattice().simple_roots()
-            if self._cartan_type.type() == 'BC':
-                # A_{2n}^{(2)}
+            if self._type == 'special_extra_short':
                 self._special_root = self._R0.root_lattice().highest_root()
-                self._special_translation = self._lattice.fundamental_weight(1)
+                node_adjacent_to_special = self._cartan_type.dynkin_diagram().neighbors(self._cartan_type.special_node())[0]
+                self._special_translation = self._lattice.fundamental_weight(node_adjacent_to_special)
                 self._special_translation_covector = 2*self._special_root.associated_coroot()
             else:
                 # dual untwisted case
@@ -1021,31 +1033,11 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 sage: R = ExtendedAffineWeylGroup(['A',2,1]).Realizations(); R
                 Category of realizations of Extended affine Weyl group of type ['A', 2, 1]
                 sage: R.super_categories()
-                [Category of associative inverse unital realizations of magmas]
+                [Category of associative inverse realizations of unital magmas]
             """
             return [Groups().Realizations()]
 
         class ParentMethods:
-
-            @cached_method
-            def one(self):
-                r"""
-                Return the unit element.
-
-                This default implementation takes the unit in the
-                PW0 realization and coerces it into ``self``.
-
-                EXAMPLES::
-
-                    sage: ExtendedAffineWeylGroup(['A',2,1]).PW0().one()
-                    1
-
-                .. WARNING::
-
-                    Must be implemented in style "PW0".
-                """
-                PW0 = self.realization_of().PW0()
-                return self(PW0.one())
 
             @cached_method
             def from_fundamental(self, x):

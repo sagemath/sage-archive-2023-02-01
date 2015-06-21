@@ -437,9 +437,10 @@ def lift_cross_ratios(A, lift_map = None):
     minus_one2 = target_ring(-1)
 
     G = Graph([((r,0),(c,1),(r,c)) for r,c in A.nonzero_positions()])
-
     # write the entries of (a scaled version of) A as products of cross ratios of A
-    T = G.min_spanning_tree()
+    T = set()
+    for C in G.connected_components():
+        T.update(G.subgraph(C).min_spanning_tree())
     # - fix a tree of the support graph G to units (= empty dict, product of 0 terms)
     F = {entry[2]: dict() for entry in T}
     W = set(G.edges()) - set(T)

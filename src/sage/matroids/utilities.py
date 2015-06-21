@@ -385,15 +385,15 @@ def lift_cross_ratios(A, lift_map = None):
     For a lift map `f` and a matrix `A` these conditions are as follows. First of all
     `f: S \rightarrow T`, where `S` is a set of invertible elements of the source ring and
     `T` is a set of invertible elements of the target ring. The matrix `A` has entries
-    from the source ring, and each crossratio of `A` is contained in `S`. Moreover:
+    from the source ring, and each cross ratio of `A` is contained in `S`. Moreover:
 
-    - `1 \in S`, `1\in T`;
+    - `1 \in S`, `1 \in T`;
     - for all `x \in S`: `f(x) = 1` if and only if `x = 1`;
-    - for all `x, y\in S`: if `x+y = 0` then `f(x)+f(y)=0`;
-    - for all `x, y\in S`: if `x+y = 1` then `f(x)+f(y)=1`;
-    - for all `x, y, z\in S`: if  `xy = z` then `f(x)f(y)=f(z)`.
+    - for all `x, y \in S`: if `x + y = 0` then `f(x) + f(y) = 0`;
+    - for all `x, y \in S`: if `x + y = 1` then `f(x) + f(y) = 1`;
+    - for all `x, y, z \in S`: if  `xy = z` then `f(x)f(y) = f(z)`.
 
-    Any ring homorphism `h: P \rightarrow R` induces a lift map from the set of units `S` of
+    Any ring homomorphism `h: P \rightarrow R` induces a lift map from the set of units `S` of
     `P` to the set of units `T` of `R`. There exist lift maps which do not arise in
     this manner. Several such maps can be created by the function
     :meth:`lift_map() <sage.matroids.utilities.lift_map>`.

@@ -69,7 +69,8 @@ public:
 		complex,
 		real,
 		positive,
-		infinity
+		infinity,
+		integer
 	};
 };
 

@@ -20,6 +20,7 @@ from sage.structure.parent import Parent
 from sage.categories.category import Category
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.element import get_coercion_model
 
 class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
     r"""
@@ -124,6 +125,31 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         else:
             self.module_generators = sum( (list(B.module_generators) for B in crystals), [])
 
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: LaZ = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: LaQ = RootSystem(['A',2,1]).weight_space(extended=True).fundamental_weights()
+            sage: B = crystals.LSPaths(LaQ[1])
+            sage: B.weight_lattice_realization()
+            Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
+            sage: C = crystals.AlcovePaths(LaZ[1])
+            sage: C.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['A', 2, 1]
+            sage: D = crystals.DirectSum([B,C])
+            sage: D.weight_lattice_realization()
+            Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
 
     class Element(ElementWrapper):
         r"""

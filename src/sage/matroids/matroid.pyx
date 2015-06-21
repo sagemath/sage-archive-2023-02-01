@@ -5157,8 +5157,13 @@ cdef class Matroid(SageObject):
                         W.add(edge)
                         edge = edge2
                         W.remove(edge)
-                        e,f = edge[2] 
-                        path = H.shortest_path(e, f)
+                        e,f = edge[2]
+                        while path[0]!= e and path[0] != f:
+                            path.pop(0)
+                        while path[-1]!= e and path[-1] != f:
+                            path.pop(-1)
+                        if path[0] == f:
+                            path.reverse()
                         retry = True
                         break
             x = 1

@@ -28,10 +28,11 @@ with ``delete()``.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~edge_connectivity` | Returns the edge connectivity of the graph.
+    :func:`edge_connectivity` | Returns the edge connectivity of the graph.
 
+Functions
+---------
 """
-
 
 from sage.graphs.graph import Graph
 from sage.graphs.digraph import DiGraph
@@ -43,9 +44,8 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     r"""
     Initializes the Boost graph ``g`` to be equal to g_sage.
 
-    The Boost output graph must be generated elsewhere, because Cython does not
-    allow to instantiate a generic graph. However, ``g`` must be empty,
-    otherwise an error is raised.
+    The Boost graph ``*g`` must represent an empty graph (an exception is raised
+    otherwise).
     """
 
     if not isinstance(g_sage, GenericGraph):
@@ -55,7 +55,7 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
         raise ValueError("The Boost graph in input must be empty")
 
     N = g_sage.num_verts()
-    vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
 
     for i in range(N):
         g.add_vertex()
@@ -63,75 +63,58 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     for u,v in g_sage.edge_iterator(labels=None):
         g.add_edge(vertex_to_int[u], vertex_to_int[v])
 
-cdef edge_connectivity(BoostVecGenGraph *g):
+cdef boost_edge_connectivity(BoostVecGenGraph *g):
     r"""
     Computes the edge connectivity of the input Boost graph.
 
-    The adjacency lists of the input graph should be vectors, because the Boost
-    edge connectivity algorithm requires this kind of input. The output is a
-    pair ``[ec,edges]``, where ``ec`` is the edge connectivity, ``edges`` is the
-    list of edges in a minimum cut. It is based on the function
-    ``edge_connectivity`` in file ``boost_interface``, which outputs a vector,
-    having in position 0 the edge connectivity, followed by a list of arcs.
-
-    WARNING: this function is a backend, which should not be called by the
-    standard user. We suggest to use the method
-    :meth:`edge_connectivity <sage.graphs.generic_graph.GenericGraph>`
-    instead.
+    The output is a pair ``[ec,edges]``, where ``ec`` is the edge connectivity,
+    ``edges`` is the list of edges in a minimum cut.
     """
     result = g[0].edge_connectivity()
 
-    cdef int ec = result.ec
+    cdef int i
+    edges = [(result.edges[i], result.edges[i+1])
+             for i in range(0, result.edges.size(), 2)]
 
-    edges = []
+    return [result.ec, edges]
 
-    for i in range(0, result.edges.size(), 2):
-        edges.append([result.edges[i], result.edges[i+1]])
-
-    return[ec, edges]
-
-cpdef boost_edge_connectivity(g):
+cpdef edge_connectivity(g):
     r"""
-    Computes the edge connectivity of the input graph, using the Boost
-    algorithm.
+    Computes the edge connectivity of the input graph, using Boost.
 
     The output is a pair ``[ec,edges]``, where ``ec`` is the edge connectivity,
     ``edges`` is the list of edges in a minimum cut.
 
-    WARNING: this function is a backend, which should not be called by the
-    standard user. We suggest to use the method
-    :meth:`edge_connectivity <sage.graphs.generic_graph.GenericGraph.edge_connectivity>`
-    instead.
+    .. SEEALSO::
+
+        :meth:`sage.graphs.generic_graph.GenericGraph.edge_connectivity`
 
     EXAMPLES:
 
     Computing the edge connectivity of a clique::
 
-        sage: from sage.graphs.base.boost_graph import boost_edge_connectivity
+        sage: from sage.graphs.base.boost_graph import edge_connectivity
         sage: g = graphs.CompleteGraph(5)
-        sage: boost_edge_connectivity(g)
-        [4, [[0, 1], [0, 2], [0, 3], [0, 4]]]
+        sage: edge_connectivity(g)
+        [4, [(0, 1), (0, 2), (0, 3), (0, 4)]]
 
     """
-    sig_on()
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
-        sig_off()
-        return edge_connectivity(&g_boost_und)
+        sig_check()
+        return boost_edge_connectivity(&g_boost_und)
 
     elif isinstance(g, DiGraph):
+        from sage.misc.stopgap import stopgap
+        stopgap("This code contains bugs and may be mathematically unreliable.",18753)
+
         boost_graph_from_sage_graph(&g_boost_dir, g)
-        print ("The directed edge connectivity algorithm implemented in the "
-               "Boost graph library is not reliable. The result could be "
-               "wrong.")
-        sig_off()
-        return edge_connectivity(&g_boost_dir)
+        sig_check()
+        return boost_edge_connectivity(&g_boost_dir)
 
     else:
-        sig_off()
         raise ValueError("The input must be a Sage graph.")
-    

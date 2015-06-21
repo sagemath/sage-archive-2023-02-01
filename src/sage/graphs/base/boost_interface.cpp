@@ -1,7 +1,7 @@
 #ifndef BOOSTGRAPH
 #define BOOSTGRAPH
-#include <../../../local/include/boost/graph/adjacency_list.hpp>
-#include <../../../local/include/boost/graph/edge_connectivity.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/edge_connectivity.hpp>
 
 #include <iostream>
 
@@ -67,8 +67,6 @@ public:
     void add_vertex() {
         (*vertices).push_back(boost::add_vertex((*vertices).size(), *graph));
     }
-
-
 
     void add_edge(int u, int v) {
         boost::add_edge((*vertices)[u], (*vertices)[v], *graph);

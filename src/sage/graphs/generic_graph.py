@@ -8135,7 +8135,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def edge_connectivity(self,
                           value_only = True,
-                          boost = None,
+                          implementation = None,
                           use_edge_labels = False,
                           vertices = False,
                           solver = None,
@@ -8166,12 +8166,16 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, both the value and a minimum edge cut
             are returned.
 
-        - ``boost`` -- boolean (default: ``None``)
+        - ``implementation`` -- selects an implementation:
 
-          - When set to ``True``, we use the algorithm from the Boost graph
-            library (which is much more efficient). If set to ``None``, we use
-            the Boost algorithm only for undirected graphs (the directed
-            version is not reliable). Not compatible with edge labels.
+          - When set to ``None`` (default): selects the best implementation
+            available.
+
+          - When set to ``"boost"``, we use the Boost graph library (which is
+            much more efficient). It is not available when ``edge_labels=True``,
+            and it is unreliable for directed graphs (see :trac:`18753`).
+
+          - When set to ``"Sage"``, we use Sage's implementation.
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
@@ -8189,7 +8193,7 @@ class GenericGraph(GenericGraph_pyx):
             ``value_only=False``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used (Ignored if ``boost`` is ``True``). If set to
+          solver to be used (ignored if ``implementation='boost'``). If set to
           ``None``, the default one is used. For more information on LP solvers
           and which default solver is used, see the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
@@ -8243,55 +8247,64 @@ class GenericGraph(GenericGraph_pyx):
             sage: l == minimum
             True
 
-        When ``value_only = True`` and ``boost = False``, this function is
+        When ``value_only = True`` and ``implementation="sage"``, this function is
         optimized for small connectivity values and does not need to build a
         linear program.
 
         It is the case for graphs which are not connected ::
 
             sage: g = 2 * graphs.PetersenGraph()
-            sage: g.edge_connectivity(boost = False)
+            sage: g.edge_connectivity(implementation="sage")
             0.0
 
         For directed graphs, the strong connectivity is tested
         through the dedicated function ::
 
             sage: g = digraphs.ButterflyGraph(3)
-            sage: g.edge_connectivity(boost = False)
+            sage: g.edge_connectivity(implementation="sage")
             0.0
 
         We check that the result with Boost is the same as the result without
         Boost ::
 
             sage: g = graphs.RandomGNP(15,.3)
-            sage: g.edge_connectivity() == g.edge_connectivity(boost = False)
+            sage: g.edge_connectivity() == g.edge_connectivity(implementation="sage")
             True
 
         Boost interface also works with directed graphs ::
 
-            sage: digraphs.Circuit(10).edge_connectivity(boost = True, vertices = True)
-            The directed edge connectivity algorithm implemented in the Boost
-            graph library is not reliable. The result could be wrong.
-            [1, [[0, 1]], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
+            sage: digraphs.Circuit(10).edge_connectivity(implementation = "boost", vertices = True)
+            [1, [(0, 1)], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
 
         However, the Boost algorithm is not reliable if the input is directed
-        (see https://svn.boost.org/trac/boost/ticket/11406 for
-        more information)::
+        (see :trac:`18753`)::
 
             sage: g = digraphs.Path(3)
             sage: g.edge_connectivity()
             0.0
-            sage: g.edge_connectivity(boost = True)
-            The directed edge connectivity algorithm implemented in the Boost
-            graph library is not reliable. The result could be wrong.
+            sage: g.edge_connectivity(implementation="boost")
             1
             sage: g.add_edge(1,0)
             sage: g.edge_connectivity()
             0.0
-            sage: g.edge_connectivity(boost = True)
-            The directed edge connectivity algorithm implemented in the Boost
-            graph library is not reliable. The result could be wrong.
+            sage: g.edge_connectivity(implementation="boost")
             0
+
+        TESTS:
+
+        Checking that the two implementations agree::
+
+            sage: for i in range(10):
+            ....:     g = graphs.RandomGNP(30,0.3)
+            ....:     e1 = g.edge_connectivity(implementation="boost")
+            ....:     e2 = g.edge_connectivity(implementation="sage")
+            ....:     assert (e1 == e2)
+
+        Disconnected graphs and ``vertices=True``::
+
+            sage: g = graphs.PetersenGraph()
+            sage: (2*g).edge_connectivity(vertices=True)
+            [0, [], [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]]
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
@@ -8299,8 +8312,15 @@ class GenericGraph(GenericGraph_pyx):
         if vertices:
             value_only=False
 
-        if boost is None:
-            boost = not g.is_directed()
+        if implementation is None:
+            if use_edge_labels or g.is_directed():
+                implementation = "sage"
+            else:
+                implementation = "boost"
+
+        implementation = implementation.lower()
+        if implementation not in ["boost", "sage"]:
+            raise ValueError("'implementation' must be set to 'boost', 'sage' or None.")
 
         # Otherwise, an error is created
         if g.num_edges() == 0 or g.num_verts() == 0:
@@ -8311,13 +8331,10 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return [0,[]]
 
-        if use_edge_labels:
-            boost=False
+        if implementation == "boost":
+            from sage.graphs.base.boost_graph import edge_connectivity
 
-        if boost:
-            from sage.graphs.base.boost_graph import boost_edge_connectivity
-
-            [obj, edges] = boost_edge_connectivity(g)
+            [obj, edges] = edge_connectivity(g)
 
             if value_only:
                 return obj
@@ -8334,9 +8351,10 @@ class GenericGraph(GenericGraph_pyx):
                     val.append([a,b])
                 else:
                     val.append(H.connected_components())
+            elif vertices:
+                val.append(self.connected_components())
 
             return val
-
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR

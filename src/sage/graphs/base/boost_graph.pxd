@@ -32,7 +32,6 @@ cdef extern from "boost_interface.cpp":
     cdef cppclass result_ec:
         int ec
         vector[int] edges
-        pass
     cdef cppclass BoostGraph[OutEdgeListS, VertexListS, DirectedS, EdgeListS]:
         BoostGraph()
         void add_vertex()
@@ -40,9 +39,8 @@ cdef extern from "boost_interface.cpp":
         void add_edge(int u, int v)
         int num_edges()
         result_ec edge_connectivity()
-        pass
 
-ctypedef BoostGraph[vecS, vecS, undirectedS, vecS] BoostVecGraph
+ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS] BoostVecDiGraph
 
 ctypedef fused BoostVecGenGraph:

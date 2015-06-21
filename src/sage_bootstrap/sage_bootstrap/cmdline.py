@@ -23,6 +23,7 @@ import logging
 log = logging.getLogger()
 
 from sage_bootstrap.env import SAGE_DISTFILES
+from sage_bootstrap.package import Package
 from sage_bootstrap.download import Download
 from sage_bootstrap.mirror_list import MirrorList
 from sage_bootstrap.tarball import Tarball
@@ -41,6 +42,15 @@ class CmdlineSubcommands(object):
 
     def print_help(self):
         print(dedent(self.__doc__).lstrip())
+        print('Usage:')
+        for method in sorted(dir(self)):
+            if not method.startswith('run_'):
+                continue
+            doc = dedent(getattr(self, method).__doc__).lstrip().splitlines()
+            print('')
+            print('* ' + doc[0])
+            for line in doc[1:]:
+                print('  ' + line)
         
     def run(self):
         try:
@@ -67,6 +77,11 @@ class SagePkgApplication(CmdlineSubcommands):
     def run_config(self):
         """
         Print the configuration
+
+        $ sage-pkg config
+        Configuration:
+          * log = info
+          * interactive = True
         """
         from sage_bootstrap.config import Configuration
         print(Configuration())
@@ -74,20 +89,37 @@ class SagePkgApplication(CmdlineSubcommands):
     def run_list(self):
         """
         Print a list of all available packages
+
+        $ sage-pkg list | sort
+        4ti2
+        arb
+        atlas
+        autotools
+        [...]
+        zn_poly
         """
-        pass
+        for pkg in Package.all():
+            print(pkg.name)
 
     def run_name(self, tarball_filename):
         """
         Find the package name given a tarball filename
+    
+        $ sage-pkg name pari-2.8-1564-gdeac36e.tar.gz
+        pari
         """
-        pass
+        tarball = Tarball(os.path.basename(tarball_filename))
+        print(tarball.package.name)
 
     def run_tarball(self, package_name):
         """
         Find the tarball filename given a package name
+    
+        $ sage-pkg tarball pari
+        pari-2.8-1564-gdeac36e.tar.gz
         """
-        pass
+        package = Package(package_name)
+        print(package.tarball)
     
 
 class SageDownloadFileApplication(object):    

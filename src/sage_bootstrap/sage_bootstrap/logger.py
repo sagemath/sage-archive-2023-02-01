@@ -26,7 +26,7 @@ logger = logging.getLogger()
 
 
 default_formatter = logging.Formatter(
-    '%(levelname)s [%(module)s.%(funcName)s:%(lineno)s]: %(message)s')
+    '%(levelname)s [%(module)s|%(funcName)s:%(lineno)s]: %(message)s')
 
 plain_formatter = logging.Formatter('%(message)s')
 
@@ -45,15 +45,17 @@ class OnlyInfoFilter(logging.Filter):
 def init_logger(config):
     level = getattr(logging, config.log.upper())
     logger.setLevel(level)
-    ch_stderr = logging.StreamHandler(sys.stderr)
-    ch_stderr.setLevel(logging.DEBUG)
-    ch_stderr.setFormatter(default_formatter)
+    ch_all = logging.StreamHandler(sys.stderr)
+    ch_all.setLevel(logging.DEBUG)
+    ch_all.setFormatter(default_formatter)
+    ch_all.addFilter(ExcludeInfoFilter())
+    logger.addHandler(ch_all)
     if config.interactive:
-        ch_stderr.addFilter(ExcludeInfoFilter())
-        ch_stdout = logging.StreamHandler(sys.stdout)
-        ch_stdout.setLevel(logging.DEBUG)
-        ch_stdout.setFormatter(plain_formatter)
-        ch_stdout.addFilter(OnlyInfoFilter())
-        logger.addHandler(ch_stdout)
-    logger.addHandler(ch_stderr)
+        ch_info = logging.StreamHandler(sys.stdout)
+    else:
+        ch_info = logging.StreamHandler(sys.stderr)
+    ch_info.setLevel(logging.DEBUG)
+    ch_info.setFormatter(plain_formatter)
+    ch_info.addFilter(OnlyInfoFilter())
+    logger.addHandler(ch_info)
 

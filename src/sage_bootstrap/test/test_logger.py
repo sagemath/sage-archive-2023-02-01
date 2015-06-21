@@ -25,9 +25,9 @@ class LoggerTestCase(unittest.TestCase):
     def test_interactive(self):
         stdout, stderr = run_log_with('interactive:true')
         self.assertEqual(stderr.strip(), dedent("""
-            WARNING [runnable.print_log:25]: This is the warning log level
-            CRITICAL [runnable.print_log:26]: This is the critical log level
-            ERROR [runnable.print_log:27]: This is the error log level
+            WARNING [runnable|print_log:25]: This is the warning log level
+            CRITICAL [runnable|print_log:26]: This is the critical log level
+            ERROR [runnable|print_log:27]: This is the error log level
         """).strip())
         self.assertEqual(stdout.strip(), dedent("""
             This is the info log level
@@ -37,10 +37,10 @@ class LoggerTestCase(unittest.TestCase):
     def test_noninteractive(self):
         stdout, stderr = run_log_with('interactive:false')
         self.assertEqual(stderr.strip(), dedent("""
-            INFO [runnable.print_log:24]: This is the info log level
-            WARNING [runnable.print_log:25]: This is the warning log level
-            CRITICAL [runnable.print_log:26]: This is the critical log level
-            ERROR [runnable.print_log:27]: This is the error log level
+            This is the info log level
+            WARNING [runnable|print_log:25]: This is the warning log level
+            CRITICAL [runnable|print_log:26]: This is the critical log level
+            ERROR [runnable|print_log:27]: This is the error log level
         """).strip())
         self.assertEqual(stdout.strip(), dedent("""
             This is printed
@@ -53,10 +53,10 @@ class LoggerTestCase(unittest.TestCase):
         """
         stdout, stderr = run_log_with('log:debug,interactive:true')
         self.assertEqual(stderr.strip(), dedent("""
-            DEBUG [runnable.print_log:23]: This is the debug log level
-            WARNING [runnable.print_log:25]: This is the warning log level
-            CRITICAL [runnable.print_log:26]: This is the critical log level
-            ERROR [runnable.print_log:27]: This is the error log level
+            DEBUG [runnable|print_log:23]: This is the debug log level
+            WARNING [runnable|print_log:25]: This is the warning log level
+            CRITICAL [runnable|print_log:26]: This is the critical log level
+            ERROR [runnable|print_log:27]: This is the error log level
         """).strip())
         self.assertEqual(stdout.strip(), dedent("""
             This is the info log level
@@ -69,8 +69,8 @@ class LoggerTestCase(unittest.TestCase):
         """
         stdout, stderr = run_log_with('log:error,interactive:true')
         self.assertEqual(stderr.strip(), dedent("""
-            CRITICAL [runnable.print_log:26]: This is the critical log level
-            ERROR [runnable.print_log:27]: This is the error log level
+            CRITICAL [runnable|print_log:26]: This is the critical log level
+            ERROR [runnable|print_log:27]: This is the error log level
         """).strip())
         self.assertEqual(stdout.strip(), dedent("""
             This is printed

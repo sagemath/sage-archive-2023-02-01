@@ -44,7 +44,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
 
     - ``X`` -- the base set
     - ``phi`` -- the map `\Phi`
-    - ``preimage`` -- (optional) the preimage `\Phi^{-1}`
+    - ``inverse`` -- (optional) the inverse map `\Phi^{-1}`
     - ``codomain`` -- (optional) the codomain `C`
     - ``from_crystal`` -- (default: ``False``) if the induced structure is
       of the second type `\Phi : C \to X`
@@ -86,14 +86,15 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: T = crystals.TensorProduct(D, D)
         sage: phi = lambda p: T(D(RSK(p)[0]), D(RSK(p)[1]))
         sage: phi_inv = lambda d: RSK_inverse(d[0].to_tableau(), d[1].to_tableau(), output='permutation')
-        sage: all(phi_inv(phi(p)) == p for p in P) # Check it really is the preimage
+        sage: all(phi_inv(phi(p)) == p for p in P) # Check it really is the inverse
         True
         sage: I = crystals.Induced(P, phi, phi_inv, T)
         sage: I.digraph()
         Multi-digraph on 24 vertices
     """
     @staticmethod
-    def __classcall_private__(cls, X, phi, preimage=None, codomain=None, from_crystal=False):
+    def __classcall_private__(cls, X, phi, inverse=None,
+                              codomain=None, from_crystal=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -108,14 +109,23 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: I1 is I2
         True
         """
-        if preimage is None:
+        if inverse is None:
             try:
-                preimage = ~phi
+                inverse = ~phi
             except (TypeError, ValueError):
-                preimage = phi.section()
+                try:
+                    inverse = phi.section()
+                except AttributeError:
+                    if X.cardinality() == float('inf'):
+                        raise ValueError("the inverse map must be defined for infinite sets")
+                    d = {}
+                    for x in X:
+                        y = phi(x)
+                        d[y] = d.get(y, []) + [x]
+                    inverse = d.__getitem__
 
         if from_crystal:
-            return InducedFromCrystal(X, phi, preimage)
+            return InducedFromCrystal(X, phi, inverse)
 
         if codomain is None:
             try:
@@ -123,9 +133,9 @@ class InducedCrystal(Parent, UniqueRepresentation):
             except AttributeError:
                 codomain = phi(X.an_element()).parent()
 
-        return super(InducedCrystal, cls).__classcall__(cls, X, phi, preimage, codomain)
+        return super(InducedCrystal, cls).__classcall__(cls, X, phi, inverse, codomain)
 
-    def __init__(self, X, phi, preimage, codomain):
+    def __init__(self, X, phi, inverse, codomain):
         """
         Initialize ``self``.
 
@@ -146,7 +156,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
         """
         self._set = X
         self._phi = phi
-        self._preimage = preimage
+        self._inverse = inverse
         self._cartan_type = codomain.cartan_type()
         Parent.__init__(self, category=codomain.category())
         self.module_generators = self
@@ -191,7 +201,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             return self.element_class(self, self._set(x))
 
         try:
-            return self.element_class(self, self._preimage(x))
+            return self.element_class(self, self._inverse(x))
         except (TypeError, ValueError, AttributeError):
             raise ValueError("unable to convert {}".format(x))
 
@@ -293,7 +303,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             if ret is None:
                 return None
             try:
-                return self.__class__(P, P._preimage(ret))
+                return self.__class__(P, P._inverse(ret))
             except (ValueError, TypeError, AttributeError):
                 return None
 
@@ -320,7 +330,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             if ret is None:
                 return None
             try:
-                return self.__class__(P, P._preimage(ret))
+                return self.__class__(P, P._inverse(ret))
             except (ValueError, TypeError, AttributeError):
                 return None
 
@@ -391,7 +401,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
 
     - ``X`` -- the base set
     - ``phi`` -- the map `\Phi`
-    - ``preimage`` -- (optional) the preimage `\Phi^{-1}`
+    - ``inverse`` -- (optional) the inverse map `\Phi^{-1}`
 
     EXAMPLES:
 
@@ -405,7 +415,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
         sage: psi_inv = lambda x: C(RSK(*x)[0])
         sage: I = crystals.Induced(C, psi, psi_inv, from_crystal=True)
     """
-    def __init__(self, X, phi, preimage):
+    def __init__(self, X, phi, inverse):
         """
         Initialize ``self``.
 
@@ -426,7 +436,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
         """
         self._crystal = X
         self._phi = phi
-        self._preimage = preimage
+        self._inverse = inverse
         self._cartan_type = X.cartan_type()
         Parent.__init__(self, category=X.category())
         self.module_generators = tuple(self.element_class(self, phi(mg))
@@ -470,7 +480,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
             return self.element_class(self, self._phi(self._crystal(x)))
 
         try:
-            return self.element_class(self, self._phi(self._preimage(x)))
+            return self.element_class(self, self._phi(self._inverse(x)))
         except (TypeError, ValueError, AttributeError):
             raise ValueError("unable to convert {}".format(x))
 
@@ -499,7 +509,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
             return x.parent() == self
 
         try:
-            y = self._preimage(x)
+            y = self._inverse(x)
             return y in self._crystal and self._phi(y) == x
         except (ValueError, TypeError):
             return False
@@ -568,7 +578,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
                 sage: elt.e(3)
             """
             P = self.parent()
-            ret = P._preimage(self.value).e(i)
+            ret = P._inverse(self.value).e(i)
             if ret is None:
                 return None
             return self.__class__(P, P._phi(ret))
@@ -592,7 +602,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
                 [[1, 1, 0, 0], [1, 0, 0], [1, 0], [1]]
             """
             P = self.parent()
-            ret = P._preimage(self.value).f(i)
+            ret = P._inverse(self.value).f(i)
             if ret is None:
                 return None
             return self.__class__(P, P._phi(ret))
@@ -612,7 +622,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
                 sage: [elt.epsilon(i) for i in I.index_set()]
                 [0, 1, 0]
             """
-            return self.parent()._preimage(self.value).epsilon(i)
+            return self.parent()._inverse(self.value).epsilon(i)
 
         def phi(self, i):
             r"""
@@ -629,7 +639,7 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
                 sage: [elt.epsilon(i) for i in I.index_set()]
                 [0, 1, 0]
             """
-            return self.parent()._preimage(self.value).phi(i)
+            return self.parent()._inverse(self.value).phi(i)
 
         def weight(self):
             """
@@ -646,5 +656,5 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
                 sage: elt.weight()
                 (1, 0, 1, 0)
             """
-            return self.parent()._preimage(self.value).weight()
+            return self.parent()._inverse(self.value).weight()
 

@@ -78,16 +78,6 @@ element crystal whose crystal structure is defined by
 Note `C \cong B(0)`, where `B(0)` is the highest weight crystal of highest
 weight `0`.
 
-Here is an example using an hyperbolic Cartan matrix::
-
-    sage: A = CartanMatrix([[2,-4],[-4,2]])
-    sage: La = RootSystem(A).weight_lattice().fundamental_weights()
-    sage: B = crystals.elementary.B(A,1)
-    sage: C = crystals.elementary.Component(A)
-    sage: C
-    The component crystal of type [ 2 -4]
-    [-4  2]
-
 
 R-crystal
 ---------
@@ -130,15 +120,6 @@ is the highest weight vector in `B(\lambda)`::
    :scale: 50
    :align: center
 
-Here is an example using an hyperbolic Cartan matrix::
-
-    sage: A = CartanMatrix([[2,-4],[-4,2]])
-    sage: La = RootSystem(A).weight_lattice().fundamental_weights()
-    sage: R = crystals.elementary.R(A,La[1])
-    sage: R
-    The R crystal of weight Lambda[1] and type [ 2 -4]
-    [-4  2]
-
 
 `i`-th elementary crystal
 -------------------------
@@ -174,10 +155,15 @@ m\alpha_i` and
     \end{cases}
     \end{aligned}
 
-Here is an example using an hyperbolic Cartan matrix::
+Here is an example::
 
-    sage: A = CartanMatrix([[2,-4],[-4,2]])
-    sage: B = crystals.elementary.B(A,1)
-    sage: B
-    The 1-elementary crystal of type [ 2 -4]
-    [-4  2]
+    sage: B = crystals.elementary.Elementary("A2",1)
+    sage: S = B.subcrystal(max_depth=4, generators=[B(0)])
+    sage: [s for s in S]
+    [0, 1, -1, 2, -2, 3, -3, -4, 4]
+    sage: G = B.digraph(subset=S)
+    sage: view(G, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
+
+.. image:: ../media/elementaryA2.png
+   :scale: 50
+   :align: center

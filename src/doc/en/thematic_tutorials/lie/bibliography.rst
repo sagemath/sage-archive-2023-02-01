@@ -142,6 +142,9 @@ Bibliography
    configuration model for `B(\infty)`. *J. Combin. Theory Ser. A*,
    133:29--57, 2015.
 
+.. [Schilling2006] A. Schilling. Crystal structure on rigged configurations.
+   *Int. Math. Res. Not.*, Volume 2006. (2006) Article ID 97376. Pages 1-27.
+
 .. [SchillingTingley2011] A. Schilling, P. Tingley.
    Demazure crystals, Kirillov-Reshetikhin crystals, and the energy function.
    preprint arXiv:1104.2359

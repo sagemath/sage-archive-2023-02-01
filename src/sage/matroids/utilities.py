@@ -595,6 +595,6 @@ def lift_map(target):
         t = QQ['t'].gen()
         G = NumberField(t*t-t-1, 't')
         return { R(1): G(1), R(5): G(t), R(1)/R(5): G(1)/G(t), R(-5): G(-t),
-            R(-5)**(-1): G(t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
+            R(-5)**(-1): G(-t)**(-1), R(5)**2: G(t)**2, R(5)**(-2): G(t)**(-2) }
 
     raise NotImplementedError(target)

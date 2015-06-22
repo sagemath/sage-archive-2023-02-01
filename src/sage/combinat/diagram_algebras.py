@@ -538,6 +538,29 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         True
         sage: bd.cardinality() == len(bd.list())
         True
+
+    These diagrams also come equipped with a compact representation based on their bipartition triple representation. See the from_bipartition_triple method for more information.
+
+    ::
+
+        sage: bd = da.BrauerDiagrams(3,compact_repr = True)
+        sage: bd.list()
+        [[/;321],
+         [/;312],
+         [23/12;1],
+         [/;231],
+         [/;132],
+         [13/12;1],
+         [/;213],
+         [/;123],
+         [12/12;1],
+         [23/23;1],
+         [13/23;1],
+         [12/23;1],
+         [23/13;1],
+         [13/13;1],
+         [12/13;1]]
+
     """
     Element = BrauerDiagram
     def __init__(self, order, category = None, compact_repr = False):
@@ -1339,6 +1362,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
       then just takes the parent of ``q``
 
     - ``prefix`` -- (default ``"B"``) a label for the basis elements
+
+    - ``compact_repr`` -- (default ``False``) determines whether compact representation for Brauer diagrams is used. (see :class:`BrauerDiagrams`). 
 
     EXAMPLES:
 

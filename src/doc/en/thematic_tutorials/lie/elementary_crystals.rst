@@ -84,6 +84,31 @@ element crystal whose crystal structure is defined by
 Note `C \cong B(0)`, where `B(0)` is the highest weight crystal of highest
 weight `0`.
 
+The crystal `T_\lambda \otimes C` is useful when finding subcrystals inside
+irreducible highest weight crystals `B(\mu)` where `\mu` is larger than `\lambda`
+in the lexicographic order.  For example::
+
+    sage: La = RootSystem("C2").weight_lattice().fundamental_weights()
+    sage: h = RootSystem("C2").weight_lattice().simple_coroots()
+    sage: T = crystals.elementary.T("C2",2*La[1])
+    sage: C = crystals.elementary.Component("C2")
+    sage: B = crystals.TensorProduct(T,C)
+    sage: b = BB(C[0],T[0])
+    sage: for i in B.index_set(): print b.epsilon(i)
+    -2
+    0
+    sage: for i in B.index_set(): print b.phi(i)
+    0
+    0
+    sage: for i in B.index_set(): print b.f(i)
+    None
+    None
+    sage: for i in B.index_set(): print b.e(i)
+    None
+    None
+
+This new crystal can be summarized into the R-crystal below.
+
 
 R-crystal
 ---------

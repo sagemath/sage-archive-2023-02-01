@@ -4463,7 +4463,7 @@ cdef class TernaryMatroid(LinearMatroid):
 
         .. SEEALSO::
 
-            :meth:`M.ternary_matroid() 
+            :meth:`M.ternary_matroid()
             <sage.matroids.matroid.Matroid.ternary_matroid>`
 
         EXAMPLES::
@@ -6060,7 +6060,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         .. SEEALSO::
 
-            :meth:`M.ternary_matroid() 
+            :meth:`M.ternary_matroid()
             <sage.matroids.matroid.Matroid.ternary_matroid>`
 
         EXAMPLES::

@@ -25,10 +25,11 @@ from sage.combinat.free_module import (CombinatorialFreeModule,
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
-from sage.combinat.set_partition import SetPartitions, SetPartition
+from sage.combinat.combinat import (bell_number, catalan_number)
 from sage.combinat.partition import Partitions
 from sage.combinat.permutation import Permutation
-from sage.combinat.combinat import (bell_number, catalan_number)
+from sage.combinat.set_partition import SetPartitions, SetPartition
+from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method

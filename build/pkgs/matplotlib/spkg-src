@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+
+# This script should be run as ./spkg-src from the repository it belongs to, or
+# from the Sage shell.
+
 set -e
 
 [ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
@@ -19,12 +23,12 @@ tar xzf <( curl -L ${DOWNLOAD_URL} )
 rm -rf matplotlib-${LATEST_VERSION}/lib/matplotlib/tests/baseline_images/*
 
 
-# repack and cleanup
+# repack and cleanup temporary directory
 tar cjf "$SAGE_ROOT/upstream/matplotlib-${LATEST_VERSION}.tar.bz2" matplotlib-${LATEST_VERSION}
 rm -rf matplotlib-${LATEST_VERSION}
 
 
 # update package info
-echo "${LATEST_VERSION}" > 'package-version.txt'
+echo "${LATEST_VERSION}" > "${SAGE_ROOT}/build/pkgs/matplotlib/package-version.txt"
 "$SAGE_ROOT"/sage -sh 'sage-fix-pkg-checksums'
 

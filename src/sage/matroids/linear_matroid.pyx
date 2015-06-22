@@ -114,7 +114,7 @@ from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
-from utilities import newlabel
+from utilities import newlabel, lift_cross_ratios
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -457,7 +457,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # representations
 
-    cpdef representation(self, B=None, reduced=False, labels=None, order=None):
+    cpdef representation(self, B=None, reduced=False, labels=None, order=None, lift_map=None):
         """
         Return a matrix representing the matroid.
 
@@ -493,6 +493,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         - ``order`` -- (default: ``None``) an ordering of the groundset
           elements. If provided, the columns (and, in case of a reduced
           representation, rows) will be presented in the given order.
+        - ``lift_map`` -- (default: ``None``) a dictionary containing the cross 
+          ratios of the representing matrix in it's domain. If provided, the 
+          representation will be transformed by mapping its cross ratios according
+          to ``lift_map``.
 
         OUTPUT:
 
@@ -507,7 +511,12 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         ``M._forget()`` is called): either the matrix used as input to create
         the matroid, or a matrix in which the lexicographically least basis
         corresponds to an identity. If only ``order`` is not ``None``, the
-        columns of this matrix will be permuted accordingly.
+        columns of this matrix will be permuted accordingly. 
+        
+        If a ``lift_map`` is provided, then the resulting matrix will be lifted 
+        using the method
+        :func:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+        See the docstring of this method for further details.
 
         .. NOTE::
 
@@ -578,10 +587,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 B = set(B)
                 A = self._basic_representation(B)
             A = A.matrix_from_rows_and_columns(range(A.nrows()), order_idx)
-            if labels:
-                return (A._matrix_(), order)
+            if lift_map is None:
+                if labels:
+                    return (A._matrix_(), order)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), order)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)
         else:
             if B is None:
                 B = self.basis()
@@ -604,10 +619,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     Ci.append(C.index(e))
                     Cl.append(e)
             A = A.matrix_from_rows_and_columns(Ri, Ci)
-            if labels or labels is None:
-                return (A._matrix_(), Rl, Cl)
+            if lift_map is None:
+                if labels or labels is None:
+                    return (A._matrix_(), Rl, Cl)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels or labels is None:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), Rl, Cl)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)        
 
     cpdef _current_rows_cols(self, B=None):
         """
@@ -2540,7 +2561,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in groundset")
         cochains = self.linear_coextension_cochains(F, cosimple=cosimple, fundamentals=fundamentals)
-        return self._linear_coextensions(element, cochains)
+        return self._linear_coextensions(element, cochains)     
 
     cpdef is_valid(self):
         r"""

@@ -150,7 +150,7 @@ class MirrorList(object):
             if self.verbose:
                 printflush('Downloading the Sage mirror list')
             with contextlib.closing(urllib.urlopen(self.URL)) as f:
-                mirror_list = f.read()
+                mirror_list = f.read().decode("ascii")
             self.mirrors = self._load(mirror_list)
             self._rank_mirrors()
             self._save()

@@ -160,10 +160,9 @@ class Crystals(Category_singleton):
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
             F = self.cartan_type().root_system()
-            if F.is_finite() and F.ambient_space() is not None:
+            if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
-            else:
-                return F.weight_lattice()
+            return F.weight_lattice()
 
         def cartan_type(self):
             """

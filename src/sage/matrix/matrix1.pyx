@@ -169,21 +169,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: giac(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))            # optional - giac
+            sage: giac(M)                              # optional - giac
             [[0,1],[2,3]]
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: giac(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])   # optional - giac
+            sage: giac(M)                                      # optional - giac
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: giac(M)                             #optional
+            sage: P.<x> = ZZ[]                          # optional - giac
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) # optional - giac
+            sage: giac(M)                             # optional - giac
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')

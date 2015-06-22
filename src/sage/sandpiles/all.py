@@ -2,7 +2,7 @@ from sage.misc.lazy_import import lazy_import
 
 from sandpile import Sandpile, SandpileDivisor, SandpileConfig, firing_graph, parallel_firing_graph, wilmes_algorithm, random_tree, random_digraph, random_DAG, triangle_sandpile
 
-from examples import sandpiles
+lazy_import('sage.sandpiles.examples', 'sandpiles')
 
 lazy_import('sage.sandpiles.sandpile', 'sandlib', deprecation=(18618,'sandlib() will soon be removed.  Use sandpile() instead.'))
 lazy_import('sage.sandpiles.sandpile', 'grid_sandpile', deprecation=(18618,'grid_sandpile() will soon be removed.  Use sandpile.Grid() instead.'))

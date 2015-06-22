@@ -60,6 +60,7 @@ class Interface(ParentWithBase):
         self.__coerce_name = '_' + name.lower() + '_'
         self.__seq = -1
         self._available_vars = []
+        self._seed = None
         ParentWithBase.__init__(self, self)
 
     def _repr_(self):
@@ -67,6 +68,74 @@ class Interface(ParentWithBase):
 
     def name(self, new_name=None):
         return self.__name
+
+    def get_seed(self):
+        """
+        Returns the seed used to set the random
+        number generator in this interface.
+        The seed is initialized as None
+        but should be set when the interface starts.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(107)
+            107
+            sage: s.get_seed()
+            107
+        """
+        return self._seed
+
+    def rand_seed(self):
+        """
+        Returns a random seed that can be
+        put into set_seed function for
+        any interpreter.
+        This should be overridden if
+        the particular interface needs something
+        other than a small positive integer.
+
+        EXAMPLES::
+            from sage.misc.random_testing import random_testing
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.rand_seed() # random
+            318491487L
+
+            sage: s = Singular()
+            sage: s.rand_seed() # random
+            365260051L
+        """
+        from sage.misc.randstate import randstate
+        return long(randstate().seed()&0x1FFFFFFF)
+
+    def set_seed(self,seed = None):
+        """
+        Sets the random seed for the interpreter
+        and returns the new value of the seed.
+        This is dependent on which interpreter
+        so must be implemented in each
+        separately. For examples see
+        gap.py or singular.py.
+        If seed is None then should generate
+        a random seed.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(1)
+            1
+            sage: [s.random(1,10) for i in range(5)]
+            [8, 10, 4, 9, 1]
+
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.set_seed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This interpreter did not implement a set_seed function
+        """
+        raise NotImplementedError("This interpreter did not implement a set_seed function")
 
     def interact(self):
         r"""

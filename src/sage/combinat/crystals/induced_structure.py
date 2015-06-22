@@ -91,6 +91,16 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: I = crystals.Induced(P, phi, phi_inv, T)
         sage: I.digraph()
         Multi-digraph on 24 vertices
+
+    We construct an example without a specified inverse map::
+
+        sage: X = Words(2,4)
+        sage: L = crystals.Letters(['A',1])
+        sage: T = crystals.TensorProduct(*[L]*4)
+        sage: Phi = lambda x : T(*[L(i) for i in x])
+        sage: I = crystals.Induced(X, Phi)
+        sage: I.digraph()
+        Digraph on 16 vertices
     """
     @staticmethod
     def __classcall_private__(cls, X, phi, inverse=None,
@@ -104,26 +114,11 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: G = GelfandTsetlinPatterns(4, 3)
         sage: phi = lambda x: D(x.to_tableau())
         sage: phi_inv = lambda x: G(x.to_tableau())
-        sage: I1 = crystals.Induced(G, phi, phi_inv, D)
+        sage: I1 = crystals.Induced(G, phi, phi_inv, codomain=D)
         sage: I2 = crystals.Induced(G, phi, phi_inv)
         sage: I1 is I2
         True
         """
-        if inverse is None:
-            try:
-                inverse = ~phi
-            except (TypeError, ValueError):
-                try:
-                    inverse = phi.section()
-                except AttributeError:
-                    if X.cardinality() == float('inf'):
-                        raise ValueError("the inverse map must be defined for infinite sets")
-                    d = {}
-                    for x in X:
-                        y = phi(x)
-                        d[y] = d.get(y, []) + [x]
-                    inverse = d.__getitem__
-
         if from_crystal:
             return InducedFromCrystal(X, phi, inverse)
 
@@ -156,7 +151,25 @@ class InducedCrystal(Parent, UniqueRepresentation):
         """
         self._set = X
         self._phi = phi
+
+        if inverse is None:
+            try:
+                inverse = ~self._phi
+            except (TypeError, ValueError):
+                try:
+                    inverse = self._phi.section()
+                except AttributeError:
+                    if X.cardinality() == float('inf'):
+                        raise ValueError("the inverse map must be defined for infinite sets")
+                    self._preimage = {}
+                    for x in X:
+                        y = phi(x)
+                        if y in self._preimage:
+                            raise ValueError("the map is not injective")
+                        self._preimage[y] = x
+                    inverse = self._preimage.__getitem__
         self._inverse = inverse
+
         self._cartan_type = codomain.cartan_type()
         Parent.__init__(self, category=codomain.category())
         self.module_generators = self
@@ -436,7 +449,25 @@ class InducedFromCrystal(Parent, UniqueRepresentation):
         """
         self._crystal = X
         self._phi = phi
+
+        if inverse is None:
+            try:
+                inverse = ~self._phi
+            except (TypeError, ValueError):
+                try:
+                    inverse = self._phi.section()
+                except AttributeError:
+                    if X.cardinality() == float('inf'):
+                        raise ValueError("the inverse map must be defined for infinite sets")
+                    self._preimage = {}
+                    for x in X:
+                        y = phi(x)
+                        if y in self._preimage:
+                            raise ValueError("the map is not injective")
+                        self._preimage[y] = x
+                    inverse = self._preimage.__getitem__
         self._inverse = inverse
+
         self._cartan_type = X.cartan_type()
         Parent.__init__(self, category=X.category())
         self.module_generators = tuple(self.element_class(self, phi(mg))

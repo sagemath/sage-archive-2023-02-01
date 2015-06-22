@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
 
-# This script should be run as ./spkg-src from the repository it belongs to, or
-# from the Sage shell.
-
 set -e
 
-[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
+[ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(readlink -f $(dirname ${0})/../../../)"
 
 
 # determine the latest version and its download URL.

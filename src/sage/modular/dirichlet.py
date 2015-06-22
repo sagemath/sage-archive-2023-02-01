@@ -565,7 +565,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: latex(DirichletGroup(2)[0])
             \hbox{Dirichlet character modulo } 2 \hbox{ of conductor } 1
         """
-        from sage.misc.latex import latex
         s = r'\hbox{Dirichlet character modulo } %s \hbox{ of conductor } %s' % (self.modulus(), self.conductor())
         r = len(self.values_on_gens())
         if r != 0:
@@ -789,7 +788,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         D = self.parent().decomposition()
         vals = [[z] for z in self.values_on_gens()]
-        R = self.base_ring()
         if self.modulus() % 8 == 0:   # 2 factors at 2.
             vals[0].append(vals[1][0])
             del vals[1]
@@ -2000,7 +1998,7 @@ def is_DirichletGroup(x):
 
 class DirichletGroup_class(WithEqualityById, Parent):
     """
-    Group of Dirichlet characters modulo `N` over a ring `R`.
+    Group of Dirichlet characters modulo `N` with values in a ring `R`.
     """
 
     Element = DirichletCharacter
@@ -2263,8 +2261,11 @@ class DirichletGroup_class(WithEqualityById, Parent):
             TypeError: Unable to coerce zeta4 to a rational
         """
         R = self.base_ring()
-        if isinstance(x, (int, rings.Integer)) and x == 1:
-            x = [R.one()] * len(self.unit_gens())
+        try:
+            if x == R.one():
+                x = [R.one()] * len(self.unit_gens())
+        except (TypeError, ValueError, ArithmeticError):
+            pass
         if isinstance(x, list):  # list of values on each unit generator
             return self.element_class(self, x)
         elif not isinstance(x, DirichletCharacter):
@@ -2474,9 +2475,6 @@ class DirichletGroup_class(WithEqualityById, Parent):
                 v = [self(x) for x in v]
 
         G = []
-        n = self.zeta_order()
-        R = self.base_ring()
-        p = R.characteristic()
         seen_so_far = set([])
         for x in v:
             z = x.element()
@@ -2536,15 +2534,11 @@ class DirichletGroup_class(WithEqualityById, Parent):
             (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1, Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> zeta4)
         """
         g = []
-        ug = self.unit_gens()
-        R = self.base_ring()
-        one = [R(1) for i in range(len(ug))]
-        zeta = self.zeta()
         ord = self.zeta_order()
         M = self._module
         zero = M(0)
         orders = self.integers_mod().unit_group().gens_orders()
-        for i in range(len(ug)):
+        for i in range(len(self.unit_gens())):
             z = zero.__copy__()
             z[i] = ord//arith.GCD(ord, orders[i])
             g.append(self.element_class(self, z, check=False))

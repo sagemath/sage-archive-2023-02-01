@@ -5114,13 +5114,14 @@ cdef class Matroid(SageObject):
         A :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`.
 
         ALGORITHM:
-        
+
         Suppose `A` is a reduced `B\times E\setminus B` matrix representation of `M`
         relative to the given basis `B`. Define the graph `G` with `V(G) = E(M)`, so
         that `e, f` are adjacent if and only if `B\triangle \{e, f\}` is a basis
         of `M`. Then `A_{ef}` is nonzero if and only `e,f` are adjacent in `G`.
-        Moreover, if `C` is an induced circuit of `G`, then `M\(E\C\B)/(B\C)` is either
-        a wheel or a whirl, and over `\gf{3}` this determines `\prod_{ef\in E(C)} A_{ef}`.
+        Moreover, if `C` is an induced circuit of `G`, then with `S=E(M)\setminus V(C)\setminus B`
+        and `T=B\setminus V(C)` the minor `M\setminus S/T` is either
+        a wheel or a whirl, and over `\GF{3}` this determines `\prod_{ef\in E(C)} A_{ef}`.
         Together these properties determine `A` up to scaling of rows and columns of `A`.
 
         The reduced matrix representation `A` is now constructed by fixing a spanning
@@ -5196,7 +5197,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``randomized_tests`` -- (default: 1) an integer; the number of
-          times a certain necessary condition for being binary is tested,
+          times a certain necessary condition for being ternary is tested,
           using randomization
         - ``verify`` -- (default: ``True``), a Boolean; if ``True``,
           any output will be a ternary matroid representing ``self``; if
@@ -5248,7 +5249,7 @@ cdef class Matroid(SageObject):
 
     cpdef is_ternary(self, randomized_tests=1):
         r"""
-        Decide if ``self`` is a binary matroid.
+        Decide if ``self`` is a ternary matroid.
 
         INPUT:
 

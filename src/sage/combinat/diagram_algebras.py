@@ -229,8 +229,8 @@ class AbstractPartitionDiagram(SetPartition):
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 raise ValueError, "this does not represent two rows of vertices"
         
-    def _repr_(self):
-        return self._base_diagram.__repr__().replace(",)",")").replace("(","{").replace(")","}")
+    # def _repr_(self):
+    #     return self._base_diagram.__repr__().replace(",)",")").replace("(","{").replace(")","}")
     
     def __eq__(self, other):
         if hasattr(other, '_base_diagram'):
@@ -301,6 +301,9 @@ class BrauerDiagram(AbstractPartitionDiagram):
         if [len(i) for i in self] != [2]*len(self):
             raise ValueError, "The diagram is a valid partition diagram, but not al blocks have block size 2."
 
+    def __repr__(self):
+        return self.parent()._repr_term(self)
+        
     def bipartition_triple(self,curt=True):
         r"""
         a la Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
@@ -489,7 +492,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 obj = self._element_constructor_(obj)
             except (ValueError, TypeError):
                 return False
-        if len(obj.base_diagram()) > 0: #what is the empty behavoir?
+        if len(obj.base_diagram()) > 0: #what is the empty behavior?
             tst = sorted(flatten(obj.base_diagram()))
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 return False
@@ -537,10 +540,25 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         True
     """
     Element = BrauerDiagram
-    def __init__(self, order, category = None):
+    def __init__(self, order, category = None, compact_repr = False):
+        self._compact_repr = compact_repr
         super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
     def __contains__(self, obj):
         return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
+
+    def _repr_term(self, x):
+        if not self._compact_repr:
+            return super(self.Element, x).__repr__()
+        else:
+            (top,bot,thru) = x.bipartition_triple()
+            bot.reverse()
+            s1 = ".".join("".join(map(str,block)) for block in top)
+            s2 = ".".join("".join(map(lambda k: str(abs(k)),sorted(block,reverse=True))) for block in bot)
+            s3 = "".join(map(str,thru))
+            return "[%s/%s;%s]" % (s1,s2,s3)
+    
+    def _element_constructor_(self, d):
+        return self.element_class(self, d)
 
     def cardinality(self):
         r"""
@@ -1347,7 +1365,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
         x^4*B{{-2, -1}, {1, 2}}
     """
     @staticmethod
-    def __classcall_private__(cls, k, q, base_ring=None, prefix="B"):
+    def __classcall_private__(cls, k, q, base_ring=None, prefix="B", compact_repr = False):
         r"""
         Standardize the input by getting the base ring from the parent of
         the parameter ``q`` if no ``base_ring`` is given.
@@ -1362,9 +1380,9 @@ class BrauerAlgebra(SubPartitionAlgebra):
         """
         if base_ring is None:
             base_ring = q.parent()
-        return super(BrauerAlgebra, cls).__classcall__(cls, k, q, base_ring, prefix)
+        return super(BrauerAlgebra, cls).__classcall__(cls, k, q, base_ring, prefix, compact_repr = compact_repr)
 
-    def __init__(self, k, q, base_ring, prefix):
+    def __init__(self, k, q, base_ring, prefix, compact_repr = False):
         r"""
         Initialize ``self``.
 
@@ -1374,7 +1392,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: BA = BrauerAlgebra(2, q, R)
             sage: TestSuite(BA).run()
         """
-        SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
+        SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k, compact_repr=compact_repr))
 
     def _repr_(self):
         """

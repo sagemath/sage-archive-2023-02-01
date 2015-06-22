@@ -801,6 +801,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
         self._base_diagrams = diagrams
         if category is None:
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
+        KSS = SymmetricGroupAlgebra(base_ring, k)
+        to_DA = KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)),codomain=self)
+        to_DA.register_as_coercion()
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 
@@ -849,6 +852,12 @@ class DiagramAlgebra(CombinatorialFreeModule):
         if i in self.basis().keys():
             return self.basis()[i]
         raise ValueError("{0} is not an index of a basis element".format(i))
+
+    def _perm_to_Blst(self, w):
+        ## 'perm' is a permutation in one-line notation
+        ## turns w into an expression suitable for the element constructor.
+        u = sorted(w)
+        return [[u[i],-w[i]] for i in range(len(w))]
 
     def order(self):
         r"""

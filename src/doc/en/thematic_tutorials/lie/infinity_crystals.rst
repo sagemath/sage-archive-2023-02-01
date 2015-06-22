@@ -41,6 +41,7 @@ Here is an example in type `A_2`::
 Since the crystal is infinite, we must specify the subcrystal we would like to
 view::
 
+    sage: B = crystals.infinity.Tableaux(['A',2])
     sage: S = B.subcrystal(max_depth=4)
     sage: G = B.digraph(subset=S)
     sage: view(G, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
@@ -55,6 +56,8 @@ B(\infty)` containing `c\otimes t_\lambda \otimes u_\infty`, where `u_\infty` is
 the highest weight vector in `B(\infty)`.  In this example, we cut out `B(\rho)`
 from `B(\infty)` in type `A_2`::
 
+    sage: B = crystals.infinity.Tableaux(['A',2])
+    sage: b = B.highest_weight_vector()
     sage: T = crystals.elementary.T(['A',2], B.Lambda()[1] + B.Lambda()[2])
     sage: t = T[0]
     sage: C = crystals.elementary.Component(['A',2])
@@ -71,6 +74,8 @@ from `B(\infty)` in type `A_2`::
 
 Note that the above code can be simplified using the R-crystal::
 
+    sage: B = crystals.infinity.Tableaux(['A',2])
+    sage: b = B.highest_weight_vector()
     sage: R = crystals.elementary.R(['A',2], B.Lambda()[1] + B.Lambda()[2])
     sage: r = R[0]
     sage: TP2 = crystals.TensorProduct(R,B)
@@ -90,7 +95,7 @@ On the other hand, we can embed the irreducible highest weight crystal
     sage: brho = Brho.highest_weight_vector()
     sage: B = crystals.infinity.Tableaux(['A',2])
     sage: binf = B.highest_weight_vector()
-    sage: Psi = Brho.crystal_morphism({brho : b})
+    sage: Psi = Brho.crystal_morphism({brho : binf})
     sage: BG = B.digraph(subset=[Psi(x) for x in Brho])
     sage: view(BG, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 
@@ -123,6 +128,8 @@ crystal is simply the rank of the underlying type::
 In the ``weight`` method for this model, we can choose whether to view weights
 in the extended weight lattice (by default) or in the root lattice::
 
+    sage: Y = crystals.infinity.GeneralizedYoungWalls(2)
+    sage: y = Y.highest_weight_vector()
     sage: y.f_string([0,1,2,2,2,1,0,0,1,2]).weight()
     Lambda[0] + Lambda[1] - 2*Lambda[2] - 3*delta
     sage: y.f_string([0,1,2,2,2,1,0,0,1,2]).weight(root_lattice=True)
@@ -156,6 +163,8 @@ walls::
 In the highest weight crystals, however, weights are always elements of the
 extended affine weight lattice::
 
+    sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+    sage: YLa = crystals.GeneralizedYoungWalls(2,La[0])
     sage: YLa.highest_weight_vector().f_string([0,1,2,0]).weight()
     -Lambda[0] + Lambda[1] + Lambda[2] - 2*delta
 
@@ -233,7 +242,7 @@ We can also model `B(\infty)` using the monomials `A_{i,k}` instead::
     A(0,0)^-1 A(0,3)^-1 A(1,0)^-1 A(1,2)^-1 A(2,0)^-1 A(2,1)^-1 A(3,0)^-1
     sage: n.weight()
     -2*Lambda[0] + 2*Lambda[1] - 2*delta
-    sage: m.weight_in_root_lattice()
+    sage: n.weight_in_root_lattice()
     -2*alpha[0] - 2*alpha[1] - 2*alpha[2] - alpha[3]
 
 Building the crystal graph output for these monomial crystals is the same
@@ -267,6 +276,7 @@ label (or rigging).  A crystal structure was defined on these objects in
 [Schilling2006]_, then later extended to work as a model for `B(\infty)`.
 See [SalisburyScrimshaw2015]_ for more information::
 
+    sage: RiggedConfigurations.global_options(display="horizontal")
     sage: RC = crystals.infinity.RiggedConfigurations(['C',3,1])
     sage: nu = RC.highest_weight_vector().f_string([0,1,2,3,2,1,0]); nu
     -2[ ]-1   2[ ][ ]1   0[ ][ ]0   0[ ]0
@@ -280,6 +290,7 @@ monomials::
     sage: Minf = crystals.infinity.NakajimaMonomials(['C',3,1])
     sage: Sinf = Minf.subcrystal(max_depth=2)
     sage: Ginf = Minf.digraph(subset=Sinf)
+    sage: RC = crystals.infinity.RiggedConfigurations(['C',3,1])
     sage: RCS = RC.subcrystal(max_depth=2)
     sage: RCG = RC.digraph(subset=RCS)
     sage: RCG.is_isomorphic(Ginf, edge_labels=True)

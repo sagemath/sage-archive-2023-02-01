@@ -29,7 +29,7 @@ The crystal `T_{\lambda}` shifts the weights of the vertices in a crystal
     sage: T = crystals.elementary.T(['A',2], B.Lambda()[1] + B.Lambda()[2])
     sage: V = crystals.TensorProduct(T,B)
     sage: for x in V:
-    ....:     print x.weight()
+    ....:     print(x.weight())
     ....:
     (4, 2, 0)
     (3, 3, 0)
@@ -40,7 +40,7 @@ The crystal `T_{\lambda}` shifts the weights of the vertices in a crystal
     (3, 2, 1)
     (2, 3, 1)
     sage: for x in B:
-    ....: print x.weight() + T[0].weight()
+    ....:     print(x.weight() + T[0].weight())
     ....:
     (4, 2, 0)
     (3, 3, 0)
@@ -93,7 +93,7 @@ in the lexicographic order.  For example::
     sage: T = crystals.elementary.T("C2",2*La[1])
     sage: C = crystals.elementary.Component("C2")
     sage: B = crystals.TensorProduct(T,C)
-    sage: b = BB(C[0],T[0])
+    sage: b = B(C[0],T[0])
     sage: for i in B.index_set(): print b.epsilon(i)
     -2
     0

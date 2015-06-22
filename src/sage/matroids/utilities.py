@@ -470,7 +470,7 @@ def lift_cross_ratios(A, lift_map = None):
             else:
                 entries.append((w[0],v[0]))
         # - compute the cross ratio `cr` of this whirl
-        cr = A[entry]
+        cr = source_ring(A[entry])
         div = True
         for entry2 in entries:
             if div:

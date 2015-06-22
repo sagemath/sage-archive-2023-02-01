@@ -14,12 +14,14 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassical`
 * :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotion`
 * :class:`AffineFactorization <sage.combinat.crystals.affine_factorization.AffineFactorizationCrystal>`
+* :class:`Affinization <sage.combinat.crystals.affinization.AffinizationCrystal>`
 * :class:`AlcovePaths <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
 * :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
 * :class:`GeneralizedYoungWalls
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
+* :class:`KleshchevPartitions <sage.combinat.crystals.kleshchev.KleshchevPartitions>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
@@ -63,6 +65,8 @@ from monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
+from sage.combinat.crystals.kleshchev import KleshchevCrystal as KleshchevPartitions
+from sage.combinat.crystals.affinization import AffinizationCrystal as Affinization
 
 from tensor_product import TensorProductOfCrystals as TensorProduct
 from direct_sum import DirectSumOfCrystals as DirectSum

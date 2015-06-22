@@ -10,9 +10,9 @@ Elementary crystals
 T-crystal
 ---------
 
-Let `\lambda` be a weight. As defined in [Kashiwara1993]_ the crystal
-`T_{\lambda} = \{ t_{\lambda} \}` is a single element crystal with the
-crystal structure defined by
+Let `\lambda` be a weight. As defined in [Kashiwara1993]_ (see, also,
+[Kashiwara1995]_) the crystal `T_{\lambda} = \{ t_{\lambda} \}` is a single
+element crystal with the crystal structure defined by
 
 .. MATH::
 
@@ -51,7 +51,13 @@ The crystal `T_{\lambda}` shifts the weights of the vertices in a crystal
     (3, 2, 1)
     (2, 3, 1)
 
-Here is an example using an hyperbolic Cartan matrix::
+.. WARNING::
+
+    Sage uses the opposite convention for the tensor product rule to Kashiwara's
+    definition, so care must be taken when comparing the examples here with
+    Kashiwara's papers.
+
+Here is an example using a hyperbolic Cartan matrix::
 
     sage: A = CartanMatrix([[2,-4],[-4,2]])
     sage: La = RootSystem(A).weight_lattice().fundamental_weights()
@@ -92,11 +98,19 @@ is a single element crystal with the crystal structure defined by
     \varepsilon_i(r_{\lambda}) = -\langle h_i, \lambda\rangle, \quad
     \varphi_i(r_{\lambda}) = 0,
 
-where `\{h_i\}` are the simple coroots.
+where `\{h_i\}` are the simple coroots.  See page 146 [Joseph1995]_, for
+example, for more details.  (Note that in [Joseph1995]_, this crystal is denoted
+by `S_\lambda`.)
 
 Tensoring `R_{\lambda}` with a crystal `B` results in shifting the weights
 of the vertices in `B` by `\lambda` and may also cut a subset out of the
 original graph of `B`.
+
+.. WARNING::
+
+    Sage uses the opposite convention for the tensor product rule to Kashiwara's
+    definition, so care must be taken when comparing the examples here with
+    some of the literature.
 
 For example, suppose `\mu \le \lambda` in lexicographic ordering on weights,
 and one wants to see `B(\mu)` as a subcrystal of `B(\lambda)`.  Then `B(\mu)`
@@ -155,7 +169,8 @@ m\alpha_i` and
     \end{cases}
     \end{aligned}
 
-Here is an example::
+See [Kashiwara1993]_ or [Kashiwara1995]_ for more information.  Here is an
+example::
 
     sage: B = crystals.elementary.Elementary("A2",1)
     sage: S = B.subcrystal(max_depth=4, generators=[B(0)])
@@ -167,3 +182,10 @@ Here is an example::
 .. image:: ../media/elementaryA2.png
    :scale: 50
    :align: center
+
+.. WARNING::
+
+    To reiterate, Sage uses the opposite convention for the tensor product rule
+    to Kashiwara's definition.  In particular, using Sage's convention, one has
+    `T_\lambda \otimes B_i \cong B_i \otimes T_{s_i\lambda}`, where `s_i` is the
+    `i`-th simple reflection.

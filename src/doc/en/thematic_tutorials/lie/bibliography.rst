@@ -42,8 +42,8 @@ Bibliography
 
 .. [HatayamaEtAl2001] G. Hatayama, A. Kuniba, M. Okado, T. Takagi, Z. Tsuboi.
    Paths, crystals and fermionic formulae.
-   in MathPhys Odyssey 2001, in : Prog. Math. Phys., vol 23, Birkhauser Boston, Boston, MA 2002,
-   pp. 205--272.
+   in MathPhys Odyssey 2001, in : Prog. Math. Phys., vol 23, Birkhauser Boston,
+   Boston, MA 2002, pp. 205--272.
 
 .. [HainesEtAl2009] T. J. Haines, R. E. Kottwitz, and
    A. Prasad. Iwahori-Hecke Algebras. arXiv:math/0309168,
@@ -71,10 +71,22 @@ Bibliography
 
 .. [JonesEtAl2010] B. Jones, A. Schilling.
    Affine structures and a tableau model for E_6 crystals
-   *J. Algebra*, 324:2512-2542, 2010
+   *J. Algebra*, 324:2512-2542, 2010.
+
+.. [Joseph1995] A. Joseph. *Quantum Groups and Their Primitive Ideals*.
+   Springer-Verlag, 1995.
 
 .. [Kac] Victor G. Kac. *Infinite Dimensional Lie algebras*
    Cambridge University Press, third edition, 1994.
+
+.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
+   T. Nakashima, A. Nakayashiki.
+   Affine crystals and vertex models.
+   *Int. J. Mod. Phys.* A 7 (suppl. 1A): 449--484, 1992.
+
+.. [KKS2007] S.-J. Kang, J.-A. Kim, and D.-U. Shin.
+   Modified Nakajima monomials and the crystal `B(\infty)`.
+   *J. Algebra*, **308** (2007), 524-535.
 
 .. [Kashiwara1993] M. Kashiwara. The crystal base and Littelmann's refined
    Demazure character formula. *Duke Math. J.*, 71(3):839--858, 1993.
@@ -102,11 +114,6 @@ Bibliography
    Programming. Volume 3. Sorting and Searching*. Addison Wesley
    Longman, 1998.
 
-.. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
-   T. Nakashima, A. Nakayashiki.
-   Affine crystals and vertex models.
-   *Int. J. Mod. Phys.* A 7 (suppl. 1A): 449--484, 1992.
-
 .. [LNSSS14I] C. Lenart, S. Naito, D. Sagaki, A. Schilling, and M. Shimozono.
    A uniform model for for Kirillov-Reshetikhin crystals I: Lifting the
    parabolic quantum Bruhat graph. (2014) :arxiv:`1211.2042`
@@ -121,10 +128,6 @@ Bibliography
 .. [McKayPatera1981] W. G. McKay and J. Patera. *Tables of Dimensions,
    Indices and Branching Rules for Representations of Simple Lie
    Algebras*. Marcel Dekker, 1981.
-
-.. [KKS2007] S.-J. Kang, J.-A. Kim, and D.-U. Shin.
-   *Modified Nakajima monomials and the crystal* `B(\infty)`.
-   J. Algebra, **308** (2007), 524-535.
 
 .. [OkadoSchilling2008] M. Okado, A.Schilling. Existence of crystal bases for
    Kirillov--Reshetikhin crystals for nonexceptional types.

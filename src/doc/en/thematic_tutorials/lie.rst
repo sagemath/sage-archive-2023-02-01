@@ -5,7 +5,8 @@
 Lie Methods and Related Combinatorics in Sage
 =============================================
 
-.. MODULEAUTHOR:: Daniel Bump (Stanford University) and Anne Schilling (UC Davis)
+.. MODULEAUTHOR:: Daniel Bump (Stanford University), Ben Salisbury (Central
+   Michigan University), and Anne Schilling (UC Davis)
 
 These notes explain how to use the mathematical software Sage for
 Lie group computations. Sage also contains many combinatorial

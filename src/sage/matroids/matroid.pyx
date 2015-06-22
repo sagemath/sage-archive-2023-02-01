@@ -5156,30 +5156,24 @@ cdef class Matroid(SageObject):
         for edge in T:
             e,f = edge[2]
             A.set(bdx[e],idx[f], 1)
-        W = set(G.edges()) - set(T)
+        W = list(set(G.edges()) - set(T))
         H = G.subgraph(edges = T)
         while W:
-            edge = W.pop()
+            edge = W.pop(-1)
             e,f = edge[2]
             path = H.shortest_path(e, f)
-            retry = True
-            while retry:
-                #print edge, path
-                retry = False
-                for edge2 in W:
-                    if edge2[0] in path and edge2[1] in path:
-                        W.add(edge)
-                        edge = edge2
-                        W.remove(edge)
-                        e,f = edge[2]
-                        while path[0]!= e and path[0] != f:
-                            path.pop(0)
-                        while path[-1]!= e and path[-1] != f:
-                            path.pop(-1)
-                        if path[0] == f:
-                            path.reverse()
-                        retry = True
-                        break
+            for i in range(len(W)):
+                edge2 = W[i]
+                if edge2[0] in path and edge2[1] in path:
+                    W[i] = edge
+                    edge = edge2
+                    e,f = edge[2]
+                    while path[0]!= e and path[0] != f:
+                        path.pop(0)
+                    while path[-1]!= e and path[-1] != f:
+                        path.pop(-1)
+                    if path[0] == f:
+                        path.reverse()
             x = 1
             for i in range(len(path)-1):
                 if i%2 == 0:

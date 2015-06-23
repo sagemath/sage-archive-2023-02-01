@@ -982,10 +982,11 @@ class KleinFourGroup(PermutationGroup_unique):
 class JankoGroup(PermutationGroup_unique):
     def __init__(self, n):
         r"""
-        The Janko Groups J1,J2,J3, and J4
+        The Janko Groups `J1, J2`, and `J3`.
 
         INPUT:
-            n -- an integer among `\{1,2,3,4\}`.
+
+        - ``n`` -- an integer among `\{1,2,3\}`.
 
         EXAMPLES::
 
@@ -999,8 +1000,8 @@ class JankoGroup(PermutationGroup_unique):
             sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"])
         """
         from sage.interfaces.gap import gap
-        if n not in [1,2,3,4]:
-            raise ValueError("n must belong to {1,2,3,4}.")
+        if n not in [1,2,3]:
+            raise ValueError("n must belong to {1,2,3}.")
         self._n = n
         gap.load_package("atlasrep")
         id = 'AtlasGroup("J%s")'%n

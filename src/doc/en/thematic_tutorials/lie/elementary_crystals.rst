@@ -84,26 +84,26 @@ element crystal whose crystal structure is defined by
 Note `C \cong B(0)`, where `B(0)` is the highest weight crystal of highest
 weight `0`.
 
-The crystal `T_\lambda \otimes C` is useful when finding subcrystals inside
-irreducible highest weight crystals `B(\mu)` where `\mu` is larger than `\lambda`
-in the lexicographic order.  For example::
+The crystal `C \otimes T_\mu` is useful when finding subcrystals inside
+irreducible highest weight crystals `B(\lambda)` where `\lambda` is larger than
+`\mu` in the lexicographic order.  For example::
 
     sage: La = RootSystem("C2").weight_lattice().fundamental_weights()
     sage: h = RootSystem("C2").weight_lattice().simple_coroots()
     sage: T = crystals.elementary.T("C2",2*La[1])
     sage: C = crystals.elementary.Component("C2")
-    sage: B = crystals.TensorProduct(T,C)
+    sage: B = crystals.TensorProduct(C,T)
     sage: b = B(C[0],T[0])
-    sage: for i in B.index_set(): print b.epsilon(i)
+    sage: for i in B.index_set(): print(b.epsilon(i))
     -2
     0
-    sage: for i in B.index_set(): print b.phi(i)
+    sage: for i in B.index_set(): print(b.phi(i))
     0
     0
-    sage: for i in B.index_set(): print b.f(i)
+    sage: for i in B.index_set(): print(b.f(i))
     None
     None
-    sage: for i in B.index_set(): print b.e(i)
+    sage: for i in B.index_set(): print(b.e(i))
     None
     None
 
@@ -139,19 +139,19 @@ original graph of `B`.
 
 For example, suppose `\mu \le \lambda` in lexicographic ordering on weights,
 and one wants to see `B(\mu)` as a subcrystal of `B(\lambda)`.  Then `B(\mu)`
-may be realized as the connected component of `R_\mu \otimes B(\lambda)`
-containing the highest weight `r_\lambda \otimes u_\lambda`, where `u_\lambda`
-is the highest weight vector in `B(\lambda)`::
+may be realized as the connected component of `R_{\mu-\lambda}\otimesB(\lambda)`
+containing the highest weight `r_{\mu-\lambda} \otimes u_\lambda`, where
+`u_\lambda` is the highest weight vector in `B(\lambda)`::
 
     sage: La = RootSystem(['B',4]).weight_lattice().fundamental_weights()
-    sage: Blambda = crystals.NakajimaMonomials(['B',4], La[1]+La[2]+La[3])
+    sage: Bla = crystals.NakajimaMonomials(['B',4], La[1]+La[2])
     sage: Bmu = crystals.NakajimaMonomials(['B',4], La[1])
-    sage: Rmu = crystals.elementary.R(['B',4], La[1])
-    sage: T = crystals.TensorProduct(Rmu,Blambda)
-    sage: S = T.subcrystal(generators=[T(Rmu[0],Blambda.highest_weight_vector())])
+    sage: R = crystals.elementary.R(['B',4], -La[2])
+    sage: T = crystals.TensorProduct(R,Bla)
+    sage: mg = mg = T(R[0], Bla.module_generators[0])
+    sage: S = T.subcrystal(generators=[mg])
     sage: G = T.digraph(subset=S)
-    sage: Gmu = Bmu.digraph()
-    sage: G.is_isomorphic(Gmu,edge_labels=True)
+    sage: Bmu.digraph().is_isomorphic(G, edge_labels=True)
     True
     sage: view(G, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 

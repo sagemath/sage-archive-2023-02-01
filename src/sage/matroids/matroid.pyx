@@ -5135,7 +5135,7 @@ cdef class Matroid(SageObject):
 
     # matroid chordality
 
-    cpdef _is_circuit_chordal(self, frozenset C, frozenset circuits=None):
+    cpdef _is_circuit_chordal(self, frozenset C):
         """
         Check if the circuit ``C`` has a chord.
 
@@ -5152,17 +5152,19 @@ cdef class Matroid(SageObject):
         """
         cdef tuple p
         cdef int i
+        cdef set X
+        cdef frozenset Ax, Bx
 
-        if circuits is None:
-            circuits = frozenset(self.circuits())
-        for x in self.groundset():
-            if x in C:
-                continue
-            for i in xrange(len(C)):
-                for p in combinations(C, i): # p is a list
-                    if (frozenset(p + (x,)) in circuits
-                                and C.difference(p).union([x]) in circuits):
-                        return True
+        X = set(C)
+        e = X.pop()
+        # cl(X) = cl(C), and to be a chord x must be spanned by C
+        for x in self._closure(X)-C:
+            Ax = self._circuit(X.union([x]))
+            Bx = C.difference(Ax).union([x])
+            if not self._is_independent(Bx):
+                # If x is spanned by C, then A+x is the unique circuit in C-e+x;
+                #    so x is a chord iff the complementary B is a circuit.
+                return True
         return False
 
     cpdef is_circuit_chordal(self, C):
@@ -5185,15 +5187,21 @@ cdef class Matroid(SageObject):
             raise ValueError("input C is not a circuit")
         return self._is_circuit_chordal(frozenset(C))
 
-    cpdef is_k_chordal(self, int k=4):
+    cpdef is_chordal(self, k1=4, k2=None):
         r"""
-        Return if a matroid is ``k``-chordal.
+        Return if a matroid is ``[k1, k2]``-chordal.
 
-        A matroid is called chordal if `k = 4`.
+        A matroid `M` is `[k_1, k_2]`-chordal if every circuit of length
+        `\ell` with `k_1 \leq \ell \leq k_2` has a
+        :meth:`chord <sage.matroids.matroid.Matroid.is_circuit_chordal>`.
+        We say `M` is `k`-chordal if `k_1 = k` and `k_2 = \infty`.
+        We call `M` *chordal* if it is `4`-chordal.
 
         INPUT:
 
-        - ``k`` -- (default: `4`) the integer `k`
+        - ``k1`` -- (optional) the integer `k_1`
+        - ``k2`` -- (optional) the integer `k_2`; if not specified,
+          then this method returns if ``self`` is `k_1`-chordal
 
         .. SEEALSO::
 
@@ -5202,21 +5210,24 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: M = matroids.Uniform(2,4)
-            sage: [M.is_k_chordal(i) for i in range(4, 8)]
+            sage: [M.is_chordal(i) for i in range(4, 8)]
             [True, True, True, True]
             sage: M = matroids.named_matroids.NonFano()
-            sage: [M.is_k_chordal(i) for i in range(4, 8)]
+            sage: [M.is_chordal(i) for i in range(4, 8)]
             [False, True, True, True]
             sage: M = matroids.named_matroids.N2()
-            sage: [M.is_k_chordal(i) for i in range(4, 10)]
+            sage: [M.is_chordal(i) for i in range(4, 10)]
             [False, False, False, False, True, True]
+            sage: M.is_chordal(4, 5)
+            False
         """
-        cdef frozenset C, circuits
-        circuits = frozenset(self.circuits())
-        for C in circuits:
-            if len(C) < k:
+        cdef frozenset C
+        if k2 is None:
+            k2 = len(self.groundset()) + 1 # This is always larger than the rank
+        for C in self.circuits():
+            if len(C) < k1 or len(C) > k2:
                 continue
-            if not self._is_circuit_chordal(C, circuits):
+            if not self._is_circuit_chordal(C):
                 return False
         return True
 
@@ -5224,9 +5235,9 @@ cdef class Matroid(SageObject):
         r"""
         Return the minimal `k` such that the matroid ``M`` is `k`-chordal.
 
-        A matroid is `k`-chordal if every circuit of length greater than
-        or equal to `k` has a
-        :meth:`chord <sage.matroids.matroid.Matroid.is_circuit_chordal>`.
+        .. SEEALSO::
+
+            :meth:`M.is_chordal() <sage.matroids.matroid.Matroid.is_chordal>`
 
         EXAMPLES::
 
@@ -5240,14 +5251,13 @@ cdef class Matroid(SageObject):
             sage: M.chordality()
             4
         """
-        cdef frozenset C, circuits
-        circuits = frozenset(self.circuits())
+        cdef frozenset C
 
         # By sorting by length of the circuits (which should be relatively
         #   fast) the first circuit we come across without a chord will
         #   determine the chordality
-        for C in sorted(circuits, key=len, reverse=True):
-            if not self._is_circuit_chordal(C, circuits):
+        for C in sorted(self.circuits(), key=len, reverse=True):
+            if not self._is_circuit_chordal(C):
                 return ZZ(len(C) + 1)
         return ZZ.zero()
 

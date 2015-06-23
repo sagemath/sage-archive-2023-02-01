@@ -2007,7 +2007,13 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: degenerate_game._is_valid_strat((1, 0, 0), B.transpose())
             False
         """
+        strategy = vector(strategy)
+        sup_size = sum(1 for i in strategy if i > 0)
+        payoffs = list(payoff_matrix * strategy)
 
+        if payoffs.count(max(payoffs)) > sup_size:
+            return False
+        return True
 
 class _Player():
     def __init__(self, num_strategies):

@@ -255,6 +255,7 @@ REFERENCES:
 
 - J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
+- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005)
 
 """
 
@@ -268,7 +269,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.fields import Fields
 #*# Before #18175:
 from sage.categories.sets_cat import Sets
@@ -302,12 +302,12 @@ class TopManifold(TopManifoldSubset):
 
         - 'real' for a manifold over `\RR`
         - 'complex' for a manifold over `\CC`
-        - any object in the category of fields (see
+        - an object in the category of fields (see
           :class:`~sage.categories.fields.Fields`) for more general manifolds
 
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
-      in a chart.
+      in a chart
     - ``category`` -- (default: ``None``) to specify the categeory; the
       default being ``Sets()`` (``Manifolds()`` after :trac:`18175` is
       implemented)
@@ -475,15 +475,9 @@ class TopManifold(TopManifoldSubset):
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
         self._coord_changes = {} # dictionary of transition maps
-        # list of charts that individually cover self, i.e. whose
+        # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
-        # algebra of scalar fields defined on self:
-        #*# self._scalar_field_algebra = ScalarFieldAlgebra(self)
-        # the zero scalar field:
-        #*# self._zero_scalar_field = self._scalar_field_algebra.zero()
-        # the identity map on self:
-        #*# self._identity_map = Hom(self, self).one()
 
     def _repr_(self):
         r"""
@@ -1123,7 +1117,9 @@ class TopManifold(TopManifoldSubset):
         Create an open subset of the manifold.
 
         An open subset is a set that is (i) included in the manifold and (ii)
-        open with respect to the manifold's topology.
+        open with respect to the manifold's topology. It is a topological
+        manifold by itself. Hence the returned object is an instance of
+        :class:`TopManifold`.
 
         INPUT:
 

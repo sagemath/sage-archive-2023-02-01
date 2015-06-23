@@ -150,6 +150,12 @@ cdef class Matroid(SageObject):
     # matroid k-closed
     cpdef is_k_closed(self, int k)
 
+    # matroid chordality
+    cpdef _is_circuit_chordal(self, frozenset C, frozenset circuits=*)
+    cpdef is_circuit_chordal(self, C)
+    cpdef is_k_chordal(self, int k=*)
+    cpdef chordality(self)
+
     # optimization
     cpdef max_weight_independent(self, X=*, weights=*)
     cpdef max_weight_coindependent(self, X=*, weights=*)

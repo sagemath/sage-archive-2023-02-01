@@ -5133,6 +5133,124 @@ cdef class Matroid(SageObject):
                     return False
         return True
 
+    # matroid chordality
+
+    cpdef _is_circuit_chordal(self, frozenset C, frozenset circuits=None):
+        """
+        Check if the circuit ``C`` has a chord.
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: [M._is_circuit_chordal(C) for C in M.circuits()]
+            [False, False, False, False]
+            sage: M = matroids.named_matroids.Fano()
+            sage: M._is_circuit_chordal(frozenset(['b','c','d']))
+            False
+            sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
+            True
+        """
+        cdef tuple p
+        cdef int i
+
+        if circuits is None:
+            circuits = frozenset(self.circuits())
+        for x in self.groundset():
+            if x in C:
+                continue
+            for i in xrange(len(C)):
+                for p in combinations(C, i): # p is a list
+                    if (frozenset(p + (x,)) in circuits
+                                and C.difference(p).union([x]) in circuits):
+                        return True
+        return False
+
+    cpdef is_circuit_chordal(self, C):
+        r"""
+        Check if the circuit ``C`` has a chord.
+
+        A circuit `C` in a matroid `M` has a *chord* `x \in E` if there
+        exists sets `A, B` such that `C = A \sqcup B` and `A + x` and
+        `B + x` are circuits.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_circuit_chordal(['b','c','d'])
+            False
+            sage: M.is_circuit_chordal(['a','b','d','e'])
+            True
+        """
+        if not self.is_circuit(C):
+            raise ValueError("input C is not a circuit")
+        return self._is_circuit_chordal(frozenset(C))
+
+    cpdef is_k_chordal(self, int k=4):
+        r"""
+        Return if a matroid is ``k``-chordal.
+
+        A matroid is called chordal if `k = 4`.
+
+        INPUT:
+
+        - ``k`` -- (default: `4`) the integer `k`
+
+        .. SEEALSO::
+
+            :meth:`M.chordality() <sage.matroids.matroid.Matroid.chordality>`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: [M.is_k_chordal(i) for i in range(4, 8)]
+            [True, True, True, True]
+            sage: M = matroids.named_matroids.NonFano()
+            sage: [M.is_k_chordal(i) for i in range(4, 8)]
+            [False, True, True, True]
+            sage: M = matroids.named_matroids.N2()
+            sage: [M.is_k_chordal(i) for i in range(4, 10)]
+            [False, False, False, False, True, True]
+        """
+        cdef frozenset C, circuits
+        circuits = frozenset(self.circuits())
+        for C in circuits:
+            if len(C) < k:
+                continue
+            if not self._is_circuit_chordal(C, circuits):
+                return False
+        return True
+
+    cpdef chordality(self):
+        r"""
+        Return the minimal `k` such that the matroid ``M`` is `k`-chordal.
+
+        A matroid is `k`-chordal if every circuit of length greater than
+        or equal to `k` has a
+        :meth:`chord <sage.matroids.matroid.Matroid.is_circuit_chordal>`.
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: M.chordality()
+            4
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.chordality()
+            5
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.chordality()
+            4
+        """
+        cdef frozenset C, circuits
+        circuits = frozenset(self.circuits())
+
+        # By sorting by length of the circuits (which should be relatively
+        #   fast) the first circuit we come across without a chord will
+        #   determine the chordality
+        for C in sorted(circuits, key=len, reverse=True):
+            if not self._is_circuit_chordal(C, circuits):
+                return ZZ(len(C) + 1)
+        return ZZ.zero()
+
     # optimization
 
     cpdef max_weight_independent(self, X=None, weights=None):

@@ -35,6 +35,7 @@ from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
+from sage.rings.rational_field import RationalField
 import math
 import operator
 
@@ -802,11 +803,11 @@ class DiagramAlgebra(CombinatorialFreeModule):
         self._base_diagrams = diagrams
         if category is None:
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
-        KSS = SymmetricGroupAlgebra(base_ring, k)
-        to_DA = KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)),codomain=self)
-        to_DA.register_as_coercion()
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
+
+        KSS = SymmetricGroupAlgebra(RationalField(), k) # QQ probably should not be hardcoded here.
+        KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
 
     def _element_constructor_(self, set_partition):
         r"""

@@ -95,13 +95,21 @@ On the other hand, we can embed the irreducible highest weight crystal
     sage: brho = Brho.highest_weight_vector()
     sage: B = crystals.infinity.Tableaux(['A',2])
     sage: binf = B.highest_weight_vector()
-    sage: Psi = Brho.crystal_morphism({brho : binf})
+    sage: wt = brho.weight()
+    sage: T = crystals.elementary.T(['A',2],wt)
+    sage: TlambdaBinf = crystals.TensorProduct(T,B)
+    sage: hw = TlambdaBinf(T[0],binf)
+    sage: Psi = Brho.crystal_morphism({brho : hw})
     sage: BG = B.digraph(subset=[Psi(x) for x in Brho])
     sage: view(BG, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 
 .. image:: ../media/BrhoinBinf.png
    :scale: 50
    :align: center
+
+Note that in the last example, we had to inject `B(\rho)` into the tensor
+product `T_\lambda \otimes B(\infty)`, since otherwise, the map ``Psi`` would
+not be a crystal morphism (as ``b.weight() != brho.weight()``).
 
 
 Generalized Young walls

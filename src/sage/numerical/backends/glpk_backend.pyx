@@ -2023,7 +2023,7 @@ cdef class GLPKBackend(GenericBackend):
         .. NOTE::
 
             The basis factorization must exist.
-            Otherwise, a RuntimeError will be raised.
+            Otherwise, a ``MIPSolverException`` will be raised.
 
         INPUT:
 
@@ -2121,7 +2121,7 @@ cdef class GLPKBackend(GenericBackend):
         .. NOTE::
 
             The basis factorization must exist.
-            Otherwise a RuntimeError will be raised.
+            Otherwise a ``MIPSolverException`` will be raised.
 
         INPUT:
 

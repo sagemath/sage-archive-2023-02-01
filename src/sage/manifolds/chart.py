@@ -34,9 +34,7 @@ REFERENCES:
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import RingElement
 from sage.symbolic.ring import SR
-from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
@@ -868,7 +866,6 @@ class Chart(UniqueRepresentation, SageObject):
             sin(6)
 
         """
-        from sage.manifolds.coord_func_symb import CoordFunctionSymb
         if isinstance(expression, str):
             raise NotImplementedError("numerical coordinate function not " +
                                       "implemented yet")
@@ -2042,7 +2039,7 @@ class CoordChange(SageObject):
                    "transformation; use set_inverse() to set the inverse " +
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
-        self._inverse = CoordChange(self._chart2, self._chart1, *x2_to_x1)
+        self._inverse = self.__class__(self._chart2, self._chart1, *x2_to_x1)
         return self._inverse
 
 
@@ -2100,7 +2097,7 @@ class CoordChange(SageObject):
             check = kwds['check']
         else:
             check = True
-        self._inverse = CoordChange(self._chart2, self._chart1,
+        self._inverse = self.__class__(self._chart2, self._chart1,
                                     *transformations)
         if check:
             print "Check of the inverse coordinate transformation:"
@@ -2148,7 +2145,7 @@ class CoordChange(SageObject):
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
         transf = self._transf(*(other._transf.expr()))
-        return CoordChange(other._chart1, self._chart2, *transf)
+        return self.__class__(other._chart1, self._chart2, *transf)
 
     def restrict(self, dom1, dom2=None):
         r"""
@@ -2181,7 +2178,7 @@ class CoordChange(SageObject):
         """
         if dom2 is None:
             dom2 = dom1
-        return CoordChange(self._chart1.restrict(dom1),
+        return self.__class__(self._chart1.restrict(dom1),
                            self._chart2.restrict(dom2), *(self._transf.expr()))
 
     def display(self):

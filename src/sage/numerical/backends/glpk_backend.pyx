@@ -2070,7 +2070,7 @@ cdef class GLPKBackend(GenericBackend):
         cdef list values = []
         cdef int i,j
 
-        if k < 0 or i >= n + glp_get_num_rows(self.lp):
+        if k < 0 or k >= n + glp_get_num_rows(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
         cdef int * c_indices = <int*> sage_malloc((n+1)*sizeof(int))
@@ -2165,7 +2165,7 @@ cdef class GLPKBackend(GenericBackend):
         cdef list values = []
         cdef int i,j
 
-        if k < 0 or i >= m + glp_get_num_cols(self.lp):
+        if k < 0 or k >= m + glp_get_num_cols(self.lp):
             raise ValueError("k = %s; Variable number out of range" % k)
 
         cdef int * c_indices = <int*> sage_malloc((m+1)*sizeof(int))

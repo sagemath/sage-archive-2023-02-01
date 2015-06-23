@@ -1978,6 +1978,14 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return potential_support_pairs
 
+    def _is_valid_strat(self, strategy, payoff_matrix):
+        """
+        From a given strategy for a player, computes the payoff for the
+        opponent, then compares number of best respones with size of strategy.
+        Any strategy should not have more best responses than its supporst
+        size.
+        """
+
 
 class _Player():
     def __init__(self, num_strategies):

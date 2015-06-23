@@ -4131,6 +4131,26 @@ def TietzeGraph():
 
     return g
 
+def TruncatedIcosidodecahedralGraph():
+    r"""
+    Return the truncated icosidodecahedron.
+
+    The truncated icosidodecahedron is an Archimedean solid with 30 square
+    faces, 20 regular hexagonal faces, 12 regular decagonal faces, 120 vertices
+    and 180 edges. For more information, see the
+    :wikipedia:`Truncated_icosidodecahedron`.
+
+    EXAMPLE::
+
+        sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
+        sage: g.order(), g.size()
+
+    """
+    from sage.geometry.polyhedron.library import polytopes
+    G = polytopes.icosidodecahedron(exact=False).edge_truncation().graph()
+    G.name("Truncated Icosidodecahedron")
+    return G
+
 def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.

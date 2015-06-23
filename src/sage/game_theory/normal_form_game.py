@@ -1984,6 +1984,28 @@ class NormalFormGame(SageObject, MutableMapping):
         opponent, then compares number of best respones with size of strategy.
         Any strategy should not have more best responses than its supporst
         size.
+
+        TESTS::
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g._is_valid_strat((1/2, 1/2), A)
+            False
+            sage: g._is_valid_strat((3/4, 1/4), A)
+            True
+
+            sage: A = matrix([[1, 0], [0, 1], [0, 0]])
+            sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
+            sage: g = NormalFormGame([A, B])
+            sage: g._is_valid_strat((1/2, 1/2), A)
+            True
+
+            sage: A = matrix([[3,3],[2,5],[0,6]])
+            sage: B = matrix([[3,3],[2,6],[3,1]])
+            sage: degenerate_game = NormalFormGame([A,B])
+            sage: degenerate_game._is_valid_strat((1, 0, 0), B.transpose())
+            False
         """
 
 

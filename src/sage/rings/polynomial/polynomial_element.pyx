@@ -7739,21 +7739,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] += y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] += y[i]
-            x += y[len(x):]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
@@ -7774,21 +7759,6 @@ cdef class Polynomial_generic_dense(Polynomial):
             return res
         else:
             return self._new_c(low + high, self._parent)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] -= y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] -= y[i]
-            x += [-c for c in y[len(x):]]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
@@ -7813,18 +7783,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         # "normalize" checks this anyway...
         res.__normalize()
         return res
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        if len(self.__coeffs) == 0:
-            return self
-        if c._parent is not (<Element>self.__coeffs[0])._parent:
-            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
-        cdef Py_ssize_t i, deg = len(self.__coeffs)
-        for i from 0 <= i < deg:
-            self.__coeffs[i] *= c
-        if not self.__coeffs[deg-1]:
-            self.__normalize()
-        return self
 
     cpdef constant_coefficient(self):
         """

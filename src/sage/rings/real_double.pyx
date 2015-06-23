@@ -1229,20 +1229,6 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        """
-        Add ``right`` to ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(0.5)
-            sage: a += RDF(3); a # indirect doctest
-            3.5
-        """
-        # self and right are guaranteed to be Integers
-        self._value += (<RealDoubleElement>right)._value
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.
@@ -1256,19 +1242,6 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        """
-        Subtract ``right`` from ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(0.5)
-            sage: a -= RDF(3); a # indirect doctest
-            -2.5
-        """
-        self._value -= (<RealDoubleElement>right)._value
-        return self
-
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
@@ -1281,19 +1254,6 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
-
-    cpdef RingElement _imul_(self, RingElement right):
-        """
-        Multiply ``right`` py ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(2.5)
-            sage: a *= RDF(3); a # indirect doctest
-            7.5
-        """
-        self._value *= (<RealDoubleElement>right)._value
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -1309,21 +1269,6 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value / (<RealDoubleElement>right)._value
         return x
-
-    cpdef RingElement _idiv_(self, RingElement right):
-        """
-        Divide ``self`` by ``right`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(1.5)
-            sage: a /= RDF(2); a # indirect doctest
-            0.75
-            sage: a /= RDF(0); a
-            +infinity
-        """
-        self._value /= (<RealDoubleElement>right)._value
-        return self
 
     def __neg__(self):
         """

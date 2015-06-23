@@ -105,9 +105,9 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
             sage: A.weight_lattice_realization()
-            Ambient space of the Root system of type ['A', 2, 1]
+            Extended weight lattice of the Root system of type ['A', 2, 1]
         """
-        return self.cartan_type().root_system().ambient_space()
+        return self.cartan_type().root_system().weight_lattice(extended=True)
 
     # TODO: This should become unnecessary once we have a proper category for KR crystals
     def digraph(self, subset=None, index_set=None):
@@ -345,11 +345,11 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
                 sage: A = crystals.KirillovReshetikhin(['A',2,1], 2,2).affinization()
                 sage: mg = A.module_generators[0]
                 sage: mg.weight()
-                2*e[0] + 2*e[1]
+                -2*Lambda[0] + 2*Lambda[2]
                 sage: mg.e(0).weight()
-                e[1] + e['delta']
+                -Lambda[1] + Lambda[2] + delta
                 sage: mg.e(0).e(0).weight()
-                -2*e[0] + 2*e['delta']
+                2*Lambda[0] - 2*Lambda[1] + 2*delta
             """
             WLR = self.parent().weight_lattice_realization()
             La = WLR.fundamental_weights()

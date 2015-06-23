@@ -34,12 +34,12 @@ class KyotoPathModel(TensorProductOfCrystals):
         some of the literature.
 
     Consider a Kac--Moody algebra `\mathfrak{g}` of affine Cartan type `X`,
-    and we want to model the `U_q(\mathfrak{g})`-crystal `B(\lambda)`.
+    and we want to model the `U_q'(\mathfrak{g})`-crystal `B(\lambda)`.
     First we consider the set of fundamental weights `\{\Lambda_i\}_{i \in I}`
     of `\mathfrak{g}` and let `\{\overline{\Lambda}_i\}_{i \in I_0}` be the
     corresponding fundamental weights of the corresponding classical Lie
     algebra `\mathfrak{g}_0`. To model `B(\lambda)`, we start with a sequence
-    of perfect `U_q^{\prime}(\mathfrak{g})`-crystals `(B^{(i)})_i` of level
+    of perfect `U_q'(\mathfrak{g})`-crystals `(B^{(i)})_i` of level
     `l` such that
 
     .. MATH::
@@ -47,7 +47,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         \lambda \in \overline{P}_l^+ = \left\{ \mu \in \overline{P}^+ \mid
         \langle c, \mu \rangle = l \right\}
 
-    where `c` is the canonical central element of `U_q(\mathfrak{g})`
+    where `c` is the canonical central element of `U_q'(\mathfrak{g})`
     and `\overline{P}^+` is the nonnegative weight lattice spanned by
     `\{ \overline{\Lambda}_i \mid i \in I \}`.
 
@@ -73,7 +73,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         \otimes u_{\lambda_N}.
 
     Therefore we can model elements `b \in B(\lambda)` as a
-    `U_q^{\prime}(\mathfrak{g})`-crystal by considering an infinite list of
+    `U_q'(\mathfrak{g})`-crystal by considering an infinite list of
     elements `b^{(k)} \in B^{(k)}` and defining the crystal structure by:
 
     .. MATH::
@@ -116,6 +116,12 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     then we consider this to be `0`.
 
+    We can then lift the `U_q'(\mathfrak{g})`-crystal structure to a
+    `U_q(\mathfrak{g})`-crystal structure by using a tensor product of
+    the :class:`affinization
+    <sage.combinat.crystals.affinization.AffinizationCrystal>` of the
+    of crystals `B^{(i)}` for all `i`.
+
     REFERENCES:
 
     .. [HK02] *Introduction to Quantum Groups and Crystal Bases.*
@@ -124,9 +130,9 @@ class KyotoPathModel(TensorProductOfCrystals):
 
     INPUT:
 
-    - ``B`` -- A single or list of `U_q^{\prime}` perfect crystal(s) of
+    - ``B`` -- a single or list of `U_q^{\prime}` perfect crystal(s) of
       level `l`
-    - ``weight`` -- A weight in `\overline{P}_l^+`
+    - ``weight`` -- a weight in `\overline{P}_l^+`
 
     EXAMPLES::
 
@@ -137,6 +143,10 @@ class KyotoPathModel(TensorProductOfCrystals):
         [[[3]]]
         sage: mg.f_string([0,1,2,2])
         [[[3]], [[3]], [[1]]]
+        sage: x = mg.f_string([0,1,2]); x
+        [[[2]], [[3]], [[1]]]
+        sage: x.weight()
+        Lambda[0]
 
     An example of type `A_5^{(2)}`::
 
@@ -175,9 +185,22 @@ class KyotoPathModel(TensorProductOfCrystals):
         [[[3]], [[2], [3]], [[1]], [[2]]]
         sage: mg.f_string([0,1,2,2,1,0,0,2])
         [[[3]], [[1], [2]], [[1]], [[3]], [[1], [3]]]
+
+    By using the extended weight lattice, the Kyoto path model lifts
+    the perfect crystals to their affinizations::
+
+        sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+        sage: P = RootSystem(['A',2,1]).weight_lattice(extended=True)
+        sage: C = crystals.KyotoPathModel(B, P.fundamental_weight(0))
+        sage: mg = C.module_generators[0]; mg
+        [[[3]](0)]
+        sage: x = mg.f_string([0,1,2]); x
+        [[[2]](-1), [[3]](0), [[1]](0)]
+        sage: x.weight()
+        Lambda[0] - delta
     """
     @staticmethod
-    def __classcall_private__(cls, crystals, weight):
+    def __classcall_private__(cls, crystals, weight, P=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -187,15 +210,9 @@ class KyotoPathModel(TensorProductOfCrystals):
             sage: L = RootSystem(['A',2,1]).weight_lattice()
             sage: C = crystals.KyotoPathModel(B, L.fundamental_weight(0))
             sage: C2 = crystals.KyotoPathModel((B,), L.fundamental_weight(0))
-            sage: C3 = crystals.KyotoPathModel([B], L.fundamental_weight(0))
+            sage: C3 = crystals.KyotoPathModel([B], L.fundamental_weight(0), L)
             sage: C is C2 and C2 is C3
             True
-
-            sage: L = RootSystem(['A',2,1]).weight_space()
-            sage: C = KyotoPathModel(B, L.fundamental_weight(0))
-            Traceback (most recent call last):
-            ...
-            ValueError: Lambda[0] is not in the weight lattice
         """
         if isinstance(crystals, list):
             crystals = tuple(crystals)
@@ -208,16 +225,15 @@ class KyotoPathModel(TensorProductOfCrystals):
         if any(B.level() != level for B in crystals[1:]):
             raise ValueError("all crystals must have the same level")
         ct = crystals[0].cartan_type()
-        P = RootSystem(ct).weight_lattice()
-        if weight.parent() is not P:
-            raise ValueError("{} is not in the weight lattice".format(weight))
+        if P is None:
+            P = weight.parent()
         if sum( ct.dual().c()[i] * weight.scalar(h) for i,h in
                 enumerate(P.simple_coroots()) ) != level:
             raise ValueError( "{} is not a level {} weight".format(weight, level) )
 
-        return super(KyotoPathModel, cls).__classcall__(cls, crystals, weight)
+        return super(KyotoPathModel, cls).__classcall__(cls, crystals, weight, P)
 
-    def __init__(self, crystals, weight):
+    def __init__(self, crystals, weight, P):
         """
         Initialize ``self``.
 
@@ -231,10 +247,21 @@ class KyotoPathModel(TensorProductOfCrystals):
         Parent.__init__(self, category=(HighestWeightCrystals(), InfiniteEnumeratedSets()))
 
         self._cartan_type = crystals[0].cartan_type()
-        self.crystals = crystals # public for TensorProductOfCrystals
         self._weight = weight
-        self._epsilon_dicts = [{b.Epsilon():b for b in B} for B in crystals]
-        self._phi_dicts = [{b.Phi():b for b in B} for B in crystals]
+        if weight.parent().is_extended():
+            # public for TensorProductOfCrystals
+            self.crystals = tuple([C.affinization() for C in crystals])
+            self._epsilon_dicts = [{b.Epsilon(): self.crystals[i](b, 0) for b in B}
+                                   for i,B in enumerate(crystals)]
+            self._phi_dicts = [{b.Phi(): self.crystals[i](b, 0) for b in B}
+                               for i,B in enumerate(crystals)]
+        else:
+            # public for TensorProductOfCrystals
+            self.crystals = tuple(crystals)
+            self._epsilon_dicts = [{b.Epsilon(): b for b in B}
+                                   for B in crystals]
+            self._phi_dicts = [{b.Phi(): b for b in B}
+                               for B in crystals]
         self.module_generators = (self.element_class(self, [self._phi_dicts[0][weight]]),)
 
     def _repr_(self):
@@ -272,6 +299,25 @@ class KyotoPathModel(TensorProductOfCrystals):
         N = len(self.crystals)
         crystals = [self.crystals[i % N] for i in range(k)]
         return TensorProductOfCrystals(*crystals)
+
+    def weight_lattice_realization(self):
+        """
+        Return the weight lattice realization used to express weights.
+
+        EXAMPLES::
+
+            sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+            sage: P = RootSystem(['A',2,1]).weight_lattice()
+            sage: C = crystals.KyotoPathModel(B, P.fundamental_weight(0))
+            sage: C.weight_lattice_realization()
+            Weight lattice of the Root system of type ['A', 2, 1]
+
+            sage: P = RootSystem(['A',2,1]).weight_lattice(extended=True)
+            sage: C = crystals.KyotoPathModel(B, P.fundamental_weight(0))
+            sage: C.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['A', 2, 1]
+        """
+        return self._weight.parent()
 
     class Element(TensorProductOfRegularCrystalsElement):
         """
@@ -388,6 +434,24 @@ class KyotoPathModel(TensorProductOfCrystals):
                 l[-2] = l[-2].f(i)
                 return self.__class__(self.parent(), l)
             return self.set_index(k, self[k].f(i))
+
+        def weight(self):
+            """
+            Return the weight of ``self``.
+
+            EXAMPLES::
+
+                sage: B = crystals.KirillovReshetikhin(['A',2,1], 1,1)
+                sage: P = RootSystem(['A',2,1]).weight_lattice(extended=True)
+                sage: C = crystals.KyotoPathModel(B, P.fundamental_weight(0))
+                sage: mg = C.module_generators[0]
+                sage: mg.weight()
+                Lambda[0]
+                sage: mg.f_string([0,1,2]).weight()
+                Lambda[0] - delta
+            """
+            wt = TensorProductOfRegularCrystalsElement.weight(self)
+            return wt + self._list[-1].Epsilon()
 
         def truncate(self, k=None):
             r"""

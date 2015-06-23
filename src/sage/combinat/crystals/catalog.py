@@ -55,6 +55,7 @@ from fast_crystals import FastCrystal as FastRankTwo
 from affine import AffineCrystalFromClassical as AffineFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion as AffineFromClassicalAndPromotion
 from affine_factorization import AffineFactorizationCrystal as AffineFactorization
+from sage.combinat.crystals.affinization import AffinizationCrystal as Affinization
 from highest_weight_crystals import HighestWeightCrystal as HighestWeight
 from alcove_path import CrystalOfAlcovePaths as AlcovePaths
 from littelmann_path import CrystalOfLSPaths as LSPaths

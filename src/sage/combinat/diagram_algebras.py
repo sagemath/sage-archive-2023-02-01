@@ -806,7 +806,8 @@ class DiagramAlgebra(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 
-        KSS = SymmetricGroupAlgebra(RationalField(), k) # QQ probably should not be hardcoded here.
+              
+        KSS = SymmetricGroupAlgebra(self.base_ring(), k) # QQ probably should not be hardcoded here.
         KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
 
     def _element_constructor_(self, set_partition):

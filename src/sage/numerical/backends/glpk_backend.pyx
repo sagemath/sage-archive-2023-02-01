@@ -2080,12 +2080,11 @@ cdef class GLPKBackend(GenericBackend):
             raise ValueError("k = %s; Variable number out of range" % k)
 
         cdef int * c_indices = <int*> sage_malloc((n+1)*sizeof(int))
-        if c_indices == NULL:
-            raise MemoryError("failed to allocate %s bytes" % ((n+1)*sizeof(int)))
         cdef double * c_values = <double*> sage_malloc((n+1)*sizeof(double))
-        if c_values == NULL:
+        if c_indices == NULL or c_values == NULL:
             sage_free(c_indices)
-            raise MemoryError("failed to allocate %s bytes" % ((n+1)*sizeof(double)))
+            sage_free(c_values)
+            raise MemoryError
 
         try:
             sig_on()            # To catch SIGABRT
@@ -2180,12 +2179,11 @@ cdef class GLPKBackend(GenericBackend):
             raise ValueError("k = %s; Variable number out of range" % k)
 
         cdef int * c_indices = <int*> sage_malloc((m+1)*sizeof(int))
-        if c_indices == NULL:
-            raise MemoryError("failed to allocate %s bytes" % ((m+1)*sizeof(int)))
         cdef double * c_values = <double*> sage_malloc((m+1)*sizeof(double))
-        if c_values == NULL:
+        if c_indices == NULL or c_values == NULL:
             sage_free(c_indices)
-            raise MemoryError("failed to allocate %s bytes" % ((m+1)*sizeof(double)))
+            sage_free(c_values)
+            raise MemoryError
 
         try:
             sig_on()            # To catch SIGABRT

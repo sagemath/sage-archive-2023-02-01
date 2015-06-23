@@ -2221,7 +2221,7 @@ class Graphics(SageObject):
             sage: subplot = Figure().add_subplot(111)
             sage: p._objects[0]._render_on_subplot(subplot)
             sage: p._matplotlib_tick_formatter(subplot, **d)
-            (<matplotlib.axes.AxesSubplot object at ...>,
+            (<matplotlib.axes._subplots.AxesSubplot object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.OldScalarFormatter object at ...>,

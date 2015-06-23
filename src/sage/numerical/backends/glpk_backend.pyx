@@ -2082,13 +2082,17 @@ cdef class GLPKBackend(GenericBackend):
             raise MemoryError("failed to allocate %s bytes" % ((n+1)*sizeof(double)))
 
         try:
-            sig_on()
+            sig_on()            # To catch SIGABRT
             i = glp_eval_tab_row(self.lp, k + 1, c_indices, c_values)
             sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be basic')
         except Exception:
             sage_free(c_indices)
             sage_free(c_values)
-            raise MIPSolverException('GLPK : basis factorization does not exist')
+            raise
 
         for 0 < j <= i:
             indices.append(c_indices[j]-1)
@@ -2177,13 +2181,17 @@ cdef class GLPKBackend(GenericBackend):
             raise MemoryError("failed to allocate %s bytes" % ((m+1)*sizeof(double)))
 
         try:
-            sig_on()
+            sig_on()            # To catch SIGABRT
             i = glp_eval_tab_col(self.lp, k + 1, c_indices, c_values)
             sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            sage_free(c_indices)
+            sage_free(c_values)
+            raise MIPSolverException('GLPK: basis factorization does not exist; or variable must be non-basic')
         except Exception:
             sage_free(c_indices)
             sage_free(c_values)
-            raise MIPSolverException('GLPK : basis factorization does not exist')
+            raise
 
         for 0 < j <= i:
             indices.append(c_indices[j]-1)

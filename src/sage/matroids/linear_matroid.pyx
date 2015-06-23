@@ -4467,6 +4467,66 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         return True
 
+    # representability
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A binary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.ternary_matroid() is N
+            True
+        """
+        return self
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_ternary()
+            True
+        """
+        return True
+
     def __copy__(self):
         """
         Create a shallow copy.
@@ -6004,6 +6064,66 @@ cdef class RegularMatroid(LinearMatroid):
 
             sage: N = matroids.named_matroids.R10()
             sage: N.is_binary()
+            True
+        """
+        return True
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A ternary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just cast ``self`` to a TernaryMatroid.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.ternary_matroid()
+            Ternary matroid of rank 5 on 10 elements, type 4+
+
+        """
+        A, E = self.representation(B = self.basis(), reduced = False, labels = True)
+        return TernaryMatroid(matrix = A, groundset = E)
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a ternary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_ternary()
             True
         """
         return True

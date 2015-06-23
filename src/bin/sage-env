@@ -431,7 +431,7 @@ if ! [ -f "$R_MAKEVARS_SITE" ] ; then
 fi
 if ! [ -d "$DOT_SAGE/R" ] ; then
     if ! [ -a  "$DOT_SAGE/R" ] ; then
-	mkdir "$DOT_SAGE/R"
+	mkdir -p "$DOT_SAGE/R"
     else
 	>&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
     fi

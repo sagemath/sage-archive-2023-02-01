@@ -3325,6 +3325,35 @@ def LjubljanaGraph(embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def LivingstoneGraph():
+    r"""
+    Returns the Livingstone Graph.
+
+    The Livingstone graph is a distance-transitive graph on 266 vertices whose
+    automorphism group is the :class:`J1 group
+    <sage.groups.perm_gps.permgroup_named.JankoGroup>`. For more information,
+    see the :wikipedia:`Livingstone_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.LivingstoneGraph()
+        sage: g.order()
+        266
+        sage: g.size()
+        1463
+        sage: g.girth()
+        5
+        sage: g.is_vertex_transitive()
+        True
+        sage: g.is_distance_regular()
+        True
+    """
+    from sage.groups.perm_gps.permgroup_named import JankoGroup
+    from sage.graphs.graph import Graph
+    G = JankoGroup(1)
+    edges = map(tuple,G.orbit((1,24),action="OnSets"))
+    return Graph(edges,name="Livingstone Graph")
+
 def M22Graph():
     r"""
     Returns the M22 graph.

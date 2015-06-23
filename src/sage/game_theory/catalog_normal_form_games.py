@@ -33,7 +33,6 @@ REFERENCES:
 AUTHOR:
 
 - James Campbell and Vince Knight (06-2014)
-- Travis Scrimshaw (06-2015)
 """
 from sage.game_theory.normal_form_game import NormalFormGame
 

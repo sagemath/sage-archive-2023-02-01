@@ -50,7 +50,7 @@ ctypedef fused BoostVecGenGraph:
 ctypedef fused BoostGenGraph:
     BoostVecGraph
     BoostVecDiGraph
-    BoostGraph[vecS, vecS, directedS, vecS]
-    BoostGraph[setS, vecS, undirectedS, vecS]
-    BoostGraph[setS, vecS, directedS, vecS]
+    BoostGraph[vecS, vecS, directedS,      vecS]
+    BoostGraph[setS, vecS, undirectedS,    vecS]
+    BoostGraph[setS, vecS, directedS,      vecS]
     BoostGraph[setS, vecS, bidirectionalS, vecS]

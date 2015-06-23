@@ -9,14 +9,17 @@
 r"""
 Interface to run Boost algorithms
 
-Wrapper for a Boost graphs. The Boost graphs must be created with cdef, and
-they cannot be shared by different Python functions, because they cannot be
-converted to Python objects.
+Wrapper for a Boost graph. The Boost graphs are Cython C++ variables, and they
+cannot be converted to Python objects: as a consequence, only functions defined
+with cdef are able to create, read, modify, and delete these graphs.
 
-It is possible to define generic functions, whose input is a generic Boost
-graph, but there cannot be nested generic function calls, otherwise Cython
-raises an error. Furthermore, no variable can have a generic type, apart from
-the arguments of a generic function.
+A very important feature of Boost graph library is that all object are generic:
+for instance, adjacency lists can be stored using different data structures,
+and (most of) the functions work with all implementations provided. This feature
+is implemented in our interface using fused types: however, Cython's support for
+fused types is still experimental, and some features are missing. For instance,
+there cannot be nested generic function calls, and no variable can have a
+generic type, apart from the arguments of a generic function.
 
 All the input functions use pointers, because otherwise we might have problems
 with ``delete()``.
@@ -42,7 +45,7 @@ include "sage/ext/interrupt.pxi"
 
 cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     r"""
-    Initializes the Boost graph ``g`` to be equal to g_sage.
+    Initializes the Boost graph ``g`` to be equal to ``g_sage``.
 
     The Boost graph ``*g`` must represent an empty graph (an exception is raised
     otherwise).
@@ -110,7 +113,8 @@ cpdef edge_connectivity(g):
 
     elif isinstance(g, DiGraph):
         from sage.misc.stopgap import stopgap
-        stopgap("This code contains bugs and may be mathematically unreliable.",18753)
+        stopgap("The edge connectivity of directed graphs is not implemented " +
+                "in Boost. The result may be mathematically unreliable.",18753)
 
         boost_graph_from_sage_graph(&g_boost_dir, g)
         sig_check()

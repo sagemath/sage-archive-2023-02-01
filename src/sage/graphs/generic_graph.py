@@ -8321,13 +8321,15 @@ class GenericGraph(GenericGraph_pyx):
         implementation = implementation.lower()
         if implementation not in ["boost", "sage"]:
             raise ValueError("'implementation' must be set to 'boost', 'sage' or None.")
+        elif implementation=="boost" and use_edge_labels:
+            raise ValueError("The Boost implementation is currently not able to handle edge labels")
 
         # Otherwise, an error is created
         if g.num_edges() == 0 or g.num_verts() == 0:
             if value_only:
                 return 0
             elif vertices:
-                return [0,[],[],[]]
+                return [0,[],[[],[]]]
             else:
                 return [0,[]]
 

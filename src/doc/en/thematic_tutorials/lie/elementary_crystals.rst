@@ -139,7 +139,7 @@ original graph of `B`.
 
 For example, suppose `\mu \le \lambda` in lexicographic ordering on weights,
 and one wants to see `B(\mu)` as a subcrystal of `B(\lambda)`.  Then `B(\mu)`
-may be realized as the connected component of `R_{\mu-\lambda}\otimesB(\lambda)`
+may be realized as the connected component of `R_{\mu-\lambda}\otimes B(\lambda)`
 containing the highest weight `r_{\mu-\lambda} \otimes u_\lambda`, where
 `u_\lambda` is the highest weight vector in `B(\lambda)`::
 

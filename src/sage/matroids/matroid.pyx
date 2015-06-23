@@ -5150,8 +5150,6 @@ cdef class Matroid(SageObject):
             sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
             True
         """
-        cdef tuple p
-        cdef int i
         cdef set X
         cdef frozenset Ax, Bx
 

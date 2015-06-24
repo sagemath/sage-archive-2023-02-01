@@ -791,9 +791,12 @@ class SkewTableau(ClonableList):
 
         EXAMPLES::
 
-            sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
-            sage: st.slide((2,0))
+            sage: st = SkewTableau([[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]])
+            sage: st.slide((2, 0))
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
+            sage: st2 = SkewTableau([[None, None, 3], [None, 2, 4], [1, 5]])
+            sage: st2.slide((1, 0), True)
+            ([[None, None, 3], [1, 2, 4], [5]], (2, 1))
 
         TESTS::
 

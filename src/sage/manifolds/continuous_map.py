@@ -2,7 +2,7 @@ r"""
 Continuous maps between topological manifolds
 
 The class :class:`ContinuousMap` implements continuous maps from an open
-subset `U` of a topological manifold `M` to some tological
+subset `U` of a topological manifold `M` to some topological
 manifold `N` over the same topological field `K` as `M`:
 
 .. MATH::
@@ -34,6 +34,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 
 class ContinuousMap(Morphism):
@@ -75,9 +76,9 @@ class ContinuousMap(Morphism):
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
       continuous map; if none is provided, the LaTeX symbol is set to
       ``name``
-    - ``is_homeomorphism`` -- (default: ``False``) determines whether the
-      constructed object is a homeomorphism; if set to ``True``,
-      then the manifolds `M` and `N` must have the same dimension.
+    - ``is_isomorphism`` -- (default: ``False``) determines whether the
+      constructed object is a isomorphism (i.e. a homeomorphism); if set to
+      ``True``, then the manifolds `M` and `N` must have the same dimension.
     - ``is_identity`` -- (default: ``False``) determines whether the
       constructed object is the identity map; if set to ``True``,
       then `V` must be `U` and the entry ``coord_functions`` is not used.
@@ -335,9 +336,8 @@ class ContinuousMap(Morphism):
         True
 
     """
-    def __init__(self, parent, coord_functions=None, chart1=None, chart2=None,
-                 name=None, latex_name=None, is_homeomorphism=False,
-                 is_identity=False):
+    def __init__(self, parent, coord_functions=None, name=None, latex_name=None,
+                 is_isomorphism=False, is_identity=False):
         r"""
         Construct a continuous map.
 
@@ -371,12 +371,12 @@ class ContinuousMap(Morphism):
         self._domain = domain
         self._codomain = codomain
         self._coord_expression = {}
-        self._is_homeo = False  # default value; may be redefined below
+        self._is_isomorphism = False  # default value; may be redefined below
         self._is_identity = False  # default value; may be redefined below
         if is_identity:
             # Construction of the identity map
             self._is_identity = True
-            self._is_homeo = True
+            self._is_isomorphism = True
             if domain != codomain:
                 raise ValueError("the domain and codomain must coincide " + \
                                  "for the identity map")
@@ -392,10 +392,10 @@ class ContinuousMap(Morphism):
                                                                   *coord_funct)
         else:
             # Construction of a generic continuous map
-            if is_homeomorphism:
-                self._is_homeo = True
+            if is_isomorphism:
+                self._is_isomorphism = True
                 if domain.dim() != codomain.dim():
-                    raise ValueError("for a homeomorphism, the source " +
+                    raise ValueError("for an isomorphism, the source " +
                                      "manifold and target manifold must " +
                                      "have the same dimension")
             if coord_functions is not None:
@@ -424,8 +424,7 @@ class ContinuousMap(Morphism):
                 self._latex_name = self._name
             else:
                 self._latex_name = latex_name
-        # Initialization of derived quantities:
-        ContinuousMap._init_derived(self)
+        self._init_derived()  # initialization of derived quantities
 
     #
     # SageObject methods
@@ -449,11 +448,11 @@ class ContinuousMap(Morphism):
             sage: f._repr_()
             'Continuous map f from the 2-dimensional topological manifold M to
              the 2-dimensional topological manifold N'
-            sage: f = Hom(M,N)({(X,Y): (x+y,x-y)}, name='f', is_homeomorphism=True)
+            sage: f = Hom(M,N)({(X,Y): (x+y,x-y)}, name='f', is_isomorphism=True)
             sage: f._repr_()
             'Homeomorphism f from the 2-dimensional topological manifold M to
              the 2-dimensional topological manifold N'
-            sage: f = Hom(M,M)({(X,X): (x+y,x-y)}, name='f', is_homeomorphism=True)
+            sage: f = Hom(M,M)({(X,X): (x+y,x-y)}, name='f', is_isomorphism=True)
             sage: f._repr_()
             'Homeomorphism f of the 2-dimensional topological manifold M'
             sage: f = Hom(M,M)({}, name='f', is_identity=True)
@@ -464,14 +463,14 @@ class ContinuousMap(Morphism):
         if self._is_identity:
             return "Identity map " + self._name + \
                    " of the {}".format(self._domain)
-        if self._is_homeo:
+        if self._is_isomorphism:
             description = "Homeomorphism"
         else:
             description = "Continuous map"
         if self._name is not None:
             description += " " + self._name
         if self._domain == self._codomain:
-            if self._is_homeo:
+            if self._is_isomorphism:
                 description += " of the {}".format(self._domain)
             else:
                 description += " from the {} to itself".format(self._domain)
@@ -528,7 +527,7 @@ class ContinuousMap(Morphism):
             False
 
         """
-        if not isinstance(other, ContinuousMap):
+        if not isinstance(other, self.__class__):
             return False
         if self.parent() != other.parent():
             return False
@@ -1554,6 +1553,7 @@ class ContinuousMap(Morphism):
         if chart2 not in self._codomain.atlas():
             raise ValueError("The " + str(chart2) +
               " has not been defined on the " + str(self._codomain))
+        self._del_derived()
         n2 = self._codomain.dim()
         if n2 > 1:
             if len(coord_functions) != n2:
@@ -1661,8 +1661,8 @@ class ContinuousMap(Morphism):
                 return self._restrictions[(subdomain, subcodomain)]
             # Generic case:
             homset = Hom(subdomain, subcodomain)
-            resu = homset.element_class(homset, name=self._name,
-                                        latex_name=self._latex_name)
+            resu = self.__class__(homset, name=self._name,
+                                  latex_name=self._latex_name)
             for charts in self._coord_expression:
                 for ch1 in charts[0]._subcharts:
                     if ch1._domain.is_subset(subdomain):
@@ -1685,7 +1685,7 @@ class ContinuousMap(Morphism):
 
     def __invert__(self, chart1=None, chart2=None):
         r"""
-        Return the inverse of ``self`` if ``self`` is a homeomorphism.
+        Return the inverse of ``self`` if ``self`` is a isomorphism.
 
         INPUT:
 
@@ -1698,7 +1698,7 @@ class ContinuousMap(Morphism):
 
         OUTPUT:
 
-        - the inverse homeomorphism
+        - the inverse isomorphism
 
         EXAMPLES:
 
@@ -1730,8 +1730,8 @@ class ContinuousMap(Morphism):
         from sage.symbolic.relation import solve
         if self._inverse is not None:
             return self._inverse
-        if not self._is_homeo:
-            raise ValueError("the {} is not a homeomorphism".format(self))
+        if not self._is_isomorphism:
+            raise ValueError("the {} is not an isomorphism".format(self))
         if chart1 is None: chart1 = self._domain._def_chart
         if chart2 is None: chart2 = self._codomain._def_chart
         coord_map = self._coord_expression[(chart1, chart2)]
@@ -1744,17 +1744,12 @@ class ContinuousMap(Morphism):
                       for i in range(n2) ]
         solutions = solve(equations, chart1._xx, solution_dict=True)
         if len(solutions) == 0:
-            raise ValueError("No solution found")
+            raise ValueError("no solution found")
         if len(solutions) > 1:
-            raise ValueError("Non-unique solution found")
-        #!# This should be the Python 2.7 form:
-        # substitutions = {x2[i]: chart2._xx[i] for i in range(n2)}
-        #
-        # Here we use a form compatible with Python 2.6:
-        substitutions = dict([(x2[i], chart2._xx[i]) for i in range(n2)])
-
+            raise ValueError("non-unique solution found")
+        substitutions = dict(zip(x2, chart2._xx))
         inv_functions = [solutions[0][chart1._xx[i]].subs(substitutions)
-                           for i in range(n1)]
+                                                            for i in range(n1)]
         for i in range(n1):
             x = inv_functions[i]
             try:
@@ -1765,14 +1760,15 @@ class ContinuousMap(Morphism):
             name = None
         else:
             name = self._name + '^(-1)'
-
         if self._latex_name is None:
             latex_name = None
         else:
             latex_name = self._latex_name + r'^{-1}'
-        self._inverse = self._codomain.homeomorphism(self._domain,
-                               coord_functions=inv_functions, chart1=chart2,
-                               chart2=chart1, name=name, latex_name=latex_name)
+        homset = Hom(self._codomain, self._domain)
+        coord_functions = {(chart2, chart1): inv_functions}
+        self._inverse = self.__class__(homset, coord_functions=coord_functions,
+                                       name=name, latex_name=latex_name,
+                                       is_isomorphism=True)
         return self._inverse
 
     inverse = __invert__

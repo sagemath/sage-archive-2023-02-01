@@ -1800,7 +1800,7 @@ class TopManifold(TopManifoldSubset):
                                  " defined on the {}".format(codomain))
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
-                      is_homeomorphism=True)
+                      is_isomorphism=True)
 
     def identity_map(self):
         r"""

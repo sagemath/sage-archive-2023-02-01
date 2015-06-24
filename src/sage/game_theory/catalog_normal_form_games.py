@@ -129,8 +129,7 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     Return a 2 by 2 Coordination Game.
 
     A coordination game is a particular type of game where the pure Nash
-    equilibrium is for the players to pick the same strategies strategies
-    [Webb]_.
+    equilibrium is for the players to pick the same strategies [Webb]_.
 
     In general these are represented as a normal form game using the
     following two matrices:
@@ -667,7 +666,7 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     If neither player swerves they will both fall off the cliff.
 
     This can be modeled as a particular type of anti coordination game
-    following two matrices:
+    using the following two matrices:
 
     .. MATH::
 

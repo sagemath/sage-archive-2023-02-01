@@ -3746,7 +3746,7 @@ def PetersenGraph():
 
 def PerkelGraph():
     r"""
-    Return the Perkel Graph
+    Return the Perkel Graph.
 
     The Perkel Graph is a 6-regular graph with `57` vertices and `171` edges. It
     is the unique distance-regular graph with intersection array
@@ -3759,13 +3759,12 @@ def PerkelGraph():
         Perkel Graph: Graph on 57 vertices
         sage: g.is_distance_regular(parameters=True)
         ([6, 5, 2, None], [None, 1, 1, 3])
-
     """
     g = Graph(name="Perkel Graph")
     for i in range(19):
-        g.add_edges(((0,i),(1,(i+j)%19)) for j in [2,5,7])
-        g.add_edges(((0,i),(2,(i+j)%19)) for j in [5,-4,-8])
-        g.add_edges(((1,i),(2,(i+j)%19)) for j in [7,-4,-5])
+        g.add_edges(((0, i), (1, (i + j) % 19)) for j in [2, 5, 7])
+        g.add_edges(((0, i), (2, (i + j) % 19)) for j in [5, -4, -8])
+        g.add_edges(((1, i), (2, (i + j) % 19)) for j in [7, -4, -5])
     g.relabel()
     _circle_embedding(g,[0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
                          48, 40, 17, 20, 27, 43, 16, 7, 14, 6, 4, 15, 41, 24, 37,

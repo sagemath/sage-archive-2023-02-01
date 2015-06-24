@@ -249,56 +249,38 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
 
     #### Parent methods ####
 
-    def _element_constructor_(self, coord_functions, chart1=None, chart2=None,
-                              name=None, latex_name=None,
-                              is_homeomorphism=False, is_identity=False):
+    def _element_constructor_(self, coord_functions, name=None, latex_name=None,
+                              is_isomorphism=False, is_identity=False):
         r"""
         Construct an element of ``self``, i.e. a continuous map
         U --> V, where U is the domain of ``self`` and V its codomain.
 
         INPUT:
 
-        - ``coord_functions`` -- must be either
-
-          - (i) a dictionary of
-            the coordinate expressions (as lists (or tuples) of the
-            coordinates of the image expressed in terms of the coordinates of
-            the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on `U` and chart2 a chart on `N`)
-          - (ii) a single coordinate expression in a given pair of charts, the
-            latter being provided by the arguments ``chart1`` and ``chart2``
-
-          In both cases, if the dimension of the arrival manifold is 1,
-          a single coordinate expression is expected (not a list or tuple with a
-          single element)
-        - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart on
-          domain `U` defining the start coordinates involved in ``coord_functions``
-          for case (ii); if none is provided, the coordinates are assumed to
-          refer to `U`'s default chart
-        - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart on the
-          codomain defining the arrival coordinates involved in ``coord_functions``
-          for case (ii); if none is provided, the coordinates are assumed to
-          refer to the codomain's default chart
+        - ``coord_functions`` -- a dictionary of the coordinate expressions
+          (as lists (or tuples) of the coordinates of the image expressed in
+          terms of the coordinates of the considered point) with the pairs of
+          charts (chart1, chart2) as keys (chart1 being a chart on `U` and
+          chart2 a chart on `V`). If the dimension of the arrival manifold
+          is 1, a single coordinate expression can be passed instead of a tuple
+          with a single element
         - ``name`` -- (default: ``None``) name given to the continuous map
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           continuous map; if none is provided, the LaTeX symbol is set to
           ``name``
-        - ``is_homeomorphism`` -- (default: ``False``) determines whether the
-          constructed object is a homeomorphism; if set to ``True``,
-          then the manifolds `M` and `N` must have the same dimension.
+        - ``is_isomorphism`` -- (default: ``False``) determines whether the
+          constructed object is a isomorphism (i.e. a homeomorphism); if set to
+          ``True``, then the manifolds `M` and `N` must have the same dimension.
         - ``is_identity`` -- (default: ``False``) determines whether the
           constructed object is the identity map; if set to ``True``,
-          then `V` must be `U` and the entries ``coord_functions``, ``chart1``
-          and ``chart2`` are not used.
+          then `V` must be `U` and the entry ``coord_functions`` is not used.
 
         .. NOTE::
 
             If the information passed by means of the argument
             ``coord_functions`` is not sufficient to fully specify the
-            continuous map (for instance case (ii) with ``chart1`` not
-            covering the entire domain `U`), further coordinate expressions,
-            in other charts, can be subsequently added by means of the method
-            :meth:`~sage.manifolds.continuous_map.ContinuousMap.add_expr`
+            continuous map, further coordinate expressions, in other charts,
+            can be subsequently added by means of the method :meth:`add_expr`
 
         OUTPUT:
 
@@ -327,9 +309,8 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
         """
         # Standard construction
         return self.element_class(self, coord_functions=coord_functions,
-                                  chart1=chart1, chart2=chart2, name=name,
-                                  latex_name=latex_name,
-                                  is_homeomorphism=is_homeomorphism,
+                                  name=name, latex_name=latex_name,
+                                  is_isomorphism=is_isomorphism,
                                   is_identity=is_identity)
 
     def _an_element_(self):

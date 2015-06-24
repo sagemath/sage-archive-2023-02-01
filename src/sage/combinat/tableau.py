@@ -2321,7 +2321,7 @@ class Tableau(ClonableList):
     def reverse_bump(self, loc):
         r"""
         Reverse row bump the entry of ``self`` at the specified
-        location ``loc`` (given as a row index or an inner
+        location ``loc`` (given as a row index or a
         corner ``(r, c)`` of the tableau).
 
         This is the reverse of Schensted's row-insertion algorithm.
@@ -2332,7 +2332,7 @@ class Tableau(ClonableList):
         - ``loc`` -- Can be either of the following:
 
           - The coordinates ``(r, c)`` of the square to reverse-bump
-            (which must be an inner corner of the tableau);
+            (which must be a corner of the tableau);
           - The row index ``r`` of this square.
 
           Note that both ``r`` and ``c`` are `0`-based, i.e., the
@@ -2367,7 +2367,7 @@ class Tableau(ClonableList):
             sage: T.reverse_bump((3, 1))
             Traceback (most recent call last):
             ...
-            ValueError: invalid outer corner
+            ValueError: invalid corner
             sage: T.reverse_bump(4)
             Traceback (most recent call last):
             ...
@@ -2400,7 +2400,7 @@ class Tableau(ClonableList):
         try:
             (r, c) = loc
             if (r, c) not in self.corners():
-                raise ValueError("invalid outer corner")
+                raise ValueError("invalid corner")
         except TypeError:
             r = loc
             c = len(self[r]) - 1

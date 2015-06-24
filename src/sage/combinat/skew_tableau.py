@@ -777,11 +777,15 @@ class SkewTableau(ClonableList):
                 max_entry = 0
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
-    def slide(self, corner=None):
+    def slide(self, corner=None, return_vacated=False):
         """
         Apply a jeu-de-taquin slide to ``self`` on the specified corner and
         returns the new tableau.  If no corner is given an arbitrary corner
         is chosen.
+
+        The optional parameter ``return_vacated=True`` causes
+        the output to be the pair ``(t, (i, j))`` where ``t`` is the new
+        tableau and ``(i, j)`` are the coordinates of the vacated square.
 
         See [FW]_ p12-13.
 
@@ -853,6 +857,8 @@ class SkewTableau(ClonableList):
         if len(new_st[spotl]) == 0:
             new_st.pop()
 
+        if return_vacated:
+            return (SkewTableau(new_st), (spotl, spotc))
         return SkewTableau(new_st)
 
     def rectify(self):
@@ -890,7 +896,7 @@ class SkewTableau(ClonableList):
 
     def to_list(self):
         r"""
-        Returns a (mutable) list representation of ``self``.
+        Return a (mutable) list representation of ``self``.
 
         EXAMPLES::
 
@@ -906,7 +912,7 @@ class SkewTableau(ClonableList):
 
     def shuffle(self, t2):
         r"""
-        Shuffles ``self`` with ``t2`` using jeu de taquin.
+        Shuffle ``self`` with ``t2`` using jeu de taquin.
 
         Both tableaux must be standard, and the shape of ``t2`` must extend
         the shape of ``self``, that is, ``self.outer_shape() == t2.inner_shape()``.
@@ -1574,7 +1580,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
     def shuffle(self, t1, t2):
         r"""
-        Shuffles the standard tableaux ``t1`` and ``t2``.
+        Shuffle the standard tableaux ``t1`` and ``t2``.
 
         The shape of ``t2`` must extend the shape of ``t1``, that is, 
         ``t1.outer_shape() == t2.inner_shape()``. Then this function computes
@@ -1636,13 +1642,13 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
-            ValueError: The tableaux must be standard
+            ValueError: the tableaux must be standard
             sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
             sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 6]])
             sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
-            ValueError: The tableaux must be standard
+            ValueError: the tableaux must be standard
 
         The shapes (not just the nonempty cells) must be adjacent::
 
@@ -1652,7 +1658,7 @@ class SkewTableaux(Parent, UniqueRepresentation):
             sage: STs.shuffle(t1, t2)
             Traceback (most recent call last):
             ...
-            ValueError: The shapes must be adjacent
+            ValueError: the shapes must be adjacent
 
         TESTS:
 
@@ -1671,36 +1677,29 @@ class SkewTableaux(Parent, UniqueRepresentation):
 
         """
         if t1.outer_shape() != t2.inner_shape():
-            raise ValueError("The shapes must be adjacent")
+            raise ValueError("the shapes must be adjacent")
         if not (t1.is_standard() and t2.is_standard()):
-            raise ValueError("The tableaux must be standard")
+            raise ValueError("the tableaux must be standard")
 
         # start with t2_new = t2, which we will slide backwards
         t2_new = t2
 
         # make a blank copy of t2 (to fill in iteratively), which will become t1_new
-        t1_new = t2.to_list()
-        for i in range(len(t2)):
-            for j in range(len(t2[i])):
-                t1_new[i][j] = None
+        t1_new = [[None]*len(x) for x in list(t2)]
 
         # perform reverse slides according to the entries of t1,
         # from largest to smallest
         m = t1.size()
-        for i in range(m,0,-1):
+        for i in range(m, 0, -1):
             # the square of t1 containing i
             corner = t1.cells_containing(i)[0]
 
             # slide t2_new backwards, record i in the vacated square
-            next_t2 = t2_new.slide(corner)
-            # find the vacated square by comparing the outer shapes before
-            # and after the slide
-            (x, y) = SkewPartition([t2_new.outer_shape(), next_t2.outer_shape()]).cells()[0]
+            (t2_new, (x, y)) = t2_new.slide(corner, True)
             t1_new[x][y] = i
-            t2_new = next_t2
 
         t1_new = SkewTableau(t1_new)
-        return t2_new,t1_new
+        return t2_new, t1_new
 
 
 class StandardSkewTableaux(SkewTableaux):

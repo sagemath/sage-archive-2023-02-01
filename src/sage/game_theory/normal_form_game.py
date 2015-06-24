@@ -1958,6 +1958,27 @@ class NormalFormGame(SageObject, MutableMapping):
         return A, B
 
 
+    def is_degenerate_sup(self):
+        """
+        TESTS::
+
+        sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+        sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+        sage: g = NormalFormGame([A, B])
+        sage: g.is_degenerate_sup()
+        """
+        M1, M2 = self.payoff_matrices()
+        potential_supports = [[tuple(support) for support in
+                               powerset(range(player.num_strategies))]
+                              for player in self.players]
+
+        potential_support_pairs = [pair for pair in
+                                   CartesianProduct(*potential_supports) if
+                                   len(pair[0]) != len(pair[1])]
+
+        return potential_support_pairs
+
+
 class _Player():
     def __init__(self, num_strategies):
         r"""

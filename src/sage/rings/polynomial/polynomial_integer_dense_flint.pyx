@@ -57,6 +57,8 @@ from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ntl_ZZX_decl cimport *
+from sage.rings.integer cimport smallInteger
+
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -1079,8 +1081,9 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
     def degree(self, gen=None):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
+        Return the degree of this polynomial.
+
+        The zero polynomial has degree -1.
 
         EXAMPLES::
 
@@ -1093,8 +1096,13 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             0
             sage: R(0).degree()
             -1
+
+        TESTS::
+
+            sage: type(x.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        return fmpz_poly_degree(self.__poly)
+        return smallInteger(fmpz_poly_degree(self.__poly))
 
     def pseudo_divrem(self, B):
         """

@@ -167,7 +167,7 @@ class Polygon(GraphicPrimitive_xydata):
             Polygon defined by 4 points
             sage: q=p.plot3d()
             sage: q.texture.opacity
-            0.500000000000000
+            0.5
         """
         if options is None:
             options = dict(self.options())

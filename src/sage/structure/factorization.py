@@ -173,16 +173,17 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.element import Element
 from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
 from sage.misc.all import prod
@@ -822,16 +823,18 @@ class Factorization(SageObject):
                       self.universe()._repr_option('element_is_atomic'))
         except AttributeError:
             atomic = False
-        if hasattr(x, 'parent'):
+
+        if isinstance(x, Element):
             one = x.parent()(1)
         else:
             one = 1
+
         for i in range(len(self)):
             t = repr(self.__x[i][0])
             n = self.__x[i][1]
-            if (n != 1 or len(self) > 1 or self.__unit != one) and not atomic \
-               and ('+' in t or '-' in t or ' ' in t):
-                t = '(%s)'%t
+            if not atomic and (n != 1 or len(self) > 1 or self.__unit != one):
+                if '+' in t or '-' in t or ' ' in t:
+                    t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
             s += t

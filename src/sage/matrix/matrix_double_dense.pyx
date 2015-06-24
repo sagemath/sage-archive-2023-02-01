@@ -386,7 +386,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return M
 
 
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     # x * __copy__
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
@@ -989,9 +989,9 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: sv = A.singular_values()
             sage: sv[0:3]  # tol 1e-14
             [1440.7336659952966, 18.404403413369227, 6.839707797136151]
-            sage: (10^-15 < sv[3] < 10^-13) or sv[3]
+            sage: (sv[3] < 10^-13) or sv[3]
             True
-            sage: (10^-16 < sv[4] < 10^-14) or sv[4]
+            sage: (sv[4] < 10^-14) or sv[4]
             True
 
         A full-rank matrix that is ill-conditioned.  We use this to
@@ -1618,70 +1618,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return [(sage.rings.complex_double.CDF(v[i]), [eig[i]], 1) for i in range(len(v))]
 
     eigenvectors_right = right_eigenvectors
-
-    def solve_left_LU(self, b):
-        """
-        Solve the equation `A x = b` using LU decomposition.
-
-        .. WARNING::
-
-            This function is broken. See trac 4932.
-
-        INPUT:
-
-        - self -- an invertible matrix
-        - b -- a vector
-
-        .. NOTE::
-
-            This method precomputes and stores the LU decomposition
-            before solving. If many equations of the form Ax=b need to be
-            solved for a singe matrix A, then this method should be used
-            instead of solve. The first time this method is called it will
-            compute the LU decomposition.  If the matrix has not changed
-            then subsequent calls will be very fast as the precomputed LU
-            decomposition will be reused.
-
-        EXAMPLES::
-
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
-            sage: x = A.solve_left_LU(b); x
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not finished (see trac 4932)
-
-
-        TESTS:
-
-        We test two degenerate cases::
-
-            sage: A = matrix(RDF, 0, 3, [])
-            sage: A.solve_left_LU(vector(RDF,[]))
-            (0.0, 0.0, 0.0)
-            sage: A = matrix(RDF, 3, 0, [])
-            sage: A.solve_left_LU(vector(RDF,3, [1,2,3]))
-            ()
-
-        """
-        if self._nrows != b.degree():
-            raise ValueError("number of rows of self must equal degree of b")
-        if self._nrows == 0 or self._ncols == 0:
-            return self._row_ambient_module().zero_vector()
-
-        raise NotImplementedError("this function is not finished (see trac 4932)")
-        self._c_compute_LU()  # so self._L_M and self._U_M are defined below.
-        cdef Matrix_double_dense M = self._new()
-        lu = self._L_M*self._U_M
-        global scipy
-        if scipy is None:
-            import scipy
-        import scipy.linalg
-        M._matrix_numpy = scipy.linalg.lu_solve((lu, self._P_M), b)
-        return M
 
     def solve_right(self, b):
         r"""
@@ -2546,7 +2482,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             True
             sage: U.is_unitary(algorithm='orthonormal')
             True
-            sage: V.is_unitary(algorithm='naive')  # not tested - known bug (trac #11248)
+            sage: V.is_unitary(algorithm='naive')
             True
 
         If we make the tolerance too strict we can get misleading results.  ::
@@ -3878,7 +3814,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: a=matrix([[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
+            sage: a = matrix(CDF, [[1, 1e-4r, 1+1e-100jr], [1e-8+3j, 0, 1e-58r]])
             sage: a
             [           1.0         0.0001 1.0 + 1e-100*I]
             [ 1e-08 + 3.0*I            0.0          1e-58]
@@ -3888,9 +3824,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             sage: a.zero_at(1e-4)
             [  1.0   0.0   1.0]
             [3.0*I   0.0   0.0]
-
-
-
         """
         global numpy
         cdef Matrix_double_dense M

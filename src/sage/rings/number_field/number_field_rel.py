@@ -212,7 +212,7 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
-            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: sage.libs.pari.gen.PariError: incorrect type in core2partial (t_FRAC)>
+            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: PariError: incorrect type in core2partial (t_FRAC)>
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -670,7 +670,7 @@ class NumberField_relative(NumberField_generic):
             sage: O2.index_in(OK)
             144
 
-        The following was previously "ridiculously slow"; see trac #4738::
+        The following was previously "ridiculously slow"; see :trac:`4738`::
 
             sage: K.<a,b> = NumberField([x^4 + 1, x^4 - 3])
             sage: K.maximal_order()
@@ -678,10 +678,10 @@ class NumberField_relative(NumberField_generic):
 
         An example with nontrivial ``v``::
 
-            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5])
+            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5*49])
             sage: O3 = L.maximal_order([3])
             sage: O3.absolute_discriminant()
-            3686400
+            8643600
             sage: O3.is_maximal()
             False
         """
@@ -1324,7 +1324,7 @@ class NumberField_relative(NumberField_generic):
                 if not self.relative_degree() == other.relative_degree():
                     return False
                 R = PolynomialRing(o_base_field, 'x')
-                F = R(map(base_isom, self.relative_polynomial()))
+                F = R([base_isom(_) for _ in self.relative_polynomial()])
                 return len(F.roots(other)) > 0
             raise ValueError("base_isom is not a homomorphism from self's base_field to other's base_field")
         raise ValueError("other must be a relative number field.")
@@ -2005,7 +2005,7 @@ class NumberField_relative(NumberField_generic):
         aas = L.automorphisms() # absolute automorphisms
 
         a = self_into_L(self.gen())
-        abs_base_gens = map(self_into_L, self.base_field().gens())
+        abs_base_gens = [self_into_L(_) for _ in self.base_field().gens()]
         v = sorted([ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ])
         put_natural_embedding_first(v)
         self.__automorphisms = Sequence(v, cr = (v != []), immutable=True,
@@ -2164,7 +2164,7 @@ class NumberField_relative(NumberField_generic):
         to_base = abs_base.structure()[0]
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
         D = map(abs_base, abs_base.pari_zk() * D)
-        D = map(to_base, D)
+        D = [to_base(_) for _ in D]
         return base.ideal(D)
 
     def discriminant(self):
@@ -2465,7 +2465,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, (-1/2*b - 5/2)*a + 5/2*b - 9/2)
+            Fractional ideal (5, 1/2*a - b - 5/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

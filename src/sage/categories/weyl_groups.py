@@ -420,6 +420,10 @@ class WeylGroups(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
 
             """
 
@@ -427,12 +431,11 @@ class WeylGroups(Category_singleton):
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_root(i)
-                #return self.parent().domain().simple_root(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_root(i)
+            w = self.apply_simple_reflection(i, side = 'right')
+            if not w.has_descent(i, side = 'left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_root()).simple_reflection(i)
+            return ((w.apply_simple_reflection(i, side = 'left')).reflection_to_root()).simple_reflection(i)
 
         @cached_in_parent_method
         def reflection_to_coroot(self):
@@ -450,6 +453,10 @@ class WeylGroups(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
 
             """
 
@@ -457,12 +464,11 @@ class WeylGroups(Category_singleton):
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_coroot(i)
-                #return self.parent().domain().simple_coroot(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_coroot(i)
+            w = self.apply_simple_reflection(i, side = 'right')
+            if not w.has_descent(i, side='left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_coroot()).simple_reflection(i)
+            return ((w.apply_simple_reflection(i, side = 'left')).reflection_to_coroot()).simple_reflection(i)
 
         def inversions(self, side = 'right', inversion_type = 'reflections'):
             """
@@ -512,6 +518,51 @@ class WeylGroups(Category_singleton):
             if inversion_type == 'coroots':
                 return [r.reflection_to_coroot() for r in reflections]
             raise ValueError("inversion_type {} is invalid".format(inversion_type))
+
+        def inversion_arrangement(self, side='right'):
+            r"""
+            Return the inversion hyperplane arrangement of ``self``.
+
+            INPUT:
+
+            - ``side`` -- ``'right'`` (default) or ``'left'``
+
+            OUTPUT:
+
+            A (central) hyperplane arrangement whose hyperplanes correspond
+            to the inversions of ``self`` given as roots.
+
+            The ``side`` parameter determines on which side
+            to compute the inversions.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([1, 2, 3, 1, 2])
+                sage: A = w.inversion_arrangement(); A
+                Arrangement of 5 hyperplanes of dimension 3 and rank 3
+                sage: A.hyperplanes()
+                (Hyperplane 0*a1 + 0*a2 + a3 + 0,
+                 Hyperplane 0*a1 + a2 + 0*a3 + 0,
+                 Hyperplane 0*a1 + a2 + a3 + 0,
+                 Hyperplane a1 + a2 + 0*a3 + 0,
+                 Hyperplane a1 + a2 + a3 + 0)
+
+            The identity element gives the empty arrangement::
+
+                sage: W = WeylGroup(['A',3])
+                sage: W.one().inversion_arrangement()
+                Empty hyperplane arrangement of dimension 3
+            """
+            inv = self.inversions(side=side, inversion_type='roots')
+            from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+            I = self.parent().cartan_type().index_set()
+            H = HyperplaneArrangements(QQ, tuple(['a{}'.format(i) for i in I]))
+            gens = H.gens()
+            if not inv:
+                return H()
+            return H([sum(c * gens[I.index(i)] for (i, c) in root)
+                      for root in inv])
 
         def bruhat_lower_covers_coroots(self):
             r"""

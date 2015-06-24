@@ -422,9 +422,9 @@ interface to Singular::
     Total number of rational places : 6
     <BLANKLINE>
     sage: singular.eval("def R=X3[1][5];")
-    'def R=X3[1][5];'
+    ''
     sage: singular.eval("setring R;")
-    'setring R;'
+    ''
     sage: L = singular.eval("POINTS;")
 
     sage: print L

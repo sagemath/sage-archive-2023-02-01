@@ -246,7 +246,7 @@ def ChainComplex(data=None, **kwds):
         try:
             zero = grading_group.identity()
         except AttributeError:
-            zero = grading_group.zero_element()
+            zero = grading_group.zero()
         if base_ring is None:
             base_ring = ZZ
         data_dict = dict()
@@ -394,7 +394,7 @@ class Chain_class(ModuleElement):
             return 'Trivial chain'
 
         if n == 1:
-            deg, vec = self._vec.iteritems().next()
+            deg, vec = next(self._vec.iteritems())
             return 'Chain({0}:{1})'.format(deg, vec)
 
         return 'Chain with {0} nonzero terms over {1}'.format(
@@ -416,7 +416,7 @@ class Chain_class(ModuleElement):
             0 <---- [0] <---- [4] <---- [2] <----- 0
                               [5]       [3]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
 
         def arrow_art(d):
             d_str = ['  d_{0}  '.format(d)]
@@ -1581,7 +1581,7 @@ class ChainComplex_class(Parent):
                         [1]                             [1]       [0]       [1]
              0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
 
         def arrow_art(n):
             d_n = self.differential(n)

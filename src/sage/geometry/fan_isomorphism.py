@@ -86,8 +86,8 @@ def fan_isomorphism_generator(fan1, fan2):
         sage: from sage.geometry.fan_isomorphism import fan_isomorphism_generator
         sage: tuple( fan_isomorphism_generator(fan, fan) )
         (
-        [1 0]  [0 1]  [ 1  0]  [-1 -1]  [ 0  1]  [-1 -1]
-        [0 1], [1 0], [-1 -1], [ 1  0], [-1 -1], [ 0  1]
+        [1 0]  [0 1]  [ 1  0]  [ 0  1]  [-1 -1]  [-1 -1]
+        [0 1], [1 0], [-1 -1], [-1 -1], [ 1  0], [ 0  1]
         )
 
         sage: m1 = matrix([(1, 0), (0, -5), (-3, 4)])
@@ -98,7 +98,7 @@ def fan_isomorphism_generator(fan1, fan2):
         ...               Cone([m1*vector([-1,-14]), m1*vector([-100, -5])])])
         sage: fan2 = Fan([Cone([m2*vector([23, 14]), m2*vector([   3,100])]),
         ...               Cone([m2*vector([-1,-14]), m2*vector([-100, -5])])])
-        sage: fan_isomorphism_generator(fan1, fan2).next()
+        sage: next(fan_isomorphism_generator(fan1, fan2))
         [18  1 -5]
         [ 4  0 -1]
         [ 5  0 -1]
@@ -240,7 +240,7 @@ def find_isomorphism(fan1, fan2, check=False):
     """
     generator = fan_isomorphism_generator(fan1, fan2)
     try:
-        m = generator.next()
+        m = next(generator)
     except StopIteration:
         raise FanNotIsomorphicError
 

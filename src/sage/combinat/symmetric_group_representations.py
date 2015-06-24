@@ -384,7 +384,7 @@ class SymmetricGroupRepresentation_generic_class(SageObject):
         for i in range(1,n):
             si = Permutation(range(1,i) + [i+1,i] + range(i+2,n+1))
             transpositions.append(si)
-        repn_matrices = map(self.representation_matrix, transpositions)
+        repn_matrices = [self.representation_matrix(_) for _ in transpositions]
         for (i,si) in enumerate(repn_matrices):
             for (j,sj) in enumerate(repn_matrices):
                 if i == j:
@@ -466,7 +466,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         r"""
         Return the irreducible representation corresponding to partition.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sp = SymmetricGroupRepresentations(3, "specht")
             sage: sp([1,1,1])
             Specht representation of the symmetric group corresponding to [1, 1, 1]
@@ -485,7 +486,8 @@ class SymmetricGroupRepresentations_class(CombinatorialClass):
         Iterate through all the irreducible representations of the
         symmetric group.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: orth = SymmetricGroupRepresentations(3, "orthogonal")
             sage: for x in orth: print x
             Orthogonal representation of the symmetric group corresponding to [3]
@@ -549,7 +551,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         for (u,w,(i,beta)) in self._yang_baxter_graph._edges_in_bfs():
             # TODO: improve the following
             si = PermutationGroupElement((i,i+1))
-            tableau_dict[w] = Tableau([map(si, row) for row in tableau_dict[u]])
+            tableau_dict[w] = Tableau([[si(_) for _ in row] for row in tableau_dict[u]])
         return tableau_dict
 
     @lazy_attribute
@@ -562,15 +564,15 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
 
             sage: orth = SymmetricGroupRepresentation([3,2], "orthogonal")
             sage: orth._word_dict
-            {(0, -1, 2, 1, 0): [4, 5, 1, 2, 3],
-             (0, 2, -1, 1, 0): [3, 5, 1, 2, 4],
-             (0, 2, 1, -1, 0): [2, 5, 1, 3, 4],
-             (2, 0, -1, 1, 0): [3, 4, 1, 2, 5],
-             (2, 0, 1, -1, 0): [2, 4, 1, 3, 5]}
+            {(0, -1, 2, 1, 0): (4, 5, 1, 2, 3),
+             (0, 2, -1, 1, 0): (3, 5, 1, 2, 4),
+             (0, 2, 1, -1, 0): (2, 5, 1, 3, 4),
+             (2, 0, -1, 1, 0): (3, 4, 1, 2, 5),
+             (2, 0, 1, -1, 0): (2, 4, 1, 3, 5)}
         """
         word_dict = {}
         for (v,t) in self._tableau_dict.iteritems():
-            word_dict[v] = sum(reversed(t), [])
+            word_dict[v] = sum(reversed(t), ())
         return word_dict
 
     @cached_method

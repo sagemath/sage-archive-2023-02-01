@@ -41,8 +41,8 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "sage/ext/gmp.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "sage/ext/cdefs.pxi"
 include "sage/libs/pari/decl.pxi"
 
 cdef extern from "pari/pari.h":
@@ -262,8 +262,7 @@ cdef class arith_int:
         cdef float bnd
 
         if m>46340:
-            raise OverflowError, "The modulus m(=%s) should be at most 46340"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) should be at most 46340"%m)
 
         a = a % m
 
@@ -397,8 +396,7 @@ cdef class arith_llong:
         cdef float bnd
 
         if m > 2147483647:
-            raise OverflowError, "The modulus m(=%s) must be at most 2147483647"%m
-            return -1
+            raise OverflowError("The modulus m(=%s) must be at most 2147483647"%m)
 
         a = a % m
 

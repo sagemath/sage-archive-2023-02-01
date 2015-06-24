@@ -148,13 +148,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.libs.gmp.mpz cimport mpz_t, mpz_set
+from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 
 from libcpp cimport bool as cppbool
 

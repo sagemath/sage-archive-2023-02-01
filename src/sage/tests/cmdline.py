@@ -35,6 +35,8 @@ test.spyx
 -q
 --R
 --root
+--rst2txt
+--rst2sws
 --scons
 --sh
 --singular
@@ -200,12 +202,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Test ``sage --info [packages]``, unless this is a binary (bdist)
     distribution which doesn't ship spkgs::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlalchemy"])
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
         sage: print out
-        Found local metadata for sqlalchemy-...
-        = SQLAlchemy =
+        Found local metadata for sqlite-...
+        = SQLite =
         ...
-        SQLAlchemy is the Python SQL toolkit...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
         sage: err
         ''
         sage: ret
@@ -473,17 +477,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         ....:         return True
         ....:     except OSError:
         ....:         return False 
-        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"]) if has_tty() else ('usage: sage-dev', '', 0)
-        sage: ret, err
-        (0, '')
-        sage: print out    # random output
-        usage: sage-dev [-h] subcommand ...
-        <BLANKLINE>
-        The developer interface for sage.
-        ...
-        sage: ('usage: sage-dev' in out) or ('Developer interface disabled' in out)
-        True
-
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")
         sage: out.find("Embeddable Common-Lisp") >= 0
         True
@@ -632,6 +625,98 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret > 0
         True
 
+    Test ``sage --rst2txt file.rst`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
+        sage: print out
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+        sage: err
+        ''
+        sage: ret
+        0
+
+    Test ``sage --rst2txt file.rst file.txt`` on a ReST file::
+
+        sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.txt')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: test_executable(["sage", "--rst2txt", input, output])
+        ('', '', 0)
+        sage: print open(output, 'r').read()
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+
+    Test ``sage --rst2sws file.rst file.sws`` on a ReST file::
+
+        sage: s = "Thetitle\n--------\n\n::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
+        sage: input = tmp_filename(ext='.rst')
+        sage: output = tmp_filename(ext='.sws')
+        sage: F = open(input, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: test_executable(["sage", "--rst2sws", input, output])
+        ('', '', 0)
+        sage: import tarfile
+        sage: f = tarfile.open(output, 'r')
+        sage: print f.extractfile('sage_worksheet/worksheet.html').read()
+        <h1 class="title">Thetitle</h1>
+        <BLANKLINE>
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
+        sage: print f.extractfile('sage_worksheet/worksheet.txt').read()
+        Thetitle
+        system:sage
+        <BLANKLINE>
+        <BLANKLINE>
+        <h1 class="title">Thetitle</h1>
+        <BLANKLINE>
+        {{{id=0|
+        2^10
+        ///
+        1024
+        }}}
+        <BLANKLINE>
+        {{{id=1|
+        2 + 2
+        ///
+        4
+        }}}
     """
     pexpect_env = dict(os.environ)
     try:

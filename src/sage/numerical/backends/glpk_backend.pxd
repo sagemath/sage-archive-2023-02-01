@@ -6,11 +6,9 @@
 ##############################################################################
 
 from generic_backend cimport GenericBackend
-include 'sage/ext/stdsage.pxi'
 
 
 cdef extern from *:
-    ctypedef double* const_double_ptr "const double*"
     ctypedef char * const_char_ptr "const char*"
 
 cdef extern from "float.h":
@@ -77,7 +75,10 @@ cdef extern from "glpk.h":
      double glp_get_col_prim(c_glp_prob *, int)
      double glp_get_obj_val(c_glp_prob *)
      double glp_get_col_dual(c_glp_prob *, int)
+     double glp_get_row_prim(c_glp_prob *, int)
      double glp_get_row_dual(c_glp_prob *, int)
+     int glp_get_col_stat(c_glp_prob *, int)
+     int glp_get_row_stat(c_glp_prob *, int)
      int glp_print_ranges(c_glp_prob *lp, int,int, int, char *fname)
      int glp_get_num_rows(c_glp_prob *)
      int glp_get_num_cols(c_glp_prob *)
@@ -200,6 +201,12 @@ cdef extern from "glpk.h":
 
      int GLP_MSG_DBG
 
+     int GLP_BS      # basic variable
+     int GLP_NL      # non-basic variable on lower bound
+     int GLP_NU      # non-basic variable on upper bound
+     int GLP_NF      # non-basic free (unbounded) variable
+     int GLP_NS      # non-basic fixed variable
+
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp
     cdef c_glp_iocp * iocp
@@ -210,3 +217,6 @@ cdef class GLPKBackend(GenericBackend):
     cpdef int print_ranges(self, char * filename = *) except -1
     cpdef double get_row_dual(self, int variable)
     cpdef double get_col_dual(self, int variable)
+    cpdef int get_row_stat(self, int variable)
+    cpdef int get_col_stat(self, int variable)
+

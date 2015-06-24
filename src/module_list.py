@@ -1019,8 +1019,7 @@ ext_modules = [
               sources = ['sage/matrix/echelon_matrix.pyx']),
 
     Extension('sage.matrix.change_ring',
-              sources = ['sage/matrix/change_ring.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/change_ring.pyx']),
 
     Extension('sage.matrix.matrix',
               sources = ['sage/matrix/matrix.pyx']),
@@ -1035,8 +1034,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix2.pyx']),
 
     Extension('sage.matrix.matrix_complex_double_dense',
-              sources = ['sage/matrix/matrix_complex_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_complex_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_cyclo_dense',
               sources = ['sage/matrix/matrix_cyclo_dense.pyx'],
@@ -1047,8 +1045,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_dense.pyx']),
 
     Extension('sage.matrix.matrix_double_dense',
-              sources = ['sage/matrix/matrix_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_generic_dense',
               sources = ['sage/matrix/matrix_generic_dense.pyx']),
@@ -1111,8 +1108,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_rational_sparse.pyx']),
 
     Extension('sage.matrix.matrix_real_double_dense',
-              sources = ['sage/matrix/matrix_real_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_real_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_sparse',
               sources = ['sage/matrix/matrix_sparse.pyx']),
@@ -1249,12 +1245,10 @@ ext_modules = [
               sources = ['sage/modules/module.pyx']),
 
     Extension('sage.modules.vector_complex_double_dense',
-              ['sage/modules/vector_complex_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_complex_double_dense.pyx']),
 
     Extension('sage.modules.vector_double_dense',
-              ['sage/modules/vector_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_double_dense.pyx']),
 
     Extension('sage.modules.vector_integer_dense',
               sources = ['sage/modules/vector_integer_dense.pyx']),
@@ -1273,8 +1267,7 @@ ext_modules = [
               sources = ['sage/modules/vector_rational_dense.pyx']),
 
     Extension('sage.modules.vector_real_double_dense',
-              ['sage/modules/vector_real_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_real_double_dense.pyx']),
 
     ################################
     ##

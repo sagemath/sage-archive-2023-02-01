@@ -1587,10 +1587,11 @@ class Tableau(ClonableList):
 
     def is_row_increasing(self, weak=False):
         r"""
-        Return ``True`` if the entries in each row are in increasing order and ``False`` otherwise.
+        Return ``True`` if the entries in each row are in increasing order,
+        and ``False`` otherwise.
 
-        By default, this checks for strictly increasing rows. Set ``weak`` to ``True`` to test for
-        weakly increasing rows.
+        By default, this checks for strictly increasing rows. Set ``weak``
+        to ``True`` to test for weakly increasing rows.
 
         EXAMPLES::
 
@@ -1602,19 +1603,21 @@ class Tableau(ClonableList):
             sage: Tableau([[2, 1]]).is_row_increasing(weak=True)
             False
         """
-        def test(a, b):
-            if weak:
+        if weak:
+            def test(a, b):
                 return a <= b
-            else:
+        else:
+            def test(a, b):
                 return a < b
-        return all(test(row[i], row[i+1]) for row in self for i in range(len(row) - 1))
+        return all(test(a, b) for row in self for (a, b) in zip(row, row[1:]))
 
     def is_column_increasing(self, weak=False):
         r"""
-        Return ``True`` if the entries in each column are in increasing order and ``False`` otherwise.
+        Return ``True`` if the entries in each column are in increasing order,
+        and ``False`` otherwise.
 
-        By default, this checks for strictly increasing columns. Set ``weak`` to ``True`` to test for
-        weakly increasing columns.
+        By default, this checks for strictly increasing columns. Set ``weak``
+        to ``True`` to test for weakly increasing columns.
 
         EXAMPLES::
 
@@ -1626,10 +1629,11 @@ class Tableau(ClonableList):
             sage: Tableau([[2], [1]]).is_column_increasing(weak=True)
             False
         """
-        def test(a, b):
-            if weak:
+        if weak:
+            def test(a, b):
                 return a <= b
-            else:
+        else:
+            def test(a, b):
                 return a < b
         def tworow(a, b):
             return all(test(a[i], b_i) for i, b_i in enumerate(b))
@@ -1668,7 +1672,7 @@ class Tableau(ClonableList):
 
     def is_semistandard(self):
         r"""
-        Return ``True`` if ``self`` is a semistandard tableau and ``False``
+        Return ``True`` if ``self`` is a semistandard tableau, and ``False``
         otherwise.
 
         A tableau is semistandard if its rows weakly increase and its columns
@@ -2316,37 +2320,36 @@ class Tableau(ClonableList):
 
     def reverse_bump(self, loc):
         r"""
-        Reverse row bump the rightmost entry of ``self`` starting from
-        the specified location ``loc`` (given as a row index or an outer
+        Reverse row bump the entry of ``self`` at the specified
+        location ``loc`` (given as a row index or an inner
         corner ``(r, c)`` of the tableau).
 
         This is the reverse of Schensted's row-insertion algorithm.
-    
+        See Section 1.1, page 8, of Fulton's [Ful1997]_.
+
         INPUT:
-    
+
         - ``loc`` -- Can be either of the following:
 
-          - The row index ``r`` to bump from
-          - The coordinates ``(r, c)`` of the square to bump
-            (which must be an outer corner of the tableau).
+          - The coordinates ``(r, c)`` of the square to reverse-bump
+            (which must be an inner corner of the tableau);
+          - The row index ``r`` of this square.
 
         OUTPUT:
-    
+
         An ordered pair consisting of:
-    
+
         1. The resulting (smaller) tableau
-        2. The removed entry.
-    
+        2. The entry bumped out at the end of the process.
+
         .. SEEALSO::
-    
+
             :func:`bump`
-    
+
         EXAMPLES:
-    
-        This is the reverse of Schensted's bump.
-    
-        ::
-    
+
+        This is the reverse of Schensted's bump::
+
             sage: T = Tableau([[1, 1, 2, 2, 4], [2, 3, 3], [3, 4], [4]])
             sage: T.reverse_bump(2)
             ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
@@ -2355,7 +2358,7 @@ class Tableau(ClonableList):
             sage: T.reverse_bump((3, 0))
             ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
 
-        Some errors::
+        Some errors caused by wrong input::
 
             sage: T.reverse_bump((3, 1))
             Traceback (most recent call last):
@@ -2369,10 +2372,8 @@ class Tableau(ClonableList):
             Traceback (most recent call last):
             ...
             ValueError: Reverse bumping is only defined for semistandard tableaux
-    
-        Some edge cases:
 
-        ::
+        Some edge cases::
 
             sage: Tableau([[1]]).reverse_bump(0)
             ([], 1)
@@ -2382,11 +2383,11 @@ class Tableau(ClonableList):
             IndexError: list index out of range
 
         .. NOTE::
-    
+
             Reverse row bumping is only implemented for tableaux with weakly increasing
-            and strictly increasing columns (though the tableau does not need to be a
-            SemistandardTableau).
-    
+            and strictly increasing columns (though the tableau does not need to be an
+            instance of class :class:`SemistandardTableau`).
+
         """
         if not (self.is_semistandard()):
             raise ValueError("Reverse bumping is only defined for semistandard tableaux")
@@ -2418,7 +2419,7 @@ class Tableau(ClonableList):
             # the bisect command returns the greatest index such that
             # every entry to its left is strictly less than to_move
             c = bisect_left(row, to_move, lo=c) - 1
-            
+
             # swap it with to_move
             row[c], to_move = to_move, row[c]
 

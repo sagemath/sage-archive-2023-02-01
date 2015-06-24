@@ -47,7 +47,8 @@ include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/random.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'sage/gsl/gsl.pxi'
+from sage.libs.gsl.all cimport *
+cimport libc.math
 
 gsl_set_error_handler_off()
 
@@ -2318,7 +2319,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: i.arccos() == q
             True
         """
-        return self._new_c(acos(self._value))
+        return self._new_c(libc.math.acos(self._value))
 
     def arcsin(self):
         """
@@ -2331,7 +2332,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: i.arcsin() == q
             True
         """
-        return self._new_c(asin(self._value))
+        return self._new_c(libc.math.asin(self._value))
 
     def arctan(self):
         """
@@ -2344,7 +2345,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: i.arctan() == q
             True
         """
-        return self._new_c(atan(self._value))
+        return self._new_c(libc.math.atan(self._value))
 
 
     def cosh(self):

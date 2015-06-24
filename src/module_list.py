@@ -42,7 +42,10 @@ givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
-aliases = dict(INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"))
+aliases = dict(
+        GSL_LIBRARIES=['gsl', BLAS, BLAS2],
+        INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
+        )
 
 #########################################################
 ### M4RI flags
@@ -584,45 +587,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.gsl.callback',
-              sources = ['sage/gsl/callback.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.dwt',
-              sources = ['sage/gsl/dwt.pyx'],
-              libraries=['gsl',BLAS],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.fft',
-              sources = ['sage/gsl/fft.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.gsl_array',
-              sources = ['sage/gsl/gsl_array.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.integration',
-              sources = ['sage/gsl/integration.pyx'],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-              libraries=['gsl',BLAS, BLAS2]),
-
-    Extension('sage.gsl.interpolation',
-              sources = ['sage/gsl/interpolation.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.ode',
-              sources = ['sage/gsl/ode.pyx'],
-              libraries=['gsl',BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.probability_distribution',
-              sources = ['sage/gsl/probability_distribution.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
+    Extension('*', ['sage/gsl/*.pyx']),
 
     ################################
     ##
@@ -1351,8 +1316,7 @@ ext_modules = [
               extra_compile_args=["-std=c99"]),
 
     Extension('sage.plot.plot3d.implicit_surface',
-              sources = ['sage/plot/plot3d/implicit_surface.pyx'],
-              libraries = ['gsl']),
+              sources = ['sage/plot/plot3d/implicit_surface.pyx']),
 
     Extension('sage.plot.plot3d.index_face_set',
               sources = ['sage/plot/plot3d/index_face_set.pyx'],
@@ -1444,7 +1408,7 @@ ext_modules = [
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99", "-D_XPG6"],
-              libraries = (['gsl', BLAS, BLAS2, 'm'])),
+              libraries = (['m'])),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx'],
@@ -1505,9 +1469,7 @@ ext_modules = [
               libraries=['ntl']),
 
     Extension('sage.rings.real_double',
-              sources = ['sage/rings/real_double.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
+              sources = ['sage/rings/real_double.pyx']),
 
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx']),

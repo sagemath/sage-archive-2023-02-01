@@ -2335,16 +2335,20 @@ class Tableau(ClonableList):
             (which must be an inner corner of the tableau);
           - The row index ``r`` of this square.
 
+          Note that both ``r`` and ``c`` are `0`-based, i.e., the
+          topmost row and the leftmost column are the `0`-th row
+          and the `0`-th column.
+
         OUTPUT:
 
         An ordered pair consisting of:
 
-        1. The resulting (smaller) tableau
+        1. The resulting (smaller) tableau;
         2. The entry bumped out at the end of the process.
 
         .. SEEALSO::
 
-            :func:`bump`
+            :meth:`bump`
 
         EXAMPLES:
 
@@ -2377,6 +2381,8 @@ class Tableau(ClonableList):
 
             sage: Tableau([[1]]).reverse_bump(0)
             ([], 1)
+            sage: Tableau([[1,1]]).reverse_bump(0)
+            ([[1]], 1)
             sage: Tableau([]).reverse_bump(0)
             Traceback (most recent call last):
             ...
@@ -2413,14 +2419,14 @@ class Tableau(ClonableList):
 
         for row in reversed(new_t[:r]):
             # Decide where to insert:
-            # the bisect command returns the greatest index such that
+            # the bisect_left command returns the greatest index such that
             # every entry to its left is strictly less than to_move
             c = bisect_left(row, to_move, lo=c) - 1
 
             # swap it with to_move
             row[c], to_move = to_move, row[c]
 
-        if isinstance(self,SemistandardTableau):
+        if isinstance(self, SemistandardTableau):
             return SemistandardTableau(new_t), to_move
         return Tableau(new_t), to_move
 

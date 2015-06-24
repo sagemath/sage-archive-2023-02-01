@@ -2205,16 +2205,22 @@ class Tableau(ClonableList):
             res = res.schensted_insert(i,left=left)
         return res
 
-    def reverse_bump(self, corner):
+    def reverse_bump(self, loc):
         r"""
-        Reverse row bump the entry of ``self`` at ``corner``.
+        Reverse row bump the rightmost entry of ``self`` starting from
+        the specified location ``loc`` (given as a row index or an outer
+        corner ``(r, c)`` of the tableau).
 
         This is the reverse of Schensted's row-insertion algorithm.
     
         INPUT:
     
-        - ``corner`` -- an outer corner of the tableau.
-    
+        - ``loc`` -- Can be either of the following:
+
+          - The row index ``r`` to bump from
+          - The coordinates ``(r, c)`` of the square to bump
+            (which must be an outer corner of the tableau).
+
         OUTPUT:
     
         An ordered pair consisting of:
@@ -2233,17 +2239,24 @@ class Tableau(ClonableList):
         ::
     
             sage: T = Tableau([[1, 1, 2, 2, 4], [2, 3, 3], [3, 4], [4]])
-            sage: T.reverse_bump((2, 1))
+            sage: T.reverse_bump(2)
             ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
-            sage: T == T.reverse_bump((2, 1))[0].bump(2)
+            sage: T == T.reverse_bump(2)[0].bump(2)
             True
             sage: T.reverse_bump((3, 0))
             ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
-            sage: T.reverse_bump((1, 1))
+
+        Some errors::
+
+            sage: T.reverse_bump((3, 1))
             Traceback (most recent call last):
             ...
-            ValueError: (1, 1) is not an outer corner
-            sage: Tableau([[2, 2, 1], [3, 3]]).reverse_bump((0, 2))
+            ValueError: invalid outer corner
+            sage: T.reverse_bump(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: Tableau([[2, 2, 1], [3, 3]]).reverse_bump(0)
             Traceback (most recent call last):
             ...
             ValueError: Reverse bumping is only defined for semistandard tableaux
@@ -2252,13 +2265,13 @@ class Tableau(ClonableList):
 
         ::
 
-            sage: Tableau([[1]]).reverse_bump((0, 0))
+            sage: Tableau([[1]]).reverse_bump(0)
             ([], 1)
-            sage: Tableau([]).reverse_bump((0, 0))
+            sage: Tableau([]).reverse_bump(0)
             Traceback (most recent call last):
             ...
-            ValueError: (0, 0) is not an outer corner
-    
+            IndexError: list index out of range
+
         .. NOTE::
     
             Reverse row bumping is only implemented for tableaux with weakly increasing
@@ -2266,31 +2279,40 @@ class Tableau(ClonableList):
             SemistandardTableau).
     
         """
-        if corner not in self.corners():
-            raise ValueError("%s is not an outer corner" % str(corner))
         if not (self.is_semistandard()):
             raise ValueError("Reverse bumping is only defined for semistandard tableaux")
+        try:
+            r = loc
+            c = len(self[r]) - 1
+        except TypeError:
+            try:
+                (r, c) = loc
+            except ValueError:
+                raise ValueError("Specify a row or an outer corner")
+            if (r, c) not in self.corners():
+                raise ValueError("invalid outer corner")
 
+        # make a copy of self
         new_t = self.to_list()
-        (r, c) = corner
-        to_move = new_t[r][c]
-        
-        # delete square (r, c) from the tableau
-        if len(new_t[r]) > 1:
-            new_t[r] = new_t[r][:-1]
-        else: # (if the square was the only entry of its row, delete the row)
-            new_t = new_t[:-1]
-        
-        while r > 0:
-            # starting from (r-1, c), find the rightmost entry of row r-1
-            # that is strictly smaller than to_move
-            while c+1 < len(new_t[r-1]) and new_t[r-1][c+1] < to_move:
-                c = c+1
+
+        # remove the last entry of row r from the tableau
+        to_move = new_t[r].pop()
+
+        # delete the row if it's now empty
+        if new_t[r] == []:
+            new_t.pop()
+
+        from bisect import bisect_left
+
+        for row in reversed(new_t[:r]):
+            # Decide where to insert:
+            # the bisect command returns the greatest index such that
+            # every entry to its left is strictly less than to_move
+            c = bisect_left(row, to_move, lo=c) - 1
             
             # swap it with to_move
-            new_t[r-1][c], to_move = to_move, new_t[r-1][c]
-    
-            r = r-1
+            row[c], to_move = to_move, row[c]
+
         if isinstance(self,SemistandardTableau):
             return SemistandardTableau(new_t), to_move
         return Tableau(new_t), to_move

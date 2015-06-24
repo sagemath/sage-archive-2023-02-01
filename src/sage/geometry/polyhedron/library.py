@@ -22,6 +22,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cyclic_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.flow_polytope`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.gosset_3_21`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.great_rhombicuboctahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypercube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
@@ -821,7 +822,7 @@ class Polytopes():
             sage: g = polytopes.gosset_3_21(); g
             A 7-dimensional polyhedron in ZZ^8 defined as the convex hull of 56 vertices
             sage: g.f_vector() # not tested (~16s)
-            (1, 120, 720, 1200, 600, 1)
+            (1, 56, 756, 4032, 10080, 12096, 6048, 702, 1)
         """
         from itertools import combinations
         verts = []

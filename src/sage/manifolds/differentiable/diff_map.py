@@ -74,9 +74,9 @@ class DiffMap(ContinuousMap):
       as keys (chart1 being a chart on `U` and chart2 a chart on `V`).
       If the dimension of the arrival manifold is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
-    - ``name`` -- (default: ``None``) name given to the continuous map
+    - ``name`` -- (default: ``None``) name given to the differentiable map
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-      continuous map; if none is provided, the LaTeX symbol is set to
+      differentiable map; if none is provided, the LaTeX symbol is set to
       ``name``
     - ``is_isomorphism`` -- (default: ``False``) determines whether the
       constructed object is a isomorphism (i.e. a diffeomorphism); if set to
@@ -88,7 +88,7 @@ class DiffMap(ContinuousMap):
     .. NOTE::
 
         If the information passed by means of the argument ``coord_functions``
-        is not sufficient to fully specify the continuous map,
+        is not sufficient to fully specify the differentiable map,
         further coordinate expressions, in other charts, can be subsequently
         added by means of the method :meth:`add_expr`
 
@@ -96,7 +96,7 @@ class DiffMap(ContinuousMap):
 
     The standard embedding of the sphere `S^2` into `\RR^3`::
 
-        sage: M = TopManifold(2, 'S^2') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -106,44 +106,44 @@ class DiffMap(ContinuousMap):
                                              intersection_name='W', restrictions1= x^2+y^2!=0, \
                                              restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
-        sage: N = TopManifold(3, 'R^3', r'\RR^3')  # R^3
+        sage: N = DiffManifold(3, 'R^3', r'\RR^3')  # R^3
         sage: c_cart.<X,Y,Z> = N.chart()  # Cartesian coordinates on R^3
-        sage: Phi = M.continuous_map(N, \
+        sage: Phi = M.diff_map(N, \
         ....: {(c_xy, c_cart): [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],  \
         ....:  (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]}, \
         ....: name='Phi', latex_name=r'\Phi')
         sage: Phi
-        Continuous map Phi from the 2-dimensional topological manifold S^2 to
-         the 3-dimensional topological manifold R^3
+        Differentiable map Phi from the 2-dimensional differentiable manifold S^2 to
+         the 3-dimensional differentiable manifold R^3
         sage: Phi.parent()
-        Set of Morphisms from 2-dimensional topological manifold S^2 to
-         3-dimensional topological manifold R^3 in Category of sets
+        Set of Morphisms from 2-dimensional differentiable manifold S^2 to
+         3-dimensional differentiable manifold R^3 in Category of sets
         sage: Phi.parent() is Hom(M, N)
         True
         sage: type(Phi)
-        <class 'sage.manifolds.continuous_map.TopManifoldHomset_with_category.element_class'>
+        <class 'sage.manifolds.differentiable.diff_map.DiffManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
-    :meth:`~sage.manifolds.manifold.TopManifold.continuous_map`
+    :meth:`~sage.manifolds.manifold.DiffManifold.diff_map`
     only in a single pair of charts: the argument ``coord_functions`` is then
     a mere list of coordinate expressions (and not a dictionary) and the
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
     differ from the default ones on the domain and/or the codomain::
 
-        sage: Phi1 = M.continuous_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
         ....: chart1=c_xy, chart2=c_cart, name='Phi', latex_name=r'\Phi')
 
     Since c_xy and c_cart are the default charts on respectively M and N, they
     can be omitted, so that the above declaration is equivalent to::
 
-        sage: Phi1 = M.continuous_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
         ....: name='Phi', latex_name=r'\Phi')
 
-    With such a declaration, the continuous map is only partially defined
+    With such a declaration, the differentiable map is only partially defined
     on the manifold `S^2`, being known in only one chart::
 
         sage: Phi1.display()
@@ -172,25 +172,25 @@ class DiffMap(ContinuousMap):
 
         sage: np = M.point((0,0), chart=c_uv)  # the North pole
         sage: Phi(np)
-        Point on the 3-dimensional topological manifold R^3
+        Point on the 3-dimensional differentiable manifold R^3
         sage: Phi(np).coord() # Cartesian coordinates
         (0, 0, 1)
         sage: sp = M.point((0,0), chart=c_xy)  # the South pole
         sage: Phi(sp).coord() # Cartesian coordinates
         (0, 0, -1)
 
-    Continuous maps can be composed by means of the operator ``*``: let
+    Differentiable maps can be composed by means of the operator ``*``: let
     us introduce the map `\RR^3\rightarrow \RR^2` corresponding to
     the projection from the point `(X,Y,Z)=(0,0,1)` onto the equatorial plane
     `Z=0`::
 
-        sage: P = TopManifold(2, 'R^2', r'\RR^2') # R^2 (equatorial plane)
+        sage: P = DiffManifold(2, 'R^2', r'\RR^2') # R^2 (equatorial plane)
         sage: cP.<xP, yP> = P.chart()
-        sage: Psi = N.continuous_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
+        sage: Psi = N.diff_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
         ....:                      latex_name=r'\Psi')
         sage: Psi
-        Continuous map Psi from the 3-dimensional topological manifold R^3 to
-         the 2-dimensional topological manifold R^2
+        Differentiable map Psi from the 3-dimensional differentiable manifold R^3 to
+         the 2-dimensional differentiable manifold R^2
         sage: Psi.display()
         Psi: R^3 --> R^2
            (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
@@ -199,8 +199,8 @@ class DiffMap(ContinuousMap):
     `S^2\rightarrow \RR^2`::
 
         sage: ster = Psi*Phi ; ster
-        Continuous map from the 2-dimensional topological manifold S^2 to the
-         2-dimensional topological manifold R^2
+        Differentiable map from the 2-dimensional differentiable manifold S^2 to the
+         2-dimensional differentiable manifold R^2
 
     Let us test on the South pole (``sp``) that ``ster`` is indeed the
     composite of ``Psi`` and ``Phi``::
@@ -216,45 +216,45 @@ class DiffMap(ContinuousMap):
         on U: (x, y) |--> (xP, yP) = (x, y)
         on V: (u, v) |--> (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
-    If the arrival manifold is 1-dimensional, a continuous map must be
+    If the arrival manifold is 1-dimensional, a differentiable map must be
     defined by a single symbolic expression for each pair of charts, and not
     by a list/tuple with a single element::
 
-        sage: N = TopManifold(1, 'N')
+        sage: N = DiffManifold(1, 'N')
         sage: c_N = N.chart('X')
-        sage: Phi = M.continuous_map(N, {(c_xy, c_N): x^2+y^2, \
+        sage: Phi = M.diff_map(N, {(c_xy, c_N): x^2+y^2, \
         ....: (c_uv, c_N): 1/(u^2+v^2)})  # not ...[1/(u^2+v^2)] or (1/(u^2+v^2),)
 
-    An example of continuous map `\RR \rightarrow \RR^2`::
+    An example of differentiable map `\RR \rightarrow \RR^2`::
 
-        sage: R = TopManifold(1, 'R')  # field R
+        sage: R = DiffManifold(1, 'R')  # field R
         sage: T.<t> = R.chart()  # canonical chart on R
-        sage: R2 = TopManifold(2, 'R^2')  # R^2
+        sage: R2 = DiffManifold(2, 'R^2')  # R^2
         sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
-        sage: Phi = R.continuous_map(R2, [cos(t), sin(t)], name='Phi') ; Phi
-        Continuous map Phi from the 1-dimensional topological manifold R to
-         the 2-dimensional topological manifold R^2
+        sage: Phi = R.diff_map(R2, [cos(t), sin(t)], name='Phi') ; Phi
+        Differentiable map Phi from the 1-dimensional differentiable manifold R to
+         the 2-dimensional differentiable manifold R^2
         sage: Phi.parent()
-        Set of Morphisms from 1-dimensional topological manifold R to
-         2-dimensional topological manifold R^2 in Category of sets
+        Set of Morphisms from 1-dimensional differentiable manifold R to
+         2-dimensional differentiable manifold R^2 in Category of sets
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
         Phi: R --> R^2
            t |--> (x, y) = (cos(t), sin(t))
 
-    An example of homeomorphism between the unit open disk and the Euclidean
+    An example of diffeomorphism between the unit open disk and the Euclidean
     plane `\RR^2`::
 
         sage: D = R2.open_subset('D', coord_def={c_xy: x^2+y^2<1}) # the open unit disk
-        sage: Phi = D.homeomorphism(R2, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
+        sage: Phi = D.diffeomorphism(R2, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
         ....:                        name='Phi', latex_name=r'\Phi')
         sage: Phi
-        Homeomorphism Phi from the Open subset D of the 2-dimensional
-         topological manifold R^2 to the 2-dimensional topological manifold R^2
+        Diffeomorphism Phi from the Open subset D of the 2-dimensional
+         differentiable manifold R^2 to the 2-dimensional differentiable manifold R^2
         sage: Phi.parent()
-        Set of Morphisms from Open subset D of the 2-dimensional topological
-         manifold R^2 to 2-dimensional topological manifold R^2 in Category
+        Set of Morphisms from Open subset D of the 2-dimensional differentiable
+         manifold R^2 to 2-dimensional differentiable manifold R^2 in Category
          of facade sets
         sage: Phi.parent() is Hom(D, R2)
         True
@@ -266,15 +266,15 @@ class DiffMap(ContinuousMap):
 
         sage: p = D.point((1/2,0))
         sage: q = Phi(p) ; q
-        Point on the 2-dimensional topological manifold R^2
+        Point on the 2-dimensional differentiable manifold R^2
         sage: q.coord()
         (1/3*sqrt(3), 0)
 
-    The inverse homeomorphism is computed by means of the method :meth:`inverse`::
+    The inverse diffeomorphism is computed by means of the method :meth:`inverse`::
 
         sage: Phi.inverse()
-        Homeomorphism Phi^(-1) from the 2-dimensional topological manifold R^2
-         to the Open subset D of the 2-dimensional topological manifold R^2
+        Diffeomorphism Phi^(-1) from the 2-dimensional differentiable manifold R^2
+         to the Open subset D of the 2-dimensional differentiable manifold R^2
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to get the
     inverse::
@@ -293,22 +293,22 @@ class DiffMap(ContinuousMap):
         sage: ~Phi * Phi == D.identity_map()
         True
 
-    The coordinate expression of the inverse homeomorphism::
+    The coordinate expression of the inverse diffeomorphism::
 
         sage: (~Phi).display()
         Phi^(-1): R^2 --> D
            (x, y) |--> (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
-    A special case of homeomorphism: the identity map of the open unit disk::
+    A special case of diffeomorphism: the identity map of the open unit disk::
 
         sage: id = D.identity_map() ; id
-        Identity map Id_D of the Open subset D of the 2-dimensional topological
+        Identity map Id_D of the Open subset D of the 2-dimensional differentiable
          manifold R^2
         sage: latex(id)
         \mathrm{Id}_{D}
         sage: id.parent()
-        Set of Morphisms from Open subset D of the 2-dimensional topological
-         manifold R^2 to Open subset D of the 2-dimensional topological
+        Set of Morphisms from Open subset D of the 2-dimensional differentiable
+         manifold R^2 to Open subset D of the 2-dimensional differentiable
          manifold R^2 in Category of facade sets
         sage: id.parent() is Hom(D, D)
         True
@@ -318,7 +318,7 @@ class DiffMap(ContinuousMap):
     The identity map acting on a point::
 
         sage: id(p)
-        Point on the 2-dimensional topological manifold R^2
+        Point on the 2-dimensional differentiable manifold R^2
         sage: id(p) == p
         True
         sage: id(p) is p
@@ -345,13 +345,13 @@ class DiffMap(ContinuousMap):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = DiffManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y, x*y, x-y)}, name='f') ; f
-            Continuous map f from the 2-dimensional topological manifold M to
-             the 3-dimensional topological manifold N
+            Differentiable map f from the 2-dimensional differentiable manifold M to
+             the 3-dimensional differentiable manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x*y, x - y)
@@ -360,7 +360,7 @@ class DiffMap(ContinuousMap):
         The identity map::
 
             sage: f = Hom(M,M)({}, is_identity=True) ; f
-            Identity map Id_M of the 2-dimensional topological manifold M
+            Identity map Id_M of the 2-dimensional differentiable manifold M
             sage: f.display()
             Id_M: M --> M
                (x, y) |--> (x, y)
@@ -382,28 +382,28 @@ class DiffMap(ContinuousMap):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(2, 'N')
+            sage: N = DiffManifold(2, 'N')
             sage: Y.<u,v> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y,x*y)})
             sage: f._repr_()
-            'Continuous map from the 2-dimensional topological manifold M to
-             the 2-dimensional topological manifold N'
+            'Differentiable map from the 2-dimensional differentiable manifold M to
+             the 2-dimensional differentiable manifold N'
             sage: f = Hom(M,N)({(X,Y): (x+y,x*y)}, name='f')
             sage: f._repr_()
-            'Continuous map f from the 2-dimensional topological manifold M to
-             the 2-dimensional topological manifold N'
-            sage: f = Hom(M,N)({(X,Y): (x+y,x-y)}, name='f', is_homeomorphism=True)
+            'Differentiable map f from the 2-dimensional differentiable manifold M to
+             the 2-dimensional differentiable manifold N'
+            sage: f = Hom(M,N)({(X,Y): (x+y,x-y)}, name='f', is_isomorphism=True)
             sage: f._repr_()
-            'Homeomorphism f from the 2-dimensional topological manifold M to
-             the 2-dimensional topological manifold N'
-            sage: f = Hom(M,M)({(X,X): (x+y,x-y)}, name='f', is_homeomorphism=True)
+            'Diffeomorphism f from the 2-dimensional differentiable manifold M to
+             the 2-dimensional differentiable manifold N'
+            sage: f = Hom(M,M)({(X,X): (x+y,x-y)}, name='f', is_isomorphism=True)
             sage: f._repr_()
-            'Homeomorphism f of the 2-dimensional topological manifold M'
+            'Diffeomorphism f of the 2-dimensional differentiable manifold M'
             sage: f = Hom(M,M)({}, name='f', is_identity=True)
             sage: f._repr_()
-            'Identity map f of the 2-dimensional topological manifold M'
+            'Identity map f of the 2-dimensional differentiable manifold M'
 
         """
         if self._is_identity:
@@ -431,9 +431,9 @@ class DiffMap(ContinuousMap):
 
         TEST::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = M.homeomorphism(M, [x+y, x-y])
+            sage: f = M.diffeomorphism(M, [x+y, x-y])
             sage: f._init_derived()
             sage: f._restrictions
             {}
@@ -451,13 +451,13 @@ class DiffMap(ContinuousMap):
 
         TEST::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: f = M.homeomorphism(M, [x+y, x-y])
+            sage: f = M.diffeomorphism(M, [x+y, x-y])
             sage: f^(-1)
-            Homeomorphism of the 2-dimensional topological manifold M
+            Diffeomorphism of the 2-dimensional differentiable manifold M
             sage: f._inverse  # was set by f^(-1)
-            Homeomorphism of the 2-dimensional topological manifold M
+            Diffeomorphism of the 2-dimensional differentiable manifold M
             sage: f._del_derived()
             sage: f._inverse  # has been set to None by _del_derived()
 

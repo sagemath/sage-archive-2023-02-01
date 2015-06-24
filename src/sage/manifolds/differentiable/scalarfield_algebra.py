@@ -3,7 +3,7 @@ Algebra of differentiable scalar fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
 `C^k(U)` of scalar fields on some open subset `U` of a
-topological manifold `M` over a topological field `K` (in most applications,
+differentiable manifold `M` over a topological field `K` (in most applications,
 `K = \RR` or `K = \CC`). By *differentiable scalar field*, it
 is meant a function of class C^`k` `U\rightarrow K`.
 `C^k(U)` is an algebra over `K`, whose ring product is the pointwise
@@ -34,6 +34,7 @@ REFERENCES:
 #******************************************************************************
 
 from sage.rings.infinity import infinity
+from sage.symbolic.ring import SR
 from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
 from sage.manifolds.differentiable.scalarfield import DiffScalarField
 
@@ -42,7 +43,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Commutative algebra of differentiable scalar fields on some open subset of
     a differentiable manifold.
 
-    If `M` is a topological manifold over a topological field `K` and `U`
+    If `M` is a differentiable manifold over a topological field `K` and `U`
     an open subset of `M`, the commutative algebra of scalar fields on `U`
     is the set `C^0(U)` of all continuous maps `U\rightarrow K`.
     `C^0(U)` is an algebra over `K`, whose ring product is the pointwise
@@ -63,13 +64,13 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
     - ``domain`` -- the manifold open subset `U` on which the scalar fields are
       defined (must be an instance of class
-      :class:`~sage.manifolds.manifold.TopManifold`)
+      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
 
     EXAMPLES:
 
     Algebras of scalar fields on the sphere `S^2` and on some subdomain of it::
 
-        sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -80,10 +81,12 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
                                              restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: CM = M.scalar_field_algebra() ; CM
-        Algebra of scalar fields on the 2-dimensional topological manifold M
+        Algebra of differentiable scalar fields on the 2-dimensional
+         differentiable manifold M
         sage: W = U.intersection(V)  # S^2 minus the two poles
         sage: CW = W.scalar_field_algebra() ; CW
-        Algebra of scalar fields on the Open subset W of the 2-dimensional topological manifold M
+        Algebra of differentiable scalar fields on the Open subset W of the
+         2-dimensional differentiable manifold M
 
     `C^0(M)` and `C^0(W)` belong to the category of commutative
     algebras over `\RR` (represented here by Sage's Symbolic Ring)::
@@ -100,7 +103,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     The elements of `C^0(M)` are scalar fields on `M`::
 
         sage: CM.an_element()
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: CM.an_element().display()  # this sample element is a constant field
         M --> R
         on U: (x, y) |--> 2
@@ -109,7 +112,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Those of `C^0(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
         W --> R
         (x, y) |--> 2
@@ -118,7 +121,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     The zero element::
 
         sage: CM.zero()
-        Scalar field zero on the 2-dimensional topological manifold M
+        Scalar field zero on the 2-dimensional differentiable manifold M
         sage: CM.zero().display()
         zero: M --> R
         on U: (x, y) |--> 0
@@ -127,7 +130,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: CW.zero()
-        Scalar field zero on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field zero on the Open subset W of the 2-dimensional differentiable manifold M
         sage: CW.zero().display()
         zero: W --> R
            (x, y) |--> 0
@@ -136,7 +139,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     The unit element::
 
         sage: CM.one()
-        Scalar field 1 on the 2-dimensional topological manifold M
+        Scalar field 1 on the 2-dimensional differentiable manifold M
         sage: CM.one().display()
         1: M --> R
         on U: (x, y) |--> 1
@@ -145,7 +148,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: CW.one()
-        Scalar field 1 on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field 1 on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: CW.one().display()
         1: W --> R
         (x, y) |--> 1
@@ -156,13 +160,14 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     of the coordinate expressions defining the scalar field)::
 
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: f.display()
         M --> R
         on U: (x, y) |--> arctan(x^2 + y^2)
         on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
         sage: f.parent()
-        Algebra of scalar fields on the 2-dimensional topological manifold M
+        Algebra of differentiable scalar fields on the 2-dimensional
+         differentiable manifold M
 
     Specific elements can also be constructed in this way::
 
@@ -183,7 +188,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}, name='f')
         sage: f1.parent()
-        Algebra of scalar fields on the 2-dimensional topological manifold M
+        Algebra of differentiable scalar fields on the 2-dimensional
+         differentiable manifold M
         sage: f1 == f
         True
         sage: M.scalar_field(0, chart='all') == CM.zero()
@@ -204,7 +210,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     on `M`::
 
         sage: fW = CW(f) ; fW
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
         sage: fW.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)
@@ -221,7 +227,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         sage: s = fW + f
         sage: s.parent()
-        Algebra of scalar fields on the Open subset W of the 2-dimensional topological manifold M
+        Algebra of differentiable scalar fields on the Open subset W of the
+         2-dimensional differentiable manifold M
         sage: s.display()
         W --> R
         (x, y) |--> 2*arctan(x^2 + y^2)
@@ -232,7 +239,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     coordinate)::
 
         sage: h = CM(pi*sqrt(2)) ; h
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: h.display()
         M --> R
         on U: (x, y) |--> sqrt(2)*pi
@@ -243,7 +250,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Ring laws::
 
         sage: s = f + h ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> sqrt(2)*pi + arctan(x^2 + y^2)
@@ -252,7 +259,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: s = f - h ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> -sqrt(2)*pi + arctan(x^2 + y^2)
@@ -261,7 +268,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: s = f*h ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> sqrt(2)*pi*arctan(x^2 + y^2)
@@ -270,7 +277,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: s = f/h ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> 1/2*sqrt(2)*arctan(x^2 + y^2)/pi
@@ -288,7 +295,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: f/fW == CW.one()
         True
         sage: s = f*fW ; s
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
         sage: s.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)^2
@@ -299,7 +306,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Multiplication by a real number::
 
         sage: s = 2*f ; s
-        Scalar field on the 2-dimensional topological manifold M
+        Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
         M --> R
         on U: (x, y) |--> 2*arctan(x^2 + y^2)
@@ -357,16 +364,17 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
     def __init__(self, domain):
         r"""
-        Construct an algebra of scalar fields.
+        Construct an algebra of differentiable scalar fields.
 
         TESTS::
 
-            sage: TopManifold._clear_cache_()  # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: DiffManifold._clear_cache_()  # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
-            sage: CM = ScalarFieldAlgebra(M); CM
-            Algebra of scalar fields on the 2-dimensional topological manifold M
+            sage: from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
+            sage: CM = DiffScalarFieldAlgebra(M); CM
+            Algebra of differentiable scalar fields on the 2-dimensional
+             differentiable manifold M
             sage: TestSuite(CM).run()
 
         """
@@ -381,7 +389,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: CM._coerce_map_from_(SR)
@@ -412,12 +420,12 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: CM = M.scalar_field_algebra()
             sage: CM._repr_()
-            'Algebra of scalar fields on the 2-dimensional topological manifold M'
+            'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
             sage: repr(CM)  # indirect doctest
-            'Algebra of scalar fields on the 2-dimensional topological manifold M'
+            'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
 
         """
         return "Algebra of differentiable scalar fields on the {}".format(self._domain)
@@ -428,12 +436,12 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: CM = M.scalar_field_algebra()
             sage: CM._latex_()
-            'C^0 \\left(M\\right)'
+            'C^{\\infty}\\left(M\\right)'
             sage: latex(CM)  # indirect doctest
-            C^0 \left(M\right)
+            C^{\infty}\left(M\right)
 
         """
         degree = self._domain.diff_degree()

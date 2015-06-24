@@ -169,7 +169,7 @@ We declare the Riemann sphere `\CC^*` as a 1-dimensional differentiable manifold
 over `\CC`::
 
     sage: M = DiffManifold(1, 'C*', field='complex'); M
-    Complex 1-dimensional differentiable manifold C*
+    1-dimensional complex manifold C*
 
 We introduce a first open subset, which is actually
 `\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the Alexandroff
@@ -185,7 +185,7 @@ we denote the associated coordinate by `z`::
 The origin of the complex plane is the point of coordinate `z=0`::
 
     sage: O = U.point((0,), chart=Z, name='O'); O
-    Point O on the Complex 1-dimensional differentiable manifold C*
+    Point O on the 1-dimensional complex manifold C*
 
 Another open subset of `\CC^*` is `V = \CC^*\setminus\{O\}`::
 
@@ -198,7 +198,7 @@ coordinate 0 in this chart::
     Chart (V, (w,))
     sage: inf = M.point((0,), chart=W, name='inf', latex_name=r'\infty')
     sage: inf
-    Point inf on the Complex 1-dimensional differentiable manifold C*
+    Point inf on the 1-dimensional complex manifold C*
 
 To fully construct the Riemann sphere, we declare that it is the union of `U`
 and `V`::
@@ -222,7 +222,7 @@ on `A = U\cap V`::
 Let consider the complex number `i` as a point of the Riemann sphere::
 
     sage: i = M((I,), chart=Z, name='i'); i
-    Point i on the Complex 1-dimensional differentiable manifold C*
+    Point i on the 1-dimensional complex manifold C*
 
 Its coordinates w.r.t. the charts ``Z`` and ``W`` are::
 
@@ -241,10 +241,10 @@ and we have::
 The following subsets and charts have been defined::
 
     sage: M.list_of_subsets()
-    [Open subset A of the Complex 1-dimensional differentiable manifold C*,
-     Complex 1-dimensional differentiable manifold C*,
-     Open subset U of the Complex 1-dimensional differentiable manifold C*,
-     Open subset V of the Complex 1-dimensional differentiable manifold C*]
+    [Open subset A of the 1-dimensional complex manifold C*,
+     1-dimensional complex manifold C*,
+     Open subset U of the 1-dimensional complex manifold C*,
+     Open subset V of the 1-dimensional complex manifold C*]
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
@@ -356,7 +356,7 @@ class DiffManifold(TopManifold):
     A complex manifold::
 
         sage: N = DiffManifold(3, 'N', field='complex'); N
-        Complex 3-dimensional differentiable manifold N
+        3-dimensional complex manifold N
 
     A manifold over `\QQ`::
 
@@ -493,7 +493,7 @@ class DiffManifold(TopManifold):
             3-dimensional differentiable manifold M
             sage: M = DiffManifold(3, 'M', field='complex')
             sage: M._repr_()
-            'Complex 3-dimensional differentiable manifold M'
+            '3-dimensional complex manifold M'
             sage: M = DiffManifold(3, 'M', field=QQ)
             sage: M._repr_()
             '3-dimensional differentiable manifold M over the Rational Field'
@@ -511,9 +511,9 @@ class DiffManifold(TopManifold):
                 return "{}-dimensional differentiable manifold {}".format(
                                                          self._dim, self._name)
             elif self._field == 'complex':
-                return "Complex {}-dimensional manifold {}".format(
+                return "{}-dimensional complex manifold {}".format(
                                                          self._dim, self._name)
-            return "{}-dimensional differentiable ".format(self_dim) + \
+            return "{}-dimensional differentiable ".format(self._dim) + \
                    "manifold {} over the {}".format(self._name, self._field)
         else:
             return "Open subset {} of the {}".format(self._name,
@@ -612,6 +612,15 @@ class DiffManifold(TopManifold):
                             field=self._field, diff_degree=self._diff_degree,
                             start_index=self._sindex, category=self.category(),
                             ambient_manifold=self._manifold)
+        resu._supersets.update(self._supersets)
+        for sd in self._supersets:
+            sd._subsets.add(resu)
+        self._top_subsets.add(resu)
+        for chart, restrictions in coord_def.iteritems():
+            if chart not in self._atlas:
+                raise ValueError("the " + str(chart) + "does not belong to " +
+                    "the atlas of " + str(self))
+            chart.restrict(resu, restrictions)
         #!# update tensor spaces
         return resu
 
@@ -754,7 +763,7 @@ class DiffManifold(TopManifold):
             sage: M = DiffManifold(3, 'M')
             sage: U = M.open_subset('U')
             sage: CU = U.scalar_field_algebra() ; CU
-            Algebra of scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
+            Algebra of differentiable scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
             sage: CU.category()
             Category of commutative algebras over Symbolic Ring
             sage: CU.zero()
@@ -857,15 +866,17 @@ class DiffManifold(TopManifold):
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: N = DiffManifold(3, 'R^3', r'\RR^3')
             sage: c_cart.<x,y,z> = N.chart()  # Cartesian coord. on R^3
-            sage: Phi = U.differentiable_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
-            ....:                        name='Phi', latex_name=r'\Phi')
+            sage: Phi = U.diff_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
+            ....:                  name='Phi', latex_name=r'\Phi')
             sage: Phi
-            Continuous map Phi from the Open subset U of the 2-dimensional differentiable manifold S^2 to the 3-dimensional differentiable manifold R^3
+            Differentiable map Phi from the Open subset U of the 2-dimensional
+             differentiable manifold S^2 to the 3-dimensional differentiable
+             manifold R^3
 
         The same definition, but with a dictionary with pairs of charts as
         keys (case (i) above)::
 
-            sage: Phi1 = U.differentiable_map(N,
+            sage: Phi1 = U.diff_map(N,
             ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph), cos(th))},
             ....:        name='Phi', latex_name=r'\Phi')
             sage: Phi1 == Phi
@@ -952,7 +963,7 @@ class DiffManifold(TopManifold):
 
         EXAMPLE:
 
-        Homeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
+        Diffeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
             sage: DiffManifold._clear_cache_() #  for doctests only
             sage: M = DiffManifold(2, 'M')  # the open unit disk
@@ -960,19 +971,19 @@ class DiffManifold(TopManifold):
             sage: c_xy.add_restrictions(x^2+y^2<1)
             sage: N = DiffManifold(2, 'N')  # R^2
             sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
-            sage: Phi = M.homeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
-            ....:                       name='Phi', latex_name=r'\Phi')
+            sage: Phi = M.diffeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
+            ....:                        name='Phi', latex_name=r'\Phi')
             sage: Phi
-            Homeomorphism Phi from the 2-dimensional differentiable manifold M to
-             the 2-dimensional differentiable manifold N
+            Diffeomorphism Phi from the 2-dimensional differentiable manifold M
+             to the 2-dimensional differentiable manifold N
             sage: Phi.display()
             Phi: M --> N
                (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
-        The inverse homeomorphism::
+        The inverse diffeomorphism::
 
             sage: Phi^(-1)
-            Homeomorphism Phi^(-1) from the 2-dimensional differentiable
+            Diffeomorphism Phi^(-1) from the 2-dimensional differentiable
              manifold N to the 2-dimensional differentiable manifold M
             sage: (Phi^(-1)).display()
             Phi^(-1): N --> M
@@ -1000,7 +1011,7 @@ class DiffManifold(TopManifold):
                                  " defined on the {}".format(codomain))
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
-                      is_diffeomorphism=True)
+                      is_isomorphism=True)
 
     def identity_map(self):
         r"""
@@ -1031,10 +1042,10 @@ class DiffManifold(TopManifold):
             sage: M = DiffManifold(2, 'M', field='complex')
             sage: X.<x,y> = M.chart()
             sage: id = M.identity_map(); id
-            Identity map Id_M of the Complex 2-dimensional differentiable manifold M
+            Identity map Id_M of the 2-dimensional complex manifold M
             sage: id.parent()
-            Set of Morphisms from Complex 2-dimensional differentiable manifold M
-             to Complex 2-dimensional differentiable manifold M in Category of sets
+            Set of Morphisms from 2-dimensional complex manifold M to
+             2-dimensional complex manifold M in Category of sets
             sage: id.display()
             Id_M: M --> M
                (x, y) |--> (x, y)
@@ -1042,9 +1053,9 @@ class DiffManifold(TopManifold):
         The identity map acting on a point::
 
             sage: p = M((1+I, 3-I), name='p'); p
-            Point p on the Complex 2-dimensional differentiable manifold M
+            Point p on the 2-dimensional complex manifold M
             sage: id(p)
-            Point p on the Complex 2-dimensional differentiable manifold M
+            Point p on the 2-dimensional complex manifold M
             sage: id(p) == p
             True
 

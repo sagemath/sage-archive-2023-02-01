@@ -32,7 +32,7 @@ from sage.manifolds.differentiable.diff_map import DiffMap
 
 class DiffManifoldHomset(TopManifoldHomset):
     r"""
-    Set of differentiable maps between two topological manifolds.
+    Set of differentiable maps between two differentiable manifolds.
 
     Given two differentiable manifolds `M` and `N` over a topological field `K`,
     the class :class:`DiffManifoldHomset` implements the set
@@ -59,34 +59,34 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     EXAMPLES:
 
-    Set of continuous maps between a 2-dimensional manifold and a
+    Set of differentiable maps between a 2-dimensional manifold and a
     3-dimensional one::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = DiffManifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: N = TopManifold(3, 'N')
+        sage: N = DiffManifold(3, 'N')
         sage: Y.<u,v,w> = N.chart()
         sage: H = Hom(M, N) ; H
-        Set of Morphisms from 2-dimensional topological manifold M to
-         3-dimensional topological manifold N in Category of sets
+        Set of Morphisms from 2-dimensional differentiable manifold M to
+         3-dimensional differentiable manifold N in Category of sets
         sage: type(H)
-        <class 'sage.manifolds.manifold_homset.TopManifoldHomset_with_category'>
+        <class 'sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset_with_category'>
         sage: H.category()
         Category of homsets of sets
         sage: latex(H)
         \mathrm{Hom}\left(M,N\right)
         sage: H.domain()
-        2-dimensional topological manifold M
+        2-dimensional differentiable manifold M
         sage: H.codomain()
-        3-dimensional topological manifold N
+        3-dimensional differentiable manifold N
 
-    An element of ``H`` is a continuous map from ``M`` to ``N``::
+    An element of ``H`` is a differentiable map from ``M`` to ``N``::
 
         sage: H.Element
-        <class 'sage.manifolds.continuous_map.ContinuousMap'>
+        <class 'sage.manifolds.differentiable.diff_map.DiffMap'>
         sage: f = H.an_element() ; f
-        Continuous map from the 2-dimensional topological manifold M to the
-         3-dimensional topological manifold N
+        Differentiable map from the 2-dimensional differentiable manifold M to the
+         3-dimensional differentiable manifold N
         sage: f.display()
         M --> N
            (x, y) |--> (u, v, w) = (0, 0, 0)
@@ -96,11 +96,11 @@ class DiffManifoldHomset(TopManifoldHomset):
         sage: TestSuite(H).run()
 
     When the codomain coincides with the domain, the homset is a set of
-    *endomorphisms* in the category of topological manifolds::
+    *endomorphisms* in the category of differentiable manifolds::
 
         sage: E = Hom(M, M) ; E
-        Set of Morphisms from 2-dimensional topological manifold M to
-         2-dimensional topological manifold M in Category of sets
+        Set of Morphisms from 2-dimensional differentiable manifold M to
+         2-dimensional differentiable manifold M in Category of sets
         sage: E.category()
         Category of endsets of sets
         sage: E.is_endomorphism_set()
@@ -121,7 +121,7 @@ class DiffManifoldHomset(TopManifoldHomset):
     The identity element of the monoid is of course the identity map of ``M``::
 
         sage: E.one()
-        Identity map Id_M of the 2-dimensional topological manifold M
+        Identity map Id_M of the 2-dimensional differentiable manifold M
         sage: E.one() is M.identity_map()
         True
         sage: E.one().display()
@@ -186,20 +186,20 @@ class DiffManifoldHomset(TopManifoldHomset):
         r"""
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = DiffManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N) ; H
-            Set of Morphisms from 2-dimensional topological manifold M to
-             3-dimensional topological manifold N in Category of sets
+            Set of Morphisms from 2-dimensional differentiable manifold M to
+             3-dimensional differentiable manifold N in Category of sets
             sage: TestSuite(H).run()
 
         Test for an endomorphism set::
 
             sage: E = Hom(M, M) ; E
-            Set of Morphisms from 2-dimensional topological manifold M to
-             2-dimensional topological manifold M in Category of sets
+            Set of Morphisms from 2-dimensional differentiable manifold M to
+             2-dimensional differentiable manifold M in Category of sets
             sage: TestSuite(E).run()
 
         """
@@ -221,9 +221,9 @@ class DiffManifoldHomset(TopManifoldHomset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = DiffManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: H._coerce_map_from_(ZZ)

@@ -2392,15 +2392,12 @@ class Tableau(ClonableList):
         if not (self.is_semistandard()):
             raise ValueError("Reverse bumping is only defined for semistandard tableaux")
         try:
-            r = loc
-            c = len(self[r]) - 1
-        except TypeError:
-            try:
-                (r, c) = loc
-            except ValueError:
-                raise ValueError("Specify a row or an outer corner")
+            (r, c) = loc
             if (r, c) not in self.corners():
                 raise ValueError("invalid outer corner")
+        except TypeError:
+            r = loc
+            c = len(self[r]) - 1
 
         # make a copy of self
         new_t = self.to_list()
@@ -2409,7 +2406,7 @@ class Tableau(ClonableList):
         to_move = new_t[r].pop()
 
         # delete the row if it's now empty
-        if new_t[r] == []:
+        if not new_t[r]:
             new_t.pop()
 
         from bisect import bisect_left

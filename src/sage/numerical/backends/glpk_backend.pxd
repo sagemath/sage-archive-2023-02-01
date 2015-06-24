@@ -68,6 +68,7 @@ cdef extern from "glpk.h":
      void glp_set_obj_coef(c_glp_prob *, int, double)
      void glp_load_matrix(c_glp_prob *, int, int *, int *, double *)
      int glp_simplex(c_glp_prob *, c_glp_smcp *)
+     int glp_exact(c_glp_prob *, c_glp_smcp *)
      int glp_intopt(c_glp_prob *, c_glp_iocp *)
      int lpx_intopt(c_glp_prob *)
      void glp_std_basis(c_glp_prob *)

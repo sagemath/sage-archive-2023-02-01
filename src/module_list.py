@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 from glob import glob
 from distutils.extension import Extension

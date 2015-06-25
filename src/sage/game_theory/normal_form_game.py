@@ -1916,55 +1916,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return False
 
-    def _create_label_matrices(self, A, B, m, n):
-        """
-        Creates the label equation matrices.
-
-        TESTS::
-
-            sage: A = matrix([[3,3],[2,5],[0,6]])
-            sage: B = matrix([[3,3],[2,6],[3,1]])
-            sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game._create_label_matrices(A, B, 3, 2)
-            (
-            [3 3 1]  [3 2 3 1]
-            [2 5 1]  [3 6 1 1]
-            [0 6 1]  [1 0 0 0]
-            [1 0 0]  [0 1 0 0]
-            [0 1 0], [0 0 1 0]
-            )
-
-            sage: A = matrix([[2, 5], [0, 4]])
-            sage: B = matrix([[2, 0], [5, 4]])
-            sage: prisoners_dilemma = NormalFormGame([A, B])
-            sage: prisoners_dilemma._create_label_matrices(A, B, 2, 2)
-            (
-            [2 5 1]  [2 5 1]
-            [0 4 1]  [0 4 1]
-            [1 0 0]  [1 0 0]
-            [0 1 0], [0 1 0]
-            )
-
-        """
-        # transpose because sage prefers dealing with rows
-        B = B.transpose()
-
-        a = matrix.identity(n)
-        b = matrix.identity(m)
-
-        # append the identity matrices
-        A = A.stack(a)
-        B = B.stack(b)
-
-        u = vector([1 for i in range(m)] + [0 for i in range(n)])
-        v = vector([1 for i in range(n)] + [0 for i in range(m)])
-
-        # append vector to complete the inequalities
-        A = A.augment(u)
-        B = B.augment(v)
-
-        return A, B
-
     def is_degenerate_sup(self):
         """
         A function to check whether the game is degenerate or not.

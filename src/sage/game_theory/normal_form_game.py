@@ -1551,21 +1551,23 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: A = matrix([[1, 1, 5], [2, 2, 0]])
             sage: g = NormalFormGame([A])
-            sage: g._solve_indifference((0, 1), (0, 2), A, -A)
-            [(1/3, 2/3), (5/6, 0, 1/6)]
+            sage: g._solve_indifference((0, 1), (0, 2), -A.transpose())
+            (1/3, 2/3)
+            sage: g._solve_indifference((0, 2), (0, 1), A)
+            (5/6, 0, 1/6)
 
         When a support pair has a dominated strategy there is no
         solution to the indifference equation::
 
-            sage: g._solve_indifference((0, 1), (0, 1), A, -A)
+            sage: g._solve_indifference((0, 1), (0, 1), A)
             <BLANKLINE>
 
         Particular case of a game with 1 strategy for each for each player::
 
             sage: A = matrix([[10]])
             sage: g = NormalFormGame([A])
-            sage: g._solve_indifference((0,), (0,), A, -A)
-            [(1), (1)]
+            sage: g._solve_indifference((0,), (0,), -A.transpose())
+            (1)
         """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
         linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)

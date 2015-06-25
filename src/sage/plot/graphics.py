@@ -2170,7 +2170,7 @@ class Graphics(SageObject):
         10^{15}` to avoid floating point issues in matplotlib.
 
         EXAMPLES::
-        
+
             sage: l = line([(0,0), (1,1)], aspect_ratio=1.0)
             sage: l._limit_output_aspect_ratio(1, 2, 1e19, 3)
             {'xmax': -4999.50000000000,
@@ -2190,7 +2190,7 @@ class Graphics(SageObject):
         if aspect_ratio != 'automatic':
             width = xmax - xmin
             height = ymax - ymin
-            output_aspect = width/height/aspect_ratio
+            output_aspect = abs(width/height/aspect_ratio)
             if output_aspect > 1e15:
                 height = 1e15 * width / aspect_ratio
                 ycenter = (ymax - ymin) / 2

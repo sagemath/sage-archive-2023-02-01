@@ -1966,6 +1966,9 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: g = NormalFormGame([A, B])
         sage: g.is_degenerate_sup()
         """
+        if self._is_degenerate_pure():
+            return True
+
         M1, M2 = self.payoff_matrices()
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]

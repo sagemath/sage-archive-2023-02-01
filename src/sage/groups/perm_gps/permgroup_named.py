@@ -982,7 +982,8 @@ class KleinFourGroup(PermutationGroup_unique):
 class JankoGroup(PermutationGroup_unique):
     def __init__(self, n):
         r"""
-        The Janko Groups `J1, J2`, and `J3`.
+        Janko Groups `J1, J2`, and `J3`.
+        (Note that `J4` is too big to be treated here.)
 
         INPUT:
 

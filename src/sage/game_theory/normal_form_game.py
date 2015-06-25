@@ -1957,7 +1957,6 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return A, B
 
-
     def is_degenerate_sup(self):
         """
         TESTS::
@@ -1971,6 +1970,8 @@ class NormalFormGame(SageObject, MutableMapping):
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
                               for player in self.players]
+
+        potential_supports = [filter(None, k) for k in potential_supports]
 
         potential_support_pairs = [pair for pair in
                                    CartesianProduct(*potential_supports) if
@@ -2014,6 +2015,7 @@ class NormalFormGame(SageObject, MutableMapping):
         if payoffs.count(max(payoffs)) > sup_size:
             return False
         return True
+
 
 class _Player():
     def __init__(self, num_strategies):

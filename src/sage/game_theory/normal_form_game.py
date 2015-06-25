@@ -1975,9 +1975,13 @@ class NormalFormGame(SageObject, MutableMapping):
                               for player in self.players]
 
         potential_supports = [filter(None, k) for k in potential_supports]
+        pot_supports = []
+        for k in potential_supports:
+            k = [i for i in k if len(i) > 1]
+            pot_supports.append(k)
 
         potential_support_pairs = [pair for pair in
-                                   CartesianProduct(*potential_supports) if
+                                   CartesianProduct(*pot_supports) if
                                    len(pair[0]) != len(pair[1])]
 
         return potential_support_pairs

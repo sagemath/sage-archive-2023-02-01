@@ -990,14 +990,14 @@ class JankoGroup(PermutationGroup_unique):
 
         EXAMPLES::
 
-            sage: G = groups.permutation.Janko(1); G
+            sage: G = groups.permutation.Janko(1); G # optional - gap_packages
             Janko group J1 of order 175560 as a permutation group
 
         TESTS::
 
-            sage: G.category()
+            sage: G.category() # optional - gap_packages
             Category of finite permutation groups
-            sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"])
+            sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"]) # optional - gap_packages
         """
         from sage.interfaces.gap import gap
         if n not in [1,2,3]:
@@ -1011,7 +1011,7 @@ class JankoGroup(PermutationGroup_unique):
         """
         EXAMPLES::
 
-            sage: G = groups.permutation.Janko(1); G
+            sage: G = groups.permutation.Janko(1); G # optional - gap_packages
             Janko group J1 of order 175560 as a permutation group
         """
         return "Janko group J%s of order %s as a permutation group"%(self._n,self.order())

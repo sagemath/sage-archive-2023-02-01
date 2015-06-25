@@ -3336,16 +3336,16 @@ def LivingstoneGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.LivingstoneGraph()
-        sage: g.order()
+        sage: g = graphs.LivingstoneGraph() # optional - gap_packages
+        sage: g.order()                     # optional - gap_packages
         266
-        sage: g.size()
+        sage: g.size()                      # optional - gap_packages
         1463
-        sage: g.girth()
+        sage: g.girth()                     # optional - gap_packages
         5
-        sage: g.is_vertex_transitive()
+        sage: g.is_vertex_transitive()      # optional - gap_packages
         True
-        sage: g.is_distance_regular()
+        sage: g.is_distance_regular()       # optional - gap_packages
         True
     """
     from sage.groups.perm_gps.permgroup_named import JankoGroup

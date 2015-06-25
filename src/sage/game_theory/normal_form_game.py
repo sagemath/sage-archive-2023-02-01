@@ -1464,8 +1464,8 @@ class NormalFormGame(SageObject, MutableMapping):
             if (self._row_cond_dominance(pair[0], pair[1], M1)
                 # Check if any supports are dominated for col player
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-                    a = self._solve_indifference(pair[0], pair[1], M2.transpose())
-                    b = self._solve_indifference(pair[1], pair[0], M1)
+                    a = self._solve_indifference_a(pair[0], pair[1], M1, M2)
+                    b = self._solve_indifference_b(pair[0], pair[1], M1, M2)
                     if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
                         equilibria.append([tuple(a), tuple(b)])
 
@@ -1506,7 +1506,116 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
         return True
 
-    def _solve_indifference(self, p1_support, p2_support, M1, M2):
+    def _solve_indifference_b(self, p1_support, p2_support, M1, M2):
+        r"""
+        For a support pair obtains vector pair that ensures indifference
+        amongst support strategies.
+
+        This is done by building the corresponding linear system.
+        If  `\rho_1, \rho_2` are the supports player 1 and 2 respectively.
+        Then, indifference implies:
+
+        .. MATH::
+
+            u_1(s_1,\rho_2) = u_2(s_2, \rho_2)
+
+        for all `s_1, s_2` in the support of `\rho_1`. This corresponds to:
+
+        .. MATH::
+
+            \sum_{j\in S(\rho_2)}A_{s_1,j}{\rho_2}_j = \sum_{j\in S(\rho_2)}A_{s_2,j}{\rho_2}_j
+
+        for all `s_1, s_2` in the support of `\rho_1` where `A` is the payoff
+        matrix of player 1. Equivalently we can consider consecutive rows of
+        `A` (instead of all pairs of strategies). Thus the corresponding
+        linear system can be written as:
+
+        .. MATH::
+
+            \left(\sum_{j \in S(\rho_2)}^{A_{i,j} - A_{i+1,j}\right){\rho_2}_j
+
+        for all `1\leq i \leq |S(\rho_1)|` (where `A` has been modified to only
+        contain the row corresponding to `S(\rho_1)`). We also require all
+        elements of `\rho_2` to sum to 1:
+
+        .. MATH::
+
+            \sum_{j\in S(\rho_1)}{\rho_2}_j = 1
+
+        TESTS:
+
+        Find the indifference vector for a support pair that has
+        no dominated strategies::
+
+            sage: A = matrix([[1, 1, 5], [2, 2, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g._solve_indifference((0, 1), (0, 2), -A.transpose())
+            (1/3, 2/3)
+            sage: g._solve_indifference((0, 2), (0, 1), A)
+            (5/6, 0, 1/6)
+
+        When a support pair has a dominated strategy there is no
+        solution to the indifference equation::
+
+            sage: g._solve_indifference((0, 1), (0, 1), A)
+            <BLANKLINE>
+
+        Particular case of a game with 1 strategy for each for each player::
+
+            sage: A = matrix([[10]])
+            sage: g = NormalFormGame([A])
+            sage: g._solve_indifference((0,), (0,), -A.transpose())
+            (1)
+        """
+        # linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
+        linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
+
+        # # Build linear system for player 1
+        # for p1_strategy in p1_support:
+        #     # Checking particular case of supports of pure strategies
+        #     if len(p2_support) == 1:
+        #         for p2_strategy in range(self.players[1].num_strategies):
+        #             if M2[p1_strategy][p2_support[0]] < \
+        #                     M2[p1_strategy][p2_strategy]:
+        #                 return False
+        #     else:
+        #         for p2_strategy_pair in range(len(p2_support)):
+        #             # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+        #             linearsystem1[p2_strategy_pair, p1_strategy] = \
+        #                     M2[p1_strategy][p2_support[p2_strategy_pair]] -\
+        #                       M2[p1_strategy][p2_support[p2_strategy_pair-1]]
+        #     linearsystem1[-1, p1_strategy] = 1  # Coefficients of linear system to ensure that vector is probability
+
+        # Build linear system for player 2
+        for p2_strategy in p2_support:
+            # Checking particular case of supports of pure strategies
+            if len(p1_support) == 1:
+                for p1_strategy in range(self.players[0].num_strategies):
+                    if M1[p1_support[0]][p2_strategy] < \
+                            M1[p1_strategy][p2_strategy]:
+                        return False
+            else:
+                for p1_strategy_pair in range(len(p1_support)):
+                    # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                    linearsystem2[p1_strategy_pair, p2_strategy] = \
+                            M1[p1_support[p1_strategy_pair]][p2_strategy] -\
+                              M1[p1_support[p1_strategy_pair-1]][p2_strategy]
+            linearsystem2[-1, p2_strategy] = 1  # Coefficients of linear system that ensure that vector is probability
+
+        # Create rhs of linear systems
+        # linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
+        linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
+
+        # Solve both linear systems
+        try:
+            # result = linearsystem1.solve_right(linearsystemrhs1)
+            result = linearsystem2.solve_right(linearsystemrhs2)
+        except ValueError:
+            return None
+
+        return result
+
+    def _solve_indifference_a(self, p1_support, p2_support, M1, M2):
         r"""
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.

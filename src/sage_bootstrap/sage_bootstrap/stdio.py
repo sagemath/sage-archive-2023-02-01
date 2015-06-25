@@ -23,15 +23,15 @@ import os
 
 class UnbufferedStream(object):
     
-   def __init__(self, stream):
-       self.stream = stream
+    def __init__(self, stream):
+        self.stream = stream
        
-   def write(self, data):
-       self.stream.write(data)
-       self.stream.flush()
+    def write(self, data):
+        self.stream.write(data)
+        self.stream.flush()
        
-   def __getattr__(self, attr):
-       return getattr(self.stream, attr)
+    def __getattr__(self, attr):
+        return getattr(self.stream, attr)
 
 
 REAL_STDOUT = sys.stdout
@@ -39,10 +39,10 @@ REAL_STDERR = sys.stderr
 
 
 def init_streams(config):
-   if not config.interactive:
-      sys.stdout = UnbufferedStream(REAL_STDOUT)
+    if not config.interactive:
+        sys.stdout = UnbufferedStream(REAL_STDOUT)
 
 
 def flush():
-   REAL_STDOUT.flush()
-   REAL_STDERR.flush()
+    REAL_STDOUT.flush()
+    REAL_STDERR.flush()

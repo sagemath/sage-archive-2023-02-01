@@ -1465,7 +1465,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 # Check if any supports are dominated for col player
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
                     a = self._solve_indifference_a(pair[0], pair[1], M2)
-                    b = self._solve_indifference_b(pair[0], pair[1], M1)
+                    b = self._solve_indifference_a(pair[1], pair[0], M1.transpose())
                     if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
                         equilibria.append([tuple(a), tuple(b)])
 

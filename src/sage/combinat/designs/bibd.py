@@ -1236,16 +1236,16 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
     def arc(self, s=None):
         r"""
-        Return the `(s,n)`-arc which has the highest cardinality.
+        Return the (s,n)-arc which maximum cardinality.
 
-        A `(s,n)`-arc is a set of n points so that in each block there are
+        A (s,n)-arc is a set of n points so that in each block there are
         at most ``s`` of them.
 
         For more informations : :wikipedia:`Arc_(projective_geometry)`
 
         INPUT:
 
-        - ``s`` (integer) - number of points from the arc in each block
+        - ``s`` (integer) - maximum number of points from the arc in each block
 
         EXAMPLES::
 
@@ -1280,7 +1280,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         if s is None:
             s = 2
         if s >= len(self._blocks[0]):
-            return self._points
+            return self._points[:]
         p = MixedIntegerLinearProgram()
         b = p.new_variable(binary=True)
         p.set_objective(p.sum(b[v] for v in self._points))

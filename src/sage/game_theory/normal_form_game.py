@@ -1876,6 +1876,10 @@ class NormalFormGame(SageObject, MutableMapping):
            http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
            (2002)
         """
+        if len(self.players) > 2:
+            raise NotImplementedError("Tests for Degeneracy is not yet "
+                                      "implemented for games with more than "
+                                      "two players.")
 
         if self._is_degenerate_pure():
             return True

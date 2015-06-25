@@ -7698,7 +7698,8 @@ cdef class gen(gen_auto):
         r"""
         rnfidealdown(rnf,x): finds the intersection of the ideal x with the base field.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: x = ZZ['xx1'].0; pari(x)
             xx1
             sage: y = ZZ['yy1'].0; pari(y)

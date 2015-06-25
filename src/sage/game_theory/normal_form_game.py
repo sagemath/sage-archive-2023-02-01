@@ -1898,11 +1898,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for pair in potential_support_pairs:
             if len(pair[0]) < len(pair[1]):
-                strat = self._solve_indifference(pair[0], pair[1], M2.transpose())
+                strat = self._solve_indifference(pair[0], pair[1], M2)
                 if strat and not self._is_num_best_responses(strat, M2.transpose()):
                     return True
             elif len(pair[1]) < len(pair[0]):
-                strat = self._solve_indifference(pair[1], pair[0], M1)
+                strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
                 if strat and not self._is_num_best_responses(strat, M1):
                     return True
 

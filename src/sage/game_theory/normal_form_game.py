@@ -1897,19 +1897,14 @@ class NormalFormGame(SageObject, MutableMapping):
                                    len(pair[0]) != len(pair[1])]
 
         for pair in potential_support_pairs:
-            result = self._solve_indifference(pair[0], pair[1], M1, M2)
-            if result:
-                a = result[0]
-                b = result[1]
-                if not self._is_num_best_responses(a, M2.transpose()):
+            if len(pair[0]) < len(pair[1]):
+                strat = self._solve_indifference(pair[0], pair[1], M2.transpose())
+                if strat and not self._is_num_best_responses(strat, M2.transpose()):
                     return True
-                if not self._is_num_best_responses(b, M1):
+            elif len(pair[1]) < len(pair[0]):
+                strat = self._solve_indifference(pair[1], pair[0], M1)
+                if strat and not self._is_num_best_responses(strat, M1):
                     return True
-                # This can be done smarter, you're solving both indifference
-                # inequalities but really you'll only need to solve one of
-                # them...
-                # This is the whole discussion and figure at the end of the blog
-                # post.
 
         return False
 

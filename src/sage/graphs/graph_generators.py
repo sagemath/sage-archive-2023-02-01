@@ -181,6 +181,7 @@ __append_to_doc(
      "BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
+     "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
@@ -1921,6 +1922,7 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)

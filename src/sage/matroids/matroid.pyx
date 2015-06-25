@@ -4583,12 +4583,16 @@ cdef class Matroid(SageObject):
             2
         """
         S = set(S)
+        if not S.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if T is None:
-            return self.rank(S) + self.rank(self.groundset()-S) - self.full_rank()
+            return self._rank(S) + self._rank(self.groundset()-S) - self.full_rank()
         T = set(T)
+        if not T.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if S.intersection(T):
-            raise ValueError("no well-defined matroid connectivity between intersecting sets")
-        return self._connectivity(S, T)
+            raise ValueError("S and T are not disjoint")
+        return len(self._link(S, T)[0]) - self.full_rank() + self._rank(S) + self._rank(T)
 
     cpdef _connectivity(self, S, T):
         r"""
@@ -4627,9 +4631,7 @@ cdef class Matroid(SageObject):
             sage: M._connectivity('ab', 'cd')
             2
         """
-        N1 = self.minor(T,S)
-        N2 = self.minor(S,T)
-        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
+        return len(self._link(S,T)[0]) - self.full_rank() + self.rank(S) + self.rank(T)
 
     cpdef link(self, S, T):
         r"""
@@ -4885,48 +4887,31 @@ cdef class Matroid(SageObject):
         e = E.pop()
         f = E.pop()
         S = {e, f}
-        w = {e:1 for e in E}
-        I = set()
+        rs = self._rank(S)
         for T in combinations(E, 2):
             T = set(T)
-            N1 = self.minor(T,S)
-            N2 = self.minor(S,T)
-            # make previous I a common independent set of current N1, N2
-            I = I - T
-            I = N1.max_independent(I)
-            I = N2.max_independent(I)
-            J = N1._intersection_augmentation(N2, w, I)
-            while J[0]:
-                I = I.symmetric_difference(J[1])
-                J = N1._intersection_augmentation(N2, w, I)
+            rt = self._rank(T)
+            I, X = self._link(S, T)
             # check if connectivity between S,T is <2
-            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+            if len(I) - self.full_rank() + rs + rt < 2:
                 if certificate:
-                    return False, S.union(J[1])
+                    return False, X
                 else:
                     return False
         for g in E:
             S = {e, g}
-            I = I - S
+            rs =self._rank(S)
             for h in E:
                 if g is h:
                     continue
                 T = {f, h}
                 T = set(T)
-                N1 = self.minor(T,S)
-                N2 = self.minor(S,T)
-                # make previous I a common independent set of current N1, N2
-                I = I - T
-                I = N1.max_independent(I)
-                I = N2.max_independent(I)
-                J = N1._intersection_augmentation(N2, w, I)
-                while J[0]:
-                    I = I.symmetric_difference(J[1])
-                    J = N1._intersection_augmentation(N2, w, I)
+                rt = self._rank(T)
+                I, X = self._link(S, T)
                 # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+                if len(I) - self.full_rank() + rs + rt < 2:
                     if certificate:
-                        return False, S.union(J[1])
+                        return False, X
                     else:
                         return False
         if certificate:

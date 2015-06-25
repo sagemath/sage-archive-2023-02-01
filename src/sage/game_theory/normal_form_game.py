@@ -2010,7 +2010,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return False
 
-    def _is_num_best_responses(self, strategy, payoff_matrix):  # This needs a better name
+    def _is_num_best_responses(self, strategy, payoff_matrix):
         """
         From a given strategy for a player, computes the payoff for the
         opponent, then compares number of best responses with size of strategy.

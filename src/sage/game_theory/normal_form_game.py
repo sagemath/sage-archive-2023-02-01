@@ -1464,8 +1464,8 @@ class NormalFormGame(SageObject, MutableMapping):
             if (self._row_cond_dominance(pair[0], pair[1], M1)
                 # Check if any supports are dominated for col player
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-                    a = self._solve_indifference_a(pair[0], pair[1], M1, M2)
-                    b = self._solve_indifference_b(pair[0], pair[1], M1, M2)
+                    a = self._solve_indifference_a(pair[0], pair[1], M2)
+                    b = self._solve_indifference_b(pair[0], pair[1], M1)
                     if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
                         equilibria.append([tuple(a), tuple(b)])
 
@@ -1506,7 +1506,7 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
         return True
 
-    def _solve_indifference_b(self, p1_support, p2_support, M1, M2):
+    def _solve_indifference_b(self, p1_support, p2_support, M1):
         r"""
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.
@@ -1615,7 +1615,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return result
 
-    def _solve_indifference_a(self, p1_support, p2_support, M1, M2):
+    def _solve_indifference_a(self, p1_support, p2_support, M2):
         r"""
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.

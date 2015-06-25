@@ -37,6 +37,9 @@ class TarballTestCase(unittest.TestCase):
     def test_checksum(self):
         pkg = Package('configure')
         tarball = Tarball(pkg.tarball)
+        with CapturedOutput() as (stdout, stderr):
+            with CapturedLog() as log:
+                tarball.download()
         self.assertTrue(tarball.checksum_verifies())
         with open(tarball.upstream_fqn, 'w') as f:
             f.write('foobar')

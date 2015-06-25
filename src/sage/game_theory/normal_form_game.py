@@ -1506,7 +1506,7 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
         return True
 
-    def _solve_indifference(self, p1_support, p2_support, M2):
+    def _solve_indifference(self, support1, support2, M):
         r"""
         For a support pair obtains vector pair that ensures indifference
         amongst support strategies.
@@ -1567,30 +1567,30 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_indifference((0,), (0,), -A.transpose())
             (1)
         """
-        linearsystem1 = matrix(QQ, len(p2_support)+1, M2.nrows())
+        linearsystem = matrix(QQ, len(support2)+1, M.nrows())
 
         # Build linear system for player 1
-        for p1_strategy in p1_support:
+        for strategy1 in support1:
             # Checking particular case of supports of pure strategies
-            if len(p2_support) == 1:
-                for p2_strategy in range(M2.ncols()):
-                    if M2[p1_strategy][p2_support[0]] < \
-                            M2[p1_strategy][p2_strategy]:
+            if len(support2) == 1:
+                for strategy2 in range(M.ncols()):
+                    if M[strategy1][support2[0]] < \
+                            M[strategy1][strategy2]:
                         return False
             else:
-                for p2_strategy_pair in range(len(p2_support)):
+                for strategy_pair2 in range(len(support2)):
                     # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
-                    linearsystem1[p2_strategy_pair, p1_strategy] = \
-                            M2[p1_strategy][p2_support[p2_strategy_pair]] -\
-                              M2[p1_strategy][p2_support[p2_strategy_pair-1]]
-            linearsystem1[-1, p1_strategy] = 1  # Coefficients of linear system to ensure that vector is probability
+                    linearsystem[strategy_pair2, strategy1] = \
+                        M[strategy1][support2[strategy_pair2]] -\
+                        M[strategy1][support2[strategy_pair2 - 1]]
+            linearsystem[-1, strategy1] = 1  # Coefficients of linear system to ensure that vector is probability
 
         # Create rhs of linear systems
-        linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
+        linearsystem_rhs = vector([0 for i in range(len(support2))] + [1])
 
         # Solve both linear systems
         try:
-            result = linearsystem1.solve_right(linearsystemrhs1)
+            result = linearsystem.solve_right(linearsystem_rhs)
         except ValueError:
             return None
 

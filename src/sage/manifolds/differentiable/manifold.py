@@ -1,7 +1,8 @@
 r"""
 Differentiable manifolds
 
-Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`),
+Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
+see Ser92_ for `K = \QQ_p` and Bertram for more general fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
 `k`-times  continuously differentiable) for a fixed positive integer `k`
@@ -255,11 +256,21 @@ AUTHORS:
 
 REFERENCES:
 
+.. _Ser92:
+
+- J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed., Springer
+  (Berlin) (1992); :doi:`10.1007/978-3-540-70634-2`
+
+
 - J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+  (2012); :doi:`10.1007/978-1-4419-9982-5`
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005)
+- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005);
+  :doi:`10.1007/b137952`
+- W. Bertram : *Differential Geometry, Lie Groups and Symmetric Spaces over
+  General Base Fields and Rings*, Memoirs of the American Mathematical
+  Society, vol. 192 (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
 """
 

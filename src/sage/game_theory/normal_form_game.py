@@ -2016,7 +2016,7 @@ class NormalFormGame(SageObject, MutableMapping):
             return False
         return True
 
-    def is_degenerate_pure(self):
+    def _is_degenerate_pure(self):
         """
         Checks whether a game is degenerate in pure strategies.
 
@@ -2025,19 +2025,19 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game.is_degenerate_pure()
+            sage: degenerate_game._is_degenerate_pure()
             True
 
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])
             sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
             sage: g = NormalFormGame([A, B])
-            sage: g.is_degenerate_pure()
+            sage: g._is_degenerate_pure()
             False
 
             sage: A = matrix([[2, 5], [0, 4]])
             sage: B = matrix([[2, 0], [5, 4]])
             sage: prisoners_dilemma = NormalFormGame([A, B])
-            sage: prisoners_dilemma.is_degenerate_pure()
+            sage: prisoners_dilemma._is_degenerate_pure()
             False
 
             sage: A = matrix([[0, -1, 1, 1, -1],
@@ -2046,7 +2046,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [-1, 1, -1, 0, 1],
             ....:             [1, -1, 1, -1, 0]])
             sage: g = NormalFormGame([A])
-            sage: g.is_degenerate_pure()
+            sage: g._is_degenerate_pure()
             True
 
             Whilst this game is not degenerate in pure strategies, it is
@@ -2055,7 +2055,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.is_degenerate_pure()
+            sage: g._is_degenerate_pure()
             False
         """
         M1, M2 = self.payoff_matrices()

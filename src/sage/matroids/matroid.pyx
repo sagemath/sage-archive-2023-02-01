@@ -4750,7 +4750,7 @@ cdef class Matroid(SageObject):
                     for y in out_neighbors:
                         if not y in predecessor:
                             predecessor[y] = u
-                            next_layer.add(y)                               
+                            next_layer.add(y)
             if found_path:
                 path = set([u])             # reconstruct path
                 while predecessor[u] is not None:
@@ -4882,8 +4882,20 @@ cdef class Matroid(SageObject):
             1
         """
         cdef int rs, rt
-        if self.loops() or self.coloops():
-            return False
+        X = self.loops()
+        if X:
+            if certificate:
+                x = X.pop()
+                return False, [x]
+            else:
+                return False
+        X = self.coloops()
+        if X:
+            if certificate:
+                x = X.pop()
+                return False, [x]
+            else:
+                return False
         E = set(self.groundset())
         e = E.pop()
         f = E.pop()

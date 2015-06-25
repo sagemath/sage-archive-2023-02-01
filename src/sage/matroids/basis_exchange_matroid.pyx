@@ -1094,8 +1094,153 @@ cdef class BasisExchangeMatroid(Matroid):
         for i in xrange(self.full_rank()):
             bitset_free(comp[i])           
         return res
+
+    cpdef _link(self, S, T):
+        r"""
+        Return a connector ``C`` of two subsets ``S`` and ``T`` a separation ``X``,
+        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            {X,Y} \text{a partition of} E \}.
+
+        Here ``M`` denotes this matroid.
         
-        
+        Internal version that does not verify that ``S`` and ``T``
+        are sets, are disjoint, are subsets of the groundset.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Computes a maximum-cardinality common independent set ``I`` of
+        of `M / S \ T` and `M \ S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M._link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        # compute maximal common independent set of self\S/T and self/T\S
+        cdef bitset_t SS, TT
+        bitset_init(SS, self._groundset_size)
+        bitset_init(TT, self._groundset_size)
+        self.__pack(SS,S)
+        self.__pack(TT,T)
+        #F = set(self.groundset()) - (S | T)
+        cdef bitset_t F, I
+        bitset_init(F, self._groundset_size)
+        bitset_init(I, self._groundset_size)
+        bitset_union(self._input, SS, TT)
+        bitset_complement(F, self._input)
+        #I = self._augment(S|T, F)
+        self.__augment(I, self._input, F)
+        cdef bitset_t X, X1, X2, next_layer, todo, out_neighbors, R
+        bitset_init(X, self._groundset_size)
+        bitset_init(X1, self._groundset_size)
+        bitset_init(X2, self._groundset_size)
+        bitset_init(next_layer, self._groundset_size)
+        bitset_init(todo, self._groundset_size)
+        bitset_init(out_neighbors, self._groundset_size)
+        bitset_init(R, self._groundset_size)
+        cdef long* predecessor
+        predecessor = <long*>sage_malloc(self._groundset_size*sizeof(long))
+        cdef long e,u
+        for e in range(self._groundset_size):
+            predecessor[e] = -2
+        cdef bint found_path = True 
+        while found_path:
+            #X = F - I
+            bitset_difference(X,F,I)
+            #X1 = X - self._closure(T|I)
+            bitset_union(self._temp, TT, I)
+            self.__closure(X1, self._temp)
+            bitset_difference(X1,X,X1)
+            #X2 = X - self._closure(S|I)
+            bitset_union(self._temp, SS, I)
+            self.__closure(X2, self._temp)
+            bitset_difference(X2,X,X2)
+            #predecessor = {x: None for x in X1}
+            e = bitset_first(X1)
+            while e>=0:
+                predecessor[e] = -1
+                e = bitset_next(X1, e+1)  
+            #next_layer = set(X1)
+            bitset_copy(next_layer, X1)
+            bitset_copy(R, X1)
+            found_path = False
+            while not bitset_isempty(next_layer) and not found_path:
+                #todo = next_layer
+                bitset_copy(todo,next_layer)
+                #next_layer = {}
+                bitset_clear(next_layer)
+                u = bitset_first(todo)
+                while u>=0 and not found_path:
+                    bitset_discard(todo,u)
+                    if bitset_in(X2,u):
+                        found_path = True
+                        break     
+                    if bitset_in(X,u):
+                        #out_neighbors = I - self._coclosure(X|S - set([u]))
+                        bitset_union(self._temp, X, SS)
+                        bitset_discard(self._temp, u)
+                        self.__coclosure(out_neighbors,self._temp)
+                        bitset_difference(out_neighbors, I, out_neighbors)
+                    else:
+                        #out_neighbors = X - self._closure(I|T - set([u]))
+                        bitset_union(self._temp, I, TT)
+                        bitset_discard(self._temp, u)
+                        self.__closure(out_neighbors,self._temp)
+                        bitset_difference(out_neighbors, X, out_neighbors)
+                    bitset_difference(out_neighbors, out_neighbors, R)    
+                    y = bitset_first(out_neighbors)  
+                    while y>=0:
+                        predecessor[y] = u
+                        bitset_add(R, y)
+                        bitset_add(next_layer,y)
+                        y = bitset_next(out_neighbors, y+1)    
+                    u = bitset_next(todo, u+1)                                                         
+            if found_path:
+                while u>=0:
+                    bitset_flip(I, u)
+                    u = predecessor[u]              
+        bitset_union(R, R, SS)
+        II = self.__unpack(I)
+        RR = self.__unpack(R)
+
+        bitset_free(SS)
+        bitset_free(TT)
+        bitset_free(F)
+        bitset_free(I)
+        bitset_free(X)
+        bitset_free(X1)
+        bitset_free(X2)
+        bitset_free(next_layer)
+        bitset_free(todo)
+        bitset_free(out_neighbors)
+        bitset_free(R)
+        sage_free(predecessor)
+
+        return II, RR
+
+    
     # enumeration
 
     cpdef f_vector(self):

@@ -4631,6 +4631,134 @@ cdef class Matroid(SageObject):
         N2 = self.minor(S,T)
         return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
 
+    cpdef link(self, S, T):
+        r"""
+        Return a connector ``I`` of two subsets ``S`` and ``T`` a separation ``X``,
+        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            {X,Y} \text{a partition of} E \}.
+
+        Here ``M`` denotes this matroid.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Computes the maximum-cardinality of common independent set ``I`` of
+        of `M / S \ T` and `M \ S / T`, as well as 
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M.link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        if not S.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
+        if not T.issubset(self.groundset()):
+            raise ValueError("T is not a subset of the ground set")    
+        if S.intersection(T):
+            raise ValueError("S and T are not disjoint")
+        return self._link(S, T)    
+
+    cpdef _link(self, S, T):
+        r"""
+        Return a connector ``I`` of two subsets ``S`` and ``T`` a separation ``X``,
+        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            {X,Y} \text{a partition of} E \}.
+
+        Here ``M`` denotes this matroid.
+    
+        Internal version that does not verify that ``S`` and ``T``
+        are sets, are disjoint, are subsets of the groundset.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Compute a maximum-cardinality common independent set ``I`` of
+        of `M / S \ T` and `M \ S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M._link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        # compute maximal common independent set of self\S/T and self/T\S
+        F = set(self.groundset()) - (S | T)
+        I = self._augment(S|T, F)
+        found_path = True
+        while found_path:
+            X = F - I
+            X1 = X - self._closure(T|I)
+            X2 = X - self._closure(S|I)
+            predecessor = {x: None for x in X1}
+            next_layer = set(X1)
+            found_path = False
+            while next_layer and not found_path:
+                todo = next_layer
+                next_layer = {}
+                while todo and not found_path:
+                    u = todo.pop()
+                    if u in X2:
+                        found_path = True
+                        break     
+                    if u in X:
+                        out_neighbors = I - self._coclosure(X|S - set([u]))
+                    else:
+                        out_neighbors = X - self._closure(I|T - set([u]))    
+                    for y in out_neighbors:
+                        if not y in predecessor:
+                            predecessor[y] = u
+                            next_layer.add(y)                                                          
+            if found_path:
+                path = set([u])             # reconstruct path
+                while predecessor[u] is not None:
+                    u = predecessor[u]
+                    path.add(u)
+                I = I.symmetric_difference(path)
+
+        return frozenset(I), frozenset(predecessor)|S
+    
+
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise. It can

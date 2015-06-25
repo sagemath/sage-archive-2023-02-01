@@ -1464,12 +1464,10 @@ class NormalFormGame(SageObject, MutableMapping):
             if (self._row_cond_dominance(pair[0], pair[1], M1)
                 # Check if any supports are dominated for col player
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-                    result = self._solve_indifference(pair[0], pair[1], M1, M2)
-                    if result:
-                        a = result[0]
-                        b = result[1]
-                        if self._is_NE(a, b, pair[0], pair[1], M1, M2):
-                            equilibria.append([tuple(a), tuple(b)])
+                    a = self._solve_indifference(pair[0], pair[1], M2.transpose())
+                    b = self._solve_indifference(pair[1], pair[0], M1)
+                    if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
+                        equilibria.append([tuple(a), tuple(b)])
 
         return sorted(equilibria)
 

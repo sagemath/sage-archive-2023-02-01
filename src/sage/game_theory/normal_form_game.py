@@ -1988,14 +1988,13 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for pair in potential_support_pairs:
             result = self._solve_indifference(pair[0], pair[1], M1, M2)
+            print result
             if result:
                 a = result[0]
                 b = result[1]
-                sup_size_a = sum(1 for i in a if i > 0)
-                sup_size_b = sum(1 for i in b if i > 0)
-                all_pos_a = not any(i < 0 for i in a)
-                all_pos_b = not any(i < 0 for i in b)
-                if sup_size_a != sup_size_b and all_pos_a and all_pos_b:
+                if not _is_valid_strat(a, M2.transpose()):
+                    return True
+                if not _is_valid_strat(b, M1):
                     return True
 
         return False

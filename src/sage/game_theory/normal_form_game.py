@@ -1889,14 +1889,11 @@ class NormalFormGame(SageObject, MutableMapping):
                                powerset(range(player.num_strategies))]
                                for player in self.players]
 
-        potential_supports = [filter(None, k) for k in potential_supports]
-        pot_supports = []  # Messy to have potential_supports and pot_supports
         for k in potential_supports:
-            k = [i for i in k if len(i) > 1]  # Could this be done in lines 1983 somewhere?
-            pot_supports.append(k)
+            k = [i for i in k if i is None or len(i) > 1]
 
         potential_support_pairs = [pair for pair in
-                                   CartesianProduct(*pot_supports) if
+                                   CartesianProduct(*potential_supports) if
                                    len(pair[0]) != len(pair[1])]
 
         for pair in potential_support_pairs:

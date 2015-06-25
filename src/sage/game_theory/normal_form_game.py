@@ -1466,7 +1466,11 @@ class NormalFormGame(SageObject, MutableMapping):
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
                     result = self._solve_indifference(pair[0], pair[1], M1, M2)
                     if result:
-                        equilibria.append([tuple(result[0]), tuple(result[1])])
+                        a = result[0]
+                        b = result[1]
+                        if self._is_NE(a, b, pair[0], pair[1], M1, M2):
+                            equilibria.append([tuple(a), tuple(b)])
+
         return sorted(equilibria)
 
     def _row_cond_dominance(self, p1_sup, p2_sup, matrix):
@@ -1609,9 +1613,7 @@ class NormalFormGame(SageObject, MutableMapping):
         except ValueError:
             return None
 
-        if self._is_NE(a, b, p1_support, p2_support, M1, M2):
-            return [a, b]
-        return None
+        return [a, b]
 
     def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
         r"""

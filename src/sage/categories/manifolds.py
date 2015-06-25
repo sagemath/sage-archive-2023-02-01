@@ -123,85 +123,28 @@ class Manifolds(Category_singleton):
             return self._with_axiom('FiniteDimensional')
 
         @cached_method
-        def Differentiable(self):
+        def Real(self):
             """
-            Return the subcategory of the differentiable objects of ``self``.
+            Return the subcategory of manifolds over `\RR` of ``self``.
 
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Differentiable()
-                Category of differentiable manifolds
+                sage: Manifolds().Real()
+                Category of real manifolds
 
             TESTS::
 
-                sage: TestSuite(Manifolds().Differentiable()).run()
-                sage: Manifolds().Differentiable.__module__
+                sage: TestSuite(Manifolds().Real()).run()
+                sage: Manifolds().Real.__module__
                 'sage.categories.manifolds'
             """
-            return self._with_axiom('Differentiable')
-
-        @cached_method
-        def Smooth(self):
-            """
-            Return the subcategory of the smooth objects of ``self``.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Smooth()
-                Category of smooth manifolds
-
-            TESTS::
-
-                sage: TestSuite(Manifolds().Smooth()).run()
-                sage: Manifolds().Smooth.__module__
-                'sage.categories.manifolds'
-            """
-            return self._with_axiom('Smooth')
-
-        @cached_method
-        def Analytic(self):
-            """
-            Return the subcategory of the analytic objects of ``self``.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Analytic()
-                Category of analytic manifolds
-
-            TESTS::
-
-                sage: TestSuite(Manifolds().Analytic()).run()
-                sage: Manifolds().Smooth.__module__
-                'sage.categories.manifolds'
-            """
-            return self._with_axiom('Analytic')
-
-        @cached_method
-        def AlmostComplex(self):
-            """
-            Return the subcategory of the almost complex objects of ``self``.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().AlmostComplex()
-                Category of almost complex manifolds
-
-            TESTS::
-
-                sage: TestSuite(Manifolds().AlmostComplex()).run()
-                sage: Manifolds().Smooth.__module__
-                'sage.categories.manifolds'
-            """
-            return self._with_axiom('AlmostComplex')
+            return self._with_axiom('Real')
 
         @cached_method
         def Complex(self):
             """
-            Return the subcategory of the complex objects of ``self``.
+            Return the subcategory of manifolds over `\CC` of ``self``.
 
             EXAMPLES::
 
@@ -212,7 +155,7 @@ class Manifolds(Category_singleton):
             TESTS::
 
                 sage: TestSuite(Manifolds().Complex()).run()
-                sage: Manifolds().Smooth.__module__
+                sage: Manifolds().Complex.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('Complex')
@@ -227,79 +170,178 @@ class Manifolds(Category_singleton):
         The category of connected manifolds.
         """
 
-    class Differentiable(CategoryWithAxiom):
+    class Real(CategoryWithAxiom):
         """
-        The category of differentiable manifolds over `\RR`.
-
-        A `d`-dimensional differentiable manifold is a manifold whose
-        underlying vector space is `\RR^d` and differentiable atlas.
+        The category of manifolds over `\RR`.
         """
+        class SubcategoryMethods:
+            @cached_method
+            def Complex(self):
+                r"""
+                Raise an error as a manifold over `\RR` is not a manifold
+                over `\CC`.
 
-    class Smooth(CategoryWithAxiom):
-        """
-        The category of smooth manifolds over `\RR`.
+                EXAMPLES::
 
-        A `d`-dimensional differentiable manifold is a manifold whose
-        underlying vector space is `\RR^d` and smooth atlas.
-        """
-        def extra_super_categories(self):
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Complex()
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: a real manifold is not a complex manifold
+                """
+                raise TypeError("a real manifold is not a complex manifold")
+
+            @cached_method
+            def Differentiable(self):
+                """
+                Return the subcategory of the differentiable objects
+                of ``self``.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Differentiable()
+                    Category of differentiable real manifolds
+
+                TESTS::
+
+                    sage: TestSuite(Manifolds().Real().Differentiable()).run()
+                    sage: Manifolds().Real().Differentiable.__module__
+                    'sage.categories.manifolds'
+                """
+                return self._with_axiom('Differentiable')
+
+            @cached_method
+            def Smooth(self):
+                """
+                Return the subcategory of the smooth objects of ``self``.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Smooth()
+                    Category of smooth real manifolds
+
+                TESTS::
+
+                    sage: TestSuite(Manifolds().Real().Smooth()).run()
+                    sage: Manifolds().Real().Smooth.__module__
+                    'sage.categories.manifolds'
+                """
+                return self._with_axiom('Smooth')
+
+            @cached_method
+            def Analytic(self):
+                """
+                Return the subcategory of the analytic objects of ``self``.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Analytic()
+                    Category of analytic real manifolds
+
+                TESTS::
+
+                    sage: TestSuite(Manifolds().Real().Analytic()).run()
+                    sage: Manifolds().Real().Analytic.__module__
+                    'sage.categories.manifolds'
+                """
+                return self._with_axiom('Analytic')
+
+            @cached_method
+            def AlmostComplex(self):
+                """
+                Return the subcategory of the almost complex objects
+                of ``self``.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().AlmostComplex()
+                    Category of almost complex real manifolds
+
+                TESTS::
+
+                    sage: TestSuite(Manifolds().Real().AlmostComplex()).run()
+                    sage: Manifolds().Real().AlmostComplex.__module__
+                    'sage.categories.manifolds'
+                """
+                return self._with_axiom('AlmostComplex')
+
+        class Differentiable(CategoryWithAxiom):
             """
-            Return the extra super categories of ``self``.
+            The category of differentiable manifolds over `\RR`.
 
-            A smooth manifold is differentiable.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Smooth().super_categories() # indirect doctest
-                [Category of differentiable manifolds]
+            A `d`-dimensional differentiable manifold is a manifold whose
+            underlying vector space is `\RR^d` and differentiable atlas.
             """
-            return [Manifolds().Differentiable()]
 
-    class Analytic(CategoryWithAxiom):
-        r"""
-        The category of complex manifolds.
-
-        A `d`-dimensional analytic manifold is a manifold whose underlying
-        vector space is `\RR^d` and an analytic atlas.
-        """
-        def extra_super_categories(self):
+        class Smooth(CategoryWithAxiom):
             """
-            Return the extra super categories of ``self``.
+            The category of smooth manifolds over `\RR`.
 
-            An analytic manifold is smooth.
-
-            EXAMPLES::
-
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Analytic().super_categories() # indirect doctest
-                [Category of smooth manifolds]
+            A `d`-dimensional differentiable manifold is a manifold whose
+            underlying vector space is `\RR^d` and smooth atlas.
             """
-            return [Manifolds().Smooth()]
+            def extra_super_categories(self):
+                """
+                Return the extra super categories of ``self``.
 
-    class AlmostComplex(CategoryWithAxiom):
-        r"""
-        The category of almost complex manifolds.
+                A smooth manifold is differentiable.
 
-        A `d`-dimensional almost complex manifold `M` is a manifold
-        whose underlying vector space is `\RR^d` with a smooth tensor
-        field `J` of rank `(1, 1)` such that `J^2 = -1` when regarded as a
-        vector bundle isomorphism `J : TM \to TM` on the tangent bundle.
-        The tensor field `J` is called the almost complex structure of `M`.
-        """
-        def extra_super_categories(self):
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Smooth().super_categories() # indirect doctest
+                    [Category of differentiable real manifolds]
+                """
+                return [Manifolds().Real().Differentiable()]
+
+        class Analytic(CategoryWithAxiom):
+            r"""
+            The category of complex manifolds.
+
+            A `d`-dimensional analytic manifold is a manifold whose underlying
+            vector space is `\RR^d` and an analytic atlas.
             """
-            Return the extra super categories of ``self``.
+            def extra_super_categories(self):
+                """
+                Return the extra super categories of ``self``.
 
-            An analytic manifold is smooth.
+                An analytic manifold is smooth.
 
-            EXAMPLES::
+                EXAMPLES::
 
-                sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Analytic().super_categories() # indirect doctest
-                [Category of smooth manifolds]
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Analytic().super_categories() # indirect doctest
+                    [Category of smooth real manifolds]
+                """
+                return [Manifolds().Real().Smooth()]
+
+        class AlmostComplex(CategoryWithAxiom):
+            r"""
+            The category of almost complex manifolds.
+
+            A `d`-dimensional almost complex manifold `M` is a manifold
+            whose underlying vector space is `\RR^d` with a smooth tensor
+            field `J` of rank `(1, 1)` such that `J^2 = -1` when regarded as a
+            vector bundle isomorphism `J : TM \to TM` on the tangent bundle.
+            The tensor field `J` is called the almost complex structure of `M`.
             """
-            return [Manifolds().Smooth()]
+            def extra_super_categories(self):
+                """
+                Return the extra super categories of ``self``.
+
+                An analytic manifold is smooth.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Real().Analytic().super_categories() # indirect doctest
+                    [Category of smooth real manifolds]
+                """
+                return [Manifolds().Real().Smooth()]
 
     class Complex(CategoryWithAxiom):
         r"""
@@ -308,4 +350,20 @@ class Manifolds(Category_singleton):
         A `d`-dimensional complex manifold is a manifold whose underlying
         vector space is `\CC^d` and a holomorphic atlas.
         """
+        class SubcategoryMethods:
+            @cached_method
+            def Real(self):
+                r"""
+                Raise an error as a manifold over `\RR` is not a manifold
+                over `\CC`.
+
+                EXAMPLES::
+
+                    sage: from sage.categories.manifolds import Manifolds
+                    sage: Manifolds().Complex().Real()
+                    Traceback (most recent call last):
+                    ...
+                    TypeError: a complex manifold is not a real manifold
+                """
+                raise TypeError("a complex manifold is not a real manifold")
 

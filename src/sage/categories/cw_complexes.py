@@ -24,6 +24,10 @@ class CWComplexes(Category_singleton):
 
     - :wikipedia:`CW_complex`
 
+    .. NOTE::
+
+        The notion of "finite" is that the number of cells is finite.
+
     EXAMPLES::
 
         sage: from sage.categories.cw_complexes import CWComplexes

@@ -151,6 +151,8 @@ bool constant::info(unsigned inf) const
 {
 	if (inf == info_flags::polynomial)
 		return true;
+        if (inf == info_flags::inexact)
+                return false;
 	if (inf == info_flags::real)
 		return domain==domain::real || domain==domain::positive ;
 	if (inf==info_flags::positive || inf==info_flags::nonnegative)

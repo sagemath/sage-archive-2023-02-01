@@ -471,7 +471,10 @@ bool mul::info(unsigned inf) const
 				return true;
 			return overall_coeff.info(inf);
 		}
+		case info_flags::inexact:
 		case info_flags::algebraic: {
+                        if (overall_coeff.info(inf))
+                                return true;
                         for (const auto & elem : seq)
 				if ((recombine_pair_to_ex(elem).info(inf)))
 					return true;

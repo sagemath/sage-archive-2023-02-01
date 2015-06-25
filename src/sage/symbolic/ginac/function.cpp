@@ -1502,6 +1502,8 @@ bool function::info(unsigned inf) const
                         return arg.info(info_flags::real);
                 case info_flags::positive:
                         return arg.info(info_flags::real);
+		case info_flags::inexact:
+                        return arg.info(info_flags::inexact);
                 }
         }
 	else if (get_serial() == log_SERIAL::serial)

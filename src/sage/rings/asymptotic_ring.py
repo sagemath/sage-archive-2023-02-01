@@ -192,7 +192,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: from sage.rings.asymptotic_ring import AsymptoticRing
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
@@ -209,7 +208,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: from sage.rings.asymptotic_ring import AsymptoticRing
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
@@ -238,7 +236,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: from sage.rings.asymptotic_ring import AsymptoticRing
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
@@ -305,7 +302,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: from sage.rings.asymptotic_ring import AsymptoticRing
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)

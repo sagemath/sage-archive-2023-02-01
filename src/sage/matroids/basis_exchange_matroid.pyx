@@ -1165,7 +1165,7 @@ cdef class BasisExchangeMatroid(Matroid):
         cdef long e,u
         for e in range(self._groundset_size):
             predecessor[e] = -2
-        cdef bint found_path = True 
+        cdef bint found_path = True
         while found_path:
             #X = F - I
             bitset_difference(X,F,I)
@@ -1181,7 +1181,7 @@ cdef class BasisExchangeMatroid(Matroid):
             e = bitset_first(X1)
             while e>=0:
                 predecessor[e] = -1
-                e = bitset_next(X1, e+1)  
+                e = bitset_next(X1, e+1)
             #next_layer = set(X1)
             bitset_copy(next_layer, X1)
             bitset_copy(R, X1)
@@ -1196,7 +1196,7 @@ cdef class BasisExchangeMatroid(Matroid):
                     bitset_discard(todo,u)
                     if bitset_in(X2,u):
                         found_path = True
-                        break     
+                        break
                     if bitset_in(X,u):
                         #out_neighbors = I - self._coclosure(X|S - set([u]))
                         bitset_union(self._temp, X, SS)
@@ -1209,18 +1209,18 @@ cdef class BasisExchangeMatroid(Matroid):
                         bitset_discard(self._temp, u)
                         self.__closure(out_neighbors,self._temp)
                         bitset_difference(out_neighbors, X, out_neighbors)
-                    bitset_difference(out_neighbors, out_neighbors, R)    
-                    y = bitset_first(out_neighbors)  
+                    bitset_difference(out_neighbors, out_neighbors, R)
+                    y = bitset_first(out_neighbors)
                     while y>=0:
                         predecessor[y] = u
                         bitset_add(R, y)
                         bitset_add(next_layer,y)
-                        y = bitset_next(out_neighbors, y+1)    
-                    u = bitset_next(todo, u+1)                                                         
+                        y = bitset_next(out_neighbors, y+1)
+                    u = bitset_next(todo, u+1)
             if found_path:
                 while u>=0:
                     bitset_flip(I, u)
-                    u = predecessor[u]              
+                    u = predecessor[u]
         bitset_union(R, R, SS)
         II = self.__unpack(I)
         RR = self.__unpack(R)
@@ -1240,7 +1240,6 @@ cdef class BasisExchangeMatroid(Matroid):
 
         return II, RR
 
-    
     # enumeration
 
     cpdef f_vector(self):

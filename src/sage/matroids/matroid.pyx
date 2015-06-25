@@ -4657,8 +4657,8 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        Computes the maximum-cardinality of common independent set ``I`` of
-        of `M / S \ T` and `M \ S / T`, as well as 
+        Compute a maximum-cardinality common independent set ``I`` of
+        of `M / S \ T` and `M \ S / T`.
 
         EXAMPLES::
 
@@ -4676,10 +4676,10 @@ cdef class Matroid(SageObject):
         if not S.issubset(self.groundset()):
             raise ValueError("S is not a subset of the ground set")
         if not T.issubset(self.groundset()):
-            raise ValueError("T is not a subset of the ground set")    
+            raise ValueError("T is not a subset of the ground set")
         if S.intersection(T):
             raise ValueError("S and T are not disjoint")
-        return self._link(S, T)    
+        return self._link(S, T)
 
     cpdef _link(self, S, T):
         r"""
@@ -4693,7 +4693,7 @@ cdef class Matroid(SageObject):
             {X,Y} \text{a partition of} E \}.
 
         Here ``M`` denotes this matroid.
-    
+
         Internal version that does not verify that ``S`` and ``T``
         are sets, are disjoint, are subsets of the groundset.
 
@@ -4742,15 +4742,15 @@ cdef class Matroid(SageObject):
                     u = todo.pop()
                     if u in X2:
                         found_path = True
-                        break     
+                        break
                     if u in X:
                         out_neighbors = I - self._coclosure(X|S - set([u]))
                     else:
-                        out_neighbors = X - self._closure(I|T - set([u]))    
+                        out_neighbors = X - self._closure(I|T - set([u]))
                     for y in out_neighbors:
                         if not y in predecessor:
                             predecessor[y] = u
-                            next_layer.add(y)                                                          
+                            next_layer.add(y)                               
             if found_path:
                 path = set([u])             # reconstruct path
                 while predecessor[u] is not None:
@@ -4759,7 +4759,7 @@ cdef class Matroid(SageObject):
                 I = I.symmetric_difference(path)
 
         return frozenset(I), frozenset(predecessor)|S
-    
+
 
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""
@@ -4881,6 +4881,7 @@ cdef class Matroid(SageObject):
             sage: M.connectivity(X)
             1
         """
+        cdef int rs, rt
         if self.loops() or self.coloops():
             return False
         E = set(self.groundset())
@@ -4905,7 +4906,6 @@ cdef class Matroid(SageObject):
                 if g is h:
                     continue
                 T = {f, h}
-                T = set(T)
                 rt = self._rank(T)
                 I, X = self._link(S, T)
                 # check if connectivity between S,T is <2

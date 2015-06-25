@@ -37,6 +37,7 @@ namespace GiNaC {
     int       (*py_is_even)(PyObject* a);
     int       (*py_is_cinteger)(PyObject* a);
     int       (*py_is_prime)(PyObject* n);
+    int       (*py_is_exact)(PyObject* a);
 
 	PyObject* (*py_int)(PyObject* n);
 	PyObject* (*py_integer_from_long)(long int x);

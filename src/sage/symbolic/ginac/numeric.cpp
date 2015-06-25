@@ -227,10 +227,13 @@ void ginac_pyinit_I(PyObject* z) {
                 py_error("Error getting RR attribute");
         Py_INCREF(obj);
         GiNaC::RR = obj;
-        m = PyImport_ImportModule("sage.rings.all");
+        m = PyImport_ImportModule("sage.rings.complex_field");
         if (!m)
-                py_error("Error importing sage.rings.real_mpfr");
-        obj = PyObject_GetAttrString(m, "CC");
+                py_error("Error importing sage.complex_field");
+        obj = PyObject_GetAttrString(m, "ComplexField");
+        if (!obj)
+                py_error("Error getting ComplexField attribute");
+        obj = PyObject_CallObject(obj, NULL);
         if (!obj)
                 py_error("Error getting CC attribute");
         Py_INCREF(obj);
@@ -599,6 +602,8 @@ bool numeric::info(unsigned inf) const {
                 case info_flags::infinity:
                 case info_flags::has_indices:
                         return false;
+                case info_flags::inexact:
+                        return not is_exact();
                 default:
                         throw (std::runtime_error("numeric::info()"));
         }
@@ -1267,6 +1272,22 @@ int numeric::get_parent_char() const {
                 }
                 default:
                         stub("invalid type -- is_parent_pos_char() type not handled");
+        }
+}
+
+/** True if object is an exact rational number, may even be complex
+ *  (denominator may be unity). */
+bool numeric::is_exact() const {
+        verbose("is_exact");
+        switch (t) {
+                case DOUBLE:
+                        return false;
+                case LONG:
+                        return true;
+                case PYOBJECT:
+                        return py_funcs.py_is_exact(v._pyobject) != 0;
+                default:
+                        stub("invalid type -- is_exact() type not handled");
         }
 }
 

@@ -229,6 +229,7 @@ public:
 		odd,
 		prime,
 		infinity,
+		inexact,
 
 		// answered by class relation
 		relation,

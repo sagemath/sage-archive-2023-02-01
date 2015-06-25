@@ -187,6 +187,7 @@ public:
 	bool is_real() const;
 	bool is_cinteger() const;
 	bool is_crational() const;
+	bool is_exact() const;
 	bool operator==(const numeric &other) const;
 	bool operator!=(const numeric &other) const;
 	bool operator<(const numeric &other) const;

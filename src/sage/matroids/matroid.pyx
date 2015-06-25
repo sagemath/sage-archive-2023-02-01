@@ -1,3 +1,4 @@
+#cython: profile=True
 # -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
@@ -4732,30 +4733,34 @@ cdef class Matroid(SageObject):
             X = F - I
             X1 = X - self._closure(T|I)
             X2 = X - self._closure(S|I)
+            if X1.intersection(X2):
+                y = min(X1.intersection(X2))
+                I = I.union([y])
+                continue
             predecessor = {x: None for x in X1}
             next_layer = set(X1)
             found_path = False
             while next_layer and not found_path:
                 todo = next_layer
-                next_layer = {}
+                next_layer = set()
                 while todo and not found_path:
                     u = todo.pop()
-                    if u in X2:
-                        found_path = True
-                        break
                     if u in X:
-                        out_neighbors = I - self._coclosure(X|S - set([u]))
+                        out_neighbors = self._circuit(I|S.union([u])) - S.union([u])
                     else:
-                        out_neighbors = X - self._closure(I|T - set([u]))
+                        out_neighbors = X - self._closure((I|T) - set([u]))
+                    out_neighbors= out_neighbors-set(predecessor)
                     for y in out_neighbors:
-                        if not y in predecessor:
-                            predecessor[y] = u
-                            next_layer.add(y)
+                        predecessor[y] = u
+                        if y in X2:
+                            found_path = True
+                            break
+                        next_layer.add(y)
             if found_path:
-                path = set([u])             # reconstruct path
-                while predecessor[u] is not None:
-                    u = predecessor[u]
-                    path.add(u)
+                path = set([y])             # reconstruct path
+                while predecessor[y] is not None:
+                    y = predecessor[y]
+                    path.add(y) 
                 I = I.symmetric_difference(path)
 
         return frozenset(I), frozenset(predecessor)|S

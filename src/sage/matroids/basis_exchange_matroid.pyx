@@ -1,3 +1,4 @@
+#cython: profile=True 
 """
 Basis exchange matroids
 
@@ -1177,6 +1178,11 @@ cdef class BasisExchangeMatroid(Matroid):
             bitset_union(self._temp, SS, I)
             self.__closure(X2, self._temp)
             bitset_difference(X2,X,X2)
+            bitset_intersection(R, X1, X2)
+            e = bitset_first(R)
+            if e >= 0:
+                bitset_add(I, e)
+                continue
             #predecessor = {x: None for x in X1}
             e = bitset_first(X1)
             while e>=0:
@@ -1193,16 +1199,13 @@ cdef class BasisExchangeMatroid(Matroid):
                 bitset_clear(next_layer)
                 u = bitset_first(todo)
                 while u>=0 and not found_path:
-                    bitset_discard(todo,u)
-                    if bitset_in(X2,u):
-                        found_path = True
-                        break
                     if bitset_in(X,u):
-                        #out_neighbors = I - self._coclosure(X|S - set([u]))
-                        bitset_union(self._temp, X, SS)
-                        bitset_discard(self._temp, u)
-                        self.__coclosure(out_neighbors,self._temp)
-                        bitset_difference(out_neighbors, I, out_neighbors)
+                        #out_neighbors = self._circuit(I|S.union([u])) - S.union([u])
+                        bitset_union(self._temp, I, SS)
+                        bitset_add(self._temp, u)
+                        self.__circuit(out_neighbors,self._temp)
+                        bitset_difference(out_neighbors, out_neighbors, SS)
+                        bitset_discard(out_neighbors, u)
                     else:
                         #out_neighbors = X - self._closure(I|T - set([u]))
                         bitset_union(self._temp, I, TT)
@@ -1213,14 +1216,17 @@ cdef class BasisExchangeMatroid(Matroid):
                     y = bitset_first(out_neighbors)
                     while y>=0:
                         predecessor[y] = u
+                        if bitset_in(X2,y):
+                            found_path = True
+                            while y>=0:
+                                bitset_flip(I, y)
+                                y = predecessor[y]
+                            break
                         bitset_add(R, y)
                         bitset_add(next_layer,y)
                         y = bitset_next(out_neighbors, y+1)
                     u = bitset_next(todo, u+1)
-            if found_path:
-                while u>=0:
-                    bitset_flip(I, u)
-                    u = predecessor[u]
+
         bitset_union(R, R, SS)
         II = self.__unpack(I)
         RR = self.__unpack(R)

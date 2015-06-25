@@ -28,7 +28,9 @@ class SimplicialComplexes(Category_singleton):
     .. TODO::
 
         Implement the category of simplicial complexes considered
-        as :class:`CW complexes <sage.categories.cw_complexes.CWComplexes>`.
+        as :class:`CW complexes <sage.categories.cw_complexes.CWComplexes>`
+        and rename this to the category of ``AbstractSimplicialComplexes``
+        with appropriate functors.
 
     EXAMPLES::
 

@@ -37,9 +37,9 @@ class LieGroups(Category_singleton):
 
             sage: from sage.categories.lie_groups import LieGroups
             sage: LieGroups().super_categories()
-            [Category of topological groups, Category of smooth manifolds]
+            [Category of topological groups, Category of smooth real manifolds]
         """
-        return [Groups().Topological(), Manifolds().Smooth()]
+        return [Groups().Topological(), Manifolds().Real().Smooth()]
 
     def additional_structure(self):
         r"""

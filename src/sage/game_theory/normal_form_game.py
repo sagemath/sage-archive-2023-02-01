@@ -1967,6 +1967,7 @@ class NormalFormGame(SageObject, MutableMapping):
         sage: B = matrix([[4, 3], [2, 6], [3, 1]])
         sage: g = NormalFormGame([A, B])
         sage: g.is_degenerate_sup()
+        True
         """
         if self._is_degenerate_pure():
             return True
@@ -1988,13 +1989,12 @@ class NormalFormGame(SageObject, MutableMapping):
 
         for pair in potential_support_pairs:
             result = self._solve_indifference(pair[0], pair[1], M1, M2)
-            print result
             if result:
                 a = result[0]
                 b = result[1]
-                if not _is_valid_strat(a, M2.transpose()):
+                if not self._is_valid_strat(a, M2.transpose()):
                     return True
-                if not _is_valid_strat(b, M1):
+                if not self._is_valid_strat(b, M1):
                     return True
 
         return False
@@ -2014,6 +2014,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._is_valid_strat((1/2, 1/2), A)
             False
             sage: g._is_valid_strat((3/4, 1/4), A)
+            True
+            sage: g._is_valid_strat((4/5, 1/5, 0), B.transpose())
             True
 
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])

@@ -1568,7 +1568,7 @@ class NormalFormGame(SageObject, MutableMapping):
             (1)
         """
         # linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
-        linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
+        linearsystem2 = matrix(QQ, len(p1_support)+1, M1.ncols())
 
         # # Build linear system for player 1
         # for p1_strategy in p1_support:
@@ -1590,7 +1590,7 @@ class NormalFormGame(SageObject, MutableMapping):
         for p2_strategy in p2_support:
             # Checking particular case of supports of pure strategies
             if len(p1_support) == 1:
-                for p1_strategy in range(self.players[0].num_strategies):
+                for p1_strategy in range(M1.nrows()):
                     if M1[p1_support[0]][p2_strategy] < \
                             M1[p1_strategy][p2_strategy]:
                         return False
@@ -1676,14 +1676,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g._solve_indifference((0,), (0,), -A.transpose())
             (1)
         """
-        linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
+        linearsystem1 = matrix(QQ, len(p2_support)+1, M2.nrows())
         # linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         # Build linear system for player 1
         for p1_strategy in p1_support:
             # Checking particular case of supports of pure strategies
             if len(p2_support) == 1:
-                for p2_strategy in range(self.players[1].num_strategies):
+                for p2_strategy in range(M2.ncols()):
                     if M2[p1_strategy][p2_support[0]] < \
                             M2[p1_strategy][p2_strategy]:
                         return False

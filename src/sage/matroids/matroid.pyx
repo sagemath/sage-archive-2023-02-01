@@ -4885,14 +4885,14 @@ cdef class Matroid(SageObject):
         X = self.loops()
         if X:
             if certificate:
-                x = X.pop()
+                x = min(X)
                 return False, [x]
             else:
                 return False
         X = self.coloops()
         if X:
             if certificate:
-                x = X.pop()
+                x = min(X)
                 return False, [x]
             else:
                 return False

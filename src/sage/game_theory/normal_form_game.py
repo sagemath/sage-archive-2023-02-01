@@ -1981,12 +1981,12 @@ class NormalFormGame(SageObject, MutableMapping):
         M1, M2 = self.payoff_matrices()
         potential_supports = [[tuple(support) for support in
                                powerset(range(player.num_strategies))]
-                              for player in self.players]
+                               for player in self.players]
 
         potential_supports = [filter(None, k) for k in potential_supports]
-        pot_supports = []
+        pot_supports = []  # Messy to have potential_supports and pot_supports
         for k in potential_supports:
-            k = [i for i in k if len(i) > 1]
+            k = [i for i in k if len(i) > 1]  # Could this be done in lines 1983 somewhere?
             pot_supports.append(k)
 
         potential_support_pairs = [pair for pair in
@@ -2002,14 +2002,19 @@ class NormalFormGame(SageObject, MutableMapping):
                     return True
                 if not self._is_valid_strat(b, M1):
                     return True
+                # This can be done smarter, you're solving both indifference
+                # inequalities but really you'll only need to solve one of
+                # them...
+                # This is the whole discussion and figure at the end of the blog
+                # post.
 
         return False
 
-    def _is_valid_strat(self, strategy, payoff_matrix):
+    def _is_valid_strat(self, strategy, payoff_matrix):  # This needs a better name
         """
         From a given strategy for a player, computes the payoff for the
-        opponent, then compares number of best respones with size of strategy.
-        Any strategy should not have more best responses than its supporst
+        opponent, then compares number of best responses with size of strategy.
+        Any strategy should not have more best responses than its support
         size.
 
         TESTS::

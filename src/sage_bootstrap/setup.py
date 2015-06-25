@@ -8,7 +8,7 @@ setup(
     author='Volker Braun',
     author_email='vbraun.name@gmail.com',
     packages=['sage_bootstrap'],
-    scripts=['bin/sage-pkg'],
+    scripts=['bin/sage-package'],
     version='1.0',
     url='https://www.sagemath.org',
 )

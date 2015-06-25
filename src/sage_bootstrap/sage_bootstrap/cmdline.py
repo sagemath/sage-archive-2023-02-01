@@ -68,7 +68,7 @@ class CmdlineSubcommands(object):
             
 class SagePkgApplication(CmdlineSubcommands):
     """
-    sage-pkg
+    sage-package
     --------
     
     The package script is used to manage third-party tarballs.
@@ -78,7 +78,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         Print the configuration
 
-        $ sage-pkg config
+        $ sage-package config
         Configuration:
           * log = info
           * interactive = True
@@ -90,7 +90,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         Print a list of all available packages
 
-        $ sage-pkg list | sort
+        $ sage-package list | sort
         4ti2
         arb
         atlas
@@ -105,7 +105,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         Find the package name given a tarball filename
     
-        $ sage-pkg name pari-2.8-1564-gdeac36e.tar.gz
+        $ sage-package name pari-2.8-1564-gdeac36e.tar.gz
         pari
         """
         tarball = Tarball(os.path.basename(tarball_filename))
@@ -115,7 +115,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         Find the tarball filename given a package name
     
-        $ sage-pkg tarball pari
+        $ sage-package tarball pari
         pari-2.8-1564-gdeac36e.tar.gz
         """
         package = Package(package_name)

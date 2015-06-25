@@ -1568,7 +1568,7 @@ class NormalFormGame(SageObject, MutableMapping):
             (1)
         """
         linearsystem1 = matrix(QQ, len(p2_support)+1, self.players[0].num_strategies)
-        linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
+        # linearsystem2 = matrix(QQ, len(p1_support)+1, self.players[1].num_strategies)
 
         # Build linear system for player 1
         for p1_strategy in p1_support:
@@ -1586,34 +1586,34 @@ class NormalFormGame(SageObject, MutableMapping):
                               M2[p1_strategy][p2_support[p2_strategy_pair-1]]
             linearsystem1[-1, p1_strategy] = 1  # Coefficients of linear system to ensure that vector is probability
 
-        # Build linear system for player 2
-        for p2_strategy in p2_support:
-            # Checking particular case of supports of pure strategies
-            if len(p1_support) == 1:
-                for p1_strategy in range(self.players[0].num_strategies):
-                    if M1[p1_support[0]][p2_strategy] < \
-                            M1[p1_strategy][p2_strategy]:
-                        return False
-            else:
-                for p1_strategy_pair in range(len(p1_support)):
-                    # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
-                    linearsystem2[p1_strategy_pair, p2_strategy] = \
-                            M1[p1_support[p1_strategy_pair]][p2_strategy] -\
-                              M1[p1_support[p1_strategy_pair-1]][p2_strategy]
-            linearsystem2[-1, p2_strategy] = 1  # Coefficients of linear system that ensure that vector is probability
+        # # Build linear system for player 2
+        # for p2_strategy in p2_support:
+        #     # Checking particular case of supports of pure strategies
+        #     if len(p1_support) == 1:
+        #         for p1_strategy in range(self.players[0].num_strategies):
+        #             if M1[p1_support[0]][p2_strategy] < \
+        #                     M1[p1_strategy][p2_strategy]:
+        #                 return False
+        #     else:
+        #         for p1_strategy_pair in range(len(p1_support)):
+        #             # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+        #             linearsystem2[p1_strategy_pair, p2_strategy] = \
+        #                     M1[p1_support[p1_strategy_pair]][p2_strategy] -\
+        #                       M1[p1_support[p1_strategy_pair-1]][p2_strategy]
+        #     linearsystem2[-1, p2_strategy] = 1  # Coefficients of linear system that ensure that vector is probability
 
         # Create rhs of linear systems
         linearsystemrhs1 = vector([0 for i in range(len(p2_support))] + [1])
-        linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
+        # linearsystemrhs2 = vector([0 for i in range(len(p1_support))] + [1])
 
         # Solve both linear systems
         try:
-            a = linearsystem1.solve_right(linearsystemrhs1)
-            b = linearsystem2.solve_right(linearsystemrhs2)
+            result = linearsystem1.solve_right(linearsystemrhs1)
+            # b = linearsystem2.solve_right(linearsystemrhs2)
         except ValueError:
             return None
 
-        return [a, b]
+        return result
 
     def _is_NE(self, a, b, p1_support, p2_support, M1, M2):
         r"""

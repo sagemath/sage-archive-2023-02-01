@@ -1998,9 +1998,9 @@ class NormalFormGame(SageObject, MutableMapping):
             if result:
                 a = result[0]
                 b = result[1]
-                if not self._is_valid_strat(a, M2.transpose()):
+                if not self._is_num_best_responses(a, M2.transpose()):
                     return True
-                if not self._is_valid_strat(b, M1):
+                if not self._is_num_best_responses(b, M1):
                     return True
                 # This can be done smarter, you're solving both indifference
                 # inequalities but really you'll only need to solve one of
@@ -2010,7 +2010,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return False
 
-    def _is_valid_strat(self, strategy, payoff_matrix):  # This needs a better name
+    def _is_num_best_responses(self, strategy, payoff_matrix):  # This needs a better name
         """
         From a given strategy for a player, computes the payoff for the
         opponent, then compares number of best responses with size of strategy.
@@ -2022,23 +2022,23 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
-            sage: g._is_valid_strat((1/2, 1/2), A)
+            sage: g._is_num_best_responses((1/2, 1/2), A)
             False
-            sage: g._is_valid_strat((3/4, 1/4), A)
+            sage: g._is_num_best_responses((3/4, 1/4), A)
             True
-            sage: g._is_valid_strat((4/5, 1/5, 0), B.transpose())
+            sage: g._is_num_best_responses((4/5, 1/5, 0), B.transpose())
             True
 
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])
             sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
             sage: g = NormalFormGame([A, B])
-            sage: g._is_valid_strat((1/2, 1/2), A)
+            sage: g._is_num_best_responses((1/2, 1/2), A)
             True
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game._is_valid_strat((1, 0, 0), B.transpose())
+            sage: degenerate_game._is_num_best_responses((1, 0, 0), B.transpose())
             False
         """
         strategy = vector(strategy)

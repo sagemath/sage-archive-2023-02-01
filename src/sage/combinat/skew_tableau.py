@@ -1026,13 +1026,6 @@ class SkewTableau(ClonableList):
             sage: all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1)
             True
 
-        Coxeter relation of the Bender--Knuth involutions (they have the form
-        `(ab)^6 = 1`)::
-
-            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
-            sage: all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5))
-            True
-
         TESTS::
 
             sage: t = SkewTableau([])
@@ -1041,6 +1034,19 @@ class SkewTableau(ClonableList):
             sage: t = SkewTableau([[None,None],[None]])
             sage: t.bender_knuth_involution(3)
             [[None, None], [None]]
+
+        The `(s_1 s_2)^6 = id` identity that holds for Bender--Knuth
+        involutions on straight shapes does not generally hold for
+        skew shapes::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: t = SkewTableau([[None,1,2],[2,3]])
+            sage: x = t
+            sage: for i in range(6): x = p(x, 1)
+            sage: x
+            [[None, 2, 2], [1, 3]]
+            sage: x == t
+            False
 
         AUTHORS:
 

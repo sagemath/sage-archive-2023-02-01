@@ -116,6 +116,7 @@ $(INST)/sage: \
 		 $(INST)/$(PYTHON) \
 		 $(INST)/$(RATPOINTS) \
 		 $(INST)/$(READLINE) \
+		 $(INST)/$(RW) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SIX) \
 		 $(INST)/$(SYMMETRICA) \
@@ -126,8 +127,19 @@ $(INST)/sage: \
 		touch $@; \
 	fi
 
-# TODO: remove this once ccache is a new-style package
-CCACHE = ccache
-$(INST)/ccache: base $(INST)/$(ZLIB)
-	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
-	touch $@
+
+###############################################################################
+# Building scripts and extcode
+###############################################################################
+
+# Don't just use "install" since we don't want to change permissions
+$(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
+	cp $< $@
+
+# Don't just use "install -D" since we don't want to change permissions.
+# cp won't correctly setup the SAGE_EXTCODE directory structure
+# (unlike install), so we need a mkdir here such that cp can copy into
+# an existing folder.
+$(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
+	@mkdir -p "$(@D)"
+	cp $< $@

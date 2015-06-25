@@ -4882,41 +4882,52 @@ cdef class Matroid(SageObject):
             1
         """
         cdef int rs, rt
+        cdef set E, F, G, H, S, T
+        cdef frozenset I, X
         X = self.loops()
         if X:
             if certificate:
                 x = min(X)
-                return False, [x]
+                return False, frozenset([x])
             else:
                 return False
         X = self.coloops()
         if X:
             if certificate:
                 x = min(X)
-                return False, [x]
+                return False, frozenset([x])
             else:
                 return False
         E = set(self.groundset())
         e = E.pop()
         f = E.pop()
+
         S = {e, f}
         rs = self._rank(S)
-        for T in combinations(E, 2):
-            T = set(T)
-            rt = self._rank(T)
-            I, X = self._link(S, T)
-            # check if connectivity between S,T is <2
-            if len(I) - self.full_rank() + rs + rt < 2:
-                if certificate:
-                    return False, X
-                else:
-                    return False
+        G = set(E)
+        while G:
+            g = G.pop()
+            H = set(G)
+            while H:
+                h = H.pop()
+                T = {g, h}
+                rt = self._rank(T)
+                I, X = self._link(S, T)
+                # check if connectivity between S,T is <2
+                if len(I) - self.full_rank() + rs + rt < 2:
+                    if certificate:
+                        return False, X
+                    else:
+                        return False
+                # if h' is not spanned by I+g, then I is also a connector for {e,f}, {g,h'}
+                H.intersection_update(self._closure(I.union([g])))
+
         for g in E:
             S = {e, g}
-            rs =self._rank(S)
-            for h in E:
-                if g is h:
-                    continue
+            rs = self._rank(S)
+            H = E - S
+            while H:
+                h = H.pop()
                 T = {f, h}
                 rt = self._rank(T)
                 I, X = self._link(S, T)
@@ -4926,6 +4937,9 @@ cdef class Matroid(SageObject):
                         return False, X
                     else:
                         return False
+                # if h' is not spanned by I+f, then I is also a connector for {e,g}, {f,h'}
+                H.intersection_update(self._closure(I.union([f])))
+
         if certificate:
             return True, None
         else:

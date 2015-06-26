@@ -12,7 +12,7 @@ import rational
 from sage.rings.polynomial.polynomial_element import Polynomial
 import multi_power_series_ring_element
 
-def O(*x):
+def O(*x, **kwds):
     """
     Big O constructor for various types.
 
@@ -99,5 +99,7 @@ def O(*x):
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
          return x.parent()(0, absprec = x.valuation())
+    elif len(x) == 1 and hasattr(x, 'O'):
+        return x[0].O(**kwds)
     raise ArithmeticError("O(x) not defined")
 

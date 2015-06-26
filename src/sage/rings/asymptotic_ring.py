@@ -149,6 +149,37 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                                  term_other in other.poset.elements()))
 
 
+    def O(self):
+        r"""
+        Convert all terms in this asymptotic expression to `O`-terms.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: AR = AsymptoticRing(MG, ZZ)
+            sage: x = AR.create_term('exact', x)
+            sage: expr = 42 * x^42 + x^10 + O(x^2); expr
+            42 * x^42 + x^10 + O(x^2)
+            sage: expr.O()
+            x^42
+        """
+        if self.poset.null in self.poset.oo.predecessors():
+            raise ValueError('O(%s) not defined' % self)
+        else:
+            return sum(self.parent().create_term('O', shell.element) for shell
+                       in self.poset.oo.predecessors())
+
+
+
 
 class AsymptoticRing(sage.rings.ring.Ring,
                      sage.structure.unique_representation.UniqueRepresentation):

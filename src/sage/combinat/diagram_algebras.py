@@ -797,6 +797,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: TestSuite(D).run()
         """
+        SymmetricGroupAlgebra(base_ring,k)
         self._prefix = prefix
         self._q = base_ring(q)
         self._k = k

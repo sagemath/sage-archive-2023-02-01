@@ -4512,7 +4512,7 @@ cdef class Matroid(SageObject):
             components = components2
         return components
 
-    cpdef is_connected(self):
+    cpdef is_connected(self, certificate=False):
         """
         Test if the matroid is connected.
 
@@ -4540,7 +4540,17 @@ cdef class Matroid(SageObject):
             True
 
         """
-        return len(self.components()) == 1
+        components = self.components()
+        if len(components) == 1:
+            if certificate:
+                return True, None
+            else:
+                return True
+        else:
+            if certificate:
+                return False, components[0]
+            else:
+                return False
 
     cpdef connectivity(self, S, T=None):
         r"""
@@ -4622,6 +4632,77 @@ cdef class Matroid(SageObject):
         N1 = self.minor(T,S)
         N2 = self.minor(S,T)
         return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
+
+    cpdef is_kconnected(self, k, certificate=False):
+        r"""
+        Return ``True`` if the matroid is k-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is k-connected,
+          and ``False, X`` otherwise, where ``X`` is a `<k`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        .. SEEALSO::
+
+            :meth:`is_connected`
+
+        ALGORITHM:
+
+        Compute the connectivity between all `S` and `T` with `k-1` elements.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3).is_kconnected(3)
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M.is_kconnected(3)
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N.is_kconnected(3)
+            False
+            sage: matroids.named_matroids.BetsyRoss().is_kconnected(3)
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M.is_kconnected(3)
+            False
+            sage: B, X = M.is_kconnected(3,True)
+            sage: M.connectivity(X)
+            1
+        """
+        if k<=2:
+            return self.is_connected(certificate)
+        if not self.is_kconnected(k-1):
+            return self.is_kconnected(k-1, certificate)
+        m = k-1
+        E = set(self.groundset())
+        w = {e:1 for e in E}
+        Q = set(list(E)[:m])
+        E = E-Q
+        I = set()
+        for r in range(len(Q)/2):
+            for Q1 in map(set,combinations(Q, r)):
+                Q2 = Q-Q1
+                # Given Q1, Q2 partition of Q, find all extensions
+                for A in map(set,combinations(E, m - len(Q1))):
+                    T = Q1|A
+                    for B in map(set,combinations(E-A, m - len(Q2))):
+                        S = Q2|B
+                        # this will be updated to adopt Rudi's implementation
+                        if(self.connectivity(T,S)<m):
+                            return False
+        if certificate:
+            return True, None
+        else:
+            return True
 
     cpdef is_3connected(self, separation=False):
         r"""

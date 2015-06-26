@@ -1465,6 +1465,27 @@ class BrauerAlgebra(SubPartitionAlgebra):
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return DiagramAlgebra._element_constructor_(self, set_partition)
 
+    def jucys_murphy(self, j):
+        r"""
+        Returns a generalized Jucys-Murphy elements for the Brauer algebra. These are outlined in [N]_.
+
+        REFERENCES:
+
+        .. [N] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
+               Algebra. Journal of Algebra 182 (1996), 664--693.
+
+        EXAMPLES:
+
+            sage: z = var('z')
+            sage: B = BrauerAlgebra(3,z)
+            sage: B.jucys_murphy(1)
+            1/2*z - 1/2
+            sage: B.jucys_murphy(3)
+            
+        """
+        B = self
+        return (B._q-1)/2 + sum(B([[i,-j],[j,-i]]) - B([[i,j],[-i,-j]]) for i in range(1,j))
+
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""
     A Temperley--Lieb algebra.

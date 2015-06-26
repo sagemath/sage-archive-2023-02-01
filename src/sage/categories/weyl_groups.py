@@ -420,6 +420,10 @@ class WeylGroups(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
 
             """
 
@@ -427,12 +431,11 @@ class WeylGroups(Category_singleton):
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_root(i)
-                #return self.parent().domain().simple_root(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_root(i)
+            w = self.apply_simple_reflection(i, side = 'right')
+            if not w.has_descent(i, side = 'left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_root()).simple_reflection(i)
+            return ((w.apply_simple_reflection(i, side = 'left')).reflection_to_root()).simple_reflection(i)
 
         @cached_in_parent_method
         def reflection_to_coroot(self):
@@ -450,6 +453,10 @@ class WeylGroups(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: s1*s2 is not a reflection
+                sage: W.long_element().reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s1*s2*s1 is not a reflection
 
             """
 
@@ -457,12 +464,11 @@ class WeylGroups(Category_singleton):
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
             if self == self.parent().simple_reflection(i):
-                from sage.combinat.root_system.root_system import RootSystem
-                return RootSystem(self.parent().cartan_type()).root_lattice().simple_coroot(i)
-                #return self.parent().domain().simple_coroot(i)
-            if not self.has_descent(i, side='left'):
+                return self.parent().cartan_type().root_system().root_lattice().simple_coroot(i)
+            w = self.apply_simple_reflection(i, side = 'right')
+            if not w.has_descent(i, side='left'):
                 raise ValueError("{} is not a reflection".format(self))
-            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_coroot()).simple_reflection(i)
+            return ((w.apply_simple_reflection(i, side = 'left')).reflection_to_coroot()).simple_reflection(i)
 
         def inversions(self, side = 'right', inversion_type = 'reflections'):
             """

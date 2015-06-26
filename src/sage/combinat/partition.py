@@ -5655,6 +5655,13 @@ class Partitions_n(Partitions):
             ....:     for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_uniform()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
          - It is a python Implementation of RANDPAR, see [nw]_.  The
@@ -5703,7 +5710,7 @@ class Partitions_n(Partitions):
             res.extend([d]*j)
             n = r
         res.sort(reverse=True)
-        return Partition(res)
+        return self.element_class(self, res)
 
     def random_element_plancherel(self):
         r"""
@@ -5728,6 +5735,13 @@ class Partitions_n(Partitions):
             ...       for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_plancherel()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
         - insert by Robinson-Schensted a uniform random permutations of n and
@@ -5739,7 +5753,8 @@ class Partitions_n(Partitions):
 
         - Florent Hivert (2009-11-23)
         """
-        return permutation.Permutations(self.n).random_element().left_tableau().shape()
+        T = permutation.Permutations(self.n).random_element().left_tableau()
+        return self.element_class(self, [len(row) for row in T])
 
     def first(self):
         """

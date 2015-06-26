@@ -31,7 +31,7 @@ from sage.interfaces.all import singular as singular_default
 
 from sage.libs.pari.gen import gen as pari_gen
 
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
@@ -355,7 +355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def degree(self):
         """
-        Returns the degree of self.
+        Return the degree of ``self``.
 
         By convention, the degree of the zero polynomial is -1.
 
@@ -368,10 +368,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: g = R(0)
             sage: g.degree()
             -1
+
+        TESTS::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        cdef Integer deg = PY_NEW(Integer)
-        mpz_set_si(deg.value, fmpq_poly_degree(self.__poly))
-        return deg
+        return smallInteger(fmpq_poly_degree(self.__poly))
 
     def __getitem__(self, n):
         """
@@ -1539,7 +1542,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
         You can use KASH to compute Galois groups as well.  The advantage is
-        that KASH can compute Galois groups of fields up to degree 23, whereas
+        that KASH can compute Galois groups of fields up to degree 21, whereas
         PARI only goes to degree 11.  (In my not-so-thorough experiments PARI
         is faster than KASH.)
 
@@ -1550,7 +1553,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='magma')  # optional - magma, database_gap
+            sage: f.galois_group(algorithm='magma')  # optional - magma database_gap
             Transitive group number 5 of degree 4
 
         TESTS:
@@ -1572,9 +1575,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         if self.degree() > 11 and algorithm == 'pari':
             algorithm = 'kash'
 
-        if self.degree() > 23 and algorithm == 'kash':
+        if self.degree() > 21 and algorithm == 'kash':
             raise NotImplementedError("Galois group computation is "
-                "supported for degrees up to 11 using PARI, or up to 23 "
+                "supported for degrees up to 11 using PARI, or up to 21 "
                 "if the optional package KASH is installed.  Try "
                 "algorithm='magma' if you have magma.")
 
@@ -1600,7 +1603,7 @@ cdef class Polynomial_rational_flint(Polynomial):
                     "computation of Galois groups of fields of degree " +
                     "bigger than 11 is not yet implemented.  Try installing " +
                     "the optional free (closed source) KASH package, which " +
-                    "supports degrees up to 23, or use algorithm='magma' if " +
+                    "supports degrees up to 21, or use algorithm='magma' if " +
                     "you have magma.")
 
         elif algorithm == 'magma':

@@ -155,9 +155,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: AR = AsymptoticRing(MG, ZZ)
             sage: x = AR.create_term('exact', x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
-            42 * x^42 + x^10 + O(x^2)
+            O(x^2) + 1*x^10 + 42*x^42
             sage: expr.O()
-            x^42
+            O(x^42)
         """
         if self.poset.null in self.poset.oo.predecessors():
             raise ValueError('O(%s) not defined' % self)

@@ -99,7 +99,7 @@ def O(*x, **kwds):
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
          return x.parent()(0, absprec = x.valuation())
-    elif len(x) == 1 and hasattr(x, 'O'):
-        return x[0].O(**kwds)
+    elif hasattr(x, 'O'):
+        return x.O(**kwds)
     raise ArithmeticError("O(x) not defined")
 

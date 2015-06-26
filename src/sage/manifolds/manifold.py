@@ -356,6 +356,12 @@ class TopManifold(TopManifoldSubset):
         sage: N = TopManifold(6, 'N', field=QQ); N
         6-dimensional topological manifold N over the Rational Field
 
+    A manifold over `\QQ_5`, the field of 5-adic numbers::
+
+        sage: N = TopManifold(2, 'N', field=Qp(5)); N
+        2-dimensional topological manifold N over the 5-adic Field with capped
+         relative precision 20
+
     A manifold is a Sage *parent* object, in the category of sets::
 
         sage: isinstance(M, Parent)

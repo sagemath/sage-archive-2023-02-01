@@ -1683,18 +1683,9 @@ class ContinuousMap(Morphism):
         return self._restrictions[(subdomain, subcodomain)]
 
 
-    def __invert__(self, chart1=None, chart2=None):
+    def __invert__(self):
         r"""
         Return the inverse of ``self`` if ``self`` is a isomorphism.
-
-        INPUT:
-
-        - ``chart1`` -- (default: ``None``) chart in which the computation of the
-          inverse is performed if necessary; if none is provided, the default
-          chart of the domain of ``self`` will be used
-        - ``chart2`` -- (default: ``None``) chart in which the computation of the
-          inverse is performed if necessary; if none is provided, the default
-          chart of the codomain of ``self`` will be used
 
         OUTPUT:
 
@@ -1725,6 +1716,18 @@ class ContinuousMap(Morphism):
             sage: p1 == p
             True
 
+        The result is cached::
+
+            sage: rot.inverse() is rot.inverse()
+            True
+
+        The notations ``^(-1)`` or ``~`` can also be used for the inverse::
+
+            sage: rot^(-1) is rot.inverse()
+            True
+            sage: ~rot is rot.inverse()
+            True
+
         """
         from sage.symbolic.ring import SR
         from sage.symbolic.relation import solve
@@ -1732,30 +1735,31 @@ class ContinuousMap(Morphism):
             return self._inverse
         if not self._is_isomorphism:
             raise ValueError("the {} is not an isomorphism".format(self))
-        if chart1 is None: chart1 = self._domain._def_chart
-        if chart2 is None: chart2 = self._codomain._def_chart
-        coord_map = self._coord_expression[(chart1, chart2)]
-        n1 = len(chart1._xx)
-        n2 = len(chart2._xx)
-        # New symbolic variables (different from chart2._xx to allow for a
-        #  correct solution even when chart2 = chart1):
-        x2 = [ SR.var('xxxx' + str(i)) for i in range(n2) ]
-        equations = [ x2[i] == coord_map._functions[i]._express
-                      for i in range(n2) ]
-        solutions = solve(equations, chart1._xx, solution_dict=True)
-        if len(solutions) == 0:
-            raise ValueError("no solution found")
-        if len(solutions) > 1:
-            raise ValueError("non-unique solution found")
-        substitutions = dict(zip(x2, chart2._xx))
-        inv_functions = [solutions[0][chart1._xx[i]].subs(substitutions)
+        coord_functions = {} # coordinate expressions of the result
+        for (chart1, chart2) in self._coord_expression:
+            coord_map = self._coord_expression[(chart1, chart2)]
+            n1 = len(chart1._xx)
+            n2 = len(chart2._xx)
+            # New symbolic variables (different from chart2._xx to allow for a
+            #  correct solution even when chart2 = chart1):
+            x2 = [ SR.var('xxxx' + str(i)) for i in range(n2) ]
+            equations = [ x2[i] == coord_map._functions[i]._express
+                          for i in range(n2) ]
+            solutions = solve(equations, chart1._xx, solution_dict=True)
+            if len(solutions) == 0:
+                raise ValueError("no solution found")
+            if len(solutions) > 1:
+                raise ValueError("non-unique solution found")
+            substitutions = dict(zip(x2, chart2._xx))
+            inv_functions = [solutions[0][chart1._xx[i]].subs(substitutions)
                                                             for i in range(n1)]
-        for i in range(n1):
-            x = inv_functions[i]
-            try:
-                inv_functions[i] = chart2._simplify(x)
-            except AttributeError:
-                pass
+            for i in range(n1):
+                x = inv_functions[i]
+                try:
+                    inv_functions[i] = chart2._simplify(x)
+                except AttributeError:
+                    pass
+            coord_functions[(chart2, chart1)] = inv_functions
         if self._name is None:
             name = None
         else:
@@ -1765,7 +1769,6 @@ class ContinuousMap(Morphism):
         else:
             latex_name = self._latex_name + r'^{-1}'
         homset = Hom(self._codomain, self._domain)
-        coord_functions = {(chart2, chart1): inv_functions}
         self._inverse = self.__class__(homset, coord_functions=coord_functions,
                                        name=name, latex_name=latex_name,
                                        is_isomorphism=True)

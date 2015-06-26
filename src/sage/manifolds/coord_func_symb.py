@@ -750,6 +750,9 @@ class CoordFunctionSymb(CoordFunction):
         """
         return CoordFunctionSymb(self._chart,
                                  self._simplify(SR(1) / self._express))
+        # NB: self._express.__invert__() would return 1/self._express
+        # (cf. the code of __invert__ in src/sage/symbolic/expression.pyx)
+        # Here we prefer SR(1)/self._express
 
     def __add__(self, other):
         r"""
@@ -796,9 +799,9 @@ class CoordFunctionSymb(CoordFunction):
                                  "the same chart cannot be added")
             res = self._simplify(self._express + other._express)
         elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express + other)
+            res = self._simplify(self._express + SR(other))
         else:
-            # addition to a numerical coord. function shall fall in this case
+            # addition to a numerical coord. function shall fall into this case
             return other.__radd__(self)
         if res == 0:
             return self._chart._zero_function
@@ -852,9 +855,10 @@ class CoordFunctionSymb(CoordFunction):
                                  "the same chart cannot be subtracted")
             res = self._simplify(self._express - other._express)
         elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express - other)
+            res = self._simplify(self._express - SR(other))
         else:
-            # subtraction of a numerical coord. function shall fall in this case
+            # subtraction of a numerical coord. function shall fall into this
+            # case
             return other.__rsub__(self)
         if res == 0:
             return self._chart._zero_function
@@ -906,10 +910,10 @@ class CoordFunctionSymb(CoordFunction):
                                  "the same chart cannot be multiplied")
             res = self._simplify(self._express * other._express)
         elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express * other)
+            res = self._simplify(self._express * SR(other))
         else:
-            # multiplication by a numerical coord. function shall fall in this
-            # case
+            # multiplication by a numerical coord. function shall fall into
+            # this case
             return other.__rmul__(self)
         if res == 0:
             return self._chart._zero_function
@@ -968,9 +972,9 @@ class CoordFunctionSymb(CoordFunction):
                                         "by zero")
             res = self._simplify(self._express / other._express)
         elif isinstance(other, (int, RingElement)):
-            res = self._simplify(self._express / other)
+            res = self._simplify(self._express / SR(other))
         else:
-            # division by a numerical coord. function shall fall in this
+            # division by a numerical coord. function shall fall into this
             # case
             return other.__rdiv__(self)
         if res == 0:

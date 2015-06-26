@@ -296,10 +296,14 @@ class Chart(UniqueRepresentation, SageObject):
         self._dom_restrict = {} # dict. of the restrictions of self to
                                 # subsets of self._domain, with the
                                 # subsets as keys
-        # The null function of the coordinates:
-        self._zero_function = CoordFunctionSymb(self, 0)
-        # The "one" function of the coordinates:
-        self._one_function = CoordFunctionSymb(self, 1)
+        # The null and one functions of the coordinates:
+        base_field = self._domain.base_field()
+        if base_field in ['real', 'complex']:
+            self._zero_function = CoordFunctionSymb(self, 0)
+            self._one_function = CoordFunctionSymb(self, 1)
+        else:
+            self._zero_function = CoordFunctionSymb(self, base_field.zero())
+            self._one_function = CoordFunctionSymb(self, base_field.one())
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
         for dom in self._domain._supersets:
@@ -912,6 +916,17 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function() is X.zero_function()
             True
 
+        Zero function on a p-adic manifold::
+
+            sage: M = TopManifold(2, 'M', field=Qp(5)); M
+            2-dimensional topological manifold M over the 5-adic Field with
+             capped relative precision 20
+            sage: X.<x,y> = M.chart()
+            sage: X.zero_function()
+            0
+            sage: X.zero_function().display()
+            (x, y) |--> 0
+
         """
         return self._zero_function
 
@@ -954,6 +969,17 @@ class Chart(UniqueRepresentation, SageObject):
 
             sage: X.one_function() is X.one_function()
             True
+
+        One function on a p-adic manifold::
+
+            sage: M = TopManifold(2, 'M', field=Qp(5)); M
+            2-dimensional topological manifold M over the 5-adic Field with
+             capped relative precision 20
+            sage: X.<x,y> = M.chart()
+            sage: X.one_function()
+            1 + O(5^20)
+            sage: X.one_function().display()
+            (x, y) |--> 1 + O(5^20)
 
         """
         return self._one_function

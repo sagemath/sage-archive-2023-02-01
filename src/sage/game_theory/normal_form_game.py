@@ -450,7 +450,8 @@ the value of their suitcase is 2.
 
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which
-is evidenced by the various algorithms returning different solutions::
+is evidenced by the various algorithms returning different solutions. We can
+check the cause of this by using ``is_degenerate()``::
 
     sage: A = matrix([[3,3],[2,5],[0,6]])
     sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -463,6 +464,8 @@ is evidenced by the various algorithms returning different solutions::
      [(1.0, 0.0, 0.0), (1.0, 0.0)]]
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
+    sage: degenerate_game.is_degenerate()
+    True
 
 Note the 'negative' `-0.0` output by gambit. This is due to the numerical
 nature of the algorithm used.
@@ -1776,6 +1779,9 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: game.is_degenerate()
             True
 
+        Sometimes, the different algorithms for obtaining nash_equilibria don't
+        agree with each other. This happens when games are degenerate::
+
             sage: a = matrix([[-75, 18, 45, 33],
             ....:            [42, -8, -77, -18],
             ....:            [83, 18, 11, 40],
@@ -1785,6 +1791,15 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:            [-17, 25, -97, -82],
             ....:            [30, 31, -1, 50]])
             sage: d_game = NormalFormGame([a, b])
+            sage: d_game.obtain_nash(algorithm='lrs') # optional - lrslib
+            [[(0, 0, 1, 0), (0, 1, 0, 0)],
+             [(17/29, 0, 0, 12/29), (0, 0, 42/73, 31/73)],
+             [(122/145, 0, 23/145, 0), (0, 1, 0, 0)]]
+            sage: d_game.obtain_nash(algorithm='LCP') # optional - gambit
+            [[(0.5862068966, 0.0, 0.0, 0.4137931034),
+              (0.0, 0.0, 0.5753424658, 0.4246575342)]]
+            sage: d_game.obtain_nash(algorithm='enumeration')
+            [[(0, 0, 1, 0), (0, 1, 0, 0)], [(17/29, 0, 0, 12/29), (0, 0, 42/73, 31/73)]]
             sage: d_game.is_degenerate()
             True
 

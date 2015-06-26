@@ -4782,8 +4782,6 @@ cdef class Matroid(SageObject):
         # build the table
         if not self.is_connected():
             return False
-        if(2*self.rank()>self.size()):
-            return self.dual()._is_3connected_shifting(certificate)
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
@@ -4800,24 +4798,12 @@ cdef class Matroid(SageObject):
             Q_cols=set([])
             
             Z = Y-P_cols
-
-            for z in Z:
-                nP_cols = set(P_cols)
-                nP_cols.add(z)
-                nQ_cols = set(Q_cols)
-                nQ_cols.add(z)
-                sol,cert = self._shifting(X,Y,(P_rows,nP_cols),(Q_rows,Q_cols),2)
-                if sol:
-                    if certificate:
-                        return False, cert
-                    else:
-                        return False
-                sol,cert = self._shifting(X,Y,(P_rows,P_cols),(Q_rows,nQ_cols),2)
-                if sol:
-                    if certificate:
-                        return False, cert
-                    else:
-                        return False
+            sol,cert = self._shifting_all(X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, 2)
+            if sol:
+                if certificate:
+                    return False, cert
+                else:
+                    return False
         if certificate:
             return True, None
         return True
@@ -4825,8 +4811,6 @@ cdef class Matroid(SageObject):
     cpdef _is_4connected_shifting(self, certificate=False):
         if not self._is_3connected_shifting(self):
             return self._is_3connected_shifting(certificate)
-        if(2*self.rank()>self.size()):
-            return self.dual()._is_4connected_shifting(certificate)
         # build the table
         X = set(self.basis())
         Y = set(self.groundset()-X)
@@ -4862,6 +4846,9 @@ cdef class Matroid(SageObject):
         return self.rank(Yp|(X-Xp)) - len(X-Xp)
 
     cpdef _shifting_all(self, X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, m):
+        if not Z:
+            # need to figure out this
+            return True, None
         for z in Z:
             nP_cols = set(P_cols)
             nP_cols.add(z)
@@ -4870,7 +4857,13 @@ cdef class Matroid(SageObject):
             sol,cert = self._shifting(X,Y,(P_rows,nP_cols),(Q_rows,Q_cols),m)
             if sol:
                 return True, cert
+            sol,cert = self._shifting(X,Y,(Q_rows,Q_cols),(P_rows,nP_cols),m)
+            if sol:
+                return True, cert
             sol,cert = self._shifting(X,Y,(P_rows,P_cols),(Q_rows,nQ_cols),m)
+            if sol:
+                return True, cert
+            sol,cert = self._shifting(X,Y,(Q_rows,nQ_cols),(P_rows,P_cols),m)
             if sol:
                 return True, cert
         return False, None

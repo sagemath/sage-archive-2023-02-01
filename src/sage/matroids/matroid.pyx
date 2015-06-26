@@ -1,4 +1,3 @@
-#cython: profile=True
 # -*- coding: utf-8 -*-
 r"""
 The abstract Matroid class
@@ -4733,8 +4732,9 @@ cdef class Matroid(SageObject):
             X = F - I
             X1 = X - self._closure(T|I)
             X2 = X - self._closure(S|I)
-            if X1.intersection(X2):
-                y = min(X1.intersection(X2))
+            Y = X1.intersection(X2)
+            if Y:
+                y = min(Y)
                 I = I.union([y])
                 continue
             predecessor = {x: None for x in X1}
@@ -4760,7 +4760,7 @@ cdef class Matroid(SageObject):
                 path = set([y])             # reconstruct path
                 while predecessor[y] is not None:
                     y = predecessor[y]
-                    path.add(y) 
+                    path.add(y)
                 I = I.symmetric_difference(path)
 
         return frozenset(I), frozenset(predecessor)|S
@@ -4924,7 +4924,7 @@ cdef class Matroid(SageObject):
                         return False, X
                     else:
                         return False
-                # if h' is not spanned by I+g, then I is also a connector for {e,f}, {g,h'}
+                # if h' is not spanned by I+g, then I is a connector for {e,f}, {g,h'}
                 H.intersection_update(self._closure(I.union([g])))
 
         for g in E:
@@ -4942,7 +4942,7 @@ cdef class Matroid(SageObject):
                         return False, X
                     else:
                         return False
-                # if h' is not spanned by I+f, then I is also a connector for {e,g}, {f,h'}
+                # if h' is not spanned by I+f, then I is a connector for {e,g}, {f,h'}
                 H.intersection_update(self._closure(I.union([f])))
 
         if certificate:

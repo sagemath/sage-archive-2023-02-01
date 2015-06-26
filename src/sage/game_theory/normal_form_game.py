@@ -1583,12 +1583,14 @@ class NormalFormGame(SageObject, MutableMapping):
                         return False
             else:
                 for strategy_pair2 in range(len(support2)):
-                    # Coefficients of linear system that ensure indifference between two consecutive strategies of the support of p1
+                    # Coefficients of linear system that ensure indifference
+                    # between two consecutive strategies of the support
                     linearsystem[strategy_pair2, strategy1] = \
                         M[strategy1][support2[strategy_pair2]] -\
                         M[strategy1][support2[strategy_pair2 - 1]]
-            linearsystem[-1, strategy1] = 1  # Coefficients of linear system to ensure that vector is probability
-
+            # Coefficients of linear system that ensure the vector is
+            # a probability vecotor. ie. sum to 1
+            linearsystem[-1, strategy1] = 1
         # Create rhs of linear systems
         linearsystem_rhs = vector([0 for i in range(len(support2))] + [1])
 

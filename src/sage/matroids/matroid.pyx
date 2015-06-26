@@ -4628,23 +4628,23 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.BetsyRoss()
-            sage: M._connectivity('ab', 'cd')
+            sage: M._connectivity(set('ab'), set('cd'))
             2
         """
         return len(self._link(S,T)[0]) - self.full_rank() + self.rank(S) + self.rank(T)
 
     cpdef link(self, S, T):
         r"""
-        Return a connector ``I`` of two subsets ``S`` and ``T`` a separation ``X``,
-        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
 
         .. MATH::
 
             \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
             \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
-            {X,Y} \text{a partition of} E \}.
+            E = X\cup Y, X\cap Y = \emptyset \}.
 
-        Here ``M`` denotes this matroid.
+        Here `M` denotes this matroid.
 
         INPUT:
 
@@ -4657,8 +4657,8 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        Compute a maximum-cardinality common independent set ``I`` of
-        of `M / S \ T` and `M \ S / T`.
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
 
         EXAMPLES::
 
@@ -4673,26 +4673,26 @@ cdef class Matroid(SageObject):
             sage: N.connectivity(S)
             2
         """
-        if not S.issubset(self.groundset()):
+        if not self.groundset().issuperset(S):
             raise ValueError("S is not a subset of the ground set")
-        if not T.issubset(self.groundset()):
+        if not self.groundset().issuperset(T):
             raise ValueError("T is not a subset of the ground set")
-        if S.intersection(T):
+        if not S.isdisjoint(T):
             raise ValueError("S and T are not disjoint")
         return self._link(S, T)
 
     cpdef _link(self, S, T):
         r"""
-        Return a connector ``I`` of two subsets ``S`` and ``T`` a separation ``X``,
-        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
 
         .. MATH::
 
             \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
             \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
-            {X,Y} \text{a partition of} E \}.
+            E = X\cup Y, X\cap Y = \emptyset \}.
 
-        Here ``M`` denotes this matroid.
+        Here `M` denotes this matroid.
 
         Internal version that does not verify that ``S`` and ``T``
         are sets, are disjoint, are subsets of the groundset.
@@ -4708,8 +4708,8 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        Compute a maximum-cardinality common independent set ``I`` of
-        of `M / S \ T` and `M \ S / T`.
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
 
         EXAMPLES::
 

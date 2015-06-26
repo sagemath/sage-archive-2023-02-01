@@ -1097,17 +1097,17 @@ cdef class BasisExchangeMatroid(Matroid):
 
     cpdef _link(self, S, T):
         r"""
-        Return a connector ``C`` of two subsets ``S`` and ``T`` a separation ``X``,
-        which are optimal solutions to the dual problems in Tutte's Linking Theorem:
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
 
         .. MATH::
 
             \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
             \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
-            {X,Y} \text{a partition of} E \}.
+            E = X\cup Y, X\cap Y = \emptyset \}.
 
-        Here ``M`` denotes this matroid.
-        
+        Here `M` denotes this matroid.
+
         Internal version that does not verify that ``S`` and ``T``
         are sets, are disjoint, are subsets of the groundset.
 
@@ -1122,8 +1122,8 @@ cdef class BasisExchangeMatroid(Matroid):
 
         ALGORITHM:
 
-        Computes a maximum-cardinality common independent set ``I`` of
-        of `M / S \ T` and `M \ S / T`.
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
 
         EXAMPLES::
 

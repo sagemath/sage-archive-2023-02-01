@@ -1534,7 +1534,7 @@ def qepcad_version():
     EXAMPLES::
 
         sage: qepcad_version() # random, optional - qepcad
-        'Version B 1.48, 25 Oct 2007'
+        'Version B 1.69, 16 Mar 2012'
 
     TESTS::
 

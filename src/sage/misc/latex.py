@@ -2367,7 +2367,7 @@ def repr_lincomb(symbols, coeffs):
         sage: repr_lincomb([1,5,-3],[2,8/9,7])
         '2\\cdot 1 + \\frac{8}{9}\\cdot 5 + 7\\cdot -3'
 
-    Verify that trac ticket 17299(latex representation of modular symbols)
+    Verify that :trac:`17299` (latex representation of modular symbols)
     is fixed::
 
         sage: x = EllipticCurve('64a1').modular_symbol_space(sign=1).basis()[0]
@@ -2381,7 +2381,7 @@ def repr_lincomb(symbols, coeffs):
         sage: latex(x)
         2 + 3\cdot 4
 
-    Verify that it works when bv in CC raises an error::
+    Verify that it works when ``bv in CC`` raises an error::
 
 
         sage: x = FormalSum([(1,'x'),(2,'y')])

@@ -29,19 +29,6 @@ AUTHORS:
 
 import sage
 
-def _absorption_(left, right):
-    r"""
-    Helper method for the mutable poset associated to our
-    """
-    try:
-        return left.absorb(right)
-    except ArithmeticError:
-        return right.absorb(left)
-
-def _can_absorb_(left, right):
-    return left.can_absorb(right)
-
-
 class AsymptoticExpression(sage.rings.ring_element.RingElement):
     r"""
     ...
@@ -287,6 +274,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
                     return self.create_term('exact', 1, data)
                 else:
                     from sage.data_structures.mutable_poset import MutablePoset
+                    from sage.monoids.asymptotic_term_monoid import \
+                        _can_absorb_, _absorption_
                     poset = MutablePoset(key=lambda elem: elem.growth,
                                      can_merge=_can_absorb_,
                                      merge=_absorption_)
@@ -294,6 +283,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             from sage.monoids.asymptotic_term_monoid import OTerm, ExactTerm
             from sage.data_structures.mutable_poset import MutablePoset
+            from sage.monoids.asymptotic_term_monoid import _can_absorb_, \
+                _absorption_
             if isinstance(data, (OTerm, ExactTerm)):
                 data = (data,)
 

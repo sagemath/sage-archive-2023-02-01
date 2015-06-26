@@ -1903,16 +1903,16 @@ class NormalFormGame(SageObject, MutableMapping):
         for pair in potential_support_pairs:
             if len(pair[0]) < len(pair[1]):
                 strat = self._solve_indifference(pair[0], pair[1], M2)
-                if strat and not self._is_num_best_responses(strat, M2.transpose()):
+                if strat and self._num_best_responses(strat, M2.transpose()) > len(pair[0]):
                     return True
             elif len(pair[1]) < len(pair[0]):
                 strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
-                if strat and not self._is_num_best_responses(strat, M1):
+                if strat and self._num_best_responses(strat, M1) > len(pair[1]):
                     return True
 
         return False
 
-    def _is_num_best_responses(self, strategy, payoff_matrix):
+    def _num_best_responses(self, strategy, payoff_matrix):
         """
         From a given strategy for a player, computes the payoff for the
         opponent, then compares number of best responses with size of strategy.
@@ -1924,32 +1924,35 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
-            sage: g._is_num_best_responses((1/2, 1/2), A)
-            False
-            sage: g._is_num_best_responses((3/4, 1/4), A)
-            True
-            sage: g._is_num_best_responses((4/5, 1/5, 0), B.transpose())
-            True
+            sage: g._num_best_responses((1/2, 1/2), A)
+            3
+            sage: g._num_best_responses((3/4, 1/4), A)
+            1
+            sage: g._num_best_responses((4/5, 1/5, 0), B.transpose())
+            2
 
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])
             sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
             sage: g = NormalFormGame([A, B])
-            sage: g._is_num_best_responses((1/2, 1/2), A)
-            True
+            sage: g._num_best_responses((1/2, 1/2), A)
+            2
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game._is_num_best_responses((1, 0, 0), B.transpose())
-            False
+            sage: degenerate_game._num_best_responses((1, 0, 0), B.transpose())
+            2
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g._num_best_responses((1/3, 1/3, 1/3), B.transpose())
+            1
         """
         strategy = vector(strategy)
-        sup_size = sum(1 for i in strategy if i > 0)
         payoffs = list(payoff_matrix * strategy)
 
-        if payoffs.count(max(payoffs)) > sup_size:
-            return False
-        return True
+        return payoffs.count(max(payoffs))
 
     def _is_degenerate_pure(self):
         """

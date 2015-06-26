@@ -1888,8 +1888,8 @@ class NormalFormGame(SageObject, MutableMapping):
                                powerset(range(player.num_strategies))]
                                for player in self.players]
 
-        for k in potential_supports:
-            k = [i for i in k if i is None or len(i) > 1]
+        # filter out all supports that are pure or empty
+        potential_supports = [[i for i in k if len(i) > 1] for k in potential_supports]
 
         potential_support_pairs = [pair for pair in
                                    CartesianProduct(*potential_supports) if

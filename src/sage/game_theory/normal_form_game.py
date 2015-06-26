@@ -1897,6 +1897,9 @@ class NormalFormGame(SageObject, MutableMapping):
                                    CartesianProduct(*potential_supports) if
                                    len(pair[0]) != len(pair[1])]
 
+        # Sort so that solve small linear systems first
+        potential_support_pairs.sort(key=lambda x: sum([len(k) for k in x]))
+
         for pair in potential_support_pairs:
             if len(pair[0]) < len(pair[1]):
                 strat = self._solve_indifference(pair[0], pair[1], M2)

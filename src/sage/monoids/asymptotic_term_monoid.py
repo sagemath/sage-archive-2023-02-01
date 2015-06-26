@@ -50,6 +50,46 @@ AUTHORS:
 import sage
 
 
+def _absorption_(left, right):
+    r"""
+    Helper method used by
+    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: OT = atm.TermMonoid('O', MG)
+        sage: atm._absorption_(OT(x^2), OT(x^3))
+        O(x^3)
+        sage: atm._absorption_(OT(x^3), OT(x^2))
+        O(x^3)
+    """
+    try:
+        return left.absorb(right)
+    except ArithmeticError:
+        return right.absorb(left)
+
+def _can_absorb_(left, right):
+    r"""
+    Helper method used by
+    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: OT = atm.TermMonoid('O', MG)
+        sage: atm._can_absorb_(OT(x^2), OT(x^3))
+        False
+        sage: atm._can_absorb_(OT(x^3), OT(x^2))
+        True
+    """
+    return left.can_absorb(right)
+
+
 class GenericTerm(sage.structure.element.MonoidElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and
@@ -190,7 +230,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: ot1.can_absorb(ot2), ot2.can_absorb(ot1)
             (False, True)
             sage: et1
-            2 * x^2
+            2*x^2
             sage: ot1.can_absorb(et1)
             False
             sage: ot2.can_absorb(et1)
@@ -273,11 +313,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
         respective coefficients::
 
             sage: et2.absorb(et3)
-            3 * x^2
+            3*x^2
             sage: et3.absorb(et2)
-            3 * x^2
+            3*x^2
             sage: et3.absorb(et4)
-            -1 * x^2
+            -1*x^2
 
         Note that, for technical reasons, the coefficient `0` is not
         allowed, and thus ``None`` is returned if two exact terms
@@ -417,7 +457,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: o1, o2 = OT(x^-1), OT(x^3); o1, o2
             (O(1/x), O(x^3))
             sage: t1, t2 = ET_ZZ(x^2, 5), ET_QQ(x^3, 2/7); t1, t2
-            (5 * x^2, 2/7 * x^3)
+            (5*x^2, 2/7*x^3)
 
         In order for the comparison to work, the terms have come from
         or coerce into the same parent. Concretely, comparing
@@ -744,7 +784,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             Univariate Polynomial Ring in x over Integer Ring
             sage: P_ZZ(x^10)
             Generic Term with growth x^10
-            sage: P_ZZ(10*x^2)
+            sage: P_ZZ(10 * x^2)
             Traceback (most recent call last):
             ...
             ValueError: Input is ambiguous: cannot convert 10*x^2 to a generic term.
@@ -1221,7 +1261,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: t1, t2 = ET(x^2, 2), ET(x^3, 3)
             sage: t1 * t2
-            6 * x^5
+            6*x^5
         """
         return self.parent()(self.growth * other.growth,
                              self.coefficient * other.coefficient)
@@ -1444,6 +1484,11 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Asymptotic Term with coefficient 10 and growth x^10
             sage: P(x^123)
             Asymptotic Term with coefficient 1 and growth x^123
+
+        ::
+
+            sage: P(x)
+            Asymptotic Term with coefficient 1 and growth x
         """
         if type(data) == self.element_class and data.parent() == self:
             return data
@@ -1468,7 +1513,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                             # --> if data.operator() == operator.mul
                             data, coef_tmp = data.operands()
                             data = self.growth_group()(data)
-                        elif data.operator() == operator.pow:
+                        elif data.operator() == operator.pow or \
+                                data.operator() is None:
                             coef_tmp = 1
                             data = self.growth_group()(data)
                     else:
@@ -1542,7 +1588,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: atm.TermWithCoefficientMonoid(MG, ZZ).an_element()  # indirect doctest
             Asymptotic Term with coefficient 1 and growth x
             sage: atm.ExactTermMonoid(MG, ZZ).an_element()  # indirect doctest
-            1 * x
+            1*x
         """
         return self(self.growth_group().an_element(),
                     self.base_ring().an_element())
@@ -1578,9 +1624,9 @@ class ExactTerm(TermWithCoefficient):
     applying)::
 
         sage: ET(x^2, 3) * ET(x, -1)
-        -3 * x^3
+        -3*x^3
         sage: ET(x^0, 4) * ET(x^5, 2)
-        8 * x^5
+        8*x^5
 
     They may also be multiplied with `O` terms::
 
@@ -1595,7 +1641,7 @@ class ExactTerm(TermWithCoefficient):
         sage: ET(x^2, 5).can_absorb(ET(x^2, 1))
         True
         sage: ET(x^2, 5).absorb(ET(x^2, 1))
-        6 * x^2
+        6*x^2
 
     Note that, as for technical reasons, `0` is not allowed as a
     coefficient for an asymptotic term with coefficient, ``None``
@@ -1614,15 +1660,15 @@ class ExactTerm(TermWithCoefficient):
         sage: x = var('x'); x.parent()
         Symbolic Ring
         sage: ET(5*x^2)
-        5 * x^2
+        5*x^2
         sage: x = ZZ['x'].gen(); x.parent()
         Univariate Polynomial Ring in x over Integer Ring
         sage: ET(5*x^2)
-        5 * x^2
+        5*x^2
         sage: x = ZZ[['x']].gen(); x.parent()
         Power Series Ring in x over Integer Ring
         sage: ET(5*x^2)
-        5 * x^2
+        5*x^2
     """
 
     def _repr_(self):
@@ -1644,9 +1690,9 @@ class ExactTerm(TermWithCoefficient):
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: ET = atm.ExactTermMonoid(MG, ZZ)
             sage: et1 = ET(x^2, 2); et1
-            2 * x^2
+            2*x^2
         """
-        return '%s * %s' % (self.coefficient, self.growth)
+        return '%s*%s' % (self.coefficient, self.growth)
 
 
     def _can_absorb_(self, other):
@@ -1713,7 +1759,7 @@ class ExactTerm(TermWithCoefficient):
 
             sage: et1, et2 = ET(x^2, 2), ET(x^2, -2)
             sage: et1.absorb(et1)
-            4 * x^2
+            4*x^2
             sage: repr(et1.absorb(et2))
             'None'
 
@@ -1722,7 +1768,7 @@ class ExactTerm(TermWithCoefficient):
             sage: ET(x^5, 1).absorb(et1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: 1 * x^5 cannot absorb 2 * x^2
+            ArithmeticError: 1*x^5 cannot absorb 2*x^2
         """
         cls = self.__class__
         coef_new = self.coefficient + other.coefficient

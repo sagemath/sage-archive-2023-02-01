@@ -50,6 +50,46 @@ AUTHORS:
 import sage
 
 
+def _absorption_(left, right):
+    r"""
+    Helper method used by
+    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: OT = atm.TermMonoid('O', MG)
+        sage: atm._absorption_(OT(x^2), OT(x^3))
+        O(x^3)
+        sage: atm._absorption_(OT(x^3), OT(x^2))
+        O(x^3)
+    """
+    try:
+        return left.absorb(right)
+    except ArithmeticError:
+        return right.absorb(left)
+
+def _can_absorb_(left, right):
+    r"""
+    Helper method used by
+    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: OT = atm.TermMonoid('O', MG)
+        sage: atm._can_absorb_(OT(x^2), OT(x^3))
+        False
+        sage: atm._can_absorb_(OT(x^3), OT(x^2))
+        True
+    """
+    return left.can_absorb(right)
+
+
 class GenericTerm(sage.structure.element.MonoidElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and

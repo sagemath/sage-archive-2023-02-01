@@ -803,11 +803,10 @@ class DiagramAlgebra(CombinatorialFreeModule):
         self._base_diagrams = diagrams
         if category is None:
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
+        KSS = SymmetricGroupAlgebra(base_ring, k, category = category) # QQ probably should not be hardcoded here.
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 
-              
-        KSS = SymmetricGroupAlgebra(self.base_ring(), k) # QQ probably should not be hardcoded here.
         KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
 
     def _element_constructor_(self, set_partition):

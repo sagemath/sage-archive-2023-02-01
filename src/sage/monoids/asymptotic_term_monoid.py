@@ -1484,6 +1484,11 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Asymptotic Term with coefficient 10 and growth x^10
             sage: P(x^123)
             Asymptotic Term with coefficient 1 and growth x^123
+
+        ::
+
+            sage: P(x)
+            Asymptotic Term with coefficient 1 and growth x
         """
         if type(data) == self.element_class and data.parent() == self:
             return data
@@ -1508,7 +1513,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                             # --> if data.operator() == operator.mul
                             data, coef_tmp = data.operands()
                             data = self.growth_group()(data)
-                        elif data.operator() == operator.pow:
+                        elif data.operator() == operator.pow or \
+                                data.operator() is None:
                             coef_tmp = 1
                             data = self.growth_group()(data)
                     else:

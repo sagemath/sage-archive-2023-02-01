@@ -450,8 +450,7 @@ the value of their suitcase is 2.
 
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which
-is evidenced by the various algorithms returning different solutions. We can
-check the cause of this by using ``is_degenerate()``::
+is evidenced by the various algorithms returning different solutions::
 
     sage: A = matrix([[3,3],[2,5],[0,6]])
     sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -464,6 +463,9 @@ check the cause of this by using ``is_degenerate()``::
      [(1.0, 0.0, 0.0), (1.0, 0.0)]]
     sage: degenerate_game.obtain_nash(algorithm='enumeration')
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (1, 0)]]
+
+We can check the cause of this by using ``is_degenerate()``::
+
     sage: degenerate_game.is_degenerate()
     True
 
@@ -1750,10 +1752,31 @@ class NormalFormGame(SageObject, MutableMapping):
         Will return a boolean.
 
         A two-player game is called nondegenerate if no mixed strategy of
-        support size k has more than k pure best responses [NN2007]_. In a
+        support size `k` has more than `k` pure best responses [NN2007]_. In a
         degenerate game, this definition is violated, for example if there
         is a pure strategy that has two pure best responses.
 
+        The game Rock-Paper-Scissors is an example of a non-degenerate game.::
+
+            sage: A = matrix([[0, -1, 1],
+            ....:             [1, 0, -1],
+            ....:             [-1, 1, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g.is_degenerate()
+            False
+
+        Whereas `Rock-Paper-Scissors-Lizard-Spock
+        <http://www.samkass.com/theories/RPSSL.html>`_ is degenerate because
+        for every pure strategy there are two best responses.::
+
+            sage: A = matrix([[0, -1, 1, 1, -1],
+            ....:             [1, 0, -1, -1, 1],
+            ....:             [-1, 1, 0, 1 , -1],
+            ....:             [-1, 1, -1, 0, 1],
+            ....:             [1, -1, 1, -1, 0]])
+            sage: g = NormalFormGame([A])
+            sage: g.is_degenerate()
+            True
 
         EXAMPLES:
 
@@ -1803,28 +1826,6 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: d_game.obtain_nash(algorithm='enumeration')
             [[(0, 0, 1, 0), (0, 1, 0, 0)], [(17/29, 0, 0, 12/29), (0, 0, 42/73, 31/73)]]
             sage: d_game.is_degenerate()
-            True
-
-        The game Rock-Paper-Scissors is an example of a non-degenerate game.::
-
-            sage: A = matrix([[0, -1, 1],
-            ....:             [1, 0, -1],
-            ....:             [-1, 1, 0]])
-            sage: g = NormalFormGame([A])
-            sage: g.is_degenerate()
-            False
-
-        Whereas `Rock-Paper-Scissors-Lizard-Spock
-        <http://www.samkass.com/theories/RPSSL.html>`_ is degenerate because
-        for every pure strategy there are two best responses.::
-
-            sage: A = matrix([[0, -1, 1, 1, -1],
-            ....:             [1, 0, -1, -1, 1],
-            ....:             [-1, 1, 0, 1 , -1],
-            ....:             [-1, 1, -1, 0, 1],
-            ....:             [1, -1, 1, -1, 0]])
-            sage: g = NormalFormGame([A])
-            sage: g.is_degenerate()
             True
 
         TESTS::
@@ -1889,7 +1890,8 @@ class NormalFormGame(SageObject, MutableMapping):
                                for player in self.players]
 
         # filter out all supports that are pure or empty
-        potential_supports = [[i for i in k if len(i) > 1] for k in potential_supports]
+        potential_supports = [[i for i in k if len(i) > 1] for k in
+                                                        potential_supports]
 
         potential_support_pairs = [pair for pair in
                                    CartesianProduct(*potential_supports) if

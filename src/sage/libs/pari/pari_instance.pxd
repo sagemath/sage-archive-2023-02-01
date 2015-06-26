@@ -1,5 +1,4 @@
-include 'decl.pxi'
-
+from .types cimport *
 from sage.libs.gmp.types cimport *
 from sage.libs.flint.types cimport fmpz_mat_t
 from sage.structure.parent_base cimport ParentWithBase

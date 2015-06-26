@@ -46,8 +46,6 @@ TESTS::
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
-include "sage/libs/pari/decl.pxi"
-
 
 import sys
 import operator
@@ -59,10 +57,10 @@ import sage.misc.misc as misc
 import sage.rings.rational_field
 
 cimport integer
-import integer
 from integer cimport Integer
 
 import sage.libs.pari.pari_instance
+from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
 

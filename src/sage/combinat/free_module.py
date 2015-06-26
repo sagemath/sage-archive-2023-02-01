@@ -1332,7 +1332,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         try:
             if m == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         return IndexedGenerators._ascii_art_generator(self, m)
 

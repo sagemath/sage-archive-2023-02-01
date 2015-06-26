@@ -1519,7 +1519,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
             if self.value() - other.value() > 0:
                 return 1
             return -1
-        except StandardError:
+        except Exception:
             return ContinuedFraction_base.__cmp__(self, other)
 
     def _repr_(self):

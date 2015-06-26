@@ -903,6 +903,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         from polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(base_ring, self.ngens(), names, order=order)
 
+    def monomial(self,*exponents):
+        """
+        Return the monomial with given exponents.
+
+        EXAMPLE::
+
+            sage: R.<x,y,z> = PolynomialRing(ZZ, 3) 
+            sage: R.monomial(1,1,1) 
+            x*y*z
+        """
+        return self({exponents:self.one()})
+
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""
         In the Macaulay resultant algorithm the list of all monomials of the total degree is partitioned into sets `S_i`.

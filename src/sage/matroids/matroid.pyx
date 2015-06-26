@@ -4889,24 +4889,21 @@ cdef class Matroid(SageObject):
         cdef int rs, rt
         cdef set E, F, G, H, S, T
         cdef frozenset I, X
-        X = self.loops()
-        if X:
+        C = self.components()
+        if len(C)>1:
             if certificate:
-                x = min(X)
-                return False, frozenset([x])
-            else:
-                return False
-        X = self.coloops()
-        if X:
-            if certificate:
-                x = min(X)
-                return False, frozenset([x])
+                for X in C:
+                    return False, X
             else:
                 return False
         E = set(self.groundset())
+        if len(E)<4:
+            if certificate:
+                return True, None
+            else:
+                return True
         e = E.pop()
         f = E.pop()
-
         S = {e, f}
         rs = self._rank(S)
         G = set(E)
@@ -4926,7 +4923,6 @@ cdef class Matroid(SageObject):
                         return False
                 # if h' is not spanned by I+g, then I is a connector for {e,f}, {g,h'}
                 H.intersection_update(self._closure(I.union([g])))
-
         for g in E:
             S = {e, g}
             rs = self._rank(S)
@@ -4944,7 +4940,6 @@ cdef class Matroid(SageObject):
                         return False
                 # if h' is not spanned by I+f, then I is a connector for {e,g}, {f,h'}
                 H.intersection_update(self._closure(I.union([f])))
-
         if certificate:
             return True, None
         else:

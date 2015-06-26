@@ -94,9 +94,9 @@ For what values $k$ does a vertical line $x=k$ intersect the combined
 figure of the circle and ellipse exactly three times? ::
 
     sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F  # optional - qepcad
-    (X3 y)[(x^2 + y^2 - 3) (3 x^2 + 2 x y + y^2 - x + y - 7) = 0]
+    (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
     sage: qepcad(F)                                         # optional - qepcad
-    8 x^2 - 8 x - 29 <= 0 /\ x^2 - 3 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
+    x^2 - 3 <= 0 /\ 8 x^2 - 8 x - 29 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
 
 Here we see that the solutions are among the eight ($4 + 2 + 2$) roots
 of the three polynomials inside the brackets, but not all of these
@@ -209,7 +209,7 @@ Let us revisit some of the above examples and get some points to play
 with.  We will start by finding a point on our ellipse. ::
 
     sage: p = qepcad(ellipse == 0, solution='any-point'); p  # optional - qepcad
-    {'y': 0.9685019685029527?, 'x': -1.468501968502953?}
+    {'x': -1.468501968502953?, 'y': 0.9685019685029527?}
 
 (Note that despite the decimal printing and the question marks, these
 are really exact numbers.)
@@ -225,7 +225,15 @@ expression). ::
 For cell-points, let us look at points *not* on the ellipse. ::
 
     sage: pts = qepcad(ellipse != 0, solution='cell-points'); pts   # optional - qepcad
-    [{'y': 0, 'x': 4}, {'y': 1, 'x': 2.468501968502953?}, {'y': -9, 'x': 2.468501968502953?}, {'y': 9, 'x': 1/2}, {'y': -1, 'x': 1/2}, {'y': -5, 'x': 1/2}, {'y': 3, 'x': -1.468501968502953?}, {'y': -1, 'x': -1.468501968502953?}, {'y': 0, 'x': -3}]
+    [{'x': 4, 'y': 0},
+     {'x': 2.468501968502953?, 'y': 1},
+     {'x': 2.468501968502953?, 'y': -9},
+     {'x': 1/2, 'y': 9},
+     {'x': 1/2, 'y': -1},
+     {'x': 1/2, 'y': -5},
+     {'x': -1.468501968502953?, 'y': 3},
+     {'x': -1.468501968502953?, 'y': -1},
+     {'x': -3, 'y': 0}]
 
 For the points here which are in full-dimensional cells, QEPCAD has the
 freedom to choose rational sample points, and it does so.
@@ -239,7 +247,7 @@ Finally, for all-points, let us look again at finding vertical lines that
 intersect the union of the circle and the ellipse exactly three times. ::
 
     sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F   # optional - qepcad
-    (X3 y)[(x^2 + y^2 - 3) (3 x^2 + 2 x y + y^2 - x + y - 7) = 0]
+    (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
     sage: pts = qepcad(F, solution='all-points'); pts       # optional - qepcad
     [{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.678911384208004?}, {'x': -0.9417727377417167?}, {'x': -1.468193559928821?}, {'x': -1.468501968502953?}]
 
@@ -411,7 +419,7 @@ as \sage algebraic real numbers. ::
     sage: c.sample_point()                           # optional - qepcad
     (0, 1.732050807568878?)
     sage: c.sample_point_dict()                      # optional - qepcad
-    {'y': 1.732050807568878?, 'x': 0}
+    {'x': 0, 'y': 1.732050807568878?}
 
 We have seen that we can get cells using the :meth:`cell` method.
 There are several QEPCAD commands that print lists of cells; we can

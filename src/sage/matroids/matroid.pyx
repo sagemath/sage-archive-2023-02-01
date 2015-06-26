@@ -312,6 +312,8 @@ Methods
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
+from sage.graphs.spanning_tree import kruskal
+from sage.graphs.graph import Graph
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
@@ -4785,13 +4787,17 @@ cdef class Matroid(SageObject):
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
-        # Todo: actually find a spanning tree...
-        spanning_tree = []
+        G = Graph()
         for f in Y:
             for e in (X & self.fundamental_circuit(X,f)):
-                spanning_tree.append((e,f))
+                G.add_edge(e,f)
+        spanning_tree = kruskal(G)
 
-        for (x,y) in spanning_tree:
+        for (x,y,z) in spanning_tree:
+            if x not in X:
+                t = x
+                x = y
+                y = t
             P_rows=set([x])
             P_cols=set([y])
             Q_rows=set([])

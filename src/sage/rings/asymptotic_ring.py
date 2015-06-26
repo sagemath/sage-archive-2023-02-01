@@ -258,11 +258,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR.create_term('exact', x^3, 3)
-            3 * x^3
+            3*x^3
             sage: AR.create_term('exact', x^3, 3) + AR.create_term('exact', x, 1)
-            1 * x + 3 * x^3
+            1*x + 3*x^3
             sage: AR.create_term('exact', x^3, 3) * AR.create_term('exact', x, 5)
-            15 * x^4
+            15*x^4
             sage: AR.create_term('exact', x^3, 3) + AR.create_term('O', x^5)
             O(x^5)
         """

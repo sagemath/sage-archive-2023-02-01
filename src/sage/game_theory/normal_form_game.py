@@ -1508,8 +1508,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_indifference(self, support1, support2, M):
         r"""
-        For a support pair obtains vector pair that ensures indifference
-        amongst support strategies.
+        For a support pair obtains a vector that ensures indifference
+        amongst support strategies for the player corresponding to the first
+        support given.
 
         This is done by building the corresponding linear system.
         If  `\rho_1, \rho_2` are the supports player 1 and 2 respectively.

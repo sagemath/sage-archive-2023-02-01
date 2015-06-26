@@ -42,7 +42,7 @@ fi
 
 
 # install binaries to the Sage tree
-find -name *.a -exec cp {} $SAGE_LOCAL/lib/
+find . -name *.a -exec cp {} $SAGE_LOCAL/lib/ \;
 cp source/qepcad $SAGE_LOCAL/bin/
 cp bin/qepcad.help $SAGE_LOCAL/bin/
 cp ../sage-qepcad $SAGE_LOCAL/bin/

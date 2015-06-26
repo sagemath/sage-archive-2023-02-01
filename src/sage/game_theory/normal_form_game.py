@@ -1076,7 +1076,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             .. MATH::
 
-                u_1(s_1,\rho_2) = u_2(s_2, \rho_2)
+                u_1(s_1,\rho_2) = u_1(s_2, \rho_2)
 
             for all `s_1, s_2` in the support of `\rho_1`. This corresponds to:
 
@@ -1513,17 +1513,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def _solve_indifference(self, support1, support2, M):
         r"""
-        For a support pair obtains a vector that ensures indifference
-        amongst support strategies for the player corresponding to the first
-        support given.
+        For support1, retrns the strategy with support: support2 that makes the
+        column player indifferent for the utilities given by M.
 
         This is done by building the corresponding linear system.
-        If  `\rho_1, \rho_2` are the supports player 1 and 2 respectively.
-        Then, indifference implies:
+        If  `\rho_1, \rho_2` are the supports of player 1 and 2 respectively.
+        Then, indifference for player 1 implies:
 
         .. MATH::
 
-            u_1(s_1,\rho_2) = u_2(s_2, \rho_2)
+            u_1(s_1,\rho_2) = u_1(s_2, \rho_2)
 
         for all `s_1, s_2` in the support of `\rho_1`. This corresponds to:
 
@@ -1756,6 +1755,10 @@ class NormalFormGame(SageObject, MutableMapping):
         degenerate game, this definition is violated, for example if there
         is a pure strategy that has two pure best responses.
 
+        The implementation here transforms the search over mixed strategies to a
+        search over supports which is a discrete search. A full explanation of
+        this is given in [CK2015]_.
+
         The game Rock-Paper-Scissors is an example of a non-degenerate game.::
 
             sage: A = matrix([[0, -1, 1],
@@ -1875,6 +1878,11 @@ class NormalFormGame(SageObject, MutableMapping):
            *Computing equilibria for two-person games*
            http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf
            (2002)
+
+        .. [CK2015] J. Campbell and V. Knight.
+           *On testing degeneracy of bi-matrix games*
+           http://vknight.org/unpeudemath/code/2015/06/25/on_testing_degeneracy_of_games/
+           (2015)
         """
         if len(self.players) > 2:
             raise NotImplementedError("Tests for Degeneracy is not yet "

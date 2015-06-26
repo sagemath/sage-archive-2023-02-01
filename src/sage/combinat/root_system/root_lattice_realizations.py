@@ -619,7 +619,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
-            return filter(lambda x: x.is_short_root(), self.roots())
+            return [x for x in self.roots() if x.is_short_root()]
 
         def long_roots(self):
             """
@@ -638,7 +638,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
-            return filter(lambda x: x.is_long_root(), self.roots())
+            return [x for x in self.roots() if x.is_long_root()]
 
         @cached_method
         def positive_roots(self, index_set=None):

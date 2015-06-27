@@ -144,7 +144,7 @@ def width_of_cut_decomposition(G, L):
     if not is_valid_ordering(G, L):
         raise ValueError("The input linear vertex ordering L is not valid for G.")
 
-    position = dict( (u,i) for i,u in enumerate(L) )
+    position = {u:i for i,u in enumerate(L)}
 
     cpt = [0]*len(L)
     for u,v in G.edge_iterator(labels=None):
@@ -392,7 +392,7 @@ cdef inline int compute_edge_cut(FastDigraph g, int S):
     cdef int i
     cdef int cpt = 0
     for i in range(g.n):
-        cpt += popcount32( (Sbar&g.graph[i]) * ((S>>i)&1) )
+        cpt += popcount32( (Sbar&g.graph[i]) & (-((S>>i)&1)) )
 
     return cpt
 

@@ -402,6 +402,22 @@ class SageElement(ExpectElement):
         """
         return None
 
+    def _repr_option(self, option):
+        """
+        Disable repr option.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: m = sage0(4)
+            sage: m._repr_option('ascii_art')
+            False
+        """
+        return False
+
     def __getattr__(self, attrname):
         """
         EXAMPLES::

@@ -4025,7 +4025,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         "z",
+                         self.objective_variable(),
                          style=self.style())
         D._entering = self._entering
         D._leaving = self._leaving
@@ -4173,6 +4173,26 @@ class LPRevisedDictionary(LPAbstractDictionary):
             0
         """
         return self.y() * self.problem().b()
+
+    def objective_variable(self):
+        r"""
+        Return the objective variable of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.revised_dictionary()
+            sage: D.objective_variable()
+            'z'
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='vanderbei')
+            sage: D = P.revised_dictionary()
+            sage: D.objective_variable()
+            'zeta'
+        """
+        return self._objective_variable
 
     def problem(self):
         r"""

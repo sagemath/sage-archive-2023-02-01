@@ -1649,7 +1649,8 @@ class TransducerGenerators(object):
 
             return ((c, j), output)
 
-        def transition_function((state_carry, state_level), input):
+        def transition_function(states2, input):
+            (state_carry, state_level) = states2
             ((carry, level), output) = recursion_transitions(
                 state_carry, state_level, False)
             # no more recursion transition is possible,

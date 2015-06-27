@@ -934,7 +934,7 @@ class InteractiveLPProblem(SageObject):
 
         """
         A, c, b, x = self.Abcx()
-        style = self._style
+        style = self.style()
         if not isinstance(objective_variable, str):
             if objective_variable != None:
                 dual_objective_variable = map(str, objective_variable)
@@ -1382,7 +1382,7 @@ class InteractiveLPProblem(SageObject):
             (-10, -5)
         """
         A, b, c, x = self.Abcx()
-        style = self._style
+        style = self.style()
         objective_variable = self._objective_variable
         if not all(ct == "<=" for ct in self._constraint_types):
             newA = []
@@ -1426,6 +1426,24 @@ class InteractiveLPProblem(SageObject):
             prefix = "z"
         return InteractiveLPProblemStandardForm(A, b, c, x, problem_type, prefix,
             prefix+ "0", style=style, objective_variable=objective_variable)
+
+    def style(self):
+        r"""
+        Return the style used by this problem.
+
+        EXAMPLE::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P.style() is None
+            True
+            sage: P = InteractiveLPProblem(A, b, c, style='vanderbei')
+            sage: P.style()
+            'vanderbei'
+        """
+        return self._style
 
     # Aliases for the standard notation
     A = constraint_coefficients
@@ -1555,15 +1573,15 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                                                                objective_variable=objective_variable)
         n, m = self.n(), self.m()
         if slack_variables is None:
-            if self._style == None:
+            if self.style() == None:
                 slack_variables = self._prefix
-            elif self._style == 'vanderbei':
+            elif self.style() == 'vanderbei':
                 slack_variables = "w"
             else:
                 raise ValueError("Style must be one of None (the default) or \
                 'vanderbei'")
         if isinstance(slack_variables, str):
-            if self._style == 'vanderbei':
+            if self.style() == 'vanderbei':
                 slack_variables = ["{}{:d}".format(slack_variables, i)
                                for i in range(1, m + 1)]
             else:
@@ -1635,7 +1653,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         """
         X = self.coordinate_ring().gens()
         m, n = self.m(), self.n()
-        style = self._style
+        style = self.style()
         if not isinstance(objective_variable, str):
             if objective_variable != None:
                 aux_objective_variable = map(str, objective_variable)
@@ -1803,7 +1821,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             raise ValueError("the auxiliary variable must be non-basic")
         if not auxiliary_dictionary.is_feasible():
             raise ValueError("the auxiliary dictionary must be feasible")
-        style = self._style
+        style = self.style()
         objective_variable = self._objective_variable
         A, b, c, v, B, N, z = auxiliary_dictionary._AbcvBNz
         B = tuple(B)
@@ -1918,7 +1936,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: D = P.initial_dictionary()
         """
         A, b, c, x = self.Abcx()
-        style = self._style
+        style = self.style()
         objective_variable = self._objective_variable
         x = self._R.gens()
         m, n = self.m(), self.n()
@@ -2001,7 +2019,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P.revised_dictionary().basic_variables()
             (x3, x4, x0)
         """
-        style = self._style
+        style = self.style()
         objective_variable = self._objective_variable
         if not x_B:
             x_B = list(self.slack_variables())

@@ -4842,7 +4842,6 @@ cdef class Matroid(SageObject):
             return self._is_3connected_CE(separation)
         raise ValueError("Not a valid algorithm.")
 
-
     cpdef _is_3connected_CE(self, certificate=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
@@ -4887,15 +4886,6 @@ cdef class Matroid(SageObject):
         """
         cdef set E, G, H, S, T
         cdef frozenset I, X
-        # test (2-)connectedness
-        C = self.components()
-        if len(C)>1:
-            if certificate:
-                for X in C:
-                    return False, X
-            else:
-                return False
-        # now 2-separations are exact
         # test if groundset size is at least 4
         E = set(self.groundset())
         if len(E)<4:
@@ -4905,6 +4895,15 @@ cdef class Matroid(SageObject):
             else:
                 return True
         # now there exist two disjoint pairs
+        # test (2-)connectedness
+        C = self.components()
+        if len(C)>1:
+            if certificate:
+                for X in C:
+                    return False, X
+            else:
+                return False
+        # now 2-separations are exact
         # test if there are any parallel pairs
         for e in E:
             X = self._closure([e])
@@ -4915,9 +4914,9 @@ cdef class Matroid(SageObject):
                 else:
                     return False
         # now each pair has rank 2
-        # fix e,f; a 2-separation will separate S = {e,f} from T = {g,h} or separate S = {e,g} from T = {f,h}
         e = E.pop()
         f = E.pop()
+        # check 2-separations with e,f on the same side
         S = {e, f}
         G = set(E)
         while G:
@@ -4935,21 +4934,37 @@ cdef class Matroid(SageObject):
                         return False
                 # if h' is not spanned by I+g, then I is a connector for {e,f}, {g,h'}
                 H.intersection_update(self._closure(I.union([g])))
-        for g in E:
-            S = {e, g}
-            H = E - {e, f, g}
-            while H:
-                h = H.pop()
-                T = {f, h}
-                I, X = self._link(S, T)
-                # check if connectivity between S,T is < 2
-                if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
-                    if certificate:
-                        return False, X
-                    else:
-                        return False
-                # if h' is not spanned by I+f, then I is a connector for {e,g}, {f,h'}
-                H.intersection_update(self._closure(I.union([f])))
+        g = E.pop()
+        # check 2-separations with e,g on one side, f on the other
+        S = {e, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {f, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + f, then I is a connector for {e, g}, {f, h'}
+            H.intersection_update(self._closure(I.union([f])))
+        # check all 2-separations with f,g on one side, e on the other
+        S = {f, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {e, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + e, then I is a connector for {f, g}, {e, h'}
+            H.intersection_update(self._closure(I.union([e])))
         if certificate:
             return True, None
         else:

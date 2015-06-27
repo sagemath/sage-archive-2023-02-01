@@ -92,8 +92,8 @@ cdef inline int compute_out_neighborhood_cardinality(FastDigraph g, int S):
     """
     cdef int i
     cdef int tmp = 0
-    for 0<= i<g.n:
-        tmp |= g.graph[i] * ((S >> i)&1)
+    for i in range(g.n):
+        tmp |= g.graph[i] & (-((S >> i)&1))
 
     tmp &= (~S)
     return popcount32(tmp)

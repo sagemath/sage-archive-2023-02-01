@@ -1879,14 +1879,14 @@ class DirichletGroupFactory(UniqueFactory):
 
         if base_ring is None:
             if not (zeta is None and zeta_order is None):
-                raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
+                raise ValueError("zeta and zeta_order must be None if base_ring not specified.")
             e = rings.IntegerModRing(modulus).unit_group_exponent()
             base_ring = rings.CyclotomicField(e)
             if integral:
                 base_ring = base_ring.ring_of_integers()
 
         if not is_Ring(base_ring):
-            raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+            raise TypeError("base_ring (=%s) must be a ring"%base_ring)
 
         if zeta is None:
             e = rings.IntegerModRing(modulus).unit_group_exponent()

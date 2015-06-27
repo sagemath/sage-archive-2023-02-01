@@ -2791,6 +2791,25 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
+    def style(self):
+        r"""
+        Return the style used by this dictionary.
+
+        EXAMPLE::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.style() is None
+            True
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='vanderbei')
+            sage: D = P.initial_dictionary()
+            sage: D.style()
+            'vanderbei'
+        """
+        return self._style
 
 class LPDictionary(LPAbstractDictionary):
     r"""
@@ -2978,7 +2997,7 @@ class LPDictionary(LPAbstractDictionary):
             \end{array}
         """
         A, b, c, v, B, N, z = self._AbcvBNz
-        style =  self._style
+        style = self.style()
         lines = []
         lines.append(r"\renewcommand{\arraystretch}{1.5}")
         if generate_real_LaTeX:
@@ -4007,7 +4026,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
                          self.basic_variables(),
                          self.nonbasic_variables(),
                          "z",
-                         style=self._style)
+                         style=self.style())
         D._entering = self._entering
         D._leaving = self._leaving
         return D

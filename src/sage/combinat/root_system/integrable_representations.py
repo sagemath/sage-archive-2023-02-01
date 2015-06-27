@@ -867,7 +867,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: [V.modular_characteristic(x) for x in V.dominant_maximal_weights()]
             [11/56, -1/280, 111/280]
         """
-        if type(mu) is tuple:
+        if isinstance(mu, tuple):
             n = mu
         else:
             n = self.from_weight(mu)

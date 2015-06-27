@@ -503,25 +503,25 @@ class DisplayManager(SageObject):
         supported = self._backend.supported_output()
         if want == 'ascii_art' and OutputAsciiArt in supported:
             out = self._backend.ascii_art_formatter(obj, **kwds)
-            if type(out) != OutputAsciiArt:
+            if not isinstance(out, OutputAsciiArt):
                 raise OutputTypeException('backend returned wrong output type, require AsciiArt')
             return out
         if want == 'unicode_art' and OutputUnicodeArt in supported:
             out = self._backend.unicode_art_formatter(obj, **kwds)
-            if type(out) != OutputUnicodeArt:
+            if not isinstance(out, OutputUnicodeArt):
                 raise OutputTypeException('backend returned wrong output type, require UnicodeArt')
             return out
         if want == 'latex' and OutputLatex in supported:
             out = self._backend.latex_formatter(obj, **kwds)
-            if type(out) != OutputLatex:
+            if not isinstance(out, OutputLatex):
                 raise OutputTypeException('backend returned wrong output type, require Latex')
             return out
         if plain_text is not None:
-            if type(plain_text) != OutputPlainText:
+            if not isinstance(plain_text, OutputPlainText):
                 raise OutputTypeException('backend returned wrong output type, require PlainText')
             return plain_text
         out =  self._backend.plain_text_formatter(obj, **kwds)
-        if type(out) != OutputPlainText:
+        if not isinstance(out, OutputPlainText):
             raise OutputTypeException('backend returned wrong output type, require PlainText')
         return out
 

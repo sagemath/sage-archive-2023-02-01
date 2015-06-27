@@ -927,8 +927,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                     power += 1
             if power == 1:
                 bad_primes = bad_primes+GB[i].lt().coefficients()[0].support()
-        bad_primes = list(set(bad_primes))
-        bad_primes.sort()
+        bad_primes = sorted(set(bad_primes))
         #check to return only the truly bad primes
         if check == True:
             for p in bad_primes:

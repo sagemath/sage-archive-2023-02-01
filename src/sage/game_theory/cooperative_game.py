@@ -326,14 +326,14 @@ class CooperativeGame(SageObject):
             ...
             ValueError: characteristic function must be the power set
         """
-        if type(characteristic_function) is not dict:
+        if not isinstance(characteristic_function, dict):
             raise TypeError("characteristic function must be a dictionary")
 
         self.ch_f = characteristic_function
         for key in self.ch_f:
-            if len(str(key)) == 1 and type(key) is not tuple:
+            if len(str(key)) == 1 and not isinstance(key, tuple):
                 self.ch_f[(key,)] = self.ch_f.pop(key)
-            elif type(key) is not tuple:
+            elif not isinstance(key, tuple):
                 raise TypeError("key must be a tuple")
         for key in self.ch_f:
             sortedkey = tuple(sorted(list(key)))

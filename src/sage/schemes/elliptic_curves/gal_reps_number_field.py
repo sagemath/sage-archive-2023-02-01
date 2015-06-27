@@ -467,8 +467,7 @@ def _maybe_borels(E, L, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    L = list(set(L)) # Remove duplicates from L and makes a copy for output
-    L.sort()
+    L = sorted(set(L)) # Remove duplicates from L and makes a copy for output
 
     include_2 = False
     if 2 in L: # c.f. Section 5.3(a) of [Serre72].

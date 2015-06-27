@@ -385,6 +385,9 @@ ext_modules = [
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
 
+    Extension('sage.graphs.graph_decompositions.fast_digraph',
+              sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
+
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
 

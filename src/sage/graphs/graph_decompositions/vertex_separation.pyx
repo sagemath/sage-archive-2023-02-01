@@ -271,7 +271,8 @@ Methods
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'fast_digraph.pyx'
+include 'sage/ext/cdefs.pxi'
+from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
 include "sage/data_structures/binary_matrix.pxi"
 from sage.graphs.base.static_dense_graph cimport dense_graph_init

@@ -20,9 +20,6 @@ include 'sage/ext/interrupt.pxi'
 from libc.stdint cimport uint8_t
 
 cdef class FastDigraph:
-    cdef uint8_t n
-    cdef int * graph
-    cdef dict int_to_vertices
 
     def __cinit__(self, D):
         r"""

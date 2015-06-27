@@ -71,7 +71,8 @@ Methods
 
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
-include 'fast_digraph.pyx'
+include 'sage/ext/cdefs.pxi'
+from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, popcount32
 from libc.stdint cimport uint8_t
 from sage.ext.memory cimport check_allocarray
 from sage.rings.integer_ring import ZZ
@@ -292,6 +293,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 ################################################################################
 # Dynamic Programming algorithm for cutwidth
 ################################################################################
+from sage.graphs.graph_decompositions.vertex_separation cimport find_order
 
 def cutwidth_dyn(G, lower_bound=0):
     """
@@ -442,35 +444,3 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int 
 
     return neighborhoods[current]
 
-
-cdef list find_order(FastDigraph g, uint8_t * neighborhoods, int cost):
-    """
-    Returns the ordering once we are sure it exists
-
-    This is a copy/paste of method
-    `sage.graphs.graph_decompositions.vertex_separation.find_order` and so we
-    can certainly directly import it.
-    """
-    cdef list ordering = []
-    cdef int current = 0
-    cdef int n = g.n
-    cdef int i
-
-    while n:
-        # We look for n vertices
-
-        for i in range(g.n):
-            if (current >> i)&1:
-                continue
-
-            # Find the next set with small cost (we know it exists)
-            next_set = current | 1<<i
-            if neighborhoods[next_set] <= cost:
-                ordering.append(i)
-                current = next_set
-                break
-
-        # One less to find
-        n -= 1
-
-    return ordering

@@ -2256,7 +2256,7 @@ class LPAbstractDictionary(SageObject):
     and :class:`LPRevisedDictionary` for useful extensions.
     """
 
-    def __init__(self):
+    def __init__(self, style=None):
         r"""
         Initialize internal fields for entering and leaving variables.
 
@@ -2271,6 +2271,13 @@ class LPAbstractDictionary(SageObject):
         super(LPAbstractDictionary, self).__init__()
         self._entering = None
         self._leaving = None
+        if style == "vanderbei":
+            self._style = style
+        elif style == None:
+            self._style = None
+        else:
+            raise ValueError("Style must be one of None (the default) or \
+                'vanderbei'")
 
     def _repr_(self):
         r"""
@@ -2896,7 +2903,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: D = LPDictionary(A, b, c, 0, R.gens()[2:], R.gens()[:2], "z")
             sage: TestSuite(D).run()
         """
-        super(LPDictionary, self).__init__()
+        super(LPDictionary, self).__init__(style=style)
         # We are going to change stuff while InteractiveLPProblem has immutable data.
         A = copy(A)
         b = copy(b)
@@ -2904,13 +2911,6 @@ class LPDictionary(LPAbstractDictionary):
         B = vector(basic_variables)
         N = vector(nonbasic_variables)
         self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_variable)]
-        if style == "vanderbei":
-            self._style = style
-        elif style == None:
-            self._style = None
-        else:
-            raise ValueError("Style must be one of None (the default) or \
-                'vanderbei'")
         self._objective_variable = objective_variable
 
     def __eq__(self, other):
@@ -3504,18 +3504,11 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D = LPRevisedDictionary(P, [1, 2])
             sage: TestSuite(D).run()
         """
-        if style == "vanderbei":
-            self._style = style
-        elif style == None:
-            self._style = None
-        else:
-            raise ValueError("Style must be one of None (the default) or \
-                'vanderbei'")
         self._objective_variable = objective_variable
         if problem.auxiliary_variable() == problem.decision_variables()[0]:
             raise ValueError("revised dictionaries should not be constructed "
                              "for auxiliary problems")
-        super(LPRevisedDictionary, self).__init__()
+        super(LPRevisedDictionary, self).__init__(style=style)
         self._problem = problem
         R =  problem.coordinate_ring()
         self._x_B = vector(R, [variable(R, v) for v in basic_variables])
@@ -4013,7 +4006,8 @@ class LPRevisedDictionary(LPAbstractDictionary):
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         "z")
+                         "z",
+                         style=self._style)
         D._entering = self._entering
         D._leaving = self._leaving
         return D

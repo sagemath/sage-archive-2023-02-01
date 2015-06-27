@@ -185,11 +185,21 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         For more information see :class:`AsymptoticRing`.
 
-        TESTS::
+        EXAMPLES:
 
-            sage: asdfasdfasdf
+        __classcall__ unifies the input to the constructor of
+        :class:`AsymptoticRing` such that the instances generated
+        are unique. Also, this enables the use of the generation
+        framework::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: AR1 = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR2.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=ZZ)
+            sage: AR1 is AR2
+            True
         """
-        if len(names) > 1:
+        if names is not None and len(names) > 1:
             raise NotImplementedError('Currently only one variable is supported')
         if isinstance(growth_group, str) and names is None:
             raise ValueError('names has to be specified if the growth group '
@@ -205,7 +215,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
                                                         coefficient_ring, category)
-
 
 
     def __init__(self, growth_group=None, coefficient_ring=None, category=None):
@@ -286,16 +295,14 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
-            sage: AR.create_term('exact', x^3, 3)
+            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: 3 * x^3
             3*x^3
-            sage: AR.create_term('exact', x^3, 3) + AR.create_term('exact', x, 1)
+            sage: 3 * x^3 + x
             1*x + 3*x^3
-            sage: AR.create_term('exact', x^3, 3) * AR.create_term('exact', x, 5)
+            sage: (3 * x^3) * (5 * x)
             15*x^4
-            sage: AR.create_term('exact', x^3, 3) + AR.create_term('O', x^5)
+            sage: 3 * x^3 + O(x^5)
             O(x^5)
         """
         if poset is None:
@@ -387,11 +394,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: asdfasdf
+            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: AR.gens()
+            (1*x,)
         """
         from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
         if isinstance(self.growth_group, MonomialGrowthGroup):
-            return self.create_term('exact', self.growth_group.gen()),
+            return self.create_term('exact', self.growth_group.gen(), 1),
 
     def ngens(self):
         r"""
@@ -407,7 +416,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: asdfasdf
+            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: AR.ngens()
+            1
         """
         from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
         if isinstance(self.growth_group, MonomialGrowthGroup):

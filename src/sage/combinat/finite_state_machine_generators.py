@@ -75,6 +75,7 @@ from sage.symbolic.operators import add_vararg, mul_vararg
 from sage.combinat.finite_state_machine import Transducer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from functools import reduce
 
 class TransducerGenerators(object):
     r"""

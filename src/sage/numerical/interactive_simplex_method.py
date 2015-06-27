@@ -1104,6 +1104,25 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx[2]
 
+    def objective_variable(self):
+        r"""
+        Return the objective variable of ``self``.
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c)
+            sage: P.objective_variable()
+            z
+            sage: P = InteractiveLPProblem(A, b, c, style='vanderbei')
+            sage: P.objective_variable()
+            zeta
+
+        """
+        return self._objective_variable
+
     def optimal_solution(self):
         r"""
         Return **an** optimal solution of ``self``.
@@ -1938,22 +1957,6 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             self._R.inject_variables(scope, verbose)
         except AttributeError:
             pass
-
-    def objective_variable(self):
-        r"""
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1], [-1, -1])
-            sage: b = (1000, 1500, -400)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: P.objective_variable()
-            z
-
-        """
-        objective_variable = self._objective_variable
-        print objective_variable
 
     def revised_dictionary(self, *x_B):
         r"""
@@ -3233,7 +3236,7 @@ class LPDictionary(LPAbstractDictionary):
 
     def objective_variable(self):
         r"""
-
+        Return the objective variable of ``self``.
 
         EXAMPLES::
 
@@ -3244,8 +3247,12 @@ class LPDictionary(LPAbstractDictionary):
             sage: D = P.initial_dictionary()
             sage: D.objective_variable()
             z
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='vanderbei')
+            sage: D = P.initial_dictionary()
+            sage: D.objective_variable()
+            zeta
         """
-        print self._objective_variable
+        return self._objective_variable
 
     def update(self):
         r"""

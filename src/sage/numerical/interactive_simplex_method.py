@@ -542,8 +542,24 @@ class InteractiveLPProblem(SageObject):
         A = matrix(A)
         b = vector(b)
         c = vector(c)
-        self._style = style
-        self._objective_variable = objective_variable
+        if style == "vanderbei":
+            self._style = style
+        elif style == None:
+            self._style = None
+        else:
+            raise ValueError("Style must be one of None (the default) or \
+                'vanderbei'")
+        if objective_variable == None:
+            if self._style == "vanderbei":
+                variable = "zeta"
+                if problem_type == 'max':
+                    self._objective_variable = variable
+                else:
+                    self._objective_variable = "-"+variable
+            else:
+                self._objective_variable = "z"
+        else:
+            self._objective_variable = objective_variable
         if base_ring is None:
             base_ring = vector(A.list() + list(b) + list(c)).base_ring()
         base_ring = base_ring.fraction_field()
@@ -903,18 +919,18 @@ class InteractiveLPProblem(SageObject):
             sage: DP = DP.standard_form()
             sage: DPSF_initial = DP.initial_dictionary()
             sage: DPSF_initial.objective_variable()
-            z
+            'z'
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], style="vanderbei")
             sage: DP = P.dual()
             sage: DP = DP.standard_form()
             sage: DPSF_initial = DP.initial_dictionary()
             sage: DPSF_initial.objective_variable()
-            xi
+            'xi'
             sage: DP = P.dual(objective_variable="dual")
             sage: DP = DP.standard_form()
             sage: DPSF_initial = DP.initial_dictionary()
             sage: DPSF_initial.objective_variable()
-            dual
+            'dual'
 
         """
         A, c, b, x = self.Abcx()
@@ -1115,10 +1131,10 @@ class InteractiveLPProblem(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c)
             sage: P.objective_variable()
-            z
+            'z'
             sage: P = InteractiveLPProblem(A, b, c, style='vanderbei')
             sage: P.objective_variable()
-            zeta
+            'zeta'
 
         """
         return self._objective_variable
@@ -1531,18 +1547,13 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             raise ValueError("problems in standard form must be of (negative) "
                              "maximization type")
         super(InteractiveLPProblemStandardForm, self).__init__(A, b, c, x,
-                                                    problem_type=problem_type,
-                                                    constraint_type="<=",
-                                                    variable_type=">=",
-                                                    base_ring=base_ring)
+                                                               problem_type=problem_type,
+                                                               constraint_type="<=",
+                                                               variable_type=">=",
+                                                               base_ring=base_ring,
+                                                               style=style,
+                                                               objective_variable=objective_variable)
         n, m = self.n(), self.m()
-        if style == "vanderbei":
-            self._style = style
-        elif style == None:
-            self._style = None
-        else:
-            raise ValueError("Style must be one of None (the default) or \
-                'vanderbei'")
         if slack_variables is None:
             if self._style == None:
                 slack_variables = self._prefix
@@ -1572,17 +1583,6 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         x = vector(R.gens()[-n-m:-m])
         x.set_immutable()
         self._Abcx = self._Abcx[:-1] + (x, )
-        if objective_variable == None:
-            if self._style == "vanderbei":
-                variable = "zeta"
-                if problem_type == 'max':
-                    self._objective_variable = variable
-                else:
-                    self._objective_variable = "-"+variable
-            else:
-                self._objective_variable = "z"
-        else:
-            self._objective_variable = objective_variable
 
     def auxiliary_problem(self, objective_variable=None):
         r"""
@@ -1620,17 +1620,17 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: AP = P.auxiliary_problem()
             sage: P.objective_variable()
-            z
+            'z'
             sage: AP.objective_variable()
-            w
+            'w'
             sage: P = InteractiveLPProblemStandardForm(A, b, c, style="vanderbei")
             sage: AP = P.auxiliary_problem()
             sage: AP.objective_variable()
-            xi
+            'xi'
             sage: P = InteractiveLPProblemStandardForm(A, b, c, style="vanderbei")
             sage: AP = P.auxiliary_problem(objective_variable="aux")
             sage: AP.objective_variable()
-            aux
+            'aux'
 
         """
         X = self.coordinate_ring().gens()
@@ -3246,11 +3246,11 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.objective_variable()
-            z
+            'z'
             sage: P = InteractiveLPProblemStandardForm(A, b, c, style='vanderbei')
             sage: D = P.initial_dictionary()
             sage: D.objective_variable()
-            zeta
+            'zeta'
         """
         return self._objective_variable
 

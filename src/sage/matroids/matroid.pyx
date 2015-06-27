@@ -4762,7 +4762,6 @@ cdef class Matroid(SageObject):
                     y = predecessor[y]
                     path.add(y)
                 I = I.symmetric_difference(path)
-
         return frozenset(I), frozenset(predecessor)|S
 
 
@@ -4886,9 +4885,9 @@ cdef class Matroid(SageObject):
             sage: M.connectivity(X)
             1
         """
-        cdef int rs, rt
-        cdef set E, F, G, H, S, T
+        cdef set E, G, H, S, T
         cdef frozenset I, X
+        # test (2-)connectedness
         C = self.components()
         if len(C)>1:
             if certificate:
@@ -4896,16 +4895,30 @@ cdef class Matroid(SageObject):
                     return False, X
             else:
                 return False
+        # now 2-separations are exact
+        # test if groundset size is at least 4
         E = set(self.groundset())
         if len(E)<4:
             if certificate:
                 return True, None
+                # there is no partition A,B of the ground set such that |A|, |B| >= 2
             else:
                 return True
+        # now there exist two disjoint pairs
+        # test if there are any parallel pairs
+        for e in E:
+            X = self._closure([e])
+            if len(X)>1:
+                if certificate:
+                    return False, self._circuit(X)
+                    # r(C) + r(E\C) - r(E) <= r(C) < 2, |C| = 2, |E\C| >= 2
+                else:
+                    return False
+        # now each pair has rank 2
+        # fix e,f; a 2-separation will separate S = {e,f} from T = {g,h} or separate S = {e,g} from T = {f,h}
         e = E.pop()
         f = E.pop()
         S = {e, f}
-        rs = self._rank(S)
         G = set(E)
         while G:
             g = G.pop()
@@ -4913,10 +4926,9 @@ cdef class Matroid(SageObject):
             while H:
                 h = H.pop()
                 T = {g, h}
-                rt = self._rank(T)
                 I, X = self._link(S, T)
-                # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + rs + rt < 2:
+                # check if connectivity between S,T is < 2
+                if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
                     if certificate:
                         return False, X
                     else:
@@ -4925,15 +4937,13 @@ cdef class Matroid(SageObject):
                 H.intersection_update(self._closure(I.union([g])))
         for g in E:
             S = {e, g}
-            rs = self._rank(S)
-            H = E - S
+            H = E - {e, f, g}
             while H:
                 h = H.pop()
                 T = {f, h}
-                rt = self._rank(T)
                 I, X = self._link(S, T)
-                # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + rs + rt < 2:
+                # check if connectivity between S,T is < 2
+                if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
                     if certificate:
                         return False, X
                     else:

@@ -176,6 +176,38 @@ class AsymptoticRing(sage.rings.ring.Ring,
     # enable the category framework for elements
     Element = AsymptoticExpression
 
+    @staticmethod
+    def __classcall__(cls, growth_group, coefficient_ring, names=None,
+                      category=None):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation of the parent.
+
+        For more information see :class:`AsymptoticRing`.
+
+        TESTS::
+
+            sage: asdfasdfasdf
+        """
+        if len(names) > 1:
+            raise NotImplementedError('Currently only one variable is supported')
+        if isinstance(growth_group, str) and names is None:
+            raise ValueError('names has to be specified if the growth group '
+                             'is to be constructed')
+        elif growth_group == 'monomial':
+            from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
+            # coefficient ring acts as the base ring of the growth group!
+            growth_group = MonomialGrowthGroup(coefficient_ring, names[0])
+        elif hasattr(growth_group, '_var_') and names is not None:
+            if names[0] == growth_group._var_:
+                raise ValueError('Specified variable %s and growth group variable '
+                                 '%s do not match' % (names[0], growth_group._var_))
+
+        return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
+                                                        coefficient_ring, category)
+
+
+
     def __init__(self, growth_group=None, coefficient_ring=None, category=None):
         r"""
         ...
@@ -333,6 +365,55 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return 'Asymptotic Ring over %s with coefficients ' \
                'from %s' % (self.growth_group, self.coefficient_ring)
 
+
+    def gens(self):
+        r"""
+        Return a tuple with generators of this asymptotic ring.
+
+        INPUT:
+
+        Noting.
+
+        OUTPUT:
+
+        A tuple.
+
+        .. NOTE::
+
+            Generators do not necessarily exist. This depends on the
+            underlying growth group. For example, monomial growth
+            groups have a generator, and exponential growth groups
+            don't.
+
+        EXAMPLES::
+
+            sage: asdfasdf
+        """
+        from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
+        if isinstance(self.growth_group, MonomialGrowthGroup):
+            return self.create_term('exact', self.growth_group.gen()),
+
+    def ngens(self):
+        r"""
+        Return the number of generators of this asymptotic ring.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: asdfasdf
+        """
+        from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
+        if isinstance(self.growth_group, MonomialGrowthGroup):
+            return 1
+        else:
+            return 0
 
     def create_term(self, type, growth=None, coefficient=None):
         r"""

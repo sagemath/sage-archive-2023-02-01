@@ -74,8 +74,8 @@ def merge_environment(app, env):
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
-                md = env.metadata.get(ind, set())
-                md.add('orphan')
+                md = env.metadata.get(ind, dict())
+                md['orphan'] = 1
                 env.metadata[ind] = md
             # merge the citations
             newcite = {}

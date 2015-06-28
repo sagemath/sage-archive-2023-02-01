@@ -446,8 +446,25 @@ def default_style(style=None):
     Set or get the default style of :class:`InteractiveLPProblem`.
 
     Currently supported styles are:
-    - 'UAlberta'
-    - 'Vanderbei'
+    - 'UAlberta' (default):  Follows the style used in the Math 373 course 
+      on Mathematical Programming and Optimization at the University of 
+      Alberta, Edmonton, Canada; based on Chvatal's book.
+      - Objective functions of dictionaries are printed at the bottom.
+      - The default objective variable is 'z'.
+      - Primal variables default to 'x1', 'x2', ...
+      - Dual variables default to 'y1', 'y2', ...
+      - Slack variables use the same prefix as problem variables.
+
+    - 'Vanderbei':  Follow the style of Robert Vanderbei's textbook, 
+      Linear Programming -- Foundations and Extensions.
+      - Objective functions of dictionaries are printed at the top.
+      - The default objective variable of primal is 'zeta',
+        of auxiliary and dual is 'xi'.
+      - A negative sign may appear in front of the objective variable.
+      - Primal variables default to 'x1', 'x2', ...
+      - Dual variables default to 'y1', 'y2', ...
+      - Primal slack variables default to 'w1', 'w2', ...
+      - Dual slack variables default to 'z1', 'z2', ...
     """
     global _default_style
     if style is None:
@@ -497,33 +514,11 @@ class InteractiveLPProblem(SageObject):
       input coefficients) a field to which all input coefficients will be
       converted
 
-    - ``style`` -- (default: None) a string specifying the problem type:
-      either None or "Vanderbei". Once the style is chosen to be Vanderbei,
-      the problem and the dictionary will be represented in the style follows
-      Robert Vanderbei's textbook, Linear Programming Foundation and Extensions.
+    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
+      a string specifying the problem style.
 
-      If the style is None, the dictionary of the problem will be represented
-      in a table with both outside borders and inside horizontal borders.
-      If the style is "Vanderbei", the dictionary will be represented in a table
-      with only one horizontal border between the objective function and the other
-      equations.
-
-      If the style is None, the objective function will be represented on the
-      last row of the dictionary.
-      Otherwise, the objective function will be represented on the first row of
-      the dictionary.
-      The default of the objective variable is 'z', if the style is None.
-      If the style is "Vanderbei", the default of the objective variable for:
-      1) a primal problem is 'zeta'
-      2) a dual problem or auxiliary problem is 'xi'
-      Also, if the style is "Vanderbei", there will be a negative sign shown in
-      front of the objective variable in the dictionary.
-
-    - ``objective_variable`` -- (default: None) a string giving the objective
-      variable name. If a string is given, the problem and the dictionary will
-      use the string as the name of the objective variable no matter the style
-      is None or "Vanderbei". Otherwise, the objective variable will use the
-      default according to the style.
+    - ``objective_variable`` -- (default: depends on ``style``) 
+      a string giving the objective variable name. 
 
     EXAMPLES:
 
@@ -931,10 +926,8 @@ class InteractiveLPProblem(SageObject):
         - ``y`` -- (default: ``"x"`` if the prefix of ``self`` is ``"y"``,
           ``"y"`` otherwise) a vector of dual decision variables or a string
           giving the base name
-        - ``objective_variable`` -- (default: ``"None"``) If the user provides that argument,
-         use it, regardless of style. However, if it's not provided (None), then:
-         If style is None, the problem would just use the objective variable name of the primal.
-         If style is 'Vanderbei', then it would assign 'xi' to be the objective variable.
+        - ``objective_variable`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``)
+          a string giving a name for the objective function.
 
         OUTPUT:
 
@@ -1534,33 +1527,11 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
       input coefficients) a field to which all input coefficients will be
       converted
 
-    - ``style`` -- (default: None) a string specifying the problem type:
-      either None or "Vanderbei". Once the style is chosen to be Vanderbei,
-      the problem and the dictionary will be represented in the style follows
-      Robert Vanderbei's textbook, Linear Programming Foundation and Extensions.
+    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
+      a string specifying the problem style.
 
-      If the style is None, the dictionary of the problem will be represented
-      in a table with both outside borders and inside horizontal borders.
-      If the style is "Vanderbei", the dictionary will be represented in a table
-      with only one horizontal border between the objective function and the other
-      equations.
-
-      If the style is None, the objective function will be represented on the
-      last row of the dictionary.
-      Otherwise, the objective function will be represented on the first row of
-      the dictionary.
-      The default of the objective variable is 'z', if the style is None.
-      If the style is "Vanderbei", the default of the objective variable for:
-      1) a primal problem is 'zeta'
-      2) a dual problem or auxiliary problem is 'xi'
-      Also, if the style is "Vanderbei", there will be a negative sign shown in
-      front of the objective variable in the dictionary.
-
-    - ``objective_variable`` -- (default: None) a string giving the objective
-      variable name. If a string is given, the problem and the dictionary will
-      use the string as the name of the objective variable no matter the style
-      is None or "Vanderbei". Otherwise, the objective variable will use the
-      default according to the style.
+    - ``objective_variable`` -- (default: depends on ``style``) 
+      a string giving the objective variable name. 
 
     EXAMPLES::
 
@@ -1641,10 +1612,9 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
         INPUT:
 
-        - ``objective_variable`` -- (default: ``"None"``) If the user provides that argument,
-         use it, regardless of style. However, if it's not provided (None), then:
-         If style is None, the problem would just use the objective variable name of the primal.
-         If style is 'Vanderbei', then it would assign 'xi' to be the objective variable.
+        - ``objective_variable`` -- 
+          (default: see ``sage.numerical.interactive_simplex_method.default_style``)
+          a string giving a name for the objective function.
 
         OUTPUT:
 
@@ -2286,6 +2256,11 @@ class LPAbstractDictionary(SageObject):
 
     Instantiating this class directly is meaningless, see :class:`LPDictionary`
     and :class:`LPRevisedDictionary` for useful extensions.
+
+    INPUT:
+
+    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
+      a string specifying the problem style.
     """
 
     def __init__(self, style=None):
@@ -2867,33 +2842,11 @@ class LPDictionary(LPAbstractDictionary):
 
     - ``nonbasic_variables`` -- a list of non-basic variables `x_N`
 
-    - ``style`` -- (default: None) a string specifying the problem type:
-      either None or "Vanderbei". Once the style is chosen to be Vanderbei,
-      the problem and the dictionary will be represented in the style follows
-      Robert Vanderbei's textbook, Linear Programming Foundation and Extensions.
+    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
+      a string specifying the problem style.
 
-      If the style is None, the dictionary of the problem will be represented
-      in a table with both outside borders and inside horizontal borders.
-      If the style is "Vanderbei", the dictionary will be represented in a table
-      with only one horizontal border between the objective function and the other
-      equations.
-
-      If the style is None, the objective function will be represented on the
-      last row of the dictionary.
-      Otherwise, the objective function will be represented on the first row of
-      the dictionary.
-      The default of the objective variable is 'z', if the style is None.
-      If the style is "Vanderbei", the default of the objective variable for:
-      1) a primal problem is 'zeta'
-      2) a dual problem or auxiliary problem is 'xi'
-      Also, if the style is "Vanderbei", there will be a negative sign shown in
-      front of the objective variable in the dictionary.
-
-    - ``objective_variable`` -- (default: None) a string giving the objective
-      variable name. If a string is given, the problem and the dictionary will
-      use the string as the name of the objective variable no matter the style
-      is None or "Vanderbei". Otherwise, the objective variable will use the
-      default according to the style.
+    - ``objective_variable`` -- (default: depends on ``style``) 
+      a string giving the objective variable name. 
 
     OUTPUT:
 

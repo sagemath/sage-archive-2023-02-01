@@ -814,9 +814,9 @@ cdef class FiniteField_givaro_iterator:
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             a
         """
 

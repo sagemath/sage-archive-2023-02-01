@@ -61,12 +61,17 @@ cdef class FastDigraph:
                     tmp |= 1 << vertices_to_int[v]
                 self.graph[vertices_to_int[u]] = tmp
 
+        self.degree = <int *> sage_malloc(self.n*sizeof(int))
+        for i in range(self.n):
+            self.degree[i] = popcount32(self.graph[i])
+
     def __dealloc__(self):
         r"""
         Destructor.
         """
         if self.graph != NULL:
             sage_free(self.graph)
+        sage_free(self.degree)
 
     def print_adjacency_matrix(self):
         r"""

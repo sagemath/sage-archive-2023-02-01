@@ -365,12 +365,16 @@ def cutwidth_dyn(G, lower_bound=0):
     
     memset(neighborhoods, <uint8_t> -1, mem)
 
-    cdef int i,j , k
+    cdef int i, k
 
     sig_on()
-    for k in range(lower_bound, G.size()+1):
-        if exists(g, neighborhoods, 0, k) <= k:
+    i,k = 0,lower_bound
+    while k<=G.size():
+        if exists(g, neighborhoods, 0, 0, i, k) <= k:
             break
+        i += 1
+        if i==g.n:
+            i,k = 0,k+1
     sig_off()
 
     cdef list order = find_order(g, neighborhoods, k)
@@ -380,26 +384,7 @@ def cutwidth_dyn(G, lower_bound=0):
     return k, list( g.int_to_vertices[i] for i in order )
 
 
-cdef inline int compute_edge_cut(FastDigraph g, int S):
-    r"""
-    Returns the number of edges from `S` to `V\S`.
-
-    INPUT:
-
-    - ``g`` -- a FastDigraph
-    
-    - ``S`` -- (integer) an integer describing a set of vertices
-    """
-    cdef int Sbar = ~S
-    cdef int i
-    cdef int cpt = 0
-    for i in range(g.n):
-        cpt += popcount32( (Sbar&g.graph[i]) & (-((S>>i)&1)) )
-
-    return cpt
-
-
-cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int cost):
+cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int count_S, int v, int cost):
     """
     Check whether an ordering with the given cost exists, and updates data in
     the neighborhoods array at the same time. See the module's documentation.
@@ -408,9 +393,10 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int 
     `sage.graphs.graph_decompositions.vertex_separation.exists` by a single
     line. We can certainly combine codes.
     """
+    cdef int current = S | 1<<v
     # If this is true, it means the set has not been evaluated yet
     if neighborhoods[current] == <uint8_t>-1:
-        neighborhoods[current] = compute_edge_cut(g, current)
+        neighborhoods[current] = count_S + g.degree[v] - (popcount32(S&g.graph[v])<<1)
 
     # If the cost of this set is too high, there is no point in going further.
     # Same thing if the current set is the whole vertex set.
@@ -427,12 +413,9 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int current, int 
         if (current >> i)&1:
             continue
 
-        # For each of the out-neighbors next_set of current
-        next_set = current | 1<<i
-
         # Check whether there exists a cheap path toward {1..n}, and updated the
         # cost.
-        mini = min(mini, exists(g, neighborhoods, next_set, cost))
+        mini = min(mini, exists(g, neighborhoods, current, neighborhoods[current], i, cost))
 
         # We have found a path !
         if mini <= cost:

@@ -123,7 +123,7 @@ def test_popcount():
 
    EXAMPLE::
 
-       sage: from sage.graphs.graph_decompositions.vertex_separation import test_popcount
+       sage: from sage.graphs.graph_decompositions.fast_digraph import test_popcount
        sage: test_popcount() # not tested
    """
    cdef int i = 1

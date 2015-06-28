@@ -3411,8 +3411,8 @@ def LocalMcLaughlinGraph():
 
     EXAMPLES::
 
-        sage: g = graphs.LocalMcLaughlinGraph(); g   # long time
-        sage: g.is_strongly_regular(parameters=True) # long time
+        sage: g = graphs.LocalMcLaughlinGraph(); g   # long time # optional - gap_packages
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
         (162, 56, 10, 24)
     """
     g = McLaughlinGraph()

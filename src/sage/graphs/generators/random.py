@@ -767,3 +767,60 @@ def RandomToleranceGraph(n):
 
     return ToleranceGraph(tolrep)
 
+
+def RandomTriangulation(n, embed=False):
+    """
+    Returns a random triangulation on n vertices.
+
+    A triangulation is a planar graph all of whose faces are
+    triangles (3-cycles).
+
+    The graph is built by independently generating `n` points
+    uniformly at random on the surface of a sphere, finding the
+    convex hull of those points, and then returning the 1-skeleton
+    of that polyhedron.
+
+    INPUT:
+
+    - ``n`` -- number of vertices (recommend `n \ge 3`)
+
+    - ``embed`` -- (optional, default ``False``) wether to use the
+      stereographic point projections to draw the graph.
+
+    EXAMPLES::
+
+        sage: g = graphs.RandomTriangulation(10)
+        sage: g.is_planar()
+        True
+        sage: g.num_edges() == 3*10 - 6
+        True
+    """
+    from sage.misc.prandom import normalvariate
+    from sage.geometry.polyhedron.constructor import Polyhedron
+    from sage.rings.real_double import RDF
+
+    from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
+    from sage.modules.free_module_element import vector
+
+    # this function creates a random unit vector in R^3
+    def rand_unit_vec():
+        vec = [normalvariate(0, 1) for k in range(3)]
+        mag = sum([x * x for x in vec]) ** 0.5
+        return [x / mag for x in vec]
+
+    # generate n unit vectors at random
+    points = [rand_unit_vec() for k in range(n)]
+
+    if embed:
+        proj = ProjectionFuncStereographic([0, 0, 1])
+        ppoints = [proj(vector(x)) for x in points]
+
+    # find their convex hull
+    P = Polyhedron(vertices=points, base_ring=RDF)
+
+    # extract the 1-skeleton
+    g = P.vertex_graph()
+    g.rename('Planar triangulation on {} vertices'.format(n))
+    if embed:
+        g.set_pos({i: ppoints[i] for i in range(len(points))})
+    return g

@@ -319,6 +319,8 @@ AUTHORS:
 
 - Ed Scheinerman (2010-08-21): added Grotzsch graph and Mycielski graphs
 
+- Ed Scheinerman (2010-11-15): added RandomTriangulation
+
 - Minh Van Nguyen (2010-11-26): added more named graphs
 
 - Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
@@ -1987,6 +1989,7 @@ class GraphGenerators():
     RandomToleranceGraph     = staticmethod(sage.graphs.generators.random.RandomToleranceGraph)
     RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
+    RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
 # World Map

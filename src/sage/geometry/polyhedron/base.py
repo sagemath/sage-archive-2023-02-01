@@ -2686,7 +2686,19 @@ class Polyhedron_base(Element):
         r"""
         Return the barycentric subdivision of a compact polyhedron.
 
-        DEFINITION ? REFERENCE ?
+        DEFINITION:
+
+        The barycentric subdivision of a compact polyhedron is a standard way
+        to triangulate its faces in such a way that maximal faces correspond to
+        flags of faces of the starting polyhedron (i.e. a maximal chain in the
+        face lattice of the polyhedron). As a simplicial complex, this is known
+        as the order complex of the face lattice of the polyhedron.
+
+        REFERENCE:
+
+        See :wikipedia:`Barycentric_subdivision`
+        Section 6.6, Handbook of Convex Geometry, Volume A, edited by P.M. Gruber and J.M.
+        Wills. 1993, North-Holland Publishing Co..
 
         INPUT:
 

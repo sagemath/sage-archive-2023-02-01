@@ -1,9 +1,9 @@
 r"""
 Differentiable scalar fields
 
-Given a `C^k`-manifold `M` over a topological field `K` (in most applications,
-`K = \RR` or `K = \CC`), a *differentiable scalar field* on `M` is a map
-of class `C^k`
+Given a differentiable manifold `M` of class `C^k` over a topological field `K`
+(in most applications, `K = \RR` or `K = \CC`), a *differentiable scalar field*
+on `M` is a map of class `C^k`
 
 .. MATH::
 
@@ -11,7 +11,8 @@ of class `C^k`
 
 where `U` is an open subset of `M`.
 
-Differentiable scalar fields are implemented by the class :class:`DiffScalarField`.
+Differentiable scalar fields are implemented by the class
+:class:`DiffScalarField`.
 
 AUTHORS:
 
@@ -19,11 +20,11 @@ AUTHORS:
 
 REFERENCES:
 
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+.. [1] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+   Interscience Publishers (New York) (1963)
+.. [2] J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+   (New York) (2013)
+.. [3] B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
 
@@ -43,13 +44,21 @@ class DiffScalarField(ScalarField):
     r"""
     Differentiable scalar field on a differentiable manifold.
 
-    Given a `C^k`-manifold `M` over a topological field `K` (in most
-    applications, `K = \RR` or `K = \CC`), and an open subset `U` of `M`,
-    a *differentiable scalar field* defined on `U` a `C^k`-map
+    Given a differentiable manifold `M` of class `C^k` over a topological field
+    `K` (in most applications, `K = \RR` or `K = \CC`), and an open subset `U`
+    of `M`, a *differentiable scalar field* defined on `U` a map
 
     .. MATH::
 
         f: U\subset M \longrightarrow K
+
+    that is `k`-times continuously differentiable.
+
+    The class :class:`DiffScalarField` is a Sage *element* class, whose
+    *parent* class is
+    :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`.
+    It inherits from the class :class:`~sage.manifolds.scalarfield.ScalarField`
+    devoted to generic continuous scalar fields on a topological manifold.
 
     INPUT:
 
@@ -68,8 +77,10 @@ class DiffScalarField(ScalarField):
 
       NB: If ``coord_expression`` is ``None`` or incomplete, coordinate
       expressions can be added after the creation of the object, by means of
-      the methods :meth:`add_expr`, :meth:`add_expr_by_continuation` and
-      :meth:`set_expr`
+      the methods
+      :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`,
+      :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`
+      and :meth:`~sage.manifolds.scalarfield.ScalarField.set_expr`
     - ``chart`` -- (default: ``None``) chart defining the coordinates used
       in ``coord_expression`` when the latter is a single coordinate
       expression; if none is provided (default), the default chart of the
@@ -134,8 +145,9 @@ class DiffScalarField(ScalarField):
         Scalar field f on the 2-dimensional differentiable manifold M
 
     Their definition must then be completed by providing the expressions on
-    other charts, via the method :meth:`add_expr`, to get a global cover of
-    the manifold::
+    other charts, via the method
+    :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr`, to get a global
+    cover of the manifold::
 
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
@@ -154,9 +166,10 @@ class DiffScalarField(ScalarField):
         on U: (x, y) |--> 1/(x^2 + y^2 + 1)
         on V: (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
 
-    We may also use the method :meth:`add_expr_by_continuation` to complete
-    the coordinate definition using the analytic continuation from domains in
-    which charts overlap::
+    We may also use the method
+    :meth:`~sage.manifolds.scalarfield.ScalarField.add_expr_by_continuation`
+    to complete the coordinate definition using the analytic continuation from
+    domains in which charts overlap::
 
         sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f') ; f
         Scalar field f on the 2-dimensional differentiable manifold M
@@ -187,15 +200,16 @@ class DiffScalarField(ScalarField):
         \mathcal{F}
 
     The coordinate expression in a given chart is obtained via the method
-    :meth:`expr`, which returns a symbolic expression::
+    :meth:`~sage.manifolds.scalarfield.ScalarField.expr`, which returns a
+    symbolic expression::
 
         sage: f.expr(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
         sage: type(f.expr(c_uv))
         <type 'sage.symbolic.expression.Expression'>
 
-    The method :meth:`coord_function` returns instead a function of the
-    chart coordinates, i.e. an instance of
+    The method :meth:`~sage.manifolds.scalarfield.ScalarField.coord_function`
+    returns instead a function of the chart coordinates, i.e. an instance of
     :class:`~sage.manifolds.coord_func.CoordFunction`::
 
         sage: f.coord_function(c_uv)
@@ -205,8 +219,9 @@ class DiffScalarField(ScalarField):
         sage: f.coord_function(c_uv).display()
         (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
 
-    The value returned by the method :meth:`expr` is actually the coordinate
-    expression of the chart function::
+    The value returned by the method
+    :meth:`~sage.manifolds.scalarfield.ScalarField.expr`
+    is actually the coordinate expression of the chart function::
 
         sage: f.expr(c_uv) is f.coord_function(c_uv).expr()
         True
@@ -253,7 +268,7 @@ class DiffScalarField(ScalarField):
         sage: zer is M.zero_scalar_field()
         True
 
-    A third way is to get it as the zero element of the algebra `C^0(M)`
+    A third way is to get it as the zero element of the algebra `C^k(M)`
     of scalar fields on `M` (see below)::
 
         sage: zer is M.scalar_field_algebra().zero()
@@ -325,8 +340,8 @@ class DiffScalarField(ScalarField):
 
     .. RUBRIC:: Arithmetics of scalar fields
 
-    Scalar fields on `M` (resp. `U`) belong to the algebra `C^0(M)`
-    (resp. `C^0(U)`)::
+    Scalar fields on `M` (resp. `U`) belong to the algebra `C^k(M)`
+    (resp. `C^k(U)`)::
 
         sage: f.parent()
         Algebra of differentiable scalar fields on the 2-dimensional
@@ -426,8 +441,8 @@ class DiffScalarField(ScalarField):
         True
 
     In Sage framework, the addition of `f` and `g` is permitted because
-    there is a *coercion* of the parent of `f`, namely `C^0(M)`, to
-    the parent of `g`, namely `C^0(U)` (see
+    there is a *coercion* of the parent of `f`, namely `C^k(M)`, to
+    the parent of `g`, namely `C^k(U)` (see
     :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)::
 
         sage: CM = M.scalar_field_algebra()
@@ -440,7 +455,7 @@ class DiffScalarField(ScalarField):
         sage: CU.coerce(f) == f.restrict(U)
         True
 
-    Since the algebra `C^0(M)` is a vector space over `\RR`, scalar fields
+    Since the algebra `C^k(M)` is a vector space over `\RR`, scalar fields
     can be multiplied by a number, either an explicit one::
 
         sage: s = 2*f ; s
@@ -484,7 +499,7 @@ class DiffScalarField(ScalarField):
         sage: (-2)*f == - f - f
         True
 
-    The ring multiplication of the algebras `C^0(M)` and `C^0(U)`
+    The ring multiplication of the algebras `C^k(M)` and `C^k(U)`
     is the pointwise multiplication of functions::
 
         sage: s = f*f ; s
@@ -500,7 +515,7 @@ class DiffScalarField(ScalarField):
            (x, y) |--> x*y*H(x, y)
         on W: (u, v) |--> u*v*H(u/(u^2 + v^2), v/(u^2 + v^2))/(u^4 + 2*u^2*v^2 + v^4)
 
-    Thanks to the coercion `C^0(M)\rightarrow C^0(U)` mentionned
+    Thanks to the coercion `C^k(M)\rightarrow C^k(U)` mentionned
     above, it is possible to multiply a scalar field defined on `M` by a
     scalar field defined on `U`, the result being a scalar field defined on
     `U`::

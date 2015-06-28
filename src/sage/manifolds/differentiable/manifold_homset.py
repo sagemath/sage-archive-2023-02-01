@@ -12,10 +12,10 @@ AUTHORS:
 
 REFERENCES:
 
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
+.. [1] J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+   (New York) (2013)
+.. [2] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+   Interscience Publishers (New York) (1963)
 
 """
 #******************************************************************************
@@ -59,8 +59,8 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     EXAMPLES:
 
-    Set of differentiable maps between a 2-dimensional manifold and a
-    3-dimensional one::
+    Set of differentiable maps between a 2-dimensional differentiable manifold
+    and a 3-dimensional one::
 
         sage: M = DiffManifold(2, 'M')
         sage: X.<x,y> = M.chart()
@@ -113,7 +113,7 @@ class DiffManifoldHomset(TopManifoldHomset):
         sage: E in Monoids()
         True
 
-    This was of course not the case of ``H = Hom(M, N)``::
+    This was of course not the case for ``H = Hom(M, N)``::
 
         sage: H in Monoids()
         False

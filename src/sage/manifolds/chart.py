@@ -50,8 +50,8 @@ class Chart(UniqueRepresentation, SageObject):
     an open subset `V` of `K^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
+    are called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 
@@ -1051,8 +1051,8 @@ class RealChart(Chart):
     an open subset `V` of `\RR^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`,
+    are called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 

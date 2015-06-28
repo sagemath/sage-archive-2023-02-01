@@ -17,8 +17,8 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-  (New York) (2013)
+.. [1] Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+   (New York) (2013)
 
 """
 
@@ -39,13 +39,14 @@ class DiffChart(Chart):
     Chart on a differentiable manifold.
 
     Given a differentiable manifold `M` of dimension `n` over a topological
-    field `K`, a *chart* is a pair `(U,\varphi)`, where `U` is an open subset
-    of `M` and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from
+    field `K`, a *chart* is a member `(U,\varphi)` of the manifold's
+    differentiable atlas; `U` is then an open subset of `M` and
+    `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from
     `U` to an open subset `V` of `K^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`, are
+    called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 
@@ -263,6 +264,11 @@ class DiffChart(Chart):
         `(U,\varphi)` on the open subset where the two charts intersect, i.e.
         on `U\cap V`.
 
+        By definition, the transition map `\psi\circ\varphi^{-1}` must be
+        of classe `C^k`, where `k` is the degree of differentiability of the
+        manifold (cf.
+        :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_degree`).
+
         INPUT:
 
         - ``other`` -- the chart `(V,\psi)`
@@ -291,7 +297,7 @@ class DiffChart(Chart):
         OUTPUT:
 
         - The transition map `\psi\circ\varphi^{-1}` defined on `U\cap V`, as an
-          instance of :class:`CoordChange`.
+          instance of :class:`DiffCoordChange`.
 
         EXAMPLES:
 
@@ -324,7 +330,7 @@ class DiffChart(Chart):
             sage: M.atlas()
             [Chart (U, (x,)), Chart (V, (y,)), Chart (W, (x,)), Chart (W, (y,))]
 
-        Transition map between the spherical chart and the Cartesian one on
+        Transition map between the polar chart and the Cartesian one on
         `\RR^2`::
 
             sage: DiffManifold._clear_cache_() # for doctests only
@@ -380,8 +386,8 @@ class RealDiffChart(RealChart, DiffChart):
     an open subset `V` of `\RR^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`, are
+    called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 
@@ -634,6 +640,11 @@ class DiffCoordChange(CoordChange):
     coordinates `(y^1,\ldots,y^n)` of `(V,\psi)` in terms of the coordinates
     `(x^1,\ldots,x^n)` of `(U,\varphi)` on the open subset where the two
     charts intersect, i.e. on `U\cap V`.
+
+    By definition, the transition map `\psi\circ\varphi^{-1}` must be
+    of classe `C^k`, where `k` is the degree of differentiability of the
+    manifold (cf.
+    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_degree`).
 
     INPUT:
 

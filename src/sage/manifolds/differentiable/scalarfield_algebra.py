@@ -2,12 +2,12 @@ r"""
 Algebra of differentiable scalar fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
-`C^k(U)` of scalar fields on some open subset `U` of a
-differentiable manifold `M` over a topological field `K` (in most applications,
-`K = \RR` or `K = \CC`). By *differentiable scalar field*, it
-is meant a function of class C^`k` `U\rightarrow K`.
-`C^k(U)` is an algebra over `K`, whose ring product is the pointwise
-multiplication of `K`-valued functions, which is clearly commutative.
+`C^k(U)` of scalar fields on some open subset `U` of a differentiable manifold
+`M` of class `C^k` over a topological field `K` (in most applications,
+`K = \RR` or `K = \CC`). By *differentiable scalar field*, it is meant a
+function `U\rightarrow K` that is `k`-times continuously differentiable.
+`C^k(U)` is an algebra over `K`, whose ring product is the
+pointwise multiplication of `K`-valued functions, which is clearly commutative.
 
 AUTHORS:
 
@@ -15,11 +15,11 @@ AUTHORS:
 
 REFERENCES:
 
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+.. [1] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
+   Interscience Publishers (New York) (1963)
+.. [2] J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+   (New York) (2013)
+.. [3] B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
 
@@ -43,22 +43,23 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Commutative algebra of differentiable scalar fields on some open subset of
     a differentiable manifold.
 
-    If `M` is a differentiable manifold over a topological field `K` and `U`
-    an open subset of `M`, the commutative algebra of scalar fields on `U`
-    is the set `C^0(U)` of all continuous maps `U\rightarrow K`.
-    `C^0(U)` is an algebra over `K`, whose ring product is the pointwise
-    multiplication of `K`-valued functions, which is clearly commutative.
+    If `M` is a differentiable manifold of class `C^k` over a topological
+    field `K` and `U` is an open subset of `M`, the *commutative algebra of
+    scalar fields on* `U` is the set `C^k(U)` of all `k`-times continuously
+    differentiable maps `U\rightarrow K`. The set `C^k(U)` is an algebra over
+    `K`, whose ring product is the pointwise multiplication of `K`-valued
+    functions, which is clearly commutative.
 
     If `K = \RR` or `K = \CC`, the field `K` over which the
-    albegra `C^0(U)` is constructed,
+    albegra `C^k(U)` is constructed,
     is represented by Sage's Symbolic Ring SR, since there is no exact
     representation of `\RR` nor `\CC` in Sage.
 
-    The class :class:`ScalarFieldAlgebra` inherits from
+    The class :class:`DiffScalarFieldAlgebra` inherits from
     :class:`~sage.structure.parent.Parent`, with the category set to
     :class:`~sage.categories.commutative_algebras.CommutativeAlgebras`.
     The corresponding *element* class is
-    :class:`~sage.manifolds.scalarfield.ScalarField`.
+    :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`.
 
     INPUT:
 
@@ -88,7 +89,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Algebra of differentiable scalar fields on the Open subset W of the
          2-dimensional differentiable manifold M
 
-    `C^0(M)` and `C^0(W)` belong to the category of commutative
+    `C^k(M)` and `C^k(W)` belong to the category of commutative
     algebras over `\RR` (represented here by Sage's Symbolic Ring)::
 
         sage: CM.category()
@@ -100,7 +101,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: CW.base_ring()
         Symbolic Ring
 
-    The elements of `C^0(M)` are scalar fields on `M`::
+    The elements of `C^k(M)` are scalar fields on `M`::
 
         sage: CM.an_element()
         Scalar field on the 2-dimensional differentiable manifold M
@@ -109,7 +110,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         on U: (x, y) |--> 2
         on V: (u, v) |--> 2
 
-    Those of `C^0(W)` are scalar fields on `W`::
+    Those of `C^k(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
         Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
@@ -195,7 +196,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: M.scalar_field(0, chart='all') == CM.zero()
         True
 
-    The algebra `C^0(M)` coerces to `C^0(W)` since `W` is an open
+    The algebra `C^k(M)` coerces to `C^k(W)` since `W` is an open
     subset of `M`::
 
         sage: CW.has_coerce_map_from(CM)
@@ -221,9 +222,9 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: CW(CM.one()) == CW.one()
         True
 
-    The coercion map allows for the addition of elements of `C^0(W)`
-    with elements of `C^0(M)`, the result being an element of
-    `C^0(W)`::
+    The coercion map allows for the addition of elements of `C^k(W)`
+    with elements of `C^k(M)`, the result being an element of
+    `C^k(W)`::
 
         sage: s = fW + f
         sage: s.parent()
@@ -303,7 +304,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s/f == fW
         True
 
-    Multiplication by a real number::
+    Multiplication by a number::
 
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional differentiable manifold M
@@ -354,7 +355,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         running ._test_some_elements() . . . pass
         running ._test_zero() . . . pass
 
-    It is passed also for `C^0(W)`::
+    It is passed also for `C^k(W)`::
 
         sage: TestSuite(CW).run()
 

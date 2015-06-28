@@ -17,11 +17,10 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-  vol. 1, Interscience Publishers (New York) (1963)
-- Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
-  Springer (New York) (2013)
-
+.. [1] Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+   vol. 1, Interscience Publishers (New York) (1963)
+.. [2] Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
+   Springer (New York) (2013)
 
 """
 
@@ -51,9 +50,6 @@ class DiffMap(ContinuousMap):
     field `K` (in most applications, `K = \RR` or `K = \CC`), `U` is an open
     subset of `M` and `V` is an open subset of `N`.
 
-    In what follows, `M` is called the *start manifold* and
-    `N` the *arrival manifold*.
-
     Differentiable maps are the *morphisms* of the *category* of
     differentiable manifolds. The set of all differentiable maps from
     `U` to `V` is therefore the homset between `U` and `V` and is denoted
@@ -62,6 +58,9 @@ class DiffMap(ContinuousMap):
     The class :class:`DiffMap` is a Sage *element* class, whose *parent*
     class is
     :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset`.
+    It inherits from the class
+    :class:`~sage.manifolds.continuous_map.ContinuousMap` since a
+    differentiable map is obviously a continuous one.
 
     INPUT:
 
@@ -72,7 +71,7 @@ class DiffMap(ContinuousMap):
       coordinates of the image expressed in terms of the coordinates of
       the considered point) with the pairs of charts (chart1, chart2)
       as keys (chart1 being a chart on `U` and chart2 a chart on `V`).
-      If the dimension of the arrival manifold is 1, a single coordinate
+      If the dimension of codomain is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
     - ``name`` -- (default: ``None``) name given to the differentiable map
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
@@ -90,7 +89,8 @@ class DiffMap(ContinuousMap):
         If the information passed by means of the argument ``coord_functions``
         is not sufficient to fully specify the differentiable map,
         further coordinate expressions, in other charts, can be subsequently
-        added by means of the method :meth:`add_expr`
+        added by means of the method
+        :meth:`~sage.manifolds.continuous_map.ContinuousMap.add_expr`
 
     EXAMPLES:
 
@@ -128,7 +128,7 @@ class DiffMap(ContinuousMap):
         on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
-    :meth:`~sage.manifolds.manifold.DiffManifold.diff_map`
+    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_map`
     only in a single pair of charts: the argument ``coord_functions`` is then
     a mere list of coordinate expressions (and not a dictionary) and the
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
@@ -150,7 +150,8 @@ class DiffMap(ContinuousMap):
         Phi: S^2 --> R^3
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
-    The definition can be completed by means of the method :meth:`add_expr`::
+    The definition can be completed by means of the method
+    :meth:`~sage.manifolds.continuous_map.ContinuousMap.add_expr`::
 
         sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
@@ -216,7 +217,7 @@ class DiffMap(ContinuousMap):
         on U: (x, y) |--> (xP, yP) = (x, y)
         on V: (u, v) |--> (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
-    If the arrival manifold is 1-dimensional, a differentiable map must be
+    If its codomain is 1-dimensional, a differentiable map must be
     defined by a single symbolic expression for each pair of charts, and not
     by a list/tuple with a single element::
 
@@ -270,7 +271,8 @@ class DiffMap(ContinuousMap):
         sage: q.coord()
         (1/3*sqrt(3), 0)
 
-    The inverse diffeomorphism is computed by means of the method :meth:`inverse`::
+    The inverse diffeomorphism is computed by means of the method
+    :meth:`~sage.manifolds.continuous_map.ContinuousMap.inverse`::
 
         sage: Phi.inverse()
         Diffeomorphism Phi^(-1) from the 2-dimensional differentiable manifold R^2

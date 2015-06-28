@@ -2,7 +2,7 @@ r"""
 Differentiable manifolds
 
 Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
-see Ser92_ for `K = \QQ_p` and Bertram for more general fields),
+see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
 `k`-times  continuously differentiable) for a fixed positive integer `k`
@@ -14,7 +14,7 @@ Note that
 - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
   `C^\infty`-manifold (even an analytic manifold)
 - If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible `C^\infty`
-  structure (Whitney smoothing theorem)
+  structure (Whitney's smoothing theorem)
 
 Differentiable manifolds are implemented via the class :class:`DiffManifold`.
 Open subsets of differentiable manifolds are also implemented via
@@ -256,21 +256,17 @@ AUTHORS:
 
 REFERENCES:
 
-.. _Ser92:
-
-- J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed., Springer
-  (Berlin) (1992); :doi:`10.1007/978-3-540-70634-2`
-
-
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2012); :doi:`10.1007/978-1-4419-9982-5`
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005);
-  :doi:`10.1007/b137952`
-- W. Bertram : *Differential Geometry, Lie Groups and Symmetric Spaces over
-  General Base Fields and Rings*, Memoirs of the American Mathematical
-  Society, vol. 192 (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
+.. [1] J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
+   (New York) (2012); :doi:`10.1007/978-1-4419-9982-5`
+.. [2] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+   vol. 1, Interscience Publishers (New York) (1963)
+.. [3] D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005);
+   :doi:`10.1007/b137952`
+.. [4] J.-P. Serre : *Lie Algebras and Lie Groups*, 2nd ed., Springer
+   (Berlin) (1992); :doi:`10.1007/978-3-540-70634-2`
+.. [5] W. Bertram : *Differential Geometry, Lie Groups and Symmetric Spaces
+   over General Base Fields and Rings*, Memoirs of the American Mathematical
+   Society, vol. 192 (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
 """
 
@@ -298,12 +294,12 @@ class DiffManifold(TopManifold):
     r"""
     Differentiable manifold over a topological field `K`.
 
-    Given a topological field `K` (in most applications, `K = \RR` or
-    `K = \CC`), a *differentiable manifold over* `K` is a topological manifold
-    `M` over `K` equipped with an atlas whose transitions maps are of class
-    `C^k` (i.e. `k`-times  continuously differentiable) for a fixed positive
-    integer `k` (possibly `k=\infty`). `M` is then called a `C^k`-*manifold
-    over* `K`.
+    Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
+    see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
+    a *differentiable manifold over* `K` is a topological manifold `M` over `K`
+    equipped with an atlas whose transitions maps are of class `C^k` (i.e.
+    `k`-times  continuously differentiable) for a fixed positive integer `k`
+    (possibly `k=\infty`). `M` is then called a `C^k`-*manifold over* `K`.
 
     Note that
 
@@ -311,7 +307,7 @@ class DiffManifold(TopManifold):
     - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
       `C^\infty`-manifold (even an analytic manifold)
     - If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
-      `C^\infty` structure (Whitney smoothing theorem)
+      `C^\infty` structure (Whitney's smoothing theorem)
 
     INPUT:
 
@@ -325,7 +321,7 @@ class DiffManifold(TopManifold):
         - 'real' for a manifold over `\RR`
         - 'complex' for a manifold over `\CC`
         - an object in the category of fields (see
-          :class:`~sage.categories.fields.Fields`) for more general manifolds
+          :class:`~sage.categories.fields.Fields`) for other types of manifolds
 
     - ``diff_degree`` -- (default: ``infinity``) degree `k` of differentiability
     - ``start_index`` -- (default: 0) integer; lower value of the range of
@@ -369,12 +365,21 @@ class DiffManifold(TopManifold):
         sage: N = DiffManifold(3, 'N', field='complex'); N
         3-dimensional complex manifold N
 
-    A manifold over `\QQ`::
+    A differentiable manifold over `\QQ_5`, the field of 5-adic numbers::
 
-        sage: N = DiffManifold(6, 'N', field=QQ); N
-        6-dimensional differentiable manifold N over the Rational Field
+        sage: N = DiffManifold(2, 'N', field=Qp(5)); N
+        2-dimensional differentiable manifold N over the 5-adic Field with
+         capped relative precision 20
 
-    A manifold is a Sage *parent* object, in the category of sets::
+    A differentiable manifold is of course a topological manifold::
+
+        sage: isinstance(M, TopManifold)
+        True
+        sage: isinstance(N, TopManifold)
+        True
+
+    A differentiable manifold is a Sage *parent* object, in the category of
+    sets::
 
         sage: isinstance(M, Parent)
         True
@@ -466,6 +471,7 @@ class DiffManifold(TopManifold):
             sage: TestSuite(M).run()
 
         """
+        from sage.rings.integer import Integer
         if category is None:
             category = Sets()
             #*# After #18175, this should become
@@ -533,6 +539,19 @@ class DiffManifold(TopManifold):
     def diff_degree(self):
         r"""
         Return the manifold's degree of differentiability.
+
+        The degree of differentiablity is the integer `k` (possibly `k=\infty`)
+        such that the manifold is a `C^k`-manifold over its base field.
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: M.diff_degree()
+            +Infinity
+            sage: M = DiffManifold(2, 'M', diff_degree=3)
+            sage: M.diff_degree()
+            3
+
         """
         return self._diff_degree
 
@@ -637,25 +656,28 @@ class DiffManifold(TopManifold):
 
     def chart(self, coordinates='', names=None):
         r"""
-        Define a chart the domain of which is the manifold.
+        Define a chart, the domain of which is the manifold, in the
+        differentiable atlas of the manifold.
 
-        A *chart* is a pair `(U,\varphi)`, where `U` is the current manifold
-        and `\varphi: U \rightarrow V \subset K^n`
+        A *chart* is a member `(U,\varphi)` of the manifold's differentiable
+        atlas, where `U` stands for the manifold and
+        `\varphi: U \rightarrow V \subset K^n`
         is a homeomorphism from `U` to an open subset `V` of `K^n`, `K` being
-        the field on which the manifold containing the open set is defined.
+        the field on which the manifold is defined.
 
         The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-        `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates*
-        of the chart `(U,\varphi)`.
+        `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
+        are called the *coordinates* of the chart `(U,\varphi)`.
 
-        See :class:`~sage.manifolds.chart.Chart` for a complete
-        documentation.
+        See :class:`~sage.manifolds.differentiable.chart.DiffChart` for a
+        complete documentation.
 
         INPUT:
 
-        - ``coordinates`` -- single string defining the coordinate symbols and
-          ranges: the coordinates are separated by ' ' (space) and each
-          coordinate has at most three fields, separated by ':':
+        - ``coordinates`` -- (default: '' (empty string)) single string
+          defining the coordinate symbols and ranges: the coordinates are
+          separated by ' ' (space) and each coordinate has at most three
+          fields, separated by ':':
 
           1. The coordinate symbol (a letter or a few letters)
           2. (optional, only for manifolds over `\RR`) The interval `I`
@@ -667,8 +689,8 @@ class DiffManifold(TopManifold):
              (a,b] (or equivalently ]a,b]) are allowed.
              Note that the interval declaration must not contain any space
              character.
-          3. (optional) The LaTeX spelling of the coordinate; if not provided the
-             coordinate symbol given in the first field will be used.
+          3. (optional) The LaTeX spelling of the coordinate; if not provided,
+             the coordinate symbol given in the first field will be used.
 
           The order of the fields 2 and 3 does not matter and each of them can
           be omitted.
@@ -677,21 +699,23 @@ class DiffManifold(TopManifold):
           treatment of the backslash character (see examples below).
           If no interval range and no LaTeX spelling is to be provided for any
           coordinate, the argument ``coordinates`` can be omitted when the
-          shortcut operator <,> is used via Sage preparser (see examples below)
+          shortcut operator ``<,>`` is used via Sage preparser (see examples below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator <,>
-          is used).
+          the coordinate symbols (this is guaranted if the shortcut operator
+          ``<,>`` is used).
 
         OUTPUT:
 
         - the created chart, as an instance of
-          :class:`~sage.manifolds.chart.Chart` or of the subclass
-          :class:`~sage.manifolds.chart.RealChart` for manifolds over `\RR`.
+          :class:`~sage.manifolds.differentiable.chart.DiffChart` or of the
+          subclass
+          :class:`~sage.manifolds.differentiable.chart.RealDiffChart` for
+          manifolds over `\RR`.
 
         EXAMPLES:
 
-        Chart on a 2-dimensional manifold::
+        Chart on a 2-dimensional differentiable manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')
@@ -742,8 +766,9 @@ class DiffManifold(TopManifold):
         ``X = U.chart('x y')`` and ``(x,y) = X[:]``.
 
         See the documentation of class
-        :class:`~sage.manifolds.chart.Chart` for more examples,
-        especially regarding the coordinates ranges and restrictions.
+        :class:`~sage.manifolds.differentiable.chart.RealDiffChart`
+        for more examples, especially regarding the coordinates ranges and
+        restrictions.
 
         """
         from sage.manifolds.differentiable.chart import DiffChart, RealDiffChart
@@ -753,7 +778,7 @@ class DiffManifold(TopManifold):
 
     def scalar_field_algebra(self):
         r"""
-        Returns the algebra of scalar fields defined the manifold
+        Return the algebra of scalar fields defined the manifold.
 
         See
         :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`
@@ -764,7 +789,8 @@ class DiffManifold(TopManifold):
         - instance of
           :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`
           representing the algebra `C^k(U)` of all scalar fields defined
-          on `U` = ``self``.
+          on `U` = ``self``, `k` being the degree of differentiability of the
+          manifold.
 
         EXAMPLE:
 
@@ -774,11 +800,13 @@ class DiffManifold(TopManifold):
             sage: M = DiffManifold(3, 'M')
             sage: U = M.open_subset('U')
             sage: CU = U.scalar_field_algebra() ; CU
-            Algebra of differentiable scalar fields on the Open subset U of the 3-dimensional differentiable manifold M
+            Algebra of differentiable scalar fields on the Open subset U of the
+             3-dimensional differentiable manifold M
             sage: CU.category()
             Category of commutative algebras over Symbolic Ring
             sage: CU.zero()
-            Scalar field zero on the Open subset U of the 3-dimensional differentiable manifold M
+            Scalar field zero on the Open subset U of the 3-dimensional
+             differentiable manifold M
 
         """
         if self._scalar_field_algebra is None:

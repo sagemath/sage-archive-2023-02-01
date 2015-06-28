@@ -415,6 +415,45 @@ def variable(R, v):
             pass
         raise ValueError("cannot interpret given data as a variable")
 
+known_styles = {'UAlberta', 'Vanderbei'}
+_default_style = 'UAlberta'
+
+def _style_argument(style):
+    r"""
+    Provide defaulting and input sanitizing for a style argument.
+
+    EXAMPLE::
+
+        sage: sage.numerical.interactive_simplex_method._style_argument('UAlberta')
+        'UAlberta'
+        sage: sage.numerical.interactive_simplex_method._style_argument(None)
+        'UAlberta'
+        sage: sage.numerical.interactive_simplex_method._style_argument('Doesntexist')
+        Traceback (most recent call last):
+        ...
+        ValueError: Style must be one of...
+    """
+    global _default_style
+    if style is None:
+        return _default_style
+    elif style not in known_styles:
+        raise ValueError, "Style must be one of: {}".format(known_styles)
+    else:
+        return style
+
+def default_style(style=None):
+    r"""
+    Set or get the default style of :class:`InteractiveLPProblem`.
+
+    Currently supported styles are:
+    - 'UAlberta'
+    - 'Vanderbei'
+    """
+    global _default_style
+    if style is None:
+        return _default_style
+    else:
+        _default_style = _style_argument(style)
 
 class InteractiveLPProblem(SageObject):
     r"""
@@ -543,13 +582,8 @@ class InteractiveLPProblem(SageObject):
         b = vector(b)
         c = vector(c)
 
-        if style == "Vanderbei":
-            self._style = style
-        elif style == None:
-            self._style = None
-        else:
-            raise ValueError("Style must be one of None (the default) or \
-                'Vanderbei'")
+        self._style = _style_argument(style)
+
         if objective_variable == None:
             if self._style == "Vanderbei":
                 variable = "zeta"
@@ -942,11 +976,10 @@ class InteractiveLPProblem(SageObject):
             else:
                 if style == "Vanderbei":
                     dual_objective_variable = "xi"
-                elif style == None:
+                elif style == "UAlberta":
                     dual_objective_variable = self._objective_variable
                 else:
-                    raise ValueError("Style must be one of None (the default) or \
-                        'Vanderbei'")
+                    raise ValueError("unknown style")
         else:
             dual_objective_variable = objective_variable
         A = A.transpose()
@@ -1438,8 +1471,8 @@ class InteractiveLPProblem(SageObject):
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblem(A, b, c)
-            sage: P.style() is None
-            True
+            sage: P.style()
+            'UAlberta'
             sage: P = InteractiveLPProblem(A, b, c, style='Vanderbei')
             sage: P.style()
             'Vanderbei'
@@ -1574,13 +1607,12 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                                                                objective_variable=objective_variable)
         n, m = self.n(), self.m()
         if slack_variables is None:
-            if self.style() == None:
+            if self.style() == "UAlberta":
                 slack_variables = self._prefix
             elif self.style() == 'Vanderbei':
                 slack_variables = "w"
             else:
-                raise ValueError("Style must be one of None (the default) or \
-                'Vanderbei'")
+                raise ValueError("unknown style")
         if isinstance(slack_variables, str):
             if self.style() == 'Vanderbei':
                 slack_variables = ["{}{:d}".format(slack_variables, i)
@@ -1661,11 +1693,10 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             else:
                 if style == "Vanderbei":
                     aux_objective_variable = "xi"
-                elif style == None:
+                elif style == "UAlberta":
                     aux_objective_variable = "w"
                 else:
-                    raise ValueError("Style must be one of None (the default) or \
-                        'Vanderbei'")
+                    raise ValueError("unknown style")
         else:
             aux_objective_variable = objective_variable
         if len(X) == m + n:
@@ -2272,13 +2303,7 @@ class LPAbstractDictionary(SageObject):
         super(LPAbstractDictionary, self).__init__()
         self._entering = None
         self._leaving = None
-        if style == "Vanderbei":
-            self._style = style
-        elif style == None:
-            self._style = None
-        else:
-            raise ValueError("Style must be one of None (the default) or \
-                'Vanderbei'")
+        self._style = _style_argument(style)
 
     def _repr_(self):
         r"""
@@ -2803,8 +2828,8 @@ class LPAbstractDictionary(SageObject):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: D.style() is None
-            True
+            sage: D.style()
+            'UAlberta'
             sage: P = InteractiveLPProblemStandardForm(A, b, c, style='Vanderbei')
             sage: D = P.initial_dictionary()
             sage: D.style()

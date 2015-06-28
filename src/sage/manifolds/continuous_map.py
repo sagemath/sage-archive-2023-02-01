@@ -50,9 +50,6 @@ class ContinuousMap(Morphism):
     where `M` and `N` are topological manifolds over the same topological
     field `K`, `U` is an open subset of `M` and `V` is an open subset of `N`.
 
-    In what follows, `M` is called the *start manifold* and
-    `N` the *arrival manifold*.
-
     Continuous maps are the *morphisms* of the *category* of
     topological manifolds. The set of all continuous maps from
     `U` to `V` is therefore the homset between `U` and `V` and is denoted
@@ -70,7 +67,7 @@ class ContinuousMap(Morphism):
       coordinates of the image expressed in terms of the coordinates of
       the considered point) with the pairs of charts (chart1, chart2)
       as keys (chart1 being a chart on `U` and chart2 a chart on `V`).
-      If the dimension of the arrival manifold is 1, a single coordinate
+      If the dimension of the map's codomain is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
     - ``name`` -- (default: ``None``) name given to the continuous map
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
@@ -214,7 +211,7 @@ class ContinuousMap(Morphism):
         on U: (x, y) |--> (xP, yP) = (x, y)
         on V: (u, v) |--> (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
-    If the arrival manifold is 1-dimensional, a continuous map must be
+    If its codomain is 1-dimensional, a continuous map must be
     defined by a single symbolic expression for each pair of charts, and not
     by a list/tuple with a single element::
 
@@ -912,7 +909,7 @@ class ContinuousMap(Morphism):
         INPUT:
 
         - ``chart1`` -- (default: ``None``) chart on the map's domain; if ``None``,
-          the display is performed on all the charts on the start manifold
+          the display is performed on all the charts on the domain
           in which the map is known or computable via some change of
           coordinates
         - ``chart2`` -- (default: ``None``) chart on the map's codomain; if
@@ -953,7 +950,7 @@ class ContinuousMap(Morphism):
             \begin{array}{llcl} \Phi:& S^2 & \longrightarrow & \RR^3 \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto & \left(X, Y, Z\right) = \left(\frac{2 \, x}{x^{2} + y^{2} + 1}, \frac{2 \, y}{x^{2} + y^{2} + 1}, \frac{x^{2} + y^{2} - 1}{x^{2} + y^{2} + 1}\right) \end{array}
 
         If the argument ``chart2`` is not specified, the display is performed
-        on all the charts on the arrival manifold in which the map is known
+        on all the charts on the codomain in which the map is known
         or computable via some change of coordinates (here only one chart:
         c_cart)::
 
@@ -962,7 +959,7 @@ class ContinuousMap(Morphism):
             on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
         Similarly, if the argument ``chart1`` is omitted, the display is
-        performed on all the charts on the start manifold in which the
+        performed on all the charts on the map's domain in which the
         map is known or computable via some change of coordinates::
 
             sage: Phi.display(chart2=c_cart)
@@ -1191,8 +1188,8 @@ class ContinuousMap(Morphism):
                     change_arrival.append(ochart2)
                 if chart2 == ochart2:
                     change_start.append(ochart1)
-            # 1/ Trying to make a change of chart only on the arrival domain:
-            # the arrival default chart is privileged:
+            # 1/ Trying to make a change of chart only on the codomain:
+            # the codomain's default chart is privileged:
             sel_chart2 = None # selected chart2
             if def_chart2 in change_arrival \
                     and (def_chart2, chart2) in dom2._coord_changes:
@@ -1210,7 +1207,7 @@ class ContinuousMap(Morphism):
                 return self._coord_expression[(chart1, chart2)]
 
             # 2/ Trying to make a change of chart only on the start domain:
-            # the start default chart is privileged:
+            # the domain's default chart is privileged:
             sel_chart1 = None # selected chart1
             if def_chart1 in change_start \
                     and (chart1, def_chart1) in dom1._coord_changes:
@@ -1358,7 +1355,7 @@ class ContinuousMap(Morphism):
         - ``coord_functions`` -- the coordinate symbolic expression of the
           map in the above charts: list (or tuple) of the coordinates of
           the image expressed in terms of the coordinates of the considered
-          point; if the dimension of the arrival manifold is 1, a single
+          point; if the dimension of the codomain is 1, a single
           expression is expected (not a list with a single element)
 
         EXAMPLES:
@@ -1450,7 +1447,7 @@ class ContinuousMap(Morphism):
         - ``coord_functions`` -- the coordinate symbolic expression of the
           map in the above charts: list (or tuple) of the coordinates of
           the image expressed in terms of the coordinates of the considered
-          point; if the dimension of the arrival manifold is 1, a single
+          point; if the dimension of the codomain is 1, a single
           expression is expected (not a list with a single element)
 
         .. WARNING::
@@ -1726,6 +1723,36 @@ class ContinuousMap(Morphism):
             sage: rot^(-1) is rot.inverse()
             True
             sage: ~rot is rot.inverse()
+            True
+
+        An example with multiple charts: the equatorial symmetry on the
+        2-sphere::
+
+            sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
+                                                 intersection_name='W', restrictions1= x^2+y^2!=0, \
+                                                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: s = M.homeomorphism(M, {(c_xy, c_uv): [x, y], (c_uv, c_xy): [u, v]}, name='s')
+            sage: s.display()
+            s: M --> M
+            on U: (x, y) |--> (u, v) = (x, y)
+            on V: (u, v) |--> (x, y) = (u, v)
+            sage: si = s.inverse(); si
+            Homeomorphism s^(-1) of the 2-dimensional topological manifold M
+            sage: si.display()
+            s^(-1): M --> M
+            on U: (x, y) |--> (u, v) = (x, y)
+            on V: (u, v) |--> (x, y) = (u, v)
+
+        The equatorial symmetry is of course an involution::
+
+            sage: si == s
             True
 
         """

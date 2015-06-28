@@ -2394,21 +2394,20 @@ class AbstractLinearCode(module.Module):
                     size = Gp.Size()
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
-                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
+                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
                 if gap("Length(matCwt)") > 0: 
-                   A = gap("MatrixAutomorphisms(matCwt)")
-                   #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
-                   G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
-                   Gp = G2
-                   if Gp.Size()==1:
-                       return PermutationGroup([()])
-                   autgp_gens = Gp.GeneratorsOfGroup()
-                   gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
-                   stop = 1                         # get ready to stop
-                   for x in gens:                   # if one of these gens is not an auto then don't stop
-                    if not(self.is_permutation_automorphism(x)):
-                        stop = 0
-                        break
+                    A = gap("MatrixAutomorphisms(matCwt)")
+                    G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+                    Gp = G2
+                    if Gp.Size()==1:
+                        return PermutationGroup([()])
+                    autgp_gens = Gp.GeneratorsOfGroup()
+                    gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+                    stop = 1                    # get ready to stop
+                    for x in gens:              # if one of these gens is not an auto then don't stop
+                        if not(self.is_permutation_automorphism(x)):
+                            stop = 0
+                            break
             G = PermutationGroup(gens)
             return G
         if algorithm=="partition":

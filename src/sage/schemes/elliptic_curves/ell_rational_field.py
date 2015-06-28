@@ -3071,10 +3071,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        - ``A`` -- an ideal class in an imaginary quadratic number field
+        - ``A`` -- an ideal class in an imaginary quadratic number field `K`
 
-        For the exact definition, in the more general setting of modular forms
-        instead of elliptic curves, see section IV of [GrossZagier]_.
+        This L-series `L(E,A,s)` is defined as the product of a shifted L-function of the
+        quadratic character associated to `K` and the Dirichlet series whose `n`-th
+        coefficient is the product of the `n`-th factor of the L-series of `E` and
+        the number of integral ideal in `A` of norm `n`. For any character `\chi`
+        on the class group of `K`, one gets `L_K(E,\chi,s) = \sum_{A} \chi(A) L(E,A,s)`
+        where `A` runs through the class group of `K`.
+
+        For the exact definition see section IV of [GrossZagier]_.
 
         EXAMPLES::
 

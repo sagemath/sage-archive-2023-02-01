@@ -6,6 +6,7 @@
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
 SAGE_SPKG = sage-spkg -f
 PIPE = $(SAGE_ROOT)/build/pipestatus
+STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build start \
@@ -18,7 +19,8 @@ PIPE = $(SAGE_ROOT)/build/pipestatus
 # the doc build takes the most time and should be started as soon as
 # possible.
 all: all-toolchain
-	$(MAKE) doc all-sage start
+	$(MAKE) doc all-sage
+	$(MAKE) start
 
 # Build everything except the documentation
 all-build: all-toolchain
@@ -68,9 +70,10 @@ SAGERUNTIME = sagelib $(SCRIPTS) $(INST)/$(IPYTHON) $(INST)/$(PEXPECT)
 
 # Start Sage at least once to check that it works
 # (i.e. when we just installed Sage for the first time).
-start: $(SAGE_LOCAL)/etc/sage-started.txt
+start: all-build
+	$(MAKE) $(STARTED)
 
-$(SAGE_LOCAL)/etc/sage-started.txt: $(STANDARD_PACKAGES) | all-sage
+$(STARTED): $(STANDARD_PACKES)
 	"$(SAGE_LOCAL)/bin/sage-starts"
 
 

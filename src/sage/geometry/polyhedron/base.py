@@ -3828,35 +3828,66 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.cube().integral_points_count() # optional - latte_int
+            sage: P = polytopes.cube()
+            sage: P.integral_points_count() # optional - latte_int
             27
+            sage: P.integral_points_count(verbose=True) # optional - latte_int
+            This is LattE integrale...
+            ...
+            Total time:...
+            27
+
+        We shrink the polyhedron a little bit::
+
+            sage: Q = P*(8/9)
+            sage: Q.integral_points_count() # optional - latte_int
+            1
+
+        This no longer works if the coordinates are not rationals::
+
+            sage: Q = P*RDF(8/9)
+            sage: Q.integral_points_count() # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Latte integrale failed (exit code 1) to execute...
+            ...Parse error in CDD-style input file /dev/stdin
+            sage: Q.integral_points_count(verbose=True) # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Latte integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
         """
         if self.is_empty():
             return 0
 
-        from sage.misc.temporary_file import tmp_filename
-        from sage.misc.misc import SAGE_TMP
         from subprocess import Popen, PIPE
+        from sage.misc.misc import SAGE_TMP
         from sage.rings.integer import Integer
 
-        in_filename = tmp_filename() + '.ine'
-        self.cdd_Hrepresentation(file_output=in_filename)
+        ine = self.cdd_Hrepresentation()
+        args = ['count', '--cdd', '/dev/stdin']
 
         try:
-            latte_proc = Popen(['count','--cdd',in_filename],
+            # The cwd argument is needed because latte
+            # always produces diagnostic output files.
+            latte_proc = Popen(args,
                                stdin=PIPE, stdout=PIPE,
-                               stderr=(None if verbose else PIPE), cwd=str(SAGE_TMP))
+                               stderr=(None if verbose else PIPE),
+                               cwd=str(SAGE_TMP))
         except OSError:
-            raise ValueError("The package latte_int must be installed (type "
-                    "'sage -i latte_int') in a console or "
-                    "'install_package('latte_int') at a Sage prompt)!\n")
+            raise ValueError("The package latte_int must be installed "
+                    "(type 'sage -i latte_int' in a console or "
+                    "'install_package('latte_int')' at a Sage prompt)!\n")
 
-        ans, err = latte_proc.communicate()
+        ans, err = latte_proc.communicate(ine)
         ret_code = latte_proc.poll()
         if ret_code:
-            raise RuntimeError("Latte returned {} when running:\n{}\n{}".format(ret_code, ' '.join(args)),err)
+            if err is None:
+                err = ", see error message above"
+            else:
+                err = ":\n" + err
+            raise RuntimeError("Latte integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
-        return Integer(ans.strip())
+        return Integer(ans.splitlines()[-1])
 
     def integral_points(self, threshold=100000):
         r"""

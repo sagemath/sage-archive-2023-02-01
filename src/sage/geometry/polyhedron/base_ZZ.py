@@ -272,11 +272,8 @@ class Polyhedron_ZZ(Polyhedron_base):
         from sage.misc.misc import SAGE_TMP
         from subprocess import Popen, PIPE
 
-        in_str = self.cdd_Hrepresentation()
         in_filename = tmp_filename() + '.ine'
-        in_file = open(in_filename, 'w')
-        in_file.write(self.cdd_Hrepresentation())
-        in_file.close()
+        self.cdd_Hrepresentation(file_output=in_filename)
 
         args = ['count', '--ehrhart-polynomial']
         if 'redundancy_check' not in kwds:

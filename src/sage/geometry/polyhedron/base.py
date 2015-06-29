@@ -795,15 +795,16 @@ class Polyhedron_base(Element):
             return tp.OutputLatex(r'\text{{{0}}}'.format(text))
         return tp.OutputPlainText(text)
 
-    def cdd_Hrepresentation(self):
-        """
+    def cdd_Hrepresentation(self, file_output=None):
+        r"""
         Write the inequalities/equations data of the polyhedron in
         cdd's H-representation format.
 
-        OUTPUT:
+        INPUT:
 
-        A string. If you save the output to filename.ine then you can
-        run the stand-alone cdd via ``cddr+ filename.ine``
+        - ``file_output`` (string; optional) -- a filename to which the
+          representation should be written. If set to ``None`` (default),
+          representation is returned as a string.
 
         EXAMPLES::
 
@@ -830,17 +831,19 @@ class Polyhedron_base(Element):
                 raise TypeError('The base ring must be ZZ, QQ, or RDF')
         return cdd_Hrepresentation(cdd_type,
                                    list(self.inequality_generator()),
-                                   list(self.equation_generator()) )
+                                   list(self.equation_generator()),
+                                   file_output = file_output)
 
-    def cdd_Vrepresentation(self):
-        """
+    def cdd_Vrepresentation(self, file_output=None):
+        r"""
         Write the vertices/rays/lines data of the polyhedron in cdd's
         V-representation format.
 
-        OUTPUT:
+        INPUT:
 
-        A string. If you save the output to filename.ext then you can
-        run the stand-alone cdd via ``cddr+ filename.ext``
+        - ``file_output`` (string; optional) -- a filename to which the
+          representation should be written. If set to ``None`` (default),
+          representation is returned as a string.
 
         EXAMPLES::
 
@@ -868,7 +871,8 @@ class Polyhedron_base(Element):
         return cdd_Vrepresentation(cdd_type,
                                    list(self.vertex_generator()),
                                    list(self.ray_generator()),
-                                   list(self.line_generator()) )
+                                   list(self.line_generator()),
+                                   file_output = file_output)
 
     @cached_method
     def n_equations(self):

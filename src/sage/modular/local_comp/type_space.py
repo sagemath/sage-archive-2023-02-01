@@ -367,9 +367,8 @@ class TypeSpace(SageObject):
 
         Test that :trac:`13158` is fixed::
 
-            sage: from sage.modular.local_comp.type_space import TypeSpace
-            sage: f=Newforms(256,names='a')[0]
-            sage: T=TypeSpace(f,2)
+            sage: f = Newforms(256,names='a')[0]
+            sage: T = TypeSpace(f,2)
             sage: g = T.minimal_twist(); g
             q - a*q^3 + O(q^6)
             sage: g.level()

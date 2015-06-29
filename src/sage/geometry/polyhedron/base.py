@@ -795,16 +795,15 @@ class Polyhedron_base(Element):
             return tp.OutputLatex(r'\text{{{0}}}'.format(text))
         return tp.OutputPlainText(text)
 
-    def cdd_Hrepresentation(self, file_output=None):
+    def cdd_Hrepresentation(self):
         r"""
         Write the inequalities/equations data of the polyhedron in
         cdd's H-representation format.
 
-        INPUT:
+        .. SEEALSO::
 
-        - ``file_output`` (string; optional) -- a filename to which the
-          representation should be written. If set to ``None`` (default),
-          representation is returned as a string.
+            :meth:`write_cdd_Hrepresentation` -- export the polyhedron as a
+            H-repersentation to a file.
 
         EXAMPLES::
 
@@ -831,19 +830,39 @@ class Polyhedron_base(Element):
                 raise TypeError('The base ring must be ZZ, QQ, or RDF')
         return cdd_Hrepresentation(cdd_type,
                                    list(self.inequality_generator()),
-                                   list(self.equation_generator()),
-                                   file_output = file_output)
+                                   list(self.equation_generator()))
 
-    def cdd_Vrepresentation(self, file_output=None):
+    def write_cdd_Hrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a H-repersentation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Hrepresentation` -- return the H-representation of the
+            polyhedron as a string.
+
+        EXAMPLE::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename() + '.ext'
+            sage: polytopes.cube().write_cdd_Hrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Hrepresentation())
+
+    def cdd_Vrepresentation(self):
         r"""
         Write the vertices/rays/lines data of the polyhedron in cdd's
         V-representation format.
 
-        INPUT:
+        .. SEEALSO::
 
-        - ``file_output`` (string; optional) -- a filename to which the
-          representation should be written. If set to ``None`` (default),
-          representation is returned as a string.
+            :meth:`write_cdd_Vrepresentation` -- export the polyhedron as a
+            V-repersentation to a file.
 
         EXAMPLES::
 
@@ -871,8 +890,29 @@ class Polyhedron_base(Element):
         return cdd_Vrepresentation(cdd_type,
                                    list(self.vertex_generator()),
                                    list(self.ray_generator()),
-                                   list(self.line_generator()),
-                                   file_output = file_output)
+                                   list(self.line_generator()))
+
+    def write_cdd_Vrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a V-repersentation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Vrepresentation` -- return the V-representation of the
+            polyhedron as a string.
+
+        EXAMPLE::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename() + '.ext'
+            sage: polytopes.cube().write_cdd_Vrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Vrepresentation())
 
     @cached_method
     def n_equations(self):

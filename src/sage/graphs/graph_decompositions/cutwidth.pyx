@@ -38,11 +38,59 @@ vertices.
 Exponential algorithm for cutwidth
 ----------------------------------
 
-This algorithm differs from
-:meth:`sage.graphs.graph_decompositions.vertex_separation.vertex_separation_exp`
-only in the cost function. See the :mod:`vertex separation module's
-documentation <sage.graphs.graph_decompositions.vertex_separation>` for more
-details on this algorithm.
+In order to find an optimal ordering of the vertices for the vertex separation,
+this algorithm tries to save time by computing the function `c'(S)` **at most
+once** once for each of the sets `S\subseteq V(G)`. These values are stored in
+an array of size `2^n` where reading the value of `c'(S)` or updating it can be
+done in constant time.
+
+Assuming that we can compute the cost of a set `S` and remember it, finding an
+optimal ordering is an easy task. Indeed, we can think of the sequence `v_1,
+..., v_n` of vertices as a sequence of *sets* `\{v_1\}, \{v_1,v_2\}, ...,
+\{v_1,...,v_n\}`, whose cost is precisely `\max c'(\{v_1\}), c'(\{v_1,v_2\}),
+... , c'(\{v_1,...,v_n\})`. Hence, when considering the digraph on the `2^n`
+sets `S\subseteq V(G)` where there is an arc from `S` to `S'` if `S'=S\cap
+\{v\}` for some `v` (that is, if the sets `S` and `S'` can be consecutive in a
+sequence), an ordering of the vertices of `G` corresponds to a *path* from
+`\emptyset` to `\{v_1,...,v_n\}`. In this setting, checking whether there exists
+a ordering of cost less than `k` can be achieved by checking whether there
+exists a directed path `\emptyset` to `\{v_1,...,v_n\}` using only sets of cost
+less than `k`. This is just a depth-first-search, for each `k`.
+
+**Lazy evaluation of** `c'`
+
+In the previous algorithm, most of the time is actually spent on the computation
+of `c'(S)` for each set `S\subseteq V(G)` -- i.e. `2^n` computations of
+neighborhoods. This can be seen as a huge waste of time when noticing that it is
+useless to know that the value `c'(S)` for a set `S` is less than `k` if all the
+paths leading to `S` have a cost greater than `k`. For this reason, the value of
+`c'(S)` is computed lazily during the depth-first search. Explanation :
+
+When the depth-first search discovers a set of size less than `k`, the costs of
+its out-neighbors (the potential sets that could follow it in the optimal
+ordering) are evaluated. When an out-neighbor is found that has a cost smaller
+than `k`, the depth-first search continues with this set, which is explored with
+the hope that it could lead to a path toward `\{v_1,...,v_n\}`. On the other
+hand, if an out-neighbour has a cost larger than `k` it is useless to attempt to
+build a cheap sequence going though this set, and the exploration stops
+there. This way, a large number of sets will never be evaluated and *a lot* of
+computational time is saved this way.
+
+Besides, some improvement is also made by "improving" the values found by
+`c'`. Indeed, `c'(S)` is a lower bound on the cost of a sequence containing the
+set `S`, but if all out-neighbors of `S` have a cost of `c'(S) + 5` then one
+knows that having `S` in a sequence means a total cost of at least `c'(S) +
+5`. For this reason, for each set `S` we store the value of `c'(S)`, and replace
+it by `\max (c'(S), \min_{\text{next}})` (where `\min_{\text{next}}` is the
+minimum of the costs of the out-neighbors of `S`) once the costs of these
+out-neighbors have been evaluated by the algorithm.
+
+This algorithm and its implementation are very similar to
+:meth:`sage.graphs.graph_decompositions.vertex_separation.vertex_separation_exp`.
+The main difference is in the computation of `c'(S)`. See the :mod:`vertex
+separation module's documentation
+<sage.graphs.graph_decompositions.vertex_separation>` for more details on this
+algorithm.
 
 .. NOTE::
 
@@ -138,14 +186,21 @@ def width_of_cut_decomposition(G, L):
 
     position = {u:i for i,u in enumerate(L)}
 
+    # We count for each position `i` the number of edges going from vertices at
+    # positions in `0..i` to vertices at positions in `i+1..n-1`, for each
+    # `x\leq i<n-1`.
     cpt = [0]*len(L)
     for u,v in G.edge_iterator(labels=None):
         x,y = position[u],position[v]
         if x>y:
             x,y = y,x
+        # Edge (u,v) contributes 1 to the number of edges going from vertices at
+        # positions `0..i` to vertices at positions `i+1..n-1` for each `x\leq
+        # i<n-1`.
         for i in range(x,y):
             cpt[i] += 1
 
+    # The width of L is the maximum computed value.
     return max(cpt)
 
 
@@ -361,37 +416,61 @@ def cutwidth_dyn(G, lower_bound=0):
     order = find_order(g, neighborhoods, k)
     return k, [g.int_to_vertices[i] for i in order]
 
-cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S, int v, int cost):
+cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S, int v, int k):
     """
-    Check whether an ordering with the given cost exists, and updates data in
-    the neighborhoods array at the same time. See the module's documentation.
+    Check whether an ordering with the given cost `k` exists, and updates data
+    in the neighborhoods array at the same time. See the module's documentation.
+
+    INPUT:
+
+    - ``g`` -- a FastDiGraph
+
+    - ``neighborhoods`` -- an array of size `2^(g.n)` storing for each subset
+      `X\subseteq V` of vertices of the graph the number of edges from `X` to
+      `V\setminus X`.
+
+    - ``S`` -- an integer encoding the predecessor subset of vertices (from
+      which is issued the current call).
+
+    - ``cost_S`` -- the number of edges from `S` to `V\setminus S`.
+
+    - ``v`` -- a vertex such that the current subset of vertices is
+      `current==S\cup\{v\}`.
+
+    - ``k`` -- the maximum admissible cost for a solution.
     """
     cdef int current = S | 1<<v
     # If this is true, it means the set has not been evaluated yet
     if neighborhoods[current] == <uint8_t>-1:
+        # The number of edges from `current` to `V\setminus current` is the
+        # number of edges from `S` to `V\setminus S`, minus the number of edges
+        # from `S` to vertex `v`, plus the number of edges from `v` to
+        # `V\setminus (S\cup \{v\})`. This can be computed adding the degree of
+        # `c` to `cost_S`, and then removing twice the number of edges from `S`
+        # to `v`.
         neighborhoods[current] = cost_S + g.degree[v] - 2*popcount32(S&g.graph[v])
 
     # If the cost of this set is too high, there is no point in going further.
     # Same thing if the current set is the whole vertex set.
-    if neighborhoods[current] > cost or (current == (1<<g.n)-1):
+    if neighborhoods[current] > k or (current == (1<<g.n)-1):
         return neighborhoods[current]
 
-    # Minimum of the costs of the outneighbors
+    # Minimum of the costs of the outneighbors, initialized with large constant.
     cdef int mini = (<uint8_t> -1)
 
     cdef int i
     cdef int next_set
 
+    # For each possible extension of the current set witha vertex, check whether
+    # there exists a cheap path toward {1..n}, and update the cost.
     for i in range(g.n):
         if (current >> i)&1: # if i in S
             continue
 
-        # Check whether there exists a cheap path toward {1..n}, and update the
-        # cost.
-        mini = min(mini, exists(g, neighborhoods, current, neighborhoods[current], i, cost))
+        mini = min(mini, exists(g, neighborhoods, current, neighborhoods[current], i, k))
 
         # We have found a path !
-        if mini <= cost:
+        if mini <= k:
             return mini
 
     # Updating the cost of the current set with the minimum of the cost of its

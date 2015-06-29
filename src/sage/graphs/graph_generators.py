@@ -156,7 +156,7 @@ __append_to_doc(
      "WienerArayaGraph"])
 
 __doc__ += """
-*Platonic solids* (ordered ascending by number of vertices)
+**Platonic solids** (ordered ascending by number of vertices)
 """
 
 __append_to_doc(
@@ -216,7 +216,7 @@ __append_to_doc(
      "WheelGraph"])
 
 __doc__ += """
-*Chessboard Graphs*
+**Chessboard Graphs**
 """
 
 __append_to_doc(
@@ -259,7 +259,8 @@ __append_to_doc(
      "RandomShell",
      "RandomToleranceGraph",
      "RandomTree",
-     "RandomTreePowerlaw"])
+     "RandomTreePowerlaw",
+     "RandomTriangulation"])
 
 __doc__ += """
 **Graphs with a given degree sequence**

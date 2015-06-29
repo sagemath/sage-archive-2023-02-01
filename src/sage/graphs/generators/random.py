@@ -792,15 +792,18 @@ def RandomTriangulation(n, embed=False):
         sage: g = graphs.RandomTriangulation(10)
         sage: g.is_planar()
         True
-        sage: g.num_edges() == 3*10 - 6
+        sage: g.num_edges() == 3*g.order() - 6
         True
+
+    TESTS::
+
+        sage: for i in range(10):
+        ....:     g = graphs.RandomTriangulation(30,embed=True)
+        ....:     assert g.is_planar() and g.size() == 3*g.order()-6
     """
     from sage.misc.prandom import normalvariate
     from sage.geometry.polyhedron.constructor import Polyhedron
     from sage.rings.real_double import RDF
-
-    from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
-    from sage.modules.free_module_element import vector
 
     # this function creates a random unit vector in R^3
     def rand_unit_vec():
@@ -811,16 +814,18 @@ def RandomTriangulation(n, embed=False):
     # generate n unit vectors at random
     points = [rand_unit_vec() for k in range(n)]
 
-    if embed:
-        proj = ProjectionFuncStereographic([0, 0, 1])
-        ppoints = [proj(vector(x)) for x in points]
-
     # find their convex hull
     P = Polyhedron(vertices=points, base_ring=RDF)
 
     # extract the 1-skeleton
     g = P.vertex_graph()
     g.rename('Planar triangulation on {} vertices'.format(n))
+
     if embed:
+        from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
+        from sage.modules.free_module_element import vector
+        proj = ProjectionFuncStereographic([0, 0, 1])
+        ppoints = [proj(vector(x)) for x in points]
         g.set_pos({i: ppoints[i] for i in range(len(points))})
+
     return g

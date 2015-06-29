@@ -912,6 +912,9 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.<x,y,z> = PolynomialRing(ZZ, 3) 
             sage: R.monomial(1,1,1) 
             x*y*z
+            sage: e=[1,2,3]
+            sage: R.monomial(*e)
+            x*y^2*z^3 
         """
         return self({exponents:self.one()})
 

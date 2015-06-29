@@ -73,19 +73,10 @@ include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, popcount32
+from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering
 from libc.stdint cimport uint8_t
 from sage.ext.memory cimport check_allocarray
 from sage.rings.integer_ring import ZZ
-
-
-################################################################################
-# Function for testing the validity of a linear vertex ordering
-#
-# A linear ordering `L` of the vertices of a graph `G` is valid if all vertices
-# of `G` are in `L`, and if `L` contains no other vertex and no duplicated
-# vertices.
-################################################################################
-from sage.graphs.graph_decompositions.vertex_separation import is_valid_ordering
 
 
 ################################################################################
@@ -158,13 +149,11 @@ def width_of_cut_decomposition(G, L):
     return max(cpt)
 
 
-
-
 ################################################################################
 # Front end method for cutwidth
 ################################################################################
 
-def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
+def cutwidth(G, algorithm="exponential", cut_off=0):
     r"""
     Return the cutwidth of the graph and the corresponding vertex ordering.
 
@@ -182,9 +171,6 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
     - ``cut_off`` -- (default: 0) This parameter is used to stop the search as
       soon as a solution with width at most ``cut_off`` is found, if any. If
       this bound cannot be reached, the best solution found is returned.
-
-    - ``verbose`` (boolean) -- whether to display information on the
-      computations.
 
     OUTPUT:
 
@@ -243,24 +229,18 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
     """
     from sage.graphs.graph import Graph
 
-    CC = []
-    if isinstance(G, Graph):
-        if not G.is_connected():
-            # We decompose the graph into connected components.
-            CC = G.connected_components()
-
-    else:
+    if not isinstance(G, Graph):
         raise ValueError('The parameter must be a Graph.')
 
     if not cut_off in ZZ:
         raise ValueError("The specified cut off parameter must be an integer.")
 
-    if CC:
+    if not G.is_connected():
         # The graph has several connected components. We solve the problem on
-        # each of them and order partial solutions in the same order than in
-        # list CC. The cutwidth is the maximum over all these subgraphs.
+        # each of them and concatenate the partial orderings. The cutwidth is
+        # the maximum over all these subgraphs.
         cw, L = 0, []
-        for V in CC:
+        for V in G.connected_components():
 
             if len(V)==1:
                 # We can directly add this vertex to the solution
@@ -271,8 +251,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
                 # its cutwidth and corresponding ordering
                 H = G.subgraph(V)
                 cwH,LH = cutwidth(H, algorithm = algorithm,
-                                  cut_off      = cut_off,
-                                  verbose      = verbose)
+                                  cut_off      = max(cut_off,cw))
 
                 # We update the cutwidth and ordering
                 cw = max(cw, cwH)
@@ -280,14 +259,12 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 
         return cw, L
 
-
-    # We have a (strongly) connected graph and we call the desired algorithm
+    # We have a connected graph and we call the desired algorithm
     if algorithm == "exponential":
-        return cutwidth_dyn(G)
+        return cutwidth_dyn(G, lower_bound=cut_off)
 
     else:
         raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
-
 
 
 ################################################################################
@@ -296,7 +273,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 from sage.graphs.graph_decompositions.vertex_separation cimport find_order
 
 def cutwidth_dyn(G, lower_bound=0):
-    """
+    r"""
     Dynamic programming algorithm for the cutwidth of a Graph.
 
     This function uses dynamic programming algorithm for determining an optimal
@@ -308,14 +285,15 @@ def cutwidth_dyn(G, lower_bound=0):
 
     - ``G`` -- a Graph
 
-    - ``lower_bound`` -- (default: 0) the algorithm returns a solution with cost
-      larger or equal to that bound.
+    - ``lower_bound`` -- (default: 0) the algorithm returns immediately if it
+      finds a solution lower or equal to ``lower_bound`` (in which case it may
+      not be optimal).
 
     OUTPUT:
 
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
-    
+
     .. NOTE::
 
         Because of its current implementation, this algorithm only works on
@@ -347,6 +325,7 @@ def cutwidth_dyn(G, lower_bound=0):
         Traceback (most recent call last):
         ...
         ValueError: The specified lower bound must be an integer.
+
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
@@ -362,41 +341,35 @@ def cutwidth_dyn(G, lower_bound=0):
 
     cdef unsigned int mem = 1 << g.n
     cdef uint8_t * neighborhoods = <uint8_t *> check_allocarray(mem, sizeof(uint8_t))
-    
+
     memset(neighborhoods, <uint8_t> -1, mem)
 
     cdef int i, k
 
-    sig_on()
-    i,k = 0,lower_bound
-    while k<=G.size():
-        if exists(g, neighborhoods, 0, 0, i, k) <= k:
-            break
-        i += 1
-        if i==g.n:
-            i,k = 0,k+1
-    sig_off()
+    try:
+        sig_on()
+        for k in range(lower_bound, G.size()):
+            for i in range(g.n):
+                if exists(g, neighborhoods, 0, 0, i, k) <= k:
+                    sig_off()
+                    order = find_order(g, neighborhoods, k)
+                    return k, [g.int_to_vertices[i] for i in order]
+        sig_off()
+    finally:
+        sage_free(neighborhoods)
 
-    cdef list order = find_order(g, neighborhoods, k)
+    order = find_order(g, neighborhoods, k)
+    return k, [g.int_to_vertices[i] for i in order]
 
-    sage_free(neighborhoods)
-
-    return k, list( g.int_to_vertices[i] for i in order )
-
-
-cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int count_S, int v, int cost):
+cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int cost_S, int v, int cost):
     """
     Check whether an ordering with the given cost exists, and updates data in
     the neighborhoods array at the same time. See the module's documentation.
-
-    This method differs from method
-    `sage.graphs.graph_decompositions.vertex_separation.exists` by a single
-    line. We can certainly combine codes.
     """
     cdef int current = S | 1<<v
     # If this is true, it means the set has not been evaluated yet
     if neighborhoods[current] == <uint8_t>-1:
-        neighborhoods[current] = count_S + g.degree[v] - (popcount32(S&g.graph[v])<<1)
+        neighborhoods[current] = cost_S + g.degree[v] - 2*popcount32(S&g.graph[v])
 
     # If the cost of this set is too high, there is no point in going further.
     # Same thing if the current set is the whole vertex set.
@@ -404,16 +377,16 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int count_
         return neighborhoods[current]
 
     # Minimum of the costs of the outneighbors
-    cdef int mini = (1<<g.n)-1
+    cdef int mini = (<uint8_t> -1)
 
     cdef int i
     cdef int next_set
 
     for i in range(g.n):
-        if (current >> i)&1:
+        if (current >> i)&1: # if i in S
             continue
 
-        # Check whether there exists a cheap path toward {1..n}, and updated the
+        # Check whether there exists a cheap path toward {1..n}, and update the
         # cost.
         mini = min(mini, exists(g, neighborhoods, current, neighborhoods[current], i, cost))
 
@@ -426,4 +399,3 @@ cdef inline int exists(FastDigraph g, uint8_t * neighborhoods, int S, int count_
     neighborhoods[current] = mini
 
     return neighborhoods[current]
-

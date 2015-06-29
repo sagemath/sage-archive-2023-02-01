@@ -3821,6 +3821,11 @@ class Polyhedron_base(Element):
 
         This method uses the optional package ``latte_int``.
 
+        INPUT:
+
+        - ``verbose`` (boolean; ``False`` by default) -- whether to display
+          verbose output.
+
         EXAMPLES::
 
             sage: polytopes.cube().integral_points_count() # optional - latte_int

@@ -315,9 +315,7 @@ class Polyhedron_ZZ(Polyhedron_base):
         ans, err = latte_proc.communicate()
         ret_code = latte_proc.poll()
         if ret_code:
-            if not verbose:
-                print err
-            raise RuntimeError("Latte returned {} when running:\n{}\n(see output above)".format(ret_code, ' '.join(args)))
+            raise RuntimeError("Latte returned {} when running:\n{}\n{}".format(ret_code, ' '.join(args)),err)
 
         p = ans.splitlines()[-2]
 

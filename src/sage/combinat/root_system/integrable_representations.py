@@ -867,7 +867,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             sage: [V.modular_characteristic(x) for x in V.dominant_maximal_weights()]
             [11/56, -1/280, 111/280]
         """
-        if isinstance(mu, tuple):
+        if type(mu) is tuple:
             n = mu
         else:
             n = self.from_weight(mu)
@@ -1037,7 +1037,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                 mc = P(self.to_weight(x[0])).monomial_coefficients()
                 contr = sum(fw[sequence[j]]*mc.get(j,0)
                             for j in self._index_set if j != i).coerce_to_sl()
-                if contr in ldict:
+                if ldict.has_key(contr):
                     ldict[contr] += x[1]
                 else:
                     ldict[contr] = x[1]

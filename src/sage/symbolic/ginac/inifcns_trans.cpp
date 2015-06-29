@@ -228,7 +228,7 @@ static ex log_eval(const ex & x)
 		if (x.is_zero())         // log(0) -> infinity
 			//throw(pole_error("log_eval(): log(0)",0));
 			return NegInfinity;
-		if (x.info(info_flags::rational) && x.info(info_flags::negative))
+		if (not x.info(info_flags::inexact) and x.info(info_flags::negative))
 			return (log(-x)+I*Pi);
 		if (x.is_equal(_ex1))  // log(1) -> 0
 			return _ex0;

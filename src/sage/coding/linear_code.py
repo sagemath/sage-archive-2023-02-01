@@ -3388,3 +3388,232 @@ class LinearCode(AbstractLinearCode):
         return self._generator_matrix
 
     gen_mat = deprecated_function_alias(17973, generator_matrix)
+
+
+
+
+
+
+
+
+
+
+####################### decoders ###############################
+from decoder import Decoder, DecodingFailure
+class LinearCodeSyndromeDecoder(Decoder):
+    r"""
+    Construct a decoder for Linear Codes. This decoder will use a syndrome
+    based decoding algorithm.
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D
+            Syndrome decoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(), "GeneratorMatrix",\
+                {"hard-decision", "unique", "always-succeed", "complete"})
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D
+            Syndrome decoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Syndrome decoder for the %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: latex(D)
+            \textnormal{Syndrome decoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Syndrome decoder for the }%s" % self.code()._latex_()
+
+    def syndrome(self, r):
+        r"""
+        The vector r is a received word, so should be in the same ambient
+        space V as ``self.code()``.
+        Returns the all elements in V having the same syndrome (ie, the coset r+C, sorted by weight).
+
+        INPUT:
+
+        - ``r`` -- a vector of the ambient space of ``self.code()``
+
+        OUTPUT:
+
+        - a list of vectors
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(2,GF(3))
+            sage: V = VectorSpace(GF(3), 4)
+            sage: r = V([0, 2, 0, 1])
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.syndrome(r)
+             [(0, 0, 1, 0), (0, 2, 0, 1), (2, 0, 0, 2), (1, 1, 0, 0), (2, 2, 2, 0), (1, 0, 2, 1), (0, 1, 2, 2), (1, 2, 1, 2), (2, 1, 1, 1)]
+
+        """
+        C = self.code()
+        V = C.ambient_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        coset = [[c + r, (c + r).hamming_weight()] for c in C]
+        return [x[0] for x in sorted(coset, key=lambda x: x[1])]
+
+    def decode_to_code(self, r):
+        r"""
+        Decode the received word ``r`` to an element in associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a vector of same length as the length of the associated
+           code of ``self`` and over the base field of the associated code of ``self``
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+            sage: D.decode_to_code(word)
+            (1, 1, 0, 0, 1, 1, 0)
+        """
+        V = self.input_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        c =  -V(self.syndrome(r)[0]) + r
+        c.set_immutable()
+        return c
+
+    def decoding_radius(self):
+        r"""
+        Return maximal number of errors ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.decoding_radius()
+            1
+        """
+
+        return (self.code().minimum_distance()-1) // 2
+
+
+
+
+
+
+
+
+
+
+class LinearCodeNearestNeighborDecoder(Decoder):
+    r"""
+    Construct a decoder for Linear Codes. This decoder will decode to the
+    nearest codeword found.
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), "GeneratorMatrix",\
+                {"hard-decision", "unique", "always-succeed", "complete"})
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Nearest neighbor decoder for the %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: latex(D)
+            \textnormal{Nearest neighbor decoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Nearest neighbor decoder for the }%s" % self.code()._latex_()
+
+    def decode_to_code(self, r):
+        r"""
+        Decode the received word ``r`` to the nearest element in associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a vector of same length as the length of the associated
+          code of ``self`` and over the base field of the associated code of ``self``
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+            sage: D.decode_to_code(word)
+            (1, 1, 0, 0, 1, 1, 0)
+        """
+        V = self.input_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
+        diffs.sort(key=lambda x: x[1])
+        c = diffs[0][0] + r
+        c.set_immutable()
+        return c

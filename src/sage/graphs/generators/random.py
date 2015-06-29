@@ -17,6 +17,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
+from sage.rings.rational_field import QQ
 
 def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     r"""

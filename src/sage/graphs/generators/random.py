@@ -768,7 +768,7 @@ def RandomToleranceGraph(n):
     return ToleranceGraph(tolrep)
 
 
-def RandomTriangulation(n, embed=False):
+def RandomTriangulation(n, embed=False, base_ring=QQ):
     """
     Returns a random triangulation on n vertices.
 
@@ -784,8 +784,13 @@ def RandomTriangulation(n, embed=False):
 
     - ``n`` -- number of vertices (recommend `n \ge 3`)
 
-    - ``embed`` -- (optional, default ``False``) wether to use the
+    - ``embed`` -- (optional, default ``False``) whether to use the
       stereographic point projections to draw the graph.
+
+    - ``base_ring`` -- (optional, default ``QQ``) specifies the field over
+      which to do the intermediate computations. The default setting is slower,
+      but works for any input; one can instead use ``RDF``, but this occasionally
+      fails due to loss of precision, as mentioned on :trac:10276.
 
     EXAMPLES::
 
@@ -815,7 +820,7 @@ def RandomTriangulation(n, embed=False):
     points = [rand_unit_vec() for k in range(n)]
 
     # find their convex hull
-    P = Polyhedron(vertices=points, base_ring=RDF)
+    P = Polyhedron(vertices=points, base_ring=base_ring)
 
     # extract the 1-skeleton
     g = P.vertex_graph()

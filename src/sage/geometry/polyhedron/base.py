@@ -3815,6 +3815,46 @@ class Polyhedron_base(Element):
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
 
+    def integral_points_count(self,verbose=False):
+        r"""
+        Return the number of integral points in the polyhedron.
+
+        This method uses the optional package ``latte_int``.
+
+        EXAMPLES::
+
+            sage: polytopes.cube().integral_points_count() # optional - latte_int
+            27
+        """
+        if self.is_empty():
+            return 0
+
+        from sage.misc.temporary_file import tmp_filename
+        from sage.misc.misc import SAGE_TMP
+        from subprocess import Popen, PIPE
+        from sage.rings.integer import Integer
+
+        in_filename = tmp_filename() + '.ine'
+        self.cdd_Hrepresentation(file_output=in_filename)
+
+        try:
+            latte_proc = Popen(['count','--cdd',in_filename],
+                               stdin=PIPE, stdout=PIPE,
+                               stderr=(None if verbose else PIPE), cwd=str(SAGE_TMP))
+        except OSError:
+            raise ValueError("The package latte_int must be installed (type "
+                    "'sage -i latte_int') in a console or "
+                    "'install_package('latte_int') at a Sage prompt)!\n")
+
+        ans, err = latte_proc.communicate()
+        ret_code = latte_proc.poll()
+        if ret_code:
+            if not verbose:
+                print err
+            raise RuntimeError("Latte returned {} when running:\n{}\n(see output above)".format(ret_code, ' '.join(args)))
+
+        return Integer(ans.strip())
+
     def integral_points(self, threshold=100000):
         r"""
         Return the integral points in the polyhedron.

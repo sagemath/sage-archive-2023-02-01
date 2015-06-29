@@ -52,3 +52,5 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ToricCode, TrivialCode, WalshCode)
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+
+import decoders_catalog as decoders

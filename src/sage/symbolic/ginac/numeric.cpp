@@ -2143,10 +2143,12 @@ const numeric isqrt(const numeric &x) {
 }
 
 /** Floating point evaluation of Sage's constants. */
-ex ConstantEvalf(unsigned serial, PyObject* parent) {
-        if (parent == nullptr)
-                parent = CC;
-        PyObject* x = py_funcs.py_eval_constant(serial, parent);
+ex ConstantEvalf(unsigned serial, PyObject* dict) {
+        if (dict == nullptr) {
+                dict = PyDict_New();
+                PyDict_SetItemString(dict, "parent", CC);
+        }
+        PyObject* x = py_funcs.py_eval_constant(serial, dict);
         if (!x) py_error("error getting digits of constant");
         return x;
 }

@@ -375,6 +375,13 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
 
+    TESTS:
+
+    We check that :trac:`18480` is fixed::
+
+        sage: codes.HammingCode(2, GF(2)).minimum_distance()
+        3
+
     AUTHORS:
 
     - David Joyner (11-2005)
@@ -394,7 +401,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     q = F.order()
     ans = None
-    dist_min = n
+    dist_min = n + 1
     gap.eval('Gmat:='+Gmat)
     gap.eval('K:=GF({})'.format(q))
     gap.eval('v:=Z({})*{}'.format(q,[0]*n))
@@ -1180,7 +1187,7 @@ class AbstractLinearCode(module.Module):
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
 
-    def __contains__(self,v):
+    def __contains__(self, v):
         r"""
         Returns True if `v` can be coerced into `self`. Otherwise, returns False.
 
@@ -1194,9 +1201,9 @@ class AbstractLinearCode(module.Module):
             sage: vector((1, 0, 0, 0, 0, 1/2, 1)) in C # indirect doctest
             False
         """
-        A = self.ambient_space()
-        C = A.subspace(self.gens())
-        return C.__contains__(v)
+        if not v in self.ambient_space() or len(v) != self.length():
+            return False
+        return self.syndrome(v) == 0
 
     def characteristic(self):
         r"""

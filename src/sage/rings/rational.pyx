@@ -92,8 +92,8 @@ cdef object numpy_int64_interface = {'typestr': '=i8'}
 cdef object numpy_object_interface = {'typestr': '|O'}
 cdef object numpy_double_interface = {'typestr': '=f8'}
 
-
-from sage.libs.gmp.pylong cimport *
+from libc.math cimport ldexp
+from sage.libs.gmp.all cimport *
 
 cdef class Rational(sage.structure.element.FieldElement)
 
@@ -3433,9 +3433,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
             sage: (2/3)._interface_init_()
             '2/3'
-            sage: kash(3/1).Type()              # optional
+            sage: kash(3/1).Type()              # optional - kash
             elt-fld^rat
-            sage: magma(3/1).Type()             # optional
+            sage: magma(3/1).Type()             # optional - magma
             FldRatElt
         """
         return '%s/%s'%(self.numerator(), self.denominator())

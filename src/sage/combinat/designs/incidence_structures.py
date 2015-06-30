@@ -857,7 +857,7 @@ class IncidenceStructure(object):
             sage: BD.block_sizes()
             [3, 3, 3, 3, 3, 3, 3]
         """
-        return map(len, self._blocks)
+        return [len(_) for _ in self._blocks]
 
     def degree(self, p=None, subset=False):
         r"""
@@ -981,7 +981,13 @@ class IncidenceStructure(object):
             sage: designs.IncidenceStructure(4, [[0,1],[2,3]]).is_connected()
             False
         """
-        return self.incidence_graph().is_connected()
+        from sage.sets.disjoint_set import DisjointSet
+        D = DisjointSet(self.num_points())
+        for B in self._blocks:
+            x = B[0]
+            for i in range(1,len(B)):
+                D.union(x,B[i])
+        return D.number_of_subsets() == 1
 
     def is_simple(self):
         r"""
@@ -1498,7 +1504,7 @@ class IncidenceStructure(object):
         EXAMPLES::
 
             sage: P = designs.DesarguesianProjectivePlaneDesign(2); P
-            Incidence structure with 7 points and 7 blocks
+            (7,3,1)-Balanced Incomplete Block Design
             sage: G = P.automorphism_group()
             sage: G.is_isomorphic(PGL(3,2))
             True
@@ -1813,8 +1819,8 @@ class IncidenceStructure(object):
         """
         from sage.graphs.graph import Graph
         blocks = self.blocks()
-        blocks_sets = map(frozenset,blocks)
-        g = Graph([range(self.num_blocks()),lambda x,y : len(blocks_sets[x]&blocks_sets[y])],loops = False)
+        blocks_sets = [frozenset(_) for _ in blocks]
+        g = Graph([range(self.num_blocks()), lambda x,y: len(blocks_sets[x]&blocks_sets[y])], loops = False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 
     def _spring_layout(self):
@@ -1928,7 +1934,7 @@ class IncidenceStructure(object):
             # Reorders the vertices of s according to their angle with the
             # "center", i.e. the vertex representing the set s
             cx, cy = pos[Set(s)]
-            s = map(lambda x: pos[x], s)
+            s = [pos[_] for _ in s]
             s = sorted(s, key = lambda x_y: arctan2(x_y[0] - cx, x_y[1] - cy))
 
             for x in s:

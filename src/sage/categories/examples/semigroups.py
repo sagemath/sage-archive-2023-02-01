@@ -179,7 +179,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         r"""
         The free semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``alphabet`` -- a tuple of strings: the generators of the semigroup
 
@@ -256,7 +256,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         r"""
         Construct an element of this semigroup from the data ``x``.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- a string
 
@@ -421,11 +421,11 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         r"""
         Lift the element ``x`` into the ambient semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of ``self``.
 
-        OUTPUT::
+        OUTPUT:
 
         - an element of ``self.ambient()``.
 
@@ -492,11 +492,11 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         r"""
         Returns the retract ``x`` onto an element of this semigroup.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- an element of the ambient semigroup (``self.ambient()``).
 
-        OUTPUT::
+        OUTPUT:
 
         - an element of ``self``.
 

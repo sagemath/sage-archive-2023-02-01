@@ -175,7 +175,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
@@ -413,9 +412,8 @@ class Gap_generic(Expect):
             # the following input prompt is now the current input prompt
             E.expect('@i', timeout=timeout)
             success = True
-        except (pexpect.TIMEOUT, pexpect.EOF) as msg:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             # GAP died or hangs indefinitely
-            # print 'GAP interrupt:', msg
             success = False
 
         if not success and quit_on_fail:
@@ -498,14 +496,14 @@ class Gap_generic(Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages SPKG.
+            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
         """
         if verbose:
             print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages SPKG.")
+                               "You may want to install the gap_packages and/or database_gap SPKGs.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
@@ -1042,7 +1040,6 @@ class GapElement_generic(ExpectElement):
             [  a a^2]
             [a^3   a]
         """
-        P = self.parent()
         v = self.DimensionsMat()
         n = int(v[1])
         m = int(v[2])
@@ -1067,7 +1064,8 @@ class Gap(Gap_generic):
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,
-                 logfile=None):
+                 logfile=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -1096,6 +1094,27 @@ class Gap(Gap_generic):
                         logfile=logfile,
                         eval_using_file_cutoff=100)
         self.__seq = 0
+        self._seed = seed
+
+    def set_seed(self,seed=None):
+        """
+        Sets the seed for gap interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gap()
+            sage: g.set_seed(0)
+            0
+            sage: [g.Random(1,10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
+        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -1180,6 +1199,9 @@ class Gap(Gap_generic):
                 '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
         # read everything up to the first "ready" prompt
         self._expect.expect("@i")
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def _function_class(self):
         """
@@ -1297,8 +1319,8 @@ class Gap(Gap_generic):
             sage: gap.get('x')
             '2'
         """
-        cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
-        out = self._eval_line(cmd, allow_use_file=True)
+        cmd = ('%s:=%s;;' % (var, value)).replace('\n','')
+        self._eval_line(cmd, allow_use_file=True)
 
     def get(self, var, use_file=False):
         """
@@ -1350,9 +1372,7 @@ class Gap(Gap_generic):
             line0 = 'Print( %s );'%line.rstrip().rstrip(';')
             try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
                 return Expect._eval_line_using_file(self, line0)
-            except RuntimeError as msg:
-                #if not ("Function call: <func> must return a value" in msg):
-                #    raise RuntimeError, msg
+            except RuntimeError:
                 return ''
         return Expect._eval_line_using_file(self, line)
 

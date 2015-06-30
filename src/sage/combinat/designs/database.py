@@ -52,7 +52,6 @@ from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_ma
                                                      OA_n_times_2_pow_c_from_matrix,
                                                      orthogonal_array)
 from orthogonal_arrays import wilson_construction
-from string import join
 
 # Cyclic shift of a list
 cyclic_shift = lambda l,i : l[-i:]+l[:-i]
@@ -78,7 +77,7 @@ def _MOLS_from_string(s,k):
     for i,l in enumerate(s.split()):
         l = [ord(x) - 97 for x in l]
         matrices[i%k].append(l)
-    return map(Matrix, matrices)
+    return [Matrix(_) for _ in matrices]
 
 def MOLS_10_2():
     r"""
@@ -295,9 +294,8 @@ MOLS_constructions = {
 }
 
 # Add this data to the module's doc
-LIST_OF_MOLS_CONSTRUCTIONS = join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
-                                for n,(k,_) in MOLS_constructions.items()],
-                               ", ")
+LIST_OF_MOLS_CONSTRUCTIONS = ", ".join([":func:`{} MOLS of order {} <MOLS_{}_{}>`".format(k,n,n,k)
+                                        for n,(k,_) in MOLS_constructions.items()])
 
 def OA_7_18():
     r"""
@@ -334,7 +332,7 @@ def OA_7_18():
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
     G = cartesian_product([AdditiveCyclic(2),AdditiveCyclic(3),AdditiveCyclic(3)])
-    M = [G(map(int,xxx)) for xxx in M.split()]
+    M = [G([int(_) for _ in xx]) for xx in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(7)]
 
     Mb = []
@@ -2051,9 +2049,8 @@ OA_constructions = {
     1620 : (10, OA_10_1620),
 }
 # Add this data to the module's doc
-LIST_OF_OA_CONSTRUCTIONS = join((":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
-                                for n,(k,_) in OA_constructions.items()),
-                               ", ")
+LIST_OF_OA_CONSTRUCTIONS = ", ".join(":func:`OA({},{}) <OA_{}_{}>`".format(k,n,k,n)
+                                      for n,(k,_) in OA_constructions.items())
 
 def QDM_19_6_1_1_1():
     r"""
@@ -2466,11 +2463,10 @@ for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
     QDM[n+u,lmbda][n,lmbda,mu,u] = (k,f)
 
 # Create the list of QDM matrices for the doc
-LIST_OF_QDM = join(("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
-                    for n,k,lmbda,mu,u in
-                    sorted((n,k,lmbda,mu,u) for entry in QDM.values()
-                           for (n,lmbda,mu,u),(k,_) in sorted(entry.items()))),
-                   ", ")
+LIST_OF_QDM = ", ".join("`({},{};{},{};{})`".format(n,k,lmbda,mu,u)
+                         for n,k,lmbda,mu,u in
+                          sorted((n,k,lmbda,mu,u) for entry in QDM.values()
+                            for (n,lmbda,mu,u),(k,_) in sorted(entry.items())))
 
 _ref_Handbook = """Handbook of Combinatorial Designs (2ed),
     C. Colbourn, J. Dinitz, 2010 CRC Press"""
@@ -2701,9 +2697,9 @@ for (m,t),(vec,source) in Vmt_vectors.iteritems():
 
 # Create the list of V(m,t) vectors for the doc
 _all_m = sorted(set(m for m,_ in Vmt_vectors.keys()))
-LIST_OF_VMT_VECTORS = join(("    - `m={}` and `t=` ".format(m)+
-                           join(("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m),", ")
-                           for m in _all_m), "\n")
+LIST_OF_VMT_VECTORS = "\n".join("    - `m={}` and `t=` ".format(m) +
+                                ", ".join("`{}`".format(t) for _,t in sorted(Vmt_vectors.keys()) if _ == m)
+                                for m in _all_m)
 
 r""""
 Tests for the Vmt vectors
@@ -3113,9 +3109,9 @@ DF = {
 
 # Create the list of DF for the documentation
 _all_l = sorted(set(l for v,k,l in DF.keys()))
-LIST_OF_DF = join(("    - `\lambda={}`:\n       ".format(l)+
-                  join(("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l),", ")
-                  for l in _all_l), "\n")
+LIST_OF_DF = "\n".join("    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(DF.keys()) if _ == l)
+                       for l in _all_l)
 
 def DM_12_6_1():
     r"""
@@ -3224,7 +3220,7 @@ def DM_24_8_1():
 
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing as AdditiveCyclic
     from sage.categories.cartesian_product import cartesian_product
-    G = cartesian_product(map(AdditiveCyclic,[2,2,6]))
+    G = cartesian_product([AdditiveCyclic(_) for _ in [2, 2, 6]])
     rlabel = {(x%2,x%3):x for x in range(6)}
     M = [G([int(c),int(d),rlabel[int(b),int(a)]]) for a,b,c,d in M.split()]
     M = [M[i*12:(i+1)*12] for i in range(8)]
@@ -4033,9 +4029,9 @@ DM = {
 
 # Create the list of DM for the documentation
 _all_l = sorted(set(l for v,l in DM.keys()))
-LIST_OF_DM = join(("    - `\lambda={}`:\n       ".format(l)+
-                   join(("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l),", ")
-                   for l in _all_l), "\n")
+LIST_OF_DM = "\n".join("    - `\lambda={}`:\n       ".format(l)+
+                       ", ".join("`({},{},{})`".format(v,k,l) for (v,_),(k,__) in sorted(DM.items()) if _ == l)
+                       for l in _all_l)
 
 def RBIBD_120_8_1():
     r"""
@@ -4413,8 +4409,9 @@ EDS={
     }
 }
 
-LIST_OF_EDS = ("\n".join("    - `k = {}`: {}".format(
-                  k, ', '.join('`{}`'.format(q) for q in sorted(EDS[k]) if EDS[k][q] is not False)) for k in sorted(EDS)))
+LIST_OF_EDS = "\n".join("    - `k = {}`: {}".format(
+                        k, ', '.join('`{}`'.format(q) for q in sorted(EDS[k]) if EDS[k][q] is not False))
+                        for k in sorted(EDS))
 
 __doc__ = __doc__.format(
     LIST_OF_OA_CONSTRUCTIONS   = LIST_OF_OA_CONSTRUCTIONS,

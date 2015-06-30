@@ -21,9 +21,10 @@ def lovasz_theta(graph):
     Returns value of Lovasz theta-function of graph,
     see :wikipedia:`Lovász_number`. For a graph :math:`G` it is denoted
     by :math:`\\theta(G)`, and the latter can be computed in polynomial time.
-    Mathematically, the important property of it is
-    :math:`\alpha(G)\leq\\theta(G)\leq\chi(G)`, for :math:`\alpha(G)` and :math:`\chi(G)`
-    being, respectively, the coclique and and chromatic numbers of :math:`G`. 
+    Mathematically, the important property of it is 
+    :math:`\\alpha(G)\leq\\theta(G)\leq\chi(\overline{G})`, for :math:`\\alpha(G)` 
+    and :math:`\chi(\overline{G})` being, respectively, the maximum size of an independent set of :math:`G`
+    and the chromatic number of the complement :math:`\overline{G}` of :math:`G`. 
 
     Implemented for undirected graphs only. Use
     to_undirected to convert a digraph to an undirected graph.

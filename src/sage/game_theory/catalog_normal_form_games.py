@@ -15,8 +15,7 @@ We can then immediately obtain the Nash equilibria for the game::
 When we test whether the game is actually the one in question, sometimes we will
 build a dictionary to test it, since this can be platform-dependent, like so::
 
-    sage: d = {(0, 0): [-2, -2], (0, 1): [-5, 0], (1, 0): [0, -5],
-    ....:      (1, 1): [-4, -4]}
+    sage: d = {(0, 0): [-2, -2], (0, 1): [-5, 0], (1, 0): [0, -5], (1, 1): [-4, -4]}
     sage: g == d
     True
 
@@ -122,10 +121,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
 
     Note that we can pass other values of R, P, S, T::
 
-        sage: g = game_theory.normal_form_games.PrisonersDilemma(R=-1,
-        ....:                                                    P=-2,
-        ....:                                                    S=-3,
-        ....:                                                    T=0)
+        sage: g = game_theory.normal_form_games.PrisonersDilemma(R=-1, P=-2, S=-3, T=0)
         sage: g
         Prisoners dilemma - Normal Form Game with the following utilities:...
         sage: d = {(0, 1): [-3, 0], (1, 0): [0, -3],
@@ -138,10 +134,7 @@ def PrisonersDilemma(R=-2, P=-4, S=-5, T=0):
     If we pass values that fail the defining requirement: `T > R > P > S`
     we get an error message::
 
-        sage: g = game_theory.normal_form_games.PrisonersDilemma(R=-1,
-        ....:                                                    P=-2,
-        ....:                                                    S=0,
-        ....:                                                    T=5)
+        sage: g = game_theory.normal_form_games.PrisonersDilemma(R=-1, P=-2, S=0, T=5)
         Traceback (most recent call last):
         ...
         TypeError: the input values for a Prisoners Dilemma must be
@@ -213,14 +206,8 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
 
     We can also pass different values of the input parameters::
 
-        sage: g = game_theory.normal_form_games.CoordinationGame(A=9,
-        ....:                                                    a=6,
-        ....:                                                    B=2,
-        ....:                                                    b=1,
-        ....:                                                    C=0,
-        ....:                                                    c=1,
-        ....:                                                    D=4,
-        ....:                                                    d=11)
+        sage: g = game_theory.normal_form_games.CoordinationGame(A=9, a=6,
+        ....:                                B=2, b=1, C=0, c=1, D=4, d=11)
         sage: g
         Coordination game - Normal Form Game with the following utilities: ...
         sage: d ={(0, 1): [0, 1], (1, 0): [2, 1],
@@ -233,14 +220,8 @@ def CoordinationGame(A=10, a=5, B=0, b=0, C=0, c=0, D=5, d=10):
     Note that an error is returned if the defining inequalities are
     not obeyed `A > B, D > C` and `a > c, d > b`::
 
-        sage: g = game_theory.normal_form_games.CoordinationGame(A=9,
-        ....:                                                    a=6,
-        ....:                                                    B=0,
-        ....:                                                    b=1,
-        ....:                                                    C=2,
-        ....:                                                    c=10,
-        ....:                                                    D=4,
-        ....:                                                    d=11)
+        sage: g = game_theory.normal_form_games.CoordinationGame(A=9, a=6,
+        ....:                               B=0, b=1, C=2, c=10, D=4, d=11)
         Traceback (most recent call last):
         ...
         TypeError: the input values for a Coordination game must
@@ -412,14 +393,8 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
 
     We can also pass different values of the input parameters::
 
-        sage: g = game_theory.normal_form_games.AntiCoordinationGame(A=2,
-        ....:                                                        a=3,
-        ....:                                                        B=4,
-        ....:                                                        b=2,
-        ....:                                                        C=2,
-        ....:                                                        c=8,
-        ....:                                                        D=1,
-        ....:                                                        d=0)
+        sage: g = game_theory.normal_form_games.AntiCoordinationGame(A=2, a=3,
+        ....:                                     B=4, b=2, C=2, c=8, D=1, d=0)
         sage: g
         Anti coordination game - Normal Form Game with the following utilities: ...
         sage: d ={(0, 1): [2, 8], (1, 0): [4, 2],
@@ -432,14 +407,8 @@ def AntiCoordinationGame(A=3, a=3, B=5, b=1, C=1, c=5, D=0, d=0):
     Note that an error is returned if the defining inequality is
     not obeyed `A > B, D > C` and `a > c, d > b`::
 
-        sage: g = game_theory.normal_form_games.AntiCoordinationGame(A=8,
-        ....:                                                        a=3,
-        ....:                                                        B=4,
-        ....:                                                        b=2,
-        ....:                                                        C=2,
-        ....:                                                        c=8,
-        ....:                                                        D=1,
-        ....:                                                        d=0)
+        sage: g = game_theory.normal_form_games.AntiCoordinationGame(A=8, a=3,
+        ....:                                     B=4, b=2, C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
         ...
         TypeError: the input values for an Anti coordination game must be of the form A < B, D < C, a < c and d < b
@@ -816,14 +785,8 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
 
     Non default values can be passed::
 
-        sage: g = game_theory.normal_form_games.Chicken(A=0,
-        ....:                                           a=0,
-        ....:                                           B=2,
-        ....:                                           b=-1,
-        ....:                                           C=-1,
-        ....:                                           c=2,
-        ....:                                           D=-100,
-        ....:                                           d=-100)
+        sage: g = game_theory.normal_form_games.Chicken(A=0, a=0, B=2,
+        ....:                               b=-1, C=-1, c=2, D=-100, d=-100)
         sage: g
         Chicken - Anti coordination game -
          Normal Form Game with the following utilities: ...
@@ -838,14 +801,8 @@ def Chicken(A=0, a=0, B=1, b=-1, C=-1, c=1, D=-10, d=-10):
     Note that an error is returned if the defining inequalities are not obeyed
     `B > A > C > D` and `c > a > b > d`::
 
-        sage: g = game_theory.normal_form_games.Chicken(A=8,
-        ....:                                           a=3,
-        ....:                                           B=4,
-        ....:                                           b=2,
-        ....:                                           C=2,
-        ....:                                           c=8,
-        ....:                                           D=1,
-        ....:                                           d=0)
+        sage: g = game_theory.normal_form_games.Chicken(A=8, a=3, B=4, b=2,
+        ....:                                               C=2, c=8, D=1, d=0)
         Traceback (most recent call last):
         ...
         TypeError: the input values for a game of chicken must be of the form B > A > C > D and c > a > b > d

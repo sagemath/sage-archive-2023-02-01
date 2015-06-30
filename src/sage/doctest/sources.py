@@ -194,7 +194,7 @@ class DocTestSource(object):
                                              and dt.examples[-1].sage_source == "sig_on_count()\n"):
                 # Line number refers to the end of the docstring
                 sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=docstring.count("\n"))
-                sigon.sage_source = "sig_on_count() # check sig_on/off pairings\n"
+                sigon.sage_source = "sig_on_count()\n"
                 dt.examples.append(sigon)
             doctests.append(dt)
 

@@ -80,6 +80,7 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
    sage/graphs/graph_decompositions/bandwidth
+   sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal

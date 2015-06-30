@@ -385,6 +385,9 @@ ext_modules = [
     Extension('sage.graphs.independent_sets',
               sources = ['sage/graphs/independent_sets.pyx']),
 
+    Extension('sage.graphs.graph_decompositions.fast_digraph',
+              sources = ['sage/graphs/graph_decompositions/fast_digraph.pyx']),
+
     Extension('sage.graphs.graph_decompositions.vertex_separation',
               sources = ['sage/graphs/graph_decompositions/vertex_separation.pyx']),
 
@@ -453,6 +456,9 @@ ext_modules = [
 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
+
+    Extension('sage.graphs.graph_decompositions.cutwidth',
+              sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),

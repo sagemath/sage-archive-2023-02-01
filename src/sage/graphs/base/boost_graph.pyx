@@ -122,3 +122,62 @@ cpdef edge_connectivity(g):
 
     else:
         raise ValueError("The input must be a Sage graph.")
+
+cdef boost_clustering_coeff(BoostGenGraph *g, g_sage, vertices):
+    r"""
+    Computes the local clustering coefficient of all vertices in the list
+    provided.
+
+    The output is a pair ``[cc, local_clust]``, where ``cc`` is the average
+    local clustering of the vertices in variable ``vertices``, ``local_clust``
+    is a dictionary that associates to each vertex its local clustering. If
+    ``vertices`` is ``None``, all vertices are considered.
+    """
+    cdef result_cc result
+    cdef dict local_clust
+
+    if vertices is None:
+        result = g[0].clustering_coeff_all()
+        local_clust = {v:result.local_clust[i] for i,v in enumerate(g_sage.vertices())}
+        return [result.cc, local_clust]
+
+    else:
+        local_clust = {v:g[0].clustering_coeff(v) for v in vertices}
+        return [(sum(local_clust.values())/len(local_clust.values())), local_clust]
+
+
+cpdef clustering_coeff(g, vertices = None):
+    r"""
+    Computes the clustering coefficient of the input graph, using Boost.
+
+    The output is a pair ``[ec, edges]``, where ``ec`` is the edge connectivity,
+    ``edges`` is the list of edges in a minimum cut.
+
+    .. SEEALSO::
+
+        :meth:`sage.graphs.generic_graph.GenericGraph.clustering_coeff`
+
+    EXAMPLES:
+
+    Computing the clustering coefficient of a clique::
+
+        sage: from sage.graphs.base.boost_graph import clustering_coeff
+        sage: g = graphs.CompleteGraph(5)
+        sage: clustering_coeff(g)
+        [1.0, {0: 1.0, 1: 1.0, 2: 1.0, 3: 1.0, 4: 1.0}]
+        sage: clustering_coeff(g, vertices = [0,1,2])
+        [1.0, {0: 1.0, 1: 1.0, 2: 1.0}]
+
+    """
+    # These variables are automatically deleted when the function terminates.
+    cdef BoostVecGraph g_boost
+
+    if isinstance(g, Graph):
+        boost_graph_from_sage_graph(&g_boost, g)
+
+        result = boost_clustering_coeff(&g_boost, g, vertices)
+        sig_check()
+        return result
+
+    else:
+        raise ValueError("The input must be a Sage graph.")

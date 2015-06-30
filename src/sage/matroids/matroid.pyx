@@ -4886,15 +4886,6 @@ cdef class Matroid(SageObject):
         """
         cdef set E, G, H, S, T
         cdef frozenset I, X
-        # test if groundset size is at least 4
-        E = set(self.groundset())
-        if len(E)<4:
-            if certificate:
-                return True, None
-                # there is no partition A,B of the ground set such that |A|, |B| >= 2
-            else:
-                return True
-        # now there exist two disjoint pairs
         # test (2-)connectedness
         C = self.components()
         if len(C)>1:
@@ -4904,6 +4895,15 @@ cdef class Matroid(SageObject):
             else:
                 return False
         # now 2-separations are exact
+        # test if groundset size is at least 4
+        E = set(self.groundset())
+        if len(E)<4:
+            if certificate:
+                return True, None
+                # there is no partition A,B of the ground set such that |A|, |B| >= 2
+            else:
+                return True
+        # now there exist two disjoint pairs
         # test if there are any parallel pairs
         for e in E:
             X = self._closure([e])

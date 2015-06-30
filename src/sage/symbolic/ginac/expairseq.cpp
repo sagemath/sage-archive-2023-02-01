@@ -1174,7 +1174,9 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 			else {
 				const ex& rest = elem.rest;
 				const ex& newrest = mf.handle_factor(rest, elem.coeff);
-				if (are_ex_trivially_equal(newrest, rest))
+                                if (newrest.is_zero())
+                                        combine_overall_coeff(newrest);
+				else if (are_ex_trivially_equal(newrest, rest))
 					seq.push_back(elem);
 				else
 					seq.push_back(expair(newrest, elem.coeff));
@@ -1211,12 +1213,13 @@ void expairseq::combine_same_terms_sorted_seq()
 		if (itin1->rest.compare(itin2->rest)==0 &&
 				unlikely(!is_a<infinity>(itin1->rest))) {
 			itin1->coeff = ex_to<numeric>(itin1->coeff).
-			               add_dyn(ex_to<numeric>(itin2->coeff));
+                                add_dyn(ex_to<numeric>(itin2->coeff));
 			if (expair_needs_further_processing(itin1))
 				needs_further_processing = true;
 			must_copy = true;
 		} else {
-			if (!ex_to<numeric>(itin1->coeff).is_zero()) {
+			if (not ex_to<numeric>(itin1->coeff).is_zero()
+                                or ex_to<numeric>(itin1->coeff).is_parent_pos_char()) {
 				if (must_copy)
 					*itout = *itin1;
 				++itout;
@@ -1225,7 +1228,8 @@ void expairseq::combine_same_terms_sorted_seq()
 		}
 		++itin2;
 	}
-	if (!ex_to<numeric>(itin1->coeff).is_zero()) {
+	if (not ex_to<numeric>(itin1->coeff).is_zero()
+                or ex_to<numeric>(itin1->coeff).is_parent_pos_char()) {
 		if (must_copy)
 			*itout = *itin1;
 		++itout;

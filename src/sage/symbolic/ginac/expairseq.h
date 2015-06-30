@@ -202,6 +202,8 @@ class make_flat_inserter
 		}
 		ex handle_factor(const ex &x, const ex &coeff)
 		{
+			if (is_a<numeric>(coeff) and coeff.is_zero())
+				return coeff;
 			if (!do_renaming)
 				return x;
 			exvector dummies_of_factor;

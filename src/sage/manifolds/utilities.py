@@ -924,6 +924,18 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
 
     - the 3D graphic object with text3d labels added.
 
+    EXAMPLE::
+
+        sage: g = sphere()
+        sage: print g
+        Graphics3d Object
+        sage: show(g)  # no axes labels
+        sage: from sage.manifolds.utilities import set_axes_labels
+        sage: ga = set_axes_labels(g, 'X', 'Y', 'Z', color='red')
+        sage: print ga
+        Graphics3d Object
+        sage: show(ga)  # the 3D frame has now axes labels
+
     """
     from sage.plot.plot3d.shapes2 import text3d
     xmin, ymin, zmin = graph.bounding_box()[0]

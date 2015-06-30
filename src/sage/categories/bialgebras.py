@@ -11,6 +11,9 @@ Bialgebras
 
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.all import Algebras, Coalgebras
+from sage.categories.tensor import tensor
+from sage.functions.other import floor, ceil
+from sage.rings.integer import Integer
 
 class Bialgebras(Category_over_base_ring):
     """
@@ -61,76 +64,189 @@ class Bialgebras(Category_over_base_ring):
 
     class ElementMethods:
 
-        def convolution_product(h,a,b):
-            r"""
-            input: h - an element of a Hopf algebra H
-                   a,b - linear maps from H to H
-            output: [a*b](h)
+        def adams_operator(self, n):
             """
-            H = h.parent()
-            out = 0
-            for (bimonom,coef) in h.coproduct():
-                out += coef*a(H(bimonom[0]))*b(H(bimonom[1]))
-            return out
+            Compute the n-th convolution power of the identity morphism `Id` on self.
 
-        def convolution_power(h, L, n):
-            r"""
-            input: h - an element of a Hopf algebra H
-                   L - linear map from H to H
-                   n - the convolution power to which to take 'L'
-            output: [L^*n](h)
+            INPUT:
+
+            - ``n`` -- a nonnegative integer.
+
+            OUTPUT:
+
+            - the element of self.parent() corresponding to `Id^{*n}(self)`.
+
+            .. SEEALSO::
+
+                :mod:`sage.categories.hopf_algebras.ElementMethods.convolution_product`
+                :mod:`sage.categories.hopf_algebras.ElementMethods.convolution_product`
+
+                (In the literature, this is also called a Hopf power or Sweedler power, cf. [AL2015]_.)
+
+            REFERENCES:
+
+            .. [AL2015] The characteristic polynomial of the Adams operators on graded connected Hopf algebras.
+                Marcelo Aguiar and Aaron Lauve.
+                Algebra Number Theory, v.9, 2015, n.3, 2015.
+
+            .. TODO::
+
+                Move to hopf_algebras.py (i.e., remove dependency on modules_with_basis methods).
+
+            TESTS::
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: h[5].adams_operator(2)
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h[5].plethysm(2*h[1])
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h([]).adams_operator(0), h([]).adams_operator(1)
+                (h[], h[])
+                sage: h[3,2].adams_operator(0), h[3,2].adams_operator(1)
+                (0, h[3, 2])
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S[4].adams_operator(5)
+                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: m[[1,3],[2]].adams_operator(-2)
+                3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
+
             """
-            from sage.categories.tensor import tensor
-            H = h.parent()
-            def n_fold_coproduct(h, n):
-                H = h.parent()
-                if n == 0:
-                    return H(h.counit())
-                elif n == 1:
-                    return h
-                elif n == 2:
-                    return h.coproduct()
-                else:
-                    # apply some kind of multilinear recursion
-                    Hn = tensor([H]*n) # or: tensor([H for i in range(n)])
-                    terms = []
-                    hh = n_fold_coproduct(h, n-1)
-                    for (monom,cof) in hh:
-                        h0 = H(monom[0]).coproduct()
-                        terms += [(tuple((h00, h01) + monom[1:]), cof0 * cof) for ((h00, h01), cof0) in h0]
-                    return Hn.sum_of_terms(terms)
-            hhh = n_fold_coproduct(h,n)
-            out = H.zero()
-            for term in hhh:
-                out += H.prod(L(H(t)) for t in term[0]) * term[1]
-            return out
+            if n < 0:
+                raise ValueError("cannot take less than 0 coproduct iterations: %s < 0" % str(n))
+            return self.convolution_product([lambda x: x] * n)
 
-        def hopf_power(h,n=2):
-            r"""
-            Input:
-                h - an element of a Hopf algebra H
-                n - the convolution power of the identity morphism to use
-            Output:
-                the nth convolution power of the identity morphism, applied to h., i.e., [id^*n](h)
-
-            Remark: for historical reasons (see saga of Frobenius-Schur indicators), the second power deserves special attention.
-            we use '2' as the default value for 'n'
+        def convolution_product(self, *maplist):
             """
-            H = h.parent()
-            def Id(x):
-                return x
-            def S(x):
-                return x.antipode()
+            Given a maplist `(R, S, ..., T)` of length `n`, compute the action of their convolution product on ``self.``
 
-            if n<0:
-                L = S
+            MATH::
+
+                (R*S*\cdots *T)(h) = \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h)
+
+            where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
+            with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
+            and with `\mu^{(k)} := \mu \circ \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
+            (the ordinary product). See [Sw1969]_.
+
+            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we denote above as `\Delta^{(1)}`. See [KMN2012]_.)
+
+            REFERENCES:
+
+            .. [KMN2012] On the trace of the antipode and higher indicators.
+                Yevgenia Kashina and Susan Montgomery and Richard Ng.
+                Israel J. Math., v.188, 2012.
+
+            .. [Sw1969] Hopf algebras.
+                Moss Sweedler.
+                W.A. Benjamin, Math Lec Note Ser., 1969.
+
+            .. TODO::
+
+                Remove dependency on modules_with_basis methods.
+
+            TESTS::
+
+                sage: Id = lambda x: x
+                sage: Antipode = lambda x: x.antipode()
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: h[5].convolution_product([Id,Id])
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h([]).convolution_product([Id,Antipode])
+                h[]
+                sage: h[3,2].convolution_product([Id,Antipode])
+                0
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S[4].convolution_product([Id]*5)
+                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: m[[1,3],[2]].convolution_product([Antipode,Antipode])
+                3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
+
+                sage: m[[]].convolution_product([]), m[[1,3],[2]].convolution_product([])
+                (m{}, 0)
+
+                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
+                () + 3*(1,2) + 3*(1,2,3,4,5,6,7)
+                sage: x.convolution_product([Id, Antipode, Antipode, Antipode])
+                4*() + 3*(1,6,4,2,7,5,3)
+
+            """
+            # be flexible on how the maps are entered...
+            if len(maplist)==1 and isinstance(maplist[0], (list,tuple)):
+                T = tuple(maplist[0])
             else:
-                L = Id
+                T = maplist
 
+            H = self.parent()
+            n = len(T)
+            if n == 0:
+                return H.one() * self.counit()
+            elif n == 1:
+                return T[0](self)
+            else:
+                # We apply the maps T_i and products concurrently with coproducts, as this
+                # seems to be faster than applying a composition of maps, e.g., (H.nfold_product) * tensor(T) * (H.nfold_coproduct).
+
+                i = 0
+                out = tensor((H.one(), self))
+                dom = tensor((H, H))
+
+                # ALGORITHM:
+                # `convolve` moves terms of the form x # y to x * T_i(y_1) # y_2, writing Delta(y) in Sweedler notation.
+                convolve = lambda (x,y): ( ((xy1, y2), c * d) for ((y1, y2), d) in H(y).coproduct() for (xy1, c) in H(x) * T[i](H(y1)) )
+                while i < n-1:
+                    out = dom.module_morphism(on_basis=lambda t: dom.sum_of_terms(convolve(t)), codomain = dom)(out)
+                    i += 1
+
+                # Apply final map `T_n` to last term, `y`, and multiply.
+                cod = H
+                out = dom.module_morphism(on_basis=lambda (x,y): H(x) * T[n-1](H(y)), codomain=cod)(out)
+
+                return out
+
+        def coproduct_iterated(self, n=1):
+            r"""
+            Apply `k-1` coproducts to ``self``.
+
+
+            TESTS::
+
+                sage: p = SymmetricFunctions(QQ).p()
+                sage: p[5,2,2].coproduct_iterated()
+                p[] # p[5, 2, 2] + 2*p[2] # p[5, 2] + p[2, 2] # p[5] + p[5] # p[2, 2] + 2*p[5, 2] # p[2] + p[5, 2, 2] # p[]
+                sage: p([]).coproduct_iterated(3)
+                p[] # p[] # p[] # p[]
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S[4].coproduct_iterated(0)
+                S[4]
+                sage: S[4].coproduct_iterated(2)
+                S[] # S[] # S[4] + S[] # S[1] # S[3] + S[] # S[2] # S[2] + S[] # S[3] # S[1] + S[] # S[4] # S[] + S[1] # S[] # S[3] + S[1] # S[1] # S[2] + S[1] # S[2] # S[1] + S[1] # S[3] # S[] + S[2] # S[] # S[2] + S[2] # S[1] # S[1] + S[2] # S[2] # S[] + S[3] # S[] # S[1] + S[3] # S[1] # S[] + S[4] # S[] # S[]
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: m[[1,3],[2]].convolution_product([Antipode,Antipode])
+                3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
+
+                sage: m[[]].coproduct_iterated(3), m[[1,3],[2]].coproduct_iterated(0)
+                (m{} # m{} # m{} # m{}, m{{1, 3}, {2}})
+
+
+            """
+            if n < 0:
+                raise ValueError("cannot take fewer than 0 coproduct iterations: %s < 0" % str(n))
             if n==0:
-                return H(h.counit())
-            elif abs(n)==1:
-                return L(h)
+                return self
+            elif n==1:
+                return self.coproduct()
             else:
-                return h.convolution_power(L,abs(n))
+                # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
+                fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
+                def split(a,b): return tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
+                return (self.coproduct()).apply_multilinear_morphism(split)
 

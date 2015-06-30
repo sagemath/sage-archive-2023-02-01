@@ -260,7 +260,88 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 tester.assert_(IS(x) == self.counit(x) * self.one())
 
     class ElementMethods:
-        pass
+
+        def adams_operator(self, n):
+            """
+            Compute the n-th convolution power of the identity morphism `Id` on self.
+
+            INPUT:
+
+            - ``n`` -- an integer.
+
+            OUTPUT:
+
+            - the element of self.parent() corresponding to `Id^{*n}(self)`.
+
+            .. SEEALSO::
+
+                Extends code defined in bialgebras.py...
+
+                :meth:`sage.categories.bialgebras.ElementMethods.adams_operator`
+                :meth:`sage.categories.bialgebras.ElementMethods.convolution_product`
+
+                (In the literature, this is also called a Hopf power or Sweedler power, cf. [AL2015]_.)
+
+            REFERENCES:
+
+            .. [AL2015] The characteristic polynomial of the Adams operators on graded connected Hopf algebras.
+                Marcelo Aguiar and Aaron Lauve.
+                Algebra Number Theory, v.9, 2015, n.3, 2015.
+
+            .. TODO::
+
+                Move to hopf_algebras.py (i.e., remove dependency on modules_with_basis methods).
+
+            EXAMPLES::
+
+                sage: h = SymmetricFunctions(QQ).h()
+                sage: h[5].adams_operator(2)
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h[5].plethysm(2*h[1])
+                2*h[3, 2] + 2*h[4, 1] + 2*h[5]
+                sage: h([]).adams_operator(0), h([]).adams_operator(1)
+                (h[], h[])
+                sage: h[3,2].adams_operator(0), h[3,2].adams_operator(1)
+                (0, h[3, 2])
+
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S[4].adams_operator(5)
+                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
+
+
+                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
+                () + 2*(6,7) + 3*(5,6) + (1,2,3,4,5,6,7)
+                sage: x.adams_operator(2)
+                6*() + (1,3,5,7,2,4,6)
+                sage: x.antipode()
+                () + 2*(6,7) + 3*(5,6) + (1,7,6,5,4,3,2)
+                sage: x.adams_operator(-2)
+                6*() + (1,6,4,2,7,5,3)
+
+            TESTS::
+
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s[5,2,2].adams_operator(-1)
+                -s[3, 3, 1, 1, 1]
+
+                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
+                sage: m[[1,3],[2]].adams_operator(-2)
+                3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
+
+                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
+                () + 2*(6,7) + 3*(5,6) + (1,2,3,4,5,6,7)
+                sage: x.adams_operator(-3)
+                () + 2*(6,7) + 3*(5,6) + (1,5,2,6,3,7,4)
+                sage: x.adams_operator(0)
+                7*()
+            """
+            if n < 0:
+                T = lambda x: x.antipode()
+                n = abs(n)
+            else:
+                T = lambda x: x
+
+            return self.convolution_product([T] * n)
 
     class TensorProducts(TensorProductsCategory):
         """

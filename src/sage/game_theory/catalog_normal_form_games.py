@@ -7,7 +7,7 @@ This allows us to construct common games directly::
     sage: g
     Prisoners dilemma - Normal Form Game with the following utilities: ...
 
-We can then immediately obtain the Nash equilibria for the game::
+We can then immediately obtain the Nash equilibrium for this game::
 
     sage: g.obtain_nash()
     [[(0, 1), (0, 1)]]
@@ -19,7 +19,7 @@ build a dictionary to test it, since this can be platform-dependent, like so::
     sage: g == d
     True
 
-The docstrings give an interpretation of the situation modelled by each game.
+The docstrings give an interpretation of each game.
 
 More information is available in the following references:
 

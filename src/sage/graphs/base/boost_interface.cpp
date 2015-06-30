@@ -21,8 +21,8 @@ typedef struct {
 
 // This struct is the output of the clustering coefficient Boost algorithm.
 typedef struct {
-    double cc;                   // The average clustering coefficient
-    vector<double> local_clust;  // The local clustering coefficient of each node.
+    double average_clustering_coefficient; // The average clustering coefficient
+    vector<double> clust_of_v;             // The clustering coefficient of each node.
 } result_cc;
 
 template <class OutEdgeListS, // How neighbors are stored
@@ -108,9 +108,9 @@ public:
         ClusteringContainer coefs(num_vertices(*graph));
         ClusteringMap cm(coefs, *graph);
 
-        to_return.cc = all_clustering_coefficients(*graph, cm);
+        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph, cm);
         for (unsigned i = 0; i < num_verts(); i++) {
-            to_return.local_clust.push_back(cm[(*graph)[i]]);
+            to_return.clust_of_v.push_back(cm[(*graph)[i]]);
         }
 
         return to_return;

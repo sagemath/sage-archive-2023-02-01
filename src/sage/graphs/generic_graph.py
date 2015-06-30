@@ -12237,11 +12237,12 @@ class GenericGraph(GenericGraph_pyx):
 
         See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
-         INPUT:
+        INPUT:
 
         - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used. Boost
-          implementation only works on undirected graphs.
+          if ``'networkx'``, then the NetworkX algorithm is used. If 'None', the
+          best option is chosen by the algorithm. Boost implementation only
+          works on undirected graphs.
 
         EXAMPLES::
 
@@ -12252,18 +12253,18 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-            Boost does not work with DiGraph::
+        Boost does not work with DiGraph::
 
-                sage: digraphs.Circuit(10).clustering_average(implementation='boost')
-                Traceback (most recent call last):
-                ...
-                ValueError: Boost algorithm is only implemented for undirected graphs.
+            sage: digraphs.Circuit(10).clustering_average(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected graphs.
 
-            Check that the result is the same with Boost and NetworkX::
+        Check that the result is the same with Boost and NetworkX::
 
-                sage: G = graphs.RandomGNM(10,20)
-                sage: abs(G.clustering_average(implementation='boost') - G.clustering_average(implementation='networkx')) < 1E-12
-                True
+            sage: G = graphs.RandomGNM(10,20)
+            sage: abs(G.clustering_average(implementation='boost') - G.clustering_average(implementation='networkx')) < 1E-12
+            True
 
         """
         if implementation == None:
@@ -12343,6 +12344,7 @@ class GenericGraph(GenericGraph_pyx):
             5: 0.3333333333333333, 6: 0.3333333333333333,
             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
             10: 0.3333333333333333, 11: 0.0}
+
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
@@ -12350,41 +12352,44 @@ class GenericGraph(GenericGraph_pyx):
             ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
+            sage: (graphs.GridGraph([5,5])).clustering_coeff(nodes=[(0,0),(0,1),(2,2)])
+            {(0, 0): 0.0, (0, 1): 0.0, (2, 2): 0.0}
+
         TESTS:
 
-            Check that the option 'return_vertex_weights' is deprecated::
+        Check that the option 'return_vertex_weights' is deprecated::
 
-                sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
-                ...     weight=True, return_vertex_weights=False)
-                doctest:...: DeprecationWarning: The option 'return_vertex_weights'
-                has been deprecated and is ignored.
-                See http://trac.sagemath.org/17134 for details.
-                {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+            sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
+            ...     weight=True, return_vertex_weights=False)
+            doctest:...: DeprecationWarning: The option 'return_vertex_weights'
+            has been deprecated and is ignored.
+            See http://trac.sagemath.org/17134 for details.
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-            Boost cannot work with weights::
+        Boost cannot work with weights::
 
-                sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
-                Traceback (most recent call last):
-                ...
-                ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
 
-            Boost does not work with DiGraph::
+        Boost does not work with DiGraph::
 
-                sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
-                Traceback (most recent call last):
-                ...
-                ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
 
-            Check that the result is the same with Boost and NetworkX::
+        Check that the result is the same with Boost and NetworkX::
 
-                sage: G = graphs.RandomGNM(10,20)
-                sage: clust_boost = G.clustering_coeff(implementation='boost')
-                sage: clust_networkx = G.clustering_coeff(implementation='networkx')
-                sage: for v in G.vertices():
-                ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
-                ....:         print "Error:"
-                ....:         print "   Boost clustering of", v, "is", clust_boost[v]
-                ....:         print "NetworkX clustering of", v, "is", clust_networkx[v]
+            sage: G = graphs.RandomGNM(10,20)
+            sage: clust_boost = G.clustering_coeff(implementation='boost')
+            sage: clust_networkx = G.clustering_coeff(implementation='networkx')
+            sage: for v in G.vertices():
+            ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
+            ....:         print "Error:"
+            ....:         print "   Boost clustering of", v, "is", clust_boost[v]
+            ....:         print "NetworkX clustering of", v, "is", clust_networkx[v]
 
         """
         if return_vertex_weights is not None:
@@ -12393,7 +12398,7 @@ class GenericGraph(GenericGraph_pyx):
                         "deprecated and is ignored.")
 
         if implementation == None:
-            if (not self.is_directed()) and weight == False:
+            if (not self.is_directed()) and not weight:
                 implementation = 'boost'
             else:
                 implementation = 'networkx'
@@ -12403,7 +12408,7 @@ class GenericGraph(GenericGraph_pyx):
                              "'boost', or None.")
 
         if (implementation == 'boost'):
-            if self.is_directed() or weight == True:
+            if self.is_directed() or weight:
                 raise ValueError("Boost algorithm is only implemented for " +
                                  "undirected, unweighted graphs.")
             from sage.graphs.base.boost_graph import clustering_coeff

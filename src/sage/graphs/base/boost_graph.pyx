@@ -123,39 +123,49 @@ cpdef edge_connectivity(g):
     else:
         raise ValueError("The input must be a Sage graph.")
 
-cdef boost_clustering_coeff(BoostGenGraph *g, g_sage, vertices):
+cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     r"""
-    Computes the local clustering coefficient of all vertices in the list
-    provided.
+    Computes the clustering coefficient of all vertices in the list provided.
 
-    The output is a pair ``[cc, local_clust]``, where ``cc`` is the average
-    local clustering of the vertices in variable ``vertices``, ``local_clust``
-    is a dictionary that associates to each vertex its local clustering. If
+    The output is a pair ``[average_clustering_coefficient, clust_of_v]``, where
+    ``average_clustering_coefficient`` is the average clustering of the vertices
+    in variable ``vertices``, ``clust_of_v`` is a dictionary that associates to
+    each vertex (stored as an integer) its clustering coefficient. If
     ``vertices`` is ``None``, all vertices are considered.
     """
     cdef result_cc result
-    cdef dict local_clust
+    cdef dict clust_of_v
 
-    if vertices is None:
+    if len(vertices) == g.num_verts():
         result = g[0].clustering_coeff_all()
-        local_clust = {v:result.local_clust[i] for i,v in enumerate(g_sage.vertices())}
-        return [result.cc, local_clust]
+        clust_of_v = {v:result.clust_of_v[v] for v in range(g.num_verts())}
+        return [result.average_clustering_coefficient, clust_of_v]
 
     else:
-        local_clust = {v:g[0].clustering_coeff(v) for v in vertices}
-        return [(sum(local_clust.values())/len(local_clust.values())), local_clust]
-
+        clust_of_v = {v:g[0].clustering_coeff(v) for v in vertices}
+        return [(sum(clust_of_v.values())/len(clust_of_v.values())), clust_of_v]
+    
 
 cpdef clustering_coeff(g, vertices = None):
     r"""
     Computes the clustering coefficient of the input graph, using Boost.
 
-    The output is a pair ``[ec, edges]``, where ``ec`` is the edge connectivity,
-    ``edges`` is the list of edges in a minimum cut.
-
+    The output is a pair ``[average_clustering_coefficient, clust_of_v]``, where
+    ``average_clustering_coefficient`` is the average clustering of the vertices
+    in variable ``vertices``, ``clust_of_v`` is a dictionary that associates to
+    each vertex its clustering coefficient. If ``vertices`` is ``None``, all
+    vertices are considered.
+    
     .. SEEALSO::
 
         :meth:`sage.graphs.generic_graph.GenericGraph.clustering_coeff`
+        
+    INPUT:
+    
+    - ``g`` (Graph) - the input graph.
+    
+    - ``vertices`` (list) - the list of vertices we need to analyze (if
+      ``None``, we will compute the clustering coefficient of all vertices).
 
     EXAMPLES:
 
@@ -169,15 +179,22 @@ cpdef clustering_coeff(g, vertices = None):
         [1.0, {0: 1.0, 1: 1.0, 2: 1.0}]
 
     """
+    sig_on()
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
-
-    if isinstance(g, Graph):
-        boost_graph_from_sage_graph(&g_boost, g)
-
-        result = boost_clustering_coeff(&g_boost, g, vertices)
-        sig_check()
-        return result
-
-    else:
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
+    
+    if not isinstance(g, Graph):
+        sig_off()
         raise ValueError("The input must be a Sage graph.")
+    
+    boost_graph_from_sage_graph(&g_boost, g)
+    
+    if vertices is None:
+        vertices = g.vertices()
+        
+    vertices_boost = [vertex_to_int[v] for v in vertices]        
+    [average_clustering, clust_v_int] = boost_clustering_coeff(&g_boost, vertices_boost)    
+    clust_v_sage = {g.vertices()[v]: clust_v_int[v] for v in vertices_boost}        
+    sig_off()
+    return [average_clustering, clust_v_sage]

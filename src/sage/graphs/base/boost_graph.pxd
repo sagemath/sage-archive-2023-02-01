@@ -34,8 +34,8 @@ cdef extern from "boost_interface.cpp":
         vector[int] edges
 
     cdef cppclass result_cc:
-        float cc
-        vector[float] local_clust
+        float average_clustering_coefficient
+        vector[float] clust_of_v
 
     cdef cppclass BoostGraph[OutEdgeListS, VertexListS, DirectedS, EdgeListS]:
         BoostGraph()

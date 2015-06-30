@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 r"""
 Computing Lovasz theta-function of graphs
@@ -19,13 +18,18 @@ Methods
 
 def lovasz_theta(graph):
     """
-    Returns value of Lovasz theta-function of graph 
+    Returns value of Lovasz theta-function of graph,
+    see :wikipedia:`Lovász_number`. For a graph :math:`G` it is denoted
+    by :math:`\\theta(G)`, and the latter can be computed in polynomial time.
+    Mathematically, the important property of it is
+    :math:`\alpha(G)\leq\\theta(G)\leq\chi(G)`, for :math:`\alpha(G)` and :math:`\chi(G)`
+    being, respectively, the coclique and and chromatic numbers of :math:`G`. 
 
     Implemented for undirected graphs only. Use
     to_undirected to convert a digraph to an undirected graph.
     
     Currently, the only solver to compute this value is the
-    one from the optional/experimental package csdp, 
+    one from the optional/experimental package csdp,
     which you might need to install with 'sage -i csdp'
 
     EXAMPLES::
@@ -45,13 +49,17 @@ def lovasz_theta(graph):
     n = graph.order()
     if n == 0:
         return 0
-    g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
 
     from networkx import write_edgelist
     from sage.misc.temporary_file import tmp_filename
     import os, subprocess
     from sage.env import SAGE_LOCAL
-    
+    from sage.misc.package import is_package_installed
+
+    if not is_package_installed('csdp'):
+        raise NotImplementedError("Package csdp is required. Please install it with 'sage -i csdp'.")
+ 
+    g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
     tf_name = tmp_filename()
     tf = open(tf_name, 'wb')
     tf.write(str(n)+'\n'+str(g.number_of_edges())+'\n')

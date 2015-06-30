@@ -304,7 +304,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
     def __repr__(self):
         return self.parent()._repr_term(self)
         
-    def bipartition_triple(self,curt=True):
+    def involution_permutation_triple(self,curt=True):
         r"""
         a la Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
         D1 is a partition of the top nodes;
@@ -319,9 +319,9 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: import sage.combinat.diagram_algebras as da
             sage: bd = da.BrauerDiagrams(3)
             sage: elm = bd([[1,2],[-2,-3],[3,-1]])
-            sage: elm.bipartition_triple()
+            sage: elm.involution_permutation_triple()
             ([(1, 2)], [(-3, -2)], [1])
-            sage: elm.bipartition_triple(curt=False)
+            sage: elm.involution_permutation_triple(curt=False)
             ([(1, 2)], [(-3, -2)], [[3, -1]])
         """
         diagram = self.diagram()
@@ -410,7 +410,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
             sage: elm2.is_elementary_symmetric()
             False
         """
-        (D1,D2,pi) = self.bipartition_triple()
+        (D1,D2,pi) = self.involution_permutation_triple()
         D1 = sorted([sorted(map(abs,x)) for x in D1])
         D2 = sorted([sorted(map(abs,x)) for x in D2])
         if D1==D2 and pi == list(range(1,len(pi)+1)):
@@ -539,7 +539,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd.cardinality() == len(bd.list())
         True
 
-    These diagrams also come equipped with a compact representation based on their bipartition triple representation. See the from_bipartition_triple method for more information.
+    These diagrams also come equipped with a compact representation based on their bipartition triple representation. See the from_involution_permutation_triple method for more information.
 
     ::
 
@@ -573,7 +573,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         if not self._compact_repr:
             return super(self.Element, x).__repr__()
         else:
-            (top,bot,thru) = x.bipartition_triple()
+            (top,bot,thru) = x.involution_permutation_triple()
             bot.reverse()
             s1 = ".".join("".join(map(str,block)) for block in top)
             s2 = ".".join("".join(map(lambda k: str(abs(k)),sorted(block,reverse=True))) for block in bot)
@@ -621,11 +621,11 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         partition_shape = [2 for i in range(l)]+[1 for i in range(n-2*l)]
         for sp in SetPartitions(n,partition_shape):
             sp0 = [block for block in sp if len(block)==2]
-            diag = self.from_bipartition_triple((sp0,sp0,perm))
+            diag = self.from_involution_permutation_triple((sp0,sp0,perm))
             out.append(diag)
         return out
     
-    def from_bipartition_triple(self,D1_D2_pi):
+    def from_involution_permutation_triple(self,D1_D2_pi):
         r"""
         INPUT:
 
@@ -642,7 +642,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: bd = da.BrauerDiagrams(4)
-            sage: bd.from_bipartition_triple([[[1,2]],[[3,4]],[2,1]])
+            sage: bd.from_involution_permutation_triple([[[1,2]],[[3,4]],[2,1]])
             {{-4, -3}, {-2, 3}, {-1, 4}, {1, 2}}
         """
         try:

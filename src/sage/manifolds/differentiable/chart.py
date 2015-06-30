@@ -7,6 +7,8 @@ manifold over a topological field `K` (in most applications, `K = \RR` or
 
 The subclass :class:`RealDiffChart` is devoted
 to the case `K=\RR`, for which the concept of coordinate range is meaningful.
+Moreover, :class:`RealDiffChart` is endowed with some plotting
+capabilities (cf. method :meth:`~sage.manifolds.chart.RealChart.plot`).
 
 Transition maps between charts are implemented via the class
 :class:`DiffCoordChange`.
@@ -220,7 +222,7 @@ class DiffChart(Chart):
 
     .. SEEALSO::
 
-        :class:`sage.manifolds.differentiable.chart.RealDiffChart` for charts
+        :class:`~sage.manifolds.differentiable.chart.RealDiffChart` for charts
         on differentiable manifolds over `\RR`.
 
     """
@@ -598,6 +600,9 @@ class RealDiffChart(RealChart, DiffChart):
         False
         sage: c_cart.valid_coordinates(1,0,2)
         True
+
+    Chart grids can be drawn in 2D or 3D graphics thanks to the method
+    :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
     def __init__(self, domain, coordinates='', names=None):

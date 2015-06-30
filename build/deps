@@ -20,7 +20,7 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 # possible.
 all: all-toolchain
 	$(MAKE) doc all-sage
-	$(MAKE) start
+	$(MAKE) '$(STARTED)'
 
 # Build everything except the documentation
 all-build: all-toolchain
@@ -71,8 +71,11 @@ SAGERUNTIME = sagelib $(SCRIPTS) $(INST)/$(IPYTHON) $(INST)/$(PEXPECT)
 # Start Sage at least once to check that it works
 # (i.e. when we just installed Sage for the first time).
 start: all-build
-	$(MAKE) $(STARTED)
+	$(MAKE) '$(STARTED)'
 
+# We make this depend on all standard packages because running
+# sage-starts runs sage-location, which should be run after installing
+# any package.
 $(STARTED): $(STANDARD_PACKES)
 	"$(SAGE_LOCAL)/bin/sage-starts"
 

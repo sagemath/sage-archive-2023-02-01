@@ -105,9 +105,9 @@ class HopfAlgebras(Category_over_base_ring):
                 out += H.prod(L(H(t)) for t in term[0]) * term[1]
             return out
 
-        def hopf_power(h,n=2): 
+        def hopf_power(h,n=2):
             r"""
-            Input: 
+            Input:
                 h - an element of a Hopf algebra H
                 n - the convolution power of the identity morphism to use
             Output:
@@ -132,7 +132,7 @@ class HopfAlgebras(Category_over_base_ring):
             elif abs(n)==1:
                 return L(h)
             else:
-                return h.convolution_power(L,abs(n)) 
+                return h.convolution_power(L,abs(n))
 
         def antipode(self):
             """

@@ -703,8 +703,8 @@ class TopManifoldPoint(Element):
              color='black', label=None, label_color=None, fontsize=10,
              label_offset=0.1, parameters=None):
         r"""
-        Plot the current point in a Cartesian graph based on the
-        coordinates of some ambient chart.
+        For real manifolds, plot the current point in a Cartesian graph based
+        on the coordinates of some ambient chart.
 
         The point is drawn in terms of two (2D graphics) or three (3D graphics)
         coordinates of a given chart, called hereafter the *ambient chart*.
@@ -757,8 +757,17 @@ class TopManifoldPoint(Element):
             sage: g = p.plot(X)
             sage: print g
             Graphics object consisting of 2 graphics primitives
-            sage: gX = X.plot() # plot of the coordinate grid
+            sage: gX = X.plot(max_range=4) # plot of the coordinate grid
             sage: show(g+gX) # display of the point atop the coordinate grid
+
+        .. PLOT::
+
+            M = TopManifold(2, 'M')
+            X = M.chart('x y'); x,y = X[:]
+            p = M.point((1,3), name='p')
+            g = p.plot(X)
+            gX = X.plot(max_range=4)
+            sphinx_plot(g+gX)
 
         Actually, since ``X`` is the default chart of the open set in which
         ``p`` has been defined, it can be skipped in the arguments of
@@ -770,16 +779,39 @@ class TopManifoldPoint(Element):
         Call with some options::
 
             sage: g = p.plot(chart=X, size=40, color='green', label='$P$',
-            ....:            label_color='blue', fontsize=20, label_offset=0.4)
+            ....:            label_color='blue', fontsize=20, label_offset=0.3)
             sage: show(g+gX)
+
+        .. PLOT::
+
+            M = TopManifold(2, 'M')
+            X = M.chart('x y'); x,y = X[:]
+            p = M.point((1,3), name='p')
+            g = p.plot(chart=X, size=40, color='green', label='$P$', \
+                       label_color='blue', fontsize=20, label_offset=0.3)
+            gX = X.plot(max_range=4)
+            sphinx_plot(g+gX)
 
         Use of the ``parameters`` option to set a numerical value of some
         symbolic variable::
 
             sage: a = var('a')
             sage: q = M.point((a,2*a), name='q')
-            sage: gq = q.plot(parameters={a:-2})
+            sage: gq = q.plot(parameters={a:-2}, label_offset=0.2)
             sage: show(g+gX+gq)
+
+        .. PLOT::
+
+            M = TopManifold(2, 'M')
+            X = M.chart('x y'); x,y = X[:]
+            p = M.point((1,3), name='p')
+            g = p.plot(chart=X, size=40, color='green', label='$P$', \
+                       label_color='blue', fontsize=20, label_offset=0.3)
+            var('a')
+            q = M.point((a,2*a), name='q')
+            gq = q.plot(parameters={a:-2}, label_offset=0.2)
+            gX = X.plot(max_range=4)
+            sphinx_plot(g+gX+gq)
 
         The numerical value is used only for the plot::
 
@@ -825,15 +857,24 @@ class TopManifoldPoint(Element):
             sage: M = TopManifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
             sage: p = M.point((1,2,3,4), name='p')
-            sage: g = p.plot(X, ambient_coords=(t,x,y))  # the coordinate z is skipped
+            sage: g = p.plot(X, ambient_coords=(t,x,y), label_offset=0.4)  # the coordinate z is skipped
             sage: gX = X.plot(X, ambient_coords=(t,x,y), nb_values=5)
             sage: show(g+gX) # 3D plot
-            sage: g = p.plot(X, ambient_coords=(t,y,z))  # the coordinate x is skipped
+            sage: g = p.plot(X, ambient_coords=(t,y,z), label_offset=0.4)  # the coordinate x is skipped
             sage: gX = X.plot(X, ambient_coords=(t,y,z), nb_values=5)
             sage: show(g+gX) # 3D plot
-            sage: g = p.plot(X, ambient_coords=(y,z))  # the coordinates t and x are skipped
+            sage: g = p.plot(X, ambient_coords=(y,z), label_offset=0.4)  # the coordinates t and x are skipped
             sage: gX = X.plot(X, ambient_coords=(y,z))
             sage: show(g+gX) # 2D plot
+
+        .. PLOT::
+
+            M = TopManifold(4, 'M')
+            X = M.chart('t x y z'); t,x,y,z = X[:]
+            p = M.point((1,2,3,4), name='p')
+            g = p.plot(X, ambient_coords=(y,z), label_offset=0.4)
+            gX = X.plot(X, ambient_coords=(y,z))
+            sphinx_plot(g+gX)
 
         """
         from sage.plot.point import point2d
@@ -841,6 +882,9 @@ class TopManifoldPoint(Element):
         from sage.plot.graphics import Graphics
         from sage.plot.plot3d.shapes2 import point3d, text3d
         from sage.manifolds.chart import Chart
+        if self._manifold.base_field() != 'real':
+            raise NotImplementedError('plot of points on manifolds over ' +
+                                  'fields different from R is not implemented')
         # The ambient chart:
         if chart is None:
             chart = self.containing_set().default_chart()

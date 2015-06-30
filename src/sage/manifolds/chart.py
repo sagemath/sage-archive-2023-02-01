@@ -4,6 +4,8 @@ Coordinate charts
 The class :class:`Chart` implements coordinate charts on a topological manifold
 over a topological field `K`. The subclass :class:`RealChart` is devoted
 to the case `K=\RR`, for which the concept of coordinate range is meaningful.
+Moreover, :class:`RealChart` is endowed with some plotting
+capabilities (cf. method :meth:`~sage.manifolds.chart.RealChart.plot`).
 
 Transition maps between charts are implemented via the class
 :class:`CoordChange`.
@@ -1264,6 +1266,9 @@ class RealChart(Chart):
         sage: c_cart.valid_coordinates(1,0,2)
         True
 
+    Chart grids can be drawn in 2D or 3D graphics thanks to the method
+    :meth:`plot`.
+
     """
     def __init__(self, domain, coordinates='', names=None):
         r"""
@@ -1809,7 +1814,7 @@ class RealChart(Chart):
         return True
 
     def plot(self, chart=None, ambient_coords=None, mapping=None,
-             fixed_coords=None, ranges=None, max_value=8, nb_values=None,
+             fixed_coords=None, ranges=None, max_range=8, nb_values=None,
              steps=None, parameters=None, color='red',  style='-', thickness=1,
              plot_points=75, label_axes=True):
         r"""
@@ -1840,7 +1845,7 @@ class RealChart(Chart):
           providing the link between the current chart and the ambient chart
           (cf. above); if ``None``, both charts are supposed to be defined on
           the same manifold and related by some transition map (see
-          :meth:`transition_map`)
+          :meth:`~sage.manifolds.chart.Chart.transition_map`)
         - ``fixed_coords`` -- (default: ``None``) dictionary with keys the
           chart coordinates that are not drawn and with values the fixed
           value of these coordinates; if ``None``, all the coordinates of the
@@ -1849,12 +1854,12 @@ class RealChart(Chart):
           to be drawn and values tuples ``(x_min,x_max)`` specifying the
           coordinate range for the plot; if ``None``, the entire coordinate
           range declared during the chart construction is considered (with
-          -Infinity replaced by ``-max_value`` and +Infinity by ``max_value``)
-        - ``max_value`` -- (default: 8) numerical value substituted to
+          -Infinity replaced by ``-max_range`` and +Infinity by ``max_range``)
+        - ``max_range`` -- (default: 8) numerical value substituted to
           +Infinity if the latter is the upper bound of the range of a
           coordinate for which the plot is performed over the entire coordinate
           range (i.e. for which no specific plot range has been set in
-          ``ranges``); similarly ``-max_value`` is the numerical valued
+          ``ranges``); similarly ``-max_range`` is the numerical valued
           substituted for -Infinity
         - ``nb_values`` -- (default: ``None``) either an integer or a dictionary
           with keys the coordinates to be drawn and values the number of
@@ -1973,7 +1978,8 @@ class RealChart(Chart):
             g = c_pol.plot(c_cart, fixed_coords={ph: pi/4})
             sphinx_plot(g)
 
-        A chart can be plot in terms of itself, resulting in a rectangular grid::
+        A chart can be plotted in terms of itself, resulting in a rectangular
+        grid::
 
             sage: g = c_cart.plot()  # equivalent to c_cart.plot(c_cart)
             sage: show(g) # a rectangular grid
@@ -2024,11 +2030,11 @@ class RealChart(Chart):
 
             sage: W = U.intersection(V) # the subset common to both charts
             sage: c_uvW = c_uv.restrict(W) # chart (W,(u,v))
-            sage: gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]}, nb_values=20, plot_points=100)
-            sage: gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]}, nb_values=20, plot_points=100)
-            sage: gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]}, nb_values=20, plot_points=100)
-            sage: gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]}, nb_values=20, plot_points=100)
-            sage: show(gSN1+gSN2+gSN3+gSN4, xmin=-3, xmax=3, ymin=-3, ymax=3)
+            sage: gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]})
+            sage: gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]})
+            sage: gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]})
+            sage: gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]})
+            sage: show(gSN1+gSN2+gSN3+gSN4, xmin=-1.5, xmax=1.5, ymin=-1.5, ymax=1.5)
 
         .. PLOT::
 
@@ -2041,18 +2047,18 @@ class RealChart(Chart):
                               restrictions2= u**2+v**2!=0)
             uv_to_xy = xy_to_uv.inverse()
             c_uvW = c_uv.restrict(U.intersection(V))
-            gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]}, nb_values=20, plot_points=100)
-            gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]}, nb_values=20, plot_points=100)
-            gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]}, nb_values=20, plot_points=100)
-            gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]}, nb_values=20, plot_points=100)
-            g = gSN1+gSN2+gSN3+gSN4; g.set_axes_range(-3, 3, -3, 3)
+            gSN1 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[-6.,-0.02]})
+            gSN2 = c_uvW.plot(c_xy, ranges={u:[-6.,-0.02], v:[0.02,6.]})
+            gSN3 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[-6.,-0.02]})
+            gSN4 = c_uvW.plot(c_xy, ranges={u:[0.02,6.], v:[0.02,6.]})
+            g = gSN1+gSN2+gSN3+gSN4; g.set_axes_range(-1.5, 1.5, -1.5, 1.5)
             sphinx_plot(g)
 
         The coordinate line u=1 (red) and the coordinate line v=1 (green) on
         the same plot::
 
-            sage: gu1 = c_uvW.plot(c_xy, fixed_coords={u:1}, max_value=20, plot_points=200)
-            sage: gv1 = c_uvW.plot(c_xy, fixed_coords={v:1}, max_value=20, plot_points=200, color='green')
+            sage: gu1 = c_uvW.plot(c_xy, fixed_coords={u: 1}, max_range=20, plot_points=300)
+            sage: gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')
             sage: show(gu1+gv1)
 
         .. PLOT::
@@ -2066,11 +2072,11 @@ class RealChart(Chart):
                               restrictions2= u**2+v**2!=0)
             uv_to_xy = xy_to_uv.inverse()
             c_uvW = c_uv.restrict(U.intersection(V))
-            gu1 = c_uvW.plot(c_xy, fixed_coords={u:1}, max_value=20, plot_points=200)
-            gv1 = c_uvW.plot(c_xy, fixed_coords={v:1}, max_value=20, plot_points=200, color='green')
+            gu1 = c_uvW.plot(c_xy, fixed_coords={u: 1}, max_range=20, plot_points=300)
+            gv1 = c_uvW.plot(c_xy, fixed_coords={v: 1}, max_range=20, plot_points=300, color='green')
             sphinx_plot(gu1+gv1)
 
-        Note that we have set ``max_value=20`` to have a wider range for the
+        Note that we have set ``max_range=20`` to have a wider range for the
         coordinates u and v, i.e. to have [-20,20] instead of the default
         [-8,8].
 
@@ -2212,13 +2218,13 @@ class RealChart(Chart):
             else:
                 bounds = self._bounds[self._xx.index(coord)]
                 if bounds[0][0] == -Infinity:
-                    xmin = numerical_approx(-max_value)
+                    xmin = numerical_approx(-max_range)
                 elif bounds[0][1]:
                     xmin = numerical_approx(bounds[0][0])
                 else:
                     xmin = numerical_approx(bounds[0][0] + 1.e-3)
                 if bounds[1][0] == Infinity:
-                    xmax = numerical_approx(max_value)
+                    xmax = numerical_approx(max_range)
                 elif bounds[1][1]:
                     xmax = numerical_approx(bounds[1][0])
                 else:

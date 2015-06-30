@@ -1,5 +1,7 @@
+
+# -*- coding: utf-8 -*-
 r"""
-Computing Lovazs theta-function of graphs
+Computing Lovasz theta-function of graphs
 
 AUTHORS:
 
@@ -7,7 +9,7 @@ AUTHORS:
 
 REFERENCE:
 
-.. [Lovasz1979] Laszlo Lovasz,
+.. [Lovasz1979] László Lovász,
   "On the Shannon capacity of a graph",
   IEEE Trans. Inf. Th. 25(1979), 1-7.
 

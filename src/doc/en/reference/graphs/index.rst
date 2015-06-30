@@ -73,6 +73,7 @@ Libraries of algorithms
    sage/graphs/trees
    sage/graphs/matchpoly
    sage/graphs/genus
+   sage/graphs/lovasz_theta
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot

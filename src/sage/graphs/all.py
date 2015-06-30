@@ -8,6 +8,7 @@ from graph import Graph
 from digraph import DiGraph
 from bipartite_graph import BipartiteGraph
 import weakly_chordal
+import lovasz_theta 
 import graph_list as graphs_list
 lazy_import("sage.graphs", "graph_coloring")
 from sage.graphs.cliquer import *

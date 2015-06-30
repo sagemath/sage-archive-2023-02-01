@@ -6873,4 +6873,6 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
+from sage.graphs.lovasz_theta import lovasz_theta
+Graph.lovasz_theta = lovasz_theta
 

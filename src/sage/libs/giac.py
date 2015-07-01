@@ -12,7 +12,9 @@ def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
     except ImportError:
             raise ImportError("""One of the optional packages giac or giacpy is missing""")
 
-    proba_epsilon_orig=giacsettings.proba_epsilon  # save the original giac config
+    # save the original giac config
+    proba_epsilon_orig=giacsettings.proba_epsilon
+    debug_orig=libgiac('debug_infolevel()')
 
     # get the ring from gens
     P = iter(gens).next().parent()
@@ -43,8 +45,17 @@ def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
     else:
         giacsettings.proba_epsilon = epsilon
 
+    # prot
+    if (prot==True):
+        libgiac('debug_infolevel(2)')
+
     # compute de groebner basis with giac
     gb_giac = F.gbasis([P.gens()], "revlex")
+
+    # restore giacsettings
+    libgiac('debug_infolevel(0)')
+    giacsettings.proba_epsilon = proba_epsilon_orig
+
 
     # TODO: we shouldn't use string parsing here
     #gens_dict = P.gens_dict()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Computing Lovasz theta-function of graphs
+Lovász theta-function of graphs
 
 AUTHORS:
 
@@ -12,39 +12,49 @@ REFERENCE:
   "On the Shannon capacity of a graph",
   IEEE Trans. Inf. Th. 25(1979), 1-7.
 
-Methods
--------
+Functions
+---------
 """
 
 def lovasz_theta(graph):
-    """
-    Returns value of Lovasz theta-function of graph,
-    see :wikipedia:`Lovász_number`. For a graph :math:`G` it is denoted
-    by :math:`\\theta(G)`, and the latter can be computed in polynomial time.
-    Mathematically, the important property of it is 
-    :math:`\\alpha(G)\leq\\theta(G)\leq\chi(\overline{G})`, for :math:`\\alpha(G)` 
-    and :math:`\chi(\overline{G})` being, respectively, the maximum size of an independent set of :math:`G`
-    and the chromatic number of the complement :math:`\overline{G}` of :math:`G`. 
+    r"""
+    Return the value of Lovász theta-function of graph
 
-    Implemented for undirected graphs only. Use
-    to_undirected to convert a digraph to an undirected graph.
-    
-    Currently, the only solver to compute this value is the
-    one from the optional/experimental package csdp,
-    which you might need to install with 'sage -i csdp'
+    For a graph `G` this function is denoted by `\theta(G)`, and it can be
+    computed in polynomial time. Mathematically, its most important property is the following:
+
+    .. MATH::
+
+        \alpha(G)\leq\theta(G)\leq\chi(\overline{G})
+
+    with `\alpha(G)` and `\chi(\overline{G})` being, respectively, the maximum
+    size of an :meth:`independent set <sage.graphs.graph.Graph.independent_set>`
+    set of `G` and the :meth:`chromatic number
+    <sage.graphs.graph.Graph.chromatic_number>` of the :meth:`complement
+    <sage.graphs.generic_graph.GenericGraph.complement>` `\overline{G}` of `G`.
+
+    For more information, see the :wikipedia:`Lovász_number`.
+
+    .. NOTE::
+
+        - Implemented for undirected graphs only. Use to_undirected to convert a
+          digraph to an undirected graph.
+
+        - This function requires the optional package ``csdp``, which you can
+          install with with ``sage -i csdp``.
 
     EXAMPLES::
 
           sage: C=graphs.PetersenGraph()
-          sage: lovasz_theta(C)                             # optional csdp
+          sage: C.lovasz_theta()                             # optional csdp
           4.0
-          sage: lovasz_theta(graphs.CycleGraph(5))          # optional csdp
+          sage: graphs.CycleGraph(5).lovasz_theta()          # optional csdp
           2.236068
 
     TEST::
 
         sage: g = Graph()
-        sage: lovasz_theta(g)
+        sage: g.lovasz_theta() # indirect doctest
         0
     """
     n = graph.order()
@@ -59,7 +69,7 @@ def lovasz_theta(graph):
 
     if not is_package_installed('csdp'):
         raise NotImplementedError("Package csdp is required. Please install it with 'sage -i csdp'.")
- 
+
     g = graph.relabel(inplace=False, perm=range(1,n+1)).networkx_graph()
     tf_name = tmp_filename()
     tf = open(tf_name, 'wb')

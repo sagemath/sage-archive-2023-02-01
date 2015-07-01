@@ -448,6 +448,45 @@ version of the game where individuals can claim integer values between 2
 and 10.  The equilibrium strategy is thus for both players to state that
 the value of their suitcase is 2.
 
+For a given strategy for a player and the opponents payoff matrix, we can
+compute the best responses. In this example we obtaint the best responses for
+Player 2, when Player 1 uses two different strategies::
+
+    sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+    sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+    sage: g = NormalFormGame([A, B])
+    sage: g.best_responses((1/2, 1/2), A)
+    [0, 1, 2]
+    sage: g.best_responses((3/4, 1/4), A)
+    [0]
+
+To get the best responses for Player 2 we have to transpose the payoff
+matrix::
+
+    sage: g.best_responses((4/5, 1/5, 0), B.transpose())
+    [0, 1]
+
+We can show that for the game `Rock-Paper-Scissors-Lizard-Spock
+<http://www.samkass.com/theories/RPSSL.html>`_ any pure strategy has two best
+responses::
+
+    sage: A = matrix([[0, -1, 1, 1, -1],
+    ....:             [1, 0, -1, -1, 1],
+    ....:             [-1, 1, 0, 1 , -1],
+    ....:             [-1, 1, -1, 0, 1],
+    ....:             [1, -1, 1, -1, 0]])
+    sage: g = NormalFormGame([A])
+    sage: g.best_responses((1, 0, 0, 0, 0), A)
+    [1, 4]
+    sage: g.best_responses((0, 1, 0, 0, 0), A)
+    [2, 3]
+    sage: g.best_responses((0, 0, 1, 0, 0), A)
+    [0, 4]
+    sage: g.best_responses((0, 0, 0, 1, 0), A)
+    [0, 2]
+    sage: g.best_responses((0, 0, 0, 0, 1), A)
+    [1, 3]
+
 Note that degenerate games can cause problems for most algorithms.
 The following example in fact has an infinite quantity of equilibria which
 is evidenced by the various algorithms returning different solutions::

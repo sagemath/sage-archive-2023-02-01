@@ -494,6 +494,22 @@ class DiffManifold(TopManifold):
                              "integer")
         else:
             self._diff_degree = diff_degree
+        # Vector frames:
+        self._frames = []  # list of vector frames defined on subsets of self
+        self._top_frames = []  # list of vector frames defined on subsets
+                   # of self that are not subframes of frames on larger subsets
+        self._def_frame = None  # default frame
+        self._coframes = []  # list of coframes defined on subsets of self
+        # List of vector frames that individually cover self, i.e. whose
+        # domains are self (if non-empty, self is parallelizable):
+        self._covering_frames = []
+        self._parallelizable_parts = set() # parallelizable subsets contained
+                                           # in self
+        self._frame_changes = {} # dictionary of changes of frames
+        # Dictionary of vector field modules along self
+        # (keys = diff. map from self to an open set (possibly the identity
+        #  map))
+        self._vector_field_modules = {}
 
     def _repr_(self):
         r"""
@@ -1101,3 +1117,827 @@ class DiffManifold(TopManifold):
         """
         return self._identity_map
 
+#@@
+
+    def vector_field_module(self, dest_map=None, force_free=False):
+        r"""
+        Returns the set of vector fields defined on ``self``, possibly
+        within some ambient manifold, as a module over the algebra of scalar
+        fields defined on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ U \rightarrow V`, where `U` is ``self``
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+          if none is provided, the identity map is assumed (case of vector
+          fields *on* `U`)
+        - ``force_free`` -- (default: False) if set to True, force the
+          construction of a *free* module (this implies that `V` is
+          parallelizable)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
+          (or of
+          :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`
+          if `V` is parallelizable)
+          representing the module `\mathcal{X}(U,\Phi)` of vector fields on the
+          open subset `U`=``self`` taking values on
+          `\Phi(U)\subset V\subset M`.
+
+        EXAMPLES:
+
+        Vector field module `\mathcal{X}(U)` of the complement `U` of the two
+        poles on the sphere `\mathbb{S}^2`::
+
+            sage: S2 = DiffManifold(2, 'S^2')
+            sage: U = S2.open_subset('U')  # the complement of the two poles
+            sage: spher_coord.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
+            sage: XU = U.vector_field_module() ; XU
+            free module X(U) of vector fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: XU.category()
+            Category of modules over algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: XU.base_ring()
+            algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: XU.base_ring() is U.scalar_field_algebra()
+            True
+
+        `\mathcal{X}(U)` is a free module because `U` is parallelizable (being
+        a chart domain)::
+
+            sage: U.is_manifestly_parallelizable()
+            True
+
+        Its rank is the manifold's dimension::
+
+            sage: XU.rank()
+            2
+
+        The elements of `\mathcal{X}(U)` are vector fields on `U`::
+
+            sage: XU.an_element()
+            vector field on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: XU.an_element().display()
+            2 d/dth + 2 d/dph
+
+        Vector field module `\mathcal{X}(U,\Phi)` of the
+        `\mathbb{R}^3`-valued vector fields along `U`, associated with the
+        embedding `\Phi` of `\mathbb{S}^2` into `\mathbb{R}^3`::
+
+            sage: R3 = DiffManifold(3, 'R^3')
+            sage: cart_coord.<x, y, z> = R3.chart()
+            sage: Phi = U.diff_map(R3, [sin(th)*cos(ph), sin(th)*sin(ph), cos(th)], name='Phi')
+            sage: XU_R3 = U.vector_field_module(dest_map=Phi) ; XU_R3
+            free module X(U,Phi) of vector fields along the open subset 'U' of the 2-dimensional manifold 'S^2' mapped into the 3-dimensional manifold 'R^3'
+            sage: XU_R3.base_ring()
+            algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+
+        `\mathcal{X}(U,\mathbb{R}^3)` is a free module because `\mathbb{R}^3`
+        is parallelizable and its rank is 3::
+
+            sage: XU_R3.rank()
+            3
+
+        """
+        from sage.manifolds.differentiable.vectorfield_module import \
+                                       VectorFieldModule, VectorFieldFreeModule
+        if dest_map is None:
+            dest_map = self._identity_map
+        codomain = dest_map._codomain
+        if dest_map not in self._vector_field_modules:
+            if codomain.is_manifestly_parallelizable() or force_free:
+                self._vector_field_modules[dest_map] = \
+                                 VectorFieldFreeModule(self, dest_map=dest_map)
+            else:
+                self._vector_field_modules[dest_map] = \
+                                     VectorFieldModule(self, dest_map=dest_map)
+        return self._vector_field_modules[dest_map]
+
+    def tensor_field_module(self, tensor_type, dest_map=None):
+        r"""
+        Return the set of tensor fields of a given type defined on ``self``,
+        possibly within some ambient manifold, as a module over the algebra of
+        scalar fields defined on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant
+          rank and `l` the covariant rank
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ U \rightarrow V`, where `U` is ``self``
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+          if none is provided, the identity map is assumed (case of tensor
+          fields *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
+          representing the module `\mathcal{T}^{(k,l)}(U,\Phi)` of type-`(k,l)`
+          tensor fields on the open subset `U` = ``self`` taking values on
+          `\Phi(U)\subset V\subset M`.
+
+        EXAMPLE:
+
+        Module of type-(2,1) tensor fields on a 3-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: TU = U.tensor_field_module((2,1)) ; TU
+            free module T^(2,1)(U) of type-(2,1) tensors fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: TU.category()
+            Category of modules over algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: TU.base_ring()
+            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: TU.base_ring() is U.scalar_field_algebra()
+            True
+            sage: TU.an_element()
+            tensor field of type (2,1) on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: TU.an_element().display()
+            2 d/dx*d/dx*dx
+
+        """
+        return self.vector_field_module(dest_map=dest_map).tensor_module(
+                                                                  *tensor_type)
+
+
+    def automorphism_field_group(self, dest_map=None):
+        r"""
+        Return the group of tangent-space automorphism fields defined on
+        ``self``, possibly within some ambient manifold.
+
+        If `U` stands for the open subset ``self`` and `\Phi` is a
+        differentiable mapping `\Phi: U \rightarrow V = \Phi(U) \subset M`,
+        where `M` is a manifold, this method called with ``dest_map``
+        being `\Phi` returns the general linear group
+        `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module
+        `\mathcal{X}(U,\Phi)` of vector fields along `U` with values in
+        `V=\Phi(U)`.
+
+        INPUT:
+
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ U \rightarrow V`, where `U` is ``self``
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+          if none is provided, the identity map is assumed
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
+          (if ``self`` is parallelizable) or of
+          :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
+          (if ``self`` is not parallelizable) representing
+          `\mathrm{GL}(\mathcal{X}(U,\Phi))`
+
+        EXAMPLE:
+
+        """
+        return self.vector_field_module(dest_map=dest_map).general_linear_group()
+
+    def vector_field(self, name=None, latex_name=None, dest_map=None):
+        r"""
+        Define a vector field on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.vectorfield.VectorField` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the vector field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
+          field; if none is provided, the LaTeX symbol is set to ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a vector field *on* ``self``)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+          representing the defined vector field.
+
+        EXAMPLES:
+
+        A vector field on a 3-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: v = U.vector_field('v'); v
+            vector field 'v' on the open subset 'U' of the 3-dimensional manifold 'M'
+
+        Vector fields on `U` form the set `\mathcal{X}(U)`, which is a module
+        over the algebra `C^\infty(U)` of smooth scalar fields on `U`::
+
+            sage: v.parent()
+            free module X(U) of vector fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: v in U.vector_field_module()
+            True
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.vectorfield.VectorField` for more
+        examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)  # the parent
+        return vmodule.element_class(vmodule, name=name, latex_name=latex_name)
+
+    def tensor_field(self, k, l, name=None, latex_name=None, sym=None,
+        antisym=None, dest_map=None):
+        r"""
+        Define a tensor field on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``k`` -- the contravariant rank, the tensor type being (k,l)
+        - ``l`` -- the covariant rank, the tensor type being (k,l)
+        - ``name`` -- (default: ``None``) name given to the tensor field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the tensor
+          field; if none is provided, the LaTeX symbol is set to ``name``
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
+          the tensor arguments: each symmetry is described by a tuple containing
+          the positions of the involved arguments, with the convention position=0
+          for the first argument. For instance:
+
+          * sym=(0,1) for a symmetry between the 1st and 2nd arguments
+          * sym=[(0,2),(1,3,4)] for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
+          among the arguments, with the same convention as for ``sym``.
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a tensor field *on* ``self``)
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          representing the defined tensor field.
+
+        EXAMPLES:
+
+        A tensor field of type (2,0) on a 3-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: U = M.open_subset('U')
+            sage: c_xyz.<x,y,z> = U.chart()
+            sage: t = U.tensor_field(2, 0, 'T'); t
+            tensor field 'T' of type (2,0) on the open subset 'U' of the 3-dimensional manifold 'M'
+
+        Type-(2,0) tensor fields on `U` form the set `\mathcal{T}^{(2,0)}(U)`,
+        which is a module over the algebra `C^\infty(U)` of smooth scalar
+        fields on `U`::
+
+            sage: t.parent()
+            free module T^(2,0)(U) of type-(2,0) tensors fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            sage: t in U.tensor_field_module((2,0))
+            True
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for more
+        examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.tensor((k,l), name=name, latex_name=latex_name, sym=sym,
+                              antisym=antisym)
+
+    def sym_bilin_form_field(self, name=None, latex_name=None, dest_map=None):
+        r"""
+        Define a field of symmetric bilinear forms on ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
+          if none is provided, the LaTeX symbol is set to ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a field of symmetric bilinear forms *on* ``self``)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          of tensor type (0,2) and symmetric representing the defined
+          symmetric bilinear form field.
+
+        EXAMPLE:
+
+        A field of symmetric bilinear forms on a 3-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: t = M.sym_bilin_form_field('T'); t
+            field of symmetric bilinear forms 'T' on the 3-dimensional manifold 'M'
+
+        Such a object is a tensor field of rank 2 and type (0,2)::
+
+            sage: t.parent()
+            free module T^(0,2)(M) of type-(0,2) tensors fields on the 3-dimensional manifold 'M'
+            sage: t._tensor_rank
+            2
+            sage: t._tensor_type
+            (0, 2)
+
+        The LaTeX symbol is deduced from the name or can be specified when
+        creating the object::
+
+            sage: latex(t)
+            T
+            sage: om = M.sym_bilin_form_field('Omega', r'\Omega')
+            sage: latex(om)
+            \Omega
+
+        Components with respect to some vector frame::
+
+            sage: e = M.vector_frame('e') ; M.set_default_frame(e)
+            sage: t.set_comp()
+            Fully symmetric 2-indices components w.r.t. vector frame (M, (e_0,e_1,e_2))
+            sage: type(t.comp())
+            <class 'sage.tensor.modules.comp.CompFullySym'>
+
+        For the default frame, the components are accessed with the
+        square brackets::
+
+            sage: t[0,0], t[0,1], t[0,2] = (1, 2, 3)
+            sage: t[1,1], t[1,2] = (4, 5)
+            sage: t[2,2] = 6
+
+        The other components are deduced by symmetry::
+
+            sage: t[1,0], t[2,0], t[2,1]
+            (2, 3, 5)
+            sage: t[:]
+            [1 2 3]
+            [2 4 5]
+            [3 5 6]
+
+        A symmetric bilinear form acts on vector pairs::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: t = M.sym_bilin_form_field('T')
+            sage: t[0,0], t[0,1], t[1,1] = (-1, x, y*x)
+            sage: v1 = M.vector_field('V_1')
+            sage: v1[:] = (y,x)
+            sage: v2 = M.vector_field('V_2')
+            sage: v2[:] = (x+y,2)
+            sage: s = t(v1,v2) ; s
+            scalar field 'T(V_1,V_2)' on the 2-dimensional manifold 'M'
+            sage: s.expr()
+            x^3 + (3*x^2 + x)*y - y^2
+            sage: s.expr() - t[0,0]*v1[0]*v2[0] - t[0,1]*(v1[0]*v2[1]+v1[1]*v2[0]) - t[1,1]*v1[1]*v2[1]
+            0
+            sage: latex(s)
+            T\left(V_1,V_2\right)
+
+        Adding two symmetric bilinear forms results in another symmetric
+        bilinear form::
+
+            sage: a = M.sym_bilin_form_field()
+            sage: a[0,0], a[0,1], a[1,1] = (1,2,3)
+            sage: b = M.sym_bilin_form_field()
+            sage: b[0,0], b[0,1], b[1,1] = (-1,4,5)
+            sage: s = a + b ; s
+            field of symmetric bilinear forms on the 2-dimensional manifold 'M'
+            sage: s[:]
+            [0 6]
+            [6 8]
+
+        But adding a symmetric bilinear from with a non-symmetric bilinear form
+        results in a generic type (0,2) tensor::
+
+            sage: c = M.tensor_field(0,2)
+            sage: c[:] = [[-2, -3], [1,7]]
+            sage: s1 = a + c ; s1
+            tensor field of type (0,2) on the 2-dimensional manifold 'M'
+            sage: s1[:]
+            [-1 -1]
+            [ 3 10]
+            sage: s2 = c + a ; s2
+            tensor field of type (0,2) on the 2-dimensional manifold 'M'
+            sage: s2[:]
+            [-1 -1]
+            [ 3 10]
+
+        """
+        return self.tensor_field(0, 2, name=name, latex_name=latex_name,
+                                 sym=(0,1))
+
+    def automorphism_field(self, name=None, latex_name=None,
+                           dest_map=None):
+        r"""
+        Define a field of automorphisms (invertible endomorphisms in each
+        tangent space) on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField` for
+        a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the field
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
+          if none is provided, the LaTeX symbol is set to ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of an automorphism field *on* ``self``)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+          (or of
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
+          if the codomain is parallelizable) representing the defined field of
+          automorphisms.
+
+        EXAMPLE:
+
+        A field of automorphisms on a 3-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3,'M')
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: a = M.automorphism_field('A') ; a
+            field of tangent-space automorphisms 'A' on the 3-dimensional
+             manifold 'M'
+            sage: a.parent()
+            General linear group of the free module X(M) of vector fields on
+             the 3-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField` for more
+        examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.automorphism(name=name, latex_name=latex_name)
+
+    def default_frame(self):
+        r"""
+        Return the default vector frame defined on ``self``.
+
+        By 'vector frame' it is meant a field on ``self`` that provides,
+        at each point p, a vector basis of the tangent space at p.
+
+        Unless changed via :meth:`set_default_frame`, the default frame is the
+        first one defined on ``self``, usually implicitely as the coordinate
+        basis associated with the first chart defined on ``self``.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          representing the default vector frame.
+
+        EXAMPLES:
+
+        The default vector frame is often the coordinate frame associated
+        with the first chart defined on ``self``::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: M.default_frame()
+            coordinate frame (M, (d/dx,d/dy))
+
+        """
+        return self._def_frame
+
+    def set_default_frame(self, frame):
+        r"""
+        Changing the default vector frame on ``self``.
+
+        INPUT:
+
+        - ``frame`` -- a vector frame (instance of
+          :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`) defined
+          on ``self``
+
+        EXAMPLE:
+
+        Changing the default frame on a 2-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: e = M.vector_frame('e')
+            sage: M.default_frame()
+            coordinate frame (M, (d/dx,d/dy))
+            sage: M.set_default_frame(e)
+            sage: M.default_frame()
+            vector frame (M, (e_0,e_1))
+
+        """
+        from sage.manifolds.differentiable.vectorframe import VectorFrame
+        if not isinstance(frame, VectorFrame):
+            raise TypeError(str(frame) + " is not a vector frame.")
+        if frame._domain is not self:
+            if self.is_manifestly_parallelizable():
+                raise TypeError("the frame domain must coincide with the " +
+                                str(self))
+            if not frame._domain.is_subset(self):
+                raise TypeError("the frame must be defined on " + str(self))
+        self._def_frame = frame
+        frame._fmodule.set_default_basis(frame)
+
+    def change_of_frame(self, frame1, frame2):
+        r"""
+        Return a change of vector frames defined on ``self``.
+
+        INPUT:
+
+        - ``frame1`` -- vector frame 1
+        - ``frame2`` -- vector frame 2
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+          representing, at each point, the vector space automorphism `P`
+          that relates frame 1, `(e_i)` say, to frame 2, `(n_i)` say,
+          according to `n_i = P(e_i)`
+
+        EXAMPLES:
+
+        Change of vector frames induced by a change of coordinates::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_uv.<u,v> = M.chart()
+            sage: c_xy.transition_map(c_uv, (x+y, x-y))
+            coordinate change from chart (M, (x, y)) to chart (M, (u, v))
+            sage: M.change_of_frame(c_xy.frame(), c_uv.frame())
+            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            sage: M.change_of_frame(c_xy.frame(), c_uv.frame())[:]
+            [ 1/2  1/2]
+            [ 1/2 -1/2]
+            sage: M.change_of_frame(c_uv.frame(), c_xy.frame())
+            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            sage: M.change_of_frame(c_uv.frame(), c_xy.frame())[:]
+            [ 1  1]
+            [ 1 -1]
+            sage: M.change_of_frame(c_uv.frame(), c_xy.frame()) ==  M.change_of_frame(c_xy.frame(), c_uv.frame()).inverse()
+            True
+
+        In the present example, the manifold M is parallelizable, so that the
+        module X(M) of vector fields on M is free. A change of frame on M is
+        then identical to a change of basis in X(M)::
+
+            sage: XM = M.vector_field_module() ; XM
+            free module X(M) of vector fields on the 2-dimensional manifold 'M'
+            sage: XM.print_bases()
+            Bases defined on the free module X(M) of vector fields on the 2-dimensional manifold 'M':
+             - (M, (d/dx,d/dy)) (default basis)
+             - (M, (d/du,d/dv))
+            sage: XM.change_of_basis(c_xy.frame(), c_uv.frame())
+            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            sage: M.change_of_frame(c_xy.frame(), c_uv.frame()) is XM.change_of_basis(c_xy.frame(), c_uv.frame())
+            True
+
+        """
+        if (frame1, frame2) not in self._frame_changes:
+            raise TypeError("The change of frame from '" + repr(frame1) +
+                            "' to '" + repr(frame2) + "' has not been " +
+                            "defined on the " + repr(self))
+        return self._frame_changes[(frame1, frame2)]
+
+
+    def set_change_of_frame(self, frame1, frame2, change_of_frame,
+                         compute_inverse=True):
+        r"""
+        Relates two vector frames by an automorphism.
+
+        This updates the internal dictionary ``self._frame_changes``.
+
+        INPUT:
+
+        - ``frame1`` -- frame 1, denoted `(e_i)`  below
+        - ``frame2`` -- frame 2, denoted `(f_i)`  below
+        - ``change_of_frame`` -- instance of class
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
+          describing the automorphism `P` that relates the basis `(e_i)` to
+          the basis `(f_i)` according to `f_i = P(e_i)`
+        - ``compute_inverse`` (default: True) -- if set to True, the inverse
+          automorphism is computed and the change from basis `(f_i)` to `(e_i)`
+          is set to it in the internal dictionary ``self._frame_changes``
+
+        EXAMPLE:
+
+        Connecting two vector frames on a 2-dimensional manifold::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: e = M.vector_frame('e')
+            sage: f = M.vector_frame('f')
+            sage: a = M.automorphism_field()
+            sage: a[e,:] = [[1,2],[0,3]]
+            sage: M.set_change_of_frame(e, f, a)
+            sage: f[0].display(e)
+            f_0 = e_0
+            sage: f[1].display(e)
+            f_1 = 2 e_0 + 3 e_1
+            sage: e[0].display(f)
+            e_0 = f_0
+            sage: e[1].display(f)
+            e_1 = -2/3 f_0 + 1/3 f_1
+            sage: M.change_of_frame(e,f)[e,:]
+            [1 2]
+            [0 3]
+
+        """
+        from sage.manifolds.differentiable.automorphismfield import \
+                                                         AutomorphismFieldParal
+        fmodule = frame1._fmodule
+        if frame2._fmodule != fmodule:
+            raise ValueError("The two frames are not defined on the same " +
+                             "vector field module.")
+        if not isinstance(change_of_frame, AutomorphismFieldParal):
+            raise TypeError("The argument change_of_frame must be some " +
+                            "instance of AutomorphismFieldParal.")
+        fmodule.set_change_of_basis(frame1, frame2, change_of_frame,
+                                    compute_inverse=compute_inverse)
+        for sdom in self._supersets:
+            sdom._frame_changes[(frame1, frame2)] = change_of_frame
+        if compute_inverse:
+            if (frame2, frame1) not in self._frame_changes:
+                for sdom in self._supersets:
+                    sdom._frame_changes[(frame2, frame1)] = \
+                                                      change_of_frame.inverse()
+    def vector_frame(self, symbol=None, latex_symbol=None, dest_map=None,
+                     from_frame=None):
+        r"""
+        Define a vector frame on ``self``.
+
+        A *vector frame* is a field on ``self`` that provides, at each point
+        p of ``self``, a vector basis of the tangent space at p.
+
+        See :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame` for a
+        complete documentation.
+
+        INPUT:
+
+        - ``symbol`` -- (default: ``None``) a letter (of a few letters) to denote a
+          generic vector of the frame; can be set to ``None`` if the parameter
+          ``from_frame`` is filled.
+        - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic vector
+          of the frame; if None, the value of ``symbol`` is used.
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ U \rightarrow V`
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+          if none is provided, the identity is assumed (case of a vector frame
+          *on* `U`)
+        - ``from_frame`` -- (default: ``None``) vector frame `\tilde e` on the
+          codomain `V` of the destination map `\Phi`; the returned frame `e` is
+          then such that `\forall p \in U, e(p) = \tilde e(\Phi(p))`
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`
+          representing the defined vector frame.
+
+        EXAMPLES:
+
+        Setting a vector frame on a 3-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
+            open subset 'A' of the 3-dimensional manifold 'M'
+            sage: c_xyz.<x,y,z> = A.chart()
+            sage: e = A.vector_frame('e'); e
+            vector frame (A, (e_0,e_1,e_2))
+            sage: e[0]
+            vector field 'e_0' on the open subset 'A' of the 3-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame` for more
+        examples.
+
+        """
+        from sage.manifolds.differentiable.vectorframe import VectorFrame
+        return VectorFrame(self.vector_field_module(dest_map=dest_map,
+                                                    force_free=True),
+                           symbol=symbol, latex_symbol=latex_symbol,
+                           from_frame=from_frame)
+
+    def _set_covering_frame(self, frame):
+        r"""
+        Declare a frame covering ``self``.
+        """
+        self._covering_frames.append(frame)
+        self._parallelizable_parts = set([self])
+        # if self cotained smaller parallelizable parts, they are forgotten
+        for sd in self._supersets:
+            if not sd.is_manifestly_parallelizable():
+                sd._parallelizable_parts.add(self)
+
+
+    def frames(self):
+        r"""
+        Return the list of vector frames defined on open subsets of the
+        manifold.
+
+        OUTPUT:
+
+        - list of vector frames defined on open subsets of the manifold.
+
+        EXAMPLES:
+
+        Vector frames on subsets of `\RR^2`::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'R^2')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: M.frames()
+            [coordinate frame (R^2, (d/dx,d/dy))]
+            sage: e = M.vector_frame('e')
+            sage: M.frames()
+            [coordinate frame (R^2, (d/dx,d/dy)), vector frame (R^2, (e_0,e_1))]
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # Unit disk
+            sage: U.frames()
+            [coordinate frame (U, (d/dx,d/dy))]
+            sage: M.frames()
+            [coordinate frame (R^2, (d/dx,d/dy)),
+             vector frame (R^2, (e_0,e_1)),
+             coordinate frame (U, (d/dx,d/dy))]
+
+        """
+        return self._frames
+
+    def coframes(self):
+        r"""
+        Return the list of coframes defined on subsets of ``self``.
+
+        OUTPUT:
+
+        - list of coframes defined on open subsets of ``self``.
+
+        EXAMPLES:
+
+        Coframes on subsets of `\RR^2`::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'R^2')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: M.coframes()
+            [coordinate coframe (R^2, (dx,dy))]
+            sage: e = M.vector_frame('e')
+            sage: M.coframes()
+            [coordinate coframe (R^2, (dx,dy)), coframe (R^2, (e^0,e^1))]
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}) # Unit disk
+            sage: U.coframes()
+            [coordinate coframe (U, (dx,dy))]
+            sage: e.restrict(U)
+            vector frame (U, (e_0,e_1))
+            sage: U.coframes()
+            [coordinate coframe (U, (dx,dy)), coframe (U, (e^0,e^1))]
+            sage: M.coframes()
+            [coordinate coframe (R^2, (dx,dy)),
+             coframe (R^2, (e^0,e^1)),
+             coordinate coframe (U, (dx,dy)),
+             coframe (U, (e^0,e^1))]
+
+        """
+        return self._coframes
+
+    def changes_of_frame(self):
+        r"""
+        Return the changes of vector frames defined on ``self``.
+        """
+        return self._frame_changes
+
+    def is_manifestly_parallelizable(self):
+        r"""
+        Return ``True`` if the manifold is known to be a parallelizable and
+        ``False`` otherwise.
+
+        If ``False`` is returned, either the manifold is not parallelizable or
+        no vector frame has been defined on it yet.
+        """
+        return not self._covering_frames == []

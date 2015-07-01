@@ -35,6 +35,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.manifolds.chart import Chart, RealChart, CoordChange
+from sage.manifolds.differentiable.vectorframe import CoordFrame
 
 class DiffChart(Chart):
     r"""
@@ -244,7 +245,9 @@ class DiffChart(Chart):
 
         """
         Chart.__init__(self, domain, coordinates=coordinates, names=names)
-
+        # Construction of the coordinate frame associated to the chart:
+        self._frame = CoordFrame(self)
+        self._coframe = self._frame._coframe
 
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
@@ -375,10 +378,166 @@ class DiffChart(Chart):
                 transformations = [transformations]
         return DiffCoordChange(chart1, chart2, *transformations)
 
+    def frame(self):
+        r"""
+        Return the vector frame (coordinate frame) associated with the chart.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.geometry.manifolds.vectorframe.CoordFrame`
+          representing the coordinate frame.
+
+        EXAMPLE:
+
+        Coordinate frame associated with some chart on a 2-dimensional
+        manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_xy.frame()
+            coordinate frame (M, (d/dx,d/dy))
+            sage: type(c_xy.frame())
+            <class 'sage.geometry.manifolds.vectorframe.CoordFrame'>
+
+        Check that c_xy.frame() is indeed the coordinate frame associated with
+        (x,y)::
+
+            sage: ex = c_xy.frame()[0] ; ex
+            vector field 'd/dx' on the 2-dimensional manifold 'M'
+            sage: ey = c_xy.frame()[1] ; ey
+            vector field 'd/dy' on the 2-dimensional manifold 'M'
+            sage: ex(M.scalar_field(x)).display()
+            M --> R
+            (x, y) |--> 1
+            sage: ex(M.scalar_field(y)).display()
+            M --> R
+            (x, y) |--> 0
+            sage: ey(M.scalar_field(x)).display()
+            M --> R
+            (x, y) |--> 0
+            sage: ey(M.scalar_field(y)).display()
+            M --> R
+            (x, y) |--> 1
+
+        """
+        return self._frame
+
+    def coframe(self):
+        r"""
+        Return the coframe (basis of coordinate differentials) associated
+        with the chart.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.geometry.manifolds.vectorframe.CoordCoFrame`
+          representing the coframe.
+
+        EXAMPLE:
+
+        Coordinate coframe associated with some chart on a 2-dimensional
+        manifold::
+
+            sage: M = Manifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: c_xy.coframe()
+            coordinate coframe (M, (dx,dy))
+            sage: type(c_xy.coframe())
+            <class 'sage.geometry.manifolds.vectorframe.CoordCoFrame'>
+
+        Check that c_xy.coframe() is indeed the coordinate coframe associated
+        with (x,y)::
+
+            sage: dx = c_xy.coframe()[0] ; dx
+            1-form 'dx' on the 2-dimensional manifold 'M'
+            sage: dy = c_xy.coframe()[1] ; dy
+            1-form 'dy' on the 2-dimensional manifold 'M'
+            sage: ex = c_xy.frame()[0] ; ex
+            vector field 'd/dx' on the 2-dimensional manifold 'M'
+            sage: ey = c_xy.frame()[1] ; ey
+            vector field 'd/dy' on the 2-dimensional manifold 'M'
+            sage: dx(ex).display()
+             dx(d/dx): M --> R
+               (x, y) |--> 1
+            sage: dx(ey).display()
+            dx(d/dy): M --> R
+               (x, y) |--> 0
+            sage: dy(ex).display()
+            dy(d/dx): M --> R
+               (x, y) |--> 0
+            sage: dy(ey).display()
+            dy(d/dy): M --> R
+               (x, y) |--> 1
+
+        """
+        return self._coframe
+
+    def restrict(self, subset, restrictions=None):
+        r"""
+        Return the restriction of the chart to some subset.
+
+        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
+        is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
+
+        If such subchart has not been defined yet, it is constructed here.
+
+        The coordinates of the subchart bare the same names as the coordinates
+        of the mother chart.
+
+        INPUT:
+
+        - ``subset`` -- open subset `V` of the chart domain `U`
+        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
+          defining the subset `V`.
+          A restriction can be any symbolic equality or
+          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
+          The items of the list ``restrictions`` are combined with the ``and``
+          operator; if some restrictions are to be combined with the ``or``
+          operator instead, they have to be passed as a tuple in some single
+          item of the list ``restrictions``. For example, ``restrictions``
+          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
+          and (z^2<x). If the list ``restrictions`` contains only one item,
+          this item can be passed as such, i.e. writing x>y instead of the
+          single element list [x>y]. Note that the argument ``restrictions``
+          can be omitted if the subchart has been already initialized by a
+          previous call.
+
+        OUTPUT:
+
+        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+
+        EXAMPLES:
+
+        Coordinates on the unit open ball of  `\CC^2` as a subchart
+        of the global coordinates of `\CC^2`::
+
+            sage: M = DiffManifold(2, 'C^2', field='complex')
+            sage: X.<z1, z2> = M.chart()
+            sage: B = M.open_subset('B')
+            sage: X_B = X.restrict(B, abs(z1)^2 + abs(z2)^2 < 1); X_B
+            Chart (B, (z1, z2))
+
+        """
+        if subset == self._domain:
+            return self
+        if subset not in self._dom_restrict:
+            resu = Chart.restrict(self, subset, restrictions=restrictions)
+            # Update of superframes and subframes:
+            resu._frame._superframes.update(self._frame._superframes)
+            for sframe in self._frame._superframes:
+                sframe._subframes.add(resu._frame)
+                sframe._restrictions[subset] = resu._frame
+            # The subchart frame is not a "top frame" in the supersets
+            # (including self._domain):
+            for dom in self._domain._supersets:
+                if resu._frame in dom._top_frames:
+                    # it was added by the Chart constructor invoked in
+                    # Chart.restrict above
+                    dom._top_frames.remove(resu._frame)
+        return self._dom_restrict[subset]
 
 #*****************************************************************************
 
-class RealDiffChart(RealChart, DiffChart):
+class RealDiffChart(DiffChart, RealChart):
     r"""
     Chart on a differentiable manifold over `\RR`.
 
@@ -624,7 +783,89 @@ class RealDiffChart(RealChart, DiffChart):
 
         """
         RealChart.__init__(self, domain, coordinates=coordinates, names=names)
-        #!# vector frame shall be initialized here
+        # Construction of the coordinate frame associated to the chart:
+        self._frame = CoordFrame(self)
+        self._coframe = self._frame._coframe
+
+
+    def restrict(self, subset, restrictions=None):
+        r"""
+        Return the restriction of ``self`` to some subset.
+
+        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
+        is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
+
+        If such subchart has not been defined yet, it is constructed here.
+
+        The coordinates of the subchart bare the same names as the coordinates
+        of the mother chart.
+
+        INPUT:
+
+        - ``subset`` -- open subset `V` of the chart domain `U`
+        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
+          defining the subset `V`.
+          A restriction can be any symbolic equality or
+          inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
+          The items of the list ``restrictions`` are combined with the ``and``
+          operator; if some restrictions are to be combined with the ``or``
+          operator instead, they have to be passed as a tuple in some single
+          item of the list ``restrictions``. For example, ``restrictions``
+          being [x>y, (x!=0, y!=0), z^2<x] means (x>y) and ((x!=0) or (y!=0))
+          and (z^2<x). If the list ``restrictions`` contains only one item,
+          this item can be passed as such, i.e. writing x>y instead of the
+          single element list [x>y]. Note that the argument ``restrictions``
+          can be omitted if the subchart has been already initialized by a
+          previous call.
+
+        OUTPUT:
+
+        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+
+        EXAMPLES:
+
+        Cartesian coordinates on the unit open disc in `\RR^2` as a subchart
+        of the global Cartesian coordinates::
+
+            sage: M = DiffManifold(2, 'R^2')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: D = M.open_subset('D') # the unit open disc
+            sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)
+            sage: p = M.point((1/2, 0))
+            sage: p in D
+            True
+            sage: q = M.point((1, 2))
+            sage: q in D
+            False
+
+        Cartesian coordinates on the annulus `1<\sqrt{x^2+y^2}<2`::
+
+            sage: A = M.open_subset('A')
+            sage: c_cart_A = c_cart.restrict(A, [x^2+y^2>1, x^2+y^2<4])
+            sage: p in A, q in A
+            (False, False)
+            sage: a = M.point((3/2,0))
+            sage: a in A
+            True
+
+        """
+        if subset == self._domain:
+            return self
+        if subset not in self._dom_restrict:
+            resu = RealChart.restrict(self, subset, restrictions=restrictions)
+            # Update of superframes and subframes:
+            resu._frame._superframes.update(self._frame._superframes)
+            for sframe in self._frame._superframes:
+                sframe._subframes.add(resu._frame)
+                sframe._restrictions[subset] = resu._frame
+            # The subchart frame is not a "top frame" in the supersets
+            # (including self._domain):
+            for dom in self._domain._supersets:
+                if resu._frame in dom._top_frames:
+                    # it was added by the Chart constructor invoked in
+                    # Chart.restrict above
+                    dom._top_frames.remove(resu._frame)
+        return self._dom_restrict[subset]
 
 #*****************************************************************************
 

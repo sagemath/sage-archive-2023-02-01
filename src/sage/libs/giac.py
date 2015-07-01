@@ -1,10 +1,10 @@
 from sage.structure.proof.all import polynomial as proof_polynomial
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
-def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
 
-    if not (isinstance(gens,list)):
-        raise ValueError("Fisrt argument must be a list")
+def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
+    """
+    """
     try:
        from giacpy import libgiac,giacsettings
 

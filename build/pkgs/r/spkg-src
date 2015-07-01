@@ -8,5 +8,6 @@ SOURCE_TARBALL=R-$VERSION.tar.gz
 set -e
 
 wget http://cran.r-project.org/src/base/R-3/$SOURCE_TARBALL
+mv $SOURCE_TARBALL $SAGE_ROOT/upstream/$TARGET_TARBALL
 
 sage -sh 'sage-fix-pkg-checksums'

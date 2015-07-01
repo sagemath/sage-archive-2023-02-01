@@ -131,8 +131,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     The output is a pair ``[average_clustering_coefficient, clust_of_v]``, where
     ``average_clustering_coefficient`` is the average clustering of the vertices
     in variable ``vertices``, ``clust_of_v`` is a dictionary that associates to
-    each vertex (stored as an integer) its clustering coefficient. If
-    ``vertices`` is ``None``, all vertices are considered.
+    each vertex (stored as an integer) its clustering coefficient.
     """
     cdef result_cc result
     cdef dict clust_of_v

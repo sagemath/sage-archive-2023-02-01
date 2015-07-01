@@ -4576,7 +4576,7 @@ class GenericGraph(GenericGraph_pyx):
           original version is recursive. We emulate the recursion using a stack.
 
         .. SEEALSO::
-            
+
             :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
@@ -4730,7 +4730,7 @@ class GenericGraph(GenericGraph_pyx):
         type `B`.
 
         .. SEEALSO::
-        
+
             :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
@@ -13939,10 +13939,10 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
@@ -14087,10 +14087,10 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`breadth_first_search`
-    
+
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
 
@@ -15292,7 +15292,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [0.833..., 0.543...],
              ('1', 0): [1.12..., -0.830...],
              ('1', 1): [2.50..., -0.545...]}
-        
+
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
              ('0', 1): [0.3..., 1],
@@ -15304,7 +15304,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [1.61..., 0.260..., -0.927...],
              ('1', 0): [0.674..., -0.528..., -0.343...],
              ('1', 1): [1.07..., -0.260..., 0.927...]}
-             
+
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options

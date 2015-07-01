@@ -1,5 +1,4 @@
 from sage.structure.proof.all import polynomial as proof_polynomial
-from sage.misc.sage_eval import sage_eval
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
 
 def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
@@ -46,12 +45,4 @@ def groebner_basis_libgiac(gens, epsilon=None, prot=False, *args, **kwds):
     # compute de groebner basis with giac
     gb_giac = F.gbasis([P.gens()], "revlex")
 
-    # TODO: we shouldn't use string parsing here
-    #gens_dict = P.gens_dict()
-    #gb = []
-    #for f in gb_giac:
-    #    gb.append(sage_eval(str(f), gens_dict))
-    #
-    #return PolynomialSequence( P, gb)
-    # ?why not (it seems faster was your method better for ram?):
     return PolynomialSequence( gb_giac, P ) # should it be , immutable=True ?

@@ -13,7 +13,8 @@ We can then immediately obtain the Nash equilibrium for this game::
     [[(0, 1), (0, 1)]]
 
 When we test whether the game is actually the one in question, sometimes we will
-build a dictionary to test it, since this can be platform-dependent, like so::
+build a dictionary to test it, since the printed representation can be
+platform-dependent, like so::
 
     sage: d = {(0, 0): [-2, -2], (0, 1): [-5, 0], (1, 0): [0, -5], (1, 1): [-4, -4]}
     sage: g == d

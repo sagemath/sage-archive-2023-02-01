@@ -1086,7 +1086,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.copy(immutable=False)
 
-    def export_to_file(self, filename, format=None):
+    def export_to_file(self, filename, format=None, **kwds):
         r"""
         Export the graph to a file.
 
@@ -1099,6 +1099,24 @@ class GenericGraph(GenericGraph_pyx):
           ``filename``. Admissible formats are: ``adjlist``, ``dot``,
           ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
           ``pajek``, ``yaml``.
+
+        - All other arguments are forwarded to the subfunction. For more
+          information, see their respective documentation:
+
+          .. csv-table::
+              :class: contentstable
+              :widths: 30, 70
+              :delim: |
+
+              ``adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.adjlist.write_adjlist.html
+              ``dot`` | https://networkx.github.io/documentation/latest/reference/generated/networkx.drawing.nx_pydot.write_dot.html
+              ``edgelist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.edgelist.write_edgelist.html
+              ``gexf`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gexf.write_gexf.html
+              ``gml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gml.write_gml.html
+              ``graphml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.graphml.write_graphml.html
+              ``multiline_adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.multiline_adjlist.write_multiline_adjlist.html
+              ``pajek`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.pajek.write_pajek.html
+              ``yaml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.nx_yaml.write_yaml.html
 
         .. SEEALSO::
 
@@ -1154,7 +1172,7 @@ class GenericGraph(GenericGraph_pyx):
         if format not in formats:
             raise ValueError("Format '{}' unknown.".format(format))
 
-        formats[format](self.networkx_graph(),filename)
+        formats[format](self.networkx_graph(),filename,**kwds)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""

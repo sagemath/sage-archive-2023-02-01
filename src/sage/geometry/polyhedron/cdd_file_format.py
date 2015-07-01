@@ -107,7 +107,7 @@ def cdd_Hrepresentation(cdd_type, ieqs, eqns, file_output=None):
 
         sage: from sage.misc.temporary_file import tmp_filename
         sage: filename = tmp_filename() + '.ine'
-        sage: cdd_Vrepresentation('rational', [[0,0]], [[1,0]], [[0,1]], file_output=filename)
+        sage: cdd_Hrepresentation('rational', None, [[0,1]], file_output=filename)
     """
     ieqs = _set_to_None_if_empty(ieqs)
     eqns  = _set_to_None_if_empty(eqns)

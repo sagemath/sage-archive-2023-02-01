@@ -30,7 +30,7 @@ import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
@@ -159,7 +159,7 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, map(Set, s))
+        ClonableArray.__init__(self, parent, [Set(_) for _ in s])
 
     def check(self):
         """
@@ -189,7 +189,7 @@ class OrderedSetPartition(ClonableArray):
             sage: y.to_composition()
             [2, 1, 2]
         """
-        return Composition(map(len, self))
+        return Composition([len(_) for _ in self])
 
 class OrderedSetPartitions(Parent, UniqueRepresentation):
     """
@@ -501,7 +501,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and map(len, x) == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
 
     def cardinality(self):
         r"""

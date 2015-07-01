@@ -19,6 +19,7 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement
@@ -37,9 +38,6 @@ from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
-
-cdef extern from "sage/libs/pari/misc.h":
-    int gcmp_sage(GEN x, GEN y)
 
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
@@ -384,7 +382,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         x.construct(self.val)
         return x
 
-    cdef int _cmp_c_impl(FiniteFieldElement_pari_ffelt self, Element other) except -2:
+    cpdef int _cmp_(FiniteFieldElement_pari_ffelt self, Element other) except -2:
         """
         Comparison of finite field elements.
 
@@ -402,7 +400,11 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             sage: a > a^2
             False
         """
-        return gcmp_sage(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        cdef int r
+        pari_catch_sig_on()
+        r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
+        pari_catch_sig_off()
+        return r
 
     def __richcmp__(FiniteFieldElement_pari_ffelt left, object right, int op):
         """
@@ -638,7 +640,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         """
         if exp == 0:
-            return self._parent.one_element()
+            return self._parent.one()
         if exp < 0 and FF_equal0(self.val):
             raise ZeroDivisionError
         exp = Integer(exp)._pari_()

@@ -37,10 +37,11 @@ AUTHORS:
 #*****************************************************************************
 
 import operator
+import six
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, parent
 
 import sage.misc.sage_eval
 
@@ -59,6 +60,7 @@ class Interface(ParentWithBase):
         self.__coerce_name = '_' + name.lower() + '_'
         self.__seq = -1
         self._available_vars = []
+        self._seed = None
         ParentWithBase.__init__(self, self)
 
     def _repr_(self):
@@ -66,6 +68,74 @@ class Interface(ParentWithBase):
 
     def name(self, new_name=None):
         return self.__name
+
+    def get_seed(self):
+        """
+        Returns the seed used to set the random
+        number generator in this interface.
+        The seed is initialized as None
+        but should be set when the interface starts.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(107)
+            107
+            sage: s.get_seed()
+            107
+        """
+        return self._seed
+
+    def rand_seed(self):
+        """
+        Returns a random seed that can be
+        put into set_seed function for
+        any interpreter.
+        This should be overridden if
+        the particular interface needs something
+        other than a small positive integer.
+
+        EXAMPLES::
+            from sage.misc.random_testing import random_testing
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.rand_seed() # random
+            318491487L
+
+            sage: s = Singular()
+            sage: s.rand_seed() # random
+            365260051L
+        """
+        from sage.misc.randstate import randstate
+        return long(randstate().seed()&0x1FFFFFFF)
+
+    def set_seed(self,seed = None):
+        """
+        Sets the random seed for the interpreter
+        and returns the new value of the seed.
+        This is dependent on which interpreter
+        so must be implemented in each
+        separately. For examples see
+        gap.py or singular.py.
+        If seed is None then should generate
+        a random seed.
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(1)
+            1
+            sage: [s.random(1,10) for i in range(5)]
+            [8, 10, 4, 9, 1]
+
+            sage: from sage.interfaces.interface import Interface
+            sage: i = Interface("")
+            sage: i.set_seed()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This interpreter did not implement a set_seed function
+        """
+        raise NotImplementedError("This interpreter did not implement a set_seed function")
 
     def interact(self):
         r"""
@@ -97,9 +167,6 @@ class Interface(ParentWithBase):
     def _post_interact(self):
         pass
 
-    def __del__(self):
-        pass
-
     def cputime(self):
         """
         CPU time since this process started running.
@@ -115,7 +182,7 @@ class Interface(ParentWithBase):
             sage: f.write('x = 2\n')
             sage: f.close()
             sage: octave.read(filename)  # optional - octave
-            sage: octave.get('x')        #optional
+            sage: octave.get('x')        # optional - octave
             ' 2'
             sage: import os
             sage: os.unlink(filename)
@@ -125,34 +192,8 @@ class Interface(ParentWithBase):
     def _read_in_file_command(self, filename):
         raise NotImplementedError
 
-    def eval(self, code, locals=None, **kwds):
-        """
-        INPUT:
-
-
-        -  ``code`` - text to evaluate
-
-        - ``locals`` - None (ignored); this is used for compatibility with the
-          Sage notebook's generic system interface.
-
-        -  ``**kwds`` - All other arguments are passed onto
-           the _eval_line method. An often useful example is
-           reformat=False.
-        """
-
-        if not isinstance(code, basestring):
-            raise TypeError('input code must be a string.')
-
-        #Remove extra whitespace
-        code = code.strip()
-
-        try:
-            pass
-        # DO NOT CATCH KeyboardInterrupt, as it is being caught
-        # by _eval_line
-        # In particular, do NOT call self._keyboard_interrupt()
-        except TypeError as s:
-            raise TypeError('error evaluating "%s":\n%s'%(code,s))
+    def eval(self, code, **kwds):
+        raise NotImplementedError
 
     _eval_line = eval
 
@@ -195,20 +236,20 @@ class Interface(ParentWithBase):
             except (NotImplementedError, TypeError):
                 pass
 
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             return cls(self, x, name=name)
         try:
             return self._coerce_from_special_method(x)
         except TypeError:
             raise
-        except AttributeError as msg:
+        except AttributeError:
             pass
         try:
             return self._coerce_impl(x, use_special=False)
         except TypeError as msg:
             try:
                 return cls(self, str(x), name=name)
-            except TypeError as msg2:
+            except TypeError:
                 raise TypeError(msg)
 
     def _coerce_from_special_method(self, x):
@@ -238,7 +279,7 @@ class Interface(ParentWithBase):
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
-            except AttributeError as msg:
+            except AttributeError:
                 pass
 
         if isinstance(x, (list, tuple)):
@@ -876,8 +917,10 @@ class InterfaceElement(RingElement):
         except AttributeError:
             s = self.parent().get(self._name)
         if s.__contains__(self._name):
-            if hasattr(self, '__custom_name'):
-                s =  s.replace(self._name, self.__dict__['__custom_name'])
+            try:
+                s = s.replace(self._name, self.__custom_name)
+            except AttributeError:
+                pass
         return s
 
     def __getattr__(self, attrname):
@@ -1140,7 +1183,7 @@ class InterfaceElement(RingElement):
             2^(3/4)
         """
         P = self._check_valid()
-        if not hasattr(n, 'parent') or P is not n.parent():
+        if parent(n) is not P:
             n = P(n)
         return self._operation("^", n)
 

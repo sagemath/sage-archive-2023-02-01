@@ -17,15 +17,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/libs/pari/decl.pxi"
-include "sage/ext/gmp.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.mpz cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.fast_arith import prime_range
 from sage.structure.factorization_integer import IntegerFactorization
 from math import floor
-from sage.misc.superseded import deprecated_function_alias
 from sage.misc.misc_c import prod
 
 cdef extern from "limits.h":
@@ -124,7 +122,7 @@ cpdef aurifeuillian(n, m, F=None, bint check=True):
 
 cpdef factor_aurifeuillian(n, check=True):
     r"""
-    Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pw 1`
+    Return Aurifeuillian factors of `n` if `n = x^{(2k-1)x} \pm 1`
     (where the sign is '-' if x = 1 mod 4, and '+' otherwise) else `n`
 
     INPUT:

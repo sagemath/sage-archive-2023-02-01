@@ -165,6 +165,7 @@ class Gp(Expect):
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int, default random) -- random number generator seed for pari
 
         EXAMPLES::
 
@@ -176,7 +177,8 @@ class Gp(Expect):
                  logfile=None,
                  server=None,
                  server_tmpdir=None,
-                 init_list_length=1024):
+                 init_list_length=1024,
+                 seed=None):
         """
         Initialization of this PARI gp interpreter.
 
@@ -190,6 +192,7 @@ class Gp(Expect):
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int,default random nonzero 31 bit integer) -- value of random seed
 
         EXAMPLES::
 
@@ -199,7 +202,8 @@ class Gp(Expect):
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
-                        command = "gp --emacs --quiet --stacksize %s"%stacksize,
+                        # --fast so the system gprc isn't read (we configure below)
+                        command = "gp --fast --emacs --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -211,7 +215,43 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
+        self._seed = seed
 
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for gp interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gp()
+            sage: g.set_seed(1)
+            1
+            sage: [g.random() for i in range(5)]
+            [1546275796, 879788114, 1745191708, 771966234, 1247963869]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("setrand(%d)" % seed)
+        self._seed = seed
+        return seed
+
+    def _start(self, alt_message=None, block_during_init=True):
+        Expect._start(self, alt_message, block_during_init)
+        # disable timer
+        self._eval_line('default(timer,0);')
+        # disable the break loop, otherwise gp will seem to hang on errors
+        self._eval_line('default(breakloop,0);')
+        # list of directories where gp will look for scripts (only current working directory)
+        self._eval_line('default(path,".");')
+        # location of elldata, seadata, galdata
+        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
+        # executable for gp ?? help
+        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        # logfile disabled since Expect already logs
+        self._eval_line('default(log,0);')
+        # set random seed
+        self.set_seed(self._seed)
 
     def _repr_(self):
         """
@@ -603,25 +643,22 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
-    def quit(self, verbose=False, timeout=0.25):
+    def _reset_expect(self):
         """
-        Terminate the GP process.
+        Reset state of the GP interface.
 
         EXAMPLES::
 
             sage: a = gp('10'); a
             10
-            sage: gp.quit()
+            sage: gp.quit()  # indirect doctest
             sage: a
-            Traceback (most recent call last):
-            ...
-            ValueError: The pari session in which this object was defined is no longer running.
-            sage: gp(pi)
-            3.1415926535897932384626433832795028842    # 64-bit
-            3.141592653589793238462643383              # 32-bit
+            <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+            sage: gp("30!")
+            265252859812191058636308480000000
         """
         self.__var_store_len = 0
-        Expect.quit(self, verbose=verbose, timeout=timeout)
+        Expect._reset_expect(self)
 
     def console(self):
         """
@@ -999,11 +1036,8 @@ def is_GpElement(x):
     """
     return isinstance(x, GpElement)
 
-from sage.env import DOT_SAGE, SAGE_ETC
+from sage.env import DOT_SAGE
 import os
-
-# Set GPRC environment variable to $SAGE_ETC/gprc.expect
-os.environ["GPRC"] = os.path.join(SAGE_ETC, 'gprc.expect')
 
 # An instance
 gp = Gp(logfile=os.path.join(DOT_SAGE,'gp-expect.log')) # useful for debugging!

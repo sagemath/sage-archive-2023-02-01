@@ -522,7 +522,6 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: from sage.misc.misc import SAGE_LOCAL
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
     'SINGULAR .../local/bin\n'
 
@@ -540,14 +539,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.misc
+from sage.env import SAGE_LOCAL
 import pexpect
 import re
 import sys
 
 from sage.misc.flatten import flatten
 from sage.misc.sage_eval import sage_eval
-from sage.misc.preparser import implicit_mul
+from sage.repl.preparse import implicit_mul
 
 from expect import Expect, ExpectFunction, AsciiArtString
 
@@ -560,7 +559,6 @@ def _qepcad_cmd(memcells=None):
     EXAMPLES::
 
         sage: from sage.interfaces.qepcad import _qepcad_cmd
-        sage: from sage.misc.misc import SAGE_LOCAL
         sage: s = _qepcad_cmd()
         sage: s == 'env qe=%s qepcad '%SAGE_LOCAL
         True
@@ -572,7 +570,7 @@ def _qepcad_cmd(memcells=None):
         memcells_arg = '+N%s' % memcells
     else:
         memcells_arg = ''
-    return "env qe=%s qepcad %s"%(sage.misc.misc.SAGE_LOCAL, memcells_arg)
+    return "env qe=%s qepcad %s"%(SAGE_LOCAL, memcells_arg)
 
 _command_info_cache = None
 
@@ -597,7 +595,7 @@ def _update_command_info():
 
     cache = {}
 
-    with open('%s/bin/qepcad.help'%sage.misc.misc.SAGE_LOCAL) as help:
+    with open('%s/bin/qepcad.help'%SAGE_LOCAL) as help:
         assert(help.readline().strip() == '@')
 
         while True:
@@ -853,7 +851,7 @@ class Qepcad:
             sage: var('x,y')
             (x, y)
             sage: qf = qepcad_formula
-            sage: qe = qepcad(qf.and_(x^2 + y^2 - 3 == 0, x + y > 0), interact=True) # optional
+            sage: qe = qepcad(qf.and_(x^2 + y^2 - 3 == 0, x + y > 0), interact=True) # optional - qepcad
             sage: qe.go(); qe.go(); qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
@@ -921,15 +919,15 @@ class Qepcad:
             sage: qe = qepcad(x > 2/3, interact=True) # optional - qepcad
             sage: qe.phase() # optional - qepcad
             'Before Normalization'
-            sage: qe.go() # optional
+            sage: qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'At the end of projection phase'
             sage: qe.phase() # optional  - qepcad
             'At the end of projection phase'
-            sage: qe.go() # optional
+            sage: qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Choice'
             sage: qe.phase() # optional - qepcad
             'Before Choice'
-            sage: qe.go() # optional
+            sage: qe.go() # optional - qepcad
             QEPCAD object has moved to phase 'Before Solution'
             sage: qe.phase() # optional - qepcad
             'Before Solution'
@@ -995,10 +993,10 @@ class Qepcad:
 
         EXAMPLES::
 
-            sage: qe = qepcad(x == 0, interact=True) # optional
-            sage: qe.finish() # optional
+            sage: qe = qepcad(x == 0, interact=True)  # optional - qepcad
+            sage: qe.finish()  # optional - qepcad
             x = 0
-            sage: qe.final_stats() # random, optional
+            sage: qe.final_stats()  # random, optional - qepcad
             -----------------------------------------------------------------------------
             0 Garbage collections, 0 Cells and 0 Arrays reclaimed, in 0 milliseconds.
             492840 Cells in AVAIL, 500000 Cells in SPACE.
@@ -1179,7 +1177,7 @@ class Qepcad:
                    = x - 1
         """
         name = name.replace('_', '-')
-        args = map(str, args)
+        args = [str(_) for _ in args]
         pre_phase = self.phase()
         result = self._eval_line('%s %s'%(name, ' '.join(args)))
         post_phase = self.phase()
@@ -1519,7 +1517,6 @@ def qepcad_banner():
     qex = Qepcad_expect()
     qex._start()
     banner = qex.expect().before
-    qex.quit(timeout=0)
     return AsciiArtString(banner)
 
 def qepcad_version():
@@ -1562,7 +1559,7 @@ class qformula:
             sage: f.formula
             'x + y = 0'
             sage: f.vars
-            frozenset(['y', 'x'])
+            frozenset({'x', 'y'})
             sage: f.qvars
             []
         """
@@ -1629,13 +1626,13 @@ class qepcad_formula_factory:
             (x, y)
             sage: K.<p,q> = QQ[]
             sage: qf._varset(x)
-            frozenset(['x'])
+            frozenset({'x'})
             sage: qf._varset(x*y)
-            frozenset(['y', 'x'])
+            frozenset({'x', 'y'})
             sage: qf._varset(q)
-            frozenset(['q'])
+            frozenset({'q'})
             sage: qf._varset(p*q)
-            frozenset(['q', 'p'])
+            frozenset({'p', 'q'})
         """
         try:
             vars = p.variables()
@@ -1667,11 +1664,11 @@ class qepcad_formula_factory:
             (x, y)
             sage: qf = qepcad_formula
             sage: qf._combine_formulas([x^2 == 0, y < 17])
-            (['x^2 = 0', 'y < 17'], frozenset(['y', 'x']))
+            (['x^2 = 0', 'y < 17'], frozenset({'x', 'y'}))
         """
         formulas = map(self.atomic, formulas)
         formulas = map(self.atomic, formulas)
-        formula_strs = map(repr, formulas)
+        formula_strs = [repr(_) for _ in formulas]
         vars = frozenset()
         for f in formulas:
             vars = vars | f.vars
@@ -1706,13 +1703,13 @@ class qepcad_formula_factory:
             sage: def test_qf(qf):
             ....:     return qf, qf.vars
             sage: test_qf(qf.atomic(a^2 + 17))
-            (a^2 + 17 = 0, frozenset(['a']))
+            (a^2 + 17 = 0, frozenset({'a'}))
             sage: test_qf(qf.atomic(a*b*c <= c^3))
-            (a b c <= c^3, frozenset(['a', 'c', 'b']))
+            (a b c <= c^3, frozenset({'a', 'b', 'c'}))
             sage: test_qf(qf.atomic(x+y^2, '!=', a+b))
-            (y^2 + x /= a + b, frozenset(['y', 'x', 'b', 'a']))
+            (y^2 + x /= a + b, frozenset({'a', 'b', 'x', 'y'}))
             sage: test_qf(qf.atomic(x, operator.lt))
-            (x < 0, frozenset(['x']))
+            (x < 0, frozenset({'x'}))
         """
         if isinstance(lhs, qformula):
             return lhs
@@ -2304,12 +2301,12 @@ class QepcadCell:
 
             sage: var('x,y')
             (x, y)
-            sage: qe = qepcad(x^2 + y^2 == 1, interact=True) # optional
-            sage: qe.go(); qe.go(); qe.go() # optional
+            sage: qe = qepcad(x^2 + y^2 == 1, interact=True)  # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go()  # optional - qepcad
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.cell(2).__getitem__(3) # optional
+            sage: qe.cell(2).__getitem__(3)  # optional - qepcad
             QEPCAD cell (2, 3)
         """
         return self._parent.cell(self.index() + (i,))

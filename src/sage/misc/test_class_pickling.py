@@ -5,9 +5,10 @@ def metaclass(name, bases):
     """
     Creates a new class in this metaclass
 
-    INPUT::
-     - name: a string
-     - bases: a tuple of classes
+    INPUT:
+
+    - name -- a string
+    - bases -- a tuple of classes
 
     EXAMPLES::
 

@@ -1,5 +1,5 @@
 """
-Elements of Finite Fields
+Finite field elements implemented via PARI's POLMOD type (deprecated)
 
 EXAMPLES::
 
@@ -16,6 +16,8 @@ polynomial, i.e., we verify compatibility condition.
 
     sage: f = conway_polynomial(2,63)
     sage: K.<a> = GF(2**63, name='a', modulus=f, impl='pari_mod')
+    doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+    See http://trac.sagemath.org/17297 for details.
     sage: n = f.degree()
     sage: m = 3;
     sage: e = (2^n - 1) / (2^m - 1)
@@ -29,10 +31,8 @@ polynomial, i.e., we verify compatibility condition.
 import operator
 
 import sage.structure.element as element
-import sage.rings.arith as arith
 import sage.rings.integer_ring as integer_ring
 from sage.rings.integer import Integer
-import sage.rings.rational as rational
 from sage.libs.pari.all import pari, pari_gen
 from sage.rings.finite_rings.element_base import FinitePolyExtElement
 import sage.rings.field_element as field_element
@@ -216,19 +216,10 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
 
             sage: from sage.rings.finite_rings.element_ext_pari import FiniteField_ext_pariElement
             sage: a = FiniteField_ext_pariElement(K,pari(0),value_from_pari=True)
-            sage: a
-            0
-            sage: a == K(0)
-            False
-
-        The reason is that the pari elements representing ``a`` and ``K(0)``
-        are different::
-
-            sage: pari(a).lift()
-            0
-            sage: pari(K(0)).lift()
-            Mod(0, 3)
-
+            sage: a._pari_().type()
+            't_INT'
+            sage: K(0)._pari_().type()
+            't_POLMOD'
         """
         field_element.FieldElement.__init__(self, parent)
         self.__class__ = dynamic_FiniteField_ext_pariElement
@@ -345,133 +336,6 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         return self.parent().polynomial_ring()(self.__value.lift())
-
-    def is_square(self):
-        """
-        Returns ``True`` if and only if this element is a perfect square.
-
-        EXAMPLES::
-
-            sage: k.<a> = FiniteField(9, impl='pari_mod')
-            sage: a.is_square()
-            False
-            sage: (a^2).is_square()
-            True
-            sage: k.<a> = FiniteField(4, impl='pari_mod')
-            sage: (a^2).is_square()
-            True
-            sage: k.<a> = FiniteField(17^5, impl='pari_mod')
-            sage: (a^2).is_square()
-            True
-            sage: a.is_square()
-            False
-
-        ::
-
-            sage: k(0).is_square()
-            True
-        """
-        K = self.parent()
-        if K.characteristic() == 2:
-            return True
-        n = K.order() - 1
-        a = self**(n // 2)
-        return a == 1 or a == 0
-
-    def square_root(self, extend=False, all=False):
-        """
-        The square root function.
-
-        INPUT:
-
-
-        -  ``extend`` -- bool (default: ``True``); if ``True``, return a
-           square root in an extension ring, if necessary. Otherwise, raise a
-           ValueError if the root is not in the base ring.
-
-           .. WARNING::
-
-               This option is not implemented!
-
-        -  ``all`` - bool (default: ``False``); if ``True``, return all
-           square roots of ``self``, instead of just one.
-
-        .. WARNING::
-
-           The ``'extend'`` option is not implemented (yet).
-
-        EXAMPLES::
-
-            sage: F = FiniteField(7^2, 'a', impl='pari_mod')
-            sage: F(2).square_root()
-            4
-            sage: F(3).square_root()
-            5*a + 1
-            sage: F(3).square_root()**2
-            3
-            sage: F(4).square_root()
-            5
-            sage: K = FiniteField(7^3, 'alpha', impl='pari_mod')
-            sage: K(3).square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: must be a perfect square.
-        """
-        if extend:
-            raise NotImplementedError
-        R = self.parent()['x']
-        f = R([-self, 0, 1])
-        g = f.factor()
-        if len(g) == 2 or g[0][1] == 2:
-            if all:
-                return [-g[0][0][0], g[0][0][0]]
-            else:
-                return -g[0][0][0]
-        if all:
-            return []
-        else:
-            raise ValueError("must be a perfect square.")
-
-    def sqrt(self, extend=False, all = False):
-        """
-        See :meth:square_root().
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^17, impl='pari_mod')
-            sage: (a^3 - a - 1).sqrt()
-            2*a^16 + a^15 + 2*a^13 + a^12 + 2*a^10 + a^9 + a^8 + 2*a^7 + 2*a^6 + a^5 + 2*a^4 + a^2 + a + 1
-        """
-        return self.square_root(extend=extend, all=all)
-
-    def multiplicative_order(self):
-        r"""
-        Returns the *multiplicative* order of this element, which must be
-        nonzero.
-
-        EXAMPLES::
-
-            sage: k.<a> = FiniteField(5^3, impl='pari_mod', modulus='conway')
-            sage: a.multiplicative_order()
-            124
-            sage: a**124
-            1
-        """
-        try:
-            return self.__multiplicative_order
-        except AttributeError:
-            if self.is_zero():
-                raise ArithmeticError("Multiplicative order of 0 not defined.")
-            n = self.parent().order() - 1
-            order = 1
-            for p, e in arith.factor(n):
-                # Determine the power of p that divides the order.
-                a = self**(n//(p**e))
-                while a != 1:
-                    order *= p
-                    a = a**p
-            self.__multiplicative_order = order
-            return order
 
     def __copy__(self):
         """
@@ -850,7 +714,7 @@ class FiniteField_ext_pariElement(FinitePolyExtElement):
             sage: a > a**2
             False
         """
-        return cmp(self.__value, other.__value)
+        return cmp(self.__value.lift().lift().Pol(), other.__value.lift().lift().Pol())
 
     def log(self, base):
         """

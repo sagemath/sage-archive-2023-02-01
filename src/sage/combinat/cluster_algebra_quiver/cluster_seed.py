@@ -231,7 +231,6 @@ class ClusterSeed(SageObject):
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
         from sage.misc.all import html,latex
-        from sage.all import var
 
         if not EMBEDDED_MODE:
             return "The interactive mode only runs in the Sage notebook."
@@ -269,8 +268,7 @@ class ClusterSeed(SageObject):
                     html( "Cluster variables:" )
                     table = "$\\begin{align*}\n"
                     for i in xrange(self._n):
-                        v = var('v%s'%i)
-                        table += "\t" + latex( v ) + " &= " + latex( self._cluster[i] ) + "\\\\ \\\\\n"
+                        table += "\tv_{%s} &= "%i + latex( self._cluster[i] ) + "\\\\ \\\\\n"
                     table += "\\end{align*}$"
                     html( "$ $" )
                     html( table )
@@ -1299,13 +1297,13 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.mutation_class_iter()
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
-            sage: it.next()
+            sage: next(it)
             A seed for a cluster algebra of rank 2 of type ['A', [1, 1], 1]
 
             sage: it = S.mutation_class_iter(depth=3, return_paths=True)
@@ -1488,15 +1486,15 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['A',[1,1],1])
             sage: it = S.cluster_class_iter()
-            sage: it.next()
+            sage: next(it)
             [x0, x1]
-            sage: it.next()
+            sage: next(it)
             [x0, (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, x1]
-            sage: it.next()
+            sage: next(it)
             [(x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2), (x0^2 + 1)/x1]
-            sage: it.next()
+            sage: next(it)
             [(x1^2 + 1)/x0, (x1^4 + x0^2 + 2*x1^2 + 1)/(x0^2*x1)]
 
             sage: it = S.cluster_class_iter(depth=3)
@@ -2088,15 +2086,15 @@ def PathSubset(n,m):
 
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import PathSubset
         sage: PathSubset(4,0)
-        set([1, 3, 5, 7])
+        {1, 3, 5, 7}
         sage: PathSubset(4,1)
-        set([1, 3, 5, 6, 7])
+        {1, 3, 5, 6, 7}
         sage: PathSubset(4,2)
-        set([1, 2, 3, 5, 6, 7])
+        {1, 2, 3, 5, 6, 7}
         sage: PathSubset(4,3)
-        set([1, 2, 3, 4, 5, 6, 7])
+        {1, 2, 3, 4, 5, 6, 7}
         sage: PathSubset(4,4)
-        set([0, 1, 2, 3, 4, 5, 6, 7])
+        {0, 1, 2, 3, 4, 5, 6, 7}
     """
     from sage.misc.misc import union
     from sage.functions.other import floor

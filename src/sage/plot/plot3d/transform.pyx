@@ -1,3 +1,5 @@
+"Transformations"
+
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
@@ -7,23 +9,17 @@
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-cdef extern from *:
-    double sin(double)
-    double cos(double)
-    double sqrt(double)
 
-#from math import atan2, sin, cos, atan, sqrt, acos
+from libc.math cimport sin, cos, sqrt
 
 include "point_c.pxi"
 
 from sage.rings.real_double import RDF
-# from sage.misc.functional import sqrt, atan, acos
 
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 
 pi = RDF.pi()
-
 
 
 cdef class Transformation:
@@ -136,7 +132,7 @@ cdef class Transformation:
 def rotate_arbitrary(v, double theta):
     """
     Return a matrix that rotates the coordinate space about
-    the axis v by the angle theta.
+    the axis v by the angle ``theta``.
 
     INPUT:
 
@@ -176,9 +172,9 @@ def rotate_arbitrary(v, double theta):
 
         sage: rotate_arbitrary((1,2,3), -1).det()
         1.0000000000000002
-        sage: rotate_arbitrary((1,1,1), 2*pi/3) * vector(RDF, (1,2,3))  # rel tol 1e-15
+        sage: rotate_arbitrary((1,1,1), 2*pi/3) * vector(RDF, (1,2,3))  # rel tol 2e-15
         (1.9999999999999996, 2.9999999999999996, 0.9999999999999999)
-        sage: rotate_arbitrary((1,2,3), 5) * vector(RDF, (1,2,3))  # rel tol 1e-15
+        sage: rotate_arbitrary((1,2,3), 5) * vector(RDF, (1,2,3))  # rel tol 2e-15
         (1.0000000000000002, 2.0, 3.000000000000001)
         sage: rotate_arbitrary((1,1,1), pi/7)^7  # rel tol 2e-15
         [-0.33333333333333337   0.6666666666666671   0.6666666666666665]

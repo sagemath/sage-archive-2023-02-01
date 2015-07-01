@@ -21,9 +21,9 @@ void print_clique(set_t s,graph_t *g);
 
 // As the global variables remain between two SAGE call, they
 // have to be reset each time
-void sage_reset_global_variables();
+void sage_reset_global_variables(void);
 // The opt structure has to be initialised in each SAGE function
-clique_options * sage_init_clique_opt();
+clique_options * sage_init_clique_opt(void);
 // Computes a maximum clique of the graph g and return its size
 // The table list contains the ID of the vertices
 int sage_clique_max(graph_t *g,int **list);

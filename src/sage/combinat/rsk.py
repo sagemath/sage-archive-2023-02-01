@@ -466,7 +466,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     from bisect import bisect_left
     # Make a copy of p since this is destructive to it
-    p_copy = [row[:] for row in p]
+    p_copy = [list(row) for row in p]
 
     if q.is_standard():
         rev_word = [] # This will be our word in reverse

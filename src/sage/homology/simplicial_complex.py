@@ -403,7 +403,7 @@ class Simplex(SageObject):
         EXAMPLES::
 
             sage: Simplex(3).set()
-            frozenset([0, 1, 2, 3])
+            frozenset({0, 1, 2, 3})
         """
         return self.__set
 
@@ -696,6 +696,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     Define a simplicial complex.
 
     :param maximal_faces: set of maximal faces
+    :param from_characteristic_function: see below
     :param maximality_check: see below
     :type maximality_check: boolean; optional, default ``True``
     :param sort_facets: see below
@@ -710,6 +711,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
     anything which may be converted to a set) whose elements are lists
     (or tuples, etc.) of vertices.  Maximal faces are also known as
     'facets'.
+
+    Alternatively, the maximal faces can be defined from a monotome boolean
+    function on the subsets of a set `X`. While defining ``maximal_faces=None``,
+    you can thus set ``from_characteristic_function=(f,X)`` where ``X`` is the
+    set of points and ``f`` a boolean monotone hereditary function that accepts
+    a list of elements from ``X`` as input (see
+    :func:`~sage.combinat.subsets_hereditary.subsets_with_hereditary_property`
+    for more information).
 
     If ``maximality_check`` is ``True``, check that each maximal face is,
     in fact, maximal. In this case, when producing the internal
@@ -756,6 +765,19 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         sage: Ts.homology()
         {0: 0, 1: Z x Z, 2: Z}
 
+    From a characteristic monotone boolean function, e.g. the simplicial complex
+    of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
+
+        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
+        Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
+
+    or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
+
+        sage: l=designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
+        sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
+        sage: SimplicialComplex(from_characteristic_function=(f, range(21)))
+        Simplicial complex with 21 vertices and 168 facets
+
     TESTS:
 
     Check that we can make mutable copies (see :trac:`14142`)::
@@ -772,7 +794,14 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         """
 
-    def __init__(self, maximal_faces=None, **kwds):
+    def __init__(self,
+                 maximal_faces=None,
+                 from_characteristic_function=None,
+                 maximality_check=True,
+                 sort_facets=True,
+                 name_check=False,
+                 is_mutable=True,
+                 is_immutable=False):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
         documentation.
@@ -801,16 +830,19 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: TestSuite(S).run()
             sage: TestSuite(S3).run()
         """
+        if (maximal_faces is not None and
+            from_characteristic_function is not None):
+            raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
         CategoryObject.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
-        # process kwds
-        sort_facets = kwds.get('sort_facets', True)
-        maximality_check = kwds.get('maximality_check', True)
-        name_check = kwds.get('name_check', False)
-        # done with kwds except mutability
 
         C = None
         vertex_set = []
+        if from_characteristic_function is not None:
+            from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
+            f,X = from_characteristic_function
+            maximal_faces = subsets_with_hereditary_property(f,X)
+
         if maximal_faces is None:
             maximal_faces = []
         elif isinstance(maximal_faces, SimplicialComplex):
@@ -862,22 +894,18 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         # build set of facets
         good_faces = []
         maximal_simplices = [Simplex(f) for f in maximal_faces]
+
+        if maximality_check: # Sorting is useful to filter maximal faces
+            maximal_simplices.sort(key=lambda x:x.dimension(),reverse=True)
         for face in maximal_simplices:
             # check whether each given face is actually maximal
-            face_is_maximal = True
-            if maximality_check:
-                faces_to_be_removed = []
-                for other in good_faces:
-                    if other.is_face(face):
-                        faces_to_be_removed.append(other)
-                    elif face_is_maximal:
-                        face_is_maximal = not face.is_face(other)
-                for x in faces_to_be_removed:
-                    good_faces.remove(x)
+            if (maximality_check and
+                any(face.is_face(other) for other in good_faces)):
+                continue
             if sort_facets:
                 face = Simplex(sorted(face.tuple()))
-            if face_is_maximal:
-                good_faces += [face]
+            good_faces.append(face)
+
         # if no maximal faces, add the empty face as a facet
         if len(maximal_simplices) == 0:
             good_faces.append(Simplex(-1))
@@ -915,7 +943,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         # Handle mutability keywords
         self._is_mutable = True
-        if not kwds.get('is_mutable', True) or kwds.get('is_immutable', False):
+        if not is_mutable or is_immutable:
             self.set_immutable()
 
     def __hash__(self):
@@ -1045,10 +1073,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
             sage: Y = SimplicialComplex([[1,2], [1,4]])
             sage: Y.faces()
-            {0: set([(4,), (2,), (1,)]), 1: set([(1, 2), (1, 4)]), -1: set([()])}
+            {-1: {()}, 0: {(1,), (2,), (4,)}, 1: {(1, 2), (1, 4)}}
             sage: L = SimplicialComplex([[1,2]])
             sage: Y.faces(subcomplex=L)
-            {0: set([(4,)]), 1: set([(1, 4)]), -1: set([])}
+            {-1: set(), 0: {(4,)}, 1: {(1, 4)}}
         """
         # Make the subcomplex immutable if it is not
         if subcomplex is not None and subcomplex._is_mutable:
@@ -1135,10 +1163,10 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: Z
             Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
             sage: Z.n_faces(2)
-            set([(1, 3, 4), (1, 2, 3), (2, 3, 4), (1, 2, 4)])
+            {(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: K = SimplicialComplex([[1,2,3], [2,3,4]])
             sage: Z.n_faces(2, subcomplex=K)
-            set([(1, 3, 4), (1, 2, 4)])
+            {(1, 2, 4), (1, 3, 4)}
         """
         if n in self.faces(subcomplex):
             return self.faces(subcomplex)[n]
@@ -3092,13 +3120,13 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         else:
             return FG.quotient(rels)
 
-    def is_isomorphic(self,other, certify = False):
+    def is_isomorphic(self, other, certify=False):
         r"""
-        Checks whether two simplicial complexes are isomorphic
+        Check whether two simplicial complexes are isomorphic.
 
         INPUT:
 
-        - ``certify`` - if ``True``, then output is ``(a,b)``, where ``a``
+        - ``certify`` -- if ``True``, then output is ``(a,b)``, where ``a``
           is a boolean and ``b`` is either a map or ``None``.
 
         This is done by creating two graphs and checking whether they
@@ -3118,10 +3146,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         g1 = Graph()
         g2 = Graph()
-        g1.add_edges((v,f) for f in self.facets() for v in f)
-        g2.add_edges((v,f) for f in other.facets() for v in f)
-        g1.add_edges(("fake_vertex",v,"special_edge") for v in self.vertices())
-        g2.add_edges(("fake_vertex",v,"special_edge") for v in other.vertices())
+        g1.add_edges((v, f) for f in self.facets() for v in f)
+        g2.add_edges((v, f) for f in other.facets() for v in f)
+        g1.add_edges(("fake_vertex", v, "special_edge")
+                     for v in self.vertices())
+        g2.add_edges(("fake_vertex", v, "special_edge")
+                     for v in other.vertices())
         if not certify:
             return g1.is_isomorphic(g2)
         isisom, tr = g1.is_isomorphic(g2, certify = True)
@@ -3131,11 +3161,11 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
                 tr.pop(f)
             tr.pop("fake_vertex")
 
-        return isisom,tr
+        return isisom, tr
 
     def automorphism_group(self):
         r"""
-        Returns the automorphism group of the simplicial complex
+        Return the automorphism group of the simplicial complex.
 
         This is done by creating a bipartite graph, whose vertices are
         vertices and facets of the simplicial complex, and computing
@@ -3163,22 +3193,27 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: group = Z.automorphism_group()
             sage: group.domain()
             {'1', '2', '3', 'a'}
+
+        Check that :trac:`17032` is fixed::
+
+            sage: s = SimplicialComplex([[(0,1),(2,3)]])
+            sage: s.automorphism_group().cardinality()
+            2
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
 
         G = Graph()
         G.add_vertices(self.vertices())
-        G.add_edges((f.tuple(),v) for f in self.facets() for v in f)
-        groupe = G.automorphism_group(partition=[list(self.vertices()),
-                                                 [f.tuple() for f in self.facets()]])
+        G.add_edges((f.tuple(), v) for f in self.facets() for v in f)
+        group = G.automorphism_group(partition=[list(self.vertices()),
+                                                [f.tuple()
+                                                 for f in self.facets()]])
 
+        gens = [[tuple(c) for c in g.cycle_tuples()
+                 if c[0] in self.vertices()]
+                for g in group.gens()]
 
-        gens = [ [tuple(c) for c in g.cycle_tuples() if not isinstance(c[0],tuple)]
-                 for g in groupe.gens()]
-
-        permgroup = PermutationGroup(gens = gens, domain = self.vertices())
-
-        return permgroup
+        return PermutationGroup(gens=gens, domain=self.vertices())
 
     def fixed_complex(self, G):
         r"""

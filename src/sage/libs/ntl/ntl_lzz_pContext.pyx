@@ -13,12 +13,11 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
 zz_pContextDict = {}
@@ -111,7 +110,7 @@ def ntl_zz_pContext( v ):
     """
     if v > NTL_SP_BOUND:
         raise ValueError, "Modulus (=%s) is too big"%v
-    if PY_TYPE_CHECK(v, Integer):
+    if isinstance(v, Integer):
         v = mpz_get_si((<Integer>v).value)
     try:
         return zz_pContextDict[repr(v)]

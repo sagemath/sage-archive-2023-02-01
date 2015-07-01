@@ -21,7 +21,7 @@ Weight lattice realizations
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.categories.category_types import Category_over_base_ring
 from sage.combinat.family import Family
 from root_lattice_realizations import RootLatticeRealizations
@@ -344,7 +344,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
             interpretation of type `A`; see the thematic tutorial on Lie
             Methods and Related Combinatorics in Sage for details.
             """
-            assert i in self.index_set()
+            if i not in self.index_set():
+                raise ValueError("{} is not in the index set".format(i))
             alphai = self.root_system.weight_lattice().simple_root(i)
             # Note: it would be nicer to just return ``self(alpha[i])``,
             # However the embedding from the weight lattice is defined
@@ -845,31 +846,39 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: L.embed_at_level(alpha[1], 1)
                 Lambda[0] + 2*Lambda[1] - Lambda[2]
             """
-            assert self.classical().is_parent_of(x)
+            if not self.classical().is_parent_of(x):
+                raise ValueError("x must be an element of the classical type")
             Lambda = self.fundamental_weights()
             result = self.sum_of_terms(x)
             result += Lambda[0] * (level-result.level()) / (Lambda[0].level())
             assert result.level() == level
             return result
 
-
         # Should it be a method of highest_weight?
         def weyl_dimension(self, highest_weight):
-            """
+            r"""
+            Return the dimension of the highest weight representation of highest weight ``highest_weight``.
+
             EXAMPLES::
 
                 sage: RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0])
                 20
+                sage: P = RootSystem(['C',2]).weight_lattice()
+                sage: La = P.basis()
+                sage: P.weyl_dimension(La[1]+La[2])
+                16
 
                 sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
                 <type 'sage.rings.integer.Integer'>
             """
             highest_weight = self(highest_weight)
-            assert(highest_weight.is_dominant())
+            if not highest_weight.is_dominant():
+                raise ValueError("the highest weight must be dominant")
             rho = self.rho()
-            n = prod([(rho+highest_weight).dot_product(x) for x in self.positive_roots()])
-            d = prod([ rho.dot_product(x) for x in self.positive_roots()])
+            pr = self.coroot_lattice().positive_roots()
             from sage.rings.integer import Integer
+            n = prod(((rho+highest_weight).scalar(x) for x in pr), Integer(1))
+            d = prod((rho.scalar(x) for x in pr), Integer(1))
             return Integer(n/d)
 
         @lazy_attribute

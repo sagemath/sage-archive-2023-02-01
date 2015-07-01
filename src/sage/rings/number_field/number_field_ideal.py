@@ -52,10 +52,10 @@ from sage.rings.finite_rings.constructor import FiniteField
 import number_field
 
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import generic_power
+from sage.structure.element import generic_power, MultiplicativeGroupElement
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
@@ -178,7 +178,7 @@ class NumberFieldIdeal(Ideal_generic):
             gens = gens[0]
             if gens.type() == "t_MAT":
                 # Assume columns are generators
-                gens = map(field, field.pari_zk() * gens)
+                gens = [field(_) for _ in field.pari_zk() * gens]
             elif gens.type() == "t_VEC":
                 # Assume prime ideal form
                 self._pari_prime = gens
@@ -290,15 +290,15 @@ class NumberFieldIdeal(Ideal_generic):
             # this can only occur with cmp(,)
             return cmp(type(self), type(other))
         if self.parent()!=other.parent():
-            # again, this can only occur if cmp(,)
-            # is called
+            # again, this can only occur if cmp(,) is called
             if self==other:
                 return 0
-            c = cmp(self.pari_hnf(), other.pari_hnf())
-            if c: return c
-            return cmp(self.parent(),other.parent())
+            return (cmp(self.pari_hnf(), other.pari_hnf()) or
+                    cmp(self.parent(),other.parent()))
+
         # We can now assume that both have the same parent,
         # even if originally cmp(,) was called.
+
         return cmp(self.pari_hnf(), other.pari_hnf())
 
     def _mul_(self, other):
@@ -459,7 +459,7 @@ class NumberFieldIdeal(Ideal_generic):
             [1/17, 1/17*a, a^2 - 8/17*a - 13/17]
         """
         K = self.number_field()
-        return map(K, K.pari_zk() * hnf)
+        return [K(_) for _ in K.pari_zk() * hnf]
 
     def __repr__(self):
         """
@@ -509,9 +509,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^4 + 389); K
             Number Field in a with defining polynomial x^4 + 389
             sage: I = K.factor(17)[0][0]; I
-            Fractional ideal (17, a^2 - 6)
+            Fractional ideal (17, a^2 + 6)
             sage: I._repr_short()
-            '(17, a^2 - 6)'
+            '(17, a^2 + 6)'
 
         We use reduced gens, because the discriminant is small::
 
@@ -527,9 +527,9 @@ class NumberFieldIdeal(Ideal_generic):
             sage: K.<a> = NumberField(x^2 + 902384094); K
             Number Field in a with defining polynomial x^2 + 902384094
             sage: I = K.factor(19)[0][0]; I
-            Fractional ideal (19, a + 14)
+            Fractional ideal (19, a + 5)
             sage: I.gens_reduced()
-            (19, a + 14)
+            (19, a + 5)
         """
         return '(%s)'%(', '.join(map(str, self._gens_repr())))
 
@@ -1686,7 +1686,7 @@ def is_NumberFieldIdeal(x):
     return isinstance(x, NumberFieldIdeal)
 
 
-class NumberFieldFractionalIdeal(NumberFieldIdeal):
+class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
     r"""
     A fractional ideal in a number field.
     """
@@ -1802,7 +1802,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         return [x[0] for x in self.factor()]
 
-    def __div__(self, other):
+    def _div_(self, other):
         """
         Return the quotient self / other.
 
@@ -1813,11 +1813,14 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
             sage: I = K.ideal(2/(5+a))
             sage: J = K.ideal(17+a)
             sage: I/J
-            Fractional ideal (-17/1420*a + 1/284)
+            Fractional ideal (-11/1420*a + 9/284)
             sage: (I/J) * J == I
             True
         """
-        return self * other.__invert__()
+        K = self.ring()
+        if self.ngens() == 1 and other.ngens() == 1:
+            return K.ideal(self.gen(0) / other.gen(0))
+        return K.ideal(K.pari_nf().idealdiv(self, other))
 
     def __invert__(self):
         """
@@ -2040,8 +2043,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES::
 
             sage: K.<i>=NumberField(x^2+1)
-            sage: res =  K.ideal(2).residues(); res  # random address
-            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0xa252144>)
+            sage: res =  K.ideal(2).residues(); res
+            xmrange_iter([[0, 1], [0, 1]], <function <lambda> at 0x...>)
             sage: list(res)
             [0, i, 1, i + 1]
             sage: list(K.ideal(2+i).residues())
@@ -2071,7 +2074,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         Rbasis = R.basis()
         n = len(Rbasis)
         from sage.matrix.all import MatrixSpace
-        M = MatrixSpace(ZZ,n)(map(R.coordinates, self.basis()))
+        M = MatrixSpace(ZZ,n)([R.coordinates(_) for _ in self.basis()])
 
         D = M.hermite_form()
         d = [D[i,i] for i in range(n)]
@@ -2103,8 +2106,8 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         EXAMPLES::
 
             sage: K.<i>=NumberField(x^2+1)
-            sage: ires =  K.ideal(2).invertible_residues(); ires  # random address
-            <generator object at 0xa2feb6c>
+            sage: ires =  K.ideal(2).invertible_residues(); ires
+            xmrange_iter([[0, 1]], <function <lambda> at 0x...>)
             sage: list(ires)
             [1, -i]
             sage: list(K.ideal(2+i).invertible_residues())
@@ -2209,7 +2212,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
 
         M = diagonal_matrix(ZZ, invs)
         if subgp_gens:
-            Units = Matrix(ZZ, map(self.ideallog, subgp_gens))
+            Units = Matrix(ZZ, [self.ideallog(_) for _ in subgp_gens])
             M = M.stack(Units)
 
         A, U, V = M.smith_form()
@@ -2610,7 +2613,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         #Now it is important to call _pari_bid_() with flag=2 to make sure
         #we fix a basis, since the log would be different for a different
         #choice of basis.
-        L = map(ZZ, k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2)))
+        L = [ZZ(_) for _ in k.pari_nf().ideallog(x._pari_(), self._pari_bid_(2))]
 
         if gens is None:
             return L
@@ -2628,7 +2631,7 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         # reduce the resulting logarithm of x so it is lexicographically
         # minimal.
 
-        mat = matrix(ZZ, map(self.ideallog, gens)).augment(identity_matrix(ZZ, len(gens)))
+        mat = matrix(ZZ, [self.ideallog(_) for _ in gens]).augment(identity_matrix(ZZ, len(gens)))
         mat = mat.stack( diagonal_matrix(ZZ, invs).augment(zero_matrix(ZZ, len(invs), len(gens))))
         hmat = mat.hermite_form()
         A = hmat[0:len(invs), 0:len(invs)]
@@ -3127,7 +3130,7 @@ class QuotientMap:
               From: Number Field in a with defining polynomial x^3 + 4
               To:   Residue field of Fractional ideal (1/2*a^2 + 1)
             sage: f.__class__
-            <type 'sage.rings.residue_field.ReductionMap'>
+            <type 'sage.rings.finite_rings.residue_field.ReductionMap'>
         """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
@@ -3182,7 +3185,7 @@ class LiftMap:
             sage: I = K.ideal(1 + a^2/2)
             sage: f = I.residue_field().lift_map()
             sage: f.__class__
-            <type 'sage.rings.residue_field.LiftingMap'>
+            <type 'sage.rings.finite_rings.residue_field.LiftingMap'>
         """
         self.__I = I
         self.__OK = OK
@@ -3306,6 +3309,3 @@ def quotient_char_p(I, p):
     Q_to_OK = LiftMap(OK, M_OK_mat, Q, I)
 
     return Q, K_to_Q, Q_to_OK
-
-
-

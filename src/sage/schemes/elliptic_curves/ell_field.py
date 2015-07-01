@@ -394,7 +394,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -404,7 +404,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if E.is_isomorphic(F):
             if K is rings.QQ:
                 return rings.ZZ(1)
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -493,7 +493,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -501,7 +501,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -562,7 +562,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -570,7 +570,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -858,7 +858,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi.domain().conductor().norm().factor()
             11^2
         """
-        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        try:
+            return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        except AttributeError, e:
+            raise RuntimeError("Unable to contruct isogeny: %s" % e)
 
 
     def isogeny_codomain(self, kernel, degree=None):
@@ -1184,4 +1187,4 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             x = R.gen()
             E = self.short_weierstrass_model()
             f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
-            return f.coeffs()[p-1]
+            return f.coefficients(sparse=False)[p-1]

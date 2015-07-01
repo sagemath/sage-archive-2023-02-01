@@ -1549,6 +1549,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             sage: X = toric_varieties.Cube_deformation(4)
             sage: X.plot()
+            Graphics3d Object
         """
         if "ray_label" not in options:
             gens = self.coordinate_ring().gens()
@@ -3214,7 +3215,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         r"""
         Construct a :class:`CohomologyClass`.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- something that defines a cohomology class. Either a
           cohomology class, a cone of the fan, or something that can

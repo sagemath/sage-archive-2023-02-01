@@ -23,6 +23,7 @@ AUTHORS:
 from sage.rings.all import ZZ, QQ, infinity, rising_factorial, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
 from sage.rings.big_oh import O
 from sage.functions.all import exp
+from sage.rings.arith import bernoulli, sigma
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -111,6 +112,8 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             Power series constructor for Hecke modular forms for n=4 with (basic series) precision 10
             sage: MFSeriesConstructor(group=5, prec=12)
             Power series constructor for Hecke modular forms for n=5 with (basic series) precision 12
+            sage: MFSeriesConstructor(group=infinity)
+            Power series constructor for Hecke modular forms for n=+Infinity with (basic series) precision 10
         """
 
         self._group          = group
@@ -183,6 +186,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
 
         This is the main function used to determine all Fourier expansions!
 
+        .. NOTE:
+
+        The Fourier expansion of ``J_inv`` for ``d!=1``
+        is given by ``J_inv_ZZ(q/d)``.
+
         .. TODO:
 
           The functions that are used in this implementation are
@@ -198,6 +206,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q^-1 + 79/200 + 42877/640000*q + O(q^2)
             sage: MFSeriesConstructor(group=5, prec=3).J_inv_ZZ().parent()
             Laurent Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).J_inv_ZZ()
+            q^-1 + 3/8 + 69/1024*q + O(q^2)
         """
 
         F1       = lambda a,b:   self._series_ring(
@@ -225,7 +236,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         q        = self._series_ring.gen()
 
         # the current implementation of power series reversion is slow
-        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reversion())
+        # J_inv_ZZ = ZZ(1) / ((q*Phi.exp()).reverse())
 
         temp_f   = (q*Phi.exp()).polynomial()
         new_f    = temp_f.revert_series(temp_f.degree()+1)
@@ -239,6 +250,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``f_rho``,
         where the parameter ``d`` is replaced by ``1``.
 
+        .. NOTE:
+
+        The Fourier expansion of ``f_rho`` for ``d!=1``
+        is given by ``f_rho_ZZ(q/d)``.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
@@ -248,12 +264,18 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 + 7/100*q + 21/160000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).f_rho_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_rho_ZZ()
+            1
         """
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()*(self.J_inv_ZZ()-1))).power_series()
-        f_rho_ZZ = (temp_expr.log()/(n-2)).exp()
+        if (n == infinity):
+            f_rho_ZZ = self._series_ring(1)
+        else:
+            temp_expr = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()*(self.J_inv_ZZ()-1))).power_series()
+            f_rho_ZZ = (temp_expr.log()/(n-2)).exp()
         return f_rho_ZZ
 
     @cached_method
@@ -261,6 +283,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         r"""
         Return the rational Fourier expansion of ``f_i``,
         where the parameter ``d`` is replaced by ``1``.
+
+        .. NOTE:
+
+        The Fourier expansion of ``f_i`` for ``d!=1``
+        is given by ``f_i_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -271,12 +298,18 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 13/40*q - 351/64000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).f_i_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_i_ZZ()
+            1 - 3/8*q + 3/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr = ((-q*self.J_inv_ZZ().derivative())**n/(self.J_inv_ZZ()**(n-1)*(self.J_inv_ZZ()-1))).power_series()
-        f_i_ZZ = (temp_expr.log()/(n-2)).exp()
+        if (n == infinity):
+            f_i_ZZ = (-q*self.J_inv_ZZ().derivative()/self.J_inv_ZZ()).power_series()
+        else:
+            temp_expr = ((-q*self.J_inv_ZZ().derivative())**n/(self.J_inv_ZZ()**(n-1)*(self.J_inv_ZZ()-1))).power_series()
+            f_i_ZZ = (temp_expr.log()/(n-2)).exp()
         return f_i_ZZ
 
     @cached_method
@@ -284,6 +317,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         r"""
         Return the rational Fourier expansion of ``f_inf``,
         where the parameter ``d`` is replaced by ``1``.
+
+        .. NOTE:
+
+        The Fourier expansion of ``f_inf`` for ``d!=1``
+        is given by ``d*f_inf_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -294,12 +332,18 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q - 9/200*q^2 + 279/640000*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).f_inf_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).f_inf_ZZ()
+            q - 1/8*q^2 + 7/1024*q^3 + O(q^4)
         """
 
         q = self._series_ring.gen()
         n = self.hecke_n()
-        temp_expr  = ((-q*self.J_inv_ZZ().derivative())**(2*n)/(self.J_inv_ZZ()**(2*n-2)*(self.J_inv_ZZ()-1)**n)/q**(n-2)).power_series()
-        f_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
+        if (n == infinity):
+            f_inf_ZZ = ((-q*self.J_inv_ZZ().derivative())**2/(self.J_inv_ZZ()**2*(self.J_inv_ZZ()-1))).power_series()
+        else:
+            temp_expr  = ((-q*self.J_inv_ZZ().derivative())**(2*n)/(self.J_inv_ZZ()**(2*n-2)*(self.J_inv_ZZ()-1)**n)/q**(n-2)).power_series()
+            f_inf_ZZ = (temp_expr.log()/(n-2)).exp()*q
         return f_inf_ZZ
 
     @cached_method
@@ -307,6 +351,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         r"""
         Return the rational Fourier expansion of ``G_inv``,
         where the parameter ``d`` is replaced by ``1``.
+
+        .. NOTE:
+
+        The Fourier expansion of ``G_inv`` for ``d!=1``
+        is given by ``d*G_inv_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -317,10 +366,18 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             q^-1 - 15/128 - 15139/262144*q + O(q^2)
             sage: MFSeriesConstructor(group=8, prec=3).G_inv_ZZ().parent()
             Laurent Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).G_inv_ZZ()
+            q^-1 - 1/8 - 59/1024*q + O(q^2)
         """
 
         n = self.hecke_n()
-        if (ZZ(2).divides(n)):
+        # Note that G_inv is not a weakly holomorphic form (because of the behavior at -1)
+        if (n == infinity):
+            q = self._series_ring.gen()
+            temp_expr = (self.J_inv_ZZ()/self.f_inf_ZZ()*q**2).power_series()
+            return 1/q*self.f_i_ZZ()*(temp_expr.log()/2).exp()
+        elif (ZZ(2).divides(n)):
             return self.f_i_ZZ()*(self.f_rho_ZZ()**(ZZ(n/ZZ(2))))/self.f_inf_ZZ()
         else:
             #return self._qseries_ring([])
@@ -332,6 +389,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_4``,
         where the parameter ``d`` is replaced by ``1``.
 
+        .. NOTE:
+
+        The Fourier expansion of ``E4`` for ``d!=1``
+        is given by ``E4_ZZ(q/d)``.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
@@ -341,6 +403,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 + 21/100*q + 483/32000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E4_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E4_ZZ()
+            1 + 1/4*q + 7/256*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -353,6 +418,11 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``E_6``,
         where the parameter ``d`` is replaced by ``1``.
 
+        .. NOTE:
+
+        The Fourier expansion of ``E6`` for ``d!=1``
+        is given by ``E6_ZZ(q/d)``.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
@@ -362,10 +432,12 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 37/200*q - 14663/320000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E6_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E6_ZZ()
+            1 - 1/8*q - 31/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
-        n = self.hecke_n()
         E6_ZZ = ((-q*self.J_inv_ZZ().derivative())**3/(self.J_inv_ZZ()**2*(self.J_inv_ZZ()-1))).power_series()
         return E6_ZZ
 
@@ -375,25 +447,37 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         Return the rational Fourier expansion of ``Delta``,
         where the parameter ``d`` is replaced by ``1``.
 
+        .. NOTE:
+
+        The Fourier expansion of ``Delta`` for ``d!=1``
+        is given by ``d*Delta_ZZ(q/d)``.
+
         EXAMPLES::
 
             sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
             sage: MFSeriesConstructor(prec=3).Delta_ZZ()
-            q - 1/72*q^2 + O(q^3)
+            q - 1/72*q^2 + 7/82944*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta_ZZ()
-            71/50*q + 28267/16000*q^2 + O(q^3)
+            q + 47/200*q^2 + 11367/640000*q^3 + O(q^4)
             sage: MFSeriesConstructor(group=5, prec=3).Delta_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).Delta_ZZ()
+            q + 3/8*q^2 + 63/1024*q^3 + O(q^4)
         """
 
-        n = self.hecke_n()
-        return self.E4_ZZ()**(2*n-6)*(self.E4_ZZ()**n-self.E6_ZZ()**2)
+        return (self.f_inf_ZZ()**3*self.J_inv_ZZ()**2/(self.f_rho_ZZ()**6)).power_series()
 
     @cached_method
     def E2_ZZ(self):
         r"""
         Return the rational Fourier expansion of ``E2``,
         where the parameter ``d`` is replaced by ``1``.
+
+        .. NOTE:
+
+        The Fourier expansion of ``E2`` for ``d!=1``
+        is given by ``E2_ZZ(q/d)``.
 
         EXAMPLES::
 
@@ -404,6 +488,9 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             1 - 9/200*q - 369/320000*q^2 + O(q^3)
             sage: MFSeriesConstructor(group=5, prec=3).E2_ZZ().parent()
             Power Series Ring in q over Rational Field
+
+            sage: MFSeriesConstructor(group=infinity, prec=3).E2_ZZ()
+            1 - 1/8*q - 1/512*q^2 + O(q^3)
         """
 
         q = self._series_ring.gen()
@@ -411,372 +498,100 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
         return E2_ZZ
 
     @cached_method
-    def series_data(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
+    def EisensteinSeries_ZZ(self, k):
         r"""
-        Determine a set of useful series data associated to the specified parameters.
+        Return the rational Fourier expansion of the normalized Eisenstein series
+        of weight ``k``, where the parameter ``d`` is replaced by ``1``.
 
-        INPUT:
-
-        - ``base_ring``    -- The base ring (default: ZZ)
-
-        - ``fix_d``        -- ``True`` or ``False`` (default: ``False``).
-
-                              If ``fix_d == False`` the base ring of the power series
-                              is (the fraction field) of the polynomial ring over the base
-                              ring in one formal parameter ``d``.
-
-                              If ``fix_d == True`` the formal parameter ``d`` is replaced
-                              by its numerical value with numerical precision at least ``d_num_prec``
-                              (or exact in case n=3, 4, 6). The base ring of the PowerSeriesRing
-                              or LaurentSeriesRing is changed to a common parent of
-                              ``base_ring`` and the parent of the mentioned value ``d``.
-
-        - ``d``            -- A number which replaces the formal parameter ``d``.
-                              The base ring of the PowerSeriesRing or LaurentSeriesRing is
-                              changed to a common parent of ``base_ring``
-                              and the parent of the specified value for ``d``.
-                              Note that in particular ``d=1`` will produce
-                              rational Fourier expansions.
-
-        - ``d_num_prec``   -- An integer, a lower bound for the precision of the
-                              numerical value of ``d``.
-
-        OUTPUT:
-
-        - ``base_ring``    -- The base ring used for the series construction.
-                              Note that this can be used to check whether the
-                              series expansion is exact.
-
-        - ``coeff_ring``   -- The coefficient ring of the Fourier series.
-
-        - ``qseries_ring`` -- The basic power series ring for series.
-                              Note that the resulting series might instead
-                              lie in a Laurent series ring.
-
-        - ``d``            -- The either formal or explicit parameter ``d``
-                              for the series.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFC = MFSeriesConstructor()
-            sage: (base_ring, coeff_ring, qseries_ring, d) = MFC.series_data()
-            sage: base_ring
-            Integer Ring
-            sage: coeff_ring
-            Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: qseries_ring
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: d
-            d
-            sage: d.parent()
-            Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-
-            sage: (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor().series_data(d=CC(1))
-            sage: base_ring
-            Complex Field with 53 bits of precision
-            sage: coeff_ring
-            Complex Field with 53 bits of precision
-            sage: qseries_ring
-            Power Series Ring in q over Complex Field with 53 bits of precision
-            sage: d
-            1.00000000000...
-
-            sage: (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(group=4).series_data(fix_d=True)
-            sage: base_ring
-            Rational Field
-            sage: coeff_ring
-            Rational Field
-            sage: qseries_ring
-            Power Series Ring in q over Rational Field
-            sage: d
-            1/256
-
-            sage: (base_ring, coeff_ring, qseries_ring, d) = MFSeriesConstructor(group=5).series_data(fix_d=True)
-            sage: base_ring
-            Real Field with 53 bits of precision
-            sage: coeff_ring
-            Real Field with 53 bits of precision
-            sage: qseries_ring
-            Power Series Ring in q over Real Field with 53 bits of precision
-            sage: d
-            0.00705223418128...
-
+        Only arithmetic groups with ``n < infinity`` are supported!
 
         .. NOTE:
 
-            This function may return different return data for different arguments
-            but when calculations are done with the data the underlying cached instance
-            of the series constructor remains the same in all cases.
+        THe Fourier expansion of the series is given by ``EisensteinSeries_ZZ(q/d)``.
+
+        INPUT:
+
+        - ``k``  -- A non-negative even integer, namely the weight.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
+            sage: MFC = MFSeriesConstructor(prec=6)
+            sage: MFC.EisensteinSeries_ZZ(k=0)
+            1
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/72*q - 1/41472*q^2 - 1/53747712*q^3 - 7/371504185344*q^4 - 1/106993205379072*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 7/24*q - 77/13824*q^2 - 427/17915904*q^3 - 7399/123834728448*q^4 - 3647/35664401793024*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 455/8292*q + 310765/4776192*q^2 + 20150585/6189944832*q^3 + 1909340615/42784898678784*q^4 + 3702799555/12322050819489792*q^5 + O(q^6)
+            sage: MFC.EisensteinSeries_ZZ(k=12).parent()
+            Power Series Ring in q over Rational Field
+
+            sage: MFC = MFSeriesConstructor(group=4, prec=5)
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/32*q - 5/8192*q^2 - 1/524288*q^3 - 13/536870912*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=4)
+            1 + 3/16*q + 39/4096*q^2 + 21/262144*q^3 + 327/268435456*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 7/32*q - 287/8192*q^2 - 427/524288*q^3 - 9247/536870912*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 63/11056*q + 133119/2830336*q^2 + 2790081/181141504*q^3 + 272631807/185488900096*q^4 + O(q^5)
+
+            sage: MFC = MFSeriesConstructor(group=6, prec=5)
+            sage: MFC.EisensteinSeries_ZZ(k=2)
+            1 - 1/18*q - 1/648*q^2 - 7/209952*q^3 - 7/22674816*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=4)
+            1 + 2/9*q + 1/54*q^2 + 37/52488*q^3 + 73/5668704*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=6)
+            1 - 1/6*q - 11/216*q^2 - 271/69984*q^3 - 1057/7558272*q^4 + O(q^5)
+            sage: MFC.EisensteinSeries_ZZ(k=12)
+            1 + 182/151329*q + 62153/2723922*q^2 + 16186807/882550728*q^3 + 381868123/95315478624*q^4 + O(q^5)
         """
 
-        fix_d = bool(fix_d)
+        try:
+            if k < 0:
+                raise TypeError(None)
+            k = 2*ZZ(k/2)
+        except TypeError:
+            raise TypeError("k={} has to be a non-negative even integer!".format(k))
 
-        if (fix_d):
-            d = self._group.dvalue()
-            if (self._group.is_arithmetic()):
-                d_num_prec = None
-                d = 1 / base_ring(1/d)
+        if (not self.group().is_arithmetic() or self.group().n() == infinity):
+            # Exceptional cases should be called manually (see in FormsRing_abstract)
+            raise NotImplementedError("Eisenstein series are only supported in the finite arithmetic cases!")
+
+        # Trivial case
+        if k == 0:
+            return self._series_ring(1)
+
+        M    = ZZ(self.group().lam()**2)
+        lamk = M**(ZZ(k/2))
+        dval = self.group().dvalue()
+
+        def coeff(m):
+            m = ZZ(m)
+            if m < 0:
+                return ZZ(0)
+            elif m == 0:
+                return ZZ(1)
+
+            factor = -2*k / QQ(bernoulli(k)) / lamk
+            sum1   = sigma(m, k-1)
+            if M.divides(m):
+                sum2 = (lamk-1) * sigma(ZZ(m/M), k-1)
             else:
-                d_num_prec = ZZ(d_num_prec)
-                d = self._group.dvalue().n(d_num_prec)
-        else:
-            d_num_prec = None
+                sum2 = ZZ(0)
+            if (M == 1):
+                sum3 = ZZ(0)
+            else:
+                if (m == 1):
+                    N = ZZ(1)
+                else:
+                    N = ZZ(m / M**ZZ(m.valuation(M)))
+                sum3 = -sigma(ZZ(N), k-1) * ZZ(m/N)**(k-1) / (lamk + 1)
 
-        if (d is not None):
-            base_ring = (base_ring(1) * d).parent()
+            return factor * (sum1 + sum2 + sum3) * dval**m
 
-        if (d):
-            coeff_ring = FractionField(base_ring)
-        else:
-            coeff_ring = FractionField(PolynomialRing(base_ring, "d"))
-            d          = coeff_ring.gen()
+        q = self._series_ring.gen()
 
-        qseries_ring = PowerSeriesRing(coeff_ring, 'q', default_prec=self._prec)
-
-        return (base_ring, coeff_ring, qseries_ring, d)
-
-
-    @cached_method
-    def J_inv(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``J_inv``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).J_inv(fix_d=True)
-            1/1728*q^-1 + 31/72 + 1823/16*q + O(q^2)
-            sage: MFSeriesConstructor(prec=3).J_inv_ZZ() == MFSeriesConstructor(prec=3).J_inv(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).J_inv()
-            d*q^-1 + 79/200 + 42877/(640000*d)*q + O(q^2)
-            sage: MFSeriesConstructor(group=5, prec=3).J_inv(fix_d=True)
-            0.007052234181285...*q^-1 + 0.3950000000000... + 9.499870647770...*q + O(q^2)
-
-            sage: MFSeriesConstructor(group=5, prec=3).J_inv().parent()
-            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).J_inv(fix_d=True).parent()
-            Laurent Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.J_inv_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def f_rho(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``f_rho``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).f_rho(fix_d=True)
-            1 + 240*q + 2160*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(prec=3).f_rho_ZZ() == MFSeriesConstructor(prec=3).f_rho(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_rho()
-            1 + 7/(100*d)*q + 21/(160000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).f_rho(fix_d=True)
-            1.000000000000... + 9.925932435107...*q + 2.639039322490...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_rho().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).f_rho(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.f_rho_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def f_i(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``f_i``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).f_i(fix_d=True)
-            1 - 504*q - 16632*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).f_i_ZZ() == MFSeriesConstructor(prec=3).f_i(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_i()
-            1 - 13/(40*d)*q - 351/(64000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).f_i(fix_d=True)
-            1.000000000000... - 46.08468630585...*q - 110.2741431183...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_i().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).f_i(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.f_i_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def f_inf(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``f_inf``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).f_inf(fix_d=True)
-            q - 24*q^2 + 252*q^3 + O(q^4)
-            sage: MFSeriesConstructor(prec=3).f_inf_ZZ() == MFSeriesConstructor(prec=3).f_inf(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_inf()
-            q - 9/(200*d)*q^2 + 279/(640000*d^2)*q^3 + O(q^4)
-            sage: MFSeriesConstructor(group=5, prec=3).f_inf(fix_d=True)
-            0.0000000000000... + 1.000000000000...*q - 6.380956565426...*q^2 + 8.765380606844...*q^3 + O(q^4)
-
-            sage: MFSeriesConstructor(group=5, prec=3).f_inf().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).f_inf(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return d*self.f_inf_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def G_inv(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``G_inv``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(group=4, prec=3).G_inv(fix_d=True)
-            1/16777216*q^-1 - 3/2097152 - 955/4194304*q + O(q^2)
-            sage: MFSeriesConstructor(group=4, prec=3).G_inv_ZZ() == MFSeriesConstructor(group=4, prec=3).G_inv(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=8, prec=3).G_inv()
-            d^3*q^-1 - 15*d^2/128 - 15139*d/262144*q + O(q^2)
-            sage: MFSeriesConstructor(group=8, prec=3).G_inv(fix_d=True)
-            1.648388300301...e-6*q^-1 - 0.00001635263105300... - 0.0006821979994337...*q + O(q^2)
-
-            sage: MFSeriesConstructor(group=8, prec=3).G_inv().parent()
-            Laurent Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=8, prec=3).G_inv(fix_d=True).parent()
-            Laurent Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return d**2*self.G_inv_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def E4(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``E_4``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).E4(fix_d=True)
-            1 + 240*q + 2160*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).E4_ZZ() == MFSeriesConstructor(prec=3).E4(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).E4()
-            1 + 21/(100*d)*q + 483/(32000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).E4(fix_d=True)
-            1.000000000000... + 29.77779730532...*q + 303.4895220864...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).E4().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).E4(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.E4_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def E6(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``E_6``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).E6(fix_d=True)
-            1 - 504*q - 16632*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).E6_ZZ() == MFSeriesConstructor(prec=3).E6(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).E6()
-            1 - 37/(200*d)*q - 14663/(320000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).E6(fix_d=True)
-            1.000000000000... - 26.23282143564...*q - 921.3388948972...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).E6().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).E6(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.E6_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def Delta(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``Delta``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).Delta(fix_d=True)
-            q - 24*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).Delta_ZZ() == MFSeriesConstructor(prec=3).Delta(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).Delta()
-            71/50*q + 28267/(16000*d)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).Delta(fix_d=True)
-            0.0000000000000... + 1.420000000000...*q + 250.5145822707...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).Delta().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).Delta(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return d*self.Delta_ZZ()(qseries_ring.gen()/d)
-
-    @cached_method
-    def E2(self, base_ring = ZZ, fix_d=False, d=None, d_num_prec=ZZ(53)):
-        r"""
-        Return the Fourier expansion of ``E2``.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.series_constructor import MFSeriesConstructor
-            sage: MFSeriesConstructor(prec=3).E2(fix_d=True)
-            1 - 24*q - 72*q^2 + O(q^3)
-            sage: MFSeriesConstructor(prec=3).E2_ZZ() == MFSeriesConstructor(prec=3).E2(d=1)
-            True
-
-            sage: MFSeriesConstructor(group=5, prec=3).E2()
-            1 - 9/(200*d)*q - 369/(320000*d^2)*q^2 + O(q^3)
-            sage: MFSeriesConstructor(group=5, prec=3).E2(fix_d=True)
-            1.000000000000... - 6.380956565426...*q - 23.18584547617...*q^2 + O(q^3)
-
-            sage: MFSeriesConstructor(group=5, prec=3).E2().parent()
-            Power Series Ring in q over Fraction Field of Univariate Polynomial Ring in d over Integer Ring
-            sage: MFSeriesConstructor(group=5, prec=3).E2(fix_d=True).parent()
-            Power Series Ring in q over Real Field with 53 bits of precision
-        """
-
-        (base_ring, coeff_ring, qseries_ring, d) = self.series_data(base_ring, fix_d, d, d_num_prec)
-        return self.E2_ZZ()(qseries_ring.gen()/d)
+        return sum([coeff(m)*q**m for m in range(self.prec())]).add_bigoh(self.prec())

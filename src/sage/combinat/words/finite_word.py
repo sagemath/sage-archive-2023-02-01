@@ -137,20 +137,20 @@ As matrix and many other sage objects, words have a parent::
 Factors and Rauzy Graphs
 ========================
 
-Enumeration of factors, the successive values returned by it.next()
+Enumeration of factors, the successive values returned by next(it)
 can appear in a different order depending on hardware. Therefore we
 mark the three first results of the test random. The important test
 is that the iteration stops properly on the fourth call::
 
     sage: w = Word([4,5,6])^7
     sage: it = w.factor_iterator(4)
-    sage: it.next() # random
+    sage: next(it) # random
     word: 6456
-    sage: it.next() # random
+    sage: next(it) # random
     word: 5645
-    sage: it.next() # random
+    sage: next(it) # random
     word: 4564
-    sage: it.next()
+    sage: next(it)
     Traceback (most recent call last):
     ...
     StopIteration
@@ -198,6 +198,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ
 from sage.sets.set import Set
+from sage.misc.superseded import deprecated_function_alias
 
 class FiniteWord_class(Word_class):
     def __str__(self):
@@ -240,7 +241,7 @@ class FiniteWord_class(Word_class):
         global word_options
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = map(str, self)
+            letters = [str(_) for _ in self]
             if all(len(a)==1 for a in letters):
                 return ''.join(letters)
             else:
@@ -466,9 +467,9 @@ class FiniteWord_class(Word_class):
         if length in ZZ and length >= 0:
             return self._parent(fcn, length=length)
         else:
-            raise ValueError("Power of the word is not defined on the \
-exponent %s: the length of the word (%s) times the exponent \
-(%s) must be a positive integer"  % (exp, self.length(), exp))
+            raise ValueError("Power of the word is not defined on the exponent {}:"
+                    " the length of the word ({}) times the exponent ({}) must"
+                    " be a positive integer".format(exp,self.length(),exp))
 
     def length(self):
         r"""
@@ -550,15 +551,122 @@ exponent %s: the length of the word (%s) times the exponent \
             return self
         r = self.reversal()
         w = list(r)
+        parent = self.parent()
         if n is None:
-            alphsize = self.parent().size_of_alphabet()
+            alphsize = parent.size_of_alphabet()
             if not alphsize == +Infinity:
-                n = max(self.parent().alphabet())
+                n = max(parent.alphabet())
             elif r.length()>0:
                 n = max(w)
         for k in range(r.length()):
             w[k] = n+1 - w[k]
-        return self.parent()(w)
+        return parent(w, check=False)
+
+    def foata_bijection(self):
+        r"""
+        Return word ``self`` under the Foata bijection.
+
+        The Foata bijection `\phi` is a bijection on the set of words
+        of given content (by a slight generalization of Section 2 in [FoSc78]_).
+        It can be defined by induction on the size of the word: Given a word
+        `w_1 w_2 \cdots w_n`, start with `\phi(w_1) = w_1`. At the `i`-th step, if
+        `\phi(w_1 w_2 \cdots w_i) = v_1 v_2 \cdots v_i`, we define
+        `\phi(w_1 w_2 \cdots w_i w_{i+1})` by placing `w_{i+1}` on the end of
+        the word `v_1 v_2 \cdots v_i` and breaking the word up into blocks
+        as follows. If `w_{i+1} \ge v_i`, place a vertical line to the right
+        of each `v_k` for which `w_{i+1} \ge v_k`. Otherwise, if
+        `w_{i+1} < v_i`, place a vertical line to the right of each `v_k`
+        for which `w_{i+1} < v_k`. In either case, place a vertical line at
+        the start of the word as well. Now, within each block between
+        vertical lines, cyclically shift the entries one place to the
+        right.
+
+        For instance, to compute `\phi([4,1,5,4,2,2,3])`, the sequence of
+        words is
+
+        * `4`,
+        * `|4|1 \to 41`,
+        * `|4|1|5 \to 415`,
+        * `|415|4 \to 5414`,
+        * `|5|4|14|2 \to 54412`,
+        * `|5441|2|2 \to 154422`,
+        * `|1|5442|2|3 \to 1254423`.
+
+        So `\phi([4,1,5,4,2,2,3]) = [1,2,5,4,4,2,3]`.
+
+        .. SEEALSO::
+
+            :meth:`Foata bijection on Permutations <sage.combinat.permutation.Permutation.foata_bijection()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,2,2,1,1,1])
+            sage: w.foata_bijection()
+            word: 112221
+            sage: w = Word([2,2,1,2,2,2,1,1,2,1])
+            sage: w.foata_bijection()
+            word: 2122212211
+            sage: w = Word([4,1,5,4,2,2,3])
+            sage: w.foata_bijection()
+            word: 1254423
+
+        TESTS::
+
+            sage: w = Word('121314')
+            sage: w.foata_bijection()
+            word: 231114
+            sage: w = Word('1133a1')
+            sage: w.foata_bijection()
+            word: 3113a1
+        """
+        s = self.standard_permutation()
+        ordered_alphabet = sorted(self.letters(), cmp=self.parent().cmp_letters)
+        eval_dict = self.evaluation_dict()
+        weight = [eval_dict[a] for a in ordered_alphabet]
+        return (s.foata_bijection()).destandardize(weight, ordered_alphabet=ordered_alphabet)
+
+    def major_index(self, final_descent=False):
+        r"""
+        Return the major index of ``self``.
+
+        The major index of a word `w` is the sum of the descents of `w`.
+
+        With the ``final_descent`` option, the last position of a
+        non-empty word is also considered as a descent.
+
+        .. SEEALSO::
+
+            :meth:`major index on Permutations <sage.combinat.permutation.Permutation.major_index()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index()
+            5
+            sage: w = Word([2,1,3,3,2])
+            sage: w.major_index(final_descent=True)
+            10
+        """
+        return (self.standard_permutation()).major_index(final_descent=final_descent)
+
+    def number_of_inversions(self):
+        r"""
+        Return the number of inversions in ``self``.
+
+        An inversion of a word `w = w_1 \ldots w_n` is a pair of indices `(i, j)`
+        with `i < j` and `w_i > w_j`.
+
+        .. SEEALSO::
+
+            :meth:`number of inversions on Permutations <sage.combinat.permutation.Permutation.number_of_inversions()>`.
+
+        EXAMPLES::
+
+            sage: w = Word([2,1,3,3,2])
+            sage: w.number_of_inversions()
+            3
+        """
+        return (self.standard_permutation()).number_of_inversions()
 
     def is_empty(self):
         r"""
@@ -626,7 +734,7 @@ exponent %s: the length of the word (%s) times the exponent \
             [1, 0, 0, 2]
         """
         cmp_fcn = self._parent.cmp_letters
-        ordered_alphabet = sorted(set(self), cmp=cmp_fcn)
+        ordered_alphabet = sorted(self.letters(), cmp=cmp_fcn)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
 
@@ -927,13 +1035,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.implicit_suffix_tree()
 
-    def number_of_factors(self,n=None):
+    def number_of_factors(self, n=None, algorithm='suffix tree'):
         r"""
         Counts the number of distinct factors of self.
 
         INPUT:
 
         -  ``n`` - an integer, or None.
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -946,7 +1059,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word([1,2,1,2,3])
             sage: w.number_of_factors()
             13
-            sage: map(w.number_of_factors, range(6))
+            sage: [w.number_of_factors(i) for i in range(6)]
             [1, 3, 3, 3, 2, 1]
 
         ::
@@ -981,12 +1094,17 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: blueberry = Word("blueberry")
             sage: blueberry.number_of_factors()
             43
-            sage: map(blueberry.number_of_factors, range(10))
+            sage: [blueberry.number_of_factors(i) for i in range(10)]
             [1, 6, 8, 7, 6, 5, 4, 3, 2, 1]
         """
-        return self.suffix_tree().number_of_factors(n)
+        if algorithm == 'suffix tree':
+            return self.suffix_tree().number_of_factors(n)
+        elif algorithm == 'naive':
+            return len(self.factor_set(n, algorithm='naive'))
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
-    def factor_iterator(self,n=None):
+    def factor_iterator(self, n=None):
         r"""
         Generates distinct factors of ``self``.
 
@@ -1057,13 +1175,18 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         return self.suffix_tree().factor_iterator(n)
 
-    def factor_set(self, n=None):
+    def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Returns the set of factors (of length n) of self.
 
         INPUT:
 
         - ``n`` - an integer or ``None`` (default: None).
+        - ``algorithm`` - string (default: ``'suffix tree'``), takes the
+          following values:
+
+          - ``'suffix tree'`` -- construct and use the suffix tree of the word
+          - ``'naive'`` -- algorithm uses a sliding window
 
         OUTPUT:
 
@@ -1074,8 +1197,9 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word('121')
-            sage: s = w.factor_set()
-            sage: sorted(s)
+            sage: sorted(w.factor_set())
+            [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
+            sage: sorted(w.factor_set(algorithm='naive'))
             [word: , word: 1, word: 12, word: 121, word: 2, word: 21]
 
         ::
@@ -1108,8 +1232,31 @@ exponent %s: the length of the word (%s) times the exponent \
 
             sage: Set(Word().factor_set())
             {word: }
+
+        ::
+
+            sage: w = Word(range(10), alphabet=range(10))
+            sage: S1 = w.factor_set(3, algorithm='suffix tree')
+            sage: S2 = w.factor_set(3, algorithm='naive')
+            sage: S1 == S2
+            True
         """
-        return Set(set(self.factor_iterator(n)))
+        if algorithm == 'suffix tree':
+            return Set(self.factor_iterator(n))
+        elif algorithm == 'naive':
+            if n is None:
+                S = set([self[0:0]])
+                for n in range(1, self.length()+1):
+                    for i in range(self.length()-n+1):
+                        S.add(self[i:i+n])
+                return Set(S)
+            else:
+                S = set()
+                for i in range(self.length()-n+1):
+                    S.add(self[i:i+n])
+                return Set(S)
+        else:
+            raise ValueError('Unknown algorithm (={})'.format(algorithm))
 
     def topological_entropy(self, n):
         r"""
@@ -1811,7 +1958,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         TESTS:
 
-        We check that trac #11128 is fixed::
+        We check that :trac:`11128` is fixed::
 
             sage: w = Word([0,0,1,0,2,1])
             sage: [w.conjugate(i).conjugate_position(w) for i in range(w.length())]
@@ -1876,7 +2023,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('12131').is_conjugate_with(Word('11213'))
             True
 
-        We make sure that trac #11128 is fixed::
+        We make sure that :trac:`11128` is fixed::
 
             sage: Word('abaa').is_conjugate_with(Word('aaba'))
             True
@@ -1905,11 +2052,11 @@ exponent %s: the length of the word (%s) times the exponent \
             return True
         try:
             it = iter(self)
-            s = islice(it, seq[0], None).next()
+            s = next(islice(it, seq[0], None))
             for i in xrange(1, len(seq)):
                 steps = seq[i] - seq[i-1]
-                for n in xrange(steps-1): it.next()
-                if it.next() != s:
+                for n in xrange(steps-1): next(it)
+                if next(it) != s:
                     return False
         except StopIteration:
             return False
@@ -1963,7 +2110,7 @@ exponent %s: the length of the word (%s) times the exponent \
             return other
 
         iter = enumerate(izip(reversed(self), reversed(other)))
-        i,(b,c) = iter.next()
+        i,(b,c) = next(iter)
         if b != c:
             #In this case, return the empty word
             return self[:0]
@@ -2431,6 +2578,218 @@ exponent %s: the length of the word (%s) times the exponent \
             l[i] = None
         return l
 
+    def length_maximal_palindrome(self, j, m=None, f=None):
+        r"""
+        Returns the length of the longest palindrome centered at position j.
+
+        INPUT:
+
+        - ``j`` -- rational, position of the symmetry axis of the palindrome.
+          Must return an integer when doubled. It is an integer when the
+          center of the palindrome is a letter.
+
+        - ``m`` -- integer (default: None), minimal length of palindrome, if known.
+          The parity of ``m`` can't be the same as the parity of ``2j``.
+
+        - ``f`` -- involution (default: None), on the alphabet. It must be
+          callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            The length of the longest `f`-palindrome centered at position j.
+
+        EXAMPLES::
+
+            sage: Word('01001010').length_maximal_palindrome(3/2)
+            0
+            sage: Word('01101001').length_maximal_palindrome(3/2)
+            4
+            sage: Word('01010').length_maximal_palindrome(j=3, f='0->1,1->0')
+            0
+            sage: Word('01010').length_maximal_palindrome(j=2.5, f='0->1,1->0')
+            4
+            sage: Word('0222220').length_maximal_palindrome(3, f='0->1,1->0,2->2')
+            5
+
+        ::
+
+            sage: w = Word('abcdcbaxyzzyx')
+            sage: w.length_maximal_palindrome(3)
+            7
+            sage: w.length_maximal_palindrome(3, 3)
+            7
+            sage: w.length_maximal_palindrome(3.5)
+            0
+            sage: w.length_maximal_palindrome(9.5)
+            6
+            sage: w.length_maximal_palindrome(9.5, 2)
+            6
+
+        TESTS:
+
+        These are wrong inputs::
+
+            sage: w.length_maximal_palindrome(9.6)
+            Traceback (most recent call last):
+            ...
+            ValueError: j must be positive, inferior to length of self
+            sage: w.length_maximal_palindrome(3, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: (2*j-m-1)/2(=3/2) must be an integer, i.e., 2*j(=6) and
+            m(=2) can't have the same parity
+            sage: w.length_maximal_palindrome(9.5, 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: (2*j-m-1)/2(=15/2) must be an integer, i.e., 2*j(=19) and
+            m(=3) can't have the same parity
+
+        """
+        # Ensure `f` is an involutory word morphism
+        if f is not None:
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        # Ensure j is a valid entry
+        jj = 2*j
+        if not jj.is_integer() or j < 0 or j >= len(self):
+            raise ValueError("j must be positive, inferior to length of self")
+        jj = Integer(jj)
+
+        # Initialize length of the known palindrome
+        if m is None:
+            m = 0 if jj % 2 == 1 else -1
+
+        # Initialize the next (left) position to check
+        i = (jj - m - 1) / 2
+        if not i.is_integer():
+            raise ValueError("(2*j-m-1)/2(={}) must be an integer, i.e., "
+                             "2*j(={}) and m(={}) can't "
+                             "have the same parity".format(i, jj, m))
+        i = Integer(i)
+
+        # Compute
+        if f is None:
+            while i >= 0 and jj-i < len(self) and self[i] == self[jj-i]:
+                i -= 1
+        else:
+            while i >= 0 and jj-i < len(self) and self[i] == f(self[jj-i])[0]:
+                i -= 1
+        if jj == 2 * i:
+            return 0
+        else:
+            return jj - 2*i - 1
+
+    def lengths_maximal_palindromes(self, f=None):
+        r"""
+        Returns the length of maximal palindromes centered at each position.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+          be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            list -- The length of the maximal palindrome (or `f`-palindrome)
+            with a given symmetry axis (letter or space between two letters).
+
+        EXAMPLES::
+
+            sage: Word('01101001').lengths_maximal_palindromes()
+            [0, 1, 0, 1, 4, 1, 0, 3, 0, 3, 0, 1, 4, 1, 0, 1, 0]
+            sage: Word('00000').lengths_maximal_palindromes()
+            [0, 1, 2, 3, 4, 5, 4, 3, 2, 1, 0]
+            sage: Word('0').lengths_maximal_palindromes()
+            [0, 1, 0]
+            sage: Word('').lengths_maximal_palindromes()
+            [0]
+            sage: Word().lengths_maximal_palindromes()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lengths_maximal_palindromes(f)
+            [0, 0, 2, 0, 0, 0, 2, 0, 8, 0, 2, 0, 0, 0, 2, 0, 0]
+        """
+        if f is not None :
+            from sage.combinat.words.morphism import WordMorphism
+            if not isinstance(f, WordMorphism):
+                f = WordMorphism(f)
+            if not f.is_involution():
+                raise ValueError("f must be an involution")
+
+        LPC = []  # lengths of the maximal palindromes centered at a position
+        LPC.append(0)
+
+        k = 0  # index, center of rightmost-ending `f`-palindrome encountered
+
+        for j in range(1, 2 * len(self) + 1):
+            if j >= k + LPC[k]:
+                p = self.length_maximal_palindrome((j - 1)*0.5, -(j%2), f)
+                LPC.append(p)
+                if j + p > k + LPC[k]:
+                    k = j
+
+            # If the center is included in an encountered `f`-palindrome
+            else:
+                # If the `f`-palindrome centered at position j is not the
+                # longest proper `f`-palindromic suffix of the maximal
+                # `f`-palindrome centered at k
+                if LPC[k] + k - j != LPC[2*k - j]:
+                    LPC.append(min(LPC[k] + k - j, LPC[2*k - j]))
+
+                else:
+                    mp = LPC[k] + k - j
+                    p = self.length_maximal_palindrome((j-1)*0.5, mp, f)
+                    LPC.append(p)
+                    k = j
+        return LPC
+
+    def lps_lengths(self, f=None):
+        r"""
+        Returns the length of the longest palindromic suffix of each prefix.
+
+        INPUT:
+
+        - ``f`` - involution (default: None) on the alphabet of self. It must
+          be callable on letters as well as words (e.g. WordMorphism).
+
+        OUTPUT:
+
+            list -- The length of the longest palindromic (or `f`-palindromic)
+            suffix of each prefix of self.
+
+        EXAMPLES::
+
+            sage: Word('01101001').lps_lengths()
+            [0, 1, 1, 2, 4, 3, 3, 2, 4]
+            sage: Word('00000').lps_lengths()
+            [0, 1, 2, 3, 4, 5]
+            sage: Word('0').lps_lengths()
+            [0, 1]
+            sage: Word('').lps_lengths()
+            [0]
+            sage: Word().lps_lengths()
+            [0]
+            sage: f = WordMorphism('a->b,b->a')
+            sage: Word('abbabaab').lps_lengths(f)
+            [0, 0, 2, 0, 2, 2, 4, 6, 8]
+        """
+        LPC = self.lengths_maximal_palindromes(f)
+        LPS = []  # lengths of the longest palindromic suffix of prefixes
+        k = 0
+        LPS.append(0)
+
+        for j in range(1, 2*len(self)+1):
+            if j + LPC[j] > k + LPC[k]:
+                for i in range(k + LPC[k] + 1, j + LPC[j] + 1):
+                    if i % 2 == 0:
+                        LPS.append(i-j)
+                    k = j
+        return LPS
+
     def palindromes(self, f=None):
         r"""
         Returns the set of all palindromic (or `f`-palindromic) factors of self.
@@ -2442,8 +2801,8 @@ exponent %s: the length of the word (%s) times the exponent \
 
         OUTPUT:
 
-            set -- If f is None, the set of all palindromic factors of self;
-                   otherwise, the set of all f-palindromic factors of self.
+            set - If f is None, the set of all palindromic factors of self;
+            otherwise, the set of all f-palindromic factors of self.
 
         EXAMPLES::
 
@@ -2461,7 +2820,8 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: sorted(Word('abbabaab').palindromes(f))
             [word: , word: ab, word: abbabaab, word: ba, word: baba, word: bbabaa]
         """
-        return self.palindromic_lacunas_study(f=f)[2]
+        LPS = self.lps_lengths(f)
+        return set(self[i-LPS[i] : i] for i in range(len(self)+1))
 
     def palindrome_prefixes(self):
         r"""
@@ -2610,7 +2970,7 @@ exponent %s: the length of the word (%s) times the exponent \
             if not f.is_involution():
                 raise ValueError("f must be an involution")
             D = f.domain()
-            A = set(map(D,set(self)))
+            A = set(map(D, self.letters()))
             while A:
                 x = A.pop()
                 if f(x) != x: # count only non f-palindromic letters
@@ -3232,10 +3592,10 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         its = iter(self)
         try:
-            s = its.next()
+            s = next(its)
             for e in other:
                 if s == e:
-                    s = its.next()
+                    s = next(its)
             else:
                 return False
         except StopIteration:
@@ -3586,7 +3946,7 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('1231232').last_position_dict()
-            {'1': 3, '3': 5, '2': 6}
+            {'1': 3, '2': 6, '3': 5}
         """
         d = {}
         for (i, letter) in enumerate(self):
@@ -3655,9 +4015,11 @@ exponent %s: the length of the word (%s) times the exponent \
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position from which to start the search.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position at which the search must stop. If None, then
            the search is performed up to the end of the string.
@@ -3669,8 +4031,18 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: w = Word([0,1,0,0,1])
-            sage: w.find(Word([0,1]))
-            0
+            sage: w.find(Word([1,0]))
+            1
+
+        The ``sub`` argument can also be a tuple or a list::
+
+            sage: w.find([1,0])
+            1
+            sage: w.find((1,0))
+            1
+
+        Examples using ``start`` and ``end``::
+
             sage: w.find(Word([0,1]), start=1)
             3
             sage: w.find(Word([0,1]), start=1, end=5)
@@ -3679,32 +4051,42 @@ exponent %s: the length of the word (%s) times the exponent \
             True
             sage: w.find(Word([1,1])) == -1
             True
+            sage: w.find("aa")
+            -1
 
         Instances of Word_str handle string inputs as well::
 
             sage: w = Word('abac')
             sage: w.find('a')
             0
-            sage: w.find(Word('a'))
+            sage: w.find('ba')
+            1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("ababab"))
+            sage: w.find("ab")
             0
+            sage: w.find("ab", start=1)
+            2
+            sage: w.find("aa")
+            -1
+            sage: w.find("abc")
+            -1
+            sage: w = Words('ab')(tuple('babaabaaab'))
+            sage: w.find('abc')
+            -1
+
         """
-        w = self[start:end]
-        if isinstance(sub, FiniteWord_class):
-            p = sub.first_pos_in(w)
-            if p is None:
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
                 return -1
-            else:
-                return p + start
-        else:
-            L = len(sub)
-            if start is None:
-                i = len(self) - L
-            else:
-                i = start - L
-            while i >= end:
-                if self[i:i+L] == sub: return i
-                i -= 1
-            return -1
+        p = sub.first_pos_in(self[start:end])
+        return -1 if p is None else p+start
 
     def rfind(self, sub, start=0, end=None):
         r"""
@@ -3714,9 +4096,11 @@ exponent %s: the length of the word (%s) times the exponent \
 
         INPUT:
 
-        -  ``sub`` - string or word to search for.
+        -  ``sub`` - string, list, tuple or word to search for.
+
         -  ``start`` - non negative integer (default: 0) specifying
            the position at which the search must stop.
+
         -  ``end`` - non negative integer (default: None) specifying
            the position from which to start the search. If None, then
            the search is performed up to the end of the string.
@@ -3730,14 +4114,24 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = Word([0,1,0,0,1])
             sage: w.rfind(Word([0,1]))
             3
+
+        The ``sub`` parameter can also be a list or a tuple::
+
+            sage: w.rfind([0,1])
+            3
+            sage: w.rfind((0,1))
+            3
+
+        Examples using the argument ``start`` and ``end``::
+
             sage: w.rfind(Word([0,1]), end=4)
             0
             sage: w.rfind(Word([0,1]), end=5)
             3
             sage: w.rfind(Word([0,0]), start=2, end=5)
             2
-            sage: w.rfind(Word([0,0]), start=3, end=5) == -1
-            True
+            sage: w.rfind(Word([0,0]), start=3, end=5)
+            -1
 
         Instances of Word_str handle string inputs as well::
 
@@ -3746,12 +4140,34 @@ exponent %s: the length of the word (%s) times the exponent \
             2
             sage: w.rfind(Word('a'))
             2
+            sage: w.rfind([0,1])
+            -1
+
+        TESTS:
+
+        Check that :trac:`12804` is fixed::
+
+            sage: w = Word(iter("abab"))
+            sage: w.rfind("ab")
+            2
+            sage: w.rfind("ab", end=3)
+            0
+            sage: w.rfind("aa")
+            -1
+            sage: w.rfind([0,0,0])
+            -1
         """
+        if not isinstance(sub, FiniteWord_class):
+            try:
+                sub = self.parent()(sub)
+            except (ValueError,TypeError):
+                return -1
         L = len(sub)
+        start = max(0, int(start))
         if end is None:
             i = len(self) - L
         else:
-            i = end - L
+            i = min(end, len(self)) - L
         while i >= start:
             if self[i:i+L] == sub: return i
             i -= 1
@@ -3900,17 +4316,17 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word('21331233213231').return_words(Word('2'))
-            set([word: 213, word: 21331, word: 233])
+            {word: 213, word: 21331, word: 233}
             sage: Word().return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').return_words(Word('1212'))
-            set([word: 12])
+            {word: 12}
 
         ::
 
-            sage: TM = words.ThueMorseWord()[:10000]
-            sage: TM.return_words(Word([0]))     # optional long time (1.34 s)
-            set([word: 0, word: 01, word: 011])
+            sage: TM = words.ThueMorseWord()[:1000]
+            sage: sorted(TM.return_words(Word([0])))
+            [word: 0, word: 01, word: 011]
 
         REFERENCES:
 
@@ -3942,9 +4358,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: sorted(s)
             [word: 2132, word: 213312, word: 2332]
             sage: Word('').complete_return_words(Word('213'))
-            set([])
+            set()
             sage: Word('121212').complete_return_words(Word('1212'))
-            set([word: 121212])
+            {word: 121212}
 
         REFERENCES:
 
@@ -3971,8 +4387,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         idx = 0
         tab = {}
-        ret = map(lambda w: tab.setdefault(w, len(tab)) + 1, \
-                                self._return_words_list(fact))
+        ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
         return Word(ret)
 
@@ -4128,7 +4543,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word([2,1,4,2,3,4,2]).evaluation_dict()
             {1: 1, 2: 3, 3: 1, 4: 2}
             sage: Word('badbcdb').evaluation_dict()
-            {'a': 1, 'c': 1, 'b': 3, 'd': 2}
+            {'a': 1, 'b': 3, 'c': 1, 'd': 2}
             sage: Word().evaluation_dict()
             {}
 
@@ -4499,14 +4914,15 @@ exponent %s: the length of the word (%s) times the exponent \
                 out[p] = i
             else:
                 out[p] = i+1
-        return self.parent()(out)
+        return self.parent()(out, check=False)
 
     def _to_partition_content(self):
         r"""
         Returns the conversion of self to a word with partition content using
         the `s_i` operators of Lascoux and Schutzenberger.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: w = Word([1,3,2,1,2,3,4,6,4,2,3,2])
             sage: w._to_partition_content()
             word: 132112454132
@@ -4705,7 +5121,7 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
            return self
         conjugates = sorted(self._conjugates_list())
-        return self.parent()([x[x.length()-1] for x in conjugates])
+        return self.parent()([x[x.length()-1] for x in conjugates], check=False)
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -4824,19 +5240,19 @@ exponent %s: the length of the word (%s) times the exponent \
            Encyclopedia of Mathematics and its Applications, Cambridge
            University Press, U.K., 2002.
         """
-        alphabet = set(self)
+        alphabet = self.letters()
         best = 0
         for i in range(1, self.length()):
             start = iter(self)
             end = iter(self)
             abelian = dict(zip(alphabet, [0]*len(alphabet)))
             for _ in range(i):
-                abelian[end.next()] += 1
+                abelian[next(end)] += 1
             abel_max = abelian.copy()
             abel_min = abelian.copy()
             for _ in range(self.length() - i):
-                lost = start.next()
-                gain = end.next()
+                lost = next(start)
+                gain = next(end)
                 abelian[gain] += 1
                 abelian[lost] -= 1
                 abel_max[gain] = max(abel_max[gain], abelian[gain])
@@ -4906,7 +5322,7 @@ exponent %s: the length of the word (%s) times the exponent \
         """
         if not isinstance(q, (int, Integer)) or q <= 0:
             raise TypeError("the balance level must be a positive integer")
-        alphabet = set(self)
+        alphabet = self.letters()
         for i in xrange(2, self.length()):
             empty_sets = [set() for _ in range(len(alphabet))]
             tab = dict(zip(alphabet, empty_sets))
@@ -4919,6 +5335,112 @@ exponent %s: the length of the word (%s) times the exponent \
                     return False
         return True
 
+    def abelian_vectors(self, n):
+        r"""
+        Return the abelian vectors of factors of length ``n`` of self.
+
+        The vectors are defined w.r.t the order of the alphabet of the
+        parent.
+
+        OUTPUT:
+
+            Set of tuples
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,1,1,0,1,2,0,2,0,2])
+            sage: w.abelian_vectors(3)
+            {(1, 0, 2), (1, 1, 1), (1, 2, 0), (2, 0, 1)}
+            sage: w[:5].abelian_vectors(3)
+            {(1, 2, 0)}
+            sage: w[5:].abelian_vectors(3)
+            {(1, 0, 2), (2, 0, 1)}
+
+        ::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: sorted(w.abelian_vectors(0))
+            [(0, 0)]
+            sage: sorted(w.abelian_vectors(1))
+            [(0, 1), (1, 0)]
+            sage: sorted(w.abelian_vectors(7))
+            [(4, 3), (5, 2)]
+
+        The word must be defined with a parent on a finite alphabet::
+
+            sage: from itertools import count
+            sage: w = Word(count(), alphabet=NN)
+            sage: w[:2].abelian_vectors(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet
+
+        TESTS::
+
+            sage: W = Words([0, 1])
+            sage: w = W([0,0,0])
+            sage: sorted(w.abelian_vectors(3))
+            [(3, 0)]
+            sage: w = W([0,0,0,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(2, 1), (3, 0)]
+            sage: w = W([0,0,0,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(1, 2), (2, 1), (3, 0)]
+            sage: w = W([0,0,0,1,1,1])
+            sage: sorted(w.abelian_vectors(3))
+            [(0, 3), (1, 2), (2, 1), (3, 0)]
+
+        ::
+
+            sage: w = Word([0,1,0], alphabet=[0,1])
+            sage: w.abelian_complexity(3)
+            1
+            sage: w.abelian_complexity(4)
+            0
+
+        """
+        alphabet = self.parent().alphabet()
+        size = alphabet.cardinality()
+        if size == float('inf'):
+            raise TypeError("The alphabet of the parent is infinite; define"
+                   " the word with a parent on a finite alphabet")
+        S = set()
+        if n > self.length():
+            return S
+        rank = dict((letter,i) for i,letter in enumerate(alphabet))
+        start = iter(self)
+        end = iter(self)
+        abelian = [0] * size
+        for _ in range(n):
+            abelian[rank[next(end)]] += 1
+        S.add(tuple(abelian))
+        for letter in end:
+            abelian[rank[letter]] += 1
+            abelian[rank[next(start)]] -= 1
+            S.add(tuple(abelian))
+        return S
+
+    def abelian_complexity(self, n):
+        r"""
+        Return the number of abelian vectors of factors of length ``n`` of self.
+
+        EXAMPLES::
+
+            sage: w = words.FibonacciWord()[:100]
+            sage: [w.abelian_complexity(i) for i in range(20)]
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+        ::
+
+            sage: w = words.ThueMorseWord()[:100]
+            sage: [w.abelian_complexity(i) for i in range(20)]
+            [1, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2, 3, 2]
+
+        """
+        return len(self.abelian_vectors(n))
 
     def sturmian_desubstitute_as_possible(self):
         r"""
@@ -5010,14 +5532,12 @@ exponent %s: the length of the word (%s) times the exponent \
         if (W.size_of_alphabet() == 2):
             alphabet = W.alphabet()
         else:
-            alphabet_as_set = set(self)
-            if len(alphabet_as_set) > 2:
+            alphabet = self.letters()
+            if len(alphabet) > 2:
                 raise TypeError('your word must be defined on a binary alphabet or use at most two different letters')
-            elif len(alphabet_as_set) < 2:
+            elif len(alphabet) < 2:
                 return W()
-            else:
-                alphabet = list(alphabet_as_set)
-        word_from_letter = {l:W([l],datatype="list") for l in alphabet}
+        word_from_letter = {l:W([l],datatype="list",check=False) for l in alphabet}
         is_prefix = True
         current_run_length = 0
         prefix_length = 0
@@ -5295,54 +5815,77 @@ exponent %s: the length of the word (%s) times the exponent \
         else:
             return self
 
-    def parikh_vector(self, alphabet=None):
+    def abelian_vector(self, alphabet=None):
         r"""
-        Returns the Parikh vector of self, i.e., the vector containing the
-        number of occurrences of each letter, given in the order of the
-        alphabet.
+        Return the abelian vector of self counting the occurrences of each letter.
 
-        See also evaluation_dict.
+        The vector is defined w.r.t the order of the alphabet of the
+        parent. See also :meth:`evaluation_dict`.
 
         INPUT:
 
-        -  ``alphabet`` - (default: None) finite ordered alphabet, if None it
-           uses the set of letters in self with the ordering defined by the
-           parent
+        - ``self`` -- word having a parent on a finite alphabet
+        - ``alphabet`` -- DEPRECATED
+
+        OUTPUT:
+
+            list
 
         EXAMPLES::
 
-            sage: Words('ab')().parikh_vector()
+            sage: W = Words('ab')
+            sage: W('aaabbbbb').abelian_vector()
+            [3, 5]
+            sage: W('a').abelian_vector()
+            [1, 0]
+            sage: W().abelian_vector()
             [0, 0]
-            sage: Word('aabaa').parikh_vector('abc')
+
+        The argument alphabet is deprecated::
+
+            sage: Word('aabaa').abelian_vector('abc')
+            doctest:...: DeprecationWarning: The argument alphabet of
+            methods abelian_vector and parikh_vector is deprecated and will
+            be removed in a future version of Sage. In order to fix this,
+            you must define your word on a parent with a finite alphabet.
+            See http://trac.sagemath.org/17058 for details.
             [4, 1, 0]
-            sage: Word('a').parikh_vector('abc')
-            [1, 0, 0]
-            sage: Word('a').parikh_vector('cab')
-            [0, 1, 0]
-            sage: Word('a').parikh_vector('bca')
-            [0, 0, 1]
-            sage: Word().parikh_vector('ab')
-            [0, 0]
-            sage: Word().parikh_vector('abc')
-            [0, 0, 0]
-            sage: Word().parikh_vector('abcd')
-            [0, 0, 0, 0]
+
+        You may fix the above deprecated use of alphabet argument this way::
+
+            sage: W = Words('abc')
+            sage: W('aabaa').abelian_vector()
+            [4, 1, 0]
 
         TESTS::
 
-            sage: Word('aabaa').parikh_vector()
+            sage: W = Words()
+            sage: W('aabaa').abelian_vector()
             Traceback (most recent call last):
             ...
-            TypeError: the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead
+            TypeError: The alphabet of the parent is infinite; define the
+            word with a parent on a finite alphabet or use
+            evaluation_dict() instead
         """
-        if alphabet is None and self._parent.size_of_alphabet() is Infinity:
-            raise TypeError("the alphabet is infinite; specify a finite alphabet or use evaluation_dict() instead")
         if alphabet is None:
-            alphabet = self._parent._alphabet
+            if self.parent().size_of_alphabet() is Infinity:
+                raise TypeError("The alphabet of the parent is infinite; define "
+                        "the word with a parent on a finite alphabet or use "
+                        "evaluation_dict() instead")
+            alphabet = self.parent().alphabet()
+        else:
+            from sage.misc.superseded import deprecation
+            deprecation(17058, "The argument alphabet of methods abelian_vector "
+                        "and parikh_vector is deprecated and will be "
+                        "removed in a future version of Sage. In order to "
+                        "fix this, you must define your word on a parent "
+                        "with a finite alphabet.")
+
         ev_dict = self.evaluation_dict()
         return [ev_dict.get(a,0) for a in alphabet]
 
-    evaluation = parikh_vector
+    parikh_vector = deprecated_function_alias(17058, abelian_vector)
+    evaluation = abelian_vector
 
     def robinson_schensted(self):
         """
@@ -5481,7 +6024,7 @@ exponent %s: the length of the word (%s) times the exponent \
             from sage.combinat.words.shuffle_product import ShuffleProduct_shifted
             return ShuffleProduct_shifted(self, other)
         else:
-            return self.shuffle(self._parent([x + shift for x in other]))
+            return self.shuffle(self._parent([x + shift for x in other], check=False))
 
     def delta_inv(self, W=None, s=None):
         r"""
@@ -5510,17 +6053,17 @@ exponent %s: the length of the word (%s) times the exponent \
         if self.is_empty():
             return Words(alphabet)()
         if s is None:
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         else:
             if s not in alphabet:
                 raise ValueError("starting letter not in alphabet")
-            t = cycle_alphabet.next()
+            t = next(cycle_alphabet)
             while t != s:
-                t = cycle_alphabet.next()
+                t = next(cycle_alphabet)
         w = []
         for i in self:
             w.extend([s] * i)
-            s = cycle_alphabet.next()
+            s = next(cycle_alphabet)
         return Words(alphabet)(w)
 
     def delta(self):
@@ -5722,7 +6265,7 @@ exponent %s: the length of the word (%s) times the exponent \
             W = self.parent()
         if self.is_empty():
             return W()
-        v = self.parent()((self[-1],))
+        v = self.parent()((self[-1],), check=False)
         for i in xrange(self.length()-2, -1, -1):
             v = v.delta_inv(W, self[i])
         return v
@@ -5788,7 +6331,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def letters(self):
         r"""
-        Return a list of the letters that appear in self, listed in the
+        Return the list of letters that appear in this word, listed in the
         order of first appearance.
 
         EXAMPLES::
@@ -5797,12 +6340,18 @@ exponent %s: the length of the word (%s) times the exponent \
             [0, 1]
             sage: Word("cacao").letters()
             ['c', 'a', 'o']
+
+        TESTS::
+
+            sage: Word().letters()
+            []
         """
-        seen, res = {}, []
+        seen = set()
+        res = []
         for x in self:
             if x not in seen:
                 res.append(x)
-                seen[x] = True
+                seen.add(x)
         return res
 
     def standard_factorization(self):
@@ -5909,7 +6458,7 @@ exponent %s: the length of the word (%s) times the exponent \
                 permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
-        return self.parent()(permutation.action(self))
+        return self.parent()(permutation.action(self), check=False)
 
     def apply_permutation_to_letters(self, permutation):
         r"""
@@ -5974,12 +6523,18 @@ exponent %s: the length of the word (%s) times the exponent \
         EXAMPLES::
 
             sage: Word(range(20)).colored_vector()
+            Graphics object consisting of 21 graphics primitives
             sage: Word(range(100)).colored_vector(0,0,10,1)
+            Graphics object consisting of 101 graphics primitives
             sage: Words(range(100))(range(10)).colored_vector()
+            Graphics object consisting of 11 graphics primitives
             sage: w = Word('abbabaab')
             sage: w.colored_vector()
+            Graphics object consisting of 9 graphics primitives
             sage: w.colored_vector(cmap='autumn')
+            Graphics object consisting of 9 graphics primitives
             sage: Word(range(20)).colored_vector(label='Rainbow')
+            Graphics object consisting of 23 graphics primitives
 
         When two words are defined under the same parent, same letters are
         mapped to same colors::
@@ -5988,13 +6543,16 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w = W(range(20))
             sage: y = W(range(10,20))
             sage: y.colored_vector(y=1, x=10) + w.colored_vector()
+            Graphics object consisting of 32 graphics primitives
 
         TESTS:
 
         The empty word::
 
             sage: Word().colored_vector()
+            Graphics object consisting of 1 graphics primitive
             sage: Word().colored_vector(label='empty')
+            Graphics object consisting of 3 graphics primitives
 
         Unknown cmap::
 
@@ -6107,7 +6665,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('11').is_square_free()
             False
@@ -6160,7 +6718,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         TESTS:
 
-        We make sure that #8490 is fixed::
+        We make sure that :trac:`8490` is fixed::
 
             sage: Word('111').is_cube_free()
             False
@@ -6204,7 +6762,7 @@ exponent %s: the length of the word (%s) times the exponent \
         try:
             l = list(self.parent().alphabet())
         except AttributeError:
-            l = list(set(self))
+            l = self.letters()
         M = FreeMonoid(len(l), l)
         return M(self)
 

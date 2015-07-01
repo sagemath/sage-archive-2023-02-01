@@ -35,6 +35,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
@@ -139,19 +140,20 @@ cdef class FP_LLL:
             ValueError: fpLLL cannot handle matrices with zero rows.
 
         """
-        cdef int i,j
-
-        cdef Z_NR[mpz_t] t
+        cdef unsigned long i,j
 
         if A._nrows == 0:
             raise ValueError('fpLLL cannot handle matrices with zero rows.')
 
         self._lattice = new ZZ_mat[mpz_t](A._nrows,A._ncols)
-
-        for i in range(A._nrows):
-            for j in range(A._ncols):
-                t.set(A._matrix[i][j])
-                self._lattice[0][i][j] = t
+        cdef mpz_t tmp
+        mpz_init(tmp)
+        for i from 0 <= i < A._nrows:
+            for j from 0 <= j < A._ncols:
+                A.get_unsafe_mpz(i,j,tmp)
+                # mpz_set(self._lattice[0][i][j],tmp)
+                self._lattice[0][i][j].set(tmp)
+        mpz_clear(tmp)
 
     def __dealloc__(self):
         """
@@ -508,7 +510,7 @@ cdef class FP_LLL:
         _check_delta(delta)
         _check_precision(precision)
 
-        cdef BKZParam o = BKZParam()
+        cdef BKZParam o
 
         o.b = self._lattice
         o.delta = delta
@@ -1461,5 +1463,5 @@ cdef to_sage(ZZ_mat[mpz_t] *A):
 
     for i from 0 <= i < A.getRows():
         for j from 0 <= j < A.getCols():
-            mpz_set(B._matrix[i][j], A[0][i][j].getData())
+            B.set_unsafe_mpz(i,j,A[0][i][j].getData())
     return B

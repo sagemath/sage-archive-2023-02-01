@@ -12263,8 +12263,10 @@ class GenericGraph(GenericGraph_pyx):
         The result is the same with Boost and NetworkX::
 
             sage: G = graphs.RandomGNM(10,20)
-            sage: abs(G.clustering_average(implementation='boost') - G.clustering_average(implementation='networkx')) < 1E-12
-            True
+            sage: average_boost    = G.clustering_average(implementation='boost')
+            sage: average_networkx = G.clustering_average(implementation='networkx')
+            sage: average_boost-average_networkx # tol abs 1e-12
+            0
 
         """
         if implementation == None:

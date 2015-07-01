@@ -274,10 +274,6 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(gneg(self.g))
 
-    def __xor__(gen self, n):
-        raise RuntimeError("Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence.")
-
     def __rshift__(self, long n):
         """
         Divide ``self`` by `2^n` (truncating or not, depending on the
@@ -6708,19 +6704,26 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(bnrclassno(self.g, t0.g))
 
-    def eltabstorel(self, x):
+    def _eltabstorel(self, x):
         """
         Return the relative number field element corresponding to `x`.
 
         The result is a ``t_POLMOD`` with ``t_POLMOD`` coefficients.
 
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
             sage: f_abs = rnfeq[0]; f_abs
             x^4 + 6*x^2 + 1
-            sage: x_rel = rnfeq.eltabstorel(x); x_rel
+            sage: x_rel = rnfeq._eltabstorel(x); x_rel
             Mod(x + Mod(-y, y^2 + 1), x^2 + 2)
             sage: f_abs(x_rel)
             Mod(0, x^2 + 2)
@@ -6730,17 +6733,24 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(eltabstorel(self.g, t0.g))
 
-    def eltabstorel_lift(self, x):
+    def _eltabstorel_lift(self, x):
         """
         Return the relative number field element corresponding to `x`.
 
         The result is a ``t_POL`` with ``t_POLMOD`` coefficients.
 
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltabstorel` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
-            sage: rnfeq.eltabstorel_lift(x)
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltabstorel_lift(x)
             x + Mod(-y, y^2 + 1)
 
         """
@@ -6748,19 +6758,26 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(eltabstorel_lift(self.g, t0.g))
 
-    def eltreltoabs(self, x):
+    def _eltreltoabs(self, x):
         """
         Return the absolute number field element corresponding to `x`.
 
         The result is a ``t_POL``.
 
+        .. WARNING::
+
+            This is a low-level version of :meth:`rnfeltreltoabs` that
+            only needs the output of :meth:`_nf_rnfeq`, not a full
+            PARI ``rnf`` structure.  This method may raise errors or
+            return undefined results if called with invalid arguments.
+
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: rnfeq = K.nf_rnfeq(x^2 + 2)
-            sage: rnfeq.eltreltoabs(x)
+            sage: rnfeq = K._nf_rnfeq(x^2 + 2)
+            sage: rnfeq._eltreltoabs(x)
             1/2*x^3 + 7/2*x
-            sage: rnfeq.eltreltoabs('y')
+            sage: rnfeq._eltreltoabs('y')
             1/2*x^3 + 5/2*x
 
         """
@@ -7678,15 +7695,21 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(nfsubfields(self.g, d))
 
-    def nf_rnfeq(self, relpol):
+    def _nf_rnfeq(self, relpol):
         """
         Return data for converting number field elements between
         absolute and relative representation.
 
+        .. NOTE::
+
+            The output of this method is suitable for the methods
+            :meth:`_eltabstorel`, :meth:`_eltabstorel_lift` and
+            :meth:`_eltreltoabs`.
+
         TESTS::
 
             sage: K = pari('y^2 + 1').nfinit()
-            sage: K.nf_rnfeq(x^2 + 2)
+            sage: K._nf_rnfeq(x^2 + 2)
             [x^4 + 6*x^2 + 1, 1/2*x^3 + 5/2*x, -1, y^2 + 1, x^2 + 2]
 
         """

@@ -22,7 +22,7 @@ there cannot be nested generic function calls, and no variable can have a
 generic type, apart from the arguments of a generic function.
 
 All the input functions use pointers, because otherwise we might have problems
-with ``delete()``.
+with ``delete()``. afsddfasfds
 
 **Basic Boost Graph operations:**
 
@@ -30,7 +30,8 @@ with ``delete()``.
     :class: contentstable
     :widths: 30, 70
     :delim: |
-
+    
+    :func:`clustering_coeff`  | Returns the clustering coefficient of all vertices in the graph.
     :func:`edge_connectivity` | Returns the edge connectivity of the graph.
 
 Functions

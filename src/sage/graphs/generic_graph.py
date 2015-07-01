@@ -12240,9 +12240,9 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used. If 'None', the
-          best option is chosen by the algorithm. Boost implementation only
-          works on undirected graphs.
+          if ``'networkx'``, then the NetworkX algorithm is used. If ``None``,
+          the best option is chosen. Boost implementation only works on
+          undirected graphs.
 
         EXAMPLES::
 
@@ -12260,7 +12260,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: Boost algorithm is only implemented for undirected graphs.
 
-        Check that the result is the same with Boost and NetworkX::
+        The result is the same with Boost and NetworkX::
 
             sage: G = graphs.RandomGNM(10,20)
             sage: abs(G.clustering_average(implementation='boost') - G.clustering_average(implementation='networkx')) < 1E-12
@@ -12331,6 +12331,7 @@ class GenericGraph(GenericGraph_pyx):
              0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
              0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
              0.0]
+
             sage: (graphs.FruchtGraph()).clustering_coeff(implementation='boost')
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
              3: 0.3333333333333333, 4: 0.3333333333333333,
@@ -12366,7 +12367,7 @@ class GenericGraph(GenericGraph_pyx):
             See http://trac.sagemath.org/17134 for details.
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        Boost cannot work with weights::
+        Boost does not work with weights::
 
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
             Traceback (most recent call last):

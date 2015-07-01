@@ -1095,7 +1095,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``filename`` (string) -- a file name.
 
         - ``format`` (string) -- select the output format explicitly. If set to
-          ``None`` (default), the format is 'guessed' from the extension of
+          ``None`` (default), the format is set to be the file extension of
           ``filename``. Admissible formats are: ``adjlist``, ``dot``,
           ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
           ``pajek``, ``yaml``.
@@ -1104,6 +1104,11 @@ class GenericGraph(GenericGraph_pyx):
 
             * :meth:`~sage.structure.sage_object.SageObject.save` -- save a Sage
               object to a 'sobj' file (preserves all its attributes).
+
+        .. NOTE::
+
+            This functions uses the ``write_*`` functions defined in NetworkX
+            (see http://networkx.lanl.gov/reference/readwrite.html).
 
         EXAMPLE::
 
@@ -1121,6 +1126,12 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
+
+        Is the encoded file correct? ::
+
+            sage: import networkx
+            sage: G_networkx = networkx.read_pajek(filename)
+            sage: Graph(G_networkx).is_isomorphic(g)
         """
         import networkx
 

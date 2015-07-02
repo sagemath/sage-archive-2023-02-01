@@ -646,7 +646,6 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             ...
             ValueError: Growth Group has to be specified
         """
-
         from sage.categories.monoids import Monoids
         from sage.categories.posets import Posets
         from sage.groups.asymptotic_growth_group import GenericGrowthGroup
@@ -747,12 +746,11 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: T_QQ = atm.GenericTermMonoid(growth_group=MG_QQ); T_QQ
             Generic Term Monoid over Monomial Growth Group in x over Rational Field
-            sage: T_QQ._coerce_map_from_(T_ZZ)
+            sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
         """
         if isinstance(S, self.__class__):
-            if self.growth_group().coerce_map_from(
-                    S.growth_group()) is not None:
+            if self.growth_group().has_coerce_map_from(S.growth_group()):
                 return True
 
 

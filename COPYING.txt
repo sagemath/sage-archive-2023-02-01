@@ -54,7 +54,6 @@ freetype                    FreeType License (similar to BSD; see below)
 gap                         GPLv2+
 gcc                         GPLv3+
 gd                          Custom (BSD-ish)
-gdmodule                    Custom (BSD-ish)
 genus2reduction             GPLv2+
 gfan                        GPLv2 or GPLv3
 gf2x                        GPLv2+
@@ -80,6 +79,7 @@ markupsafe                  Simplified BSD
 mathjax                     Apache License 2.0
 matplotlib                  Matplotlib License (BSD compatible, see below)
 maxima                      See below
+mistune                     Modified BSD
 mpc                         LGPLv3+
 mpfi                        COPYING is GPLv2, source files state LGPLv2.1+
 mpfr                        LGPLv3+
@@ -128,6 +128,7 @@ sympow                      Modified BSD
 sympy                       Modified BSD
 tachyon                     Modified BSD
 termcap                     GPLv2+
+threejs                     MIT License
 tornado                     Apache License
 zlib                        Custom (Modified BSD)
 zn_poly                     GPLv2 or GPLv3 (no later versions, see below)
@@ -945,19 +946,6 @@ all warranties, either express or implied, including but not
 limited to implied warranties of merchantability and fitness for a
 particular purpose, with respect to this code and accompanying
 documentation.
-
-================================================================================
-
-gdmodule:
-(http://newcenturycomputers.net/projects/gdmodule.html)
-
-Permission granted for unlimited use, provided that the Quest Center
-at Cold Spring Harbor Labs is given credit for the library in the
-user-visible documentation of your software. If you modify gd, we ask
-that you share the modifications with us so they can be added to the
-distribution. See gd.html for details.  (The rest of the notice is in
-the package gdmodule spkg, which is a bzip2'd tarball included in the
-Sage source distribution.)
 
 ================================================================================
 

@@ -26,6 +26,9 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+
 from sage.numerical.mip import MIPSolverException
 
 cdef class GurobiBackend(GenericBackend):
@@ -650,8 +653,8 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.col_bounds(0)                                                   # optional - Gurobi
             (0.0, 5.0)
         """
-
-        cdef double lb[1], ub[1]
+        cdef double lb[1]
+        cdef double ub[1]
 
         error = GRBgetdblattrelement(self.model, "LB", index, <double *> lb)
         check(self.env, error)

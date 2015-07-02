@@ -1,4 +1,6 @@
 """
+Iterators
+
 Miscellaneous functions which should eventually be moved upstream into
 Python's standard itertools module.
 

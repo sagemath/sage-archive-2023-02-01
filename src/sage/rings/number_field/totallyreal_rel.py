@@ -785,7 +785,7 @@ def enumerate_totallyreal_fields_rel(F, m, B, a = [], verbose=0,
         nf = nf.polresultant(nfF, parit)
         d = nf.poldisc()
         #counts[0] += 1
-        if d > 0 and nf.polsturm_full() == n:
+        if d > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d))
             if d > dB or d <= B*da:
                 counts[1] += 1

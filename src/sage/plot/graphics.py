@@ -11,7 +11,9 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
-- Emily Chen (2013-01-05): Add documentation for :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+- Emily Chen (2013-01-05): Add documentation for
+  :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+- Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
 """
 
@@ -27,6 +29,7 @@ AUTHORS:
 #*****************************************************************************
 
 import os
+from math import isnan
 import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
@@ -148,6 +151,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
+        self._axes_labels_size = 1.6
         self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
@@ -470,6 +474,9 @@ class Graphics(SageObject):
         """
         Set the font size of axes labels and tick marks.
 
+        Note that the relative size of the axes labels font w.r.t. the tick
+        marks font can be adjusted via :meth:`axes_labels_size`.
+
         INPUT:
 
 
@@ -499,6 +506,40 @@ class Graphics(SageObject):
                 self._fontsize = 10
                 return self._fontsize
         self._fontsize = int(s)
+
+    def axes_labels_size(self, s=None):
+        """
+        Set the relative size of axes labels w.r.t. the axes tick marks.
+
+        INPUT:
+
+        - ``s`` - float, relative size of axes labels w.r.t. to the tick marks,
+          the size of the tick marks being set by :meth:`fontsize`.
+
+        If called with no input, return the current relative size.
+
+        EXAMPLES::
+
+            sage: p = plot(sin(x^2), (x, -3, 3), axes_labels=['$x$','$y$'])
+            sage: p.axes_labels_size() # default value
+            1.6
+            sage: p.axes_labels_size(2.5)
+            sage: p.axes_labels_size()
+            2.5
+
+        Now the axes labels are large w.r.t. the tick marks::
+
+            sage: p
+            Graphics object consisting of 1 graphics primitive
+
+        """
+        if s is None:
+            try:
+                return self._axes_labels_size
+            except AttributeError:
+                self._axes_labels_size = 1.6
+                return self._axes_labels_size
+        self._axes_labels_size = float(s)
 
     def axes(self, show=None):
         """
@@ -858,7 +899,7 @@ class Graphics(SageObject):
             if output_container in display_manager.supported_output():
                 return display_manager.graphics_from_save(
                     self.save, kwds, file_ext, output_container)
-    
+
     def __str__(self):
         r"""
         Return string representation of this plot.
@@ -1255,8 +1296,8 @@ class Graphics(SageObject):
     # this dictionary to contain the default value for that parameter.
 
     SHOW_OPTIONS = dict(# axes options
-                        axes=None, axes_labels=None, axes_pad=None,
-                        base=None, scale=None,
+                        axes=None, axes_labels=None, axes_labels_size=None,
+                        axes_pad=None, base=None, scale=None,
                         xmin=None, xmax=None, ymin=None, ymax=None,
                         # Figure options
                         aspect_ratio=None, dpi=DEFAULT_DPI, fig_tight=True,
@@ -1321,6 +1362,10 @@ class Graphics(SageObject):
         - ``axes_labels`` - (default: None) list (or tuple) of two
           strings; the first is used as the label for the horizontal
           axis, and the second for the vertical axis.
+
+        - ``axes_labels_size`` - (default: current setting -- 1.6) scale factor
+          relating the size of the axes labels with respect to the size of the
+          tick marks.
 
         - ``fontsize`` - (default: current setting -- 10) positive
           integer; used for axes labels; if you make this very large,
@@ -1864,9 +1909,9 @@ class Graphics(SageObject):
         specify ``ticks`` manually, this safety measure can be defeated::
 
             sage: list_plot_loglog([(1,2),(2,3)], plotjoined=True, ticks=[[1],[1]])
-            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks; 
+            doctest:...: UserWarning: The x-axis contains fewer than 2 ticks;
             the logarithmic scale of the plot may not be apparent to the reader.
-            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks; 
+            doctest:...: UserWarning: The y-axis contains fewer than 2 ticks;
             the logarithmic scale of the plot may not be apparent to the reader.
             Graphics object consisting of 1 graphics primitive
 
@@ -1967,7 +2012,7 @@ class Graphics(SageObject):
             else:
                 html("<img src='cell://%s'>" % filename)
                 return
-            
+
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
@@ -2038,9 +2083,8 @@ class Graphics(SageObject):
 
 
     def get_minmax_data(self):
-        """
-        Return a dictionary whose keys give the xmin, xmax, ymin, and ymax
-        data for this graphic.
+        r"""
+        Return the x and y coordinate minimum and maximum
 
         .. warning::
 
@@ -2049,6 +2093,11 @@ class Graphics(SageObject):
            of the primitives which make up this Graphics object.  To change the
            range of the axes, call methods :meth:`xmin`, :meth:`xmax`,
            :meth:`ymin`, :meth:`ymax`, or :meth:`set_axes_range`.
+
+        OUTPUT:
+
+        A dictionary whose keys give the xmin, xmax, ymin, and ymax
+        data for this graphic.
 
         EXAMPLES::
 
@@ -2061,6 +2110,21 @@ class Graphics(SageObject):
             sage: g.ymax(10)
             sage: list(sorted(g.get_minmax_data().items()))
             [('xmax', 3.0), ('xmin', -1.0), ('ymax', 2.0), ('ymin', 1.0)]
+
+        The width/height ratio (in output units, after factoring in the
+        chosen aspect ratio) of the plot is limited to `10^{-15}\dots
+        10^{15}`, otherwise floating point errors cause problems in
+        matplotlib::
+
+            sage: l = line([(1e-19,-1), (-1e-19,+1)], aspect_ratio=1.0)
+            sage: l.get_minmax_data()
+            {'xmax': 1.00010000000000e-15,
+             'xmin': -9.99900000000000e-16,
+             'ymax': 1.0,
+             'ymin': -1.0}
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1e19)
+            sage: l.get_minmax_data()
+            {'xmax': 5000.50000000000, 'xmin': -4999.50000000000, 'ymax': 1.0, 'ymin': 0.0}
         """
         objects = self._objects
         if objects:
@@ -2069,15 +2133,13 @@ class Graphics(SageObject):
             xmax = max(d['xmax'] for d in minmax_data)
             ymin = min(d['ymin'] for d in minmax_data)
             ymax = max(d['ymax'] for d in minmax_data)
-            # check for NaN's: weird thing -- only way I know to check if a float
-            # is a NaN is to check if it is not equal to itself.
-            if xmin!=xmin:
+            if isnan(xmin):
                 xmin=0; sage.misc.misc.verbose("xmin was NaN (setting to 0)", level=0)
-            if xmax!=xmax:
+            if isnan(xmax):
                 xmax=0; sage.misc.misc.verbose("xmax was NaN (setting to 0)", level=0)
-            if ymin!=ymin:
+            if isnan(ymin):
                 ymin=0; sage.misc.misc.verbose("ymin was NaN (setting to 0)", level=0)
-            if ymax!=ymax:
+            if isnan(ymax):
                 ymax=0; sage.misc.misc.verbose("ymax was NaN (setting to 0)", level=0)
         else:
             xmin = xmax = ymin = ymax = 0
@@ -2088,6 +2150,57 @@ class Graphics(SageObject):
         if ymin == ymax:
             ymin -= 1
             ymax += 1
+        return self._limit_output_aspect_ratio(xmin, xmax, ymin, ymax)
+
+    def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
+        """
+        Private helper function for :meth:`get_minmax_data`
+
+        INPUT:
+
+        - ``xmin``, ``xmax``, ``ymin``, ``ymax`` -- bounding box for
+          the graphics.
+
+        OUTPUT:
+
+        A dictionary whose keys give the xmin, xmax, ymin, and ymax
+        data for this graphic. Possibly enlarged in order to keep the
+        width/height ratio (in output units, after factoring in the
+        chosen aspect ratio) of the plot is limited to `10^{-15}\dots
+        10^{15}` to avoid floating point issues in matplotlib.
+
+        EXAMPLES::
+        
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1.0)
+            sage: l._limit_output_aspect_ratio(1, 2, 1e19, 3)
+            {'xmax': -4999.50000000000,
+             'xmin': 5000.50000000000,
+             'ymax': 3,
+             'ymin': 1.00000000000000e19}
+            sage: l._limit_output_aspect_ratio(1, 2, 3, 1e19)
+            {'xmax': 5000.50000000000,
+             'xmin': -4999.50000000000,
+             'ymax': 1.00000000000000e19,
+             'ymin': 3}
+            sage: l = line([(0,0), (1,1)], aspect_ratio=1e16)
+            sage: l._limit_output_aspect_ratio(0, 1, 2, 3)
+            {'xmax': 5.50000000000000, 'xmin': -4.50000000000000, 'ymax': 3, 'ymin': 2}
+        """
+        aspect_ratio = self.aspect_ratio()
+        if aspect_ratio != 'automatic':
+            width = xmax - xmin
+            height = ymax - ymin
+            output_aspect = width/height/aspect_ratio
+            if output_aspect > 1e15:
+                height = 1e15 * width / aspect_ratio
+                ycenter = (ymax - ymin) / 2
+                ymin = ycenter - height/2
+                ymax = ycenter + height/2
+            if output_aspect < 1e-15:
+                width = 1e-15 * height * aspect_ratio
+                xcenter = (xmax - xmin) / 2
+                xmin = xcenter - width/2
+                xmax = xcenter + width/2
         return {'xmin':xmin, 'xmax':xmax, 'ymin':ymin, 'ymax':ymax}
 
     def _matplotlib_tick_formatter(self, subplot, base=(10, 10),
@@ -2362,8 +2475,8 @@ class Graphics(SageObject):
     def matplotlib(self, filename=None,
                    xmin=None, xmax=None, ymin=None, ymax=None,
                    figsize=None, figure=None, sub=None,
-                   axes=None, axes_labels=None, fontsize=None,
-                   frame=False, verify=True,
+                   axes=None, axes_labels=None, axes_labels_size=None,
+                   fontsize=None, frame=False, verify=True,
                    aspect_ratio = None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
@@ -2425,7 +2538,7 @@ class Graphics(SageObject):
 
             sage: plot(x, typeset='garbage')
             doctest:...: RichReprWarning: Exception in _rich_repr_ while
-            displaying object: typeset must be set to one of 'default', 
+            displaying object: typeset must be set to one of 'default',
             'latex', or 'type1'; got 'garbage'.
             Graphics object consisting of 1 graphics primitive
 
@@ -2469,6 +2582,7 @@ class Graphics(SageObject):
 
         self.fontsize(fontsize)
         self.axes_labels(l=axes_labels)
+        self.axes_labels_size(s=axes_labels_size)
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
             # in this case, figsize is a number and should be positive
@@ -2831,7 +2945,7 @@ class Graphics(SageObject):
         if self._axes_labels is not None:
             label_options={}
             label_options['color']=self._axes_label_color
-            label_options['size']=self._fontsize
+            label_options['size']=int(self._axes_labels_size * self._fontsize)
             subplot.set_xlabel(self._axes_labels[0], **label_options)
             subplot.set_ylabel(self._axes_labels[1], **label_options)
 
@@ -3092,7 +3206,7 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: print polytopes.n_cube(2).plot().description()
+            sage: print polytopes.hypercube(2).plot().description()
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]

@@ -88,6 +88,8 @@ We test corner cases for multiplication::
 from libc.stdint cimport uint64_t
 from cpython.string cimport *
 
+from sage.ext.memory cimport sage_malloc, sage_free
+
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
 
@@ -948,7 +950,7 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         return M
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Compare two dense matrices over `\Z/n\Z`
 

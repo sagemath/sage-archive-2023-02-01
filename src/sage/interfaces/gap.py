@@ -647,9 +647,8 @@ class Gap_generic(Expect):
 
             sage: gap(2)
             2
-            sage: import sage.tests.interrupt
             sage: try:
-            ....:     sage.tests.interrupt.interrupt_after_delay()
+            ....:     alarm(0.5)
             ....:     while True: SymmetricGroup(7).conjugacy_classes_subgroups()
             ....: except KeyboardInterrupt:
             ....:     pass

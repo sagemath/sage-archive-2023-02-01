@@ -40,7 +40,8 @@ class Crystals(Category_singleton):
     - ``module_generators``: a list (or container) of distinct elements
       which generate the crystal using `f_i`
 
-    Furthermore, their elements should implement the following methods:
+    Furthermore, their elements ``x`` should implement the following
+    methods:
 
     - ``x.e(i)`` (returning `e_i(x)`)
 
@@ -223,16 +224,12 @@ class Crystals(Category_singleton):
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
-                sage: next(g)
+                sage: for _ in range(5): next(g)
                 (-Lambda[0] + Lambda[2],)
-                sage: next(g)
                 (Lambda[0] - Lambda[1] + delta,)
-                sage: next(g)
-                (Lambda[1] - Lambda[2] + delta,)
-                sage: next(g)
-                (-Lambda[0] + Lambda[2] + delta,)
-                sage: next(g)
                 (Lambda[1] - Lambda[2],)
+                (Lambda[0] - Lambda[1],)
+                (Lambda[1] - Lambda[2] + delta,)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)
                 [(-Lambda[0] + Lambda[2],),
@@ -245,17 +242,12 @@ class Crystals(Category_singleton):
                  (Lambda[1] - Lambda[2],)]
 
             """
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             if index_set is None:
                 index_set = self.index_set()
-            if max_depth < float('inf'):
-                from sage.combinat.backtrack import TransitiveIdealGraded
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             self.module_generators, max_depth).__iter__()
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(lambda x: [x.f(i) for i in index_set]
-                                           + [x.e(i) for i in index_set],
-                                   self.module_generators).__iter__()
+            succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            R = RecursivelyEnumeratedSet(self.module_generators, succ, structure=None)
+            return R.breadth_first_search_iterator(max_depth)
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both"):
@@ -302,19 +294,19 @@ class Crystals(Category_singleton):
                 index_set = self.index_set()
             if generators is None:
                 generators = self.module_generators
-            from sage.combinat.backtrack import TransitiveIdealGraded
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
             if direction == 'both':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'upper':
-                return TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'lower':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                             generators, max_depth)
-            raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+                succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            elif direction == 'upper':
+                succ = lambda x: [x.e(i) for i in index_set]
+            elif direction == 'lower':
+                succ = lambda x: [x.f(i) for i in index_set]
+            else:
+                raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+            return RecursivelyEnumeratedSet(generators, succ,
+                                            structure=None, enumeration='breadth',
+                                            max_depth=max_depth)
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
@@ -946,7 +938,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def weight(self):
             r"""
-            Returns the weight of this crystal element
+            Return the weight of this crystal element.
 
             This method should be implemented by the element class of
             the crystal.
@@ -959,10 +951,11 @@ class Crystals(Category_singleton):
             """
 
         def phi_minus_epsilon(self, i):
-            """
-            Returns `\phi_i - \epsilon_i` of self. There are sometimes
-            better implementations using the weight for this. It is used
-            for reflections along a string.
+            r"""
+            Return `\varphi_i - \varepsilon_i` of ``self``.
+
+            There are sometimes better implementations using the
+            weight for this. It is used for reflections along a string.
 
             EXAMPLES::
 
@@ -1112,7 +1105,7 @@ class Crystals(Category_singleton):
 
         def to_highest_weight(self, index_set = None):
             r"""
-            Yields the highest weight element `u` and a list `[i_1,...,i_k]`
+            Return the highest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1151,7 +1144,7 @@ class Crystals(Category_singleton):
 
         def to_lowest_weight(self, index_set = None):
             r"""
-            Yields the lowest weight element `u` and a list `[i_1,...,i_k]`
+            Return the lowest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = e_{i_1} ... e_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1192,8 +1185,8 @@ class Crystals(Category_singleton):
 
         def all_paths_to_highest_weight(self, index_set=None):
             r"""
-            Return all paths to the highest weight from ``self`` with respect
-            to `index_set`.
+            Iterate over all paths to the highest weight from ``self``
+            with respect to `index_set`.
 
             INPUT:
 

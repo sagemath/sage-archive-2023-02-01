@@ -253,7 +253,7 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
                 return self(sx)
             elif isinstance(x, (macdonald.MacdonaldPolynomials_h.Element,macdonald.MacdonaldPolynomials_ht.Element)):
                 H = x.parent()
-                sx = H._s._from_cache(x, H._s_cache, H._self_to_s_cache, q=H.q, t=H.t)
+                sx = H._self_to_s(x)
                 return self(sx)
             elif isinstance(x, macdonald.MacdonaldPolynomials_s.Element):
                 S = x.parent()

@@ -47,6 +47,31 @@ class BackendDoctest(BackendBase):
         """
         return 'doctest'
 
+    def default_preferences(self):
+        """
+        Return the backend's display preferences
+
+        Matches the IPython command line display preferences to keep
+        the differences between that and the doctests to a minimum.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`~sage.repl.rich_output.preferences.DisplayPreferences`.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPythonCommandline
+            sage: backend = BackendIPythonCommandline()
+            sage: backend.default_preferences()
+            Display preferences:
+            * graphics is not specified
+            * supplemental_plot = never
+            * text is not specified
+        """
+        from sage.repl.rich_output.preferences import DisplayPreferences
+        return DisplayPreferences(supplemental_plot='never')
+
     def install(self, **kwds):
         """
         Switch to the the doctest backend
@@ -146,8 +171,8 @@ class BackendDoctest(BackendBase):
             Graphics object consisting of 1 graphics primitive
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        if any(isinstance(rich_output, cls)
+               for cls in [OutputPlainText, OutputAsciiArt, OutputLatex]):
             rich_output.print_to_stdout()
         else:
             plain_text.print_to_stdout()
@@ -179,8 +204,9 @@ class BackendDoctest(BackendBase):
             sage: dm.display_immediately(plt)   # indirect doctest
         """
         self.validate(rich_output)
-        if any(isinstance(rich_output, cls) for cls in 
-               [OutputPlainText, OutputAsciiArt, OutputLatex]):
+        if isinstance(rich_output, OutputLatex):
+            print(rich_output.mathjax(display=False))
+        elif any(isinstance(rich_output, cls) for cls in [OutputPlainText, OutputAsciiArt]):
             rich_output.print_to_stdout()
 
     def validate(self, rich_output):

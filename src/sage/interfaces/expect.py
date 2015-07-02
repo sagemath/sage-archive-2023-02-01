@@ -139,9 +139,9 @@ class Expect(Interface):
             command = name
         if server is not None:
             if ulimit:
-                command = 'sage-native-execute ssh -t %s "ulimit %s; %s"'%(server, ulimit, command)
+                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
             else:
-                command = "sage-native-execute ssh -t %s %s"%(server, command)
+                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
             self.__is_remote = True
 #            eval_using_file_cutoff = 0  # don't allow this!
             if verbose_start:

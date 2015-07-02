@@ -31,5 +31,6 @@
    sage/plot/colors
    sage/plot/hyperbolic_arc
    sage/plot/hyperbolic_polygon
+   sage/plot/misc
 
 .. include:: ../footer.txt

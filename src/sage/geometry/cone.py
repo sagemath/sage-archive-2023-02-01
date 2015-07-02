@@ -582,7 +582,7 @@ def normalize_rays(rays, lattice):
             length = lambda ray: integral_length(V.coordinate_vector(ray))
         for n, ray in enumerate(rays):
             try:
-                if isinstance(ray, (list, tuple, V._element_class)):
+                if isinstance(ray, (list, tuple, V.element_class)):
                     ray = V(ray)
                 else:
                     ray = V(list(ray))
@@ -2148,9 +2148,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 normals = self.facet_normals()
                 facet_to_atoms = [[] for normal in normals]
                 for i, ray in enumerate(self):
-                    if ray in S:
+                    # This try...except tests whether ray lies in S;
+                    # "ray in S" does not work because ray lies in a
+                    # toric lattice and S is a "plain" vector space,
+                    # and there is only a conversion (no coercion)
+                    # between them as of Trac ticket #10513.
+                    try:
+                        _ = S(ray)
                         subspace_rays.append(i)
-                    else:
+                    except (TypeError, ValueError):
                         facets = [j for j, normal in enumerate(normals)
                                     if ray * normal == 0]
                         atom_to_facets.append(facets)
@@ -3826,7 +3832,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             def not_in_linear_subspace(x): return True
         else:
             linear_subspace = self.linear_subspace()
-            def not_in_linear_subspace(x): return not x in linear_subspace
+            def not_in_linear_subspace(x):
+                # "x in linear_subspace" does not work, due to absence
+                # of coercion maps as of Trac ticket #10513.
+                try:
+                    _ = linear_subspace(x)
+                    return False
+                except (TypeError, ValueError):
+                    return True
 
         irreducible = list(self.rays())  # these are irreducible for sure
         gens = list(self.semigroup_generators())
@@ -3921,3 +3934,88 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         p.solve()
 
         return vector(ZZ, p.get_values(x))
+
+
+    def is_solid(self):
+        r"""
+        Return whether or not this cone is solid.
+
+        A cone is said to be solid if it has nonempty interior. That
+        is, if its extreme rays span the entire ambient space.
+
+        OUTPUT:
+
+        ``True`` if this cone is solid, and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_proper`
+
+        EXAMPLES:
+
+        The nonnegative orthant is always solid::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.is_solid()
+            True
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.is_solid()
+            True
+
+        However, if we embed the two-dimensional nonnegative quadrant
+        into three-dimensional space, then the resulting cone no longer
+        has interior, so it is not solid::
+
+            sage: quadrant = Cone([(1,0,0), (0,1,0)])
+            sage: quadrant.is_solid()
+            False
+
+        """
+        return (self.dim() == self.lattice_dim())
+
+
+    def is_proper(self):
+        r"""
+        Return whether or not this cone is proper.
+
+        A cone is said to be proper if it is closed, convex, solid,
+        and contains no lines. This cone is assumed to be closed and
+        convex; therefore it is proper if it is solid and contains no
+        lines.
+
+        OUTPUT:
+
+        ``True`` if this cone is proper, and ``False`` otherwise.
+
+        .. SEEALSO::
+
+            :meth:`is_strictly_convex`, :meth:`is_solid`
+
+        EXAMPLES:
+
+        The nonnegative orthant is always proper::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.is_proper()
+            True
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.is_proper()
+            True
+
+        However, if we embed the two-dimensional nonnegative quadrant
+        into three-dimensional space, then the resulting cone no longer
+        has interior, so it is not solid, and thus not proper::
+
+            sage: quadrant = Cone([(1,0,0), (0,1,0)])
+            sage: quadrant.is_proper()
+            False
+
+        Likewise, a half-space contains at least one line, so it is not
+        proper::
+
+            sage: halfspace = Cone([(1,0),(0,1),(-1,0)])
+            sage: halfspace.is_proper()
+            False
+
+        """
+        return (self.is_strictly_convex() and self.is_solid())

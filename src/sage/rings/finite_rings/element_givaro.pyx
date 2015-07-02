@@ -50,7 +50,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
 include "sage/libs/pari/decl.pxi"
@@ -1384,7 +1383,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of

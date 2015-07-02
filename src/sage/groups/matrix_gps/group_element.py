@@ -182,7 +182,7 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
             except TypeError:
                 return None
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -197,6 +197,8 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
             False
         """
         return cmp(self.matrix(), other.matrix())
+
+    __cmp__ = _cmp_
 
     def list(self):
         """

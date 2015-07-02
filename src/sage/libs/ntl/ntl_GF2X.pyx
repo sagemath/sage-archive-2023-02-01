@@ -15,7 +15,6 @@
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -677,9 +676,8 @@ cdef class ntl_GF2X:
             sage: int(e)
             1
         """
-        cdef long l = 0
         if GF2X_deg(self.x) != 0:
-            raise ValueError, "cannot convert non-constant polynomial to integer"
+            raise ValueError("cannot convert non-constant polynomial to integer")
         else:
             return GF2_conv_to_long(GF2X_coeff(self.x,0))
 

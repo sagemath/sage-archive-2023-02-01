@@ -478,7 +478,7 @@ class WeakTableau_abstract(ClonableList):
                 return x
             return "%s"%x
         if self.parent()._representation in ['core', 'bounded']:
-            t = [[chi(x) for x in row] for row in self._list]
+            t = [[chi(x) for x in row] for row in self]
             from output import tex_from_array
             return tex_from_array(t)
         else:
@@ -738,7 +738,6 @@ class WeakTableau_core(WeakTableau_abstract):
             sage: TestSuite(t).run()
         """
         self.k = parent.k
-        self._list = [r for r in t]
         ClonableList.__init__(self, parent, t)
 
     def _repr_diagram(self):
@@ -821,7 +820,7 @@ class WeakTableau_core(WeakTableau_abstract):
             ...
             ValueError: The tableau is not semistandard!
         """
-        if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self._list,self.k).weight():
+        if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self,self.k).weight():
             raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
         t = SkewTableau(list(self))
         if not t in SemistandardSkewTableaux():
@@ -1016,7 +1015,7 @@ class WeakTableau_core(WeakTableau_abstract):
             raise ValueError("This method only works for straight tableaux!")
         if self.weight() not in Partitions(sum(self.weight())):
             raise ValueError("This method only works for weak tableaux with partition weight!")
-        if self._list == []:
+        if not self:
             return []
         mu = Partition(self.weight()).conjugate()
         already_used = []
@@ -1416,7 +1415,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         INPUT:
 
         - ``t`` -- weak tableau in `k`-bounded representation; the input is supposed to be
-          a list of lists specifying the rows of the tableau;  ``None`` is allowed as an
+          a list of iterables specifying the rows of the tableau;  ``None`` is allowed as an
           entry for skew weak `k`-tableaux
 
         TESTS::
@@ -1448,10 +1447,9 @@ class WeakTableau_bounded(WeakTableau_abstract):
         """
         k = parent.k
         self.k = k
-        self._list = [r for r in t]
         if parent._outer_shape.conjugate().length() > k:
             raise ValueError("%s is not a %s-bounded tableau"%(t, k))
-        ClonableList.__init__(self, parent, t)
+        ClonableList.__init__(self, parent, [list(r) for r in t])
 
     def _repr_diagram(self):
         r"""

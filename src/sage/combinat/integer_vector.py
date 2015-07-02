@@ -507,6 +507,21 @@ def IntegerVectors(n=None, k=None, **kwargs):
     """
     Returns the combinatorial class of (non-negative) integer vectors.
 
+    INPUT:
+
+    - `n` -- if set to an integer, returns the combinatorial class of integer
+      vectors whose sum is `n`. If set to ``None`` (default), no such constraint
+      is defined.
+
+    - ``k`` -- the length of the vectors. Set to ``None`` (default) if you do
+      not want such a constraint.
+
+    All other arguments given to this function are forwarded to the instance of
+    :class:`IntegerVectors_all` :class:`IntegerVectors_nconstraints`
+    :class:`IntegerVectors_nk` or :class:`IntegerVectors_nkconstraints` that it
+    returns.
+
+
     NOTE - These integer vectors are non-negative.
 
     EXAMPLES: If n is not specified, it returns the class of all
@@ -614,9 +629,24 @@ def IntegerVectors(n=None, k=None, **kwargs):
         sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
         sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
         True
+
+    TESTS:
+
+    :trac:`17927`::
+
+        sage: IntegerVectors(None, length=3)
+        Traceback (most recent call last):
+        ...
+        TypeError: __init__() got an unexpected keyword argument 'length'
+        sage: IntegerVectors(None, 4)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: k must be None when n is None
     """
     if n is None:
-        return IntegerVectors_all()
+        if k is not None:
+            raise NotImplementedError("k must be None when n is None")
+        return IntegerVectors_all(**kwargs)
     elif k is None:
         return IntegerVectors_nconstraints(n, kwargs)
     elif isinstance(k, builtinlist):
@@ -628,7 +658,6 @@ def IntegerVectors(n=None, k=None, **kwargs):
             return IntegerVectors_nkconstraints(n,k,kwargs)
         else:
             return IntegerVectors_nk(n,k)
-
 
 class IntegerVectors_all(CombinatorialClass):
     def _repr_(self):
@@ -881,6 +910,7 @@ class IntegerVectors_nk(CombinatorialClass):
 
 class IntegerVectors_nkconstraints(IntegerListsLex):
     def __init__(self, n, k, constraints, category=None):
+
         """
         EXAMPLES::
 
@@ -951,7 +981,6 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
         """
         return "Integer vectors of length %s that sum to %s with constraints: \
         %s"%(self.k, self.n, ", ".join( ["%s=%s"%(key, self._constraints[key]) for key in sorted(self._constraints.keys())] ))
-
 
     def __contains__(self, x):
         """

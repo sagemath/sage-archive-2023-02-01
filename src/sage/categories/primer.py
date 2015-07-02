@@ -962,7 +962,8 @@ implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
     {'element': {'optional': ['_mul_'], 'required': []},
-     'parent': {'optional': [], 'required': ['__contains__']}}
+     'parent': {'optional': ['semigroup_generators'],
+      'required': ['__contains__']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at
@@ -1132,7 +1133,8 @@ code, the product method is put in the nested class
 Let us now look at the categories of ``C``::
 
     sage: C.categories()
-    [Category of Cartesian products of algebras with basis over Rational Field, ...
+    [Category of finite dimensional Cartesian products of algebras with basis over Rational Field, ...
+     Category of Cartesian products of algebras over Rational Field, ...
      Category of Cartesian products of semigroups, Category of semigroups, ...
      Category of Cartesian products of magmas, ..., Category of magmas, ...
      Category of Cartesian products of additive magmas, ..., Category of additive magmas,

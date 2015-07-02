@@ -251,9 +251,14 @@ class OutputLatex(OutputBase):
         """
         self.latex = OutputBuffer(latex)
 
-    def mathjax(self):
+    def mathjax(self, display=True):
         r"""
         Return the LaTeX with a surrounding MathJax HTML code.
+
+        INPUT:
+
+        - ``display`` -- boolean. Whether to return display (as
+          opposed to inline) TeX.
 
         EXAMPLES::
 
@@ -265,9 +270,14 @@ class OutputLatex(OutputBase):
             '1'
             sage: rich_output.mathjax()
             '<html><script type="math/tex; mode=display">1</script></html>'
+            sage: rich_output.mathjax(display=False)
+            '<html><script type="math/tex">1</script></html>'
         """
-        return r'<html><script type="math/tex; mode=display">{0}</script></html>'.format(
-            self.latex.get())
+        if display:
+            template  = r'<html><script type="math/tex; mode=display">{0}</script></html>'
+        else:
+            template  = r'<html><script type="math/tex">{0}</script></html>'
+        return template.format(self.latex.get())
 
     def display_equation(self):
         r"""

@@ -639,7 +639,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             if is_PolynomialRing(P):
                 if self.__is_sparse and not P.is_sparse():
                     return False
-                if P.variable_name() == self.variable_name():
+                if P.construction()[0] == self.construction()[0]:
                     if P.base_ring() is base_ring and \
                             base_ring is ZZ_sage:
                         # We're trying to coerce from FLINT->NTL
@@ -1617,49 +1617,42 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         return Ideal_1poly_field
 
     def divided_difference(self, points, full_table=False):
-        """
-        Return the Newton divided-difference coefficients of the `n`-th
-        Lagrange interpolation polynomial of ``points``.
-
-        If ``points`` are `n+1` distinct points
-        `(x_0, f(x_0)), (x_1, f(x_1)), \dots, (x_n, f(x_n))`, then `P_n(x)`
-        is the `n`-th Lagrange interpolation polynomial of `f(x)` that
-        passes through the points `(x_i, f(x_i))`. This method returns
-        the coefficients `F_{i,i}` such that
-
-        .. MATH::
-
-            P_n(x) = \sum_{i=0}^n F_{i,i} \prod_{j=0}^{i-1} (x - x_j)
-
+        r"""
+        Return the Newton divided-difference coefficients of the
+        Lagrange interpolation polynomial through ``points``.
 
         INPUT:
 
-        - ``points`` -- a list of tuples
-          `(x_0, f(x_0)), (x_1, f(x_1)), \dots, (x_n, f(x_n))` where each
-          `x_i \\neq x_j` for `i \\neq j`
+        - ``points`` -- a list of pairs `(x_0, y_0), (x_1, y_1),
+          \dots, (x_n, y_n)` of elements of the base ring of ``self``,
+          where `x_i - x_j` is invertible for `i \neq j`.  This method
+          converts the `x_i` and `y_i` into the base ring of `self`.
 
-        - ``full_table`` -- (default: ``False``) if ``True`` then return the
-          full divided-difference table; if ``False`` then only return
-          entries along the main diagonal. The entries along the main
-          diagonal are the Newton divided-difference coefficients `F_{i,i}`.
-
+        - ``full_table`` -- boolean (default: ``False``): If ``True``,
+          return the full divided-difference table.  If ``False``,
+          only return entries along the main diagonal; these are the
+          Newton divided-difference coefficients `F_{i,i}`.
 
         OUTPUT:
 
-        - The Newton divided-difference coefficients of the `n`-th Lagrange
-          interpolation polynomial that passes through the points in
-          ``points``.
+        The Newton divided-difference coefficients of the `n`-th
+        Lagrange interpolation polynomial `P_n(x)` that passes through
+        the points in ``points`` (see :meth:`lagrange_polynomial`).
+        These are the coefficients `F_{0,0}, F_{1,1}, \dots, `F_{n,n}`
+        in the base ring of ``self`` such that
 
+        .. math::
+
+            P_n(x) = \sum_{i=0}^n F_{i,i} \prod_{j=0}^{i-1} (x - x_j)
 
         EXAMPLES:
 
-        Only return the divided-difference coefficients `F_{i,i}`. This
-        example is taken from Example 1, p.121 of [BF05]_::
+        Only return the divided-difference coefficients `F_{i,i}`.
+        This example is taken from Example 1, page 121 of [BF05]_::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
-            sage: R = PolynomialRing(QQ, "x")
+            sage: R = PolynomialRing(RR, "x")
             sage: R.divided_difference(points)
-            <BLANKLINE>
             [0.765197700000000,
             -0.483705666666666,
             -0.108733888888889,
@@ -1669,9 +1662,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         Now return the full divided-difference table::
 
             sage: points = [(1.0, 0.7651977), (1.3, 0.6200860), (1.6, 0.4554022), (1.9, 0.2818186), (2.2, 0.1103623)]
-            sage: R = PolynomialRing(QQ, "x")
+            sage: R = PolynomialRing(RR, "x")
             sage: R.divided_difference(points, full_table=True)
-            <BLANKLINE>
             [[0.765197700000000],
             [0.620086000000000, -0.483705666666666],
             [0.455402200000000, -0.548946000000000, -0.108733888888889],
@@ -1685,14 +1677,14 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             0.0680685185185209,
             0.00182510288066044]]
 
-        The following example is taken from Example 4.12, p.225 of [MF99]_::
+        The following example is taken from Example 4.12, page 225 of
+        [MF99]_::
 
             sage: points = [(1, -3), (2, 0), (3, 15), (4, 48), (5, 105), (6, 192)]
-            sage: R = PolynomialRing(RR, "x")
+            sage: R = PolynomialRing(QQ, "x")
             sage: R.divided_difference(points)
             [-3, 3, 6, 1, 0, 0]
             sage: R.divided_difference(points, full_table=True)
-            <BLANKLINE>
             [[-3],
             [0, 3],
             [15, 15, 6],
@@ -1700,12 +1692,14 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             [105, 57, 12, 1, 0],
             [192, 87, 15, 1, 0, 0]]
 
-
         REFERENCES:
 
-        .. [MF99] J.H. Mathews and K.D. Fink. *Numerical Methods Using MATLAB*.
-          3rd edition, Prentice-Hall, 1999.
+        .. [MF99] J.H. Mathews and K.D. Fink. *Numerical Methods Using
+           MATLAB*.  3rd edition, Prentice-Hall, 1999.
+
         """
+        to_base_ring = self.base_ring()
+        points = map(lambda x: map(to_base_ring, x), points)
         n = len(points)
         F = [[points[i][1]] for i in xrange(n)]
         for i in xrange(1, n):
@@ -1719,48 +1713,52 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             return [F[i][i] for i in xrange(n)]
 
     def lagrange_polynomial(self, points, algorithm="divided_difference", previous_row=None):
-        """
-        Return the Lagrange interpolation polynomial in ``self`` associated to
-        the given list of points.
-
-        Given a list of points, i.e. tuples of elements of ``self``'s base
-        ring, this function returns the interpolation polynomial in the
-        Lagrange form.
-
+        r"""
+        Return the Lagrange interpolation polynomial through the
+        given points.
 
         INPUT:
 
-        - ``points`` -- a list of tuples representing points  through which
-          the polynomial returned by this function must pass.
+        - ``points`` -- a list of pairs `(x_0, y_0), (x_1, y_1),
+          \dots, (x_n, y_n)` of elements of the base ring of ``self``,
+          where `x_i - x_j` is invertible for `i \neq j`.  This method
+          converts the `x_i` and `y_i` into the base ring of `self`.
 
-        - ``algorithm`` -- (default: ``'divided_difference'``) the available
-          values for this option are ``'divided_difference'`` and ``neville``.
+        - ``algorithm`` -- (default: ``'divided_difference'``): one of
+          the following:
 
-          - If ``algorithm='divided_difference'`` then use the method of
-            divided difference.
+          - ``'divided_difference'``: use the method of divided
+            differences.
 
-          - If ``algorithm='neville'`` then adapt Neville's method as described
-            on page 144 of [BF05]_ to recursively generate the Lagrange
-            interpolation polynomial. Neville's method generates
-            a table of approximating polynomials, where the last row of that
-            table contains the `n`-th Lagrange interpolation polynomial. The
-            adaptation implemented by this method is to only generate the
-            last row of this table, instead of the full table itself.
-            Generating the full table can be memory inefficient.
+          - ``algorithm='neville'``: adapt Neville's method as
+            described on page 144 of [BF05]_ to recursively generate
+            the Lagrange interpolation polynomial.  Neville's method
+            generates a table of approximating polynomials, where the
+            last row of that table contains the `n`-th Lagrange
+            interpolation polynomial.  The adaptation implemented by
+            this method is to only generate the last row of this
+            table, instead of the full table itself.  Generating the
+            full table can be memory inefficient.
 
-        - ``previous_row`` -- (default: ``None``) This option is only relevant
-          if used together with ``algorithm='neville'``. If provided, this
-          should be the last row of the table resulting from a previous use of
-          Neville's method. If such a row is passed in, then ``points`` should
-          consist of both previous and new interpolating points. Neville's
-          method will then use that last row and the interpolating points to
-          generate a new row which contains a better Lagrange interpolation
-          polynomial.
+        - ``previous_row`` -- (default: ``None``): This option is only
+          relevant if used with ``algorithm='neville'``.  If provided,
+          this should be the last row of the table resulting from a
+          previous use of Neville's method.  If such a row is passed,
+          then ``points`` should consist of both previous and new
+          interpolating points.  Neville's method will then use that
+          last row and the interpolating points to generate a new row
+          containing an interpolation polynomial for the new points.
 
+        OUTPUT:
+
+        The Lagrange interpolation polynomial through the points
+        `(x_0, y_0), (x_1, y_1), \dots, (x_n, y_n)`.  This is the
+        unique polynomial `P_n` of degree at most `n` in ``self``
+        satisfying `P_n(x_i) = y_i` for `0 \le i \le n`.
 
         EXAMPLES:
 
-        By default, we use the method of divided-difference::
+        By default, we use the method of divided differences::
 
             sage: R = PolynomialRing(QQ, 'x')
             sage: f = R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)]); f
@@ -1788,7 +1786,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
             sage: R = PolynomialRing(QQ, 'x')
             sage: R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)], algorithm="neville")
-            <BLANKLINE>
             [9,
             -11/7*x + 19/7,
             -17/42*x^2 - 83/42*x + 53/7,
@@ -1798,8 +1795,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.lagrange_polynomial([(a^2+a,a),(a,1),(a^2,a^2+a+1)], algorithm="neville")
             [a^2 + a + 1, x + a + 1, a^2*x^2 + a^2*x + a^2]
 
-        Repeated use of Neville's method to get better Lagrange interpolation
-        polynomials::
+        Repeated use of Neville's method to get better Lagrange
+        interpolation polynomials::
 
             sage: R = PolynomialRing(QQ, 'x')
             sage: p = R.lagrange_polynomial([(0,1),(2,2)], algorithm="neville")
@@ -1811,11 +1808,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.lagrange_polynomial([(a^2+a,a),(a,1),(a^2,a^2+a+1)], algorithm="neville", previous_row=p)[-1]
             a^2*x^2 + a^2*x + a^2
 
-
         TESTS:
 
-        The value for ``algorithm`` must be either ``'divided_difference'`` (by
-        default it is), or ``'neville'``::
+        The value for ``algorithm`` must be either
+        ``'divided_difference'`` (default), or ``'neville'``::
 
             sage: R = PolynomialRing(QQ, "x")
             sage: R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)], algorithm="abc")
@@ -1831,9 +1827,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             ...
             ValueError: algorithm must be one of 'divided_difference' or 'neville'
 
-        Make sure that ticket #10304 is fixed. The return value should always
-        be an element of ``self`` in the case of ``divided_difference``, or
-        a list of elements of ``self`` in the case of ``neville``. ::
+        Make sure that :trac:`10304` is fixed.  The return value
+        should always be an element of ``self`` in the case of
+        ``divided_difference``, or a list of elements of ``self`` in
+        the case of ``neville``::
 
             sage: R = PolynomialRing(QQ, "x")
             sage: R.lagrange_polynomial([]).parent() == R
@@ -1847,12 +1844,28 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: all(poly.parent() == R for poly in row)
             True
 
+        Check that base fields of positive characteristic are treated
+        correctly (see :trac:`9787`)::
+
+            sage: R.<x> = GF(101)[]
+            sage: R.lagrange_polynomial([[1, 0], [2, 0]])
+            0
+            sage: R.lagrange_polynomial([[1, 0], [2, 0], [3, 0]])
+            0
 
         REFERENCES:
 
         .. [BF05] R.L. Burden and J.D. Faires. *Numerical Analysis*.
-          Thomson Brooks/Cole, 8th edition, 2005.
+           8th edition, Thomson Brooks/Cole, 2005.
+
         """
+        # Perhaps we should be slightly stricter on the input and use
+        # self.base_ring().coerce here and in the divided_difference()
+        # method above.  However, this breaks an example in
+        # sage.tests.french_book.nonlinear_doctest where the base ring
+        # is CC, but the function values lie in the symbolic ring.
+        to_base_ring = self.base_ring()
+        points = map(lambda x: map(to_base_ring, x), points)
         var = self.gen()
 
         # use the method of divided-difference
@@ -1866,7 +1879,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 return self.zero()
 
             F = self.divided_difference(points)
-            P = self(F[n-1])
+            P = self.coerce(F[n-1])
             for i in xrange(n-2, -1, -1):
                 P *= (var - points[i][0])
                 P += F[i]
@@ -1895,7 +1908,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             P = previous_row + [None] * (N - M) # use results of previous computation if available
             Q = [None] * N
             for i in xrange(M, N):
-                Q[0] = self(points[i][1]) # start populating the current row
+                Q[0] = self.coerce(points[i][1])  # start populating the current row
                 for j in xrange(1, 1 + i):
                     numer = (var - points[i - j][0]) * Q[j - 1] - (var - points[i][0]) * P[j - 1]
                     denom = points[i][0] - points[i - j][0]

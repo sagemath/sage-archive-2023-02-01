@@ -8,7 +8,6 @@ etc. types. They are deferences. So a SINGULAR ring is a ring pointer
 here.
 """
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 cdef extern from "ccobject.h":

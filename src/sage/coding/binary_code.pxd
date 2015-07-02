@@ -87,7 +87,7 @@ cdef class PartitionStack:
     cdef int sort_wds(self, int, int)
     cdef int refine(self, int, int *, int, BinaryCode, int *)
     cdef void clear(self, int)
-    cdef int cmp(self, PartitionStack, BinaryCode)
+    cpdef int cmp(self, PartitionStack, BinaryCode)
     cdef int find_basis(self, int *)
     cdef void get_permutation(self, PartitionStack, int *, int *)
 

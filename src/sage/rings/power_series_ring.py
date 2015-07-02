@@ -113,7 +113,6 @@ TESTS::
 
 """
 
-import weakref
 import power_series_poly
 import power_series_mpoly
 import power_series_ring_element
@@ -125,9 +124,7 @@ import laurent_series_ring
 import laurent_series_ring_element
 import commutative_ring
 import integral_domain
-import field
 import integer
-import sage.structure.parent_gens as gens
 from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
@@ -138,7 +135,6 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import normalize_names
-from sage.structure.category_object import check_default_category
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains

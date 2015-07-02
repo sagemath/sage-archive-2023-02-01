@@ -14,7 +14,6 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
 from ginac cimport *
-include "sage/ext/stdsage.pxi"
 
 cdef extern from "pynac/constant.h":
     pass

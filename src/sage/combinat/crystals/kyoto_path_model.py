@@ -197,7 +197,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         sage: x = mg.f_string([0,1,2]); x
         [[[2]](-1), [[3]](0), [[1]](0)]
         sage: x.weight()
-        Lambda[0] - delta
+        -delta + Lambda[0]
     """
     @staticmethod
     def __classcall_private__(cls, crystals, weight, P=None):
@@ -448,7 +448,7 @@ class KyotoPathModel(TensorProductOfCrystals):
                 sage: mg.weight()
                 Lambda[0]
                 sage: mg.f_string([0,1,2]).weight()
-                Lambda[0] - delta
+                -delta + Lambda[0]
             """
             wt = TensorProductOfRegularCrystalsElement.weight(self)
             return wt + self._list[-1].Epsilon()

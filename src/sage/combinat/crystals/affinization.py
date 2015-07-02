@@ -3,7 +3,7 @@ Affinization Crystals
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -22,31 +22,36 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.rings.infinity import Infinity
 
 class AffinizationCrystal(Parent, UniqueRepresentation):
     r"""
     An affiniziation crystal.
 
-    Let `\mathfrak{g}` be of affine type. An affinization crystal is a
-    `U_q(\mathfrak{g})`-crystal formed from a
-    `U_q^{\prime}(\mathfrak{g})`-crystal `B` by taking the set:
+    Let `\mathfrak{g}` be a Kac-Moody algebra of affine type. The affinization
+    of a finite-dimensional `U_q^{\prime}(\mathfrak{g})`-crystal `B` is the
+    (infinite-dimensional) `U_q(\mathfrak{g})`-crystal with underlying set:
 
     .. MATH::
 
-        B^{aff} = \{ b(m) \mid b \in B, m \in \ZZ \}
+        B^{\mathrm{aff}} = \{ b(m) \mid b \in B, m \in \ZZ \}
 
-    and defining the crystal structure by:
+    and crystal structure determined by:
 
     .. MATH::
 
         \begin{aligned}
-        e_i(b(m)) & = \begin{cases} (e_0 b)(m+1) & i = 0
-        \\ (e_i b)(m) & i \neq 0 \end{cases} \\
-
-        \\ f_i(b(m)) & = \begin{cases} (f_0 b)(m-1) & i = 0
-        \\ (f_i b)(m) & i \neq 0 \end{cases}
-
-        \\ \mathrm{wt}(b(m)) & = \wt(b) + m \delta.
+            e_i(b(m)) & =
+            \begin{cases}
+              (e_0 b)(m+1) & i = 0, \\
+              (e_i b)(m)   & i \neq 0,
+            \end{cases} \\
+            f_i(b(m)) &=
+            \begin{cases}
+              (f_0 b)(m-1) & i = 0, \\
+              (f_i b)(m)   & i \neq 0,
+            \end{cases} \\
+            \mathrm{wt}(b(m)) &= \mathrm{wt}(b) + m \delta.
         \end{aligned}
 
     EXAMPLES:
@@ -73,13 +78,15 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES:
 
-        We skip the Stembridge axioms test since this this is an abstract
+        We skip the Stembridge axioms test since this is an abstract crystal
 
             sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
             sage: TestSuite(A).run(skip="_test_stembridge_local_axioms") # long time
         """
         if not B.cartan_type().is_affine():
             raise ValueError("must be an affine crystal")
+        if B.cardinality() == Infinity:
+            raise ValueError("must be finite-dimensional crystal")
         self._B = B
         self._cartan_type = B.cartan_type()
         Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))

@@ -254,7 +254,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _can_absorb_(self, other):
         r"""
-        Checks, whether this generic term can absorb ``other``.
+        Check, whether this generic term can absorb ``other``.
 
         INPUT:
 
@@ -889,10 +889,6 @@ class OTerm(GenericTerm):
 
     - ``growth`` -- a growth element.
 
-    OUTPUT:
-
-    An asymptotic `O` term.
-
     EXAMPLES::
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
@@ -951,7 +947,7 @@ class OTerm(GenericTerm):
 
     def _can_absorb_(self, other):
         r"""
-        Checks, whether this `O` term can absorb ``other``.
+        Check, whether this `O` term can absorb ``other``.
 
         INPUT:
 
@@ -1030,13 +1026,9 @@ class OTermMonoid(GenericTermMonoid):
     - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a subcategory
+      in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
-
-    OUTPUT:
-
-    A monoid for asymptotic `O` terms.
 
     EXAMPLES::
 
@@ -1049,7 +1041,8 @@ class OTermMonoid(GenericTermMonoid):
         sage: OT_y_QQ = atm.OTermMonoid(MG_y_QQ); OT_y_QQ
         Asymptotic O Term Monoid over Monomial Growth Group in y over Rational Field
 
-    O term monoids can also be created by using the term factory::
+    `O`-term monoids can also be created by using the
+    :class:`term factory <TermMonoid>`::
 
         sage: atm.TermMonoid('O', MG_x_ZZ) is OT_x_ZZ
         True
@@ -1094,22 +1087,21 @@ class OTermMonoid(GenericTermMonoid):
             sage: OT_QQ = atm.OTermMonoid(MG_QQ)
             sage: ET = atm.ExactTermMonoid(MG_ZZ, ZZ)
 
-        Now, the ``OTermMonoid`` whose growth group is over the
-        Integer Ring has to coerce into the ``OTermMonoid`` with
+        Now, the :class:`OTermMonoid` whose growth group is over the
+        interger ring has to coerce into the :class:`OTermMonoid` with
         the growth group over the rational field, and the
-        ``ExactTermMonoid`` also has to coerce in both the
-        ``OTermMonoid``'s::
+        :class:`ExactTermMonoid` also has to coerce in both the
+        :class:`OTermMonoid`s::
 
-            sage: OT_QQ._coerce_map_from_(OT_ZZ)
+            sage: OT_QQ.has_coerce_map_from(OT_ZZ)  # indirect doctest
             True
-            sage: OT_QQ._coerce_map_from_(ET)
+            sage: OT_QQ.has_coerce_map_from(ET)  # indirect doctest
             True
-            sage: ET._coerce_map_from_(OT_ZZ) is None
+            sage: ET.has_coerce_map_from(OT_ZZ) is None  # indirect doctest
             True
         """
         if isinstance(S, (ExactTermMonoid,)):
-            if self.growth_group().coerce_map_from(
-                    S.growth_group()) is not None:
+            if self.growth_group().has_coerce_map_from(S.growth_group()):
                 return True
         else:
             return super(OTermMonoid, self)._coerce_map_from_(S)
@@ -1117,7 +1109,7 @@ class OTermMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        A representation string for this O term monoid.
+        A representation string for this `O`-term monoid.
 
         INPUT:
 
@@ -1147,14 +1139,10 @@ class TermWithCoefficient(GenericTerm):
 
     - ``parent`` -- the parent of the asymptotic term.
 
-    - ``growth`` -- an asymptotic growth element from
-      ``parent.growth_group()``.
+    - ``growth`` -- an asymptotic growth element of
+      the parent's growth group.
 
-    - ``coefficient`` -- an element from ``parent.base_ring``.
-
-    OUTPUT:
-
-    An asymptotic term with coefficient.
+    - ``coefficient`` -- an element of the parent's base ring.
 
     EXAMPLES::
 
@@ -1175,7 +1163,7 @@ class TermWithCoefficient(GenericTerm):
 
         EXAMPLES:
 
-        First, we define some parent monoids::
+        First, we define some monoids::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
@@ -1291,7 +1279,7 @@ class TermWithCoefficient(GenericTerm):
     def _le_(self, other):
         r"""
         Return whether this asymptotic term with coefficient grows
-        at most (less or equal) like ``other``.
+        at most (less than or equal) like ``other``.
 
         INPUT:
 
@@ -1341,16 +1329,12 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a subcategory
+      in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
 
     - ``base_ring`` -- the ring which contains the
       coefficients of the elements.
-
-    OUTPUT:
-
-    A monoid for asymptotic terms with coefficients.
 
     EXAMPLES::
 
@@ -1470,7 +1454,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         - ``data`` -- a growth element or an object representing the
           element to be initialized.
 
-        - ``coefficient`` -- an element of the ``base_ring``.
+        - ``coefficient`` -- an element of the base ring.
 
         OUTPUT:
 
@@ -1566,7 +1550,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        A representation string for this monoid for terms with
+        A representation string for this monoid of terms with
         coefficient.
 
         INPUT:
@@ -1630,10 +1614,6 @@ class ExactTerm(TermWithCoefficient):
 
     - ``coefficient`` -- an element from ``parent.base_ring``.
 
-    OUTPUT:
-
-    An asymptotic exact term.
-
     EXAMPLES::
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
@@ -1665,7 +1645,7 @@ class ExactTerm(TermWithCoefficient):
         6*x^2
 
     Note that, as for technical reasons, `0` is not allowed as a
-    coefficient for an asymptotic term with coefficient, ``None``
+    coefficient for an asymptotic term with coefficient. Instead ``None``
     is returned if two asymptotic exact terms cancel out each other
     during absorption::
 
@@ -1718,7 +1698,7 @@ class ExactTerm(TermWithCoefficient):
 
     def _can_absorb_(self, other):
         r"""
-        Checks, whether this exact term can absorb ``other``.
+        Check, whether this exact term can absorb ``other``.
 
         INPUT:
 
@@ -1765,7 +1745,7 @@ class ExactTerm(TermWithCoefficient):
         .. NOTE::
 
             In the context of exact terms, absorption translates
-            to addition. As the coefficient `0` is not allowed,
+            to addition. As the coefficient `0` is not allowed. Instead
             ``None`` is returned if the terms cancel out.
 
         EXAMPLES::
@@ -1781,8 +1761,8 @@ class ExactTerm(TermWithCoefficient):
             sage: et1, et2 = ET(x^2, 2), ET(x^2, -2)
             sage: et1.absorb(et1)
             4*x^2
-            sage: repr(et1.absorb(et2))
-            'None'
+            sage: et1.absorb(et2) is None
+            True
 
         If the growth differs, an ``ArithmeticException`` is raised::
 
@@ -1809,19 +1789,14 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
     - ``growth_group`` -- a growth group.
 
     - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a subcategory
+      in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
 
     - ``base_ring`` -- the ring which contains the coefficients of
       the elements.
 
-    OUTPUT:
-
-    A monoid for asymptotic exact terms.
-
     EXAMPLES::
-
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
@@ -1872,17 +1847,21 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
 class TermMonoidFactory(sage.structure.factory.UniqueFactory):
     r"""
-    Factory for asymptotic term monoids. Generates an
-    :class:`OTermMonoid` or an :class:`ExactTermMonoid`.
+    Factory for asymptotic term monoids. It can generate the following
+    term monoids:
+
+    - :class:`OTermMonoid`,
+
+    - :class:`ExactTermMonoid`.
 
     INPUT:
 
-    - ``term`` -- The kind of term that shall be created. Either
-      'exact' or 'O'.
+    - ``term`` -- the kind of term that shall be created. Either
+      ``'exact'`` or ``'O'``.
 
-    - ``growth_group`` -- A growth group.
+    - ``growth_group`` -- a growth group.
 
-    - ``base_ring`` -- The base ring for coefficients.
+    - ``base_ring`` -- the base ring for coefficients.
 
     OUTPUT:
 
@@ -1934,6 +1913,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
                 raise ValueError("a base ring has to be specified")
 
         return (term, growth_group, base_ring), kwds
+
 
     def create_object(self, version, key, **kwds):
         r"""

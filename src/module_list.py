@@ -207,60 +207,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.combinat.expnums',
-              sources = ['sage/combinat/expnums.pyx']),
-
-    Extension('sage.combinat.matrices.dancing_links',
-              sources = ['sage/combinat/matrices/dancing_links.pyx'],
-              language='c++'),
-
-    Extension('sage.sets.finite_set_map_cy',
-              sources=['sage/sets/finite_set_map_cy.pyx']),
-
-    Extension('sage.combinat.partitions',
-              sources = ['sage/combinat/partitions.pyx']),
-
-    Extension('sage.combinat.words.word_datatypes',
-            sources=['sage/combinat/words/word_datatypes.pyx']),
-
-    Extension('sage.combinat.words.word_char',
-            sources=['sage/combinat/words/word_char.pyx']),
-
-    Extension('sage.combinat.permutation_cython',
-              sources=['sage/combinat/permutation_cython.pyx']),
-
-    Extension('sage.combinat.dict_addition',
-              sources=['sage/combinat/dict_addition.pyx']),
-
-    Extension('sage.combinat.debruijn_sequence',
-              sources=['sage/combinat/debruijn_sequence.pyx']),
-
-    Extension('sage.combinat.degree_sequences',
-              sources = ['sage/combinat/degree_sequences.pyx']),
-
-    Extension('sage.combinat.combinat_cython',
-              sources=['sage/combinat/combinat_cython.pyx']),
-
-    Extension('sage.combinat.enumeration_mod_permgroup',
-              sources=['sage/combinat/enumeration_mod_permgroup.pyx']),
-
-    Extension('sage.combinat.q_bernoulli',
-              sources = ['sage/combinat/q_bernoulli.pyx']),
-
-    Extension('sage.combinat.crystals.letters',
-              sources=['sage/combinat/crystals/letters.pyx']),
-
-    Extension('sage.combinat.designs.subhypergraph_search',
-              sources=['sage/combinat/designs/subhypergraph_search.pyx']),
-
-    Extension('sage.combinat.designs.designs_pyx',
-              sources=['sage/combinat/designs/designs_pyx.pyx']),
-
-    Extension('sage.combinat.designs.orthogonal_arrays_find_recursive',
-              sources=['sage/combinat/designs/orthogonal_arrays_find_recursive.pyx']),
-
-    Extension('sage.combinat.designs.evenly_distributed_sets',
-              sources=['sage/combinat/designs/evenly_distributed_sets.pyx']),
+    Extension('*', ['sage/combinat/**/*.pyx']),
 
     ################################
     ##
@@ -1767,6 +1714,9 @@ ext_modules = [
               libraries = ['flint'],
               extra_compile_args = ['-std=c99'],
               depends = flint_depends),
+
+    Extension('sage.sets.finite_set_map_cy',
+              sources=['sage/sets/finite_set_map_cy.pyx']),
 
     Extension('sage.sets.recursively_enumerated_set',
               sources = ['sage/sets/recursively_enumerated_set.pyx']),

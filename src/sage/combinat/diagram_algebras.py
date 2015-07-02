@@ -797,14 +797,14 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: TestSuite(D).run()
         """
-        SymmetricGroupAlgebra(base_ring,k)
+        SymmetricGroupAlgebra(base_ring,k) # Necessary for some odd reason
         self._prefix = prefix
         self._q = base_ring(q)
         self._k = k
         self._base_diagrams = diagrams
         if category is None:
             category = FiniteDimensionalAlgebrasWithBasis(base_ring)
-        KSS = SymmetricGroupAlgebra(base_ring, k, category = category) # QQ probably should not be hardcoded here.
+        KSS = SymmetricGroupAlgebra(base_ring, k)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 

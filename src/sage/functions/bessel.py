@@ -1,18 +1,24 @@
 r"""
 Bessel Functions
 
-This module provides symbolic Bessel Functions. These functions use the
-`mpmath library`_ for numerical evaluation and Maxima, GiNaC, Pynac for
-symbolics.
+This module provides symbolic Bessel and Hankel functions, and their
+spherical versions. These functions use the `mpmath library`_ for numerical
+evaluation and Maxima, GiNaC, Pynac for symbolics.
 
 The main objects which are exported from this module are:
 
- * ``bessel_J`` -- The Bessel J function
- * ``bessel_Y`` -- The Bessel Y function
- * ``bessel_I`` -- The Bessel I function
- * ``bessel_K`` -- The Bessel K function
- * ``Bessel``   -- A factory function for producing Bessel functions of
+ * :meth:`bessel_J(n, x) <Function_Bessel_J>` -- The Bessel J function
+ * :meth:`bessel_Y(n, x) <Function_Bessel_Y>` -- The Bessel Y function
+ * :meth:`bessel_I(n, x) <Function_Bessel_I>` -- The Bessel I function
+ * :meth:`bessel_K(n, x) <Function_Bessel_K>` -- The Bessel K function
+ * :meth:`Bessel(...) <Bessel>`   -- A factory function for producing Bessel functions of
    various kinds and orders
+ * :meth:`Hankel1(nu, z) <Hankel1>`  -- The Hankel function of the first kind
+ * :meth:`Hankel2(nu, z) <Hankel2>`  -- The Hankel function of the second kind
+ * :meth:`spherical_bessel_J(n, z) <SphericalBesselJ>` -- The Spherical Bessel J function
+ * :meth:`spherical_bessel_Y(n, z) <SphericalBesselY>` -- The Spherical Bessel J function
+ * :meth:`spherical_hankel1(n, z) <SphericalHankel1>` -- The Spherical Hankel function of the first kind
+ * :meth:`spherical_hankel2(n, z) <SphericalHankel2>` -- The Spherical Hankel function of the second kind
 
 -  Bessel functions, first defined by the Swiss mathematician
    Daniel Bernoulli and named after Friedrich Bessel, are canonical
@@ -1237,7 +1243,7 @@ class SphericalBesselJ(BuiltinFunction):
 
     .. math::
 
-        j_n(z) = \sqrt{\frac{1}{2}\pi/z} J_{n + \frac{1}{2}}(z)
+        j_n(z) = \sqrt{\frac{\pi}{2z}} \,J_{n + \frac{1}{2}}(z)
 
     EXAMPLES::
 
@@ -1322,7 +1328,7 @@ class SphericalBesselY(BuiltinFunction):
 
     .. math::
 
-        y_n(z) = \sqrt{\frac{1}{2}\pi/z} Y_{n + \frac{1}{2}}(z)
+        y_n(z) = \sqrt{\frac{\pi}{2z}} \,Y_{n + \frac{1}{2}}(z)
 
     EXAMPLES::
 
@@ -1409,7 +1415,7 @@ class SphericalHankel1(BuiltinFunction):
 
     .. math::
 
-        h_n^{(1)}(z) = \sqrt{\frac{1}{2}\pi/z} H_{n + \frac{1}{2}}^{(1)}(z)
+        h_n^{(1)}(z) = \sqrt{\frac{\pi}{2z}} \,H_{n + \frac{1}{2}}^{(1)}(z)
 
     EXAMPLES::
 
@@ -1495,7 +1501,7 @@ class SphericalHankel2(BuiltinFunction):
 
     .. math::
 
-        h_n^{(2)}(z) = \sqrt{\frac{1}{2}\pi/z} H_{n + \frac{1}{2}}^{(2)}(z)
+        h_n^{(2)}(z) = \sqrt{\frac{\pi}{2z}} \,H_{n + \frac{1}{2}}^{(2)}(z)
 
     EXAMPLES::
 

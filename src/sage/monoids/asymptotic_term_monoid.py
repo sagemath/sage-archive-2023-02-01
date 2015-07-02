@@ -252,6 +252,38 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self._can_absorb_(other)
 
 
+    def _can_absorb_(self, other):
+        r"""
+        Checks, whether this generic term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Generic terms are not able to absorb any other term.
+            Therefore, this method just returns ``False``.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: GG = agg.GenericGrowthGroup(ZZ)
+            sage: GT = atm.GenericTermMonoid(GG)
+            sage: t1, t2 = GT(GG(raw_element=21)), GT(GG(raw_element=42))
+            sage: t1.can_absorb(t2)  # indirect doctest
+            False
+            sage: t2.can_absorb(t1)  # indirect doctest
+            False
+        """
+        return False
+
+
     def absorb(self, other, check=True):
         r"""
         Absorb the asymptotic term ``other``, yielding a new
@@ -356,38 +388,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
                                                self._absorb_(other))
         except TypeError:
             return False
-
-
-    def _can_absorb_(self, other):
-        r"""
-        Checks, whether this generic term can absorb ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            Generic terms are not able to absorb any other term.
-            Therefore, this method just returns ``False``.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: GG = agg.GenericGrowthGroup(ZZ)
-            sage: GT = atm.GenericTermMonoid(GG)
-            sage: t1, t2 = GT(GG(raw_element=21)), GT(GG(raw_element=42))
-            sage: t1.can_absorb(t2)  # indirect doctest
-            False
-            sage: t2.can_absorb(t1)  # indirect doctest
-            False
-        """
-        return False
 
 
     def _absorb_(self, other):

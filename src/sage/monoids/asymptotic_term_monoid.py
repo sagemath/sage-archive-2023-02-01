@@ -582,26 +582,27 @@ class GenericTerm(sage.structure.element.MonoidElement):
 class GenericTermMonoid(sage.structure.parent.Parent,
                         sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    Parent for generic asymptotic terms. In this class the base
-    structure for asymptotic term monoids will be handled. These
-    monoids are the parents for asymptotic terms (for example, see
-    :class:`GenericTerm` or :class:`OTerm`). Basically, asymptotic
-    terms consist of a ``growth`` (which is an asymptotic growth
-    group element, for example
-    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthElement`).
+    Parent for generic asymptotic terms.
 
     INPUT:
 
-    - ``growth_group`` -- a growth group.
+    - ``growth_group`` -- a partially ordered group (e.g. an instance of
+      :class:`~sage.groups.asymptotic_growth_group.GenericGrowthGroup`).
 
     - ``category`` -- The category of the parent can be specified
-      in order to broaden the base structure. Has to be a subcategory
+      in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of Monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
 
-    OUTPUT:
-
-    A generic asymptotic term monoid.
+    In this class the base
+    structure for asymptotic term monoids will be handled. These
+    monoids are the parents of asymptotic terms (for example, see
+    :class:`GenericTerm` or :class:`OTerm`). Basically, asymptotic
+    terms consist of a ``growth`` (which is an asymptotic growth
+    group element, for example
+    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthElement`);
+    additional structure and properties are added by the classes inherited
+    from :class:`GenericTermMonoid`.
 
     EXAMPLES::
 
@@ -668,6 +669,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         self._growth_group = growth_group
         super(GenericTermMonoid, self).__init__(category=category)
 
+
     def growth_group(self):
         r"""
         Return the growth group underlying this term monoid.
@@ -689,6 +691,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             Monomial Growth Group in x over Integer Ring
         """
         return self._growth_group
+
 
     def _repr_(self):
         r"""
@@ -715,6 +718,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         """
         return 'Generic Term Monoid over %s' % repr(self.growth_group())
 
+
     def _coerce_map_from_(self, S):
         r"""
         Return if ``S`` coerces into this term monoid.
@@ -729,7 +733,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         .. NOTE::
 
-            Another GenericTermMonoid ``S`` coerces into this term
+            Another generic term monoid ``S`` coerces into this term
             monoid if and only if the growth group of ``S`` coerces
             into the growth group of this term monoid.
 
@@ -751,9 +755,10 @@ class GenericTermMonoid(sage.structure.parent.Parent,
                     S.growth_group()) is not None:
                 return True
 
+
     def _element_constructor_(self, data):
         r"""
-        Convert the given object to to this term monoid.
+        Convert the given object to this term monoid.
 
         INPUT:
 
@@ -843,14 +848,17 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         """
         return self(self.growth_group().an_element())
 
+
     def le(self, left, right):
         r"""
-        Return whether the growth of term ``left`` is less than or equal
-        to the growth of term ``right``.
+        Return if the term ``left`` is at most (less than or equal
+        to) the term ``right``.
 
         INPUT:
 
-        - ``left``, ``right`` -- elements of this term monoid.
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
 
         OUTPUT:
 

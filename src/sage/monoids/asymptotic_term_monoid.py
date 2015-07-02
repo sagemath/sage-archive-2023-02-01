@@ -607,9 +607,9 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     def __init__(self, growth_group=None, category=None):
         r"""
         See :class:`GenericTermMonoid` for more information.
-        
+
         EXAMPLES::
-        
+
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG_x = agg.MonomialGrowthGroup(ZZ, 'x')

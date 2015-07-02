@@ -31,7 +31,7 @@ from sage.interfaces.all import singular as singular_default
 
 from sage.libs.pari.gen import gen as pari_gen
 
-from sage.rings.integer cimport Integer
+from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.rational cimport Rational
@@ -355,7 +355,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
     def degree(self):
         """
-        Returns the degree of self.
+        Return the degree of ``self``.
 
         By convention, the degree of the zero polynomial is -1.
 
@@ -368,10 +368,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: g = R(0)
             sage: g.degree()
             -1
+
+        TESTS::
+
+            sage: type(f.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        cdef Integer deg = PY_NEW(Integer)
-        mpz_set_si(deg.value, fmpq_poly_degree(self.__poly))
-        return deg
+        return smallInteger(fmpq_poly_degree(self.__poly))
 
     def __getitem__(self, n):
         """

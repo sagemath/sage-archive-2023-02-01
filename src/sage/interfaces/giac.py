@@ -400,7 +400,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             True
             sage: m._start()           # optional - giac
             sage: m.expect()           # optional - giac
-            <pexpect.spawn instance at 0x...>
+            Giac with PID ... running .../giac --sage
             sage: m.quit()             # optional - giac
         """
         return self._expect

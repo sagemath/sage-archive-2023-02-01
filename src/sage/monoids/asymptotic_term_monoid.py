@@ -150,12 +150,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
         if growth is None or not isinstance(growth, GenericGrowthElement):
             raise ValueError('The growth must be provided and must inherit '
                              'from GenericGrowthElement')
-        else:
-            if growth not in parent.growth_group():
-                raise ValueError("%s is not in the parent's "
-                                 "specified growth group" % growth)
-            else:
-                self.growth = growth
+        elif growth not in parent.growth_group():
+            raise ValueError("%s is not in the parent's "
+                             "specified growth group" % growth)
+
+        self.growth = growth
         super(GenericTerm, self).__init__(parent=parent)
 
 

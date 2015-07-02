@@ -620,7 +620,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     # enable the category framework for elements
     Element = GenericTerm
 
-    def __init__(self, growth_group=None, category=None):
+    def __init__(self, growth_group, category=None):
         r"""
         See :class:`GenericTermMonoid` for more information.
 

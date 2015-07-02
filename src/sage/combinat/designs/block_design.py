@@ -807,7 +807,7 @@ def HadamardDesign(n):
         sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
         sage: print designs.HadamardDesign(7)
-        HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        Incidence structure with 7 points and 7 blocks
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
     We verify that `NJ = 5J` for this design. ::

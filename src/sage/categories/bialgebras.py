@@ -171,11 +171,13 @@ class Bialgebras(Category_over_base_ring):
                 sage: m[[]].convolution_product([]), m[[1,3],[2]].convolution_product([])
                 (m{}, 0)
 
-                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
-                () + 3*(1,2) + 3*(1,2,3,4,5,6,7)
+                sage: QS = SymmetricGroupAlgebra(QQ,5)
+                sage: x = QS.sum_of_terms(zip(Permutations(5)[3:6],[1,2,3])); x
+                [1, 2, 4, 5, 3] + 2*[1, 2, 5, 3, 4] + 3*[1, 2, 5, 4, 3]
+                sage: x.convolution_product([Antipode])
+                2*[1, 2, 4, 5, 3] + [1, 2, 5, 3, 4] + 3*[1, 2, 5, 4, 3]
                 sage: x.convolution_product([Id, Antipode, Antipode, Antipode])
-                4*() + 3*(1,6,4,2,7,5,3)
-
+                3*[1, 2, 3, 4, 5] + [1, 2, 4, 5, 3] + 2*[1, 2, 5, 3, 4]
             """
             # be flexible on how the maps are entered...
             if len(maplist)==1 and isinstance(maplist[0], (list,tuple)):
@@ -223,15 +225,15 @@ class Bialgebras(Category_over_base_ring):
                 sage: p([]).coproduct_iterated(3)
                 p[] # p[] # p[] # p[]
 
-                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                sage: S[4].coproduct_iterated(0)
-                S[4]
-                sage: S[4].coproduct_iterated(2)
-                S[] # S[] # S[4] + S[] # S[1] # S[3] + S[] # S[2] # S[2] + S[] # S[3] # S[1] + S[] # S[4] # S[] + S[1] # S[] # S[3] + S[1] # S[1] # S[2] + S[1] # S[2] # S[1] + S[1] # S[3] # S[] + S[2] # S[] # S[2] + S[2] # S[1] # S[1] + S[2] # S[2] # S[] + S[3] # S[] # S[1] + S[3] # S[1] # S[] + S[4] # S[] # S[]
+                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
+                sage: Psi[2,2].coproduct_iterated(0)
+                Psi[2, 2]
+                sage: Psi[2,2].coproduct_iterated(3)
+                Psi[] # Psi[] # Psi[] # Psi[2, 2] + 2*Psi[] # Psi[] # Psi[2] # Psi[2] + Psi[] # Psi[] # Psi[2, 2] # Psi[] + 2*Psi[] # Psi[2] # Psi[] # Psi[2] + 2*Psi[] # Psi[2] # Psi[2] # Psi[] + Psi[] # Psi[2, 2] # Psi[] # Psi[] + 2*Psi[2] # Psi[] # Psi[] # Psi[2] + 2*Psi[2] # Psi[] # Psi[2] # Psi[] + 2*Psi[2] # Psi[2] # Psi[] # Psi[] + Psi[2, 2] # Psi[] # Psi[] # Psi[]
 
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
-                sage: m[[1,3],[2]].convolution_product([Antipode,Antipode])
-                3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
+                sage: m[[1,3],[2]].coproduct_iterated(2)
+                m{} # m{} # m{{1, 3}, {2}} + m{} # m{{1}} # m{{1, 2}} + m{} # m{{1, 2}} # m{{1}} + m{} # m{{1, 3}, {2}} # m{} + m{{1}} # m{} # m{{1, 2}} + m{{1}} # m{{1, 2}} # m{} + m{{1, 2}} # m{} # m{{1}} + m{{1, 2}} # m{{1}} # m{} + m{{1, 3}, {2}} # m{} # m{}
 
                 sage: m[[]].coproduct_iterated(3), m[[1,3],[2]].coproduct_iterated(0)
                 (m{} # m{} # m{} # m{}, m{{1, 3}, {2}})

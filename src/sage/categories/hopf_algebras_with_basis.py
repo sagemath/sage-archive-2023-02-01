@@ -309,14 +309,15 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
 
 
-                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
-                () + 2*(6,7) + 3*(5,6) + (1,2,3,4,5,6,7)
+                sage: QS = SymmetricGroupAlgebra(QQ,5)
+                sage: x = QS.sum_of_terms(zip(Permutations(5)[3:6],[1,2,3])); x
+                [1, 2, 4, 5, 3] + 2*[1, 2, 5, 3, 4] + 3*[1, 2, 5, 4, 3]
                 sage: x.adams_operator(2)
-                6*() + (1,3,5,7,2,4,6)
+                3*[1, 2, 3, 4, 5] + 2*[1, 2, 4, 5, 3] + [1, 2, 5, 3, 4]
                 sage: x.antipode()
-                () + 2*(6,7) + 3*(5,6) + (1,7,6,5,4,3,2)
+                2*[1, 2, 4, 5, 3] + [1, 2, 5, 3, 4] + 3*[1, 2, 5, 4, 3]
                 sage: x.adams_operator(-2)
-                6*() + (1,6,4,2,7,5,3)
+                3*[1, 2, 3, 4, 5] + [1, 2, 4, 5, 3] + 2*[1, 2, 5, 3, 4]
 
             TESTS::
 
@@ -328,12 +329,13 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: m[[1,3],[2]].adams_operator(-2)
                 3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
 
-                sage: x = GroupAlgebra(SymmetricGroup(7),QQ).an_element(); x
-                () + 2*(6,7) + 3*(5,6) + (1,2,3,4,5,6,7)
+                sage: G = AlternatingGroup(5); QG = GroupAlgebra(G,QQ)
+                sage: x = QG.sum_of_terms(zip(G[3:6],[1,2,3])); x
+                (3,5,4) + 3*(1,2,4,3,5) + 2*(1,3,5,2,4)
                 sage: x.adams_operator(-3)
-                () + 2*(6,7) + 3*(5,6) + (1,5,2,6,3,7,4)
-                sage: x.adams_operator(0)
-                7*()
+                () + 3*(1,4,5,2,3) + 2*(1,5,4,3,2)
+                sage: x.adams_operator(0), x.adams_operator(10)
+                (6*(), 5*() + (3,5,4))
             """
             if n < 0:
                 T = lambda x: x.antipode()

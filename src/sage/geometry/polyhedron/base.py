@@ -805,6 +805,8 @@ class Polyhedron_base(Element):
             :meth:`write_cdd_Hrepresentation` -- export the polyhedron as a
             H-representation to a file.
 
+        OUTPUT: a string
+
         EXAMPLES::
 
             sage: p = polytopes.hypercube(2)
@@ -863,6 +865,8 @@ class Polyhedron_base(Element):
 
             :meth:`write_cdd_Vrepresentation` -- export the polyhedron as a
             V-representation to a file.
+
+        OUTPUT: a string
 
         EXAMPLES::
 

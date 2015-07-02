@@ -641,7 +641,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         ::
 
-            sage: atm.GenericTermMonoid()
+            sage: atm.GenericTermMonoid(None)
             Traceback (most recent call last):
             ...
             ValueError: Growth Group has to be specified
@@ -1097,8 +1097,8 @@ class OTermMonoid(GenericTermMonoid):
             True
             sage: OT_QQ.has_coerce_map_from(ET)  # indirect doctest
             True
-            sage: ET.has_coerce_map_from(OT_ZZ) is None  # indirect doctest
-            True
+            sage: ET.has_coerce_map_from(OT_ZZ)  # indirect doctest
+            False
         """
         if isinstance(S, (ExactTermMonoid,)):
             if self.growth_group().has_coerce_map_from(S.growth_group()):
@@ -1440,8 +1440,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
             sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
-            sage: TC_ZZ.has_coerce_map_from(TC_QQ) is None  # indirect doctest
-            True
+            sage: TC_ZZ.has_coerce_map_from(TC_QQ)  # indirect doctest
+            False
         """
         if isinstance(S, TermWithCoefficientMonoid):
             return (super(TermWithCoefficientMonoid, self)._coerce_map_from_(S) and

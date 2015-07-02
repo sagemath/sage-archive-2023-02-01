@@ -178,9 +178,9 @@ class VectorField(TensorField):
         r"""
         String representation of the object.
         """
-        description = "vector field "
+        description = "Vector field "
         if self._name is not None:
-            description += "'%s' " % self._name
+            description += self._name + " "
         return self._final_repr(description)
 
     def _new_instance(self):

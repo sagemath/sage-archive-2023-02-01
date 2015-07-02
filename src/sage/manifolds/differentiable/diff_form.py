@@ -215,9 +215,9 @@ class DiffForm(TensorField):
         r"""
         String representation of the object.
         """
-        description = str(self._tensor_rank) + "-form "
+        description = "{}-form ".format(self._tensor_rank)
         if self._name is not None:
-            description += "'%s' " % self._name
+            description += self._name + " "
         return self._final_repr(description)
 
     def _new_instance(self):
@@ -325,48 +325,6 @@ class DiffForm(TensorField):
             if dom in other_r._restrictions:
                 resu._restrictions[dom] = self_r._restrictions[dom].wedge(
                                           other_r._restrictions[dom])
-        return resu
-
-    def hodge_star(self, metric):
-        r"""
-        Compute the Hodge dual of the differential form.
-
-        If ``self`` is a `p`-form `A`, its Hodge dual is the `(n-p)`-form
-        `*A` defined by (`n` being the manifold's dimension)
-
-        .. MATH::
-
-            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
-                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
-
-        where `\epsilon` is the volume form associated with some
-        pseudo-Riemannian metric `g` on the manifold, and the indices
-        `k_1,\ldots, k_p` are raised with `g`.
-
-        INPUT:
-
-        - ``metric``: the pseudo-Riemannian metric `g` defining the Hodge dual,
-          via the volume form `\epsilon`; must be an instance of
-          :class:`~sage.manifolds.differentiable.metric.Metric`
-
-        OUTPUT:
-
-        - the `(n-p)`-form `*A`
-
-        EXAMPLES:
-
-        """
-        from sage.functions.other import factorial
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
-        p = self._tensor_rank
-        eps = metric.volume_form(p)
-        args = range(p) + [eps] + range(p)
-        resu = self.contract(*args)
-        if p > 1:
-            resu = resu / factorial(p)
-        resu.set_name(name=format_unop_txt('*', self._name),
-                     latex_name=format_unop_latex(r'\star ', self._latex_name))
         return resu
 
     def degree(self):
@@ -494,7 +452,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     change-of-frame formula::
 
         sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
-        sage: spher_to_cart = c_spher.coord_change(c_cart, r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th))
+        sage: spher_to_cart = c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2), atan2(sqrt(x^2+y^2),z), atan2(y, x))
         Check of the inverse coordinate transformation:
           r == r
@@ -677,9 +635,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         r"""
         String representation of the object.
         """
-        description = str(self._tensor_rank) + "-form "
+        description = "{}-form ".format(self._tensor_rank)
         if self._name is not None:
-            description += "'%s' " % self._name
+            description += self._name + " "
         return self._final_repr(description)
 
     def _new_instance(self):
@@ -840,175 +798,3 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         return FreeModuleAltForm.wedge(self_r, other_r)
-
-    def hodge_star(self, metric):
-        r"""
-        Compute the Hodge dual of the differential form.
-
-        If ``self`` is a `p`-form `A`, its Hodge dual is the `(n-p)`-form
-        `*A` defined by (`n` being the manifold's dimension)
-
-        .. MATH::
-
-            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
-                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
-
-        where `\epsilon` is the volume form associated with some
-        pseudo-Riemannian metric `g` on the manifold, and the indices
-        `k_1,\ldots, k_p` are raised with `g`.
-
-        INPUT:
-
-        - ``metric``: the pseudo-Riemannian metric `g` defining the Hodge dual,
-          via the volume form `\epsilon`; must be an instance of
-          :class:`~sage.manifolds.differentiable.metric.Metric`
-
-        OUTPUT:
-
-        - the `(n-p)`-form `*A`
-
-        EXAMPLES:
-
-        Hodge star of a 1-form in the Euclidean space `R^3`::
-
-            sage: M = DiffManifold(3, 'M', start_index=1)
-            sage: X.<x,y,z> = M.chart()
-            sage: g = M.metric('g')
-            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: a = M.one_form('A')
-            sage: var('Ax Ay Az')
-            (Ax, Ay, Az)
-            sage: a[:] = (Ax, Ay, Az)
-            sage: sa = a.hodge_star(g) ; sa
-            2-form '*A' on the 3-dimensional manifold 'M'
-            sage: sa.display()
-            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
-            sage: ssa = sa.hodge_star(g) ; ssa
-            1-form '**A' on the 3-dimensional manifold 'M'
-            sage: ssa.display()
-            **A = Ax dx + Ay dy + Az dz
-            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
-            True
-
-        Hodge star of a 0-form (scalar field) in `R^3`::
-
-            sage: f = M.scalar_field(function('F',x,y,z), name='f')
-            sage: sf = f.hodge_star(g) ; sf
-            3-form '*f' on the 3-dimensional manifold 'M'
-            sage: sf.display()
-            *f = F(x, y, z) dx/\dy/\dz
-            sage: ssf = sf.hodge_star(g) ; ssf
-            scalar field '**f' on the 3-dimensional manifold 'M'
-            sage: ssf.display()
-            **f: M --> R
-               (x, y, z) |--> F(x, y, z)
-            sage: ssf == f # must hold for a Riemannian metric
-            True
-
-        Hodge star of a 0-form in Minkowksi spacetime::
-
-            sage: M = DiffManifold(4, 'M')
-            sage: X.<t,x,y,z> = M.chart()
-            sage: g = M.metric('g', signature=2)
-            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
-            sage: g.display()  # Minkowski metric
-            g = -dt*dt + dx*dx + dy*dy + dz*dz
-            sage: var('f0')
-            f0
-            sage: f = M.scalar_field(f0, name='f')
-            sage: sf = f.hodge_star(g) ; sf
-            4-form '*f' on the 4-dimensional manifold 'M'
-            sage: sf.display()
-            *f = f0 dt/\dx/\dy/\dz
-            sage: ssf = sf.hodge_star(g) ; ssf
-            scalar field '**f' on the 4-dimensional manifold 'M'
-            sage: ssf.display()
-            **f: M --> R
-               (t, x, y, z) |--> -f0
-            sage: ssf == -f  # must hold for a Lorentzian metric
-            True
-
-        Hodge star of a 1-form in Minkowksi spacetime::
-
-            sage: a = M.one_form('A')
-            sage: var('At Ax Ay Az')
-            (At, Ax, Ay, Az)
-            sage: a[:] = (At, Ax, Ay, Az)
-            sage: a.display()
-            A = At dt + Ax dx + Ay dy + Az dz
-            sage: sa = a.hodge_star(g) ; sa
-            3-form '*A' on the 4-dimensional manifold 'M'
-            sage: sa.display()
-            *A = -Az dt/\dx/\dy + Ay dt/\dx/\dz - Ax dt/\dy/\dz - At dx/\dy/\dz
-            sage: ssa = sa.hodge_star(g) ; ssa
-            1-form '**A' on the 4-dimensional manifold 'M'
-            sage: ssa.display()
-            **A = At dt + Ax dx + Ay dy + Az dz
-            sage: ssa == a  # must hold for a Lorentzian metric in dimension 4
-            True
-
-        Hodge star of a 2-form in Minkowksi spacetime::
-
-            sage: F = M.diff_form(2, 'F')
-            sage: var('Ex Ey Ez Bx By Bz')
-            (Ex, Ey, Ez, Bx, By, Bz)
-            sage: F[0,1], F[0,2], F[0,3] = -Ex, -Ey, -Ez
-            sage: F[1,2], F[1,3], F[2,3] = Bz, -By, Bx
-            sage: F[:]
-            [  0 -Ex -Ey -Ez]
-            [ Ex   0  Bz -By]
-            [ Ey -Bz   0  Bx]
-            [ Ez  By -Bx   0]
-            sage: sF = F.hodge_star(g) ; sF
-            2-form '*F' on the 4-dimensional manifold 'M'
-            sage: sF[:]
-            [  0  Bx  By  Bz]
-            [-Bx   0  Ez -Ey]
-            [-By -Ez   0  Ex]
-            [-Bz  Ey -Ex   0]
-            sage: ssF = sF.hodge_star(g) ; ssF
-            2-form '**F' on the 4-dimensional manifold 'M'
-            sage: ssF[:]
-            [  0  Ex  Ey  Ez]
-            [-Ex   0 -Bz  By]
-            [-Ey  Bz   0 -Bx]
-            [-Ez -By  Bx   0]
-            sage: ssF.display()
-            **F = Ex dt/\dx + Ey dt/\dy + Ez dt/\dz - Bz dx/\dy + By dx/\dz - Bx dy/\dz
-            sage: F.display()
-            F = -Ex dt/\dx - Ey dt/\dy - Ez dt/\dz + Bz dx/\dy - By dx/\dz + Bx dy/\dz
-            sage: ssF == -F  # must hold for a Lorentzian metric in dimension 4
-            True
-
-        Test of the standard identity
-
-        .. MATH::
-
-            *(A\wedge B) = \epsilon(A^\sharp, B^\sharp, ., .)
-
-        where `A` and `B` are any 1-forms and `A^\sharp` and `B^\sharp` the
-        vectors associated to them by the metric `g` (index raising)::
-
-            sage: b = M.one_form('B')
-            sage: var('Bt Bx By Bz')
-            (Bt, Bx, By, Bz)
-            sage: b[:] = (Bt, Bx, By, Bz) ; b.display()
-            B = Bt dt + Bx dx + By dy + Bz dz
-            sage: epsilon = g.volume_form()
-            sage: (a.wedge(b)).hodge_star(g) == epsilon.contract(0,a.up(g)).contract(0,b.up(g))
-            True
-
-        """
-        from sage.functions.other import factorial
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
-        p = self._tensor_rank
-        eps = metric.volume_form(p)
-        resu = self.contract(0, eps, 0)
-        for j in range(1, p):
-            resu = resu.trace(0, p-j)
-        if p > 1:
-            resu = resu / factorial(p)
-        resu.set_name(name=format_unop_txt('*', self._name),
-                     latex_name=format_unop_latex(r'\star ', self._latex_name))
-        return resu

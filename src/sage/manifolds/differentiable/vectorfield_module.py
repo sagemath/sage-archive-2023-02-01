@@ -333,7 +333,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         OUTPUT:
 
         - for `p\geq 1`, instance of
-          :class:`~sage.geometry.manifolds.diffform_module.DiffFormModule`
+          :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
           base ring, i.e. `C^\infty(U)`, is returned instead
 

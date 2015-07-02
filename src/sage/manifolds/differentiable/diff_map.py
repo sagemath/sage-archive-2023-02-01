@@ -468,3 +468,197 @@ class DiffMap(ContinuousMap):
                                           # class
         self._diff.clear()
 
+    def pullback(self, tensor):
+        r"""
+        Pullback operator associated with the differentiable map.
+
+        INPUT:
+
+        - ``tensor`` -- instance of class
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          representing a fully covariant tensor field `T` on the mapping's
+          codomain, i.e. a tensor field of type (0,p), with p a positive or
+          zero integer. The case p=0 corresponds to a scalar field.
+
+        OUTPUT:
+
+        - instance of class
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          representing a fully covariant tensor field on the mapping's domain
+          that is the pullback of `T` given by ``self``.
+
+        EXAMPLES:
+
+        Pullback on `S^2` of a scalar field defined on `R^3`::
+
+            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
+            sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coord. on U
+            sage: N = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+            sage: c_cart.<x,y,z> = N.chart() # Cartesian coord. on R^3
+            sage: Phi = U.diff_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)), name='Phi', latex_name=r'\Phi')
+            sage: f = N.scalar_field(x*y*z, name='f') ; f
+            scalar field 'f' on the 3-dimensional manifold 'R^3'
+            sage: f.display()
+            f: R^3 --> R
+               (x, y, z) |--> x*y*z
+            sage: pf = Phi.pullback(f) ; pf
+            scalar field 'Phi_*(f)' on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: pf.display()
+            Phi_*(f): U --> R
+               (th, ph) |--> cos(ph)*cos(th)*sin(ph)*sin(th)^2
+
+        Pullback on `S^2` of the standard Euclidean metric on `R^3`::
+
+            sage: g = N.sym_bilin_form_field('g')
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: g.display()
+            g = dx*dx + dy*dy + dz*dz
+            sage: pg = Phi.pullback(g) ; pg
+            field of symmetric bilinear forms 'Phi_*(g)' on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: pg.display()
+            Phi_*(g) = dth*dth + sin(th)^2 dph*dph
+
+        Pullback on `S^2` of a 3-form on `R^3`::
+
+            sage: a = N.diff_form(3, 'A')
+            sage: a[1,2,3] = f
+            sage: a.display()
+            A = x*y*z dx/\dy/\dz
+            sage: pa = Phi.pullback(a) ; pa
+            3-form 'Phi_*(A)' on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            sage: pa.display() # should be zero (as any 3-form on a 2-dimensional manifold)
+            Phi_*(A) = 0
+
+        """
+        from sage.manifolds.differentiable.tensorfield import TensorFieldParal
+        # Special case of the identity map:
+        if self._is_identity:
+            return tensor  # no test for efficiency
+        # Generic case:
+        dom1 = self._domain
+        dom2 = self._codomain
+        tdom = tensor._domain
+        if not tdom.is_subset(dom2):
+            raise ValueError("the tensor field is not defined on the map " +
+                             "codomain")
+        (ncon, ncov) = tensor._tensor_type
+        if ncon != 0:
+            raise TypeError("the pullback cannot be taken on a tensor " +
+                            "with some contravariant part")
+        resu_name = None ; resu_latex_name = None
+        if self._name is not None and tensor._name is not None:
+            resu_name = self._name + '_*(' + tensor._name + ')'
+        if self._latex_name is not None and tensor._latex_name is not None:
+            resu_latex_name = self._latex_name + '_*' + tensor._latex_name
+        if ncov == 0:
+            # Case of a scalar field
+            resu_fc = []
+            for chart2 in tensor._express:
+                for chart1 in dom1._atlas:
+                    if (chart1, chart2) in self._coord_expression:
+                        phi = self._coord_expression[(chart1, chart2)]
+                        coord1 = chart1._xx
+                        ff = tensor._express[chart2]
+                        resu_fc.append( chart1.function(ff(*(phi(*coord1)))) )
+            dom_resu = resu_fc[0]._chart._domain
+            for fc in resu_fc[1:]:
+                dom_resu = dom_resu.union(fc._chart._domain)
+            resu = dom_resu.scalar_field(name=resu_name,
+                                         latex_name=resu_latex_name)
+            for fc in resu_fc:
+                resu._express[fc._chart] = fc
+        else:
+            # Case of tensor field of rank >= 1
+            if tensor._vmodule._dest_map is not tdom._identity_map:
+                raise TypeError("the pullback in defined only for tensor " +
+                                "fields on {}".format(dom2))
+            resu_rst = []
+            for chart_pair in self._coord_expression:
+                chart1 = chart_pair[0] ; chart2 = chart_pair[1]
+                ch2dom = chart2._domain
+                if ch2dom.is_subset(tdom):
+                    self_r = self.restrict(chart1._domain, subcodomain=ch2dom)
+                    tensor_r = tensor.restrict(ch2dom)
+                    resu_rst.append( self_r._pullback_paral(tensor_r) )
+            dom_resu = resu_rst[0]._domain
+            for rst in resu_rst[1:]:
+                dom_resu = dom_resu.union(rst._domain)
+            resu = dom_resu.tensor_field(0, ncov, name=resu_name,
+                                         latex_name=resu_latex_name,
+                                         sym=resu_rst[0]._sym,
+                                         antisym=resu_rst[0]._antisym)
+            for rst in resu_rst:
+                if rst._domain is not resu._domain:
+                    resu._restrictions[rst._domain] = rst
+            if isinstance(resu, TensorFieldParal):
+                for rst in resu_rst:
+                    for frame, comp in rst._components.iteritems():
+                        resu._components[frame] = comp
+        return resu
+
+    def _pullback_paral(self, tensor):
+        r"""
+        Pullback on parallelizable domains.
+        """
+        from sage.manifolds.differentiable.vectorframe import CoordFrame
+        from sage.tensor.modules.comp import Components, CompWithSym, \
+                                                 CompFullySym, CompFullyAntiSym
+        dom1 = self._domain
+        dom2 = self._codomain
+        ncov = tensor._tensor_type[1]
+        resu_name = None ; resu_latex_name = None
+        if self._name is not None and tensor._name is not None:
+            resu_name = self._name + '_*(' + tensor._name + ')'
+        if self._latex_name is not None and tensor._latex_name is not None:
+            resu_latex_name = self._latex_name + '_*' + tensor._latex_name
+        fmodule1 = dom1.vector_field_module()
+        ring1 = fmodule1._ring
+        si1 = fmodule1._sindex
+        of1 = fmodule1._output_formatter
+        si2 = dom2._manifold._sindex
+        resu = fmodule1.tensor((0,ncov), name=resu_name,
+                               latex_name=resu_latex_name, sym=tensor._sym,
+                               antisym=tensor._antisym)
+        for frame2 in tensor._components:
+            if isinstance(frame2, CoordFrame):
+                chart2 = frame2._chart
+                for chart1 in dom1._atlas:
+                    if (chart1, chart2) in self._coord_expression:
+                        # Computation at the component level:
+                        frame1 = chart1._frame
+                        tcomp = tensor._components[frame2]
+                        if isinstance(tcomp, CompFullySym):
+                            ptcomp = CompFullySym(ring1, frame1, ncov,
+                                                  start_index=si1,
+                                                  output_formatter=of1)
+                        elif isinstance(tcomp, CompFullyAntiSym):
+                            ptcomp = CompFullyAntiSym(ring1, frame1, ncov,
+                                                      start_index=si1,
+                                                      output_formatter=of1)
+                        elif isinstance(tcomp, CompWithSym):
+                            ptcomp = CompWithSym(ring1, frame1, ncov,
+                                                 start_index=si1,
+                                                 output_formatter=of1,
+                                                 sym=tcomp.sym,
+                                                 antisym=tcomp.antisym)
+                        else:
+                            ptcomp = Components(ring1, frame1, ncov,
+                                                start_index=si1,
+                                                output_formatter=of1)
+                        phi = self._coord_expression[(chart1, chart2)]
+                        jacob = phi.jacobian()
+                        # X2 coordinates expressed in terms of X1 ones via the
+                        # mapping:
+                        coord2_1 = phi(*(chart1._xx))
+                        for ind_new in ptcomp.non_redundant_index_generator():
+                            res = 0
+                            for ind_old in dom2._manifold.index_generator(ncov):
+                                ff = tcomp[[ind_old]].coord_function(chart2)
+                                t = chart1.function(ff(*coord2_1))
+                                for i in range(ncov):
+                                    t *= jacob[ind_old[i]-si2][ind_new[i]-si1]
+                                res += t
+                            ptcomp[ind_new] = res
+                        resu._components[frame1] = ptcomp
+            return resu

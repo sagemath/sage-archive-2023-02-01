@@ -115,7 +115,7 @@ obtained by specifying the chart as the last argument inside the
 single square brackets::
 
     sage: c_uv.<u,v> = M.chart()
-    sage: xy_to_uv = c_xy.coord_change(c_uv, x+y, x-y)
+    sage: xy_to_uv = c_xy.transition_map(c_uv, [x+y, x-y])
     sage: uv_to_xy = xy_to_uv.inverse()
     sage: t[1,1, c_uv]
     1/4*u^2 + 1/2*u*v + 1/4*v^2
@@ -616,16 +616,16 @@ class TensorField(ModuleElement):
         """
         # Special cases
         if self._tensor_type == (0,2) and self._sym == [(0,1)]:
-            description = "field of symmetric bilinear forms "
+            description = "Field of symmetric bilinear forms "
             if self._name is not None:
-                description += "'%s' " % self._name
+                description += self._name + " "
         else:
         # Generic case
-            description = "tensor field"
+            description = "Tensor field "
             if self._name is not None:
-                description += " '%s'" % self._name
-            description += " of type (%s,%s) " % (str(self._tensor_type[0]),
-                                                     str(self._tensor_type[1]))
+                description += self._name + " "
+            description += "of type ({},{}) ".format(
+                                    self._tensor_type[0], self._tensor_type[1])
         return self._final_repr(description)
 
     def _latex_(self):
@@ -669,28 +669,31 @@ class TensorField(ModuleElement):
 
     def _final_repr(self, description):
         r"""
-        Part of string representation common to all tensor fields.
+        Part of string representation common to all derived classes of
+        :class:`TensorField`.
         """
         if self._domain == self._ambient_domain:
-            description += "on the " + str(self._domain)
+            description += "on the {}".format(self._domain)
         else:
-            description += "along the " + str(self._domain) + \
-                           " with values on the " + str(self._ambient_domain)
+            description += "along the {}".format(self._domain) + \
+                           " with values on the {}".format(self._ambient_domain)
         return description
 
     def _init_derived(self):
         r"""
         Initialize the derived quantities
         """
-        self._lie_derivatives = {} # collection of Lie derivatives of self
+        self._lie_derivatives = {} # dict. of Lie derivatives of self
+                                   # (keys: id(vector))
 
     def _del_derived(self):
         r"""
         Delete the derived quantities
         """
-        # First deletes any reference to self in the vectors' dictionary:
+        # First deletes any reference to self in the vectors' dictionaries:
         for vid, val in self._lie_derivatives.iteritems():
             del val[0]._lie_der_along_self[id(self)]
+        # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
 
     #### Simple accessors ####
@@ -1692,276 +1695,6 @@ class TensorField(ModuleElement):
             resu._restrictions[dom] = rst / scalar
         return resu
 
-    def up(self, metric, pos=None):
-        r"""
-        Compute a metric dual by raising some index with a given metric.
-
-        If ``self`` is a tensor field `T` of type `(k,l)` and `p` is the
-        position of a covariant index (i.e. `k\leq p < k+l`),
-        the output with ``pos`` `=p` is the tensor field `T^\sharp` of type
-        `(k+1,l-1)` whose components are
-
-        .. MATH::
-
-            (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\quad b_1 \ldots b_{l-1}}
-            = g^{a_{k+1} i} \,
-            T^{a_1\ldots a_k}_{\qquad\ \  b_1 \ldots b_{p-k} \, i \, b_{p-k+1} \ldots b_{l-1}},
-
-        `g^{ab}` being the components of the inverse metric.
-
-        The reverse operation is :meth:`TensorField.down`
-
-        INPUT:
-
-        - ``metric`` -- metric `g`, as an instance of
-          :class:`~sage.manifolds.differentiable.metric.Metric`
-        - ``pos`` -- (default: ``None``) position of the index (with the
-          convention ``pos=0`` for the first index); if none, the raising is
-          performed over all the covariant indices, starting from the first one
-
-        OUTPUT:
-
-        - the tensor field `T^\sharp` resulting from the index raising operation
-
-        EXAMPLES:
-
-        Raising the index of a 1-form results in a vector field::
-
-            sage: M = DiffManifold(2, 'M', start_index=1)
-            sage: c_xy.<x,y> = M.chart()
-            sage: g = M.metric('g')
-            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: w = M.one_form()
-            sage: w[:] = [-1, 2]
-            sage: v = w.up(g) ; v
-            vector field on the 2-dimensional manifold 'M'
-            sage: v.display()
-            ((2*x - 1)*y + 1)/(x^2*y^2 + (x + 1)*y - x - 1) d/dx - (x*y + 2*x + 2)/(x^2*y^2 + (x + 1)*y - x - 1) d/dy
-            sage: ig = g.inverse(); ig[:]
-            [ (y - 1)/(x^2*y^2 + (x + 1)*y - x - 1)      x*y/(x^2*y^2 + (x + 1)*y - x - 1)]
-            [     x*y/(x^2*y^2 + (x + 1)*y - x - 1) -(x + 1)/(x^2*y^2 + (x + 1)*y - x - 1)]
-
-        Using the index notation instead of :meth:`up`::
-
-            sage: v == ig['^ab']*w['_b']
-            True
-
-        The reverse operation::
-
-            sage: w1 = v.down(g) ; w1
-            1-form on the 2-dimensional manifold 'M'
-            sage: w1.display()
-            -dx + 2 dy
-            sage: w1 == w
-            True
-
-        The reverse operation in index notation::
-
-            sage: g['_ab']*v['^b'] == w
-            True
-
-        Raising the indices of a tensor field of type (0,2)::
-
-            sage: t = M.tensor_field(0, 2)
-            sage: t[:] = [[1,2], [3,4]]
-            sage: tu0 = t.up(g, 0) ; tu0  # raising the first index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: tu0[:]
-            [  ((3*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1) 2*((2*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1)]
-            [    (x*y - 3*x - 3)/(x^2*y^2 + (x + 1)*y - x - 1)   2*(x*y - 2*x - 2)/(x^2*y^2 + (x + 1)*y - x - 1)]
-            sage: tu0 == ig['^ac']*t['_cb'] # the same operation in index notation
-            True
-            sage: tuu0 = tu0.up(g) ; tuu0 # the two indices have been raised, starting from the first one
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: tuu0 == tu0['^a_c']*ig['^cb'] # the same operation in index notation
-            True
-            sage: tu1 = t.up(g, 1) ; tu1 # raising the second index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: tu1 == ig['^ac']*t['_bc'] # the same operation in index notation
-            True
-            sage: tu1[:]
-            [((2*x + 1)*y - 1)/(x^2*y^2 + (x + 1)*y - x - 1) ((4*x + 3)*y - 3)/(x^2*y^2 + (x + 1)*y - x - 1)]
-            [  (x*y - 2*x - 2)/(x^2*y^2 + (x + 1)*y - x - 1) (3*x*y - 4*x - 4)/(x^2*y^2 + (x + 1)*y - x - 1)]
-            sage: tuu1 = tu1.up(g) ; tuu1 # the two indices have been raised, starting from the second one
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: tuu1 == tu1['^a_c']*ig['^cb'] # the same operation in index notation
-            True
-            sage: tuu0 == tuu1 # the order of index raising is important
-            False
-            sage: tuu = t.up(g) ; tuu # both indices are raised, starting from the first one
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: tuu0 == tuu # the same order for index raising has been applied
-            True
-            sage: tuu1 == tuu # to get tuu1, indices have been raised from the last one, contrary to tuu
-            False
-            sage: d0tuu = tuu.down(g, 0) ; d0tuu # the first index is lowered again
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: dd0tuu = d0tuu.down(g) ; dd0tuu  # the second index is then lowered
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: d1tuu = tuu.down(g, 1) ; d1tuu # lowering operation, starting from the last index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: dd1tuu = d1tuu.down(g) ; dd1tuu
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: ddtuu = tuu.down(g) ; ddtuu # both indices are lowered, starting from the last one
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: ddtuu == t # should be true
-            True
-            sage: dd0tuu == t # not true, because of the order of index lowering to get dd0tuu
-            False
-            sage: dd1tuu == t # should be true
-            True
-
-        """
-        from sage.rings.integer import Integer
-        n_con = self._tensor_type[0] # number of contravariant indices = k
-        if pos is None:
-            result = self
-            for p in range(n_con, self._tensor_rank):
-                k = result._tensor_type[0]
-                result = result.up(metric, k)
-            return result
-        if not isinstance(pos, (int, Integer)):
-            raise TypeError("The argument 'pos' must be an integer.")
-        if pos<n_con or pos>self._tensor_rank-1:
-            print "pos = ", pos
-            raise ValueError("Position out of range.")
-        return self.contract(pos, metric.inverse(), 0)
-
-    def down(self, metric, pos=None):
-        r"""
-        Compute a metric dual by lowering some index with a given metric.
-
-        If ``self`` is a tensor field `T` of type `(k,l)` and `p` is the
-        position of a contravariant index (i.e. `0\leq p < k`), the output with
-        ``pos`` `=p` is the tensor field `T^\flat` of type `(k-1,l+1)` whose
-        components are
-
-        .. MATH::
-
-            (T^\flat)^{a_1\ldots a_{k-1}}_{\qquad\quad b_1 \ldots b_{l+1}}
-            = g_{b_1 i} \,
-            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\qquad\qquad\qquad\quad b_2 \ldots b_{l+1}},
-
-        `g_{ab}` being the components of the metric tensor.
-
-        The reverse operation is :meth:`TensorField.up`
-
-        INPUT:
-
-        - ``metric`` -- metric `g`, as an instance of
-          :class:`~sage.manifolds.differentiable.metric.Metric`
-        - ``pos`` -- (default: ``None``) position of the index (with the
-          convention ``pos=0`` for the first index); if none, the lowering is
-          performed over all the contravariant indices, starting from the last
-          one
-
-        OUTPUT:
-
-        - the tensor field `T^\flat` resulting from the index lowering operation
-
-        EXAMPLES:
-
-        Lowering the index of a vector field results in a 1-form::
-
-            sage: M = DiffManifold(2, 'M', start_index=1)
-            sage: c_xy.<x,y> = M.chart()
-            sage: g = M.metric('g')
-            sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
-            sage: v = M.vector_field()
-            sage: v[:] = [-1,2]
-            sage: w = v.down(g) ; w
-            1-form on the 2-dimensional manifold 'M'
-            sage: w.display()
-            (2*x*y - x - 1) dx + (-(x + 2)*y + 2) dy
-
-        Using the index notation instead of :meth:`down`::
-
-            sage: w == g['_ab']*v['^b']
-            True
-
-        The reverse operation::
-
-            sage: v1 = w.up(g) ; v1
-            vector field on the 2-dimensional manifold 'M'
-            sage: v1 == v
-            True
-
-        Lowering the indices of a tensor field of type (2,0)::
-
-            sage: t = M.tensor_field(2, 0)
-            sage: t[:] = [[1,2], [3,4]]
-            sage: td0 = t.down(g, 0) ; td0  # lowering the first index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: td0 == g['_ac']*t['^cb'] # the same operation in index notation
-            True
-            sage: td0[:]
-            [  3*x*y + x + 1   (x - 3)*y + 3]
-            [4*x*y + 2*x + 2 2*(x - 2)*y + 4]
-            sage: tdd0 = td0.down(g) ; tdd0 # the two indices have been lowered, starting from the first one
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: tdd0 == g['_ac']*td0['^c_b'] # the same operation in index notation
-            True
-            sage: tdd0[:]
-            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3]
-            [(3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
-            sage: td1 = t.down(g, 1) ; td1  # lowering the second index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: td1 == g['_ac']*t['^bc'] # the same operation in index notation
-            True
-            sage: td1[:]
-            [  2*x*y + x + 1   (x - 2)*y + 2]
-            [4*x*y + 3*x + 3 (3*x - 4)*y + 4]
-            sage: tdd1 = td1.down(g) ; tdd1 # the two indices have been lowered, starting from the second one
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: tdd1 == g['_ac']*td1['^c_b'] # the same operation in index notation
-            True
-            sage: tdd1[:]
-            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 (3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2]
-            [2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
-            sage: tdd1 == tdd0   # the order of index lowering is important
-            False
-            sage: tdd = t.down(g) ; tdd  # both indices are lowered, starting from the last one
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
-            sage: tdd[:]
-            [      4*x^2*y^2 + x^2 + 5*(x^2 + x)*y + 2*x + 1 (3*x^2 - 4*x)*y^2 + (x^2 + 3*x - 2)*y + 2*x + 2]
-            [2*(x^2 - 2*x)*y^2 + (x^2 + 2*x - 3)*y + 3*x + 3           (x^2 - 5*x + 4)*y^2 + (5*x - 8)*y + 4]
-            sage: tdd0 == tdd  # to get tdd0, indices have been lowered from the first one, contrary to tdd
-            False
-            sage: tdd1 == tdd  # the same order for index lowering has been applied
-            True
-            sage: u0tdd = tdd.up(g, 0) ; u0tdd # the first index is raised again
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: uu0tdd = u0tdd.up(g) ; uu0tdd # the second index is then raised
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: u1tdd = tdd.up(g, 1) ; u1tdd  # raising operation, starting from the last index
-            tensor field of type (1,1) on the 2-dimensional manifold 'M'
-            sage: uu1tdd = u1tdd.up(g) ; uu1tdd
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: uutdd = tdd.up(g) ; uutdd  # both indices are raised, starting from the first one
-            tensor field of type (2,0) on the 2-dimensional manifold 'M'
-            sage: uutdd == t  # should be true
-            True
-            sage: uu0tdd == t # should be true
-            True
-            sage: uu1tdd == t # not true, because of the order of index raising to get uu1tdd
-            False
-
-        """
-        from sage.rings.integer import Integer
-        n_con = self._tensor_type[0] # number of contravariant indices = k
-        if pos is None:
-            result = self
-            for p in range(0, n_con):
-                k = result._tensor_type[0]
-                result = result.down(metric, k-1)
-            return result
-        if not isinstance(pos, (int, Integer)):
-            raise TypeError("The argument 'pos' must be an integer.")
-        if pos<0 or pos>=n_con:
-            print "pos = ", pos
-            raise ValueError("Position out of range.")
-        return metric.contract(1, self, pos)
-
 
     def __call__(self, *args):
         r"""
@@ -2611,78 +2344,6 @@ class TensorField(ModuleElement):
             vector._lie_der_along_self[id(self)] = self
         return self._lie_derivatives[id(vector)][1]
 
-    def at(self, point):
-        r"""
-        Value of the tensor field at a point of its domain.
-
-        If ``self`` is the tensor field
-
-        .. MATH::
-
-            t:\ U\subset S  \longrightarrow T^{(k,l)} M
-
-        associated with the differentiable mapping
-
-        .. MATH::
-
-            \Phi:\ U\subset S \longrightarrow M
-
-        where `S` and `M` are two manifolds, then for any point `p\in U`,
-        `t(p)` is a tensor on the tangent space to `M` at the point `\Phi(p)`.
-
-        INPUT:
-
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.differentiable.point.ManifoldPoint`) point `p` in
-          the domain of ``self`` (`U`)
-
-        OUTPUT:
-
-        - instance of
-          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
-          representing the tensor `t(p)` on the tangent vector space
-          `T_{\Phi(p)} M`
-
-        EXAMPLES:
-
-        Tensor on a tangent space of a non-parallelizable 2-dimensional
-        manifold::
-
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
-            sage: U = M.open_subset('U') ; V = M.open_subset('V')
-            sage: M.declare_union(U,V)   # M is the union of U and V
-            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
-            sage: inv = transf.inverse()
-            sage: W = U.intersection(V)
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.tensor_field(1,1, name='a')
-            sage: a[eU,:] = [[1+y,x], [0,x+y]]
-            sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
-            sage: a.display(eU)
-            a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
-            sage: a.display(eV)
-            a = (u + 1/2) d/du*du + (-1/2*u - 1/2*v + 1/2) d/du*dv + 1/2 d/dv*du + (1/2*u - 1/2*v + 1/2) d/dv*dv
-            sage: p = M.point((2,3), chart=c_xy, name='p')
-            sage: ap = a.at(p) ; ap
-            Type-(1,1) tensor a on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: ap.parent()
-            Free module of type-(1,1) tensors on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: ap.display(eU.at(p))
-            a = 4 d/dx*dx + 2 d/dx*dy + 5 d/dy*dy
-            sage: ap.display(eV.at(p))
-            a = 11/2 d/du*du - 3/2 d/du*dv + 1/2 d/dv*du + 7/2 d/dv*dv
-            sage: p.coord(c_uv) # to check the above expression
-            (5, -1)
-
-        """
-        if point not in self._domain:
-            raise TypeError("The " + str(point) + " is not a point in the "
-                            "domain of " + str(self) + ".")
-        for dom, rst in self._restrictions.iteritems():
-            if point in dom:
-                return rst.at(point)
 
 #******************************************************************************
 
@@ -3526,136 +3187,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # the FreeModuleTensor one
         return TensorField.__mul__(self, other)
 
-    def at(self, point):
-        r"""
-        Value of the tensor field at a point of its domain.
-
-        If ``self`` is the tensor field
-
-        .. MATH::
-
-            t:\ U\subset S  \longrightarrow T^{(k,l)} M
-
-        associated with the differentiable mapping
-
-        .. MATH::
-
-            \Phi:\ U\subset S \longrightarrow M
-
-        where `S` and `M` are two manifolds, then for any point `p\in U`,
-        `t(p)` is a tensor on the tangent space to `M` at the point `\Phi(p)`.
-
-        INPUT:
-
-        - ``point`` -- (instance of
-          :class:`~sage.manifolds.differentiable.point.ManifoldPoint`) point `p` in
-          the domain of ``self`` (`U`)
-
-        OUTPUT:
-
-        - instance of
-          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
-          representing the tensor `t(p)` on the tangent vector space
-          `T_{\Phi(p)} M`
-
-        EXAMPLES:
-
-        Vector in a tangent space of a 2-dimensional manifold::
-
-            sage: sage.manifolds.differentiable.tangentspace.TangentSpace._clear_cache_() # for doctests only
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
-            sage: c_xy.<x,y> = M.chart()
-            sage: p = M.point((-2,3), name='p')
-            sage: v = M.vector_field('v')
-            sage: v[:] = [y, x^2] ; v.display()
-            v = y d/dx + x^2 d/dy
-            sage: vp = v.at(p) ; vp
-            tangent vector v at point 'p' on 2-dimensional manifold 'M'
-            sage: vp.parent()
-            tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: vp.display()
-            v = 3 d/dx + 4 d/dy
-
-        A 1-form gives birth to a linear form in the tangent space::
-
-            sage: w = M.one_form('w')
-            sage: w[:] = [-x, 1+y] ; w.display()
-            w = -x dx + (y + 1) dy
-            sage: wp = w.at(p) ; wp
-            Linear form w on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: wp.parent()
-            Dual of the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: wp.display()
-            w = 2 dx + 4 dy
-
-        A tensor field of type (1,1) yields a tensor of type(1,1) in the
-        tangent space::
-
-            sage: t = M.tensor_field(1, 1, name='t')
-            sage: t[0,0], t[0,1], t[1,1] = 1+x, x*y, 1-y
-            sage: t.display()
-            t = (x + 1) d/dx*dx + x*y d/dx*dy + (-y + 1) d/dy*dy
-            sage: tp = t.at(p) ; tp
-            Type-(1,1) tensor t on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: tp.parent()
-            Free module of type-(1,1) tensors on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: tp.display()
-            t = -d/dx*dx - 6 d/dx*dy - 2 d/dy*dy
-
-        A 2-form yields an alternating form of degree 2 in the tangent space::
-
-            sage: a = M.diff_form(2, name='a')
-            sage: a[0,1] = x*y
-            sage: a.display()
-            a = x*y dx/\dy
-            sage: ap = a.at(p) ; ap
-            Alternating form a of degree 2 on the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: ap.parent()
-            2nd exterior power of the dual of the tangent space at point 'p' on 2-dimensional manifold 'M'
-            sage: ap.display()
-            a = -6 dx/\dy
-
-        Example with a non trivial mapping `\Phi`::
-
-            sage: R.<t> = RealLine()
-            sage: U = R.open_interval(0, 2*pi)
-            sage: Phi = U.diff_map(M, [cos(t), sin(t)], name='Phi',
-            ....:                  latex_name=r'\Phi')
-            sage: v = U.vector_field(name='v', dest_map=Phi) ; v
-            vector field 'v' along the Real interval (0, 2*pi) with values on
-             the 2-dimensional manifold 'M'
-            sage: v[:] = [1+t, t^2]
-            sage: v.display()
-            v = (t + 1) d/dx + t^2 d/dy
-            sage: p = R(pi/6)
-            sage: p in U
-            True
-            sage: vp = v.at(p) ; vp
-            tangent vector v at point on 2-dimensional manifold 'M'
-            sage: vp.parent() is Phi(p).tangent_space()
-            True
-            sage: vp.display()
-            v = (1/6*pi + 1) d/dx + 1/36*pi^2 d/dy
-
-        """
-        if point not in self._domain:
-            raise TypeError("The " + str(point) + " is not a point in the "
-                            "domain of " + str(self) + ".")
-        dest_map = self._fmodule._dest_map
-        if dest_map.is_identity():
-            amb_point = point
-        else:
-            amb_point = dest_map(point)  #  "ambient" point
-        ts = amb_point.tangent_space()
-        resu = ts.tensor(self._tensor_type, name=self._name,
-                         latex_name=self._latex_name, sym=self._sym,
-                         antisym=self._antisym)
-        for frame, comp in self._components.iteritems():
-            comp_resu = resu.add_comp(frame.at(point))
-            for ind, val in comp._comp.iteritems():
-                comp_resu._comp[ind] = val(point)
-        return resu
 
     def display_comp(self, frame=None, chart=None, coordinate_labels=True,
                      only_nonzero=True, only_nonredundant=False):

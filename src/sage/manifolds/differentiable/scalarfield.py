@@ -634,6 +634,8 @@ class DiffScalarField(ScalarField):
         """
         ScalarField._init_derived(self) # derived quantities of the mother class
         self._differential = None  # differential 1-form of the scalar field
+        self._lie_derivatives = {} # dict. of Lie derivatives of self
+                                   # (keys: id(vector))
 
     def _del_derived(self):
         r"""
@@ -656,3 +658,157 @@ class DiffScalarField(ScalarField):
         """
         ScalarField._del_derived(self) # derived quantities of the mother class
         self._differential = None  # reset of the differential
+        # First deletes any reference to self in the vectors' dictionaries:
+        for vid, val in self._lie_derivatives.iteritems():
+            del val[0]._lie_der_along_self[id(self)]
+        # Then clears the dictionary of Lie derivatives
+        self._lie_derivatives.clear()
+
+
+    def differential(self):
+        r"""
+        Return the differential of the scalar field.
+
+        OUTPUT:
+
+        - the 1-form that is the differential of ``self``.
+
+        EXAMPLES:
+
+        Differential 1-form on a 3-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: f = M.scalar_field(cos(x)*z^3 + exp(y)*z^2, name='f')
+            sage: df = f.differential() ; df
+            1-form 'df' on the 3-dimensional manifold 'M'
+            sage: df.display()
+            df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
+            sage: latex(df)
+            \mathrm{d}f
+            sage: df.parent()
+            Free module /\^1(M) of 1-forms on the 3-dimensional manifold 'M'
+
+        Since the exterior derivative of a scalar field (considered a 0-form)
+        is nothing but its differential, ``exterior_der()`` is an alias of
+        ``differential()``::
+
+            sage: df = f.exterior_der() ; df
+            1-form 'df' on the 3-dimensional manifold 'M'
+            sage: df.display()
+            df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
+            sage: latex(df)
+            \mathrm{d}f
+
+        Differential computed on a chart that is not the default one::
+
+            sage: c_uvw.<u,v,w> = M.chart()
+            sage: g = M.scalar_field(u*v^2*w^3, c_uvw, name='g')
+            sage: dg = g.differential() ; dg
+            1-form 'dg' on the 3-dimensional manifold 'M'
+            sage: dg._components
+            {coordinate frame (M, (d/du,d/dv,d/dw)): 1-index components w.r.t.
+             coordinate frame (M, (d/du,d/dv,d/dw))}
+            sage: dg.comp(c_uvw.frame())[:, c_uvw]
+            [v^2*w^3, 2*u*v*w^3, 3*u*v^2*w^2]
+            sage: dg.display(c_uvw.frame(), c_uvw)
+            dg = v^2*w^3 du + 2*u*v*w^3 dv + 3*u*v^2*w^2 dw
+
+        The exterior derivative is nilpotent::
+
+            sage: ddf = df.exterior_der() ; ddf
+            2-form 'ddf' on the 3-dimensional manifold 'M'
+            sage: ddf == 0
+            True
+            sage: ddf[:] # for the incredule
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: ddg = dg.exterior_der() ; ddg
+            2-form 'ddg' on the 3-dimensional manifold 'M'
+            sage: ddg == 0
+            True
+
+        """
+        from sage.tensor.modules.format_utilities import format_unop_txt, \
+                                                         format_unop_latex
+        if self._differential is None:
+            # A new computation is necessary:
+            rname = format_unop_txt('d', self._name)
+            rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
+            self._differential = self._domain.one_form(name=rname,
+                                                             latex_name=rlname)
+            if self._is_zero:
+                for chart in self._domain._atlas:
+                    self._differential.add_comp(chart._frame) # since a newly
+                                            # created set of components is zero
+            else:
+                for chart, func in self._express.iteritems():
+                    diff_func = self._differential.add_comp(chart._frame)
+                    for i in self._manifold.irange():
+                        diff_func[i, chart] = func.diff(i)
+        return self._differential
+
+    exterior_der = differential
+
+    def lie_der(self, vector):
+        r"""
+        Computes the Lie derivative with respect to a vector field.
+
+        The Lie derivative is stored in the dictionary
+        :attr:`_lie_derivatives`, so that there is no need to
+        recompute it at the next call if neither ``self`` nor ``vector``
+        have been modified meanwhile.
+
+        In the present case (scalar field), the Lie derivative is equal to
+        the scalar field resulting from the action of the vector field on
+        ``self``.
+
+        INPUT:
+
+        - ``vector`` -- vector field with respect to which the Lie derivative
+          is to be taken
+
+        OUTPUT:
+
+        - the scalar field that is the Lie derivative of ``self`` with
+          respect to ``vector``
+
+        EXAMPLES:
+
+        Lie derivative on a 2-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x^2*cos(y))
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = (-y, x)
+            sage: f.lie_der(v)
+            scalar field on the 2-dimensional manifold 'M'
+            sage: f.lie_der(v).expr()
+            -x^3*sin(y) - 2*x*y*cos(y)
+
+        Alternative expressions of the Lie derivative of a scalar field::
+
+            sage: f.lie_der(v) == v(f)  # the vector acting on f
+            True
+            sage: f.lie_der(v) == f.differential()(v)  # the differential of f acting on the vector
+            True
+
+        A vanishing Lie derivative::
+
+            sage: f.set_expr(x^2 + y^2)
+            sage: f.lie_der(v).display()
+            M --> R
+            (x, y) |--> 0
+
+        """
+        if id(vector) not in self._lie_derivatives:
+            # A new computation must be performed
+            res = vector(self)
+            self._lie_derivatives[id(vector)] = (vector, res)
+            vector._lie_der_along_self[id(self)] = self
+        return self._lie_derivatives[id(vector)][1]
+

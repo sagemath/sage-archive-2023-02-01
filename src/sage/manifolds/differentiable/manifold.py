@@ -1270,6 +1270,36 @@ class DiffManifold(TopManifold):
         return self.vector_field_module(dest_map=dest_map).tensor_module(
                                                                   *tensor_type)
 
+    def diff_form_module(self, degree, dest_map=None):
+        r"""
+        Return the set of differential forms of a given degree defined on
+        ``self``, possibly within some ambient manifold, as a module over the
+        algebra of scalar fields defined on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``degree`` -- positive integer; the degree `p` of the differential forms
+        - ``dest_map`` -- (default: ``None``) destination map
+          `\Phi:\ U \rightarrow V`, where `U` is ``self``
+          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
+          if none is provided, the identity map is assumed (case of
+          differential forms *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
+          representing the module `\Lambda^p(U,\Phi)` of `p`-forms on the open
+          subset `U` = ``self`` taking values on `\Phi(U)\subset V\subset M`.
+
+        EXAMPLE:
+
+        """
+        return self.vector_field_module(dest_map=dest_map).dual_exterior_power(
+                                                                        degree)
 
     def automorphism_field_group(self, dest_map=None):
         r"""
@@ -1546,6 +1576,96 @@ class DiffManifold(TopManifold):
         """
         return self.tensor_field(0, 2, name=name, latex_name=latex_name,
                                  sym=(0,1))
+
+    def diff_form(self, degree, name=None, latex_name=None,
+                  dest_map=None):
+        r"""
+        Define a differential form on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a complete
+        documentation.
+
+        INPUT:
+
+        - ``degree`` -- the degree `p` of the differential form (i.e. its
+          tensor rank)
+        - ``name`` -- (default: ``None``) name given to the differential form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          differential form; if none is provided, the LaTeX symbol is set to ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a differential form *on* ``self``)
+
+        OUTPUT:
+
+        - the `p`-form, as an instance of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+
+        EXAMPLE:
+
+        A 2-form on a 4-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(4, 'M')
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
+            open subset 'A' of the 4-dimensional manifold 'M'
+            sage: c_xyzt.<x,y,z,t> = A.chart()
+            sage: f = A.diff_form(2, 'F'); f
+            2-form 'F' on the open subset 'A' of the 4-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.alternating_form(degree, name=name,
+                                        latex_name=latex_name)
+
+    def one_form(self, name=None, latex_name=None, dest_map=None):
+        r"""
+        Define a 1-form on ``self``.
+
+        See :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a complete
+        documentation.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the 1-form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the 1-form;
+          if none is provided, the LaTeX symbol is set to ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a 1-form *on* ``self``)
+
+        OUTPUT:
+
+        - the 1-form, as an instance of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+
+        EXAMPLE:
+
+        A 1-form on a 3-dimensional open subset::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
+            sage: X.<x,y,z> = A.chart()
+            sage: om = A.one_form('omega', r'\omega') ; om
+            1-form 'omega' on the open subset 'A' of the 3-dimensional manifold 'M'
+            sage: om.parent()
+            Free module /\^1(A) of 1-forms on the open subset 'A' of the
+             3-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.linear_form(name=name, latex_name=latex_name)
 
     def automorphism_field(self, name=None, latex_name=None,
                            dest_map=None):

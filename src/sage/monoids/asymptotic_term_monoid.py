@@ -1157,7 +1157,7 @@ class TermWithCoefficient(GenericTerm):
         Asymptotic Term with coefficient 3/8 and growth x^3
     """
 
-    def __init__(self, parent, growth, coefficient=None):
+    def __init__(self, parent, growth, coefficient):
         r"""
         See :class:`TermWithCoefficient` for more information.
 
@@ -1200,8 +1200,8 @@ class TermWithCoefficient(GenericTerm):
                                                   parent.base_ring()))
         elif coefficient == 0:
             raise ValueError('0 is not a valid coefficient')
-        else:
-            self.coefficient = coefficient
+
+        self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
 
@@ -1357,8 +1357,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = TermWithCoefficient
 
-    def __init__(self, growth_group=None, base_ring=None,
-                 category=None):
+    def __init__(self, growth_group, base_ring, category=None):
         r"""
         For more information see :class:`TermWithCoefficientMonoid`.
 
@@ -1375,7 +1374,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Join of Category of monoids and Category of posets
         """
         if base_ring is None:
-            raise ValueError('Base ring is not specified')
+            raise ValueError('Base ring is not specified.')
         self._base_ring = base_ring
         super(TermWithCoefficientMonoid,
               self).__init__(growth_group=growth_group, category=category)
@@ -1403,6 +1402,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Integer Ring
         """
         return self._base_ring
+
 
     def _coerce_map_from_(self, S):
         r"""
@@ -1433,15 +1433,14 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
             sage: TC_QQ = atm.TermWithCoefficientMonoid(MG_QQ, QQ); TC_QQ
             Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
-            sage: TC_QQ._coerce_map_from_(TC_ZZ)
+            sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
-            sage: TC_ZZ._coerce_map_from_(TC_QQ) is None
+            sage: TC_ZZ.has_coerce_map_from(TC_QQ) is None  # indirect doctest
             True
         """
         if isinstance(S, TermWithCoefficientMonoid):
-            return (super(TermWithCoefficientMonoid, self).
-                    _coerce_map_from_(S) and self.base_ring().
-                    coerce_map_from(S.base_ring()) is not None)
+            return (super(TermWithCoefficientMonoid, self)._coerce_map_from_(S) and
+                    self.base_ring().has_coerce_map_from(S.base_ring()))
 
 
     def _element_constructor_(self, data, coefficient=None):
@@ -1771,12 +1770,11 @@ class ExactTerm(TermWithCoefficient):
             ...
             ArithmeticError: 1*x^5 cannot absorb 2*x^2
         """
-        cls = self.__class__
-        coef_new = self.coefficient + other.coefficient
-        if coef_new == 0:
+        coeff_new = self.coefficient + other.coefficient
+        if coeff_new == 0:
             return None
         else:
-            return cls(self.parent(), self.growth, coef_new)
+            return self.parent()(self.growth, coeff_new)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

@@ -1517,51 +1517,51 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             return self.element_class(self, data.growth, data.coefficient)
         elif type(data) == int and data == 0:
             raise ValueError('No input specified. Cannot continue.')
-        else:
-            try:
-                if coefficient is not None:
-                    data = self.growth_group()(data)
-                    return self.element_class(self, data, coefficient)
-                else:
-                    P = data.parent()
-                    from sage.symbolic.ring import SR
-                    import operator
-                    if P is SR:
-                        if 'mul' in str(data.operator()):
-                            # in 6.7, mul in SR is mul_varargs from
-                            # sage.interfaces.maxima_lib. after a rebase to
-                            # sage 6.8, this comparison can be fixed to
-                            # --> if data.operator() == operator.mul
-                            data, coef_tmp = data.operands()
-                            data = self.growth_group()(data)
-                        elif data.operator() == operator.pow or \
-                                data.operator() is None:
-                            coef_tmp = 1
-                            data = self.growth_group()(data)
-                    else:
-                        coeffs = data.coefficients()
-                        if type(coeffs) == list:
-                            # (multivariate) polynomial ring
-                            coef_tmp = coeffs[0]
-                            data = self.growth_group()(data / coef_tmp)
-                        elif type(coeffs) == dict:
-                            # power series ring
-                            coef_tmp = coeffs.values()[0]
-                            data = self.growth_group()(data / coef_tmp)
 
-                    return self.element_class(self, data, coef_tmp)
-            except:
-                if coefficient is None:
-                    raise ValueError('Coefficient is not specified. '
-                                     'Cannot continue.')
-                elif coefficient not in self.base_ring():
-                    raise ValueError('%s is not in %s'
-                                     % (coefficient, self.base_ring()))
-                elif coefficient == 0:
-                    raise ValueError('0 is not a valid coefficient.')
-                raise ValueError('Input is ambiguous: cannot convert %s with '
-                                 'coefficient %s to a term with coefficient.'
-                                 % (data, coefficient))
+        try:
+            if coefficient is not None:
+                data = self.growth_group()(data)
+                return self.element_class(self, data, coefficient)
+            else:
+                P = data.parent()
+                from sage.symbolic.ring import SR
+                import operator
+                if P is SR:
+                    if 'mul' in str(data.operator()):
+                        # in 6.7, mul in SR is mul_varargs from
+                        # sage.interfaces.maxima_lib. after a rebase to
+                        # sage 6.8, this comparison can be fixed to
+                        # --> if data.operator() == operator.mul
+                        data, coef_tmp = data.operands()
+                        data = self.growth_group()(data)
+                    elif data.operator() == operator.pow or \
+                            data.operator() is None:
+                        coef_tmp = 1
+                        data = self.growth_group()(data)
+                else:
+                    coeffs = data.coefficients()
+                    if type(coeffs) == list:
+                        # (multivariate) polynomial ring
+                        coef_tmp = coeffs[0]
+                        data = self.growth_group()(data / coef_tmp)
+                    elif type(coeffs) == dict:
+                        # power series ring
+                        coef_tmp = coeffs.values()[0]
+                        data = self.growth_group()(data / coef_tmp)
+
+                return self.element_class(self, data, coef_tmp)
+        except:
+            if coefficient is None:
+                raise ValueError('Coefficient is not specified. '
+                                 'Cannot continue.')
+            elif coefficient not in self.base_ring():
+                raise ValueError('%s is not in %s'
+                                 % (coefficient, self.base_ring()))
+            elif coefficient == 0:
+                raise ValueError('0 is not a valid coefficient.')
+            raise ValueError('Input is ambiguous: cannot convert %s with '
+                             'coefficient %s to a term with coefficient.'
+                             % (data, coefficient))
 
 
     def _repr_(self):

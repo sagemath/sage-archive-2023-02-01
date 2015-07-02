@@ -392,7 +392,7 @@ class DiffChart(Chart):
         Coordinate frame associated with some chart on a 2-dimensional
         manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
             coordinate frame (M, (d/dx,d/dy))
@@ -437,7 +437,7 @@ class DiffChart(Chart):
         Coordinate coframe associated with some chart on a 2-dimensional
         manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.coframe()
             coordinate coframe (M, (dx,dy))
@@ -939,3 +939,29 @@ class DiffCoordChange(CoordChange):
 
         """
         CoordChange.__init__(self, chart1, chart2, *transformations)
+        # Jacobian matrix:
+        self._jacobian  = self._transf.jacobian()
+        # Jacobian determinant:
+        if self._n1 == self._n2:
+            self._jacobian_det = self._transf.jacobian_det()
+        # If the two charts are on the same open subset, the Jacobian matrix is
+        # added to the dictionary of changes of frame:
+        if chart1._domain == chart2._domain:
+            domain = chart1._domain
+            frame1 = chart1._frame
+            frame2 = chart2._frame
+            vf_module = domain.vector_field_module()
+            ch_basis = vf_module.automorphism()
+            ch_basis.add_comp(frame1)[:, chart1] = self._jacobian
+            ch_basis.add_comp(frame2)[:, chart1] = self._jacobian
+            vf_module._basis_changes[(frame2, frame1)] = ch_basis
+            for sdom in domain._supersets:
+                sdom._frame_changes[(frame2, frame1)] = ch_basis
+            # The inverse is computed only if it does not exist already
+            # (because if it exists it may have a simpler expression than that
+            #  obtained from the matrix inverse)
+            if (frame1, frame2) not in vf_module._basis_changes:
+                ch_basis_inv = ch_basis.inverse()
+                vf_module._basis_changes[(frame1, frame2)] = ch_basis_inv
+                for sdom in domain._supersets:
+                    sdom._frame_changes[(frame1, frame2)] = ch_basis_inv

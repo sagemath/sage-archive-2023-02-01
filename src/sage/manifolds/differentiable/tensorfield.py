@@ -35,7 +35,7 @@ EXAMPLES:
 
 A tensor field of type (1,1) on a 2-dimensional manifold::
 
-    sage: M = Manifold(2, 'M', start_index=1)
+    sage: M = DiffManifold(2, 'M', start_index=1)
     sage: c_xy.<x,y> = M.chart()
     sage: t = M.tensor_field(1, 1, 'T') ; t
     tensor field 'T' of type (1,1) on the 2-dimensional manifold 'M'
@@ -369,7 +369,7 @@ class TensorField(ModuleElement):
 
     Tensor field of type (0,2) on the sphere `S^2`::
 
-        sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -496,7 +496,7 @@ class TensorField(ModuleElement):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -582,7 +582,7 @@ class TensorField(ModuleElement):
 
         Tensor field defined by parts on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: V = M.open_subset('V')
@@ -707,8 +707,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: t = M.tensor_field(1,2)
             sage: t.domain()
@@ -736,8 +736,8 @@ class TensorField(ModuleElement):
 
         The module of vector fields on the 2-sphere as a "base module"::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -767,8 +767,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -795,8 +795,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -818,8 +818,8 @@ class TensorField(ModuleElement):
 
         EXAMPLES::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -917,7 +917,7 @@ class TensorField(ModuleElement):
 
         Restrictions of a vector field on the 2-sphere::
 
-            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: M = DiffManifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of the North pole
             sage: stereoN.<x,y> = U.chart()  # stereographic coordinates from the North pole
             sage: eN = stereoN.frame() # the associated vector frame
@@ -1078,8 +1078,8 @@ class TensorField(ModuleElement):
 
         Components of a vector field on the sphere `S^2`::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'S^2', start_index=1)
             sage: # The two open subsets covered by stereographic coordinates (North and South):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
@@ -1156,8 +1156,8 @@ class TensorField(ModuleElement):
 
         Components of a type-(1,1) tensor field defined on two open subsets::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: e = U.default_frame() ; e
@@ -1228,7 +1228,7 @@ class TensorField(ModuleElement):
 
         Display of a type-(1,1) tensor field defined on two open subsets::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: e = U.default_frame() ; e
@@ -1326,7 +1326,7 @@ class TensorField(ModuleElement):
         Display of the components of a type-(1,1) tensor field defined on two
         open subsets::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: e = U.default_frame()
@@ -1727,7 +1727,7 @@ class TensorField(ModuleElement):
 
         Raising the index of a 1-form results in a vector field::
 
-            sage: M = Manifold(2, 'M', start_index=1)
+            sage: M = DiffManifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
@@ -1863,7 +1863,7 @@ class TensorField(ModuleElement):
 
         Lowering the index of a vector field results in a 1-form::
 
-            sage: M = Manifold(2, 'M', start_index=1)
+            sage: M = DiffManifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-y
@@ -2094,7 +2094,7 @@ class TensorField(ModuleElement):
         Trace of a type-(1,1) tensor field on a 2-dimensional
         non-parallelizable manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -2240,7 +2240,7 @@ class TensorField(ModuleElement):
         Contractions of a type-(1,1) tensor field with a type-(2,0) one on
         a 2-dimensional non-parallelizable manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -2470,7 +2470,7 @@ class TensorField(ModuleElement):
         Symmetrization of a type-(0,2) tensor field on a 2-dimensional
         non-parallelizable manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -2530,7 +2530,7 @@ class TensorField(ModuleElement):
         Antisymmetrization of a type-(0,2) tensor field on a 2-dimensional
         non-parallelizable manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -2648,8 +2648,8 @@ class TensorField(ModuleElement):
         Tensor on a tangent space of a non-parallelizable 2-dimensional
         manifold::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -2742,7 +2742,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     A tensor field of type (2,0) on a 3-dimensional manifold::
 
-        sage: M = Manifold(3, 'M')
+        sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: t = M.tensor_field(2, 0, 'T') ; t
         tensor field 'T' of type (2,0) on the 3-dimensional manifold 'M'
@@ -2931,7 +2931,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         sage: R.<t> = RealLine() ; R  # R as a 1-dimensional manifold
         field R of real numbers
-        sage: Phi = R.diff_mapping(M, [cos(t), sin(t), t], name='Phi') ; Phi
+        sage: Phi = R.diff_map(M, [cos(t), sin(t), t], name='Phi') ; Phi
         Curve 'Phi' in the 3-dimensional manifold 'M'
         sage: h = R.tensor_field(2, 0, name='h', dest_map=Phi) ; h
         tensor field 'h' of type (2,0) along the field R of real numbers with
@@ -2951,8 +2951,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TESTS::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: t = M.tensor_field(0,2, name='t') ; t
             tensor field 't' of type (0,2) on the 2-dimensional manifold 'M'
@@ -3269,7 +3269,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Lie derivative of a vector::
 
-            sage: M = Manifold(2, 'M', start_index=1)
+            sage: M = DiffManifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: v = M.vector_field('v')
             sage: v[:] = (-y, x)
@@ -3379,7 +3379,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Restriction of a vector field defined on `\RR^2` to a disk::
 
-            sage: M = Manifold(2, 'R^2')
+            sage: M = DiffManifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: v = M.vector_field('v')
             sage: v[:] = [x+y, -1+x^2]
@@ -3563,8 +3563,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Vector in a tangent space of a 2-dimensional manifold::
 
             sage: sage.manifolds.differentiable.tangentspace.TangentSpace._clear_cache_() # for doctests only
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: p = M.point((-2,3), name='p')
             sage: v = M.vector_field('v')
@@ -3620,8 +3620,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: R.<t> = RealLine()
             sage: U = R.open_interval(0, 2*pi)
-            sage: Phi = U.diff_mapping(M, [cos(t), sin(t)], name='Phi',
-            ....:                      latex_name=r'\Phi')
+            sage: Phi = U.diff_map(M, [cos(t), sin(t)], name='Phi',
+            ....:                  latex_name=r'\Phi')
             sage: v = U.vector_field(name='v', dest_map=Phi) ; v
             vector field 'v' along the Real interval (0, 2*pi) with values on
              the 2-dimensional manifold 'M'
@@ -3692,7 +3692,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Display of the components of a type-(2,1) tensor field on a
         2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: t = M.tensor_field(2, 1, name='t', sym=(0,1))
             sage: t[0,0,0], t[0,1,0], t[1,1,1] = x+y, x*y, -3

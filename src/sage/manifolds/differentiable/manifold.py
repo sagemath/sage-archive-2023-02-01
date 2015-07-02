@@ -1598,6 +1598,54 @@ class DiffManifold(TopManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.automorphism(name=name, latex_name=latex_name)
 
+    def tangent_identity_field(self, name='Id', latex_name=None,
+                               dest_map=None):
+        r"""
+        Return the field of identity maps in the tangent spaces on ``self``.
+
+        INPUT:
+
+        - ``name`` -- (string; default: 'Id') name given to the field of
+          identity maps
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the field of identity map; if none is provided, the LaTeX symbol is
+          set to '\mathrm{Id}' if ``name`` is 'Id' and to ``name`` otherwise
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
+          is ``self``; if none is provided, the identity map is assumed (case
+          of a tangent-space identity map field *on* ``self``)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+          (or of
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
+          if the codomain is parallelizable) representing the field of identity
+          maps.
+
+        EXAMPLE:
+
+        Field of tangent-space identity maps on a 3-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: a = M.tangent_identity_field(); a
+            field of tangent-space identity maps on the 3-dimensional
+             manifold 'M'
+            sage: a.comp()
+            Kronecker delta of size 3x3
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+        for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.identity_map(name=name, latex_name=latex_name)
+
     def default_frame(self):
         r"""
         Return the default vector frame defined on ``self``.

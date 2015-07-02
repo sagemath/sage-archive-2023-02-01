@@ -98,7 +98,7 @@ class DiffForm(TensorField):
 
     Differential form of degree 2 on a non-parallelizable 2-dimensional manifold::
 
-        sage: M = Manifold(2, 'M')
+        sage: M = DiffManifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -190,7 +190,7 @@ class DiffForm(TensorField):
 
         TEST::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -413,7 +413,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     A 2-form on a 4-dimensional manifold::
 
-        sage: M = Manifold(4, 'M')
+        sage: M = DiffManifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
         sage: a = M.diff_form(2, 'a') ; a
         2-form 'a' on the 4-dimensional manifold 'M'
@@ -481,7 +481,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     An example of 3-form is the volume element on `\RR^3` in Cartesian
     coordinates::
 
-        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = DiffManifold(3, 'R3', '\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component
@@ -653,8 +653,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TEST::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.diff_form(2, name='a') ; a
             2-form 'a' on the 2-dimensional manifold 'M'
@@ -729,7 +729,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Exterior derivative of a 1-form on a 4-dimensional manifold::
 
-            sage: M = Manifold(4, 'M')
+            sage: M = DiffManifold(4, 'M')
             sage: c_txyz.<t,x,y,z> = M.chart()
             sage: a = M.one_form('A')
             sage: a[:] = (t*x*y*z, z*y**2, x*z**2, x**2 + y**2)
@@ -805,7 +805,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                         if len(ind_d) == len(set(ind_d)):
                             # all indices are different
                             dc[[ind_d]] += \
-                               val.function_chart(chart).diff(i).scalar_field()
+                               val.coord_function(chart).diff(i).scalar_field()
                 self._exterior_derivative._components[frame] = dc
         return self._exterior_derivative
 
@@ -871,7 +871,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Hodge star of a 1-form in the Euclidean space `R^3`::
 
-            sage: M = Manifold(3, 'M', start_index=1)
+            sage: M = DiffManifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
@@ -907,7 +907,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Hodge star of a 0-form in Minkowksi spacetime::
 
-            sage: M = Manifold(4, 'M')
+            sage: M = DiffManifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
             sage: g = M.metric('g', signature=2)
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1

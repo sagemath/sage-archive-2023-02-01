@@ -95,7 +95,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     Module of vector fields on the 2-sphere::
 
-        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -619,7 +619,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     Module of vector fields on `\RR^2`::
 
-        sage: M = Manifold(2, 'R^2')
+        sage: M = DiffManifold(2, 'R^2')
         sage: cart.<x,y> = M.chart()  # Cartesian coordinates on R^2
         sage: XM = M.vector_field_module() ; XM
         free module X(R^2) of vector fields on the 2-dimensional manifold 'R^2'
@@ -648,9 +648,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     different from the identity map, namely a mapping
     `\Phi: I \rightarrow \RR^2`, where `I` is an open interval of `\RR`::
 
-        sage: R.<t> = RealLine()
-        sage: I = R.open_interval(0, 2*pi)
-        sage: Phi = I.diff_mapping(M, coord_functions=[cos(t), sin(t)], name='Phi',
+        sage: I = DiffManifold(1, '(0, 2*pi)', latex_name=r'(0, 2\pi)')
+        sage: canon.<t> = I.chart('t:(0,2*pi)')
+        sage: Phi = I.diff_map(M, coord_functions=[cos(t), sin(t)], name='Phi',
         ....:                      latex_name=r'\Phi') ; Phi
         Curve 'Phi' in the 2-dimensional manifold 'R^2'
         sage: Phi.display()
@@ -692,7 +692,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     Let us now consider the module of vector fields on the circle `S^1`; we
     start by constructing the `S^1` manifold::
 
-        sage: M = Manifold(1, 'S^1')
+        sage: M = DiffManifold(1, 'S^1')
         sage: U = M.open_subset('U')  # the complement of one point
         sage: c_t.<t> =  U.chart('t:(0,2*pi)') # the standard angle coordinate
         sage: V = M.open_subset('V') # the complement of the point t=pi

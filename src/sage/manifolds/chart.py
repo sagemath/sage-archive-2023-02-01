@@ -2441,8 +2441,7 @@ class CoordChange(SageObject):
         self._transf = chart1.multifunction(*transformations)
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
-        # is added to the subset (and supersets) dictionary and the
-        # Jacobian matrix is added to the dictionary of changes of frame:
+        # is added to the subset (and supersets) dictionary:
         if chart1._domain == chart2._domain:
             domain = chart1._domain
             for sdom in domain._supersets:

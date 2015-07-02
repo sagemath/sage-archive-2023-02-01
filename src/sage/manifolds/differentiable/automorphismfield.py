@@ -58,7 +58,7 @@ class AutomorphismField(TensorField):
     Field of tangent-space automorphisms on a non-parallelizable 2-dimensional
     manifold::
 
-        sage: M = Manifold(2, 'M')
+        sage: M = DiffManifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -191,7 +191,7 @@ class AutomorphismField(TensorField):
         Inverse of a field of tangent-space automorphisms on a
         non-parallelizable 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -342,7 +342,7 @@ class AutomorphismField(TensorField):
 
         Restrictions of an automorphism field on the 2-sphere::
 
-            sage: M = Manifold(2, 'S^2', start_index=1)
+            sage: M = DiffManifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of the North pole
             sage: stereoN.<x,y> = U.chart()  # stereographic coordinates from the North pole
             sage: eN = stereoN.frame() # the associated vector frame
@@ -454,7 +454,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     A pi/3-rotation in the Euclidean 2-plane::
 
-        sage: M = Manifold(2,'R^2')
+        sage: M = DiffManifold(2,'R^2')
         sage: c_xy.<x,y> = M.chart()
         sage: rot = M.automorphism_field('R') ; rot
         field of tangent-space automorphisms 'R' on the 2-dimensional manifold
@@ -488,8 +488,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         TESTS::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a') ; a
             field of tangent-space automorphisms 'a' on the 2-dimensional manifold 'M'
@@ -572,7 +572,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import Components
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.manifolds.utilities import simplify_chain
+        from sage.manifolds.utilities import simplify_chain_real, \
+                                             simplify_chain_generic
         if self._is_identity:
             return self
         if self._inverse is None:
@@ -588,6 +589,10 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             si = fmodule._sindex ; nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,
                                                  latex_name=inv_latex_name)
+            if self._domain.base_field() == 'real':
+                simplify_chain = simplify_chain_real
+            else:
+                simplify_chain = simplify_chain_generic
             for frame in self._components:
                 if isinstance(frame, CoordFrame):
                     chart = frame._chart
@@ -640,7 +645,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         Restriction of an automorphism field defined on `\RR^2` to a disk::
 
-            sage: M = Manifold(2, 'R^2')
+            sage: M = DiffManifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: D = M.open_subset('D') # the unit open disc
             sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)
@@ -710,8 +715,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         Automorphism at some point of a tangent space of a 2-dimensional
         manifold::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a')
             sage: a[:] = [[1+exp(y), x*y], [0, 1+x^2]]

@@ -33,7 +33,7 @@ EXAMPLES:
 
     Setting a vector frame on a 3-dimensional manifold::
 
-        sage: M = Manifold(3, 'M')
+        sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; e
         vector frame (M, (e_0,e_1,e_2))
@@ -65,7 +65,7 @@ EXAMPLES:
 
     The index range depends on the starting index defined on the manifold::
 
-        sage: M = Manifold(3, 'M', start_index=1)
+        sage: M = DiffManifold(3, 'M', start_index=1)
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e')
         sage: e._vec
@@ -117,7 +117,7 @@ EXAMPLES:
     The coordinate frame associated to spherical coordinates of the
     sphere `S^2`::
 
-        sage: M = Manifold(2, 'S^2', start_index=1)
+        sage: M = DiffManifold(2, 'S^2', start_index=1)
         sage: c_spher.<th,ph> = M.chart(r'th:[0,pi]:\theta ph:[0,2*pi):\phi')
         sage: b = M.default_frame() ; b
         coordinate frame (S^2, (d/dth,d/dph))
@@ -201,8 +201,8 @@ class VectorFrame(FreeModuleBasis):
 
     Setting a vector frame on a 3-dimensional manifold::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(3, 'M')
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; e
         vector frame (M, (e_0,e_1,e_2))
@@ -219,7 +219,7 @@ class VectorFrame(FreeModuleBasis):
 
         sage: R.<t> = RealLine()
         sage: U = R.open_interval(-1, 1)
-        sage: Phi = U.diff_mapping(M, [cos(t), sin(t), t], name='Phi', latex_name=r'\Phi')
+        sage: Phi = U.diff_map(M, [cos(t), sin(t), t], name='Phi', latex_name=r'\Phi')
         sage: Phi
         Curve 'Phi' in the 3-dimensional manifold 'M'
         sage: f = U.vector_frame('f', dest_map=Phi) ; f
@@ -411,8 +411,8 @@ class VectorFrame(FreeModuleBasis):
 
         Frame resulting from a pi/3-rotation in the Euclidean plane::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2,'R^2')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2,'R^2')
             sage: c_xy.<x,y> = M.chart()
             sage: e = M.vector_frame('e') ; M.set_default_frame(e)
             sage: M._frame_changes
@@ -480,8 +480,8 @@ class VectorFrame(FreeModuleBasis):
 
         Restriction of a frame defined on `\RR^2` to the unit disk::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'R^2')
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: a = M.automorphism_field()
             sage: a[:] = [[1-y^2,0], [1+x^2, 2]]
@@ -560,8 +560,8 @@ class VectorFrame(FreeModuleBasis):
         Structure coefficients of the orthonormal frame associated to
         spherical coordinates in the Euclidean space `\RR^3`::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(3, 'R^3', '\RR^3', start_index=1)
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'R^3', '\RR^3', start_index=1)
             sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
             sage: ch_frame = M.automorphism_field()
             sage: ch_frame[1,1], ch_frame[2,2], ch_frame[3,3] = 1, 1/r, 1/(r*sin(th))
@@ -630,7 +630,7 @@ class VectorFrame(FreeModuleBasis):
 
         Basis of a tangent space to a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((-1,2), name='p')
             sage: e = X.frame() ; e
@@ -820,11 +820,11 @@ class VectorFrame(FreeModuleBasis):
 
         Vector frame along a curve::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
-            sage: Phi = R.diff_mapping(M, {X: (cos(t), t)}, name='Phi',
-            ....:                      latex_name=r'\Phi') ; Phi
+            sage: Phi = R.diff_map(M, {X: (cos(t), t)}, name='Phi',
+            ....:                  latex_name=r'\Phi') ; Phi
             Curve 'Phi' in the 2-dimensional manifold 'M'
             sage: e = X.frame() ; e
             coordinate frame (M, (d/dx,d/dy))
@@ -881,8 +881,8 @@ class CoordFrame(VectorFrame):
     The coordinate frame associated to spherical coordinates of the
     sphere `S^2`::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(2, 'S^2', start_index=1)
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(2, 'S^2', start_index=1)
         sage: M.chart(r'th:[0,pi]:\theta ph:[0,2*pi):\phi')
         chart (S^2, (th, ph))
         sage: b = M.default_frame()
@@ -977,8 +977,8 @@ class CoordFrame(VectorFrame):
         Structure coefficients of the coordinate frame associated to
         spherical coordinates in the Euclidean space `\RR^3`::
 
-            sage: Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
             sage: c_spher = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
             sage: b = M.default_frame() ; b
             coordinate frame (R^3, (d/dr,d/dth,d/dph))
@@ -1027,8 +1027,8 @@ class CoFrame(FreeModuleCoBasis):
 
     Coframe on a 3-dimensional manifold::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(3, 'M', start_index=1)
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(3, 'M', start_index=1)
         sage: c_xyz.<x,y,z> = M.chart()
         sage: v = M.vector_frame('v')
         sage: from sage.manifolds.differentiable.vectorframe import CoFrame
@@ -1115,8 +1115,8 @@ class CoFrame(FreeModuleCoBasis):
         Cobasis of a tangent space on a 2-dimensional manifold::
 
             sage: from sage.manifolds.differentiable.tangentspace import TangentSpace # for doctests only
-            sage: TangentSpace._clear_cache_() ; Manifold._clear_cache_() # for doctests only
-            sage: M = Manifold(2, 'M')
+            sage: TangentSpace._clear_cache_() ; DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((-1,2), name='p')
             sage: f = X.coframe() ; f
@@ -1152,8 +1152,8 @@ class CoordCoFrame(CoFrame):
 
     Coordinate coframe on a 3-dimensional manifold::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(3, 'M', start_index=1)
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(3, 'M', start_index=1)
         sage: c_xyz.<x,y,z> = M.chart()
         sage: M.frames()
         [coordinate frame (M, (d/dx,d/dy,d/dz))]

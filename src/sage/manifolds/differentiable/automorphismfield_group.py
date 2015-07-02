@@ -80,7 +80,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
     Group of tangent-space automorphism fields of the 2-sphere::
 
-        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -144,7 +144,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -225,7 +225,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         Identity element of the group of tangent-space automorphism fields of
         the 2-sphere::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -286,7 +286,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         Base module of the group of tangent-space automorphism fields of
         the 2-sphere::
 
-            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -344,8 +344,8 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     Group of tangent-space automorphism fields of a 2-dimensional
     parallelizable manifold::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(2, 'M')
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: XM = M.vector_field_module() ; XM
         free module X(M) of vector fields on the 2-dimensional manifold 'M'
@@ -524,7 +524,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
 
         TEST::
 
-            sage: M = Manifold(2, 'M') ; M
+            sage: M = DiffManifold(2, 'M') ; M
             2-dimensional manifold 'M'
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.differentiable.automorphismfield_group import \

@@ -77,7 +77,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     Module of 2-forms on a non-parallelizable 2-dimensional manifold::
 
-        sage: M = Manifold(2, 'M')
+        sage: M = DiffManifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -262,7 +262,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         Module of 2-forms on a non-parallelizable 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M')
+            sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -415,7 +415,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M')
+            sage: M = DiffManifold(3, 'M')
             sage: A2 = M.diff_form_module(2) ; A2
             Module /\^2(M) of 2-forms on the 3-dimensional manifold 'M'
             sage: A2.base_module()
@@ -442,7 +442,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M')
+            sage: M = DiffManifold(3, 'M')
             sage: M.diff_form_module(1).degree()
             1
             sage: M.diff_form_module(2).degree()
@@ -489,8 +489,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
     Free module of 2-forms on a parallelizable 3-dimensional manifold::
 
-        sage: Manifold._clear_cache_() # for doctests only
-        sage: M = Manifold(3, 'M')
+        sage: DiffManifold._clear_cache_() # for doctests only
+        sage: M = DiffManifold(3, 'M')
         sage: X.<x,y,z> = M.chart()
         sage: XM = M.vector_field_module() ; XM
         free module X(M) of vector fields on the 3-dimensional manifold 'M'
@@ -666,7 +666,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
         TEST::
 
-            sage: M = Manifold(3, 'M')
+            sage: M = DiffManifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
             sage: A = DiffFormFreeModule(M.vector_field_module(), 2) ; A

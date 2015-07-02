@@ -97,7 +97,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     Module of type-(2,0) tensor fields on the 2-sphere::
 
-        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -449,7 +449,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     Module of type-(2,0) tensor fields on `\RR^3`::
 
-        sage: M = Manifold(3, 'R^3')
+        sage: M = DiffManifold(3, 'R^3')
         sage: c_xyz.<x,y,z> = M.chart()  # Cartesian coordinates
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional manifold 'R^3'

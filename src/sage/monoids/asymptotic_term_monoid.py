@@ -268,6 +268,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
             Generic terms are not able to absorb any other term.
             Therefore, this method just returns ``False``.
+            Override this in derived class.
 
         EXAMPLES::
 
@@ -286,21 +287,28 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def absorb(self, other, check=True):
         r"""
-        Absorb the asymptotic term ``other``, yielding a new
-        asymptotic term (or ``None``). For a more detailed
-        explanation of the *absorption* of asymptotic terms see
-        the introduction of this module, or the following examples.
+        Absorb the asymptotic term ``other`` and returns the resulting
+        asymptotic term.
 
         INPUT:
 
         - ``other`` -- an asymptotic term.
 
-        - ``check`` -- a boolean. If ``check`` is True (default),
+        - ``check`` -- a boolean. If ``check`` is ``True`` (default),
           then ``can_absorb`` is called before absorption.
 
         OUTPUT:
 
-        An asymptotic term or ``None``.
+        An asymptotic term or ``None`` if a cancellation occurs. If no
+        absorption can be performed, an :class:`ArithmeticError` is
+        raised.
+
+        .. NOTE::
+
+            For a more detailed explanation of the *absorption* of
+            asymptotic terms see the introduction of :mod:`this module
+            <sage.monoids.asymptotic_term_monoid>`, or the examples
+            below.
 
         EXAMPLES:
 
@@ -318,7 +326,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et1, et2 = ET(x, 100), ET(x^2, 2)
             sage: et3, et4 = ET(x^2, 1), ET(x^2, -2)
 
-        Because of the definition of `O` terms (see
+        Because of the definition of `O`-terms (see
         :wikipedia:`Big_O_notation`), they are able to absorb all
         other asymptotic terms with weaker or equal growth. The
         result of the absorption is the original `O` Term::
@@ -327,9 +335,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
             O(x)
             sage: ot1.absorb(et1)
             O(x)
+            sage: ot1.absorb(et1) is ot1
+            True
 
-        This corresponds to `O(x) + O(x) = O(x)`, and
-        `O(x) + 100x = O(x)`.
+        The first example above corresponds to `O(x) + O(x) = O(x)`, and
+        the second to `O(x) + 100x = O(x)`.
         If absorb is called on a term that cannot be absorbed, an
         ``ArithmeticError`` is raised::
 
@@ -360,8 +370,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         cancel each other out::
 
             sage: et2.absorb(et4)
-            sage: repr(et4.absorb(et2))
-            'None'
+            sage: et4.absorb(et2) is None
+            True
 
         TESTS:
 
@@ -406,8 +416,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             This is not implemented for abstract base classes. For
-            concrete realizations see :meth:`OTerm._absorb_`
+            concrete realizations see, for example, :meth:`OTerm._absorb_`
             or :meth:`ExactTerm._absorb_`.
+            Override this in derived class.
 
         EXAMPLES:
 
@@ -509,7 +520,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _le_(self, other):
         r"""
-        Return whether this generic term grows at most (i.e. less
+        Return whether this generic term grows at most (i.e. less than
         or equal) like ``other``.
 
         INPUT:

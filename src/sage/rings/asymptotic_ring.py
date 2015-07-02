@@ -199,7 +199,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR1 is AR2
             True
         """
-        if names is not None and len(names) > 1:
+        if not isinstance(names, tuple):
+            names = (names,)
+
+        if len(names) > 1:
             raise NotImplementedError('Currently only one variable is supported')
         if isinstance(growth_group, str) and names is None:
             raise ValueError('names has to be specified if the growth group '
@@ -343,10 +346,51 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def _coerce_map_from_(self, R):
         r"""
-        ...
+        Return if ``R`` coerces into this asymptotic ring.
+
+        INPUT:
+
+        - ``R`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            There are two possible cases: either ``R`` is the
+            ``coefficient_ring`` of this asymptotic ring, or ``R``
+            itself is an asymptotic ring (where both the
+            ``growth_group`` and the ``coefficient_ring`` coerce into
+            the ``growth_group`` and the ``coefficient_ring`` of this
+            asymptotic ring, respectively).
+
+        TESTS::
+
+            sage: AR_ZZ = AsymptoticRing('monomial', coefficient_ring=ZZ, names='x'); AR_ZZ
+            Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
+            sage: (x_ZZ,) = AR_ZZ.gens()
+            sage: AR_QQ = AsymptoticRing('monomial', coefficient_ring=QQ, names='x'); AR_QQ
+            Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+            sage: (x_QQ,) = AR_QQ.gens()
+            sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
+            True
+            sage: x_ZZ * x_QQ
+            1*x^2
+
+        ::
+
+            sage: AR_QQ.has_coerce_map_from(QQ)
+            True
+            sage: 1/2 * x_QQ^2 + 7/8 * x_QQ^3
+            1/2*x^2 + 7/8*x^3
         """
         if R is self.coefficient_ring:
             return True
+        elif isinstance(R, AsymptoticRing):
+            if self.growth_group.has_coerce_map_from(R.growth_group) and \
+                    self.coefficient_ring.has_coerce_map_from(R.coefficient_ring):
+                return True
 
 
     def _repr_(self):

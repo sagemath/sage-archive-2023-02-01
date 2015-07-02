@@ -14,7 +14,9 @@ Elements of modular forms spaces
 import space
 import sage.modular.hecke.element as element
 import sage.rings.all as rings
+from sage.rings.fast_arith import prime_range
 from sage.modular.modsym.space import is_ModularSymbolsSpace
+from sage.modular.modsym.modsym import ModularSymbols
 from sage.modules.module_element import ModuleElement
 from sage.modules.free_module_element import vector
 from sage.misc.misc import verbose
@@ -1133,17 +1135,18 @@ class Newform(ModularForm_abstract):
 
         INPUT:
 
-        - ``chi`` -- a Dirichlet character
+        - ``chi`` -- a Dirichlet character. Note that Sage must be able to
+          determine a common base field into which both the Hecke eigenvalue
+          field of self, and the field of values of ``chi``, can be embedded.
 
         - ``level`` -- (optional) the level `N` of the twisted form.
           By default, the algorithm tries to compute `N` using
           [Atkin-Li]_, Theorem 3.1.
 
-        - ``check`` -- (optional) boolean; if ``True`` (default),
-          ensure that the coefficients `b_n` are correct for `n` up to
-          the Sturm bound and coprime to the level of `f` and to the
-          conductor of `\chi`.  This makes it less likely that a wrong
-          result is returned if an incorrect ``level`` is specified.
+        - ``check`` -- (optional) boolean; if ``True`` (default), ensure that
+          the space of modular symbols that is computed is genuinely simple and
+          new. This makes it less likely that a wrong result is returned if an
+          incorrect ``level`` is specified.
 
         OUTPUT:
 
@@ -1177,16 +1180,20 @@ class Newform(ModularForm_abstract):
 
         TESTS:
 
-        We test that setting ``check=False`` can lead to wrong answers
-        that are prevented by the default ``check=True``::
+        We test that feeding inappropriate values of the ``level`` parameter is handled gracefully::
 
             sage: chi = DirichletGroup(1)[0]
-            sage: Delta.twist(chi, level=3)  # long time
+            sage: Delta.twist(chi, level=3)
             Traceback (most recent call last):
             ...
-            RuntimeError: twist of q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6) by Dirichlet character modulo 1 of conductor 1 is not a newform in Cuspidal subspace of dimension 3 of Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(3) of weight 12 over Cyclotomic Field of order 1 and degree 1
-            sage: Delta.twist(chi, level=3, check=False)  # long time
-            q + 78*q^2 - 243*q^3 + 4036*q^4 - 5370*q^5 + O(q^6)
+            ValueError: twist of q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6) by Dirichlet character modulo 1 of conductor 1 is not a newform of level 3
+
+        Twisting and twisting back works::
+
+            sage: f = Newforms(11)[0]
+            sage: chi = DirichletGroup(5).0
+            sage: f.twist(chi).twist(~chi, level=11) == f
+            True
 
         AUTHORS:
 
@@ -1218,19 +1225,26 @@ class Newform(ModularForm_abstract):
                 raise NotImplementedError('cannot calculate %s-primary part of the level of the twist of %s by %s'
                                           % (q, self, chi))
             level = lcm([N, N_epsilon * N_chi, N_chi**2])
-        G = DirichletGroup(level, base_ring=R)
-        S = CuspForms(G(epsilon) * G(chi)**2, self.weight(), base_ring=R)
-        nf = S.newforms(names='a')
-        L = N.lcm(level)
-        p = rings.ZZ.one()
-        while len(nf) > 1 or (check and len(nf) == 1 and p < S.sturm_bound()):
-            p = p.next_prime()
-            if not p.divides(L):
-                nf = [f for f in nf if f[p] == chi(p) * self[p]]
-        if len(nf) == 0:
-            raise RuntimeError('twist of %s by %s is not a newform in %s' % (self, chi, S))
-        return nf[0]
 
+        # determine the character of the twisted form
+        G = DirichletGroup(lcm([N, chi.modulus(), level]), base_ring=R)
+        eps_new = (G(epsilon) * G(chi)**2).restrict(level)
+
+        # create an ambient space
+        D = ModularSymbols(eps_new, self.weight(), base_ring=R, sign=1).new_submodule()
+        S = CuspForms(eps_new, self.weight(), base_ring=R)
+
+        # pull out the eigenspace
+        for p in prime_range(500):
+            if p.divides(N) or p.divides(chi.level()):
+                continue
+            D = (D.hecke_operator(p) - self[p]*chi(p)).kernel()
+            if D.rank() == 1: break
+            if D.is_zero():
+                raise ValueError('twist of %s by %s is not a newform of level %s' % (self, chi, level))
+        else:
+            raise RuntimeError('unable to identify modular symbols for twist of %s by %s' % (self, chi))
+        return Newform(S, D, names='_', check=check)
 
 class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
     def __init__(self, parent, x, check=True):

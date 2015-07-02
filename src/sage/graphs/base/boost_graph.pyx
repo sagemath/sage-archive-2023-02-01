@@ -136,7 +136,7 @@ cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     cdef result_cc result
     cdef dict clust_of_v
 
-    if vertices is None or len(vertices) == g.num_verts():
+    if len(vertices) == g.num_verts():
         result = g[0].clustering_coeff_all()
         clust_of_v = {v:result.clust_of_v[v] for v in range(g.num_verts())}
         return [result.average_clustering_coefficient, clust_of_v]

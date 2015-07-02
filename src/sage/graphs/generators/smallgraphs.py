@@ -3744,6 +3744,33 @@ def PetersenGraph():
     P.name("Petersen graph")
     return P
 
+def PerkelGraph():
+    r"""
+    Return the Perkel Graph.
+
+    The Perkel Graph is a 6-regular graph with `57` vertices and `171` edges. It
+    is the unique distance-regular graph with intersection array
+    `(6,5,2;1,1,3)`. For more information, see the :wikipedia:`Perkel_graph` or
+    http://www.win.tue.nl/~aeb/graphs/Perkel.html.
+
+    EXAMPLE::
+
+        sage: g = graphs.PerkelGraph(); g
+        Perkel Graph: Graph on 57 vertices
+        sage: g.is_distance_regular(parameters=True)
+        ([6, 5, 2, None], [None, 1, 1, 3])
+    """
+    g = Graph(name="Perkel Graph")
+    for i in range(19):
+        g.add_edges(((0, i), (1, (i + j) % 19)) for j in [2, 5, 7])
+        g.add_edges(((0, i), (2, (i + j) % 19)) for j in [5, -4, -8])
+        g.add_edges(((1, i), (2, (i + j) % 19)) for j in [7, -4, -5])
+    g.relabel()
+    _circle_embedding(g,[0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
+                         48, 40, 17, 20, 27, 43, 16, 7, 14, 6, 4, 15, 41, 24, 37,
+                         28, 9, 55, 38, 19, 34, 39, 36, 54, 52, 44, 23, 12, 22,
+                         32, 10, 13, 26, 1, 21, 42, 56, 49, 31, 47, 11, 25])
+    return g
 
 def RobertsonGraph():
     """

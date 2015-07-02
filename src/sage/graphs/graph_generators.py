@@ -136,6 +136,7 @@ __append_to_doc(
      "NauruGraph",
      "PappusGraph",
      "PoussinGraph",
+     "PerkelGraph",
      "PetersenGraph",
      "RobertsonGraph",
      "SchlaefliGraph",
@@ -1882,6 +1883,7 @@ class GraphGenerators():
     NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)
     PappusGraph              = staticmethod(sage.graphs.generators.smallgraphs.PappusGraph)
     PoussinGraph             = staticmethod(sage.graphs.generators.smallgraphs.PoussinGraph)
+    PerkelGraph              = staticmethod(sage.graphs.generators.smallgraphs.PerkelGraph)
     PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
     RobertsonGraph           = staticmethod(sage.graphs.generators.smallgraphs.RobertsonGraph)
     SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)

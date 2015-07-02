@@ -1,4 +1,4 @@
-include 'sage/gsl/gsl_complex.pxi'
+from sage.libs.gsl.types cimport gsl_complex
 
 cimport sage.structure.element
 cimport sage.rings.ring

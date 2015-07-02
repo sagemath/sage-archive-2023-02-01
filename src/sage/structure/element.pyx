@@ -695,15 +695,9 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self,'__call__'):
+        if not hasattr(self, '__call__'):
             return self
-        parent=self._parent
-        # We should better not test for ParentWIthGens,
-        # as this is essentially deprecated.
-        #from sage.structure.parent_gens import is_ParentWithGens
-        #if not is_ParentWithGens(parent):
-        #    return self
-        # Better: Duck typing!
+        parent = self._parent
         try:
             ngens = parent.ngens()
         except (AttributeError, NotImplementedError, TypeError):

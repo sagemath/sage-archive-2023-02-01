@@ -255,7 +255,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P.ehrhart_polynomial(bim_bam_boum=19)   # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: Latte integrale failed with exit code 1 to execute...
+            RuntimeError: LattE integrale failed with exit code 1 to execute...
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(QQ, 't')
@@ -315,7 +315,7 @@ class Polyhedron_ZZ(Polyhedron_base):
                 err = ", see error message above"
             else:
                 err = ":\n" + err
-            raise RuntimeError("Latte integrale failed with exit code {} to execute {}".format(ret_code, ' '.join(args)) + err.strip())
+            raise RuntimeError("LattE integrale failed with exit code {} to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
         p = ans.splitlines()[-2]
 

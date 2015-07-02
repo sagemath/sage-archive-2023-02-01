@@ -803,7 +803,7 @@ class Polyhedron_base(Element):
         .. SEEALSO::
 
             :meth:`write_cdd_Hrepresentation` -- export the polyhedron as a
-            H-repersentation to a file.
+            H-representation to a file.
 
         EXAMPLES::
 
@@ -834,7 +834,7 @@ class Polyhedron_base(Element):
 
     def write_cdd_Hrepresentation(self, filename):
         r"""
-        Export the polyhedron as a H-repersentation to a file.
+        Export the polyhedron as a H-representation to a file.
 
         INPUT:
 
@@ -862,7 +862,7 @@ class Polyhedron_base(Element):
         .. SEEALSO::
 
             :meth:`write_cdd_Vrepresentation` -- export the polyhedron as a
-            V-repersentation to a file.
+            V-representation to a file.
 
         EXAMPLES::
 
@@ -894,7 +894,7 @@ class Polyhedron_base(Element):
 
     def write_cdd_Vrepresentation(self, filename):
         r"""
-        Export the polyhedron as a V-repersentation to a file.
+        Export the polyhedron as a V-representation to a file.
 
         INPUT:
 
@@ -3889,12 +3889,12 @@ class Polyhedron_base(Element):
             sage: Q.integral_points_count() # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: Latte integrale failed (exit code 1) to execute...
+            RuntimeError: LattE integrale failed (exit code 1) to execute...
             ...Parse error in CDD-style input file /dev/stdin
             sage: Q.integral_points_count(verbose=True) # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: Latte integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
+            RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
         """
         if self.is_empty():
             return 0
@@ -3925,7 +3925,7 @@ class Polyhedron_base(Element):
                 err = ", see error message above"
             else:
                 err = ":\n" + err
-            raise RuntimeError("Latte integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
+            raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
         return Integer(ans.splitlines()[-1])
 

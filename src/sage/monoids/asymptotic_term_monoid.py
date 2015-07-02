@@ -1,13 +1,19 @@
 r"""
 Asymptotic Term Monoid
 
-This module implements asymptotic term monoids. This structures build
-upon the (asymptotic) growth groups. While growth elements only model
-the growth of a function as it tends towards infinity, an asymptotic
-term is basically a wrapper for the growth which specifies the "type"
-of the term. The multiplication is the associated group operation.
+This module implements asymptotic term monoids. The elements of these
+monoids are used behind the scenes when performing calculations in an
+asymptotic ring (to be implemented).
 
-Besides an abstract base term, :class:`GenericTerm`, this module
+The monoids build upon the (asymptotic) growth groups. While growth
+elements only model the growth of a function as it tends towards
+infinity (or tends towards another fixed point; see
+:mod:`~sage.groups.asymptotic_growth_group` for more details), an
+asymptotic term additonally specifies its "type" and performs the
+actual arithmetic operations (multiplication and partial
+addition/absorption of terms).
+
+Besides an abstract base term :class:`GenericTerm`, this module
 implements the following types of terms:
 
 - :class:`OTerm` -- O terms in infinity, see
@@ -22,8 +28,8 @@ able to "absorb" other terms (see
 :meth:`sage.monoids.AsymptoticTermMonoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
 `O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
-`1*x^5`). Essentially, absorption can be interpreted as the
-addition of "compatible" terms.
+`x^5`). Essentially, absorption can be interpreted as the
+addition of "compatible" terms (partial addition).
 
 .. TODO::
 
@@ -33,12 +39,14 @@ addition of "compatible" terms.
 AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
+- Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
-
+- Daniel Krenn (2015-07): extensive review and patches
 """
 
 # *****************************************************************************
 # Copyright (C) 2014--2015 Benjamin Hackl <benjamin.hackl@aau.at>
+#               2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

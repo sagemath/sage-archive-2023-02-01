@@ -981,12 +981,14 @@ class Polyhedron_base(Element):
             sage: p.to_linear_program(solver='PPL')
             Traceback (most recent call last):
             ...
-            NotImplementedError:  Cannot use PPL on exact irrational data.
+            NotImplementedError: Cannot use PPL on exact irrational data.
         """
         from sage.rings.rational_field import QQ
         R = self.base_ring()
-        if (not solver == None) and solver.lower() == 'ppl' and R.is_exact() and (not R == QQ):
-            raise NotImplementedError(' Cannot use PPL on exact irrational data.')
+        if (solver is not None and
+            solver.lower() == 'ppl' and
+            R.is_exact() and (not R == QQ)):
+            raise NotImplementedError('Cannot use PPL on exact irrational data.')
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         p = MixedIntegerLinearProgram(solver=solver)

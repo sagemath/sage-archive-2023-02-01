@@ -63,15 +63,20 @@ TESTS::
     sage: loads(dumps(std)) == std
     True
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Michael Brickenstein <brickenstein@mfo.de>
 #       Copyright (C) 2009,2010 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
+from libc.string cimport memcpy
+
 include "sage/ext/interrupt.pxi"
 
 from sage.structure.sage_object cimport SageObject
@@ -925,6 +930,18 @@ cdef class Converter(SageObject):
         INPUT:
 
         - ``to_convert`` - a Singular ``leftv``
+
+        TEST:
+
+        Check that negative integers come through unscathed::
+
+            sage: P.<x,y,z> = QQ[]
+            sage: C= Curve((x-y)*(y-z)*(z-x)); 
+            sage: import sage.libs.singular.function_factory
+            sage: sing_genus = sage.libs.singular.function_factory.ff.normal__lib.genus
+            sage: I=C.defining_ideal()
+            sage: sing_genus(I)
+            -2
         """
         #FIXME
         cdef MPolynomial_libsingular res_poly
@@ -943,7 +960,7 @@ cdef class Converter(SageObject):
             return res_poly
 
         elif rtyp == INT_CMD:
-            return <long>to_convert.data
+            return <int><long>to_convert.data
 
         elif rtyp == NUMBER_CMD:
             return si2sa(<number *>to_convert.data, self._singular_ring, self._sage_ring.base_ring())
@@ -1339,7 +1356,10 @@ The Singular documentation for '%s' is given below.
 """%(self._name,self._name)
         # Trac ticket #11268: Include the Singular documentation as a block of code
         singular_doc = get_docstring(self._name).split('\n')
-        return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        if len(singular_doc) > 1:
+            return prefix + "\n::\n\n"+'\n'.join(["    "+L for L in singular_doc])
+        else:
+            return prefix + "\n::\n\n"+"    Singular documentation not found"
 
     cdef common_ring(self, tuple args, ring=None):
         """

@@ -1,7 +1,7 @@
 """
 Polytopes
 
-This module provides access to polymake, which 'has been developed
+This module provides access to **polymake**, which 'has been developed
 since 1997 in the Discrete Geometry group at the Institute of
 Mathematics of Technische Universitat Berlin. Since 2004 the
 development is shared with Fachbereich Mathematik, Technische
@@ -52,6 +52,7 @@ if os.path.exists(path):
     os.environ['PATH'] = '%s:'%path + os.environ['PATH']
 
 tmp_file = os.path.join(SAGE_TMP, 'tmp.poly')
+
 
 class Polytope(SageObject):
     """
@@ -148,6 +149,8 @@ class Polytope(SageObject):
 
     def facets(self):
         """
+        Return the facets.
+
         EXAMPLES::
 
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])   # optional - polymake
@@ -171,6 +174,8 @@ class Polytope(SageObject):
 
     def vertices(self):
         """
+        Return the vertices.
+
         EXAMPLES::
 
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])     # optional - polymake
@@ -208,7 +213,7 @@ class Polytope(SageObject):
 
     def is_simple(self):
         r"""
-        Return True if this polytope is simple.
+        Return ``True`` if this polytope is simple.
 
         A polytope is *simple* if the degree of each vertex equals the
         dimension of the polytope.
@@ -273,16 +278,32 @@ class Polymake:
         os.system("polymake --reconfigure")
 
     def associahedron(self, dimension):
+        """
+        Return the Associahedron.
+
+        INPUT:
+
+        - ``dimension`` -- an integer
+        """
         return self.__make('associahedron %s %s'%(tmp_file, dimension),
                            '%s-dimensional associahedron'%dimension)
 
     def birkhoff(self, n):
+        """
+        Return the Birkhoff polytope.
+
+        INPUT:
+
+        - ``n`` -- an integer
+        """
         return self.__make('birkhoff %s %s'%(tmp_file, n),
                            'Birkhoff %s'%n)
 
 
     def cell24(self):
         """
+        Return the 24-cell.
+
         EXAMPLES::
 
             sage: polymake.cell24()            # optional - polymake

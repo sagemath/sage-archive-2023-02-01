@@ -29,7 +29,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
@@ -1427,10 +1426,6 @@ def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     r"""
     Used to unpickle extensions of finite fields. Now superseded (hence no
     doctest), but kept around for backward compatibility.
-
-    EXAMPLES::
-
-        sage: # not tested
     """
     return _type(order, variable_name, modulus, **kwargs)
 
@@ -1438,10 +1433,6 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     r"""
     Used to unpickle finite prime fields. Now superseded (hence no doctest),
     but kept around for backward compatibility.
-
-    EXAMPLE::
-
-        sage: # not tested
     """
     return _type(order, variable_name, **kwargs)
 

@@ -9,9 +9,9 @@ EXAMPLES::
     sage: D4 = DihedralGroup(4)
     sage: kD4 = GroupAlgebra(D4, GF(7))
     sage: a = kD4.an_element(); a
-    () + 2*(2,4) + 3*(1,2)(3,4) + (1,2,3,4)
+    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
     sage: a * a
-    (1,2)(3,4) + (1,2,3,4) + 3*(1,3) + (1,3)(2,4) + 6*(1,4,3,2) + 2*(1,4)(2,3)
+    5*() + (2,4) + (1,2,3,4) + (1,3) + 2*(1,3)(2,4) + 4*(1,4)(2,3)
 
 Given the group and the base ring, the corresponding group algebra is unique::
 
@@ -44,11 +44,11 @@ map from `\ZZ[D_2]` to `\QQ[S_4]`::
     sage: a = A.an_element(); a
     () + 3*(3,4) + 3*(1,2)
     sage: b = B.an_element(); b
-    () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
+    () + 2*(1,2) + 4*(1,2,3,4)
     sage: B(a)
     () + 3*(3,4) + 3*(1,2)
     sage: a * b  # a is automatically converted to an element of B
-    7*() + 5*(3,4) + 3*(2,3) + 9*(2,3,4) + 3*(1,2) + 6*(1,2)(3,4) + 3*(1,2,3) + (1,2,3,4) + 9*(1,3,2) + 3*(1,3,4)
+    7*() + 3*(3,4) + 5*(1,2) + 6*(1,2)(3,4) + 12*(1,2,3) + 4*(1,2,3,4) + 12*(1,3,4)
     sage: parent(a * b)
     Group algebra of group "Symmetric group of order 4! as a permutation group" over base ring Rational Field
 
@@ -64,16 +64,18 @@ There is no obvious map in the other direction, though::
     sage: A(b)
     Traceback (most recent call last):
     ...
-    TypeError: Don't know how to create an element of Group algebra of group "Dihedral group of order 4 as a permutation group" over base ring Integer Ring from () + 2*(3,4) + 3*(2,3) + (1,2,3,4)
+    TypeError: Don't know how to create an element of Group algebra of group
+    "Dihedral group of order 4 as a permutation group" over base ring Integer
+    Ring from () + 2*(1,2) + 4*(1,2,3,4)
 
 Group algebras have the structure of Hopf algebras::
 
     sage: a = kD4.an_element(); a
-    () + 2*(2,4) + 3*(1,2)(3,4) + (1,2,3,4)
+    () + 4*(1,2,3,4) + 2*(1,4)(2,3)
     sage: a.antipode()
-    () + 2*(2,4) + 3*(1,2)(3,4) + (1,4,3,2)
+    () + 4*(1,4,3,2) + 2*(1,4)(2,3)
     sage: a.coproduct()
-    () # () + 2*(2,4) # (2,4) + 3*(1,2)(3,4) # (1,2)(3,4) + (1,2,3,4) # (1,2,3,4)
+    () # () + 4*(1,2,3,4) # (1,2,3,4) + 2*(1,4)(2,3) # (1,4)(2,3)
 
 .. note::
 
@@ -136,7 +138,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
         sage: loads(dumps(F)) == F
         True
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of group algebras over Ring of integers modulo 12
+        Category of finite dimensional group algebras over Ring of integers modulo 12
     """
     def __init__(self, group) :
         r"""
@@ -146,7 +148,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
             sage: from sage.algebras.group_algebra import GroupAlgebraFunctor
             sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-            Category of group algebras over Ring of integers modulo 12
+            Category of finite dimensional group algebras over Ring of integers modulo 12
         """
         self.__group = group
 
@@ -234,7 +236,7 @@ class GroupAlgebra(CombinatorialFreeModule):
         TypeError: "1" is not a group
 
         sage: GroupAlgebra(SU(2, GF(4, 'a')), IntegerModRing(12)).category()
-        Category of group algebras over Ring of integers modulo 12
+        Category of finite dimensional group algebras over Ring of integers modulo 12
         sage: GroupAlgebra(KleinFourGroup()) is GroupAlgebra(KleinFourGroup())
         True
 
@@ -334,7 +336,7 @@ class GroupAlgebra(CombinatorialFreeModule):
             sage: A = GroupAlgebra(DihedralGroup(3), QQ); A
             Group algebra of group "Dihedral group of order 6 as a permutation group" over base ring Rational Field
             sage: A.algebra_generators()
-            Finite family {(1,2,3): (1,2,3), (1,3): (1,3)}
+            Finite family {(1,3): (1,3), (1,2,3): (1,2,3)}
         """
         from sage.sets.family import Family
         return Family(self._group.gens(), self.monomial)

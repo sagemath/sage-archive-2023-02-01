@@ -5,11 +5,11 @@ EXAMPLES::
 
     sage: from sage.geometry.polyhedron.palp_database import PALPreader
     sage: for lp in PALPreader(2):
-    ...       cone = Cone([(1,r[0],r[1]) for r in lp.vertices()])
-    ...       fan = Fan([cone])
-    ...       X = ToricVariety(fan)
-    ...       ideal = X.affine_algebraic_patch(cone).defining_ideal()
-    ...       print lp.n_vertices(), ideal.hilbert_series()
+    ....:     cone = Cone([(1,r[0],r[1]) for r in lp.vertices()])
+    ....:     fan = Fan([cone])
+    ....:     X = ToricVariety(fan)
+    ....:     ideal = X.affine_algebraic_patch(cone).defining_ideal()
+    ....:     print lp.n_vertices(), ideal.hilbert_series()
     3 (-t^2 - 7*t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (-t^2 - t - 1)/(t^3 - 3*t^2 + 3*t - 1)
     3 (t^2 + 6*t + 1)/(-t^3 + 3*t^2 - 3*t + 1)

@@ -554,7 +554,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     An example of this summation with Giac::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
-        -(pi*e^(-2*pi) - pi*e^(2*pi))/(e^(-2*pi) + e^(2*pi) - 2)
+        (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
     Use Maple as a backend for summation::
 
@@ -736,11 +736,11 @@ def nintegral(ex, x, a, b,
     to high precision::
 
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.565728500561051482917356396 E-127'            # 32-bit
-        '2.5657285005610514829173563961304785900 E-127'  # 64-bit
+        '2.565728500561051474934096410 E-127'            # 32-bit
+        '2.5657285005610514829176211363206621657 E-127'  # 64-bit
         sage: old_prec = gp.set_real_precision(50)
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.5657285005610514829173563961304785900147709554020 E-127'
+        '2.5657285005610514829173563961304957417746108003917 E-127'
         sage: gp.set_real_precision(old_prec)
         57
 

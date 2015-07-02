@@ -125,6 +125,11 @@ class SageKernelSpec(object):
         dst = os.path.join(self._ipython_dir, 'nbextensions', 'mathjax')
         self.symlink(src, dst)
 
+    def use_local_jsmol(self):
+        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        dst = os.path.join(self._ipython_dir, 'nbextensions', 'jsmol')
+        self.symlink(src, dst)
+
     def _kernel_cmd(self):
         """
         Helper to construct the Sage kernel command.
@@ -242,10 +247,11 @@ class SageKernelSpec(object):
         """
         instance = cls()
         instance.use_local_mathjax()
+        instance.use_local_jsmol()
         instance._install_spec()
         instance._symlink_resources()
-        
 
+        
 def have_prerequisites():
     """
     Check that we have all prerequisites to run the IPython notebook.

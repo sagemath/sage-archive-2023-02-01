@@ -19,19 +19,19 @@ automaton whose dual is also deterministic; in this context, the
 automaton and of its dual, and `\emptyset` is the sink.
 
 A crystal comes further endowed with a weight function
-`\operatorname{wt}: \mathcal{B}\mapsto L` which shall satisfies
+`\operatorname{wt} : \mathcal{B} \to L` which satisfies
 appropriate conditions.
 
-In combinatorial representation theory, Crystals are used as
+In combinatorial representation theory, crystals are used as
 combinatorial data to model representations of Lie algebra.
 
 Axiomatic definition
 --------------------
 
-Let `C` be a CartanType with index set `I`, and `L` be a realization
-of the weight lattice of the type `C`. Let `\alpha_i` and
-`\alpha^{\vee}_i` denote the simple roots and coroots
-respectively.
+Let `C` be a Cartan type (:class:`CartanType`) with index set `I`,
+and `L` be a realization of the weight lattice of the type `C`.
+Let `\alpha_i` and `\alpha^{\vee}_i` denote the simple roots and
+coroots respectively.
 
 A type `C` crystal is a non-empty set `\mathcal{B}` endowed with maps
 `\operatorname{wt} : \mathcal{B} \to L`,
@@ -39,20 +39,20 @@ A type `C` crystal is a non-empty set `\mathcal{B}` endowed with maps
 `\varepsilon_i, \varphi_i : \mathcal{B} \to \ZZ \cup \{-\infty\}`
 for `i \in I` satisfying the following properties for all `i \in I`:
 
-- for `b, b^{\prime} \in \mathcal{B}`, `f_i b^{\prime} = b` if and only if `e_i b = b^{\prime}`;
-
+- for `b, b^{\prime} \in \mathcal{B}`, we have
+  `f_i b^{\prime} = b` if and only if `e_i b = b^{\prime}`;
 
 - if `e_i b \in \mathcal{B}`, then:
 
-  * `\operatorname{wt}(e_i x) = \operatorname{wt}(b) + \alpha_i`,
+  * `\operatorname{wt}(e_i b) = \operatorname{wt}(b) + \alpha_i`,
   * `\varepsilon_i(e_i b) = \varepsilon_i(b) - 1`,
-  * `\varphi_i(e_i b) = \varphi_i(b) + 1`,
+  * `\varphi_i(e_i b) = \varphi_i(b) + 1`;
 
 - if `f_i b \in \mathcal{B}`, then:
 
   * `\operatorname{wt}(f_i b) = \operatorname{wt}(b) - \alpha_i`,
   * `\varepsilon_i(f_i b) = \varepsilon_i(b) + 1`,
-  * `\varphi_i(f_i b) = \varphi_i(b) - 1`,
+  * `\varphi_i(f_i b) = \varphi_i(b) - 1`;
 
 - `\varphi_i(b) = \varepsilon_i(b) + \langle \alpha^{\vee}_i,
   \operatorname{wt}(b) \rangle`,
@@ -114,14 +114,14 @@ One can get (currently) crude plotting via::
 If dot2tex is installed, one can obtain nice latex pictures via::
 
     sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
-    sage: view(K, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
+    sage: view(K, pdflatex=True, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 
 or with colored edges::
 
     sage: K = crystals.KirillovReshetikhin(['A',3,1], 1,1)
     sage: G = K.digraph()
     sage: G.set_latex_options(color_by_label = {0:"black", 1:"red", 2:"blue", 3:"green"}) #optional - dot2tex graphviz
-    sage: view(G, pdflatex=True, tightpage=True) #optional - dot2tex graphviz
+    sage: view(G, pdflatex=True, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 
 For rank two crystals, there is an alternative method of getting
 metapost pictures. For more information see ``C.metapost?``.
@@ -185,7 +185,7 @@ class CrystalBacktracker(GenericBacktracker):
 
         Principle of the algorithm:
 
-        Let `C` be a classical crystal. It's an acyclic graph where all
+        Let `C` be a classical crystal. It's an acyclic graph where each
         connected component has a unique element without predecessors (the
         highest weight element for this component). Let's assume for
         simplicity that `C` is irreducible (i.e. connected) with highest
@@ -202,7 +202,7 @@ class CrystalBacktracker(GenericBacktracker):
 
         Morally, the iterator implemented below just does a depth first
         search walk through this spanning tree. In practice, this can be
-        achieved recursively as follow: take an element `x`, and
+        achieved recursively as follows: take an element `x`, and
         consider in turn each successor `y = f_i(x)`, ignoring
         those such that `y = f_j(x^{\prime})` for some `x^{\prime}` and
         `j<i` (this can be tested by computing `e_j(y)`

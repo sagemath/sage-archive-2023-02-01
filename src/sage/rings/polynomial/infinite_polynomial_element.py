@@ -334,7 +334,7 @@ class InfinitePolynomial_sparse(RingElement):
         res = R(self._p)(*args, **kwargs)
         try:
             from sage.misc.sage_eval import sage_eval
-            return sage_eval(repr(res), self.parent()._gens_dict)
+            return sage_eval(repr(res), self.parent().gens_dict())
         except Exception:
             return res
 

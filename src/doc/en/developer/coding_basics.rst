@@ -271,11 +271,15 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block (highly recommended) with links to related parts of
+   Sage. This helps users find the features that interests them and discover the
+   new ones. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`,
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.
@@ -856,12 +860,9 @@ framework. Here is a comprehensive list:
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: z = 32
-      sage: z.powermodm_ui(2^32-1, 14)
-      Traceback (most recent call last):                              # 32-bit
-      ...                                                             # 32-bit
-      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8                                                               # 64-bit
+      sage: hash(-920390823904823094890238490238484)
+      -873977844            # 32-bit
+      6874330978542788722   # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not

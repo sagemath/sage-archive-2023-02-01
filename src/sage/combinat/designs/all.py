@@ -15,9 +15,3 @@ from covering_design import (CoveringDesign,
                              trivial_covering_design)
 
 import design_catalog as designs
-
-import sage.combinat.designs.steiner_quadruple_systems
-import sage.combinat.designs.orthogonal_arrays
-import sage.combinat.designs.latin_squares
-import sage.combinat.designs.bibd
-import sage.combinat.designs.group_divisible_designs

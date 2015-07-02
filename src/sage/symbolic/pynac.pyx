@@ -1,13 +1,17 @@
-###############################################################################
-#   Sage: Open Source Mathematical Software
+"""
+Pynac interface
+"""
+
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
-
-# distutils: libraries = gsl
+#*****************************************************************************
 
 cdef extern from "pynac_cc.h":
     long double sage_logl(long double)
@@ -16,15 +20,14 @@ cdef extern from "pynac_cc.h":
     long double sage_lgammal(long double)
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
+from sage.ext.stdsage cimport PY_NEW
 include "sage/ext/python.pxi"
 
 from ginac cimport *
 
-# for complex log and log gamma
-include "sage/gsl/gsl_complex.pxi"
-include "sage/gsl/gsl_sf_result.pxi"
-include "sage/gsl/gsl_gamma.pxi"
+from sage.libs.gsl.types cimport *
+from sage.libs.gsl.complex cimport *
+from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 
 
 from sage.structure.element cimport Element, parent_c
@@ -177,11 +180,11 @@ cdef public GEx pyExpression_to_ex(object res) except *:
     functions back to C++ level.
     """
     if res is None:
-        raise TypeError, "function returned None, expected return value of type sage.symbolic.expression.Expression"
+        raise TypeError("function returned None, expected return value of type sage.symbolic.expression.Expression")
     try:
         t = ring.SR.coerce(res)
     except TypeError as err:
-        raise TypeError, "function did not return a symbolic expression or an element that can be coerced into a symbolic expression"
+        raise TypeError("function did not return a symbolic expression or an element that can be coerced into a symbolic expression")
     return (<Expression>t)._gobj
 
 cdef public object paramset_to_PyTuple(const_paramset_ref s):
@@ -246,6 +249,30 @@ def get_ginac_serial():
         True
     """
     return py_get_ginac_serial()
+
+cdef get_fn_serial_c():
+    """
+    Return overall size of Pynac function registry.
+    """
+    return g_registered_functions().size()
+
+def get_fn_serial():
+    """
+    Return the overall size of the Pynac function registry which
+    corresponds to the last serial value plus one.
+
+    EXAMPLE::
+
+        sage: from sage.symbolic.pynac import get_fn_serial
+        sage: from sage.symbolic.function import get_sfunction_from_serial
+        sage: get_fn_serial() > 125
+        True
+        sage: print get_sfunction_from_serial(get_fn_serial())
+        None
+        sage: get_sfunction_from_serial(get_fn_serial() - 1) is not None
+        True
+    """
+    return get_fn_serial_c()
 
 cdef public object subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& seq):
     """
@@ -403,19 +430,19 @@ def py_print_function_pystring(id, args, fname_paren=False):
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_function_pystring, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_print_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -426,7 +453,7 @@ def py_print_function_pystring(id, args, fname_paren=False):
         '(foo)(x, y)'
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -464,7 +491,7 @@ cdef public stdstring* py_print_function(unsigned id, object args) except +:
     return string_from_pystr(py_print_function_pystring(id, args))
 
 def py_latex_function_pystring(id, args, fname_paren=False):
-    """
+    r"""
     Return a string with the latex representation of the symbolic function
     specified by the given id applied to args.
 
@@ -472,12 +499,12 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_function_pystring, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_latex_function_pystring, get_ginac_serial, get_fn_serial
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -492,7 +519,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
     Test latex_name::
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -504,7 +531,7 @@ def py_latex_function_pystring(id, args, fname_paren=False):
 
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -561,12 +588,10 @@ cdef public stdstring* py_print_fderivative(unsigned id, object params,
 
     INPUT:
 
-        id --   serial number of the corresponding symbolic function
-        params -- Set of parameter numbers with respect to which to take
-                    the derivative.
-        args -- arguments of the function.
-
-
+    - id --   serial number of the corresponding symbolic function
+    - params -- Set of parameter numbers with respect to which to take the
+      derivative.
+    - args -- arguments of the function.
     """
     ostr = ''.join(['D[', ', '.join([repr(int(x)) for x in params]), ']'])
     fstr = py_print_function_pystring(id, args, True)
@@ -579,13 +604,12 @@ def py_print_fderivative_for_doctests(id, params, args):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial
-
+        sage: from sage.symbolic.pynac import py_print_fderivative_for_doctests as py_print_fderivative, get_ginac_serial, get_fn_serial
         sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -597,7 +621,7 @@ def py_print_fderivative_for_doctests(id, params, args):
 
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -625,18 +649,18 @@ cdef public stdstring* py_latex_fderivative(unsigned id, object params,
     return string_from_pystr(py_res)
 
 def py_latex_fderivative_for_doctests(id, params, args):
-    """
+    r"""
     Used internally for writing doctests for certain cdef'd functions.
 
     EXAMPLES::
 
-        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial
+        sage: from sage.symbolic.pynac import py_latex_fderivative_for_doctests as py_latex_fderivative, get_ginac_serial, get_fn_serial
 
         sage: var('x,y,z')
         (x, y, z)
         sage: from sage.symbolic.function import get_sfunction_from_serial
         sage: foo = function('foo', nargs=2)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -647,7 +671,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
     Test latex_name::
 
         sage: foo = function('foo', nargs=2, latex_name=r'\mathrm{bar}')
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -659,7 +683,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
 
         sage: def my_print(self, *args): return "func_with_args(" + ', '.join(map(repr, args)) +')'
         sage: foo = function('foo', nargs=2, print_latex_func=my_print)
-        sage: for i in range(get_ginac_serial(), get_ginac_serial()+100):
+        sage: for i in range(get_ginac_serial(), get_fn_serial()):
         ...     if get_sfunction_from_serial(i) == foo: break
 
         sage: get_sfunction_from_serial(i) == foo
@@ -796,9 +820,11 @@ def test_binomial(n, k):
     binomial(n,k) == (-1)^k*binomial(k-n-1,k) is used to compute the result.
 
     INPUT:
-        n, k -- integers, with k >= 0.
+
+    - n, k -- integers, with k >= 0.
 
     OUTPUT:
+
         integer
 
     EXAMPLES::
@@ -1334,17 +1360,19 @@ def py_factorial_py(x):
 cdef public object py_doublefactorial(object x) except +:
     n = Integer(x)
     if n < -1:
-        raise ValueError, "argument must be >= -1"
+        raise ValueError("argument must be >= -1")
     from sage.misc.misc_c import prod  # fast balanced product
     return prod([n - 2*i for i in range(n//2)])
 
 def doublefactorial(n):
     """
     The double factorial combinatorial function:
+
         n!! == n * (n-2) * (n-4) * ... * ({1|2}) with 0!! == (-1)!! == 1.
 
     INPUT:
-        n -- an integer > = 1
+
+    - n -- an integer > = 1
 
     EXAMPLES::
 
@@ -1652,7 +1680,7 @@ cdef public object py_atan2(object x, object y) except +:
         if sgn_x > 0:
             return 0
         elif x == 0:
-            raise ValueError, "arctan2(0,0) undefined"
+            raise ValueError("arctan2(0,0) undefined")
         else:
             return pi_n
 

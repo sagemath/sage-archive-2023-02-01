@@ -3,7 +3,7 @@ Normal Form games with N players.
 
 This module implements a class for normal form games (strategic form games)
 [NN2007]_. At present 3 algorithms are implemented to compute equilibria
-of these games (``'lrs'`` - interfaced with the 'lrs' library, ``'LCP'`` interfaced
+of these games (``'lrs'`` - interfaced with the 'lrslib' library, ``'LCP'`` interfaced
 with the 'gambit' library and support enumeration built in Sage). The architecture
 for the class is based on the gambit architecture to ensure an easy transition
 between gambit and Sage.  At present the algorithms for the computation of equilibria
@@ -203,8 +203,8 @@ time spent in prison)::
 When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional 'lrs' package. To install it type ``sage -i
-  lrs`` at the command line. For more information see [A2000]_.
+  algorithm uses the optional 'lrslib' package. To install it type ``sage -i
+  lrslib`` at the command line. For more information see [A2000]_.
 
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
@@ -224,7 +224,7 @@ When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 Below we show how the three algorithms are called::
 
-    sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrs
+    sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrslib
     [[(1/2, 1/2), (1/2, 1/2)]]
     sage: matching_pennies.obtain_nash(algorithm='LCP')  # optional - gambit
     [[(0.5, 0.5), (0.5, 0.5)]]
@@ -235,7 +235,7 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-    1. ``'lrs'`` (requires 'lrs')
+    1. ``'lrs'`` (requires 'lrslib')
     2. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
@@ -376,7 +376,7 @@ Other algorithms can handle these payoffs::
 
     sage: g.obtain_nash(algorithm='enumeration')
     [[(1/5, 4/5), (3/5, 2/5)]]
-    sage: g.obtain_nash(algorithm='lrs') # optional - lrs
+    sage: g.obtain_nash(algorithm='lrs') # optional - lrslib
     [[(1/5, 4/5), (3/5, 2/5)]]
 
 It can be shown that linear scaling of the payoff matrices conserves the
@@ -436,7 +436,7 @@ In the following we create the game (with a max value of 10) and solve it::
     sage: A = matrix([[min(i,j) + 2 * sign(j-i)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: B = matrix([[min(i,j) + 2 * sign(i-j)  for j in range(2, K+1)]  for i in range(2, K+1)])
     sage: g = NormalFormGame([A, B])
-    sage: g.obtain_nash(algorithm='lrs') # optional - lrs
+    sage: g.obtain_nash(algorithm='lrs') # optional - lrslib
     [[(1, 0, 0, 0, 0, 0, 0, 0, 0), (1, 0, 0, 0, 0, 0, 0, 0, 0)]]
     sage: g.obtain_nash(algorithm='LCP') # optional - gambit
     [[(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)]]
@@ -455,7 +455,7 @@ is evidenced by the various algorithms returning different solutions::
     sage: A = matrix([[3,3],[2,5],[0,6]])
     sage: B = matrix([[3,3],[2,6],[3,1]])
     sage: degenerate_game = NormalFormGame([A,B])
-    sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrs
+    sage: degenerate_game.obtain_nash(algorithm='lrs') # optional - lrslib
     [[(0, 1/3, 2/3), (1/3, 2/3)], [(1, 0, 0), (2/3, 1/3)], [(1, 0, 0), (1, 0)]]
     sage: degenerate_game.obtain_nash(algorithm='LCP') # optional - gambit
     [[(0.0, 0.3333333333, 0.6666666667), (0.3333333333, 0.6666666667)],
@@ -1119,9 +1119,9 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:             [3, 4, 1],
             ....:             [4, 1, 20]])
             sage: g=NormalFormGame([A, B])
-            sage: g.obtain_nash(algorithm='lrs') # optional - lrs
+            sage: g.obtain_nash(algorithm='lrs') # optional - lrslib
             [[(0, 0, 0, 1), (0, 0, 1)]]
-            sage: g.obtain_nash(algorithm='lrs', maximization=False) # optional - lrs
+            sage: g.obtain_nash(algorithm='lrs', maximization=False) # optional - lrslib
             [[(2/3, 1/12, 1/4, 0), (6333/8045, 247/8045, 293/1609)], [(3/4, 0, 1/4, 0), (0, 11/307, 296/307)], [(5/6, 1/6, 0, 0), (98/99, 1/99, 0)]]
 
         This particular game has 3 Nash equilibria::
@@ -1149,7 +1149,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g=NormalFormGame([A, B])
             sage: g.obtain_nash(algorithm='enumeration')
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
-            sage: g.obtain_nash(algorithm='lrs')  # optional - lrs
+            sage: g.obtain_nash(algorithm='lrs')  # optional - lrslib
             [[(0, 0, 3/4, 1/4), (1/28, 27/28, 0)]]
             sage: g.obtain_nash(algorithm='LCP')  # optional - gambit
             [[(0.0, 0.0, 0.75, 0.25), (0.0357142857, 0.9642857143, 0.0)]]
@@ -1169,7 +1169,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: fivegame = NormalFormGame([player1, player2])
             sage: fivegame.obtain_nash(algorithm='enumeration')
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
-            sage: fivegame.obtain_nash(algorithm='lrs') # optional - lrs
+            sage: fivegame.obtain_nash(algorithm='lrs') # optional - lrslib
             [[(1, 0, 0, 0, 0), (0, 1, 0, 0, 0)]]
             sage: fivegame.obtain_nash(algorithm='LCP') # optional - gambit
             [[(1.0, 0.0, 0.0, 0.0, 0.0), (0.0, 1.0, 0.0, 0.0, 0.0)]]
@@ -1193,19 +1193,19 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: enumeration_eqs = g.obtain_nash(algorithm='enumeration')
             sage: [[type(s) for s in eq] for eq in enumeration_eqs]
             [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
-            sage: lrs_eqs = g.obtain_nash(algorithm='lrs')  # optional - lrs
-            sage: [[type(s) for s in eq] for eq in lrs_eqs]  # optional - lrs
+            sage: lrs_eqs = g.obtain_nash(algorithm='lrs')  # optional - lrslib
+            sage: [[type(s) for s in eq] for eq in lrs_eqs]  # optional - lrslib
             [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
             sage: LCP_eqs = g.obtain_nash(algorithm='LCP')  # optional - gambit
             sage: [[type(s) for s in eq] for eq in LCP_eqs]  # optional - gambit
             [[<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>], [<type 'tuple'>, <type 'tuple'>]]
             sage: enumeration_eqs == sorted(enumeration_eqs)
             True
-            sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrs
+            sage: lrs_eqs == sorted(lrs_eqs)  # optional - lrslib
             True
             sage: LCP_eqs == sorted(LCP_eqs)  # optional - gambit
             True
-            sage: lrs_eqs == enumeration_eqs  # optional - lrs
+            sage: lrs_eqs == enumeration_eqs  # optional - lrslib
             True
             sage: enumeration_eqs == LCP_eqs  # optional - gambit
             False
@@ -1224,14 +1224,14 @@ class NormalFormGame(SageObject, MutableMapping):
             raise ValueError("utilities have not been populated")
 
         if not algorithm:
-            if is_package_installed('lrs'):
+            if is_package_installed('lrslib'):
                 algorithm = "lrs"
             else:
                 algorithm = "enumeration"
 
         if algorithm == "lrs":
-            if not is_package_installed('lrs'):
-                raise NotImplementedError("lrs is not installed")
+            if not is_package_installed('lrslib'):
+                raise NotImplementedError("lrslib is not installed")
 
             return self._solve_lrs(maximization)
 
@@ -1258,7 +1258,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 2], [3, 4]])
             sage: B = matrix([[3, 3], [1, 4]])
             sage: C = NormalFormGame([A, B])
-            sage: C._solve_lrs() # optional - lrs
+            sage: C._solve_lrs() # optional - lrslib
             [[(0, 1), (0, 1)]]
 
         2 random matrices::
@@ -1274,7 +1274,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:              [1, 0, 0, 0, 0,],
             ....:              [1, -3, 1, 21, -2]])
             sage: biggame = NormalFormGame([p1, p2])
-            sage: biggame._solve_lrs() # optional - lrs
+            sage: biggame._solve_lrs() # optional - lrslib
             [[(0, 0, 0, 20/21, 1/21), (11/12, 0, 0, 1/12, 0)]]
 
         Another test::
@@ -1286,7 +1286,7 @@ class NormalFormGame(SageObject, MutableMapping):
             ....:              [6, -2, -3],
             ....:              [-4, 6, -10]])
             sage: biggame = NormalFormGame([p1, p2])
-            sage: biggame._solve_lrs() # optional - lrs
+            sage: biggame._solve_lrs() # optional - lrslib
             [[(0, 1, 0), (1, 0, 0)], [(1/3, 2/3, 0), (0, 1/6, 5/6)], [(1/3, 2/3, 0), (1/7, 0, 6/7)], [(1, 0, 0), (0, 0, 1)]]
         """
         from subprocess import PIPE, Popen
@@ -1334,7 +1334,7 @@ class NormalFormGame(SageObject, MutableMapping):
             g[strategy_profile][1] = int(scalar *
                                             self.utilities[strategy_profile][1])
         output = ExternalLCPSolver().solve(g)
-        nasheq = Parser(output).format_LCP(g)
+        nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)
 
     def _solve_enumeration(self, maximization=True):
@@ -1437,7 +1437,7 @@ class NormalFormGame(SageObject, MutableMapping):
         In this instance the `lrs` algorithm is able to find all three equilibria::
 
             sage: N = NormalFormGame([matrix(2,[0,-1,-2,-1]),matrix(2,[1,0,0,2])])
-            sage: N.obtain_nash(algorithm='lrs')  # optional - lrs
+            sage: N.obtain_nash(algorithm='lrs')  # optional - lrslib
             [[(0, 1), (0, 1)], [(2/3, 1/3), (0, 1)], [(1, 0), (1, 0)]]
 
         Here is another::

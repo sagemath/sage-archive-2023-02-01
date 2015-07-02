@@ -18,13 +18,12 @@ Rings
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring
+from ring import Ring, Field
 from commutative_ring import CommutativeRing
 from integral_domain import IntegralDomain
 from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
-from field import Field
 
 from commutative_algebra_element import CommutativeAlgebraElement
 
@@ -100,6 +99,7 @@ from qqbar import (AlgebraicRealField, AA,
                    AlgebraicField, QQbar,
                    AlgebraicNumber,
                    number_field_elements_from_algebraics)
+from universal_cyclotomic_field import UniversalCyclotomicField, E
 
 # Intervals
 from real_mpfi import (RealIntervalField,
@@ -134,6 +134,9 @@ from big_oh import O
 # Fraction field
 from fraction_field import FractionField
 Frac = FractionField
+
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
@@ -172,10 +175,6 @@ CIF = ComplexIntervalField()
 
 from misc import composite_field
 
-import tests
-
-# Universal Cyclotomic Field
-from sage.rings.universal_cyclotomic_field.all import *
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')

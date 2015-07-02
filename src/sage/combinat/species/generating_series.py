@@ -84,9 +84,10 @@ from sage.misc.cachefunc import cached_function
 @cached_function
 def OrdinaryGeneratingSeriesRing(R):
     """
-    Returns the ring of ordinary generating series.
+    Return the ring of ordinary generating series over ``R``.
 
-    Note that is is just a LazyPowerSeriesRing whose elements have
+    Note that is is just a
+    :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
     EXAMPLES::
@@ -125,7 +126,7 @@ class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
 class OrdinaryGeneratingSeries(LazyPowerSeries):
     def count(self, n):
         """
-        Returns the number of structures on a set of size n.
+        Return the number of structures on a set of size ``n``.
 
         EXAMPLES::
 
@@ -139,8 +140,8 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
 
     def counts(self, n):
         """
-        Returns the number of structures on a set for size i for i in
-        range(n).
+        Return the number of structures on a set for size ``i`` for
+        each ``i`` in ``range(n)``.
 
         EXAMPLES::
 
@@ -156,8 +157,11 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
 @cached_function
 def ExponentialGeneratingSeriesRing(R):
     """
-    Returns the ring of ordinary generating series. Note that is is
-    just a LazyPowerSeriesRing whose elements have some extra methods.
+    Return the ring of exponential generating series over ``R``.
+
+    Note that is is just a
+    :class:`LazyPowerSeriesRing` whose elements have
+    some extra methods.
 
     EXAMPLES::
 
@@ -194,7 +198,7 @@ class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
 class ExponentialGeneratingSeries(LazyPowerSeries):
     def count(self, n):
         """
-        Returns the number of structures of size n.
+        Return the number of structures of size ``n``.
 
         EXAMPLES::
 
@@ -208,8 +212,8 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
 
     def counts(self, n):
         """
-        Returns the number of structures on a set for size i for i in
-        range(n).
+        Return the number of structures on a set for size ``i`` for
+        each ``i`` in ``range(n)``.
 
         EXAMPLES::
 
@@ -223,13 +227,12 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
 
     def functorial_composition(self, y):
         r"""
-        Returns the exponential generating series which is the functorial
-        composition of self with y.
+        Return the exponential generating series which is the functorial
+        composition of ``self`` with ``y``.
 
         If `f = \sum_{n=0}^{\infty} f_n \frac{x^n}{n!}` and
-        `g = \sum_{n=0}^{\infty} f_n \frac{x^n}{n!}`, then
+        `g = \sum_{n=0}^{\infty} g_n \frac{x^n}{n!}`, then
         functorial composition `f \Box g` is defined as
-
 
         .. math::
 
@@ -296,16 +299,44 @@ factorial_stream = Stream(factorial_gen())
 
 @cached_function
 def CycleIndexSeriesRing(R):
-    """
-    Returns the ring of cycle index series. Note that is is just a
-    LazyPowerSeriesRing whose elements have some extra methods.
+    r"""
+    Return the ring of cycle index series over ``R``.
+
+    This is the ring of formal power series `\Lambda[x]`, where
+    `\Lambda` is the ring of symmetric functions over ``R`` in the
+    `p`-basis. Its purpose is to house the cycle index series of
+    species (in a somewhat nonstandard notation tailored to Sage):
+    If `F` is a species, then the *cycle index series* of `F` is
+    defined to be the formal power series
+
+    .. MATH::
+
+        \sum_{n \geq 0} \frac{1}{n!} (\sum_{\sigma \in S_n}
+        \operatorname{fix} F[\sigma]
+        \prod_{z \text{ is a cycle of } \sigma}
+        p_{\text{length of } z}) x^n
+        \in \Lambda_\QQ [x],
+
+    where `\operatorname{fix} F[\sigma]` denotes the number of
+    fixed points of the permutation `F[\sigma]` of `F[n]`. We
+    notice that this power series is "equigraded" (meaning that
+    its `x^n`-coefficient is homogeneous of degree `n`). A more
+    standard convention in combinatorics would be to use
+    `x_i` instead of `p_i`, and drop the `x` (that is, evaluate
+    the above power series at `x = 1`); but this would be more
+    difficult to implement in Sage, as it would be an element
+    of a power series ring in infinitely many variables.
+
+    Note that is is just a :class:`LazyPowerSeriesRing` (whose base
+    ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
         sage: R = CycleIndexSeriesRing(QQ); R
         Cycle Index Series Ring over Symmetric Functions over Rational Field in the powersum basis
-        sage: R([1]).coefficients(4)
+        sage: R([1]).coefficients(4) # This is not combinatorially
+        ....:                        # meaningful.
         [1, 1, 1, 1]
 
     TESTS: We test to make sure that caching works.
@@ -346,15 +377,15 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
 class CycleIndexSeries(LazyPowerSeries):
     def count(self, t):
         """
-        Returns the number of structures corresponding to a certain cycle
-        type.
+        Return the number of structures corresponding to a certain cycle
+        type ``t``.
 
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
-            sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
+            sage: CIS = CycleIndexSeriesRing(QQ)
+            sage: f = CIS([0, p([1]), 2*p([1,1]), 3*p([2,1])])
             sage: f.count([1])
             1
             sage: f.count([1,1])
@@ -367,13 +398,13 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def coefficient_cycle_type(self, t):
         """
-        Returns the coefficient of a cycle type t.
+        Returns the coefficient of a cycle type ``t`` in ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
             sage: f.coefficient_cycle_type([1])
             1
@@ -389,29 +420,29 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def stretch(self, k):
         r"""
-        Returns the stretch of a cycle index series by a positive integer
-        `k`.
+        Return the stretch of the cycle index series ``self`` by a positive
+        integer `k`.
 
         If
 
         .. math::
 
-           f = \sum_{n=0}^{\infty} f_n(x_1, x_2, \ldots, x_n),
+           f = \sum_{n=0}^{\infty} f_n(p_1, p_2, p_3, \ldots ),
 
         then the stretch `g` of `f` by `k` is
 
         .. math::
 
-           g = \sum_{n=0}^{\infty} f_n(x_k, x_{2k}, \ldots, x_{nk}).
+           g = \sum_{n=0}^{\infty} f_n(p_k, p_{2k}, p_{3k}, \ldots ).
 
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
-            sage: f = CIS([p([1])])
+            sage: CIS = CycleIndexSeriesRing(QQ)
+            sage: f = CIS([p([]), p([1]), p([2]), p.zero()])
             sage: f.stretch(3).coefficients(10)
-            [p[3], 0, 0, p[3], 0, 0, p[3], 0, 0, p[3]]
+            [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
         """
         return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
 
@@ -421,15 +452,16 @@ class CycleIndexSeries(LazyPowerSeries):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(p)
-            sage: f = CIS([p([1])])
+            sage: CIS = CycleIndexSeriesRing(QQ)
+            sage: f = CIS([p([1])]) # This is the power series whose all coefficients
+            ....:                   # are p[1]. Not combinatorially meaningful!
             sage: g = f._stretch_gen(2,0)
             sage: [next(g) for i in range(10)]
             [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
         """
         from sage.combinat.partition import Partition
         BR = self.base_ring()
-        zero = BR(0)
+        zero = BR.zero()
 
         stretch_k = lambda p: Partition([k*i for i in p])
 
@@ -438,7 +470,7 @@ class CycleIndexSeries(LazyPowerSeries):
         n = 1
         while True:
             for i in range(k-1):
-                yield BR(0)
+                yield zero
             yield self.coefficient(n).map_support(stretch_k)
             n += 1
 
@@ -542,7 +574,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def __invert__(self):
         """
-        Return the multiplicative inverse of self.
+        Return the multiplicative inverse of ``self``.
 
         This algorithm is derived from [BLL]_.
 
@@ -561,7 +593,12 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [BLL] F. Bergeron, G. Labelle, and P. Leroux. "Combinatorial species and tree-like structures". Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+        .. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+           "Combinatorial species and tree-like structures".
+           Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+        .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
+           "Introduction to the Theory of Species of Structures", March 14, 2008.
+           http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
 
         AUTHORS:
 
@@ -587,7 +624,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def functorial_composition(self, g):
         r"""
-        Returns the functorial composition of self and g.
+        Returns the functorial composition of ``self`` and ``g``.
 
         If `F` and `G` are species, their functorial composition is the species
         `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
@@ -621,8 +658,8 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def _functorial_compose_gen(self, g, ao):
         """
-        Returns s generator for the coefficients of the functorial
-        composition of self with g.
+        Return a generator for the coefficients of the functorial
+        composition of ``self`` with ``g``.
 
         EXAMPLES::
 
@@ -709,8 +746,6 @@ class CycleIndexSeries(LazyPowerSeries):
            :arXiv:`math/0503436v2`.
 
         """
-        from sage.combinat.partition import Partition, Partitions
-        from sage.combinat.species.stream import Stream, _integers_from
         from sage.rings.arith import gcd, lcm, divisors
         from itertools import product, repeat, chain
 
@@ -828,9 +863,12 @@ class CycleIndexSeries(LazyPowerSeries):
 
     def _compose_gen(self, y, ao):
         """
-        Returns a generator for the coefficients of the composition of this
-        cycle index series and the cycle index series y. This overrides the
-        the method defined in LazyPowerSeries.
+        Return a generator for the coefficients of the composition of this 
+        cycle index series and the cycle index series ``y``. This overrides 
+        the method defined in ``LazyPowerSeries``. 
+
+        The notion "composition" means plethystic substitution here, as 
+        defined in Section 2.2 of [BLL-Intro]_.
 
         EXAMPLES::
 

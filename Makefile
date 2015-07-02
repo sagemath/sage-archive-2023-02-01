@@ -18,9 +18,9 @@ logs:
 build: logs configure
 	+cd build && \
 	"../$(PIPE)" \
-		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
+		"./install all 2>&1" \
 		"tee -a ../logs/install.log"
-	./sage -b
+	+./sage -b
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -35,9 +35,6 @@ download:
 # information.
 ssl: all
 	./sage -i pyopenssl
-
-build-serial: SAGE_PARALLEL_SPKG_BUILD = no
-build-serial: build
 
 # Start Sage if the file local/etc/sage-started.txt does not exist
 # (i.e. when we just installed Sage for the first time).
@@ -112,42 +109,33 @@ micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 
-TESTPRELIMS = local/bin/sage-starts
 TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
-test: all # i.e. build and doc
-	$(TESTPRELIMS)
+test: all
 	$(TESTALL) --logfile=logs/test.log
 
 check: test
 
-testall: all # i.e. build and doc
-	$(TESTPRELIMS)
+testall: all
 	$(TESTALL) --optional=all --logfile=logs/testall.log
 
-testlong: all # i.e. build and doc
-	$(TESTPRELIMS)
+testlong: all
 	$(TESTALL) --long --logfile=logs/testlong.log
 
-testalllong: all # i.e. build and doc
-	$(TESTPRELIMS)
+testalllong: all
 	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
 
-ptest: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptest: all
 	$(PTESTALL) --logfile=logs/ptest.log
 
-ptestall: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestall: all
 	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
 
-ptestlong: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestlong: all
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
-ptestalllong: all # i.e. build and doc
-	$(TESTPRELIMS)
+ptestalllong: all
 	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
 
 
@@ -182,7 +170,7 @@ install:
 	"$(DESTDIR)"/bin/sage -c # Run sage-location
 
 
-.PHONY: all build build-serial start install micro_release \
+.PHONY: all build start install micro_release \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
 	doc-clean clean lib-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \

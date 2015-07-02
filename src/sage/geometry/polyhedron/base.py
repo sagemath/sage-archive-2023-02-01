@@ -977,8 +977,17 @@ class Polyhedron_base(Element):
             A 19-dimensional polyhedron in QQ^27 defined as the convex hull of 1 vertex and 148 rays
             sage: p.to_linear_program().polyhedron() == p
             True
-
+            sage: p=polytopes.icosahedron()
+            sage: p.to_linear_program(solver='PPL')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError:  Cannot use PPL on exact irrational data.
         """
+        from sage.rings.rational_field import QQ
+        R = self.base_ring()
+        if (not solver == None) and solver.lower() == 'ppl' and R.is_exact() and (not R == QQ):
+            raise NotImplementedError(' Cannot use PPL on exact irrational data.')
+
         from sage.numerical.mip import MixedIntegerLinearProgram
         p = MixedIntegerLinearProgram(solver=solver)
         x = p.new_variable(real=True, nonnegative=False)

@@ -118,6 +118,7 @@ graphs.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
     :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
     :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
+    :meth:`~Graph.chromatic_symmetric_function` | Return the chromatic symmetric function of the graph.
     :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
     :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
@@ -3781,6 +3782,79 @@ class Graph(GenericGraph):
             return first_coloring(self, hex_colors=hex_colors)
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
+
+    def chromatic_symmetric_function(self, R=None):
+        r"""
+        Return the chromatic symmetric function of ``self``.
+
+        Let `G` be a graph. The chromatic symmetric function `X_G` was
+        described in [Stanley95]_, specifically Theorem 2.5 states that
+
+        .. MATH::
+
+            X_G = \sum_{F \subseteq E(G)} (-1)^{|F|} p_{\lambda(F)},
+
+        where `\lambda(F)` is the partition of the sizes of the connected
+        components of the subgraph induced by the edges `F` and `p_{\mu}`
+        is the powersum symmetric function.
+
+        INPUT:
+
+        - ``R`` -- (optional) the base ring for the symmetric functions;
+          this uses `\ZZ` by default
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: G = graphs.CycleGraph(5)
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1, 1] - 5*p[2, 1, 1, 1] + 5*p[2, 2, 1]
+             + 5*p[3, 1, 1] - 5*p[3, 2] - 5*p[4, 1] + 4*p[5]
+            sage: s(XG)
+            30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
+
+        Not all graphs have a postive Schur expansion::
+
+            sage: G = graphs.ClawGraph()
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1] - 3*p[2, 1, 1] + 3*p[3, 1] - p[4]
+            sage: s(XG)
+            8*s[1, 1, 1, 1] + 5*s[2, 1, 1] - s[2, 2] + s[3, 1]
+
+        We show that given a triangle `\{e_1, e_2, e_3\}`, we have
+        `X_G = X_{G - e_1} + X_{G - e_2} - X_{G - e_1 - e_2}`::
+
+            sage: G = Graph([[1,2],[1,3],[2,3]])
+            sage: XG = G.chromatic_symmetric_function()
+            sage: G1 = copy(G)
+            sage: G1.delete_edge([1,2])
+            sage: XG1 = G1.chromatic_symmetric_function()
+            sage: G2 = copy(G)
+            sage: G2.delete_edge([1,3])
+            sage: XG2 = G2.chromatic_symmetric_function()
+            sage: G3 = copy(G1)
+            sage: G3.delete_edge([1,3])
+            sage: XG3 = G3.chromatic_symmetric_function()
+            sage: XG == XG1 + XG2 - XG3
+            True
+
+        REFERENCES:
+
+        .. [Stanley95] R. P. Stanley, *A symmetric function generalization
+           of the chromatic polynomial of a graph*, Adv. Math., ***111***
+           no.1 (1995), 166-194.
+        """
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.combinat.partition import _Partitions
+        from sage.misc.misc import powerset
+        if R is None:
+            R = ZZ
+        p = SymmetricFunctions(R).p()
+        ret = p.zero()
+        for F in powerset(self.edges()):
+            la = _Partitions(self.subgraph(edges=F).connected_components_sizes())
+            ret += (-1)**len(F) * p[la]
+        return ret
 
     def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
         r"""

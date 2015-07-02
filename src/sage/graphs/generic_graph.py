@@ -8133,10 +8133,17 @@ class GenericGraph(GenericGraph_pyx):
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
 
-    def edge_connectivity(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
+    def edge_connectivity(self,
+                          value_only = True,
+                          implementation = None,
+                          use_edge_labels = False,
+                          vertices = False,
+                          solver = None,
+                          verbose = 0):
         r"""
-        Returns the edge connectivity of the graph. For more information, see
-        the
+        Returns the edge connectivity of the graph.
+
+        For more information, see the
         `Wikipedia article on connectivity
         <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
@@ -8159,11 +8166,23 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, both the value and a minimum edge cut
             are returned.
 
+        - ``implementation`` -- selects an implementation:
+
+          - When set to ``None`` (default): selects the best implementation
+            available.
+
+          - When set to ``"boost"``, we use the Boost graph library (which is
+            much more efficient). It is not available when ``edge_labels=True``,
+            and it is unreliable for directed graphs (see :trac:`18753`).
+
+          - When set to ``"Sage"``, we use Sage's implementation.
+
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a weighted minimum cut
             where each edge has a weight defined by its label. (If
-            an edge has no label, `1` is assumed.)
+            an edge has no label, `1` is assumed.). Implies
+            ``boost`` = ``False``.
 
           - When set to ``False``, each edge has weight `1`.
 
@@ -8174,9 +8193,9 @@ class GenericGraph(GenericGraph_pyx):
             ``value_only=False``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
+          solver to be used (ignored if ``implementation='boost'``). If set to
+          ``None``, the default one is used. For more information on LP solvers
+          and which default solver is used, see the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -8188,74 +8207,156 @@ class GenericGraph(GenericGraph_pyx):
 
         A basic application on the PappusGraph::
 
-           sage: g = graphs.PappusGraph()
-           sage: g.edge_connectivity()
-           3
+            sage: g = graphs.PappusGraph()
+            sage: g.edge_connectivity()
+            3
 
         The edge connectivity of a complete graph ( and of a random graph )
         is its minimum degree, and one of the two parts of the bipartition
         is reduced to only one vertex. The cutedges isomorphic to a
         Star graph::
 
-           sage: g = graphs.CompleteGraph(5)
-           sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True)
-           sage: print value
-           4
-           sage: len(setA) == 1 or len(setB) == 1
-           True
-           sage: cut = Graph()
-           sage: cut.add_edges(edges)
-           sage: cut.is_isomorphic(graphs.StarGraph(4))
-           True
+            sage: g = graphs.CompleteGraph(5)
+            sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True)
+            sage: print value
+            4
+            sage: len(setA) == 1 or len(setB) == 1
+            True
+            sage: cut = Graph()
+            sage: cut.add_edges(edges)
+            sage: cut.is_isomorphic(graphs.StarGraph(4))
+            True
 
         Even if obviously in any graph we know that the edge connectivity
         is less than the minimum degree of the graph::
 
-           sage: g = graphs.RandomGNP(10,.3)
-           sage: min(g.degree()) >= g.edge_connectivity()
-           True
+            sage: g = graphs.RandomGNP(10,.3)
+            sage: min(g.degree()) >= g.edge_connectivity()
+            True
 
         If we build a tree then assign to its edges a random value, the
         minimum cut will be the edge with minimum value::
 
-           sage: g = graphs.RandomGNP(15,.5)
-           sage: tree = Graph()
-           sage: tree.add_edges(g.min_spanning_tree())
-           sage: for u,v in tree.edge_iterator(labels=None):
-           ...        tree.set_edge_label(u,v,random())
-           sage: minimum = min([l for u,v,l in tree.edge_iterator()])
-           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)
-           sage: l == minimum
-           True
+            sage: g = graphs.RandomGNP(15,.5)
+            sage: tree = Graph()
+            sage: tree.add_edges(g.min_spanning_tree())
+            sage: for u,v in tree.edge_iterator(labels=None):
+            ...        tree.set_edge_label(u,v,random())
+            sage: minimum = min([l for u,v,l in tree.edge_iterator()])
+            sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)
+            sage: l == minimum
+            True
 
-        When ``value_only = True``, this function is optimized for small
-        connectivity values and does not need to build a linear program.
+        When ``value_only = True`` and ``implementation="sage"``, this function is
+        optimized for small connectivity values and does not need to build a
+        linear program.
 
-        It is the case for connected graphs which are not
-        connected ::
+        It is the case for graphs which are not connected ::
 
-           sage: g = 2 * graphs.PetersenGraph()
-           sage: g.edge_connectivity()
-           0.0
-
-        Or if they are just 1-connected ::
-
-           sage: g = graphs.PathGraph(10)
-           sage: g.edge_connectivity()
-           1.0
+            sage: g = 2 * graphs.PetersenGraph()
+            sage: g.edge_connectivity(implementation="sage")
+            0.0
 
         For directed graphs, the strong connectivity is tested
         through the dedicated function ::
 
-           sage: g = digraphs.ButterflyGraph(3)
-           sage: g.edge_connectivity()
-           0.0
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: g.edge_connectivity(implementation="sage")
+            0.0
+
+        We check that the result with Boost is the same as the result without
+        Boost ::
+
+            sage: g = graphs.RandomGNP(15,.3)
+            sage: g.edge_connectivity() == g.edge_connectivity(implementation="sage")
+            True
+
+        Boost interface also works with directed graphs ::
+
+            sage: digraphs.Circuit(10).edge_connectivity(implementation = "boost", vertices = True)
+            [1, [(0, 1)], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
+
+        However, the Boost algorithm is not reliable if the input is directed
+        (see :trac:`18753`)::
+
+            sage: g = digraphs.Path(3)
+            sage: g.edge_connectivity()
+            0.0
+            sage: g.edge_connectivity(implementation="boost")
+            1
+            sage: g.add_edge(1,0)
+            sage: g.edge_connectivity()
+            0.0
+            sage: g.edge_connectivity(implementation="boost")
+            0
+
+        TESTS:
+
+        Checking that the two implementations agree::
+
+            sage: for i in range(10):
+            ....:     g = graphs.RandomGNP(30,0.3)
+            ....:     e1 = g.edge_connectivity(implementation="boost")
+            ....:     e2 = g.edge_connectivity(implementation="sage")
+            ....:     assert (e1 == e2)
+
+        Disconnected graphs and ``vertices=True``::
+
+            sage: g = graphs.PetersenGraph()
+            sage: (2*g).edge_connectivity(vertices=True)
+            [0, [], [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]]
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
 
         if vertices:
             value_only=False
+
+        if implementation is None:
+            if use_edge_labels or g.is_directed():
+                implementation = "sage"
+            else:
+                implementation = "boost"
+
+        implementation = implementation.lower()
+        if implementation not in ["boost", "sage"]:
+            raise ValueError("'implementation' must be set to 'boost', 'sage' or None.")
+        elif implementation=="boost" and use_edge_labels:
+            raise ValueError("The Boost implementation is currently not able to handle edge labels")
+
+        # Otherwise, an error is created
+        if g.num_edges() == 0 or g.num_verts() == 0:
+            if value_only:
+                return 0
+            elif vertices:
+                return [0,[],[[],[]]]
+            else:
+                return [0,[]]
+
+        if implementation == "boost":
+            from sage.graphs.base.boost_graph import edge_connectivity
+
+            [obj, edges] = edge_connectivity(g)
+
+            if value_only:
+                return obj
+
+            val = [obj, edges]
+
+            if vertices and not obj == 0:
+                H = copy(self)
+                H.delete_edges(edges)
+
+                if H.is_directed():
+                    a = set(H.breadth_first_search([x for x,y in edges]))
+                    b = set(H).difference(a)
+                    val.append([a,b])
+                else:
+                    val.append(H.connected_components())
+            elif vertices:
+                val.append(self.connected_components())
+
+            return val
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR

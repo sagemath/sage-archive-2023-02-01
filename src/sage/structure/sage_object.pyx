@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 r"""
 Abstract base class for Sage objects
 """
@@ -251,15 +252,14 @@ cdef class SageObject:
         to get the ASCII art representation of any object in Sage::
 
             sage: unicode_art(integral(exp(x+x^2)/(x+1), x))
-              /
-             |
-             |   2
-             |  x  + x
-             | e
-             | ------- dx
-             |  x + 1
-             |
-            /
+            ⌠
+            ⎮   2
+            ⎮  x  + x
+            ⎮ ℯ
+            ⎮ ─────── dx
+            ⎮  x + 1
+            ⌡
+
 
         Alternatively, you can use the ``%display ascii_art/simple`` magic to
         switch all output to ASCII art and back::
@@ -912,7 +912,7 @@ def load(*filename, compress=True, verbose=True):
     is a filename ending in ``.py``, ``.pyx``, ``.sage``, ``.spyx``,
     ``.f``, ``.f90`` or ``.m``, load that file into the current running
     session.
-    
+
     Loaded files are not loaded into their own namespace, i.e., this is
     much more like Python's ``execfile`` than Python's ``import``.
 

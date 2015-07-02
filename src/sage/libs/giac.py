@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+#
+#  NB for doctests:   The first time that the c++ library giac is loaded a message appears.
+#                     This message is version and arch dependant.
 """
 Wrappers for Giac functions
 

@@ -297,8 +297,7 @@ ext_modules = [
               sources = ['sage/graphs/chrompoly.pyx']),
 
     Extension('sage.graphs.cliquer',
-              sources = ['sage/graphs/cliquer.pyx', 'sage/graphs/cliquer/cl.c'],
-              libraries = ['cliquer']),
+              sources = ['sage/graphs/cliquer.pyx']),
 
     Extension('sage.graphs.centrality',
               sources = ['sage/graphs/centrality.pyx']),

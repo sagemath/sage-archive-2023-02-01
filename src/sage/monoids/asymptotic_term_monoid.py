@@ -1310,6 +1310,11 @@ class TermWithCoefficient(GenericTerm):
             True
             sage: t3 <= t2
             False
+
+        TESTS::
+
+            sage: ET(x, -2) <= ET(x, 1)
+            False
         """
         if self.growth == other.growth:
             return self.coefficient <= other.coefficient

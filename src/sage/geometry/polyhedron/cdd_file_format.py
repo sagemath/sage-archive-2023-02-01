@@ -47,7 +47,7 @@ def cdd_Vrepresentation(cdd_type, vertices, rays, lines, file_output=None):
     TESTS::
 
         sage: from sage.misc.temporary_file import tmp_filename
-        sage: filename = tmp_filename() + '.ext'
+        sage: filename = tmp_filename(ext='.ext')
         sage: cdd_Vrepresentation('rational', [[0,0]], [[1,0]], [[0,1]], file_output=filename)
     """
     vertices = _set_to_None_if_empty(vertices)
@@ -106,7 +106,7 @@ def cdd_Hrepresentation(cdd_type, ieqs, eqns, file_output=None):
     TESTS::
 
         sage: from sage.misc.temporary_file import tmp_filename
-        sage: filename = tmp_filename() + '.ine'
+        sage: filename = tmp_filename(ext='.ine')
         sage: cdd_Hrepresentation('rational', None, [[0,1]], file_output=filename)
     """
     ieqs = _set_to_None_if_empty(ieqs)

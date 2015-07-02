@@ -848,7 +848,7 @@ class Polyhedron_base(Element):
         EXAMPLE::
 
             sage: from sage.misc.temporary_file import tmp_filename
-            sage: filename = tmp_filename() + '.ext'
+            sage: filename = tmp_filename(ext='.ext')
             sage: polytopes.cube().write_cdd_Hrepresentation(filename)
         """
         with open(filename, 'w') as f:
@@ -908,7 +908,7 @@ class Polyhedron_base(Element):
         EXAMPLE::
 
             sage: from sage.misc.temporary_file import tmp_filename
-            sage: filename = tmp_filename() + '.ext'
+            sage: filename = tmp_filename(ext='.ext')
             sage: polytopes.cube().write_cdd_Vrepresentation(filename)
         """
         with open(filename, 'w') as f:

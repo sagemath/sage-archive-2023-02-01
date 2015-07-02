@@ -12388,7 +12388,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.RandomGNM(10,20)
             sage: clust_boost = G.clustering_coeff(implementation='boost')
             sage: clust_networkx = G.clustering_coeff(implementation='networkx')
-            sage: for v in G.vertices():
+            sage: for v in G:
             ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
             ....:         print "Error:"
             ....:         print "   Boost clustering of", v, "is", clust_boost[v]

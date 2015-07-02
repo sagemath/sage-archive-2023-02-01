@@ -79,6 +79,7 @@ def _absorption_(left, right):
     except ArithmeticError:
         return right.absorb(left)
 
+
 def _can_absorb_(left, right):
     r"""
     Helper method used by
@@ -101,7 +102,7 @@ def _can_absorb_(left, right):
 class GenericTerm(sage.structure.element.MonoidElement):
     r"""
     Base class for asymptotic terms. Mainly the structure and
-    several properties asymptotic terms have are handled here.
+    several properties of asymptotic terms are handled here.
 
     INPUT:
 
@@ -109,17 +110,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     - ``growth`` -- an asymptotic growth element.
 
-    OUTPUT:
-
-    A generic asymptotic term.
-
     EXAMPLES::
 
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: P = atm.GenericTermMonoid(MG)
-        sage: t1, t2 = P(x), P(x^2); (t1, t2)
+        sage: t1 = P(x); t2 = P(x^2); (t1, t2)
         (Generic Term with growth x, Generic Term with growth x^2)
         sage: t1 * t2
         Generic Term with growth x^3
@@ -137,7 +134,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         r"""
         See :class:`GenericTerm` for more information.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: import sage.groups.asymptotic_growth_group as agg
@@ -177,7 +174,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method os called by the coercion framework, thus,
+            This method is called by the coercion framework, thus,
             it can be assumed that this element, as well as ``other``
             are from a common parent.
 
@@ -211,8 +208,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method calls `_can_absorb_`, which is implemented
-            separately for exact terms and `O` terms.
+            This method calls `_can_absorb_`, which is has to be
+            implemented/overridden in inherited class.
 
         EXAMPLES:
 

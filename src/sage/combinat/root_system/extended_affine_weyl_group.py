@@ -1,4 +1,4 @@
-"""
+r"""
 Extended Affine Weyl Groups
 
 AUTHORS:
@@ -10,7 +10,6 @@ AUTHORS:
 - Nicolas M. Thiery (2012): initial version
 - Mark Shimozono (2013): twisted affine root systems, multiple realizations, GL_n
 """
-
 #*****************************************************************************
 #       Copyright (C) 2012 Daniel Bump <bump at match.stanford.edu>,
 #                     2012 Daniel Orr <danorr at live.unc.edu>
@@ -18,13 +17,14 @@ AUTHORS:
 #                     2012 Mark Shimozono <mshimo at math.vt.edu>
 #                     2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
-#                     2013 Mark Shimozono
+#                     2013 Mark Shimozono <mshimo at math.vt.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.categories.groups import Groups
@@ -156,10 +156,10 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. MATH::
 
-        \begin{align*}
-            W &\cong M \rtimes W_0 \cong W_0 \ltimes M \\
-            E &\cong L \rtimes W_0 \cong W_0 \ltimes L
-        \end{align*}
+        \begin{aligned}
+        W &\cong M \rtimes W_0 \cong W_0 \ltimes M \\
+        E &\cong L \rtimes W_0 \cong W_0 \ltimes L
+        \end{aligned}
 
     .. RUBRIC:: Fundamental group of affine Dynkin automorphisms
 
@@ -1364,10 +1364,8 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 - ``self`` -- an element of the extended affine Weyl group
                 - `i` -- a Dynkin node (index of a simple reflection `s_i`)
-                - ``side`` -- 'right' or 'left' (default: 'right') according to which
-                  side of ``self`` the reflection `s_i` should be multiplied
-                - ``length_increasing`` -- True or False (default True).
-                  If False do the above with the word "greater" replaced by "less".
+                - ``side`` -- 'right' or 'left' (default: 'right') according to which side of ``self`` the reflection `s_i` should be multiplied
+                - ``length_increasing`` -- True or False (default True). If False do the above with the word "greater" replaced by "less".
 
                 EXAMPLES::
 
@@ -1562,8 +1560,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
 
                 - ``self`` -- an element of the extended affine Weyl group
                 - ``index_set`` -- a subset of the set of Dynkin nodes
-                - ``side`` -- 'right' or 'left' (default: 'right') the side on which the
-                  subgroup acts
+                - ``side`` -- 'right' or 'left' (default: 'right') the side on which the subgroup acts
 
                 EXAMPLES::
 
@@ -1690,8 +1687,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 INPUT:
 
                 - ``self`` -- an element of the extended affine Weyl group
-                - ``la`` -- an element of the translation lattice of the extended affine Weyl group,
-                  the lattice denoted by the mnemonic "P" in the documentation for :meth:`ExtendedAffineWeylGroup`.
+                - ``la`` -- an element of the translation lattice of the extended affine Weyl group, the lattice denoted by the mnemonic "P" in the documentation for :meth:`ExtendedAffineWeylGroup`.
 
                 EXAMPLES::
 
@@ -1721,9 +1717,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
                 INPUT:
 
                 - ``self`` -- an element of the extended affine Weyl group
-                - ``la`` -- an element of the dual translation lattice of the extended affine
-                  Weyl group, the lattice denoted by the mnemonic "Pv" in the documentation
-                  for :meth:`ExtendedAffineWeylGroup`.
+                - ``la`` -- an element of the dual translation lattice of the extended affine Weyl group, the lattice denoted by the mnemonic "Pv" in the documentation for :meth:`ExtendedAffineWeylGroup`.
 
                 EXAMPLES::
 

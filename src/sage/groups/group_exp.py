@@ -1,7 +1,19 @@
-"""
-Functor that converts a commutative additive group into an isomorphic multiplicative group.
-"""
+r"""
+Functor that converts a commutative additive group into a multiplicative group.
 
+AUTHORS:
+
+- Mark Shimozono (2013): initial version
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 <mshimo at math.vt.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
 from sage.structure.element import MultiplicativeGroupElement

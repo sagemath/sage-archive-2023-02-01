@@ -1,12 +1,23 @@
-"""
+r"""
 Semidirect product of groups
-"""
 
+AUTHORS:
+
+- Mark Shimozono (2013) initial version
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 Mark Shimozono <mshimo at math.vt.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
 from sage.sets.cartesian_product import CartesianProduct
 from sage.misc.cachefunc import cached_method
-
 
 class GroupSemidirectProductElement(CartesianProduct.Element):
     r"""
@@ -139,7 +150,7 @@ class GroupSemidirectProduct(CartesianProduct):
 
     .. MATH::
 
-        g h g^{-1} &= \phi(g)(h).
+        g h g^{-1} = \phi(g)(h).
 
     The homomorphism `\phi` is specified by the input ``twist``, which syntactically is the function `G\times H\to H`
     defined by
@@ -152,18 +163,18 @@ class GroupSemidirectProduct(CartesianProduct):
         
     .. MATH::
 
-        \begin{align*}
+        \begin{aligned}
         (g_1,h_1)(g_2,h_2) &= g_1 h_1 g_2 h_2 \\
         &= g_1 g_2 g_2^{-1} h_1 g_2 h_2 \\
         &= (g_1g_2, twist(g_2^{-1}, h_1) h_2)
-        \end{align*}
+        \end{aligned}
 
     If ``act_to_right`` is False, the group `G \rtimes H` is specified by a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))`
     such that
 
     .. MATH::
 
-        h g h^{-1} &= \psi(h)(g)
+        h g h^{-1} = \psi(h)(g)
 
     Then ``twist`` is the function `H\times G\to G` defined by
 
@@ -175,11 +186,11 @@ class GroupSemidirectProduct(CartesianProduct):
 
     .. MATH::
 
-        \begin{align*}
+        \begin{aligned}
         (g_1,h_1)(g_2,h_2) &= g_1 h_1 g_2 h_2 \\
         &= g_1 h_1 g_2 h_1^{-1} h_1 h_2 \\
         &= (g_1 twist(h_1,g_2), h_1 h_2)
-        \end{align*}
+        \end{aligned}
 
     If ``prefix0`` (resp. ``prefixl``) is not None then it is used as a wrapper for
     printing elements of ``G`` (resp. ``H``). If ``print_tuple`` is True then elements are printed

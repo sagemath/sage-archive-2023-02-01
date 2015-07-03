@@ -128,6 +128,7 @@ class FromTableauIsomorphism(Morphism):
         act = affine_type_from_classical(ct)
         TP = TensorProductOfKirillovReshetikhinTableaux(act, [[r,1] for r in conj.shape()])
         elt = TP(pathlist=[reversed(row) for row in conj])
+
         if ct.type() == 'A':
             bij = KRTToRCBijectionTypeA(elt)
         elif ct.type() == 'B':
@@ -195,12 +196,16 @@ class FromRCIsomorphism(Morphism):
         lam = [sum(nu)+1 for nu in x]
         ct = self.domain().cartan_type()
         I = ct.index_set()
-        if ct.type() == 'B':
-            lam[-1] *= 2
-        elif ct.type() == 'D':
-            lam[-1] = max(lam[-2], lam[-1])
-            lam[-2] = lam[-1]
-        l = sum([ [[r,1]]*lam[i] for i,r in enumerate(I) ], [])
+        if ct.type() == 'D':
+            lam[-2] = max(lam[-2], lam[-1])
+            lam.pop()
+            l = sum([ [[r+1,1]]*v for r,v in enumerate(lam[:-1]) ], [])
+            n = len(I)
+            l = l + sum([ [[n,1], [n-1,1]] for k in range(lam[-1])], [])
+        else:
+            if ct.type() == 'B':
+                lam[-1] *= 2
+            l = sum([ [[r,1]]*lam[i] for i,r in enumerate(I) ], [])
 
         RC = RiggedConfigurations(affine_type_from_classical(ct), reversed(l))
         elt = RC(x)
@@ -244,31 +249,29 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
             True
         """
         for cur_crystal in reversed(self.tp_krt):
-            # Iterate through the columns
-            for col_number, cur_column in enumerate(reversed(cur_crystal.to_array(False))):
-                self.cur_path.insert(0, []) # Prepend an empty list
+            cur_column = list(cur_crystal)
+            self.cur_path.insert(0, []) # Prepend an empty list
+            self.cur_dims.insert(0, [0, 1])
 
-                self.cur_dims.insert(0, [0, 1])
+            for letter in reversed(cur_column):
+                self.cur_dims[0][0] += 1
 
-                for letter in reversed(cur_column):
-                    self.cur_dims[0][0] += 1
+                val = letter.value # Convert from a CrystalOfLetter to an Integer
 
-                    val = letter.value # Convert from a CrystalOfLetter to an Integer
+                #print("====================")
+                #print(repr(self.cur_path))
+                #print("--------------------")
+                #print(repr(self.ret_rig_con))
+                #print("--------------------\n")
 
-                    #print("====================")
-                    #print(repr(self.cur_path))
-                    #print("--------------------")
-                    #print(repr(self.ret_rig_con))
-                    #print("--------------------\n")
+                # Build the next state
+                self.cur_path[0].insert(0, [letter]) # Prepend the value
+                if self.cur_dims[0][0] == self.n:
+                    # Spinor case, we go from \Lambda_{n-1} -> 2\Lambda_n
+                    self.cur_dims.insert(1, [self.n,1])
+                    self.cur_path.insert(1, self.cur_path[0])
 
-                    # Build the next state
-                    self.cur_path[0].insert(0, [letter]) # Prepend the value
-                    if self.cur_dims[0][0] == self.n:
-                        # Spinor case, we go from \Lambda_{n-1} -> 2\Lambda_n
-                        self.cur_dims.insert(1, [self.n,1])
-                        self.cur_path.insert(1, self.cur_path[0])
-
-                    self.next_state(val)
+                self.next_state(val)
 
         self.ret_rig_con.set_immutable() # Return it to immutable
         return self.ret_rig_con
@@ -288,11 +291,6 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
             True
         """
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
-
-        # This is technically bad, but because the first thing we do is append
-        #   an empty list to ret_crystal_path, we correct this. We do it this
-        #   way so that we do not have to remove an empty list after the
-        #   bijection has been performed.
         ret_crystal_path = []
 
         while self.cur_dims:
@@ -305,12 +303,6 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
                 self.cur_dims.pop(1)
 
             while dim[0] > 0:
-                #print("====================")
-                #print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
-                #print("--------------------")
-                #print(ret_crystal_path)
-                #print("--------------------\n")
-
                 dim[0] -= 1 # This takes care of the indexing
                 b = self.next_state(dim[0])
 
@@ -322,8 +314,78 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
         return ret_crystal_path
 
 class MLTToRCBijectionTypeD(KRTToRCBijectionTypeD):
-    pass # TODO - placeholder
+    def run(self):
+        """
+        Run the bijection from a marginally large tableaux to a rigged
+        configuration.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['D',4])
+            sage: T = crystals.infinity.Tableaux(['D',4])
+            sage: Psi = T.crystal_morphism({T.module_generators[0]: RC.module_generators[0]})
+            sage: TS = T.subcrystal(max_depth=4)
+            sage: all(Psi(b) == RC(b) for b in TS) # long time # indirect doctest
+            True
+        """
+        for cur_crystal in reversed(self.tp_krt):
+            # Iterate through the columns
+            cur_column = list(cur_crystal)
+            self.cur_path.insert(0, []) # Prepend an empty list
+
+            self.cur_dims.insert(0, [0, 1])
+
+            for letter in reversed(cur_column):
+                self.cur_dims[0][0] += 1
+
+                val = letter.value # Convert from a CrystalOfLetter to an Integer
+
+                # Build the next state
+                self.cur_path[0].insert(0, [letter]) # Prepend the value
+                self.next_state(val)
+
+                if self.cur_dims[0][0] == self.n - 1:
+                    # Spinor case, we go from \Lambda_{n-2} -> \Lambda_{n-1} + \Lambda_n
+                    self.cur_dims.insert(1, [self.n,1])
+                    self.cur_path.insert(1, self.cur_path[0] + [None])
+
+        self.ret_rig_con.set_immutable() # Return it to immutable
+        return self.ret_rig_con
 
 class RCToMLTBijectionTypeD(RCToKRTBijectionTypeD):
-    pass # TODO - placeholder
+    def run(self):
+        """
+        Run the bijection from rigged configurations to a large tableau.
+
+        EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['D',4])
+            sage: T = crystals.infinity.Tableaux(['D',4])
+            sage: Psi = RC.crystal_morphism({RC.module_generators[0]: T.module_generators[0]})
+            sage: RCS = RC.subcrystal(max_depth=4)
+            sage: all(Psi(nu) == T(nu) for nu in RCS) # long time # indirect doctest
+            True
+        """
+        letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
+        ret_crystal_path = []
+
+        while self.cur_dims:
+            dim = self.cur_dims[0]
+            ret_crystal_path.append([])
+
+            # Assumption: all factors are single columns
+            if dim[0] == self.n - 1:
+                # Spinor case, since we've done \Lambda_n + \Lambda_{n-1} -> \Lambda_{n-2}
+                self.cur_dims.pop(1)
+
+            while dim[0] > 0:
+                dim[0] -= 1 # This takes care of the indexing
+                b = self.next_state(dim[0])
+
+                # Make sure we have a crystal letter
+                ret_crystal_path[-1].append(letters(b)) # Append the rank
+
+            self.cur_dims.pop(0) # Pop off the leading column
+
+        return ret_crystal_path
 

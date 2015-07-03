@@ -25,6 +25,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element import CommutativeAlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 from constructor import rational_type, FormsSpace, FormsRing
 from series_constructor import MFSeriesConstructor
@@ -38,6 +39,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
     r"""
     Element of a FormsRing.
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     from analytic_type import AnalyticType
     AT = AnalyticType()

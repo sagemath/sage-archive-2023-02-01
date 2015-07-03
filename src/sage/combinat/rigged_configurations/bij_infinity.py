@@ -4,6 +4,12 @@ Bijection between rigged configurations for `B(\infty)` and marginally large tab
 AUTHORS:
 
 - Travis Scrimshaw (2015-07-01): Initial version
+
+REFERENCES:
+
+.. [RC_MLT] Ben Salisbury and Travis Scrimshaw. *Connecting marginally
+   large tableaux and rigged configurations via crystals*.
+   Pre-print. :arxiv:`1505.07040`.
 """
 
 #*****************************************************************************
@@ -42,6 +48,18 @@ def affine_type_from_classical(ct):
     """
     Return the affine type corresponding to the classical type ``ct``
     used in the bijection.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.rigged_configurations.bij_infinity import affine_type_from_classical
+        sage: affine_type_from_classical(CartanType(['A', 6]))
+        ['A', 6, 1]
+        sage: affine_type_from_classical(CartanType(['B', 6]))
+        ['B', 6, 1]
+        sage: affine_type_from_classical(CartanType(['C', 6]))
+        ['B', 6, 1]^*
+        sage: affine_type_from_classical(CartanType(['D', 6]))
+        ['D', 6, 1]
     """
     if ct.type() == 'A':
         return CartanType(['A', ct.rank(), 1])
@@ -216,24 +234,14 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
         Run the bijection from a marginally large tableaux to a rigged
         configuration.
 
-        INPUT:
-
-        - ``tp_krt`` -- a tensor product of KR tableaux
-
         EXAMPLES::
 
-            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
-            sage: from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
-            sage: KRTToRCBijectionTypeA(KRT(pathlist=[[5,2]])).run()
-            <BLANKLINE>
-            -1[ ]-1
-            <BLANKLINE>
-            1[ ]1
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            -1[ ]-1
-            <BLANKLINE>
+            sage: RC = crystals.infinity.RiggedConfigurations(['B',4])
+            sage: T = crystals.infinity.Tableaux(['B',4])
+            sage: Psi = T.crystal_morphism({T.module_generators[0]: RC.module_generators[0]})
+            sage: TS = T.subcrystal(max_depth=4)
+            sage: all(Psi(b) == RC(b) for b in TS) # long time # indirect doctest
+            True
         """
         for cur_crystal in reversed(self.tp_krt):
             # Iterate through the columns
@@ -271,6 +279,13 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
         Run the bijection from rigged configurations to a large tableau.
 
         EXAMPLES::
+
+            sage: RC = crystals.infinity.RiggedConfigurations(['B',4])
+            sage: T = crystals.infinity.Tableaux(['B',4])
+            sage: Psi = RC.crystal_morphism({RC.module_generators[0]: T.module_generators[0]})
+            sage: RCS = RC.subcrystal(max_depth=4)
+            sage: all(Psi(nu) == T(nu) for nu in RCS) # long time # indirect doctest
+            True
         """
         letters = CrystalOfLetters(self.rigged_con.parent()._cartan_type.classical())
 

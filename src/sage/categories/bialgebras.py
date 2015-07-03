@@ -64,15 +64,36 @@ class Bialgebras(Category_over_base_ring):
 
         def convolution_product(self, *maplist):
             """
-            Given a maplist `(R, S, ..., T)` of length `n`, return the new map representing their convolution product.
+            Return the convolution product (a map) of the maps in maplist.
+
+            INPUT:
+
+             - ``maplist`` -- any number of linear maps `R,S,...,T` on ``self``, say of length `n>=0`.
+
+            OUTPUT:
+
+             - the new map `R*S*...*T` representing their convolution product.
 
             MATH::
 
-                (R*S*\cdots *T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h)
+                (R*S*\cdots *T) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}.
+
+            where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
+            with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
+            and with `\mu^{(k)} := \mu \circ \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
+            (the ordinary product). See [Sw1969]_.
+
+            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we denote above as `\Delta^{(1)}`. See [KMN2012]_.)
 
             .. SEEALSO::
 
                 :meth:`sage.categories.bialgebras.ElementMethods.convolution_product`
+
+            AUTHORS:
+
+            Aaron Lauve - 12 June 2015 - Sage Days 65
+                - based off of .adams_operator() code in sage-trac ticket #18350
+                - by Jean-Baptiste Priez
 
             .. TODO::
 
@@ -123,14 +144,13 @@ class Bialgebras(Category_over_base_ring):
             n = len(T)
             H = self
 
-            # I do not know how to keep .convolution_product() from showing up in the
-            # list of methods available to, e.g., SymmetricFunctions(QQ).
-            # At present, the code below assumes Parent is something more like SymmetricFunctions(QQ).m()
-            # The code should either be rewritten (I don't know how),
-            # or we should do a check, e.g.,
+            # TYPE-CHECK:
             if not H in ModulesWithBasis:
-                raise TypeError('`self` must belong to ModulesWithBasis. Try a basis of %s' % H._repr_())
+                raise AttributeError('`self` (%s) must belong to ModulesWithBasis. Try defining convolution product on a basis of `self` instead.' % H._repr_())
 
+            # SPEED-NOTE:
+            # The code below, written as a composition of morphisms, is
+            # much slower than the code appearing under ElementMethods below.
             if n == 0:
                 return H.module_morphism(on_basis=lambda x: H.one() * H.term(x).counit(), codomain = H)
             elif n == 1:
@@ -142,6 +162,16 @@ class Bialgebras(Category_over_base_ring):
                 Mu_n = HHH.module_morphism(on_basis=lambda args: H.prod([H.term(h) for h in args]), codomain = H)
 
                 return Mu_n * apply_T * Delta_n
+
+        def _convolution_product_from_elements(self, *maplist):
+            """
+            Return the convolution product (a map) of the maps in maplist.
+
+            A temporary function, created for speed-testing purposes.
+            """
+            cpfe = lambda x: x.convolution_product(*maplist)
+            return cpfe
+
 
     class ElementMethods:
 
@@ -159,8 +189,7 @@ class Bialgebras(Category_over_base_ring):
 
             .. SEEALSO::
 
-                :mod:`sage.categories.hopf_algebras.ElementMethods.convolution_product`
-                :mod:`sage.categories.hopf_algebras.ElementMethods.convolution_product`
+                :mod:`sage.categories.bialgebras.ElementMethods.convolution_product`
 
                 (In the literature, this is also called a Hopf power or Sweedler power, cf. [AL2015]_.)
 
@@ -172,7 +201,7 @@ class Bialgebras(Category_over_base_ring):
 
             .. TODO::
 
-                Move to hopf_algebras.py (i.e., remove dependency on modules_with_basis methods).
+                Remove dependency on modules_with_basis methods.
 
             TESTS::
 
@@ -196,16 +225,30 @@ class Bialgebras(Category_over_base_ring):
 
             """
             if n < 0:
-                raise ValueError("cannot take less than 0 coproduct iterations: %s < 0" % str(n))
-            return self.convolution_product([lambda x: x] * n)
+                if hasattr(self,'antipode'):
+                    T = lambda x: x.antipode()
+                    n = abs(n)
+                else:
+                    raise AttributeError("`self` has no antipode, hence cannot take negative convolution powers of identity_map: %s < 0" % str(n))
+            else:
+                T = lambda x: x
+            return self.convolution_product([T] * n)
 
         def convolution_product(self, *maplist):
             """
-            Given a maplist `(R, S, ..., T)` of length `n`, compute the action of their convolution product on ``self.``
+            Return the image of ``self`` under the convolution product (map) of the maps in ``maplist``.
+
+            INPUT:
+
+             - ``maplist`` -- any number of linear maps `R,S,...,T` on ``self.parent()``, say of length `n>=0`.
+
+            OUTPUT:
+
+             - `(R*S*...*T)` applied to ``self``.
 
             MATH::
 
-                (R*S*\cdots *T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h)
+                (R*S*\cdots *T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h),
 
             where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
             with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
@@ -223,6 +266,10 @@ class Bialgebras(Category_over_base_ring):
             .. [Sw1969] Hopf algebras.
                 Moss Sweedler.
                 W.A. Benjamin, Math Lec Note Ser., 1969.
+
+            AUTHORS:
+
+            Amy Pang - 12 June 2015 - Sage Days 65
 
             .. TODO::
 
@@ -310,6 +357,10 @@ class Bialgebras(Category_over_base_ring):
                 T = maplist
 
             H = self.parent()
+            # TYPE-CHECK:
+            if not H in ModulesWithBasis:
+                raise AttributeError('`parent` (%s) must belong to ModulesWithBasis. Try defining convolution product on a basis of `parent` instead.' % H._repr_())
+
             n = len(T)
             if n == 0:
                 return H.one() * self.counit()
@@ -333,53 +384,16 @@ class Bialgebras(Category_over_base_ring):
                 #Apply final map `T_n` to last term, `y`, and multiply.
                 out = HH.module_morphism(on_basis=lambda (x,y): H.term(x)*T[n-1](H.term(y)), codomain=H)(out)
 
-#                 #ALGORITHM:
-
                 return out
-                # ------------
-                # IMPLEMENTATION NOTE:
-                # In the `module_morphism()` version of this code (copied below), Sage sometimes throws a `TypeError`. E.g.,
-                # -------
-                # sage: Antipode = lambda x: x.antipode()
-                #
-                # sage: QS = SymmetricGroupAlgebra(QQ,3)
-                # sage: x = QS.sum_of_terms([(p,p.length()) for p in Permutations(3)]); x
-                # [1, 3, 2] + [2, 1, 3] + 2*[2, 3, 1] + 2*[3, 1, 2] + 3*[3, 2, 1]
-                # sage: x.convolution_product([Antipode, Antipode])
-                # 5*[1, 2, 3] + 2*[2, 3, 1] + 2*[3, 1, 2]
-                #
-                # sage: QG GroupAlgebra(SymmetricGroup(3),QQ)
-                # sage: x = QG.sum_of_terms([(p,p.length()) for p in Permutations(3)]); x
-                # [1, 3, 2] + [2, 1, 3] + 2*[2, 3, 1] + 2*[3, 1, 2] + 3*[3, 2, 1]
-                # sage: x.convolution_product([Antipode,Antipode])
-                # TypeError: Don't know how to create an element of Group algebra of group...
-                # -------
-                # #`split_convolve` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
-                # split_convolve = lambda x,y: (x.tensor(y.coproduct())).apply_multilinear_morphism(convolve, codomain = HH)
-                # convolve = lambda x,y1,y2: tensor([x * T[i](y1), y2])
-                #
-                # while i < n-1:
-                #     out = out.apply_multilinear_morphism(split_convolve, codomain = HH)
-                #     i += 1
-                #
-                # #Apply final map `T_n` to last term, `y`, and multiply.
-                # out = out.apply_multilinear_morphism(lambda x,y: x * T[n-1](y), codomain = H)
-                # -------
-                # #`split_convolve` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
-                # split_convolve = lambda (x,y): (((xy1,y2),c*d) for ((y1,y2),d) in H(y).coproduct() for (xy1,c) in H(x)*T[i](H(y1)))
-                # while i < n-1:
-                #     out = HH.module_morphism(on_basis=lambda t: HH.sum_of_terms(split_convolve(t)), codomain = HH)(out)
-                #     i += 1
-
-                # #Apply final map `T_n` to last term, `y`, and multiply.
-                # out = HH.module_morphism(on_basis=lambda (x,y): H(x)*T[n-1](H(y)), codomain=H)(out)
-                # ------------
-
 
 
         def coproduct_iterated(self, n=1):
             r"""
-            Apply `k-1` coproducts to ``self``.
+            Apply `n` coproducts to ``self``.
+
+            .. TODO::
+
+                Remove dependency on modules_with_basis methods.
 
             EXAMPLES::
 

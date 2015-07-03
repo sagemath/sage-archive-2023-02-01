@@ -5597,8 +5597,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             I*x^3 + 2.0
             sage: f.roots()  # abs tol 1e-14
             [(-1.0911236359717227 + 0.6299605249474374*I, 1), (3.885780586188048e-16 - 1.2599210498948734*I, 1), (1.0911236359717211 + 0.6299605249474363*I, 1)]
-            sage: f(f.roots()[0][0])  # abs tol 1e-13
-            3.3306690738754696e-15 + 1.3704315460216776e-15*I
+            sage: abs(f(f.roots()[0][0]))  # abs tol 1e-13
+            1.1102230246251565e-16
 
         Examples using real root isolation::
 
@@ -7739,21 +7739,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] += y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] += y[i]
-            x += y[len(x):]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
@@ -7774,21 +7759,6 @@ cdef class Polynomial_generic_dense(Polynomial):
             return res
         else:
             return self._new_c(low + high, self._parent)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] -= y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] -= y[i]
-            x += [-c for c in y[len(x):]]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
@@ -7813,18 +7783,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         # "normalize" checks this anyway...
         res.__normalize()
         return res
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        if len(self.__coeffs) == 0:
-            return self
-        if c._parent is not (<Element>self.__coeffs[0])._parent:
-            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
-        cdef Py_ssize_t i, deg = len(self.__coeffs)
-        for i from 0 <= i < deg:
-            self.__coeffs[i] *= c
-        if not self.__coeffs[deg-1]:
-            self.__normalize()
-        return self
 
     cpdef constant_coefficient(self):
         """

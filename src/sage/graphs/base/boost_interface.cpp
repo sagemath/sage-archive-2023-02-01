@@ -2,6 +2,8 @@
 #define BOOSTGRAPH
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/edge_connectivity.hpp>
+#include <boost/graph/exterior_property.hpp>
+#include <boost/graph/clustering_coefficient.hpp>
 
 #include <iostream>
 
@@ -15,6 +17,13 @@ typedef struct {
                        // nodes. For instance, if the minimum cut is
                        // {(1,2),(3,4)}, the output vector will be (1,2,3,4).
 } result_ec;
+
+
+// This struct is the output of the clustering coefficient Boost algorithm.
+typedef struct {
+    double average_clustering_coefficient; // The average clustering coefficient
+    vector<double> clust_of_v;             // The clustering coefficient of each node.
+} result_cc;
 
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
@@ -83,6 +92,27 @@ public:
             to_return.edges.push_back((*graph)[boost::source(edge, *graph)]);
             to_return.edges.push_back((*graph)[boost::target(edge, *graph)]);
         }
+        return to_return;
+    }
+
+    double clustering_coeff(int v) {
+        return clustering_coefficient(*graph, (*vertices)[v]);
+    }
+
+    result_cc clustering_coeff_all() {
+        result_cc to_return;
+
+        typedef typename exterior_vertex_property<adjacency_list, double>::container_type ClusteringContainer;
+        typedef typename exterior_vertex_property<adjacency_list, double>::map_type ClusteringMap;
+
+        ClusteringContainer coefs(num_vertices(*graph));
+        ClusteringMap cm(coefs, *graph);
+
+        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph, cm);
+        for (unsigned i = 0; i < num_verts(); i++) {
+            to_return.clust_of_v.push_back(cm[(*graph)[i]]);
+        }
+
         return to_return;
     }
 };

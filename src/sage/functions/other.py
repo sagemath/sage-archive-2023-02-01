@@ -236,7 +236,7 @@ class Function_erf(BuiltinFunction):
 
         TESTS:
 
-        Check if #8568 is fixed::
+        Check if :trac:`8568` is fixed::
 
             sage: var('c,x')
             (c, x)
@@ -758,7 +758,7 @@ class Function_gamma(GinacFunction):
             sage: CDF(-1).gamma()
             Infinity
 
-        Check if #8297 is fixed::
+        Check if :trac:`8297` is fixed::
 
             sage: latex(gamma(1/4))
             \Gamma\left(\frac{1}{4}\right)
@@ -2041,7 +2041,7 @@ class Function_real_part(GinacFunction):
             sage: real_part(x)._sympy_()
             re(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.real())
             \Re \left( x \right)
@@ -2111,7 +2111,7 @@ class Function_imag_part(GinacFunction):
             sage: imag_part(x)._sympy_()
             im(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.imag())
             \Im \left( x \right)
@@ -2191,7 +2191,7 @@ class Function_conjugate(GinacFunction):
             sage: x.conjugate().operator() == conjugate
             True
 
-        Check if #8755 is fixed::
+        Check if :trac:`8755` is fixed::
 
             sage: conjugate(sqrt(-3))
             conjugate(sqrt(-3))
@@ -2206,7 +2206,7 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(sqrt(y))
             sqrt(y)
 
-        Check if #10964 is fixed::
+        Check if :trac:`10964` is fixed::
 
             sage: z= I*sqrt(-3); z
             I*sqrt(-3)

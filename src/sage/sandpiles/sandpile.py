@@ -310,7 +310,8 @@ class Sandpile(DiGraph):
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors(v):
-                    if isinstance(g.edge_label(v,n), type(1)) and g.edge_label(v,n) >=0:
+                    if (isinstance(g.edge_label(v,n), int)
+                            and g.edge_label(v,n) >= 0):
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
@@ -321,8 +322,8 @@ class Sandpile(DiGraph):
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors_out(v):
-                    if (isinstance(g.edge_label(v,n), type(1))
-                        and g.edge_label(v,n)>=0):
+                    if (isinstance(g.edge_label(v,n), int)
+                            and g.edge_label(v,n) >= 0):
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1

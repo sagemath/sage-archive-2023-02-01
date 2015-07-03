@@ -190,8 +190,6 @@ def is_package_installed(package):
 
     EXAMPLES::
 
-        sage: is_package_installed('sage')
-        True
         sage: is_package_installed('pari')
         True
 

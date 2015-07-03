@@ -106,20 +106,20 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover of self
+    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover.
     :meth:`~Graph.independent_set` | Returns a maximum independent set.
-    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor from ``self`` if one exists.
-    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` objet corresponding to ``self``.
-    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial of the graph `G`.
+    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor of ``self`` if one exists.
+    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` object corresponding to ``self``.
+    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial.
     :meth:`~Graph.rank_decomposition` | Returns an rank-decomposition of ``self`` achieving optiml rank-width.
-    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H` in the current graph.
+    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H`.
     :meth:`~Graph.independent_set_of_representatives` | Returns an independent set of representatives.
     :meth:`~Graph.coloring` | Returns the first (optimal) proper vertex-coloring found.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
-    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
-    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
-    :meth:`~Graph.chromatic_symmetric_function` | Return the chromatic symmetric function of the graph.
-    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
+    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices.
+    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial.
+    :meth:`~Graph.chromatic_symmetric_function` | Return the chromatic symmetric function.
+    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
     :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
 
@@ -133,12 +133,13 @@ graphs.
 
     :meth:`~Graph.cores` | Returns the core number for each vertex in an ordered list.
     :meth:`~Graph.matching` | Returns a maximum weighted matching of the graph
-    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index of ``self``
-    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial of the graph.
-    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
-    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
+    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index.
+    :meth:`~Graph.lovasz_theta` | Returns the Lovasz number (a.k.a theta).
+    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial.
+    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition.
+    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
 
 AUTHORS:
 
@@ -6449,7 +6450,7 @@ class Graph(GenericGraph):
 
         # Take any two vertices (u,v)
         it = vertices.__iter__()
-        u,v = it.next(),it.next()
+        u,v = next(it),next(it)
 
         # Compute a uv min-edge-cut.
         #
@@ -6873,4 +6874,6 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
+from sage.graphs.lovasz_theta import lovasz_theta
+Graph.lovasz_theta = lovasz_theta
 

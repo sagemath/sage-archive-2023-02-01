@@ -32,6 +32,11 @@ cdef extern from "boost_interface.cpp":
     cdef cppclass result_ec:
         int ec
         vector[int] edges
+
+    cdef cppclass result_cc:
+        float average_clustering_coefficient
+        vector[float] clust_of_v
+
     cdef cppclass BoostGraph[OutEdgeListS, VertexListS, DirectedS, EdgeListS]:
         BoostGraph()
         void add_vertex()
@@ -39,9 +44,13 @@ cdef extern from "boost_interface.cpp":
         void add_edge(int u, int v)
         int num_edges()
         result_ec edge_connectivity()
+        double clustering_coeff(int v)
+        result_cc clustering_coeff_all()
 
 ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS] BoostVecDiGraph
+
+ctypedef BoostGraph[setS, vecS, undirectedS,    vecS] BoostSetGraph
 
 ctypedef fused BoostVecGenGraph:
     BoostVecGraph
@@ -51,6 +60,6 @@ ctypedef fused BoostGenGraph:
     BoostVecGraph
     BoostVecDiGraph
     BoostGraph[vecS, vecS, directedS,      vecS]
-    BoostGraph[setS, vecS, undirectedS,    vecS]
+    BoostSetGraph
     BoostGraph[setS, vecS, directedS,      vecS]
     BoostGraph[setS, vecS, bidirectionalS, vecS]

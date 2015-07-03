@@ -126,6 +126,7 @@ __append_to_doc(
      "KittellGraph",
      "KrackhardtKiteGraph",
      "LjubljanaGraph",
+     "LivingstoneGraph",
      "M22Graph",
      "MarkstroemGraph",
      "McGeeGraph",
@@ -180,6 +181,7 @@ __append_to_doc(
      "BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
+     "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
@@ -1873,6 +1875,7 @@ class GraphGenerators():
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
+    LivingstoneGraph         = staticmethod(sage.graphs.generators.smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(sage.graphs.generators.smallgraphs.MarkstroemGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
@@ -1919,6 +1922,7 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)

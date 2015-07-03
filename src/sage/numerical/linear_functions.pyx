@@ -1418,12 +1418,12 @@ cdef class LinearConstraint(Element):
         if not self.is_equation() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def inequalities(self):
         """
@@ -1451,12 +1451,12 @@ cdef class LinearConstraint(Element):
         if not self.is_less_or_equal() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def _repr_(self):
         r"""

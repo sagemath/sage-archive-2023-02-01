@@ -16,19 +16,132 @@ components:
    during the install
 
 
-Use the ``install_package`` command to install a new
-package, and use ``optional_packages`` to list all
-optional packages available on the central Sage server. The
-``upgrade`` command upgrades all *standard* packages -
-there is no auto-upgrade command for optional packages.
+Use the :func:`install_package` command to install a new package, and use
+:func:`optional_packages` to list all optional packages available. The
+:func:`upgrade` command upgrades all *standard* packages - there is no
+auto-upgrade command for optional packages.
 
 All package management can also be done via the Sage command line.
+
+Packages available
+------------------
+
+**Standard packages:**
+
+{STANDARD_PACKAGES}
+
+**Optional packages:**
+
+{OPTIONAL_PACKAGES}
+
+**Experimental packages:**
+
+{EXPERIMENTAL_PACKAGES}
+
+Functions
+---------
 """
+
+def _list_to_table(list_of_packages):
+    r"""
+    Helper function returning a ReST table from a list of strings.
+
+    The entries are sorted vertically.
+
+    INPUT:
+
+    - ``list_of_packages`` -- a list
+
+    EXAMPLE::
+
+        sage: print sage.misc.package._list_to_table([str(x) for x in range(10)])
+        .. csv-table::
+            :class: contentstable
+            :widths: 20, 20, 20, 20, 20
+            :delim: |
+        <BLANKLINE>
+                ``0`` | ``2`` | ``4`` | ``6`` | ``8``
+                ``1`` | ``3`` | ``5`` | ``7`` | ``9``
+        <BLANKLINE>
+
+    Check that the local list of packages matches the online list. Standard
+    packages::
+
+        sage: from sage.misc.package import _STANDARD_PACKAGES, standard_packages
+        sage: a,b = standard_packages() # optional internet
+        sage: set(a+b).symmetric_difference(_STANDARD_PACKAGES) # optional internet
+        set()
+
+    Optional packages::
+
+        sage: from sage.misc.package import _OPTIONAL_PACKAGES, optional_packages
+        sage: a,b = optional_packages() # optional internet
+        sage: set(a+b).symmetric_difference(_OPTIONAL_PACKAGES) # optional internet
+        set()
+
+    Experimental packages::
+
+        sage: from sage.misc.package import _EXPERIMENTAL_PACKAGES, experimental_packages
+        sage: a,b = experimental_packages() # optional internet
+        sage: set(a+b).symmetric_difference(_EXPERIMENTAL_PACKAGES) # optional internet
+        set()
+    """
+    from string import join
+    s = (".. csv-table::\n"
+                "    :class: contentstable\n"
+                "    :widths: 20, 20, 20, 20, 20\n"
+                "    :delim: |\n\n")
+    length = len(list_of_packages)
+    width = 5
+    height = (length+width-1)//width
+
+    list_of_packages = sorted(["``"+p+"``" if p else p
+                               for p in list_of_packages])
+
+    list_of_packages.sort()
+    list_of_packages.extend(['']*width)
+    for l in range(height):
+        s += "        "+join(list_of_packages[l::height][:width], ' | ')+"\n"
+
+    return s
+
+_STANDARD_PACKAGES = ['atlas', 'backports_ssl_match_hostname', 'boehm_gc', 'boost_cropped', 'bzip2', 'cddlib', 'cephes',
+                      'certifi', 'cliquer', 'combinatorial_designs', 'conway_polynomials', 'cvxopt', 'cython', 'dateutil',
+                      'docutils', 'ecl', 'eclib', 'ecm', 'elliptic_curves', 'extcode', 'fflas_ffpack', 'flint', 'flintqs',
+                      'freetype', 'gap', 'gcc', 'gd', 'gdmodule', 'genus2reduction', 'gf2x', 'gfan', 'git', 'givaro', 'glpk',
+                      'graphs', 'gsl', 'iconv', 'iml', 'ipython', 'jinja2', 'jmol', 'jsonschema', 'lcalc', 'libfplll', 'libgap',
+                      'libgd', 'libm4ri', 'libm4rie', 'libpng', 'linbox', 'lrcalc', 'm4ri', 'm4rie', 'markupsafe', 'mathjax',
+                      'matplotlib', 'maxima', 'mercurial', 'mistune', 'mpc', 'mpfi', 'mpfr', 'mpir', 'mpmath', 'ncurses',
+                      'networkx', 'ntl', 'numpy', 'palp', 'pari', 'pari_galdata', 'pari_seadata_small', 'patch', 'pexpect', 'pil',
+                      'pillow', 'pip', 'pkgconf', 'pkgconfig', 'polybori', 'polytopes_db', 'ppl', 'pycrypto', 'pygments', 'pynac',
+                      'pyparsing', 'python', 'pyzmq', 'r', 'ratpoints', 'readline', 'rpy2', 'rubiks', 'sage', 'sage_root',
+                      'sage_scripts', 'sagenb', 'sagetex', 'scipy', 'scons', 'setuptools', 'singular', 'six', 'sphinx',
+                      'sqlalchemy', 'sqlite', 'symmetrica', 'sympow', 'sympy', 'tachyon', 'tornado', 'zeromq', 'zlib', 'zn_poly']
+
+_OPTIONAL_PACKAGES = ['4ti2', 'PyQt_x11', 'TOPCOM', 'arb', 'autotools', 'beautifulsoup', 'benzene', 'biopython', 'bliss', 'brian',
+                      'buckygen', 'cbc', 'ccache', 'chomp', 'cluster_seed', 'compilerwrapper', 'coxeter3', 'cryptominisat', 'cunningham_tables', 'd3js',
+                      'database_cremona_ellcurve', 'database_gap', 'database_jones_numfield-v4', 'database_kohel', 'database_odlyzko_zeta',
+                      'database_pari', 'database_stein_watkins', 'database_stein_watkins_mini', 'database_symbolic_data', 'dot2tex', 'extra_docs',
+                      'fricas', 'gambit', 'gap_packages', 'gcc', 'gdb', 'gdbm', 'ginv', 'git', 'git_trac', 'gmp', 'gnuplotpy', 'guppy', 'java3d',
+                      'kash3', 'knoboo', 'latte_int', 'libogg', 'libtheora', 'lidia', 'lie', 'lrs', 'mcqd', 'modular_decomposition', 'mpi4py', 'mpir',
+                      'nauty', 'normaliz', 'nose', 'nzmath', 'openmpi', 'openssl', 'ore_algebra', 'p_group_cohomology', 'patchbot', 'phc', 'plantri',
+                      'pybtex', 'pycryptoplus', 'python2', 'python3', 'pyx', 'pyzmq', 'qhull', 'sage_mode', 'sip', 'termcap', 'threejs', 'tides',
+                      'topcom', 'trac', 'valgrind', 'zeromq']
+
+_EXPERIMENTAL_PACKAGES = ['PyQt4', 'PyVTK', 'QScintilla2', 'asymptote', 'bison', 'boost_1_34_1', 'cadabra', 'clapack', 'clisp',
+                          'cmake', 'csdp', 'dvipng', 'ets', 'fes', 'flex', 'gcc', 'gdb', 'gnofract4d', 'gnuplot', 'graphviz', 'latte_int', 'libcprops',
+                          'libjpeg', 'libsigsegv', 'macaulay2', 'mayavi_2', 'meataxe', 'modglue', 'mpich2', 'numarray', 'numeric', 'openopt', 'pcre',
+                          'pexpect', 'phcpack', 'polymake', 'processing', 'pygame', 'pygsl', 'pygtk', 'pynifti', 'pyqt', 'pyrexembed', 'qasm', 'qepcad',
+                          'quantlib', 'quantlib_swig', 'reallib3-linux', 'sandpile', 'scitools++', 'semigroupe', 'simpqs', 'sip', 'soya', 'soya_cvs',
+                          'superlu', 'surf', 'vtk_meta', 'wxPython', 'yafray', 'yassl']
+
+__doc__ = __doc__.format(STANDARD_PACKAGES     =_list_to_table(_STANDARD_PACKAGES),
+                         OPTIONAL_PACKAGES     =_list_to_table(_OPTIONAL_PACKAGES),
+                         EXPERIMENTAL_PACKAGES =_list_to_table(_EXPERIMENTAL_PACKAGES))
 
 import os
 
 __installed_packages = None
-
 
 def install_all_optional_packages(force=True, dry_run=False):
     r"""

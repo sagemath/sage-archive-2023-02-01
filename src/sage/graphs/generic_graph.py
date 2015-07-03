@@ -14,6 +14,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
+    :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
     :meth:`~GenericGraph.adjacency_matrix` | Return the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Return an incidence matrix of the (di)graph
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
@@ -1084,6 +1085,94 @@ class GenericGraph(GenericGraph_pyx):
             5
         """
         return self.copy(immutable=False)
+
+    def export_to_file(self, filename, format=None, **kwds):
+        r"""
+        Export the graph to a file.
+
+        INPUT:
+
+        - ``filename`` (string) -- a file name.
+
+        - ``format`` (string) -- select the output format explicitly. If set to
+          ``None`` (default), the format is set to be the file extension of
+          ``filename``. Admissible formats are: ``adjlist``, ``dot``,
+          ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
+          ``pajek``, ``yaml``.
+
+        - All other arguments are forwarded to the subfunction. For more
+          information, see their respective documentation:
+
+          .. csv-table::
+              :class: contentstable
+              :widths: 30, 70
+              :delim: |
+
+              ``adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.adjlist.write_adjlist.html
+              ``dot`` | https://networkx.github.io/documentation/latest/reference/generated/networkx.drawing.nx_pydot.write_dot.html
+              ``edgelist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.edgelist.write_edgelist.html
+              ``gexf`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gexf.write_gexf.html
+              ``gml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gml.write_gml.html
+              ``graphml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.graphml.write_graphml.html
+              ``multiline_adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.multiline_adjlist.write_multiline_adjlist.html
+              ``pajek`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.pajek.write_pajek.html
+              ``yaml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.nx_yaml.write_yaml.html
+
+        .. SEEALSO::
+
+            * :meth:`~sage.structure.sage_object.SageObject.save` -- save a Sage
+              object to a 'sobj' file (preserves all its attributes).
+
+        .. NOTE::
+
+            This functions uses the ``write_*`` functions defined in NetworkX
+            (see http://networkx.lanl.gov/reference/readwrite.html).
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: filename = tmp_filename(ext=".pajek")
+            sage: g.export_to_file(filename)
+
+        TESTS::
+
+            sage: g.export_to_file("hey",format="When I feel heavy metaaaaaallll...")
+            Traceback (most recent call last):
+            ...
+            ValueError: Format 'When I feel heavy metaaaaaallll...' unknown.
+            sage: g.export_to_file("my_file.Yeeeeppeeeeee")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
+
+        Is the encoded file correct? ::
+
+            sage: import networkx
+            sage: G_networkx = networkx.read_pajek(filename)
+            sage: Graph(G_networkx).is_isomorphic(g)
+        """
+        import networkx
+
+        formats = {"adjlist"           : networkx.write_adjlist,
+                   "dot"               : networkx.write_dot,
+                   "edgelist"          : networkx.write_edgelist,
+                   "gexf"              : networkx.write_gexf,
+                   "gml"               : networkx.write_gml,
+                   "graphml"           : networkx.write_graphml,
+                   "multiline_adjlist" : networkx.write_multiline_adjlist,
+                   "pajek"             : networkx.write_pajek,
+                   "yaml"              : networkx.write_yaml}
+
+        if format is None:
+            ext = filename[1+filename.rfind("."):]
+            if ext not in formats:
+                raise RuntimeError("The file format could not be guessed from '{}'".format(filename))
+            format = ext
+
+        if format not in formats:
+            raise ValueError("Format '{}' unknown.".format(format))
+
+        formats[format](self.networkx_graph(),filename,**kwds)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""

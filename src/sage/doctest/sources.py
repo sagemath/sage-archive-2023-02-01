@@ -191,9 +191,9 @@ class DocTestSource(object):
         new_doctests = self.parse_docstring(docstring, namespace, start)
         for dt in new_doctests:
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
-                                             and dt.examples[-1].sage_source == "sig_on_count()\n"):
+                                             and dt.examples[-1].sage_source == "sig_on_count() # check sig_on/off pairings (virtual doctest)\n"):
                 # Line number refers to the end of the docstring
-                sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=docstring.count("\n"))
+                sigon = doctest.Example("sig_on_count() # check sig_on/off pairings (virtual doctest)\n", "0\n", lineno=docstring.count("\n"))
                 sigon.sage_source = "sig_on_count() # check sig_on/off pairings (virtual doctest)\n"
                 dt.examples.append(sigon)
             doctests.append(dt)

@@ -176,6 +176,7 @@ Comprehensive Module list
     sage/combinat/rigged_configurations/__init__
     sage/combinat/rigged_configurations/all
     sage/combinat/rigged_configurations/bij_abstract_class
+    sage/combinat/rigged_configurations/bij_infinity
     sage/combinat/rigged_configurations/bij_type_A
     sage/combinat/rigged_configurations/bij_type_A2_dual
     sage/combinat/rigged_configurations/bij_type_A2_even

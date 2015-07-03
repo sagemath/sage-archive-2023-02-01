@@ -252,7 +252,8 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
 class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
     def run(self):
         """
-        Run the bijection from rigged configurations to a large tableau.
+        Run the bijection from rigged configurations to a marginally large
+        tableau.
 
         EXAMPLES::
 
@@ -328,7 +329,8 @@ class MLTToRCBijectionTypeD(KRTToRCBijectionTypeD):
 class RCToMLTBijectionTypeD(RCToKRTBijectionTypeD):
     def run(self):
         """
-        Run the bijection from rigged configurations to a large tableau.
+        Run the bijection from rigged configurations to a marginally large
+        tableau.
 
         EXAMPLES::
 

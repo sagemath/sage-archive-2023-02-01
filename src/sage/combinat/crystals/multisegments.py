@@ -3,7 +3,7 @@ Crystal of Bernstien-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -31,24 +31,49 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
     The type `A_n^{(1)}` crystal `B(\infty)` realized using
     Bernstein-Zelevinsky (BZ) multisegments.
 
-    Using the notation in [TingleyLN]_, a segment is a pair `(k; i]` where
-    `k \in \ZZ_{>0}` and `i \in \ZZ / n\ZZ`, and a multisegment is a multiset
-    of segments. We define a crystal structure on multisegments as follows:
+    Using (a modified version of the) notation from [JL2009]_, for `\ell \in
+    \ZZ_{>0}` and `i \in \ZZ /(n+1)\ZZ`, a segment of length `\ell` and head `i`
+    is the sequence of consecutive residues `[i,i+1,\dots,i+\ell-1]`.  The
+    notation  for a segment of length `\ell` and head `i` is simplified to
+    `[i;\ell)`.  Similarly, a segment of length `\ell` and tail `i` is the
+    sequence of consecutive residues `[i-\ell+1,\dots,i-1,i]`.  The latter is
+    denoted simply by `(\ell;i]`.  Finally, a multisegment is a formal linear
+    combination of segments, usually written in the form
 
-    We create an `i`-sigature of the multisegment `\psi` by removing all
-    segments `(k; j]` where `j \not\equiv i, i-1`, and let `\psi^{\prime}`
-    denote the resulting multiset. Next we sort `\psi^{\prime}` to a sequence
-    `L` decreasing in `k` and `(k; i-1]` comes before `(k; i]`. Assign to
-    each `(k; i-1]` a `+` and `(k^{\prime}; i]` a `-`, and then cancel
-    all `+-` pairs until the resulting `\pm`-string is of the form
-    `- \cdots - + \cdots +`. The Kashiwara operators are then defined by:
+    .. MATH::
 
-    * `e_i` changes `(k; i]` to `(k-1; i-1]` corresponding to the leftmost
-      `-` or `0` (``None``) if no `-` exists,
-    * `f_i` changes `(k; i-1]` to `(k+1; i]` corresponding to
-      the rightmost `+` or adds a new segment of `(1; i]` if no `+` exists.
+        \psi =
+        \sum_{\substack{i \in \ZZ/(n+1)\ZZ \\ \ell \in \ZZ_{>0}}}
+        m_{(\ell;i]}(\ell;i].
 
-    We remove any segments of the form `(0; j]`.
+    Such a multisegment is called aperiodic if, for every `\ell>0`, there exists
+    some `i \in \ZZ/(n+1)\ZZ` such that `(\ell;i]` does not appear in `\psi`.
+    Denote the set of all periodic multisegments, together with the empty
+    multisegment `\varnothing`, by `\Psi`.  We define a crystal
+    structure on multisegments as follows.  Set `S_{\ell,i} = \sum_{k\ge \ell}
+    (m_{(k;i-1]} - m_{(k;i]})` and let `\ell_f` be the minimal `\ell` that
+    attains the value `\min_{\ell>0} S_{\ell,i}`. Then `f_i\psi =
+    \psi_{\ell_f,i}`, where
+
+    .. MATH::
+
+        \psi_{\ell_f,i} =
+        \begin{cases}
+         \psi + (1;i] & \text{ if } \ell_f = 1,\\
+         \psi + (\ell_f;i] - (\ell_f-1;i-1] & \text{ if } \ell_f > 1.
+        \end{cases}
+
+    Similarly, let `\ell_e` be the maximal `\ell` that attains the value
+    `\min_{\ell>0} S_{\ell,i}`.  Then `e_i\psi = \psi_{\ell_e,i}`, where
+
+    .. MATH::
+
+        \psi_{\ell_e,i} =
+        \begin{cases}
+         0 & \text{ if } \min_{\ell>0} S_{\ell,i} = 0, \\
+         \psi + (1;i] & \text{ if } \ell_e = 1,\\
+         \psi - (\ell_e;i] + (\ell_e-1;i-1] & \text{ if } \ell_e > 1.
+        \end{cases}
 
     INPUT:
 
@@ -87,9 +112,13 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     REFERENCES:
 
+    .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
+       *Kashiwara and Zelevinsky involutions in affine type A*.
+       Pac. J. Math. 243(2):287-311 (2009).
+
     .. [LTV1999] Bernard Leclerc, Jean-Yves Thibon, and Eric Vasserot.
-       *Zelevinsky's involution at roots of unity*. J. Reine Angew. Math.
-       513:33-51 (1999).
+       *Zelevinsky's involution at roots of unity*.
+       J. Reine Angew. Math. 513:33-51 (1999).
     """
     def __init__(self, n):
         """
@@ -111,9 +140,9 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: crystals.infinity.Multisegments(2)
-            The infinity crystal of BZ-multisegments of type ['A', 2, 1]
+            The infinity crystal of multisegments of type ['A', 2, 1]
         """
-        return "The infinity crystal of BZ-multisegments of type {}".format(self._cartan_type)
+        return "The infinity crystal of multisegments of type {}".format(self._cartan_type)
 
     def module_generator(self):
         """
@@ -129,16 +158,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     def weight_lattice_realization(self):
         """
-        Return a realization of the weight lattice of ``self``. Since the
-        weights are all in `Q^-`, return the root lattice of type `A_n^(1)`.
+        Return a realization of the weight lattice of ``self``.
 
         EXAMPLES::
 
             sage: B = crystals.infinity.Multisegments(2)
             sage: B.weight_lattice_realization()
-            Root lattice of the Root system of type ['A', 2, 1]
+            Extended weight lattice of the Root system of type ['A', 2, 1]
         """
-        return self._cartan_type.root_system().root_lattice()
+        return self._cartan_type.root_system().weight_lattice(extended=True)
 
     class Element(ElementWrapper):
         """
@@ -333,10 +361,10 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return `\varphi_i` of ``self``.
 
-            Let `T \in \mathcal{B}(\infty)` Define `\varphi_i(T) :=
-            \varepsilon_i(T) + \langle h_i, \mathrm{wt}(T) \rangle`, where `h_i`
-            is the `i`-th simple coroot and `\mathrm{wt}(T)` is the :meth:`weight`
-            of `T`.
+            Let `\psi \in \Psi`. Define `\varphi_i(\psi) :=
+            \varepsilon_i(\psi) + \langle h_i, \mathrm{wt}(\psi) \rangle`,
+            where `h_i` is the `i`-th simple coroot and `\mathrm{wt}(\psi)` is the
+            :meth:`weight` of `\psi`.
 
             INPUT:
 
@@ -366,7 +394,7 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
                 sage: B = crystals.infinity.Multisegments(2)
                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
                 sage: b.weight()
-                4*alpha[0] + 4*alpha[1] + 4*alpha[2]
+                4*delta
             """
             WLR = self.parent().weight_lattice_realization()
             alpha = WLR.simple_roots()

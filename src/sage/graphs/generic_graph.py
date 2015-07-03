@@ -1133,6 +1133,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: filename = tmp_filename(ext=".pajek")
             sage: g.export_to_file(filename)
+            sage: import networkx
+            sage: G_networkx = networkx.read_pajek(filename)
+            sage: Graph(G_networkx).is_isomorphic(g)
+            True
+            sage: filename = tmp_filename(ext=".edgelist")
+            sage: g.export_to_file(filename, data=False)
+            sage: h = Graph(networkx.read_edgelist(filename))
+            sage: g.is_isomorphic(h)
+            True
 
         TESTS::
 
@@ -1144,12 +1153,6 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
-
-        Is the encoded file correct? ::
-
-            sage: import networkx
-            sage: G_networkx = networkx.read_pajek(filename)
-            sage: Graph(G_networkx).is_isomorphic(g)
         """
         import networkx
 

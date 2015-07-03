@@ -119,7 +119,7 @@ class KyotoPathModel(TensorProductOfCrystals):
     We can then lift the `U_q'(\mathfrak{g})`-crystal structure to a
     `U_q(\mathfrak{g})`-crystal structure by using a tensor product of
     the :class:`affinization
-    <sage.combinat.crystals.affinization.AffinizationCrystal>` of the
+    <sage.combinat.crystals.affinization.AffinizationOfCrystal>` of the
     of crystals `B^{(i)}` for all `i`.
 
     REFERENCES:
@@ -197,7 +197,7 @@ class KyotoPathModel(TensorProductOfCrystals):
         sage: x = mg.f_string([0,1,2]); x
         [[[2]](-1), [[3]](0), [[1]](0)]
         sage: x.weight()
-        -delta + Lambda[0]
+        Lambda[0] - delta
     """
     @staticmethod
     def __classcall_private__(cls, crystals, weight, P=None):
@@ -448,7 +448,7 @@ class KyotoPathModel(TensorProductOfCrystals):
                 sage: mg.weight()
                 Lambda[0]
                 sage: mg.f_string([0,1,2]).weight()
-                -delta + Lambda[0]
+                Lambda[0] - delta
             """
             wt = TensorProductOfRegularCrystalsElement.weight(self)
             return wt + self._list[-1].Epsilon()

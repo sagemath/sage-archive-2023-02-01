@@ -24,13 +24,13 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.rings.infinity import Infinity
 
-class AffinizationCrystal(Parent, UniqueRepresentation):
+class AffinizationOfCrystal(Parent, UniqueRepresentation):
     r"""
-    An affiniziation crystal.
+    An affiniziation of a crystal.
 
-    Let `\mathfrak{g}` be a Kac-Moody algebra of affine type. The affinization
-    of a finite-dimensional `U_q^{\prime}(\mathfrak{g})`-crystal `B` is the
-    (infinite-dimensional) `U_q(\mathfrak{g})`-crystal with underlying set:
+    Let `\mathfrak{g}` be a Kac-Moody algebra of affine type. The
+    affinization of a finite `U_q^{\prime}(\mathfrak{g})`-crystal `B`
+    is the (infinite) `U_q(\mathfrak{g})`-crystal with underlying set:
 
     .. MATH::
 
@@ -66,7 +66,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
     crystals::
 
         sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-        sage: A = crystals.Affinization(KT)
+        sage: A = crystals.AffinizationOf(KT)
 
     REFERENCES:
 
@@ -78,7 +78,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
         EXAMPLES:
 
-        We skip the Stembridge axioms test since this is an abstract crystal
+        We skip the Stembridge axioms test since this is an abstract crystal::
 
             sage: A = crystals.KirillovReshetikhin(['A',2,1], 2, 2).affinization()
             sage: TestSuite(A).run(skip="_test_stembridge_local_axioms") # long time
@@ -86,7 +86,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
         if not B.cartan_type().is_affine():
             raise ValueError("must be an affine crystal")
         if B.cardinality() == Infinity:
-            raise ValueError("must be finite-dimensional crystal")
+            raise ValueError("must be finite crystal")
         self._B = B
         self._cartan_type = B.cartan_type()
         Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
@@ -129,7 +129,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
             sage: S = A.subcrystal(max_depth=3)
             sage: G = A.digraph(subset=S)
         """
-        G = super(AffinizationCrystal, self).digraph(subset, index_set)
+        G = super(AffinizationOfCrystal, self).digraph(subset, index_set)
         from sage.graphs.dot2tex_utils import have_dot2tex
         if have_dot2tex():
             G.set_latex_options(edge_options = lambda (u,v,label): ({}))
@@ -163,7 +163,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
                 sage: A.module_generators[0]
                 [[1, 1], [2, 2]](0)
                 sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-                sage: A = crystals.Affinization(KT)
+                sage: A = crystals.AffinizationOf(KT)
                 sage: A.module_generators[0]
                 [[1, 1]] (X) [[1], [2]](0)
             """
@@ -200,11 +200,11 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
                 sage: mg == mg.f(2).e(2)
                 True
                 sage: KT = crystals.TensorProductOfKirillovReshetikhinTableaux(['C',2,1], [[1,2],[2,1]])
-                sage: A = crystals.Affinization(KT)
+                sage: A = crystals.AffinizationOf(KT)
                 sage: A(KT.module_generators[3], 1).f(0) == A.module_generators[0]
                 True
             """
-            if not isinstance(other, AffinizationCrystal.Element):
+            if not isinstance(other, AffinizationOfCrystal.Element):
                 return False
             return self.parent() == other.parent() \
                     and self._b == other._b and self._m == other._m
@@ -343,7 +343,7 @@ class AffinizationCrystal(Parent, UniqueRepresentation):
 
             .. MATH::
 
-                \mathrm{wt}\bigl( b(m) \bigr) = \mathrm{wt}(b) + m \delta
+                \mathrm{wt}\bigl( b(m) \bigr) = \mathrm{wt}(b) + m \delta,
 
             where `\delta` is the null root.
 

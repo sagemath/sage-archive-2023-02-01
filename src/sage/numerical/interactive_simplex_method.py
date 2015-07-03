@@ -446,24 +446,37 @@ def default_style(style=None):
     Set or get the default style of :class:`InteractiveLPProblem`.
 
     Currently supported styles are:
+
     - 'UAlberta' (default):  Follows the style used in the Math 373 course 
       on Mathematical Programming and Optimization at the University of 
       Alberta, Edmonton, Canada; based on Chvatal's book.
+
       - Objective functions of dictionaries are printed at the bottom.
+
       - The default objective variable is 'z'.
+
       - Primal variables default to 'x1', 'x2', ...
+
       - Dual variables default to 'y1', 'y2', ...
+
       - Slack variables use the same prefix as problem variables.
 
     - 'Vanderbei':  Follow the style of Robert Vanderbei's textbook, 
       Linear Programming -- Foundations and Extensions.
+
       - Objective functions of dictionaries are printed at the top.
+
       - The default objective variable of primal is 'zeta',
         of auxiliary and dual is 'xi'.
+
       - A negative sign may appear in front of the objective variable.
+
       - Primal variables default to 'x1', 'x2', ...
+
       - Dual variables default to 'y1', 'y2', ...
+
       - Primal slack variables default to 'w1', 'w2', ...
+
       - Dual slack variables default to 'z1', 'z2', ...
     """
     global _default_style

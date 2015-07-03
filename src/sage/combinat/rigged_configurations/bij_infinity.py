@@ -35,41 +35,14 @@ from sage.combinat.rigged_configurations.bij_type_D import (KRTToRCBijectionType
                                                             RCToKRTBijectionTypeD)
 from sage.combinat.rigged_configurations.bij_type_A import (KRTToRCBijectionTypeA,
                                                             RCToKRTBijectionTypeA)
-from sage.combinat.rigged_configurations.bij_type_A2_odd import (KRTToRCBijectionTypeA2Odd,
-                                                                 RCToKRTBijectionTypeA2Odd)
+from sage.combinat.rigged_configurations.bij_type_C import (KRTToRCBijectionTypeC,
+                                                            RCToKRTBijectionTypeC)
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
 from sage.misc.flatten import flatten
-
-def affine_type_from_classical(ct):
-    """
-    Return the affine type corresponding to the classical type ``ct``
-    used in the bijection.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.rigged_configurations.bij_infinity import affine_type_from_classical
-        sage: affine_type_from_classical(CartanType(['A', 6]))
-        ['A', 6, 1]
-        sage: affine_type_from_classical(CartanType(['B', 6]))
-        ['B', 6, 1]
-        sage: affine_type_from_classical(CartanType(['C', 6]))
-        ['B', 6, 1]^*
-        sage: affine_type_from_classical(CartanType(['D', 6]))
-        ['D', 6, 1]
-    """
-    if ct.type() == 'A':
-        return CartanType(['A', ct.rank(), 1])
-    if ct.type() == 'B':
-        return CartanType(['B', ct.rank(), 1])
-    if ct.type() == 'C':
-        return CartanType(['A', 2*ct.rank()-1, 2])
-    if ct.type() == 'D':
-        return CartanType(['D', ct.rank(), 1])
-    raise NotImplementedError("bijection not implemented for type {}".format(ct))
 
 class FromTableauIsomorphism(Morphism):
     r"""
@@ -125,7 +98,7 @@ class FromTableauIsomorphism(Morphism):
         """
         conj = x.to_tableau().conjugate()
         ct = self.domain().cartan_type()
-        act = affine_type_from_classical(ct)
+        act = ct.affine()
         TP = TensorProductOfKirillovReshetikhinTableaux(act, [[r,1] for r in conj.shape()])
         elt = TP(pathlist=[reversed(row) for row in conj])
 
@@ -134,7 +107,7 @@ class FromTableauIsomorphism(Morphism):
         elif ct.type() == 'B':
             bij = MLTToRCBijectionTypeB(elt)
         elif ct.type() == 'C':
-            bij = KRTToRCBijectionTypeA2Odd(elt)
+            bij = KRTToRCBijectionTypeC(elt)
         elif ct.type() == 'D':
             bij = MLTToRCBijectionTypeD(elt)
         else:
@@ -207,14 +180,14 @@ class FromRCIsomorphism(Morphism):
                 lam[-1] *= 2
             l = sum([ [[r,1]]*lam[i] for i,r in enumerate(I) ], [])
 
-        RC = RiggedConfigurations(affine_type_from_classical(ct), reversed(l))
+        RC = RiggedConfigurations(ct.affine(), reversed(l))
         elt = RC(x)
         if ct.type() == 'A':
             bij = RCToKRTBijectionTypeA(elt)
         elif ct.type() == 'B':
             bij = RCToMLTBijectionTypeB(elt)
         elif ct.type() == 'C':
-            bij = RCToKRTBijectionTypeA2Odd(elt)
+            bij = RCToKRTBijectionTypeC(elt)
         elif ct.type() == 'D':
             bij = RCToMLTBijectionTypeD(elt)
         else:

@@ -24,6 +24,8 @@ AUTHORS:
 
 - Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
 
+- Simon King (2015): Extend pickling capabilities.
+
 Introduction
 ------------
 
@@ -1340,18 +1342,6 @@ class SingularElement(ExpectElement):
         """
         return int(self.size())
 
-    def __reduce__(self):
-        """
-        Note that the result of the returned reduce_load is an invalid
-        Singular object.
-
-        EXAMPLES::
-
-            sage: singular(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-        """
-        return reduce_load, ()  # default is an invalid object
-
     def __setitem__(self, n, value):
         """
         Set the n-th element of self to x.
@@ -1795,13 +1785,13 @@ class SingularElement(ExpectElement):
 
     def _sage_(self, R=None):
         r"""
-        Coerces self to Sage.
+        Convert self to Sage.
 
         EXAMPLES::
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
-            sage: A._sage_(ZZ)
+            sage: A.sage(ZZ)   # indirect doctest
             [0 0]
             [0 0]
             sage: A = random_matrix(ZZ,3,3); A
@@ -1812,7 +1802,7 @@ class SingularElement(ExpectElement):
             -8     2     0
             0     1    -1
             2     1   -95
-            sage: As._sage_()
+            sage: As.sage()
             [ -8   2   0]
             [  0   1  -1]
             [  2   1 -95]
@@ -1822,7 +1812,7 @@ class SingularElement(ExpectElement):
             sage: singular.eval('ring R = integer, (x,y,z),lp')
             '// ** redefining R **'
             sage: I = singular.ideal(['x^2','y*z','z+x'])
-            sage: I.sage()  # indirect doctest
+            sage: I.sage()
             Ideal (x^2, y*z, x + z) of Multivariate Polynomial Ring in x, y, z over Integer Ring
 
         ::
@@ -1860,10 +1850,19 @@ class SingularElement(ExpectElement):
             sage: singular('x^2+y').sage().parent()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 
+        Test that :trac:`18848` is fixed::
+
+            sage: singular(5).sage()
+            5
+            sage: type(singular(int(5)).sage())
+            <type 'sage.rings.integer.Integer'>
+
         """
         typ = self.type()
         if typ=='poly':
             return self.sage_poly(R)
+        elif typ=='int':
+            return sage.rings.integer.Integer(repr(self))
         elif typ == 'module':
             return self.sage_matrix(R,sparse=True)
         elif typ == 'matrix':
@@ -2144,20 +2143,6 @@ def is_SingularElement(x):
         False
     """
     return isinstance(x, SingularElement)
-
-def reduce_load():
-    """
-    Note that this returns an invalid Singular object!
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.singular import reduce_load
-        sage: reduce_load()
-        (invalid object -- defined in terms of closed session)
-    """
-    return SingularElement(None, None, None)
-
-
 
 nodes = {}
 node_names = {}

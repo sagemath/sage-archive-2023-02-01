@@ -19,6 +19,8 @@ AUTHORS:
   which is important for forking.
 
 - Jean-Pierre Flori (2010,2011): Split non Pexpect stuff into a parent class.
+
+- Simon King (2015): Improve pickling for InterfaceElement
 """
 
 #*****************************************************************************
@@ -703,10 +705,65 @@ class InterfaceElement(RingElement):
         return len(self.sage())
 
     def __reduce__(self):
+        """
+        The default linearisation is to return an unpickle function,
+        that will get the interface instance and the items returned
+        by :meth:`_reduce` as arguments.
+
+        EXAMPLES::
+
+            sage: G = gap.SymmetricGroup(6)
+            sage: loads(dumps(G)) == G     # indirect doctest
+            True
+            sage: y = gap(34)
+            sage: loads(dumps(y))
+            34
+            sage: type(_)
+            <class 'sage.interfaces.gap.GapElement'>
+            sage: y = singular(34)
+            sage: loads(dumps(y))
+            34
+            sage: type(_)
+            <class 'sage.interfaces.singular.SingularElement'>
+            sage: G = gap.PolynomialRing(QQ, ['x'])
+            sage: loads(dumps(G))
+            PolynomialRing( Rationals, ["x"] )
+            sage: S = singular.ring(0, ('x'))
+            sage: loads(dumps(S))
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+
+        """
         return reduce_load, (self.parent(), self._reduce())
 
     def _reduce(self):
-        return repr(self)
+        """
+        Helper for pickling.
+
+        By default, the corresponding Sage object is returned.
+        If this fails with a NotImplementedError, the string
+        representation is returned instead.
+
+        EXAMPLESS::
+
+            sage: S = singular.ring(0, ('x'))
+            sage: S._reduce()
+            Univariate Polynomial Ring in x over Rational Field
+            sage: G = gap.PolynomialRing(QQ, ['x'])
+            sage: G._reduce()
+            'PolynomialRing( Rationals, ["x"] )'
+            sage: G.sage()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unable to parse output: PolynomialRing( Rationals, ["x"] )
+        """
+        try:
+            return self.sage()
+        except NotImplementedError:
+            return repr(self)
 
     def __call__(self, *args):
         self._check_valid()

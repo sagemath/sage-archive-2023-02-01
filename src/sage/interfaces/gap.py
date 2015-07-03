@@ -1555,20 +1555,6 @@ class GapElement(GapElement_generic):
         else:
             return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
 
-    def __reduce__(self):
-        """
-        Note that GAP elements cannot be pickled.
-
-        EXAMPLES::
-
-            sage: gap(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
-            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        """
-        return reduce_load, ()  # default is an invalid object
-
     def str(self, use_file=False):
         """
         EXAMPLES::
@@ -1797,21 +1783,6 @@ def reduce_load_GAP():
         Gap
     """
     return gap
-
-def reduce_load():
-    """
-    Returns an invalid GAP element. Note that this is the object
-    returned when a GAP element is unpickled.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import reduce_load
-        sage: reduce_load()
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        sage: loads(dumps(gap(2)))
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-    """
-    return GapElement(None, None)
 
 def gap_console():
     """

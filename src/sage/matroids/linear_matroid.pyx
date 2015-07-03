@@ -115,6 +115,8 @@ from basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
 from utilities import newlabel
+from sage.graphs.spanning_tree import kruskal
+from sage.graphs.graph import Graph
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -2590,6 +2592,141 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if not x ** (-1) in self.base_ring():
                 return False
         return True
+
+    # connectivity
+
+    cpdef _is_3connected_shifting(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_shifting()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_shifting()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_shifting()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_shifting()
+            False
+            sage: B, X = M._is_3connected_shifting(True)
+            sage: M.connectivity(X)
+            1
+        """
+        # build the table
+        if not self.is_connected():
+            return False
+        if self.rank()<self.size()-self.rank():
+            return self.dual()._is_3connected_shifting(certificate)
+        (M,Xp,Yp) = self.representation(reduced=True)
+        # dictionary
+        # create mapping between elements and columns
+        dX = dict(zip(Xp,range(len(Xp))))
+        dY = dict(zip(Yp,range(len(Yp))))
+
+        G = Graph()
+        for (x,y) in M.dict():
+            G.add_edge(Xp[x],Yp[y])
+        spanning_tree = kruskal(G)
+
+        for (x,y,z) in spanning_tree:
+            if x not in Xp:
+                t = x
+                x = y
+                y = t
+            P_rows=[dX[x]]
+            P_cols=[dY[y]]
+            Q_rows=[]
+            Q_cols=[]
+
+            Z = range(len(Yp))
+            Z.remove(dY[y])
+            sol,cert = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, Z, 2)
+            if sol:
+                if certificate:
+                    return False, cert
+                else:
+                    return False
+        if certificate:
+            return True, None
+        return True
+
+    cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, Z, m):
+        for z in Z:
+            nP_cols = P_cols+[z]
+            nQ_cols = Q_cols+[z]
+            sol,cert = self.__shifting(M,P_rows,nP_cols,Q_rows,Q_cols,m)
+            if sol:
+                return True, cert
+            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,nP_cols,m)
+            if sol:
+                return True, cert
+            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,nQ_cols,m)
+            if sol:
+                return True, cert
+            sol,cert = self.__shifting(M,Q_rows,nQ_cols,P_rows,P_cols,m)
+            if sol:
+                return True, cert
+        return False, None
+
+    cpdef __shifting(self, M, X_1, Y_2, X_2, Y_1, m):
+        # Returns true if there is a m-separator
+
+        if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
+            M.matrix_from_rows_and_columns(X_2,Y_1).rank() != m-1):
+            return False, None
+        if len(X_1) + len(Y_1) < m:
+            return False, None
+
+        while True:
+            #rowshifts
+            rowshift = False
+            for x in set(range(M.nrows()))-set(X_1+X_2):
+                if (M.matrix_from_rows_and_columns(X_2+[x],Y_1).rank() >
+                    M.matrix_from_rows_and_columns(X_2,Y_1).rank()):
+                    X_1.append(x)
+                    rowshift = True
+            #colshifts
+            colshift = False
+            for y in set(range(M.ncols()))-set(Y_1+Y_2):
+                if (M.matrix_from_rows_and_columns(X_1,Y_2+[y]).rank() >
+                    M.matrix_from_rows_and_columns(X_1,Y_2).rank()):
+                    Y_1.append(y)
+                    colshift = True
+            if (colshift==False and rowshift==False):
+                break
+        S_1 = set(X_1)|set(Y_1)
+        # size of S_2
+        if M.nrows()+M.ncols()-len(S_1) < m:
+            return False, None
+        if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
+            M.matrix_from_rows_and_columns(X_2,Y_1).rank() == m-1):
+            return True, S_1
+        else:
+            return False, None
 
     # Copying, loading, saving
 

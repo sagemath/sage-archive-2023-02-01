@@ -4754,10 +4754,6 @@ cdef class Matroid(SageObject):
 
         The shifting algorithm
 
-        .. TODO::
-
-            Make it faster, actually compute a spanning tree.
-
         EXAMPLES::
 
             sage: matroids.Uniform(2, 3)._is_3connected_shifting()
@@ -4784,6 +4780,8 @@ cdef class Matroid(SageObject):
         # build the table
         if not self.is_connected():
             return False
+        if self.rank()<self.size()-self.rank():
+            return self.dual()._is_3connected_shifting(certificate)
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
@@ -4852,9 +4850,6 @@ cdef class Matroid(SageObject):
         return self.rank(Yp|(X-Xp)) - len(X-Xp)
 
     cpdef _shifting_all(self, X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, m):
-        if not Z:
-            # need to figure out this
-            return True, None
         for z in Z:
             nP_cols = set(P_cols)
             nP_cols.add(z)
@@ -4882,7 +4877,6 @@ cdef class Matroid(SageObject):
             return False, None
         if len(X_1|Y_1) < m:
             return False, None
-
         while True:
             #rowshifts
             rowshift = False

@@ -1322,8 +1322,10 @@ def plot(funcs, *args, **kwds):
     return G
 
 
-def _plot(funcs, xrange, parametric=False,
-              polar=False, fill=False, label='', randomize=True, **options):
+def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
+              label='', randomize=True, **options):
+    # rgbcolor=(0,1,1)
+    # color='green', linestyle='-', fill=False, fillcolor='automatic', \
     """
     Internal function which does the actual plotting.
 
@@ -1424,30 +1426,73 @@ def _plot(funcs, xrange, parametric=False,
 
         G = Graphics()
         for i, h in enumerate(funcs):
-            if isinstance(fill, dict):
-                if i in fill:
-                    fill_entry = fill[i]
-                    if isinstance(fill_entry, list):
-                        if fill_entry[0] < len(funcs):
-                            fill_temp = funcs[fill_entry[0]]
-                        else:
-                            fill_temp = None
-                    else:
-                        fill_temp = fill_entry
-                else:
-                    fill_temp = None
-            else:
-                fill_temp = fill
-
             options_temp = options.copy()
+            fill_temp = options_temp.pop('fill', False)
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
+            color_temp = options_temp.pop('color',None)
+            options_temp.pop('rgbcolor',(0,0,1))
+            linestyle_temp = options_temp.pop('linestyle',None)
+
+            # passed more than one fill directive?
+            if isinstance(fill_temp, dict):
+                if i in fill_temp:
+                    fill_entry_listQ = fill_temp[i]
+                    if isinstance(fill_entry_listQ, list):
+                        if fill_entry_listQ[0] < len(funcs):
+                            fill_entry = funcs[fill_entry_listQ[0]]
+                        else:
+                            fill_entry = None
+                    else:
+                        fill_entry = fill_entry_listQ
+                else:
+                    fill_entry = None
+            elif isinstance(fill_temp, (list, tuple)):
+                fill_entry = fill_temp[i]
+            else:
+                fill_entry = fill_temp
+
+            # passed more than one fillcolor directive?
+            if isinstance(fillcolor_temp, dict):
+                if i in fillcolor_temp:
+                    fillcolor_entry = fillcolor_temp[i]
+                else:
+                    fillcolor_entry = 'pink'
+            elif isinstance(fillcolor_temp, (list, tuple)):
+                fillcolor_entry = fillcolor_temp[i]
+            else:
+                fillcolor_entry = fillcolor_temp
+
+            # passed more than one color directive?
+            if isinstance(color_temp, dict):
+                if i in color_termp:
+                    color_entry = color_temp[i]
+                else:
+                    color_entry = rainbow_colors[i] 
+            elif isinstance(color_temp, (list,tuple)) and isinstance(color_temp[0], str):
+                color_entry = color_temp[i]
+            elif isinstance(color_temp, (list,tuple)):
+                color_entry = color_temp #rgbcolor(color_temp) ??
+            else:
+                color_temp = rainbow_colors[i]
+
+            # passed more than one linestyle directive?
+            default_line_styles = ("-","--","-.",":")*len(funcs)
+            if isinstance(linestyle_temp, dict):
+                if i in linestyle_temp:
+                    linestyle_entry = linestyle_temp[i]
+                else:
+                    linestyle_entry = default_line_styles[i]
+            elif isinstance(linestyle_temp, (list,tuple)):
+                linestyle_entry = linestyle_temp[i]
+            else:
+                linestyle_entry = '-.'
+
             if i >= 1:
                 legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
-            if fillcolor_temp == 'automatic':
-                fillcolor_temp = rainbow_colors[i]
 
-            G += plot(h, xrange, polar = polar, fill = fill_temp, \
-                      fillcolor = fillcolor_temp, **options_temp)
+            G += plot(h, xrange, polar = polar, fill = fill_entry, fillcolor = fillcolor_entry, \
+                      color = color_entry, linestyle = linestyle_entry, \
+                      **options_temp)
         return G
 
     adaptive_tolerance = options.pop('adaptive_tolerance')

@@ -24,8 +24,8 @@
 -	./MakeDesc
 +	./MakeDesc # generates mach_desc.h
  	mv mach_desc.h ../include/NTL/mach_desc.h
+
  
- # setup2 generates the file GetTime.c
 @@ -358,7 +358,7 @@
  # setup4 runs the wizard
  
@@ -54,11 +54,11 @@
     my $val;
     my $res;
  
--   system("make wntl.a");
-+   system("\$MAKE wntl.a");
+-   system("make wntl.a") and return "999999999999999";
++   system("\$MAKE wntl.a") and return "999999999999999";
     RemoveProg($name);
--   system("make $name");
-+   system("\$MAKE $name");
+-   system("make $name") and return "999999999999999";
++   system("\$MAKE $name") and return "999999999999999";
  
     print "\n*** running $name...";
  

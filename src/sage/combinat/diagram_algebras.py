@@ -246,13 +246,27 @@ class AbstractPartitionDiagram(SetPartition):
         
     def base_diagram(self):
         r"""
-        Returns the underlying implementation of the diagram
+        Return the underlying implementation of the diagram
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd([[1,2],[-1,-2]]).base_diagram() == ((-2,-1),(1,2))
+            True
         """
-        return self._base_diagram #note, this works because self._base_diagram is immutable
+        return self._base_diagram # note, this works because self._base_diagram is immutable
     
     def diagram(self):
         r"""
-        Returns the underlying implementation of the diagram
+        Return the underlying implementation of the diagram
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd([[1,2],[-1,-2]]).base_diagram() == pd([[1,2],[-1,-2]]).diagram()
+            True        
         """
         return self.base_diagram()
     
@@ -272,7 +286,7 @@ class AbstractPartitionDiagram(SetPartition):
 
     def propagating_number(self):
         r"""
-        Returns the propagating number of the diagram. The
+        Return the propagating number of the diagram. The
         propagating number is the number of blocks with both a positive and
         negative number.
 
@@ -295,6 +309,23 @@ class AbstractPartitionDiagram(SetPartition):
         return pn
 
 class BrauerDiagram(AbstractPartitionDiagram):
+    r"""
+    This class represents a Brauer diagram specifically.
+    A Brauer diagram should be a partition
+    of the set  `\{1, \dots, k, -1, \dots, -k\}`
+    with block size 2.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: bd = da.BrauerDiagrams(2)
+        sage: bd1 = bd([[1,2],[-1,-2]])
+        sage: bd2 = bd([[1,2,-1,-2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: The diagram is a valid partition diagram, but not al blocks have block size 2.
+        
+    """
     def __init__(self, parent, d):
         super(BrauerDiagram, self).__init__(parent,d)
 
@@ -308,7 +339,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         
     def involution_permutation_triple(self,curt=True):
         r"""
-        a la Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
+        From Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
         D1 is a partition of the top nodes;
         D2 is a partition of the bottom nodes;
         pi is the induced permutation on the free nodes.
@@ -342,7 +373,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
     
     def bijection_on_free_nodes(self,two_line=False):
         r"""
-        Returns the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
+        Return the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
         If two_line=True, then it returns it as a two-row list (inputs,outputs).
 
         EXAMPLES:
@@ -364,7 +395,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
     def perm(self):
         r"""
         Similar to self.bijection_on_free_nodes()...
-        Returns the bijection in one-line notation, re-indexed and treated as a permutation.
+        Return the bijection in one-line notation, re-indexed and treated as a permutation.
 
         EXAMPLES:
 
@@ -396,8 +427,8 @@ class BrauerDiagram(AbstractPartitionDiagram):
     def is_elementary_symmetric(self):
         r"""
         Let (D1,D2,pi) be the Graham-Lehrer representation of the Brauer diagram.
-        Returns True if (D1==D2 and pi==Identity)
-        Returns False otherwise.
+        Return True if (D1==D2 and pi==Identity)
+        Return False otherwise.
 
         TODO: Come up with a better name?
 
@@ -458,8 +489,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
          {{-2}, {-1}, {1}, {2}}]
         sage: pd.an_element() in pd
         True
-        sage: elm = pd([[1,2],[-1,-2]]); elm
-        {{-2, -1}, {1, 2}}
+        sage: elm = pd([[1,2],[-1,-2]])
         sage: elm in pd
         True
 
@@ -494,7 +524,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 obj = self._element_constructor_(obj)
             except (ValueError, TypeError):
                 return False
-        if len(obj.base_diagram()) > 0: #what is the empty behavior?
+        if len(obj.base_diagram()) > 0:
             tst = sorted(flatten(obj.base_diagram()))
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 return False
@@ -502,6 +532,21 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         return self.order == 0
 
     def _element_constructor_(self, d):
+        r"""
+        Construct an element of ``self``.
+
+        EXAMPLES:
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: elm = pd([[1,2],[-1,-2]]); elm
+            {{-2, -1}, {1, 2}}
+            sage: pd([{1,2},{-1,-2}]) == elm
+            True
+            sage: pd( ((1,2),(-1,-2)) ) == elm
+            True
+            sage: pd( SetPartition([[1,2],[-1,-2]]) ) == elm
+            True
+        """
         return self.element_class(self, d)
 
 class PartitionDiagrams(AbstractPartitionDiagrams):
@@ -522,6 +567,13 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of partition diagrams of integer order `n` is the `2n`th Bell number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.PartitionDiagrams(3)
+            sage: pd.cardinality()
+            203
         """
         if self.order in ZZ:
             return bell_number(2*self.order)
@@ -572,6 +624,23 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
 
     def _repr_term(self, x):
+        r"""
+        This method accepts a BrauerDiagram and produces a representation
+        for it based on the parameters parent BrauerDiagrams is initialized
+        with. This method is not meant to be called directly.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd([[1,2],[-1,-2]])
+            {{-2, -1}, {1, 2}}
+            sage: bd2 = da.BrauerDiagrams(2, compact_repr = True)
+            sage: bd2([[1,2],[-1,-2]])
+            [12/12;]
+            sage: bd2([[1,-2],[2,-1]])
+            [/;21]
+        """
         if not self._compact_repr:
             return super(self.Element, x).__repr__()
         else:
@@ -583,11 +652,27 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             return "[%s/%s;%s]" % (s1,s2,s3)
     
     def _element_constructor_(self, d):
+        r"""
+        Construct an element of ``self``.
+
+        EXAMPLES:
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd([[1,2],[-1,-2]])
+            {{-2, -1}, {1, 2}}            
+        """
         return self.element_class(self, d)
 
     def cardinality(self):
         r"""
-        The cardinality of the Brauer diagrams of integer order `k` is `(2k-1)!!`. 
+        The cardinality of the Brauer diagrams of integer order `k` is `(2k-1)!!`.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: bd.cardinality()
+            15
         """
         if self.order in ZZ:
             return (2*self.order-1).multifactorial(2)
@@ -596,7 +681,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def symmetric_diagrams(self,l=None,perm=None):
         r"""
-        Returns the list of brauer diagrams with symmetric placement of `l` arcs,
+        Return the list of brauer diagrams with symmetric placement of `l` arcs,
         and with free nodes permuted according to `perm`.
 
         EXAMPLES::
@@ -684,6 +769,13 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of the Temperley--Lieb diagrams of integer order `k` is the `k`th Catalan number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: td = da.TemperleyLiebDiagrams(3)
+            sage: td.cardinality()
+            5
         """
         if self.order in ZZ:
             return catalan_number(self.order)
@@ -717,6 +809,13 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of all planar diagrams of order `k` is the `2k`th Catalan number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pld = da.PlanarDiagrams(3)
+            sage: pld.cardinality()
+            132
         """
         if self.order in ZZ:
             return catalan_number(2*self.order)
@@ -897,7 +996,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, d1, d2):
         r"""
-        Returns the product `D_{d_1} D_{d_2}` by two basis diagrams.
+        Return the product `D_{d_1} D_{d_2}` by two basis diagrams.
 
         TESTS::
 

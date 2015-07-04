@@ -1214,7 +1214,7 @@ class MaximaAbstractElement(InterfaceElement):
             [  1   y y^2]
             [  1 1/2 1/4]
 
-        Check if #7661 is fixed::
+        Check if :trac:`7661` is fixed::
 
             sage: var('delta')
             delta

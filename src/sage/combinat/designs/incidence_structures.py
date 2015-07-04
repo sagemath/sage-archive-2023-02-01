@@ -227,6 +227,11 @@ class IncidenceStructure(object):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+
+        TESTS::
+
+            sage: IncidenceStructure([])
+            Incidence structure with 0 points and 0 blocks
         """
         if test is not None:
             from sage.misc.superseded import deprecation
@@ -242,7 +247,8 @@ class IncidenceStructure(object):
             assert blocks is None, "'blocks' cannot be defined when 'points' is a matrix"
             incidence_matrix = points
             points = blocks = None
-        elif points and blocks is None:
+        elif (points is not None and
+              blocks is     None):
             blocks = points
             points = set().union(*blocks)
         if points:
@@ -329,21 +335,7 @@ class IncidenceStructure(object):
         return 'Incidence structure with {} points and {} blocks'.format(
                 self.num_points(), self.num_blocks())
 
-    def __str__(self):
-        """
-        A print method.
-
-        EXAMPLES::
-
-            sage: BD = designs.IncidenceStructure(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: print BD
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-            sage: BD = designs.IncidenceStructure(range(7),[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
-            sage: print BD
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
-        """
-        return '{}<points={}, blocks={}>'.format(
-                self._name, self.ground_set(), self.blocks())
+    __str__ = __repr__
 
     def __eq__(self, other):
         """
@@ -1464,13 +1456,13 @@ class IncidenceStructure(object):
             sage: D.dual()
             Incidence structure with 3 points and 4 blocks
             sage: print D.dual(algorithm="gap")       # optional - gap_packages
-            IncidenceStructure<points=[0, 1, 2], blocks=[[0], [0, 1, 2], [1], [1, 2]]>
+            Incidence structure with 3 points and 4 blocks
             sage: blocks = [[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]]
             sage: BD = designs.IncidenceStructure(7, blocks, name="FanoPlane");
             sage: BD
             Incidence structure with 7 points and 7 blocks
             sage: print BD.dual(algorithm="gap")         # optional - gap_packages
-            IncidenceStructure<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+            Incidence structure with 7 points and 7 blocks
             sage: BD.dual()
             Incidence structure with 7 points and 7 blocks
 

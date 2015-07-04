@@ -97,17 +97,17 @@ cdef extern from "glpk.h":
 
      double glp_get_col_ub(c_glp_prob *lp, int i)
      double glp_get_col_lb(c_glp_prob *lp, int i)
+
      void glp_set_col_ub(c_glp_prob *lp, int i, double value)
      void glp_set_col_lb(c_glp_prob *lp, int i, double value)
 
+     int glp_eval_tab_row(c_glp_prob *lp, int k, int ind[], double val[])
+     int glp_eval_tab_col(c_glp_prob *lp, int k, int ind[], double val[])
 
      const_char_ptr glp_get_row_name(c_glp_prob *lp, int i)
      const_char_ptr glp_get_col_name(c_glp_prob *lp, int i)
 
      void glp_create_index(c_glp_prob *lp)
-
-     double glp_get_col_lb(c_glp_prob *lp, int i)
-     double glp_get_col_ub(c_glp_prob *lp, int i)
 
      int glp_get_prim_stat(c_glp_prob *lp)
      int glp_mip_status(c_glp_prob *lp)
@@ -219,4 +219,6 @@ cdef class GLPKBackend(GenericBackend):
     cpdef double get_col_dual(self, int variable)
     cpdef int get_row_stat(self, int variable)
     cpdef int get_col_stat(self, int variable)
+    cpdef eval_tab_row(self, int k)
+    cpdef eval_tab_col(self, int k)
 

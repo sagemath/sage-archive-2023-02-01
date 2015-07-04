@@ -948,6 +948,62 @@ class Polyhedron_base(Element):
         """
         return len(self.lines())
 
+    def to_linear_program(self, solver=None):
+        r"""
+        Return the polyhedron as a :class:`MixedIntegerLinearProgram`.
+
+        INPUT:
+
+        - ``solver`` -- select a solver (data structure). See the documentation
+          of for :class:`MixedIntegerLinearProgram`. Set to ``None`` by default.
+
+        Note that the :class:`MixedIntegerLinearProgram` object will have the
+        null function as an objective.
+
+        .. SEEALSO::
+
+            :meth:`~MixedIntegerLinearProgram.polyhedron` -- return the
+            polyhedron associated with a :class:`MixedIntegerLinearProgram`
+            object.
+
+        EXAMPLE::
+
+            sage: polytopes.cube().to_linear_program()
+            Mixed Integer Program  ( maximization, 3 variables, 6 constraints )
+
+        TESTS::
+
+            sage: p=polytopes.flow_polytope(digraphs.DeBruijn(3,2)); p
+            A 19-dimensional polyhedron in QQ^27 defined as the convex hull of 1 vertex and 148 rays
+            sage: p.to_linear_program().polyhedron() == p
+            True
+            sage: p=polytopes.icosahedron()
+            sage: p.to_linear_program(solver='PPL')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot use PPL on exact irrational data.
+        """
+        from sage.rings.rational_field import QQ
+        R = self.base_ring()
+        if (solver is not None and
+            solver.lower() == 'ppl' and
+            R.is_exact() and (not R == QQ)):
+            raise NotImplementedError('Cannot use PPL on exact irrational data.')
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        p = MixedIntegerLinearProgram(solver=solver)
+        x = p.new_variable(real=True, nonnegative=False)
+
+        for ineqn in self.inequalities_list():
+            b = -ineqn.pop(0)
+            p.add_constraint(p.sum([x[i]*ineqn[i] for i in range(len(ineqn))]) >= b)
+
+        for eqn in self.equations_list():
+            b = -eqn.pop(0)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+
+        return p
+
     def Hrepresentation(self, index=None):
         """
         Return the objects of the H-representaton. Each entry is

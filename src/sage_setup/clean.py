@@ -81,15 +81,16 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
 
         sage: stale_iter = _find_stale_files(SAGE_LIB, python_packages, python_modules, [])
         sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: skip_extensions = (loadable_module_extension(), '.h', '.pxi', '.pxd', '.cpp')
+        sage: skip_extensions = (loadable_module_extension(),)
         sage: for f in stale_iter:
         ....:     if f.endswith(skip_extensions): continue
         ....:     print('Found stale file: ' + f)
     """
-    PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
     from sage.misc.sageinspect import loadable_module_extension
+    PYMOD_EXTS = (os.path.extsep + 'py', os.path.extsep + 'pyc')
     CEXTMOD_EXTS = (loadable_module_extension(),)
-    INIT_FILES= map(lambda x: '__init__' + x, PYMOD_EXTS)
+    INIT_FILES = tuple('__init__' + x for x in PYMOD_EXTS)
+    ALLOW_EXTS = ('.c', '.cpp', '.h', '.pxi', '.pxd')
 
     module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])
 
@@ -113,9 +114,11 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
         except KeyError:
             continue
         _remove(files, mod, CEXTMOD_EXTS)
+
     for files in module_files.values():
         for f in files:
-            yield f
+            if not f.endswith(ALLOW_EXTS):
+                yield f
 
 
 def clean_install_dir(site_packages, python_packages, python_modules, ext_modules):

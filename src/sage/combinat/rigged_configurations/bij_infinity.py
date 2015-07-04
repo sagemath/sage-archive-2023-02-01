@@ -7,9 +7,9 @@ AUTHORS:
 
 REFERENCES:
 
-.. [RC_MLT] Ben Salisbury and Travis Scrimshaw. *Connecting marginally
+.. [RC-MLT] Ben Salisbury and Travis Scrimshaw. *Connecting marginally
    large tableaux and rigged configurations via crystals*.
-   Pre-print. :arxiv:`1505.07040`.
+   Preprint. :arxiv:`1505.07040`.
 """
 
 #*****************************************************************************
@@ -50,7 +50,7 @@ class FromTableauIsomorphism(Morphism):
     rigged configuration model.
     """
     def _repr_type(self):
-        """
+        r"""
         Return the type of morphism of ``self``.
 
         EXAMPLES::
@@ -64,7 +64,7 @@ class FromTableauIsomorphism(Morphism):
         return "Crystal Isomorphism"
 
     def __invert__(self):
-        """
+        r"""
         Return the inverse of ``self``.
 
         EXAMPLES::
@@ -120,7 +120,7 @@ class FromRCIsomorphism(Morphism):
     to the tableau model.
     """
     def _repr_type(self):
-        """
+        r"""
         Return the type of morphism of ``self``.
 
         EXAMPLES::
@@ -134,7 +134,7 @@ class FromRCIsomorphism(Morphism):
         return "Crystal Isomorphism"
 
     def __invert__(self):
-        """
+        r"""
         Return the inverse of ``self``.
 
         EXAMPLES::
@@ -208,7 +208,7 @@ class FromRCIsomorphism(Morphism):
 
 class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
     def run(self):
-        """
+        r"""
         Run the bijection from a marginally large tableaux to a rigged
         configuration.
 
@@ -231,12 +231,6 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
 
                 val = letter.value # Convert from a CrystalOfLetter to an Integer
 
-                #print("====================")
-                #print(repr(self.cur_path))
-                #print("--------------------")
-                #print(repr(self.ret_rig_con))
-                #print("--------------------\n")
-
                 # Build the next state
                 self.cur_path[0].insert(0, [letter]) # Prepend the value
                 if self.cur_dims[0][0] == self.n:
@@ -251,7 +245,7 @@ class MLTToRCBijectionTypeB(KRTToRCBijectionTypeB):
 
 class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
     def run(self):
-        """
+        r"""
         Run the bijection from rigged configurations to a marginally large
         tableau.
 
@@ -289,7 +283,7 @@ class RCToMLTBijectionTypeB(RCToKRTBijectionTypeB):
 
 class MLTToRCBijectionTypeD(KRTToRCBijectionTypeD):
     def run(self):
-        """
+        r"""
         Run the bijection from a marginally large tableaux to a rigged
         configuration.
 
@@ -328,7 +322,7 @@ class MLTToRCBijectionTypeD(KRTToRCBijectionTypeD):
 
 class RCToMLTBijectionTypeD(RCToKRTBijectionTypeD):
     def run(self):
-        """
+        r"""
         Run the bijection from rigged configurations to a marginally large
         tableau.
 

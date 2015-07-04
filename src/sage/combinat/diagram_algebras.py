@@ -875,6 +875,19 @@ class DiagramAlgebra(CombinatorialFreeModule):
          P{{-2, 1, 2}, {-1}},
          P{{-2, 2}, {-1}, {1}},
          P{{-2, 2}, {-1, 1}}]
+
+    Due to the nature of diagrams, there is also a built-in coercion to turn
+    SymmetricGroupAlgebra elements into DiagramAlgebra elements. However,
+    this coercion can cause errors if the SymmetricGroupAlgebra element
+    is not actually valid in the algebra. For instance, not all
+    SymmetricGroupAlgebra elements are valid in the Temperely--Lieb algebra,
+    but the planar ones are.
+
+    ::
+
+        sage: S = SymmetricGroupAlgebra(R, 2)
+        sage: S([2,1])*D([[1,-1],[2,-2]])
+        P{{-2, 1}, {-1, 2}}
     """
     def __init__(self, k, q, base_ring, prefix, diagrams, category=None):
         r"""

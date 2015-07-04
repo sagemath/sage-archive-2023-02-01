@@ -245,12 +245,26 @@ class AbstractPartitionDiagram(SetPartition):
     def base_diagram(self):
         r"""
         Return the underlying implementation of the diagram
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd([[1,2],[-1,-2]]).base_diagram() == ((-2,-1),(1,2))
+            True
         """
-        return self._base_diagram #note, this works because self._base_diagram is immutable
+        return self._base_diagram # note, this works because self._base_diagram is immutable
     
     def diagram(self):
         r"""
         Return the underlying implementation of the diagram
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd([[1,2],[-1,-2]]).base_diagram() == pd([[1,2],[-1,-2]]).diagram()
+            True        
         """
         return self.base_diagram()
     
@@ -293,6 +307,23 @@ class AbstractPartitionDiagram(SetPartition):
         return pn
 
 class BrauerDiagram(AbstractPartitionDiagram):
+    r"""
+    This class represents a Brauer diagram specifically.
+    A Brauer diagram should be a partition
+    of the set  `\{1, \dots, k, -1, \dots, -k\}`
+    with block size 2.
+
+    EXAMPLES:
+
+        sage: import sage.combinat.diagram_algebras as da
+        sage: bd = da.BrauerDiagrams(2)
+        sage: bd1 = bd([[1,2],[-1,-2]])
+        sage: bd2 = bd([[1,2,-1,-2]])
+        Traceback (most recent call last):
+        ...
+        ValueError: The diagram is a valid partition diagram, but not al blocks have block size 2.
+        
+    """
     def __init__(self, parent, d):
         super(BrauerDiagram, self).__init__(parent,d)
 
@@ -306,7 +337,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
         
     def involution_permutation_triple(self,curt=True):
         r"""
-        a la Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
+        From Graham-Lehrer (see `class: BrauerDiagrams`), a Brauer diagram is a triple (D1,D2,pi), where:
         D1 is a partition of the top nodes;
         D2 is a partition of the bottom nodes;
         pi is the induced permutation on the free nodes.

@@ -522,7 +522,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 obj = self._element_constructor_(obj)
             except (ValueError, TypeError):
                 return False
-        if len(obj.base_diagram()) > 0: #what is the empty behavior?
+        if len(obj.base_diagram()) > 0:
             tst = sorted(flatten(obj.base_diagram()))
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 return False
@@ -622,6 +622,23 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
 
     def _repr_term(self, x):
+        r"""
+        This method accepts a BrauerDiagram and produces a representation
+        for it based on the parameters parent BrauerDiagrams is initialized
+        with. This method is not meant to be called directly.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd([[1,2],[-1,-2]])
+            {{-2, -1}, {1, 2}}
+            sage: bd2 = da.BrauerDiagrams(2, compact_repr = True)
+            sage: bd2([[1,2],[-1,-2]])
+            [12/12;]
+            sage: bd2([[1,-2],[2,-1]])
+            [/;21]
+        """
         if not self._compact_repr:
             return super(self.Element, x).__repr__()
         else:

@@ -487,8 +487,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
          {{-2}, {-1}, {1}, {2}}]
         sage: pd.an_element() in pd
         True
-        sage: elm = pd([[1,2],[-1,-2]]); elm
-        {{-2, -1}, {1, 2}}
+        sage: elm = pd([[1,2],[-1,-2]])
         sage: elm in pd
         True
 
@@ -531,6 +530,21 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
         return self.order == 0
 
     def _element_constructor_(self, d):
+        r"""
+        Construct an element of ``self``.
+
+        EXAMPLES:
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: elm = pd([[1,2],[-1,-2]]); elm
+            {{-2, -1}, {1, 2}}
+            sage: pd([{1,2},{-1,-2}]) == elm
+            True
+            sage: pd( ((1,2),(-1,-2)) ) == elm
+            True
+            sage: pd( SetPartition([[1,2],[-1,-2]]) ) == elm
+            True
+        """
         return self.element_class(self, d)
 
 class PartitionDiagrams(AbstractPartitionDiagrams):
@@ -551,6 +565,13 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of partition diagrams of integer order `n` is the `2n`th Bell number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.PartitionDiagrams(3)
+            sage: pd.cardinality()
+            203
         """
         if self.order in ZZ:
             return bell_number(2*self.order)
@@ -612,11 +633,27 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             return "[%s/%s;%s]" % (s1,s2,s3)
     
     def _element_constructor_(self, d):
+        r"""
+        Construct an element of ``self``.
+
+        EXAMPLES:
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd([[1,2],[-1,-2]])
+            {{-2, -1}, {1, 2}}            
+        """
         return self.element_class(self, d)
 
     def cardinality(self):
         r"""
-        The cardinality of the Brauer diagrams of integer order `k` is `(2k-1)!!`. 
+        The cardinality of the Brauer diagrams of integer order `k` is `(2k-1)!!`.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(3)
+            sage: bd.cardinality()
+            15
         """
         if self.order in ZZ:
             return (2*self.order-1).multifactorial(2)
@@ -713,6 +750,13 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of the Temperley--Lieb diagrams of integer order `k` is the `k`th Catalan number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: td = da.TemperleyLiebDiagrams(3)
+            sage: td.cardinality()
+            5
         """
         if self.order in ZZ:
             return catalan_number(self.order)
@@ -746,6 +790,13 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
     def cardinality(self):
         r"""
         The cardinality of all planar diagrams of order `k` is the `2k`th Catalan number.
+
+        EXAMPLES:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pld = da.PlanarDiagrams(3)
+            sage: pld.cardinality()
+            132
         """
         if self.order in ZZ:
             return catalan_number(2*self.order)

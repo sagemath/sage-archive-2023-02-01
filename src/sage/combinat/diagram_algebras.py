@@ -244,13 +244,13 @@ class AbstractPartitionDiagram(SetPartition):
         
     def base_diagram(self):
         r"""
-        Returns the underlying implementation of the diagram
+        Return the underlying implementation of the diagram
         """
         return self._base_diagram #note, this works because self._base_diagram is immutable
     
     def diagram(self):
         r"""
-        Returns the underlying implementation of the diagram
+        Return the underlying implementation of the diagram
         """
         return self.base_diagram()
     
@@ -270,7 +270,7 @@ class AbstractPartitionDiagram(SetPartition):
 
     def propagating_number(self):
         r"""
-        Returns the propagating number of the diagram. The
+        Return the propagating number of the diagram. The
         propagating number is the number of blocks with both a positive and
         negative number.
 
@@ -340,7 +340,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
     
     def bijection_on_free_nodes(self,two_line=False):
         r"""
-        Returns the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
+        Return the induced bijection---as a list of `(x,f(x))` values---from the free nodes on the top at the Brauer diagram to the free nodes at the bottom of the Brauer diagram.
         If two_line=True, then it returns it as a two-row list (inputs,outputs).
 
         EXAMPLES:
@@ -362,7 +362,7 @@ class BrauerDiagram(AbstractPartitionDiagram):
     def perm(self):
         r"""
         Similar to self.bijection_on_free_nodes()...
-        Returns the bijection in one-line notation, re-indexed and treated as a permutation.
+        Return the bijection in one-line notation, re-indexed and treated as a permutation.
 
         EXAMPLES:
 
@@ -394,8 +394,8 @@ class BrauerDiagram(AbstractPartitionDiagram):
     def is_elementary_symmetric(self):
         r"""
         Let (D1,D2,pi) be the Graham-Lehrer representation of the Brauer diagram.
-        Returns True if (D1==D2 and pi==Identity)
-        Returns False otherwise.
+        Return True if (D1==D2 and pi==Identity)
+        Return False otherwise.
 
         TODO: Come up with a better name?
 
@@ -594,7 +594,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
     def symmetric_diagrams(self,l=None,perm=None):
         r"""
-        Returns the list of brauer diagrams with symmetric placement of `l` arcs,
+        Return the list of brauer diagrams with symmetric placement of `l` arcs,
         and with free nodes permuted according to `perm`.
 
         EXAMPLES::
@@ -885,7 +885,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, d1, d2):
         r"""
-        Returns the product `D_{d_1} D_{d_2}` by two basis diagrams.
+        Return the product `D_{d_1} D_{d_2}` by two basis diagrams.
 
         TESTS::
 

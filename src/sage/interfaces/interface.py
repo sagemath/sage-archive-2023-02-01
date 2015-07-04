@@ -706,9 +706,9 @@ class InterfaceElement(RingElement):
 
     def __reduce__(self):
         """
-        The default linearisation is to return an unpickle function,
-        that will get the interface instance and the items returned
-        by :meth:`_reduce` as arguments.
+        The default linearisation is to return self's parent,
+        which will then get the items returned by :meth:`_reduce`
+        as arguments to reconstruct the element.
 
         EXAMPLES::
 
@@ -761,7 +761,7 @@ class InterfaceElement(RingElement):
             TypeError: unable to make sense of Maxima expression '"abc"' in Sage
 
         """
-        return reduce_load, (self.parent(), self._reduce())
+        return self.parent(), (self._reduce(),)
 
     def _reduce(self):
         """
@@ -1007,7 +1007,9 @@ class InterfaceElement(RingElement):
             1/2
             sage: _.parent()
             Rational Field
-            sage: singular.matrix(2,2)
+            sage: singular.lib("matrix")
+            sage: R = singular.ring(0, '(x,y,z)', 'dp')
+            sage: singular.matrix(2,2).sage()
             [0 0]
             [0 0]
         """
@@ -1290,6 +1292,3 @@ class InterfaceElement(RingElement):
         if parent(n) is not P:
             n = P(n)
         return self._operation("^", n)
-
-def reduce_load(parent, x):
-    return parent(x)

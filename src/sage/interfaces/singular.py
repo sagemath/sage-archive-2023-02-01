@@ -349,9 +349,6 @@ import sage.rings.integer
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
 
-# This is for backwards compatibility
-from interface import reduce_load
-
 class SingularError(RuntimeError):
     """
     Raised if Singular printed an error message

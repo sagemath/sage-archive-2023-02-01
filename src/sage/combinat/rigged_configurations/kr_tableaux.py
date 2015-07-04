@@ -513,8 +513,8 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             sage: K.affinization()
             Affinization of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and shape (1, 1)
         """
-        from sage.combinat.crystals.affinization import AffinizationCrystal
-        return AffinizationCrystal(self)
+        from sage.combinat.crystals.affinization import AffinizationOfCrystal
+        return AffinizationOfCrystal(self)
 
     def classical_decomposition(self):
         """

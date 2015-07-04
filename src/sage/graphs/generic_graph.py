@@ -12394,6 +12394,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:         print "Error for v=",v
             ....:         print "min=",min(coeffs_v),"max=",max(coeffs_v)
         """
+        from sage.rings.integer import Integer
         if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
             deprecation(17134, "The option 'return_vertex_weights' has been " +
@@ -12421,6 +12422,12 @@ class GenericGraph(GenericGraph_pyx):
         if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
             raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
 
+        def coeff_from_triangle_count(v,count):
+            dv = self.degree(v)
+            if dv < 2:
+                return 0
+            return 2*count/Integer(dv*(dv-1))
+
         if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
             return clustering_coeff(self, nodes)[1]
@@ -12429,13 +12436,11 @@ class GenericGraph(GenericGraph_pyx):
             return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
         elif implementation == 'sparse_copy':
             from sage.graphs.base.static_sparse_graph import triangles_count
-            from sage.rings.integer import Integer
-            return {v:Integer(count)/((self.degree(v)*(self.degree(v)-1))/2)
+            return {v:coeff_from_triangle_count(v,count)
                     for v,count in triangles_count(self).iteritems()}
         elif implementation =="dense_copy":
             from sage.graphs.base.static_dense_graph import triangles_count
-            from sage.rings.integer import Integer
-            return {v:Integer(count)/((self.degree(v)*(self.degree(v)-1))/2)
+            return {v:coeff_from_triangle_count(v,count)
                     for v,count in triangles_count(self).iteritems()}
 
     def cluster_transitivity(self):

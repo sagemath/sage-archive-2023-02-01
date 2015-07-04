@@ -1580,7 +1580,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: B.jucys_murphy(1)
             1/2*z - 1/2
             sage: B.jucys_murphy(3)
-            
+            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}} + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}} + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
         """
         B = self
         return (B._q-1)/2 + sum(B([[i,-j],[j,-i]]) - B([[i,j],[-i,-j]]) for i in range(1,j))

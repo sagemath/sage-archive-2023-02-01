@@ -1,5 +1,5 @@
 r"""
-Path Model for `B(\infty)`
+Polyhedral Realization of `B(\infty)`
 """
 
 #*****************************************************************************
@@ -25,18 +25,17 @@ from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
 from sage.combinat.crystals.elementary_crystals import ElementaryCrystal
 from sage.combinat.root_system.cartan_type import CartanType
 
-class InfinityPathModel(TensorProductOfCrystals):
+class InfinityCrystalAsPolyhedralRealization(TensorProductOfCrystals):
     r"""
-    The path model for `B(\infty)`.
+    The polyhedral realization of `B(\infty)`.
 
     .. NOTE::
 
         Here we are using anti-Kashiwara notation and might differ from
         some of the literature.
 
-    Consider a Kac--Moody algebra `\mathfrak{g}` of Cartan type `X` with
-    index set `I`, and we want to model the `U_q(\mathfrak{g})`-crystal
-    `B(\infty)`. We consider a finite sequence `J = (j_1, j_2, \ldots, j_m)`
+    Consider a Kac-Moody algebra `\mathfrak{g}` of Cartan type `X` with
+    index set `I`,  and consider a finite sequence `J = (j_1, j_2, \ldots, j_m)`
     whose support equals `I`.  We extend this to an infinite sequence
     by taking `\bar{J} = J \cdot J \cdot J \cdots`, where `\cdot` denotes
     concatenation of sequences. Let
@@ -48,24 +47,25 @@ class InfinityPathModel(TensorProductOfCrystals):
     where `B_i` is an
     :class:`~sage.combinat.crystals.elementary_crystals.ElementaryCrystal`.
 
-    Next we consider the strict crystal embedding `\Phi_i \colon B(\infty) \to
-    B_i \otimes B(\infty)` defined by `u_{\infty} \mapsto b_i(0) \otimes
-    u_{\infty}`, where `b_i(0) \in B_i` and `u_{\infty}` is the (unique)
-    highest weight element in `B(\infty)`. This is sometimes known as the
-    *Kashiwara embedding* [NZ97]_. By iterating this embedding by taking
-    `\Phi_J = \Phi_{j_n} \circ \Phi_{j_{n-1}} \circ \cdots \circ \Phi_{j_1}`,
-    we obtain the following strict crystal embedding:
+    As given in Theorem 2.1.1 of [K93]_, there exists a strict crystal embedding
+    `\Psi_i \colon B(\infty) \to B_i \otimes B(\infty)` defined by `u_{\infty}
+    \mapsto b_i(0) \otimes u_{\infty}`, where `b_i(0) \in B_i` and `u_{\infty}`
+    is the (unique) highest weight element in `B(\infty)`. This is sometimes
+    known as the *Kashiwara embedding* [NZ97]_ (though, in [NZ97]_, the target
+    of this map is denoted by `\ZZ_J^\infty`).  By iterating this embedding by
+    taking `\Psi_J = \Psi_{j_n} \circ \Psi_{j_{n-1}} \circ \cdots \circ
+    \Psi_{j_1}`, we obtain the following strict crystal embedding:
 
     .. MATH::
 
-        \Phi_J^n \colon B(\infty) \to B_J^{\otimes n} \otimes B(\infty).
+        \Psi_J^n \colon B(\infty) \to B_J^{\otimes n} \otimes B(\infty).
 
     We note there is a natural analog of Lemma 10.6.2 in [HK02]_ that
     for any `b \in B(\infty)`, there exists a positive integer `N` such that
 
     .. MATH::
 
-        \Phi^N_J(b) = \left( \bigotimes_{k=1}^N b^{(k)} \right)
+        \Psi^N_J(b) = \left( \bigotimes_{k=1}^N b^{(k)} \right)
         \otimes u_{\infty}.
 
     Therefore we can model elements `b \in B(\infty)` by considering
@@ -120,7 +120,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
     EXAMPLES::
 
-        sage: B = crystals.infinity.PathModel(['A',2])
+        sage: B = crystals.infinity.PolyhedralRealization(['A',2])
         sage: mg = B.module_generators[0]; mg
         [0, 0]
         sage: mg.f_string([2,1,2,2])
@@ -128,7 +128,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
     An example of type `B_2`::
 
-        sage: B = crystals.infinity.PathModel(['B',2])
+        sage: B = crystals.infinity.PolyhedralRealization(['B',2])
         sage: mg = B.module_generators[0]; mg
         [0, 0]
         sage: mg.f_string([2,1,2,2])
@@ -136,7 +136,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
     An example of type `G_2`::
 
-        sage: B = crystals.infinity.PathModel(['G',2])
+        sage: B = crystals.infinity.PolyhedralRealization(['G',2])
         sage: mg = B.module_generators[0]; mg
         [0, 0]
         sage: mg.f_string([2,1,2,2])
@@ -149,8 +149,8 @@ class InfinityPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B1 = crystals.infinity.PathModel(['A',2])
-            sage: B2 = crystals.infinity.PathModel(['A',2], [1,2])
+            sage: B1 = crystals.infinity.PolyhedralRealization(['A',2])
+            sage: B2 = crystals.infinity.PolyhedralRealization(['A',2], [1,2])
             sage: B1 is B2
             True
         """
@@ -161,7 +161,7 @@ class InfinityPathModel(TensorProductOfCrystals):
             seq = tuple(seq)
         if set(seq) != set(cartan_type.index_set()):
             raise ValueError("the support of seq is not the index set")
-        return super(InfinityPathModel, cls).__classcall__(cls, cartan_type, seq)
+        return super(InfinityCrystalAsPolyhedralRealization, cls).__classcall__(cls, cartan_type, seq)
 
     def __init__(self, cartan_type, seq):
         """
@@ -169,7 +169,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B = crystals.infinity.PathModel(['A',2])
+            sage: B = crystals.infinity.PolyhedralRealization(['A',2])
             sage: TestSuite(B).run() # long time
         """
         cat = (HighestWeightCrystals(), InfiniteEnumeratedSets())
@@ -189,10 +189,10 @@ class InfinityPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: crystals.infinity.PathModel(['A',2])
-            Path realization of B(oo) of type ['A', 2] using (1, 2)
+            sage: crystals.infinity.PolyhedralRealization(['A',2])
+            Polyhedral realization of B(oo) of type ['A', 2] using (1, 2)
         """
-        return "Path realization of B(oo) of type {} using {}".format(self._cartan_type, self._seq)
+        return "Polyhedral realization of B(oo) of type {} using {}".format(self._cartan_type, self._seq)
 
     def finite_tensor_product(self, k):
         """
@@ -201,7 +201,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
         EXAMPLES::
 
-            sage: B = crystals.infinity.PathModel(['A',2])
+            sage: B = crystals.infinity.PolyhedralRealization(['A',2])
             sage: B.finite_tensor_product(5)
             Full tensor product of the crystals
              [The 1-elementary crystal of type ['A', 2],
@@ -216,7 +216,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
     class Element(TensorProductOfCrystalsElement):
         r"""
-        An element in the path model for `B(\infty)`.
+        An element in the polyhedral realization of `B(\infty)`.
         """
         # For simplicity (and safety), we use the regular crystals implementation
         def epsilon(self, i):
@@ -225,7 +225,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.PathModel(['A',2,1])
+                sage: B = crystals.infinity.PolyhedralRealization(['A',2,1])
                 sage: mg = B.module_generators[0]
                 sage: [mg.epsilon(i) for i in B.index_set()]
                 [0, 0, 0]
@@ -252,7 +252,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.PathModel(['A',2,1])
+                sage: B = crystals.infinity.PolyhedralRealization(['A',2,1])
                 sage: mg = B.module_generators[0]
                 sage: [mg.phi(i) for i in B.index_set()]
                 [0, 0, 0]
@@ -277,7 +277,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.PathModel(['A',2])
+                sage: B = crystals.infinity.PolyhedralRealization(['A',2])
                 sage: mg = B.module_generators[0]
                 sage: all(mg.e(i) is None for i in B.index_set())
                 True
@@ -309,7 +309,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.PathModel(['A',2])
+                sage: B = crystals.infinity.PolyhedralRealization(['A',2])
                 sage: mg = B.module_generators[0]
                 sage: mg.f(1)
                 [-1, 0, 0, 0]
@@ -345,7 +345,7 @@ class InfinityPathModel(TensorProductOfCrystals):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.PathModel(['A',2])
+                sage: B = crystals.infinity.PolyhedralRealization(['A',2])
                 sage: mg = B.module_generators[0]
                 sage: elt = mg.f_string([1,2,2,1]); elt
                 [-1, -2, -1, 0, 0, 0]

@@ -1216,7 +1216,7 @@ class SingularElement(ExpectElement):
 
             sage: a = singular(2)
             sage: loads(dumps(a))
-            (invalid object -- defined in terms of closed session)
+            2
         """
         RingElement.__init__(self, parent)
         if parent is None: return
@@ -2175,9 +2175,8 @@ def reduce_load():
 
         sage: from sage.interfaces.singular import reduce_load
         sage: reduce_load()
-        ...: DeprecationWarning: This function is only used to unpickle invalid objects
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-          #!/usr/bin/env python
         (invalid object -- defined in terms of closed session)
 
     By :trac:`18848`, pickling actually often works::

@@ -1812,9 +1812,8 @@ def reduce_load():
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        ...: DeprecationWarning: This function is only used to unpickle invalid objects
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
         See http://trac.sagemath.org/18848 for details.
-          #!/usr/bin/env python
         <repr(<sage.interfaces.gap.GapElement at ...>) failed:
         ValueError: The session in which this object was defined is no longer running.>
 

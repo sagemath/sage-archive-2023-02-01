@@ -994,9 +994,12 @@ class InterfaceElement(RingElement):
             raise NotImplementedError("Unable to parse output: %s" % string)
 
 
-    def sage(self):
+    def sage(self, *args, **kwds):
         """
         Attempt to return a Sage version of this object.
+
+        This method does nothing more than calling :meth:`_sage_`,
+        simply forwarding any additional arguments.
 
         EXAMPLES::
 
@@ -1004,8 +1007,11 @@ class InterfaceElement(RingElement):
             1/2
             sage: _.parent()
             Rational Field
+            sage: singular.matrix(2,2)
+            [0 0]
+            [0 0]
         """
-        return self._sage_()
+        return self._sage_(*args, **kwds)
 
     def __repr__(self):
         self._check_valid()

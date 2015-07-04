@@ -99,6 +99,21 @@ def local_giacsettings(func):
 
     EXAMPLE::
 
+        sage: def testf(a,b): # optional - giacpy
+        ....:    giacsettings.proba_epsilon = a/100
+        ....:    giacsettings.threads = b+2
+        ....:    return (giacsettings.proba_epsilon, giacsettings.threads)
+        sage: from giacpy import giacsettings # optional - giacpy
+        sage: from sage.libs.giac import local_giacsettings # optional - giacpy
+        sage: gporig,gtorig = (giacsettings.proba_epsilon,giacsettings.threads) # optional - giacpy
+        sage: gp,gt = local_giacsettings(testf)(giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
+        sage: gporig == giacsettings.proba_epsilon # optional - giacpy
+        True
+        sage: gtorig == giacsettings.threads # optional - giacpy
+        True
+        sage: gp<gporig, gt-gtorig # optional - giacpy
+        (True, 2)
+
     """
     from sage.misc.decorators import sage_wraps
 
@@ -144,7 +159,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: I = sage.rings.ideal.Cyclic(P) # optional - giacpy
         sage: B=groebner_basis_libgiac(I.gens());B # optional - giacpy
         Polynomial Sequence with 45 Polynomials in 6 Variables
-        sage: B.is_groebner() # optional - giac
+        sage: B.is_groebner() # optional - giacpy
         True
 
     Computations over QQ can benefit of
@@ -161,6 +176,8 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: sage.structure.proof.all.polynomial(True) # optional - giacpy
         sage: B2 = groebner_basis_libgiac(I.gens()) # optional - giacpy
         sage: B1==B2 # optional - giacpy
+        True
+        sage: B1.is_groebner() # optional - giacpy, long time
         True
 
     * multi threaded operations

@@ -178,6 +178,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
+from sage.misc.superseded import deprecation
 import re
 import os
 import pexpect
@@ -1010,6 +1011,20 @@ class GapElement_generic(ExpectElement):
         else:
             return int(self.Length())
 
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gap('"abc"').is_string()
+            True
+            sage: gap('[1,2,3]').is_string()
+            False
+
+        """
+        return bool(self.IsString())
+
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
@@ -1783,6 +1798,34 @@ def reduce_load_GAP():
         Gap
     """
     return gap
+
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
+def reduce_load():
+    """
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    gap elements that are stored in the pickle jar.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.gap import reduce_load
+        sage: reduce_load()
+        ...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
+          #!/usr/bin/env python
+        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
+        ValueError: The session in which this object was defined is no longer running.>
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(gap([1,2,3])))
+        [ 1, 2, 3 ]
+
+    """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
+    return GapElement(None, None)
 
 def gap_console():
     """

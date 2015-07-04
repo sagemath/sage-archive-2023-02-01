@@ -347,6 +347,10 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
+from sage.misc.superseded import deprecation
+
+# This is for backwards compatibility
+from interface import reduce_load
 
 class SingularError(RuntimeError):
     """
@@ -1893,6 +1897,20 @@ class SingularElement(ExpectElement):
             return R
         raise NotImplementedError("Coercion of this datatype not implemented yet")
 
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: singular('"abc"').is_string()
+            True
+            sage: singular('1').is_string()
+            False
+
+        """
+        return self.type() == 'string'
+
     def set_ring(self):
         """
         Sets the current ring in Singular to be self.
@@ -2143,6 +2161,37 @@ def is_SingularElement(x):
         False
     """
     return isinstance(x, SingularElement)
+
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
+def reduce_load():
+    """
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    singular elements that are stored in the pickle jar.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.singular import reduce_load
+        sage: reduce_load()
+        ...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
+          #!/usr/bin/env python
+        (invalid object -- defined in terms of closed session)
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(singular.ring()))
+        //   characteristic : 0
+        //   number of vars : 1
+        //        block   1 : ordering lp
+        //                  : names    x
+        //        block   2 : ordering C
+
+    """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
+    return SingularElement(None, None, None)
 
 nodes = {}
 node_names = {}

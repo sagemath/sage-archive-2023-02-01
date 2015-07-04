@@ -736,6 +736,30 @@ class InterfaceElement(RingElement):
             //                  : names    x
             //        block   2 : ordering C
 
+        Here are further examples of pickling of interface elements::
+
+            sage: loads(dumps(gp('"abc"')))
+            abc
+            sage: loads(dumps(gp([1,2,3])))
+            [1, 2, 3]
+            sage: loads(dumps(pari('"abc"')))
+            "abc"
+            sage: loads(dumps(pari([1,2,3])))
+            [1, 2, 3]
+            sage: loads(dumps(r('"abc"')))
+            [1] "abc"
+            sage: loads(dumps(r([1,2,3])))
+            [1] 1 2 3
+            sage: loads(dumps(maxima([1,2,3])))
+            [1,2,3]
+
+        Unfortunately, strings in maxima can't be pickled yet::
+
+            sage: loads(dumps(maxima('"abc"')))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to make sense of Maxima expression '"abc"' in Sage
+
         """
         return reduce_load, (self.parent(), self._reduce())
 
@@ -743,11 +767,13 @@ class InterfaceElement(RingElement):
         """
         Helper for pickling.
 
-        By default, the corresponding Sage object is returned.
+        By default, if self is a string, then the representation of
+        that string is returned (not the string itself). Otherwise,
+        it is attempted to return the corresponding Sage object.
         If this fails with a NotImplementedError, the string
-        representation is returned instead.
+        representation of self is returned instead.
 
-        EXAMPLESS::
+        EXAMPLES::
 
             sage: S = singular.ring(0, ('x'))
             sage: S._reduce()
@@ -759,7 +785,14 @@ class InterfaceElement(RingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: Unable to parse output: PolynomialRing( Rationals, ["x"] )
+            sage: singular('"abc"')._reduce()
+            "'abc'"
+            sage: singular('1')._reduce()
+            1
+
         """
+        if self.is_string():
+            return repr(self.sage())
         try:
             return self.sage()
         except NotImplementedError:
@@ -845,6 +878,14 @@ class InterfaceElement(RingElement):
             return -1
         else:
             return 1
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        By default, the answer is negative.
+        """
+        return False
 
     def _matrix_(self, R):
         raise NotImplementedError

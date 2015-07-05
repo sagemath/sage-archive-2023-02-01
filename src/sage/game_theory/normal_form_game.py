@@ -452,8 +452,24 @@ version of the game where individuals can claim integer values from 10
 to 2.  The equilibrium strategy is thus for both players to state that
 the value of their suitcase is 2.
 
+Several standard Normal Form Games have also been implemented.
+For more information on how to access these, see:
+:mod:`Game Theory Catalog<sage.game_theory.catalog>`.
+Included is information on the situation each Game models.
+For example::
+
+    sage: g = game_theory.normal_form_games.PrisonersDilemma()
+    sage: g
+    Prisoners dilemma - Normal Form Game with the following utilities: ...
+    sage: d = {(0, 1): [-5, 0], (1, 0): [0, -5],
+    ....:      (0, 0): [-2, -2], (1, 1): [-4, -4]}
+    sage: g == d
+    True
+    sage: g.obtain_nash()
+    [[(0, 1), (0, 1)]]
+
 For a given strategy for a player and the opponents payoff matrix, we can
-compute the best responses. In this example we obtaint the best responses for
+compute the best responses. In this example we obtain the best responses for
 Player 2, when Player 1 uses two different strategies::
 
     sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
@@ -470,16 +486,20 @@ matrix::
     sage: g.best_responses((4/5, 1/5, 0), B.transpose())
     [0, 1]
 
-We can show that for the game `Rock-Paper-Scissors-Lizard-Spock
+We see that for the game `Rock-Paper-Scissors-Lizard-Spock
 <http://www.samkass.com/theories/RPSSL.html>`_ any pure strategy has two best
 responses::
 
-    sage: A = matrix([[0, -1, 1, 1, -1],
-    ....:             [1, 0, -1, -1, 1],
-    ....:             [-1, 1, 0, 1 , -1],
-    ....:             [-1, 1, -1, 0, 1],
-    ....:             [1, -1, 1, -1, 0]])
-    sage: g = NormalFormGame([A])
+    sage: g = game_theory.normal_form_games.RPSLS()
+    sage: A, B = g.payoff_matrices()
+    sage: A, B
+    (
+    [ 0 -1  1  1 -1]  [ 0  1 -1 -1  1]
+    [ 1  0 -1 -1  1]  [-1  0  1  1 -1]
+    [-1  1  0  1 -1]  [ 1 -1  0 -1  1]
+    [-1  1 -1  0  1]  [ 1 -1  1  0 -1]
+    [ 1 -1  1 -1  0], [-1  1 -1  1  0]
+    )
     sage: g.best_responses((1, 0, 0, 0, 0), A)
     [1, 4]
     sage: g.best_responses((0, 1, 0, 0, 0), A)
@@ -489,6 +509,16 @@ responses::
     sage: g.best_responses((0, 0, 0, 1, 0), A)
     [0, 2]
     sage: g.best_responses((0, 0, 0, 0, 1), A)
+    [1, 3]
+    sage: g.best_responses((1, 0, 0, 0, 0), B.transpose())
+    [1, 4]
+    sage: g.best_responses((0, 1, 0, 0, 0), B.transpose())
+    [2, 3]
+    sage: g.best_responses((0, 0, 1, 0, 0), B.transpose())
+    [0, 4]
+    sage: g.best_responses((0, 0, 0, 1, 0), B.transpose())
+    [0, 2]
+    sage: g.best_responses((0, 0, 0, 0, 1), B.transpose())
     [1, 3]
 
 Note that degenerate games can cause problems for most algorithms.
@@ -534,22 +564,6 @@ Here is an example with the trivial game where all payoffs are 0::
      [(1, 0, 0), (0, 0, 1)], [(1, 0, 0), (0, 1, 0)], [(1, 0, 0), (1, 0, 0)]]
 
 A good description of degenerate games can be found in [NN2007]_.
-
-Several standard Normal Form Games have also been implemented.
-For more information on how to access these, see:
-:mod:`Game Theory Catalog<sage.game_theory.catalog>`.
-Included is information on the situation each Game models.
-For example::
-
-    sage: g = game_theory.normal_form_games.PrisonersDilemma()
-    sage: g
-    Prisoners dilemma - Normal Form Game with the following utilities: ...
-    sage: d = {(0, 1): [-5, 0], (1, 0): [0, -5],
-    ....:      (0, 0): [-2, -2], (1, 1): [-4, -4]}
-    sage: g == d
-    True
-    sage: g.obtain_nash()
-    [[(0, 1), (0, 1)]]
 
 REFERENCES:
 
@@ -1837,10 +1851,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         The game Rock-Paper-Scissors is an example of a non-degenerate game.::
 
-            sage: A = matrix([[0, -1, 1],
-            ....:             [1, 0, -1],
-            ....:             [-1, 1, 0]])
-            sage: g = NormalFormGame([A])
+            sage: g = game_theory.normal_form_games.RPS()
             sage: g.is_degenerate()
             False
 
@@ -1848,12 +1859,7 @@ class NormalFormGame(SageObject, MutableMapping):
         <http://www.samkass.com/theories/RPSSL.html>`_ is degenerate because
         for every pure strategy there are two best responses.::
 
-            sage: A = matrix([[0, -1, 1, 1, -1],
-            ....:             [1, 0, -1, -1, 1],
-            ....:             [-1, 1, 0, 1 , -1],
-            ....:             [-1, 1, -1, 0, 1],
-            ....:             [1, -1, 1, -1, 0]])
-            sage: g = NormalFormGame([A])
+            sage: g = game_theory.normal_form_games.RPSLS()
             sage: g.is_degenerate()
             True
 

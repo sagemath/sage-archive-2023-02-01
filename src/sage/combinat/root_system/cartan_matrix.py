@@ -196,9 +196,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(cls, *args, **kwds):
+    def __classcall_private__(cls, data=None, index_set=None,
+                              cartan_type=None, cartan_type_check=True):
         """
-        Normalize input so we can inherit from spare integer matrix.
+        Normalize input so we can inherit from sparse integer matrix.
 
         .. NOTE::
 
@@ -226,30 +227,28 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             ('a', 'b')
         """
         # Special case with 0 args and kwds has Cartan type
-        if "cartan_type" in kwds and len(args) == 0:
-            args = (CartanType(kwds["cartan_type"]),)
-        if len(args) == 0:
+        if cartan_type is not None and data is None:
+            data = CartanType(cartan_type)
+
+        if data is None:
             data = []
             n = 0
             index_set = tuple()
             cartan_type = None
             subdivisions = None
-        elif len(args) == 4 and isinstance(args[0], MatrixSpace): # For pickling
-            return typecall(cls, args[0], args[1], args[2], args[3])
-        elif isinstance(args[0], CartanMatrix):
-            return args[0]
+        elif isinstance(data, CartanMatrix):
+            return data
         else:
-            cartan_type = None
             dynkin_diagram = None
             subdivisions = None
 
             from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
-            if isinstance(args[0], DynkinDiagram_class):
-                dynkin_diagram = args[0]
-                cartan_type = args[0]._cartan_type
+            if isinstance(data, DynkinDiagram_class):
+                dynkin_diagram = data
+                cartan_type = data._cartan_type
             else:
                 try:
-                    cartan_type = CartanType(args[0])
+                    cartan_type = CartanType(data)
                     dynkin_diagram = cartan_type.dynkin_diagram()
                 except (TypeError, ValueError):
                     pass
@@ -262,30 +261,24 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
             else:
-                M = matrix(args[0])
+                M = matrix(data)
                 if not is_generalized_cartan_matrix(M):
                     raise ValueError("the input matrix is not a generalized Cartan matrix")
                 n = M.ncols()
-                if "cartan_type" in kwds:
-                    cartan_type = CartanType(kwds["cartan_type"])
+                if cartan_type is not None:
+                    cartan_type = CartanType(cartan_type)
                 elif n == 1:
                     cartan_type = CartanType(['A', 1])
-                elif kwds.get("cartan_type_check", True):
+                elif cartan_type_check:
                     cartan_type = find_cartan_type_from_matrix(M)
                 data = M.dict()
                 subdivisions = M._subdivisions
 
-            if len(args) == 1:
-                if cartan_type is not None:
-                    index_set = tuple(cartan_type.index_set())
-                elif dynkin_diagram is None:
-                    index_set = tuple(range(n))
-            elif len(args) == 2:
-                index_set = tuple(args[1])
-                if len(index_set) != n and len(set(index_set)) != n:
-                    raise ValueError("the given index set is not valid")
-            else:
-                raise ValueError("too many arguments")
+            if index_set is None:
+                index_set = tuple(range(n))
+
+        if len(index_set) != n and len(set(index_set)) != n:
+            raise ValueError("the given index set is not valid")
 
         mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, cartan_type, index_set)
         mat._subdivisions = subdivisions
@@ -304,6 +297,21 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         self._cartan_type = cartan_type
         self._index_set = index_set
         self.set_immutable()
+
+    def __reduce__(self):
+        """
+        Used for pickling.
+
+        TESTS::
+
+            sage: CM = CartanMatrix(['A',4])
+            sage: x = loads(dumps(CM))
+            sage: x._index_set
+            (1, 2, 3, 4)
+        """
+        if self._cartan_type:
+            return (CartanMatrix, (self._cartan_type,))
+        return (CartanMatrix, (self.dynkin_diagram(),))
 
     def root_system(self):
         """
@@ -931,28 +939,4 @@ def find_cartan_type_from_matrix(CM):
         if ct.cartan_matrix() == CM:
             return ct
     return None
-
-def cartan_matrix(t):
-    """
-    Return the Cartan matrix of type `t`.
-
-    .. NOTE::
-
-        This function is deprecated in favor of
-        ``CartanMatrix(...)``, to avoid polluting the
-        global namespace.
-
-    EXAMPLES::
-
-        sage: cartan_matrix(['A', 4])
-        doctest:...: DeprecationWarning: cartan_matrix() is deprecated. Use CartanMatrix() instead
-        See http://trac.sagemath.org/14137 for details.
-        [ 2 -1  0  0]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [ 0  0 -1  2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14137, 'cartan_matrix() is deprecated. Use CartanMatrix() instead')
-    return CartanMatrix(t)
 

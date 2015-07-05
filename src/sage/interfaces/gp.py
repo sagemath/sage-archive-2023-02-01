@@ -931,7 +931,11 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage:
+            sage: gp('"abc"').is_string()
+            True
+            sage: gp('[1,2,3]').is_string()
+            False
+
         """
         return repr(self.type())=='t_STR'
 

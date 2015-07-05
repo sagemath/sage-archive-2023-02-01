@@ -3,7 +3,8 @@ Crystal of Bernstien-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2015 Ben Salisbury <salis1bt at cmich.edu>
+#                          Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -75,6 +76,28 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
          \psi - (\ell_e;i] + (\ell_e-1;i-1] & \text{ if } \ell_e > 1.
         \end{cases}
 
+    Alternatively, the crystal operators may be defined using a signature rule,
+    as detailed in Section 4 of [JL2009]_ (following [AJL2011]_).  For
+    `\psi \in \Psi` and `i \in \ZZ/(n+1)\ZZ`, encode all segments in `\psi` with
+    tail `i` by the symbol `R` and all segments in `\psi` with tail `i-1` by
+    `A`.  For `\ell> 0`, set
+    `w_{i,\ell} = R^{m_{(\ell,i]}} A^{m_{(\ell,i-1]}}` and
+    `w_i = \prod_{\ell\ge 1} w_{i,\ell}`.  By successively canceling out as many
+    `RA` factors as possible, set
+    `\widetilde{w}_i = A^{a_i(\psi)}R^{r_i(\psi)}`.  If `a_i(\psi)>0`, denote
+    by `\ell_f > 0` the length of the rightmost segment `A` in
+    `\widetilde{w}_i`.  If `a_i(\psi) = 0`, set `\ell_f = 0`.  Then
+
+    .. MATH::
+
+        f_i\psi =
+        \begin{cases}
+         \psi + (1;i] & \text{ if } a_i(\psi) = 0,\\
+         \psi + (\ell_f;i] - (\ell_f-1;i-1] & \text{ if } a_i(\psi) > 0.
+        \end{cases}
+
+    The rule for computing `e_i\psi` is similar.
+
     INPUT:
 
     - ``n`` -- for type `A_n^{(1)}`
@@ -111,6 +134,10 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
         True
 
     REFERENCES:
+
+    .. [AJL2011] Susumu Ariki, Nicolas Jacon, and Cedric Lecouvey.
+       *The modular branching rule for affine Hecke algebras of type A*
+       Adv. Math. 228:481-526 (2011).
 
     .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
        *Kashiwara and Zelevinsky involutions in affine type A*.

@@ -10,10 +10,10 @@ For the compendium on the cluster algebra and quiver package see
 
 AUTHORS:
 
-- Aram Dermenjian
-- Jesse Levitt
-- Gregg Musiker
-- Christian Stump
+- Gregg Musiker: Initial Version
+- Christian Stump: Initial Version
+- Aram Dermenjian (2015-07-01): Updating ability to not rely solely on clusters
+- Jesse Levitt (2015-07-01): Updating ability to not rely solely on clusters
 
 REFERENCES:
 
@@ -669,6 +669,27 @@ class ClusterSeed(SageObject):
     def _sanitize_init_vars(self, user_labels, user_labels_prefix = 'x'):
         r"""
         Warning: This is an internal method that rewrites a user-given set of cluster variable names into a format that Sage can utilize.
+        
+        INPUT:
+        
+        - ``user_labels`` -- The labels that need sanitizing
+        - ``user_labels_prefix`` -- (default:'x') The prefix to use for labels if integers given for labels
+        
+        EXAMPLES::
+        
+        sage: S = ClusterSeed(['A',4]); S._init_vars
+        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+        sage: S._sanitize_init_vars([1,2,3,4],'z')
+        sage: S._init_vars
+        {0: 'z1', 1: 'z2', 2: 'z3', 3: 'z4'}
+        
+        sage: S = ClusterSeed(['A',4]); S._init_vars
+        {0: 'x0', 1: 'x1', 2: 'x2', 3: 'x3', 4: 'y0', 5: 'y1', 6: 'y2', 7: 'y3'}
+        sage: S._sanitize_init_vars(['a', 'b', 'c', 'd'])
+        sage: S._init_vars
+        {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
+
+
         """
         if isinstance(user_labels,list):
             self._init_vars = {}
@@ -1556,6 +1577,19 @@ class ClusterSeed(SageObject):
     def d_matrix(self, show_warnings=True):
         r"""
         Returns the matrix of *d-vectors* of ``self``.
+        
+        EXAMPLES::
+            sage: S = ClusterSeed(['A',4]); S.d_matrix()
+            [-1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            sage: S.mutate([1,2,1,0,1,3]); S.d_matrix()
+            [1 1 0 1]
+            [1 1 1 1]
+            [1 0 1 1]
+            [0 0 0 1]
+
 
         """
         if not (self._use_d_vec or self._use_fpolys or self._track_mut):
@@ -3979,6 +4013,14 @@ def get_green_vertices(C):
     INPUT:
 
     - ``C`` -- The C matrix to check
+    
+    EXAMPLES::
+    
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import get_green_vertices
+        sage: S = ClusterSeed(['A',4]); S.mutate([1,2,3,2,0,1,2,0,3])
+        sage: get_green_vertices(S.c_matrix())
+        [0, 3]
+
     """
     import numpy as np
     max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
@@ -3992,6 +4034,13 @@ def get_red_vertices(C):
     INPUT:
 
     - ``C`` -- The C matrix to check
+
+    EXAMPLES::
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import get_red_vertices
+        sage: S = ClusterSeed(['A',4]); S.mutate([1,2,3,2,0,1,2,0,3])
+        sage: get_red_vertices(S.c_matrix())
+        [1, 2]
+
     """
     import numpy as np
     min_entries = [ np.min(np.array(C.column(i))) for i in xrange(C.ncols()) ]

@@ -972,9 +972,9 @@ class NormalFormGame(SageObject, MutableMapping):
         obtain payoff matrices::
 
             sage: g = NormalFormGame()
-            sage: g.add_player(2)  # Adding first player with 2 strategies
-            sage: g.add_player(2)  # Adding second player with 2 strategies
-            sage: g.add_player(2)  # Adding third player with 2 strategies
+            sage: g.add_player(2)  # adding first player with 2 strategies
+            sage: g.add_player(2)  # adding second player with 2 strategies
+            sage: g.add_player(2)  # adding third player with 2 strategies
             sage: g.payoff_matrices()
             Traceback (most recent call last):
             ...
@@ -2043,12 +2043,69 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g = NormalFormGame([A, B])
             sage: g.best_responses((1/3, 1/3, 1/3), player=1)
             [1]
+
+        Note that this has only been implemented for 2 player games::
+
+            sage: g = NormalFormGame()
+            sage: g.add_player(2)  # adding first player with 2 strategies
+            sage: g.add_player(2)  # adding second player with 2 strategies
+            sage: g.add_player(2)  # adding third player with 2 strategies
+            sage: g.best_responses((1/2, 1/2), player=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Only available for 2 player games
+
+        If the strategy is not of the correct dimension for the given player
+        then an error is returned::
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.best_responses((1/2, 1/2), player=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Strategy is not of correct dimension
+
+            sage: g.best_responses((1/3, 1/3, 1/3), player=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Strategy is not of correct dimension
+
+        If the strategy is not a true probability vector then an error is
+        passed:
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.best_responses((1/3, 1/2, 0), player=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Strategy is not a probability distribution vector
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.best_responses((3/2, -1/2), player=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Strategy is not a probability distribution vector
         """
+        if len(self.players) != 2:
+            raise ValueError('Only available for 2 player games')
+
         strategy = vector(strategy)
+
+        if sum(strategy) != 1 or min(strategy) < 0:
+            raise ValueError('Strategy is not a probability distribution vector')
+
         if player == 0:
             payoff_matrix = self.payoff_matrices()[0]
         elif player == 1:
             payoff_matrix = self.payoff_matrices()[1].transpose()
+
+        if len(strategy) != payoff_matrix.dimensions()[1]:
+            raise ValueError('Strategy is not of correct dimension')
+
         payoffs = list(payoff_matrix * strategy)
         indices = [i for i, j in enumerate(payoffs) if j == max(payoffs)]
 

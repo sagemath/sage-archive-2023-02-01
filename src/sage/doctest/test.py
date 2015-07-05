@@ -277,7 +277,7 @@ Test that ``sig_on_count`` is checked correctly::
     **********************************************************************
     File "sig_on.rst", line 5, in sage.doctest.tests.sig_on
     Failed example:
-        sig_on_count()
+        sig_on_count() # check sig_on/off pairings (virtual doctest)
     Expected:
         0
     Got:

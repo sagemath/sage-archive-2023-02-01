@@ -48,6 +48,7 @@ Comprehensive Module list
     sage/combinat/crystals/__init__
     sage/combinat/crystals/affine
     sage/combinat/crystals/affine_factorization
+    sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
     sage/combinat/crystals/catalog

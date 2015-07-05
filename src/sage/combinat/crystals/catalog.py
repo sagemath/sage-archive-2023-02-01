@@ -67,7 +67,7 @@ from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import Tenso
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 from sage.combinat.crystals.kleshchev import KleshchevCrystal as KleshchevPartitions
-from sage.combinat.crystals.affinization import AffinizationCrystal as Affinization
+from sage.combinat.crystals.affinization import AffinizationOfCrystal as AffinizationOf
 
 from tensor_product import TensorProductOfCrystals as TensorProduct
 from direct_sum import DirectSumOfCrystals as DirectSum

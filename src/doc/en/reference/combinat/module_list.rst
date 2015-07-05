@@ -62,18 +62,14 @@ Comprehensive Module list
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
     sage/combinat/crystals/infinity_crystals
-<<<<<<< HEAD
-    sage/combinat/crystals/infinity_path_model
     sage/combinat/crystals/kleshchev
-=======
-    sage/combinat/crystals/polyhedral_realization
->>>>>>> develop
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
     sage/combinat/crystals/littelmann_path
     sage/combinat/crystals/monomial_crystals
     sage/combinat/crystals/multisegments
+    sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/spins
     sage/combinat/crystals/tensor_product
     sage/combinat/cyclic_sieving_phenomenon

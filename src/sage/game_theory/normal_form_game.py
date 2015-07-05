@@ -468,22 +468,21 @@ For example::
     sage: g.obtain_nash()
     [[(0, 1), (0, 1)]]
 
-For a given strategy for a player and the opponents payoff matrix, we can
-compute the best responses. In this example we obtain the best responses for
-Player 2, when Player 1 uses two different strategies::
+We can easily obtain the best response for a player to a given strategy.  In
+this example we obtain the best responses for Player 1, when Player 2 uses two
+different strategies::
 
     sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
     sage: B = matrix([[4, 3], [2, 6], [3, 1]])
     sage: g = NormalFormGame([A, B])
-    sage: g.best_responses((1/2, 1/2), A)
+    sage: g.best_responses((1/2, 1/2), player=0)
     [0, 1, 2]
-    sage: g.best_responses((3/4, 1/4), A)
+    sage: g.best_responses((3/4, 1/4), player=0)
     [0]
 
-To get the best responses for Player 2 we have to transpose the payoff
-matrix::
+Here we do the same for player 2::
 
-    sage: g.best_responses((4/5, 1/5, 0), B.transpose())
+    sage: g.best_responses((4/5, 1/5, 0), player=1)
     [0, 1]
 
 We see that for the game `Rock-Paper-Scissors-Lizard-Spock
@@ -500,25 +499,25 @@ responses::
     [-1  1 -1  0  1]  [ 1 -1  1  0 -1]
     [ 1 -1  1 -1  0], [-1  1 -1  1  0]
     )
-    sage: g.best_responses((1, 0, 0, 0, 0), A)
+    sage: g.best_responses((1, 0, 0, 0, 0), player=0)
     [1, 4]
-    sage: g.best_responses((0, 1, 0, 0, 0), A)
+    sage: g.best_responses((0, 1, 0, 0, 0), player=0)
     [2, 3]
-    sage: g.best_responses((0, 0, 1, 0, 0), A)
+    sage: g.best_responses((0, 0, 1, 0, 0), player=0)
     [0, 4]
-    sage: g.best_responses((0, 0, 0, 1, 0), A)
+    sage: g.best_responses((0, 0, 0, 1, 0), player=0)
     [0, 2]
-    sage: g.best_responses((0, 0, 0, 0, 1), A)
+    sage: g.best_responses((0, 0, 0, 0, 1), player=0)
     [1, 3]
-    sage: g.best_responses((1, 0, 0, 0, 0), B.transpose())
+    sage: g.best_responses((1, 0, 0, 0, 0), player=1)
     [1, 4]
-    sage: g.best_responses((0, 1, 0, 0, 0), B.transpose())
+    sage: g.best_responses((0, 1, 0, 0, 0), player=1)
     [2, 3]
-    sage: g.best_responses((0, 0, 1, 0, 0), B.transpose())
+    sage: g.best_responses((0, 0, 1, 0, 0), player=1)
     [0, 4]
-    sage: g.best_responses((0, 0, 0, 1, 0), B.transpose())
+    sage: g.best_responses((0, 0, 0, 1, 0), player=1)
     [0, 2]
-    sage: g.best_responses((0, 0, 0, 0, 1), B.transpose())
+    sage: g.best_responses((0, 0, 0, 0, 1), player=1)
     [1, 3]
 
 Note that degenerate games can cause problems for most algorithms.
@@ -1993,16 +1992,16 @@ class NormalFormGame(SageObject, MutableMapping):
         for pair in potential_support_pairs:
             if len(pair[0]) < len(pair[1]):
                 strat = self._solve_indifference(pair[0], pair[1], M2)
-                if strat and len(self.best_responses(strat, M2.transpose())) > len(pair[0]):
+                if strat and len(self.best_responses(strat, player=0)) > len(pair[0]):
                     return True
             elif len(pair[1]) < len(pair[0]):
                 strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
-                if strat and len(self.best_responses(strat, M1)) > len(pair[1]):
+                if strat and len(self.best_responses(strat, player=0)) > len(pair[1]):
                     return True
 
         return False
 
-    def best_responses(self, strategy, payoff_matrix):
+    def best_responses(self, strategy, player):
         """
         For a given strategy for a player and the opponents payoff matrix,
         computes the payoff for the opponent and returns a list of the indices
@@ -2014,39 +2013,42 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
 
-        Now we can obtain the best responses for Player 2, when Player 1 uses
+        Now we can obtain the best responses for Player 1, when Player 2 uses
         different strategies::
 
-            sage: g.best_responses((1/2, 1/2), A)
+            sage: g.best_responses((1/2, 1/2), player=0)
             [0, 1, 2]
-            sage: g.best_responses((3/4, 1/4), A)
+            sage: g.best_responses((3/4, 1/4), player=0)
             [0]
 
-        To get the best responses for Player 2 we have to transpose the payoff
-        matrix::
+        To get the best responses for Player 2 we pass the argument :code:`player=1`
 
-            sage: g.best_responses((4/5, 1/5, 0), B.transpose())
+            sage: g.best_responses((4/5, 1/5, 0), player=1)
             [0, 1]
 
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])
             sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
             sage: g = NormalFormGame([A, B])
-            sage: g.best_responses((1/2, 1/2), A)
+            sage: g.best_responses((1/2, 1/2), player=0)
             [0, 1]
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
             sage: degenerate_game = NormalFormGame([A,B])
-            sage: degenerate_game.best_responses((1, 0, 0), B.transpose())
+            sage: degenerate_game.best_responses((1, 0, 0), player=1)
             [0, 1]
 
             sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.best_responses((1/3, 1/3, 1/3), B.transpose())
+            sage: g.best_responses((1/3, 1/3, 1/3), player=1)
             [1]
         """
         strategy = vector(strategy)
+        if player == 0:
+            payoff_matrix = self.payoff_matrices()[0]
+        elif player == 1:
+            payoff_matrix = self.payoff_matrices()[1].transpose()
         payoffs = list(payoff_matrix * strategy)
         indices = [i for i, j in enumerate(payoffs) if j == max(payoffs)]
 

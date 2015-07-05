@@ -14,7 +14,7 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassical`
 * :class:`~sage.combinat.crystals.affine.AffineCrystalFromClassicalAndPromotion`
 * :class:`AffineFactorization <sage.combinat.crystals.affine_factorization.AffineFactorizationCrystal>`
-* :class:`Affinization <sage.combinat.crystals.affinization.AffinizationCrystal>`
+* :class:`AffinizationOf <sage.combinat.crystals.affinization.AffinizationOfCrystal>`
 * :class:`AlcovePaths <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
 * :class:`FastRankTwo <sage.combinat.crystals.fast_crystals.FastCrystal>`
 * :class:`GeneralizedYoungWalls
@@ -55,7 +55,7 @@ from fast_crystals import FastCrystal as FastRankTwo
 from affine import AffineCrystalFromClassical as AffineFromClassical
 from affine import AffineCrystalFromClassicalAndPromotion as AffineFromClassicalAndPromotion
 from affine_factorization import AffineFactorizationCrystal as AffineFactorization
-from sage.combinat.crystals.affinization import AffinizationCrystal as Affinization
+from sage.combinat.crystals.affinization import AffinizationOfCrystal as AffinizationOf
 from highest_weight_crystals import HighestWeightCrystal as HighestWeight
 from alcove_path import CrystalOfAlcovePaths as AlcovePaths
 from littelmann_path import CrystalOfLSPaths as LSPaths

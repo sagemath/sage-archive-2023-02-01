@@ -718,8 +718,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.affinization()
             Affinization of Kirillov-Reshetikhin crystal of type ['A', 2, 1] with (r,s)=(1,1)
         """
-        from sage.combinat.crystals.affinization import AffinizationCrystal
-        return AffinizationCrystal(self)
+        from sage.combinat.crystals.affinization import AffinizationOfCrystal
+        return AffinizationOfCrystal(self)
 
     def q_dimension(self, q=None, prec=None, use_product=False):
         """

@@ -192,7 +192,8 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # produce plots.
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
-	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW)
+	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
+	$(INST)/$(MATHJAX)
 
 doc: doc-html
 

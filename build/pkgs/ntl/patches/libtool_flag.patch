@@ -29,7 +29,7 @@ diff -druN a/src/mfile b/src/mfile
  @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
  @{LSTAT}	- $(RANLIB) ntl.a #LSTAT
 -@{LSHAR}	$(LIBTOOL) --tag=CXX --mode=link $(LINK) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
-+@{LSHAR}	$(LIBTOOL) --tag=CXX --mode=link $(LINK) (LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
++@{LSHAR}	$(LIBTOOL) --tag=CXX --mode=link $(LINK) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
  
  @{LSTAT}LCOMP= #LSTAT
  @{LSHAR}LCOMP=$(LIBTOOL) --tag=CXX --mode=compile #LSHAR

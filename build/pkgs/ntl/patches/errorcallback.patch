@@ -28,7 +28,7 @@
 +}
 +
 +
- void Error(const char *s)
+ void TerminalError(const char *s)
  {
 +   if (ErrorCallbackFunction != NULL)
 +      ErrorCallbackFunction(s, ErrorCallbackContext);
@@ -43,19 +43,19 @@
  #include <cstdlib>
  #include <cmath>
 +#include <cstdio>
- #include <iostream>
- 
- #else
-@@ -310,6 +311,12 @@
- char IntValToChar(long a);
  
  
+ 
+@@ -487,6 +488,12 @@
+ 
+ 
+ NTL_THREAD_LOCAL extern void (*ErrorCallback)();
++
 +/*
 +  This function is not present in vanilla NTL.
 +  See tools.c for documentation.
 + */
 +void SetErrorCallbackFunction(void (*func)(const char *s, void *context), void *context);
-+
  
- void Error(const char *s);
+ void TerminalError(const char *s);
  

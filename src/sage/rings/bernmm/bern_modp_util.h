@@ -17,7 +17,7 @@
 #include <vector>
 #include <cassert>
 #include <climits>
-
+#include <NTL/ZZ.h>
 
 #if ULONG_MAX == 4294967295U
 #define ULONG_BITS 32

@@ -184,7 +184,6 @@ def row_reduced_form(M,transformation=False):
         return (matrix(r)/den, matrix(N))
     return matrix(r)/den
 
-
 def prm_mul(p1, p2, mask_free, prec):
     """
     Return the product of ``p1`` and ``p2``, putting free variables in

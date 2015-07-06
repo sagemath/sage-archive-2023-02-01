@@ -12331,15 +12331,15 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used. If ``None``,
-          the best option is chosen. Boost implementation only works on
-          undirected graphs.
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed graphs.
 
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_average()
-            0.25
+            1/4
             sage: (graphs.FruchtGraph()).clustering_average(implementation='networkx')
             0.25
 
@@ -12350,36 +12350,42 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Circuit(10).clustering_average(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected graphs.
+            ValueError: This value of 'implementation' is invalid for directed graphs
 
-        The result is the same with Boost and NetworkX::
+        The result is the same with all implementations::
 
             sage: G = graphs.RandomGNM(10,20)
-            sage: average_boost    = G.clustering_average(implementation='boost')
-            sage: average_networkx = G.clustering_average(implementation='networkx')
-            sage: average_boost-average_networkx # tol abs 1e-12
+            sage: coeffs = [G.clustering_average(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
+            sage: max(coeffs)-min(coeffs) # tol abs 1e-12
             0
 
         """
         if implementation == None:
-            if not self.is_directed():
-                implementation = 'boost'
-            else:
-                implementation = 'networkx'
-
-        if not implementation in ['networkx','boost']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', or None.")
-
-        if (implementation == 'boost'):
+            from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed():
-                raise ValueError("Boost algorithm is only implemented for " +
-                                 "undirected graphs.")
+                implementation = 'networkx'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if self.is_directed() and implementation != 'networkx':
+            raise ValueError("This value of 'implementation' is invalid for directed graphs")
+
+        if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
             return clustering_coeff(self)[0]
-        else:
+        elif implementation == 'networkx':
             import networkx
             return networkx.average_clustering(self.networkx_graph(copy=False))
+        else:
+            from sage.stats.basic_stats import mean
+            return mean(self.clustering_coeff(implementation=implementation).values())
 
     def clustering_coeff(self,
                          nodes=None,
@@ -12413,25 +12419,18 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
-        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used, if 'None', the
-          best option is chosen by the algorithm. Boost implementation only
-          works on undirected graphs, and only if ``weight`` is ``False``.
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed or weighted graphs, and that
+          ``'sparse_copy'`` and ``'dense_copy'`` do not support ``node``
+          different from ``None``
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='networkx').values()
-            [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333,
-             0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
-             0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
-             0.0]
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='boost')
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
-             3: 0.3333333333333333, 4: 0.3333333333333333,
-             5: 0.3333333333333333, 6: 0.3333333333333333,
-             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-             10: 0.3333333333333333, 11: 0.0}
+            sage: graphs.FruchtGraph().clustering_coeff()
+            {0: 1/3, 1: 1/3, 2: 0, 3: 1/3, 4: 1/3, 5: 1/3,
+             6: 1/3, 7: 1/3, 8: 0, 9: 1/3, 10: 1/3, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
@@ -12466,51 +12465,75 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
 
         Boost does not work with DiGraph::
 
             sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
 
-        Check that the result is the same with Boost and NetworkX::
+        Check that the result is the same with all implementations::
 
             sage: G = graphs.RandomGNM(10,20)
-            sage: clust_boost = G.clustering_coeff(implementation='boost')
-            sage: clust_networkx = G.clustering_coeff(implementation='networkx')
+            sage: G.relabel(list("abcdefghik"))
+            sage: coeffs = [G.clustering_coeff(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
             sage: for v in G:
-            ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
-            ....:         print "Error:"
-            ....:         print "   Boost clustering of", v, "is", clust_boost[v]
-            ....:         print "NetworkX clustering of", v, "is", clust_networkx[v]
-
+            ....:     coeffs_v = [c[v] for c in coeffs]
+            ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
+            ....:         print "Error for v=",v
+            ....:         print "min=",min(coeffs_v),"max=",max(coeffs_v)
         """
+        from sage.rings.integer import Integer
         if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
 
         if implementation == None:
-            if (not self.is_directed()) and not weight:
-                implementation = 'boost'
-            else:
-                implementation = 'networkx'
-
-        if not implementation in ['networkx','boost']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', or None.")
-
-        if (implementation == 'boost'):
+            from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed() or weight:
-                raise ValueError("Boost algorithm is only implemented for " +
-                                 "undirected, unweighted graphs.")
+                implementation = 'networkx'
+            elif nodes is not None:
+                implementation = 'boost'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if ((self.is_directed() or weight) and
+            implementation != 'networkx'):
+            raise ValueError("This value of 'implementation' is invalid for directed/weighted graphs")
+
+        if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
+            raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
+
+        def coeff_from_triangle_count(v,count):
+            dv = self.degree(v)
+            if dv < 2:
+                return 0
+            return 2*count/Integer(dv*(dv-1))
+
+        if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
             return clustering_coeff(self, nodes)[1]
-        else:
+        elif implementation == 'networkx':
             import networkx
             return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+        elif implementation == 'sparse_copy':
+            from sage.graphs.base.static_sparse_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
+        elif implementation =="dense_copy":
+            from sage.graphs.base.static_dense_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
 
     def cluster_transitivity(self):
         r"""
@@ -13491,10 +13514,10 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr//6)
             elif algorithm=="sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=="dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:

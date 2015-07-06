@@ -12,8 +12,8 @@ Note that
 
 - If the mention of `K` is omitted, then `K=\RR` is assumed
 - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
-  `C^\infty`-manifold (even an analytic manifold)
-- If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible `C^\infty`
+  `C^k`-manifold (even an analytic manifold)
+- If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible `C^k`
   structure (Whitney's smoothing theorem)
 
 Differentiable manifolds are implemented via the class :class:`DiffManifold`.
@@ -305,9 +305,9 @@ class DiffManifold(TopManifold):
 
     - If the mention of `K` is omitted, then `K=\RR` is assumed
     - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
-      `C^\infty`-manifold (even an analytic manifold)
+      `C^k`-manifold (even an analytic manifold)
     - If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
-      `C^\infty` structure (Whitney's smoothing theorem)
+      `C^k` structure (Whitney's smoothing theorem)
 
     INPUT:
 
@@ -1370,7 +1370,7 @@ class DiffManifold(TopManifold):
             vector field 'v' on the open subset 'U' of the 3-dimensional manifold 'M'
 
         Vector fields on `U` form the set `\mathcal{X}(U)`, which is a module
-        over the algebra `C^\infty(U)` of smooth scalar fields on `U`::
+        over the algebra `C^k(U)` of differentiable scalar fields on `U`::
 
             sage: v.parent()
             free module X(U) of vector fields on the open subset 'U' of the 3-dimensional manifold 'M'
@@ -1434,7 +1434,7 @@ class DiffManifold(TopManifold):
             tensor field 'T' of type (2,0) on the open subset 'U' of the 3-dimensional manifold 'M'
 
         Type-(2,0) tensor fields on `U` form the set `\mathcal{T}^{(2,0)}(U)`,
-        which is a module over the algebra `C^\infty(U)` of smooth scalar
+        which is a module over the algebra `C^k(U)` of differentiable scalar
         fields on `U`::
 
             sage: t.parent()

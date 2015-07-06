@@ -9,7 +9,7 @@ the module `\mathcal{X}(U,\Phi)` of vector fields along `U` with values in
 `V\subset M` (see
 :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
 Note that `\mathcal{X}(U,\Phi)` is a module over
-`C^\infty(U)`, the algebra of smooth scalar fields on `U`.
+`C^k(U)`, the algebra of differentiable scalar fields on `U`.
 Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
 automorphisms of the tangent spaces to `M`.
 
@@ -60,7 +60,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
     `V\subset M` (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
     Note that `\mathcal{X}(U,\Phi)` is a module over
-    `C^\infty(U)`, the algebra of smooth scalar fields on `U`.
+    `C^k(U)`, the algebra of smooth scalar fields on `U`.
     Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
     automorphisms of the tangent spaces to `M`.
 
@@ -323,7 +323,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     `V\subset M` (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`).
     Note that `\mathcal{X}(U,\Phi)` is a module over
-    `C^\infty(U)`, the algebra of smooth scalar fields on `U`.
+    `C^k(U)`, the algebra of differentiable scalar fields on `U`.
     Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
     automorphisms of the tangent spaces to `M`.
 

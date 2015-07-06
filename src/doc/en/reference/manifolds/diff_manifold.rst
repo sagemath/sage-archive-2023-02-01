@@ -8,11 +8,12 @@ Differentiable manifolds
 
    sage/manifolds/differentiable/chart
 
-   sage/manifolds/differentiable/scalarfield_algebra
+   diff_scalarfield
 
-   sage/manifolds/differentiable/scalarfield
+   diff_map
 
-   sage/manifolds/differentiable/manifold_homset
+   vectorfield
 
-   sage/manifolds/differentiable/diff_map
+   tensorfield
 
+   diff_form

@@ -2409,7 +2409,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         tensor field 'T' of type (2,0) on the 3-dimensional manifold 'M'
 
     Tensor fields are considered as elements of a module over the ring
-    `C^\infty(M)` of scalar fields on `M`::
+    `C^k(M)` of scalar fields on `M`::
 
         sage: t.parent()
         free module T^(2,0)(M) of type-(2,0) tensors fields on the 3-dimensional manifold 'M'

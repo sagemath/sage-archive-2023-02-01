@@ -3,7 +3,7 @@ Tensor field modules
 
 The set of tensor fields along an open subset `U` of some manifold `S`
 with values in a open subset `V` of a manifold `M` (possibly `S=M` and `U=V`)
-is a module over the algebra `C^\infty(U)` of differentiable scalar fields
+is a module over the algebra `C^k(U)` of differentiable scalar fields
 on `U`. It is a free module iff `V` is parallelizable.
 Accordingly, two classes are devoted to tensor field modules:
 
@@ -71,7 +71,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         \forall p \in U,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
 
     i.e. `t(p)` is a tensor on the vector space `T_{\Phi(p)}M`.
-    The set `T^{(k,l)}(U,\Phi)` is a module over `C^\infty(U)`, the ring
+    The set `T^{(k,l)}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
@@ -111,7 +111,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional manifold 'M'
 
-    `T^{(2,0)}(M)` is a module over the algebra `C^\infty(M)`::
+    `T^{(2,0)}(M)` is a module over the algebra `C^k(M)`::
 
         sage: T20.category()
         Category of modules over algebra of scalar fields on the 2-dimensional manifold 'M'
@@ -349,17 +349,17 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         Return a string representation of ``self``.
 
         """
-        description = "module "
+        description = "Module "
         if self._name is not None:
             description += self._name + " "
-        description += "of type-(%s,%s)" % \
-                           (str(self._tensor_type[0]), str(self._tensor_type[1]))
+        description += "of type-({},{})".format(self._tensor_type[0],
+                                                self._tensor_type[1])
         description += " tensors fields "
         if self._dest_map is self._domain._identity_map:
-            description += "on the " + str(self._domain)
+            description += "on the {}".format(self._domain)
         else:
-            description += "along the " + str(self._domain) + \
-                           " mapped into the " + str(self._ambient_domain)
+            description += "along the {}".format(self._domain) + \
+                           " mapped into the {}".format(self._ambient_domain)
         return description
 
     def _latex_(self):
@@ -431,7 +431,7 @@ class TensorFieldFreeModule(TensorFreeModule):
     of `\RR`).
 
     Since `V` is parallelizable, the set `T^{(k,l)}(U,\Phi)` is a free
-    module over `C^\infty(U)`, the ring (algebra) of differentiable scalar
+    module over `C^k(U)`, the ring (algebra) of differentiable scalar
     fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
@@ -454,7 +454,7 @@ class TensorFieldFreeModule(TensorFreeModule):
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional manifold 'R^3'
 
-    `T^{(2,0)}(\RR^3)` is a module over the algebra `C^\infty(\RR^3)`::
+    `T^{(2,0)}(\RR^3)` is a module over the algebra `C^k(\RR^3)`::
 
         sage: T20.category()
         Category of modules over algebra of scalar fields on the 3-dimensional manifold 'R^3'
@@ -643,15 +643,15 @@ class TensorFieldFreeModule(TensorFreeModule):
         Return a string representation of ``self``.
 
         """
-        description = "free module "
+        description = "Free module "
         if self._name is not None:
             description += self._name + " "
-        description += "of type-(%s,%s)" % \
-                           (str(self._tensor_type[0]), str(self._tensor_type[1]))
+        description += "of type-({},{})".format(self._tensor_type[0],
+                                                self._tensor_type[1])
         description += " tensors fields "
         if self._dest_map is self._domain._identity_map:
-            description += "on the " + str(self._domain)
+            description += "on the {}".format(self._domain)
         else:
-            description += "along the " + str(self._domain) + \
-                           " mapped into the " + str(self._ambient_domain)
+            description += "along the {}".format(self._domain) + \
+                           " mapped into the {}".format(self._ambient_domain)
         return description

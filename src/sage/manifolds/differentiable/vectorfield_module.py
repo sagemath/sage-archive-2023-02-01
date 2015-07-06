@@ -3,7 +3,7 @@ Vector field modules
 
 The set of vector fields along an open subset `U` of some manifold `S`
 with values in a open subset `V` of a manifold `M` (possibly `S=M` and `U=V`)
-is a module over the algebra `C^\infty(U)` of differentiable scalar fields
+is a module over the algebra `C^k(U)` of differentiable scalar fields
 on `U`. It is a free module iff `V` is parallelizable.
 Accordingly, two classes are devoted to vector field modules:
 
@@ -71,7 +71,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         \forall p \in U,\ v(p) \in T_{\Phi(p)}M
 
 
-    The set `\mathcal{X}(U,\Phi)` is a module over `C^\infty(U)`, the ring
+    The set `\mathcal{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
@@ -106,12 +106,14 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                                              restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: XM = M.vector_field_module() ; XM
-        module X(M) of vector fields on the 2-dimensional manifold 'M'
+        Module X(M) of vector fields on the 2-dimensional differentiable
+         manifold M
 
-    `\mathcal{X}(M)` is a module over the algebra `C^\infty(M)`::
+    `\mathcal{X}(M)` is a module over the algebra `C^k(M)`::
 
         sage: XM.category()
-        Category of modules over algebra of scalar fields on the 2-dimensional manifold 'M'
+        Category of modules over Algebra of differentiable scalar fields on the
+         2-dimensional differentiable manifold M
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -137,7 +139,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The zero element of the module::
 
         sage: z = XM.zero() ; z
-        vector field 'zero' on the 2-dimensional manifold 'M'
+        Vector field zero on the 2-dimensional differentiable manifold M
         sage: z.display(c_xy.frame())
         zero = 0
         sage: z.display(c_uv.frame())
@@ -150,8 +152,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         True
         sage: XU.coerce_map_from(XM)
         Conversion map:
-          From: module X(M) of vector fields on the 2-dimensional manifold 'M'
-          To:   free module X(U) of vector fields on the open subset 'U' of the 2-dimensional manifold 'M'
+          From: Module X(M) of vector fields on the 2-dimensional differentiable manifold M
+          To:   Free module X(U) of vector fields on the Open subset U of the 2-dimensional differentiable manifold M
 
     The conversion map is actually the restriction of vector fields defined
     on `M` to `U`.
@@ -269,15 +271,15 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         String representation of the object.
         """
-        description = "module "
+        description = "Module "
         if self._name is not None:
             description += self._name + " "
         description += "of vector fields "
         if self._dest_map is self._domain._identity_map:
-            description += "on the " + str(self._domain)
+            description += "on the {}".format(self._domain)
         else:
-            description += "along the " + str(self._domain) + \
-                           " mapped into the " + str(self._ambient_domain)
+            description += "along the {}".format(self._domain) + \
+                           " mapped into the {}".format(self._ambient_domain)
         return description
 
     def _latex_(self):
@@ -304,7 +306,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.tensor_field_module.TensorFieldModule`
+          :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
           representing the free module
           `T^{(k,l)}(M)` of type-`(k,l)` tensors on the free module ``self``.
 
@@ -323,7 +325,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         If ``self`` is the vector field module `\mathcal{X}(U,\Phi)`, the
         `p`-th exterior power of its dual is the set `\Lambda^p(U,\Phi)` of
         `p`-forms along `U` with values in `\Phi(U)`. It is a module over
-        `C^\infty(U)`, the ring (algebra) of differentiable scalar fields on
+        `C^k(U)`, the ring (algebra) of differentiable scalar fields on
         `U`.
 
         INPUT:
@@ -335,7 +337,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - for `p\geq 1`, instance of
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
-          base ring, i.e. `C^\infty(U)`, is returned instead
+          base ring, i.e. `C^k(U)`, is returned instead
 
         EXAMPLES:
 
@@ -594,7 +596,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
 
     Since `V` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a free module
-    over `C^\infty(U)`, the ring (algebra) of differentiable scalar fields on
+    over `C^k(U)`, the ring (algebra) of differentiable scalar fields on
     `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     Its rank is the dimension of `M`.
@@ -622,9 +624,11 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: M = DiffManifold(2, 'R^2')
         sage: cart.<x,y> = M.chart()  # Cartesian coordinates on R^2
         sage: XM = M.vector_field_module() ; XM
-        free module X(R^2) of vector fields on the 2-dimensional manifold 'R^2'
+        Free module X(R^2) of vector fields on the 2-dimensional differentiable
+         manifold R^2
         sage: XM.category()
-        Category of modules over algebra of scalar fields on the 2-dimensional manifold 'R^2'
+        Category of modules over Algebra of differentiable scalar fields on the
+         2-dimensional differentiable manifold R^2
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
@@ -640,7 +644,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: XM.zero().display()
         zero = 0
         sage: v = XM([-y,x]) ; v
-        vector field on the 2-dimensional manifold 'R^2'
+        Vector field on the 2-dimensional differentiable manifold R^2
         sage: v.display()
         -y d/dx + x d/dy
 
@@ -648,22 +652,24 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     different from the identity map, namely a mapping
     `\Phi: I \rightarrow \RR^2`, where `I` is an open interval of `\RR`::
 
-        sage: I = DiffManifold(1, '(0, 2*pi)', latex_name=r'(0, 2\pi)')
+        sage: I = DiffManifold(1, 'I')
         sage: canon.<t> = I.chart('t:(0,2*pi)')
         sage: Phi = I.diff_map(M, coord_functions=[cos(t), sin(t)], name='Phi',
         ....:                      latex_name=r'\Phi') ; Phi
-        Curve 'Phi' in the 2-dimensional manifold 'R^2'
+        Differentiable map Phi from the 1-dimensional differentiable manifold
+         I to the 2-dimensional differentiable manifold R^2
         sage: Phi.display()
-        Phi: (0, 2*pi) --> R^2
+        Phi: I --> R^2
            t |--> (x, y) = (cos(t), sin(t))
         sage: XIM = I.vector_field_module(dest_map=Phi) ; XIM
-        free module X((0, 2*pi),Phi) of vector fields along the Real interval
-         (0, 2*pi) mapped into the 2-dimensional manifold 'R^2'
+        Free module X(I,Phi) of vector fields along the 1-dimensional
+         differentiable manifold I mapped into the 2-dimensional differentiable
+         manifold R^2
         sage: XIM.category()
-        Category of modules over algebra of scalar fields on the Real interval
-         (0, 2*pi)
+        Category of modules over Algebra of differentiable scalar fields on the
+         1-dimensional differentiable manifold I
 
-    The rank of the free module `\mathcal{X}((0, 2\pi),\Phi)` is the dimension
+    The rank of the free module `\mathcal{X}(I,\Phi)` is the dimension
     of the manifold `\RR^2`, namely two::
 
         sage: XIM.rank()
@@ -672,16 +678,16 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     A basis of it is induced by the coordinate vector frame of `\RR^2`::
 
         sage: XIM.bases()
-        [vector frame ((0, 2*pi), (d/dx,d/dy)) with values on the 2-dimensional
-         manifold 'R^2']
+        [Vector frame (I, (d/dx,d/dy)) with values on the 2-dimensional
+         differentiable manifold R^2]
 
     Some elements of this module::
 
         sage: XIM.an_element().display()
         2 d/dx + 2 d/dy
         sage: v = XIM([t, t^2]) ; v
-        vector field along the Real interval (0, 2*pi) with values on the
-         2-dimensional manifold 'R^2'
+        Vector field along the 1-dimensional differentiable manifold I with
+         values on the 2-dimensional differentiable manifold R^2
         sage: v.display()
         t d/dx + t^2 d/dy
 
@@ -732,18 +738,20 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     Consequently, the module of vector fields on `S^1` is a free module::
 
         sage: XM = M.vector_field_module() ; XM
-        free module X(S^1) of vector fields on the 1-dimensional manifold 'S^1'
+        Free module X(S^1) of vector fields on the 1-dimensional differentiable
+         manifold S^1
         sage: isinstance(XM, FiniteRankFreeModule)
         True
         sage: XM.category()
-        Category of modules over algebra of scalar fields on the 1-dimensional manifold 'S^1'
+        Category of modules over Algebra of differentiable scalar fields on the
+         1-dimensional differentiable manifold S^1
         sage: XM.base_ring() is M.scalar_field_algebra()
         True
 
     The zero element::
 
         sage: z = XM.zero() ; z
-        vector field 'zero' on the 1-dimensional manifold 'S^1'
+        Vector field zero on the 1-dimensional differentiable manifold S^1
         sage: z.display()
         zero = 0
         sage: z.display(c_t.frame())
@@ -753,13 +761,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     defined on a subdomain of `S^1`, for instance `\mathcal{X}(U)`::
 
         sage: XU = U.vector_field_module() ; XU
-        free module X(U) of vector fields on the open subset 'U' of the 1-dimensional manifold 'S^1'
+        Free module X(U) of vector fields on the Open subset U of the
+         1-dimensional differentiable manifold S^1
         sage: XU.has_coerce_map_from(XM)
         True
         sage: XU.coerce_map_from(XM)
         Conversion map:
-          From: free module X(S^1) of vector fields on the 1-dimensional manifold 'S^1'
-          To:   free module X(U) of vector fields on the open subset 'U' of the 1-dimensional manifold 'S^1'
+          From: Free module X(S^1) of vector fields on the 1-dimensional differentiable manifold S^1
+          To:   Free module X(U) of vector fields on the Open subset U of the 1-dimensional differentiable manifold S^1
 
     The conversion map is actually the restriction of vector fields defined
     on `S^1` to `U`.
@@ -869,15 +878,15 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         String representation of the object.
         """
-        description = "free module "
+        description = "Free module "
         if self._name is not None:
             description += self._name + " "
         description += "of vector fields "
         if self._dest_map is self._domain._identity_map:
-            description += "on the " + str(self._domain)
+            description += "on the {}".format(self._domain)
         else:
-            description += "along the " + str(self._domain) + \
-                           " mapped into the " + str(self._ambient_domain)
+            description += "along the {}".format(self._domain) + \
+                           " mapped into the {}".format(self._ambient_domain)
         return description
 
     def tensor_module(self, k, l):
@@ -916,7 +925,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         If ``self`` is the vector field module `\mathcal{X}(U,\Phi)`, the
         `p`-th exterior power of its dual is the set `\Lambda^p(U,\Phi)` of
         `p`-forms along `U` with values in `\Phi(U)`. It is a module over
-        `C^\infty(U)`, the ring (algebra) of differentiable scalar fields on
+        `C^k(U)`, the ring (algebra) of differentiable scalar fields on
         `U`.
 
         INPUT:
@@ -928,7 +937,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         - for `p\geq 1`, instance of
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
           representing the module `\Lambda^p(U,\Phi)`; for `p=0`, the
-          base ring, i.e. `C^\infty(U)`, is returned instead
+          base ring, i.e. `C^k(U)`, is returned instead
 
         EXAMPLES:
 

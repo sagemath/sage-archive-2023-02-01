@@ -4,7 +4,7 @@ Differential form modules
 The set `\Lambda^p(U,\Phi)` of `p`-forms along an open subset `U` of
 some manifold `S` with values in a open subset `V` of a manifold `M`
 (via a differentiable mapping `\Phi:\ U\rightarrow V`) is a module over the
-algebra `C^\infty(U)` of differentiable scalar fields on `U`. It is a free
+algebra `C^k(U)` of differentiable scalar fields on `U`. It is a free
 module iff `V` is parallelizable. Accordingly, two classes
 implement `\Lambda^p(U,\Phi)`:
 
@@ -51,7 +51,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
     Given an open subset `U` of a manifold `S`, an open subset `V` of a
     manifold `M` and a differentiable mapping
     `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
-    `U` with values in `V` is a module over `C^\infty(U)`, the commutative
+    `U` with values in `V` is a module over `C^k(U)`, the commutative
     algebra of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.ScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a manifold corresponds to `S=M`,
@@ -110,7 +110,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         sage: A is M.diff_form_module(2)
         True
 
-    `\Lambda^2(M)` is a module over the algebra `C^\infty(M)` of (smooth)
+    `\Lambda^2(M)` is a module over the algebra `C^k(M)` of (differentiable)
     scalar fields on M::
 
         sage: A.category()
@@ -464,7 +464,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
     Given an open subset `U` of a manifold `S`, an open subset `V` of a
     manifold `M` and a differentiable mapping
     `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
-    `U` with values in `V` is a module over `C^\infty(U)`, the commutative
+    `U` with values in `V` is a module over `C^k(U)`, the commutative
     algebra of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.ScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a manifold corresponds to `S=M`,
@@ -516,7 +516,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: A is M.diff_form_module(2)
         True
 
-    A is a module over the algebra `C^\infty(M)` of (smooth) scalar fields
+    A is a module over the algebra `C^k(M)` of (differentiable) scalar fields
     on M::
 
         sage: A.category()

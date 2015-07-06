@@ -1657,7 +1657,6 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     if a is not None and isinstance(a, RightModuleAction):
                         # We want a new instance so that we don't alter the (potentially cached) original
                         a = RightModuleAction(S, R, s, r)
-                        a.is_inplace = 1
                     if is_inverse: a = ~a
                 return a
             except KeyError:

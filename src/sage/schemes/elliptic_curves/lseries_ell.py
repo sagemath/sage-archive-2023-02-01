@@ -67,7 +67,7 @@ class Lseries_ell(SageObject):
 
         - ``a`` -- complex number
         - ``prec`` -- integer, precision in bits (default 53)
-        - ``series_pres`` -- integer (default 6)
+        - ``series_prec`` -- integer (default 6)
         - ``var`` -- variable (default 'z')
 
         EXAMPLES::

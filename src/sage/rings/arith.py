@@ -5203,7 +5203,7 @@ def squarefree_divisors(x):
     Check that the first divisor (i.e. `1`) is a Sage integer (see
     :trac:`17852`)::
 
-        sage: a = squarefree_divisors(14).next()
+        sage: a = next(squarefree_divisors(14))
         sage: a
         1
         sage: type(a)

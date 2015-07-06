@@ -1,15 +1,17 @@
-# distutils: libraries = gsl
+"""
+Pynac interface
+"""
 
-"Pynac interface"
-
-###############################################################################
-#   Sage: Open Source Mathematical Software
+#*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 cdef extern from "pynac_cc.h":
     long double sage_logl(long double)
@@ -23,10 +25,9 @@ include "sage/ext/python.pxi"
 
 from ginac cimport *
 
-# for complex log and log gamma
-include "sage/gsl/gsl_complex.pxi"
-include "sage/gsl/gsl_sf_result.pxi"
-include "sage/gsl/gsl_gamma.pxi"
+from sage.libs.gsl.types cimport *
+from sage.libs.gsl.complex cimport *
+from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 
 
 from sage.structure.element cimport Element, parent_c

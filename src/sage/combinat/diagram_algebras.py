@@ -225,7 +225,7 @@ class AbstractPartitionDiagram(SetPartition):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
-            sage: AbstractPartitionDiagram(pd, ((-2,-1),(1,2)) );
+            sage: pd1 = da.AbstractPartitionDiagram(pd, ((-2,-1),(1,2)) )
         """
         self._base_diagram = tuple(sorted([tuple(sorted(i)) for i in d]))
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
@@ -365,8 +365,8 @@ class BrauerDiagram(AbstractPartitionDiagram):
         Initialize ``self``
 
             sage: import sage.combinat.diagram_algebras as da
-            sage: bd = BrauerDiagrams(2)
-            sage: BrauerDiagram(bd, ((-2,-1),(1,2)) );
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd1 = da.BrauerDiagram(bd, ((-2,-1),(1,2)) )
         """
         super(BrauerDiagram, self).__init__(parent,d)
 

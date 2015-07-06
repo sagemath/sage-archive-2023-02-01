@@ -6,6 +6,8 @@ AUTHORS:
 - Mike Hansen (2007): Initial version
 - Stephen Doty, Aaron Lauve, George H. Seelinger (2012): Implementation of
   partition, Brauer, Temperley--Lieb, and ideal partition algebras
+- Stephen Doty, Aaron Lauve, George H. Seelinger (2015): Implementation of
+  *Diagram classes and other methods to improve diagram algebras.
 """
 
 #*****************************************************************************

@@ -220,19 +220,55 @@ class AbstractPartitionDiagram(SetPartition):
         ValueError: this does not represent two rows of vertices
     """
     def __init__(self, parent, d):
+        r"""
+        Initialize ``self``
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: AbstractPartitionDiagram(pd, ((-2,-1),(1,2)) );
+        """
         self._base_diagram = tuple(sorted([tuple(sorted(i)) for i in d]))
         super(AbstractPartitionDiagram, self).__init__(parent, self._base_diagram)
         
     def check(self):
+        r"""
+        Check the validity of the input for the diagram.
+
+        TESTS:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]]) # indirect doctest
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: this does not represent two rows of vertices            
+        """
         if len(self._base_diagram) > 0:
             tst = sorted(flatten(self._base_diagram))
             if len(tst)%2 != 0 or tst != range(-len(tst)/2,0) + range(1,len(tst)/2+1):
                 raise ValueError, "this does not represent two rows of vertices"
-        
-    # def _repr_(self):
-    #     return self._base_diagram.__repr__().replace(",)",")").replace("(","{").replace(")","}")
     
     def __eq__(self, other):
+        r"""
+        TESTS:
+        
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: pd1 == pd2 # indirect doctest
+            True
+            sage: pd1 == [[1,2],[-1,-2]] # indirect doctest
+            True
+            sage: pd1 == ((-2,-1),(2,1)) # indirect doctest
+            True
+            sage: pd1 == SetPartition([[1,2],[-1,-2]]) # indirect doctest
+            True
+            sage: pd3 = da.AbstractPartitionDiagram(pd, [[1,-2],[-1,2]])
+            sage: pd1 == pd3 # indirect doctest
+            False        
+        """
         if hasattr(other, '_base_diagram'):
             return self._base_diagram == other._base_diagram
         else:
@@ -321,18 +357,48 @@ class BrauerDiagram(AbstractPartitionDiagram):
         sage: bd2 = bd([[1,2,-1,-2]])
         Traceback (most recent call last):
         ...
-        ValueError: The diagram is a valid partition diagram, but not al blocks have block size 2.
+        ValueError: The diagram is a valid partition diagram, but not all blocks have block size 2.
         
     """
     def __init__(self, parent, d):
+        r"""
+        Initialize ``self``
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = BrauerDiagrams(2)
+            sage: BrauerDiagram(bd, ((-2,-1),(1,2)) );
+        """
         super(BrauerDiagram, self).__init__(parent,d)
 
     def check(self):
+        r"""
+        Check the validity of the init input.
+
+        TESTS:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd1 = bd([[1,2],[-1,-2]])
+            sage: bd2 = bd([[1,2,-1,-2]])
+            Traceback (most recent call last):
+            ...
+            ValueError: The diagram is a valid partition diagram, but not all blocks have block size 2.
+        """
         super(BrauerDiagram, self).check()
         if [len(i) for i in self] != [2]*len(self):
-            raise ValueError, "The diagram is a valid partition diagram, but not al blocks have block size 2."
+            raise ValueError, "The diagram is a valid partition diagram, but not all blocks have block size 2."
 
     def __repr__(self):
+        r"""
+        Returns a string representation of a Brauer diagram
+
+        TESTS:
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd1 = bd([[1,2],[-1,-2]]); bd1
+            {{-2, -1}, {1, 2}}        
+        """
         return self.parent()._repr_term(self)
         
     def involution_permutation_triple(self,curt=True):
@@ -495,7 +561,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     Element = AbstractPartitionDiagram
     def __init__(self, diagram_func, order, category = None):
         r"""
-        See :class:`AbstractPartitionDiagram` for full documentation.
+        See :class:`AbstractPartitionDiagrams` for full documentation.
 
         TESTS::
 
@@ -507,16 +573,57 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
         self.diagram_func = diagram_func
-        self.order = order
+        self.order = orderda.partition_diagrams, 
 
     def __iter__(self):
+        r"""
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: for i in pd: print i # indirect doctest
+            {{-2, -1, 1, 2}}
+            {{-2, -1, 2}, {1}}
+            {{-2, -1, 1}, {2}}
+            {{-2}, {-1, 1, 2}}
+            {{-2, 1, 2}, {-1}}
+            {{-2, 1}, {-1, 2}}
+            {{-2, 2}, {-1, 1}}
+            {{-2, -1}, {1, 2}}
+            {{-2, -1}, {1}, {2}}
+            {{-2}, {-1, 2}, {1}}
+            {{-2, 2}, {-1}, {1}}
+            {{-2}, {-1, 1}, {2}}
+            {{-2, 1}, {-1}, {2}}
+            {{-2}, {-1}, {1, 2}}
+            {{-2}, {-1}, {1}, {2}}
+        """
         for i in self.diagram_func(self.order):
             yield self.element_class(self, i)
     
     def __repr__(self):
+        r"""
+        TESTS::
+        
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2); pd # indirect doctest
+            Partition diagrams of order 2        
+        """
         return "%s diagrams of order %s" % (self.diagram_func.__name__.replace("_diagrams","").replace("_","").title(), str(self.order))
 
     def __contains__(self, obj):
+        r"""
+        TESTS::
+        
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(da.partition_diagrams, 2)
+            sage: pd.an_element() in pd # indirect doctest
+            True
+            sage: elm = pd([[1,2],[-1,-2]])
+            sage: elm in pd # indirect doctest
+            True
+        """
         if not hasattr(obj, '_base_diagram'):
             try:
                 obj = self._element_constructor_(obj)
@@ -561,6 +668,15 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
         True
     """
     def __init__(self, order, category = None):
+        r"""
+        See :class:`PartitionDiagrams` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.PartitionDiagrams(2)
+            sage: TestSuite(pd).run() # long time
+        """
         super(PartitionDiagrams, self).__init__(partition_diagrams, order, category=category)
     def cardinality(self):
         r"""
@@ -616,9 +732,30 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
     """
     Element = BrauerDiagram
     def __init__(self, order, category = None, compact_repr = False):
+        r"""
+        See :class:`BrauerDiagrams` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: TestSuite(bd).run() # long time
+        """
         self._compact_repr = compact_repr
         super(BrauerDiagrams, self).__init__(brauer_diagrams, order, category=category)
     def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: bd = da.BrauerDiagrams(2)
+            sage: bd.an_element() in bd
+            True
+            sage: bd([[1,2],[-1,-2]]) in bd
+            True
+            sage: [[1,2,-1,-2]] in bd
+            False
+        """
         return super(BrauerDiagrams, self).__contains__(obj) and [len(i) for i in obj] == [2]*self.order
 
     def _repr_term(self, x):
@@ -762,6 +899,15 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         True
     """
     def __init__(self, order, category = None):
+        r"""
+        See :class:`TemperleyLiebDiagrams` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: td = da.TemperleyLiebDiagrams(2)
+            sage: TestSuite(td).run() # long time
+        """
         super(TemperleyLiebDiagrams, self).__init__(temperley_lieb_diagrams, order, category=category)
         
     def cardinality(self):
@@ -781,6 +927,20 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
             return catalan_number(self.order-1/2)
 
     def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: td = da.TemperleyLiebDiagrams(2)
+            sage: td.an_element() in td
+            True
+            sage: td([[1,2],[-1,-2]]) in td
+            True
+            sage: [[1,2],[-1,-2]] in td
+            True
+            sage: [[1,-2],[-1,2]] in td
+            False 
+        """
         if not hasattr(obj, '_base_diagram'):
             obj = self._element_constructor_(obj)
         if obj not in BrauerDiagrams(self.order):
@@ -803,6 +963,15 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
         True
     """
     def __init__(self, order, category = None):
+        r"""
+        See :class:`PlanarDiagrams` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pld = da.PlanarDiagrams(2)
+            sage: TestSuite(pld).run() # long time
+        """
         super(PlanarDiagrams, self).__init__(planar_diagrams, order, category=category)
     def cardinality(self):
         r"""
@@ -821,6 +990,20 @@ class PlanarDiagrams(AbstractPartitionDiagrams):
             return catalan_number(2*self.order-1)
 
     def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pld = da.PlanarDiagrams(2)
+            sage: pld.an_element() in pld
+            True
+            sage: pld([[1,2],[-1,-2]]) in pld
+            True
+            sage: [[1,2],[-1,-2]] in pld
+            True
+            sage: [[1,-2],[-1,2]] in pld
+            False 
+        """
         if not hasattr(obj, '_base_diagram'):
             obj = self._element_constructor_(obj)
         return super(PlanarDiagrams, self).__contains__(obj) and is_planar(obj)
@@ -839,9 +1022,32 @@ class IdealDiagrams(AbstractPartitionDiagrams):
         True
     """
     def __init__(self, order, category = None):
+        r"""
+        See :class:`TemperleyLiebDiagrams` for full documentation.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: id = da.IdealDiagrams(2)
+            sage: TestSuite(id).run() # long time
+        """
         super(IdealDiagrams, self).__init__(ideal_diagrams, order, category=category)
 
     def __contains__(self, obj):
+        r"""
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: id = da.IdealDiagrams(2)
+            sage: id.an_element() in id
+            True
+            sage: id([[1,2],[-1,-2]]) in id
+            True
+            sage: [[1,2],[-1,-2]] in id
+            True
+            sage: [[1,-2],[-1,2]] in id
+            False 
+        """
         if not hasattr(obj, '_base_diagram'):
             obj = self._element_constructor_(obj)
         return super(IdealDiagrams, self).__contains__(obj) and obj.propagating_number() < self.order

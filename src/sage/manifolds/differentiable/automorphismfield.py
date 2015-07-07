@@ -124,13 +124,13 @@ class AutomorphismField(TensorField):
         r"""
         Return a string representation of ``self``.
         """
-        description = "field of tangent-space "
+        description = "Field of tangent-space "
         if self._is_identity:
             description += "identity maps "
         else:
             description += "automorphisms "
             if self._name is not None:
-                description += "'%s' " % self._name
+                description += self._name + " "
         return self._final_repr(description)
 
     def _init_derived(self):
@@ -516,13 +516,13 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         r"""
         Return a string representation of ``self``.
         """
-        description = "field of tangent-space "
+        description = "Field of tangent-space "
         if self._is_identity:
             description += "identity maps "
         else:
             description += "automorphisms "
             if self._name is not None:
-                description += "'%s' " % self._name
+                description += self._name + " "
         return self._final_repr(description)
 
     def _del_derived(self, del_restrictions=True):

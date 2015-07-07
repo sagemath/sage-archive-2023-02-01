@@ -109,12 +109,14 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
         sage: T20 = M.tensor_field_module((2,0)) ; T20
-        module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional manifold 'M'
+        Module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional
+         differentiable manifold M
 
     `T^{(2,0)}(M)` is a module over the algebra `C^k(M)`::
 
         sage: T20.category()
-        Category of modules over algebra of scalar fields on the 2-dimensional manifold 'M'
+        Category of modules over Algebra of differentiable scalar fields on the
+         2-dimensional differentiable manifold M
         sage: T20.base_ring() is M.scalar_field_algebra()
         True
 
@@ -140,7 +142,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     The zero element::
 
         sage: z = T20.zero() ; z
-        tensor field 'zero' of type (2,0) on the 2-dimensional manifold 'M'
+        Tensor field zero of type (2,0) on the 2-dimensional differentiable manifold M
         sage: z is T20(0)
         True
         sage: z[c_xy.frame(),:]
@@ -165,8 +167,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         sage: T20U.coerce_map_from(T20)
         Conversion map:
-          From: module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional manifold 'M'
-          To:   free module T^(2,0)(U) of type-(2,0) tensors fields on the open subset 'U' of the 2-dimensional manifold 'M'
+          From: Module T^(2,0)(M) of type-(2,0) tensors fields on the 2-dimensional differentiable manifold M
+          To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 2-dimensional differentiable manifold M
 
     The coercion map is actually the *restriction* of tensor fields defined
     on `M` to `U`::
@@ -176,8 +178,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         sage: t[eU,:] = [[2,0], [0,-3]]
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)
         sage: T20U(t)  # the conversion map in action
-        tensor field 't' of type (2,0) on the open subset 'U' of the
-         2-dimensional manifold 'M'
+        Tensor field t of type (2,0) on the Open subset U of the 2-dimensional
+         differentiable manifold M
         sage: T20U(t) is t.restrict(U)
         True
 
@@ -185,26 +187,28 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     tensor fields of type (1,1)::
 
         sage: T11 = M.tensor_field_module((1,1)) ; T11
-        module T^(1,1)(M) of type-(1,1) tensors fields on the 2-dimensional
-         manifold 'M'
+        Module T^(1,1)(M) of type-(1,1) tensors fields on the 2-dimensional
+         differentiable manifold M
         sage: GL = M.automorphism_field_group() ; GL
-        General linear group of the module X(M) of vector fields on the
-         2-dimensional manifold 'M'
+        General linear group of the Module X(M) of vector fields on the
+         2-dimensional differentiable manifold M
         sage: T11.has_coerce_map_from(GL)
         True
 
     Explicit call to the coercion map::
 
         sage: a = GL.one() ; a
-        field of tangent-space identity maps on the 2-dimensional manifold 'M'
+        Field of tangent-space identity maps on the 2-dimensional
+         differentiable manifold M
         sage: a.parent()
-        General linear group of the module X(M) of vector fields on the
-         2-dimensional manifold 'M'
+        General linear group of the Module X(M) of vector fields on the
+         2-dimensional differentiable manifold M
         sage: ta = T11.coerce(a) ; ta
-        tensor field 'Id' of type (1,1) on the 2-dimensional manifold 'M'
+        Tensor field Id of type (1,1) on the 2-dimensional differentiable
+         manifold M
         sage: ta.parent()
-        module T^(1,1)(M) of type-(1,1) tensors fields on the 2-dimensional
-         manifold 'M'
+        Module T^(1,1)(M) of type-(1,1) tensors fields on the 2-dimensional
+         differentiable manifold M
         sage: ta[eU,:]  # ta on U
         [1 0]
         [0 1]
@@ -452,12 +456,14 @@ class TensorFieldFreeModule(TensorFreeModule):
         sage: M = DiffManifold(3, 'R^3')
         sage: c_xyz.<x,y,z> = M.chart()  # Cartesian coordinates
         sage: T20 = M.tensor_field_module((2,0)) ; T20
-        free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional manifold 'R^3'
+        Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the
+         3-dimensional differentiable manifold R^3
 
     `T^{(2,0)}(\RR^3)` is a module over the algebra `C^k(\RR^3)`::
 
         sage: T20.category()
-        Category of modules over algebra of scalar fields on the 3-dimensional manifold 'R^3'
+        Category of modules over Algebra of differentiable scalar fields on the
+         3-dimensional differentiable manifold R^3
         sage: T20.base_ring() is M.scalar_field_algebra()
         True
 
@@ -474,7 +480,8 @@ class TensorFieldFreeModule(TensorFreeModule):
     The zero element::
 
         sage: z = T20.zero() ; z
-        tensor field 'zero' of type (2,0) on the 3-dimensional manifold 'R^3'
+        Tensor field zero of type (2,0) on the 3-dimensional differentiable
+         manifold R^3
         sage: z[:]
         [0 0 0]
         [0 0 0]
@@ -483,7 +490,8 @@ class TensorFieldFreeModule(TensorFreeModule):
     A random element::
 
         sage: t = T20.an_element() ; t
-        tensor field of type (2,0) on the 3-dimensional manifold 'R^3'
+        Tensor field of type (2,0) on the 3-dimensional differentiable
+         manifold R^3
         sage: t[:]
         [2 0 0]
         [0 0 0]
@@ -500,8 +508,8 @@ class TensorFieldFreeModule(TensorFreeModule):
         False
         sage: T20U.coerce_map_from(T20)
         Conversion map:
-          From: free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional manifold 'R^3'
-          To:   free module T^(2,0)(U) of type-(2,0) tensors fields on the open subset 'U' of the 3-dimensional manifold 'R^3'
+          From: Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the 3-dimensional differentiable manifold R^3
+          To:   Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open subset U of the 3-dimensional differentiable manifold R^3
 
     The coercion map is actually the *restriction* of tensor fields defined
     on `\RR^3` to `U`.
@@ -510,20 +518,22 @@ class TensorFieldFreeModule(TensorFreeModule):
     tensor fields of type (1,1)::
 
         sage: T11 = M.tensor_field_module((1,1)) ; T11
-        free module T^(1,1)(R^3) of type-(1,1) tensors fields on the
-         3-dimensional manifold 'R^3'
+        Free module T^(1,1)(R^3) of type-(1,1) tensors fields on the
+         3-dimensional differentiable manifold R^3
         sage: GL = M.automorphism_field_group() ; GL
-        General linear group of the free module X(R^3) of vector fields on the
-         3-dimensional manifold 'R^3'
+        General linear group of the Free module X(R^3) of vector fields on the
+         3-dimensional differentiable manifold R^3
         sage: T11.has_coerce_map_from(GL)
         True
 
     An explicit call to this coercion map is::
 
         sage: id = GL.one() ; id
-        field of tangent-space identity maps on the 3-dimensional manifold 'R^3'
+        Field of tangent-space identity maps on the 3-dimensional
+         differentiable manifold R^3
         sage: tid = T11(id) ; tid
-        tensor field 'Id' of type (1,1) on the 3-dimensional manifold 'R^3'
+        Tensor field Id of type (1,1) on the 3-dimensional differentiable
+         manifold R^3
         sage: tid[:]
         [1 0 0]
         [0 1 0]

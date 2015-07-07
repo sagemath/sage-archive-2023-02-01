@@ -38,7 +38,7 @@ A tensor field of type (1,1) on a 2-dimensional manifold::
     sage: M = DiffManifold(2, 'M', start_index=1)
     sage: c_xy.<x,y> = M.chart()
     sage: t = M.tensor_field(1, 1, 'T') ; t
-    tensor field 'T' of type (1,1) on the 2-dimensional manifold 'M'
+    Tensor field T of type (1,1) on the 2-dimensional differentiable manifold M
     sage: t.tensor_type()
     (1, 1)
     sage: t.tensor_rank()
@@ -60,7 +60,7 @@ method :meth:`comp`; it is an instance
 of the class :class:`~sage.tensor.modules.comp.Components`::
 
     sage: t.comp(c_xy.frame())
-    2-indices components w.r.t. coordinate frame (M, (d/dx,d/dy))
+    2-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
     sage: type(t.comp(c_xy.frame()))
     <class 'sage.tensor.modules.comp.Components'>
 
@@ -68,7 +68,7 @@ If no vector frame is mentionned in the argument of :meth:`comp`, it is
 assumed to be the manifold's default frame::
 
     sage: M.default_frame()
-    coordinate frame (M, (d/dx,d/dy))
+    Coordinate frame (M, (d/dx,d/dy))
     sage: t.comp() is t.comp(c_xy.frame())
     True
 
@@ -78,12 +78,12 @@ fields on the manifold, and therefore instances of the class
 :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`::
 
     sage: t[[1,1]]
-    scalar field on the 2-dimensional manifold 'M'
+    Scalar field on the 2-dimensional differentiable manifold M
     sage: t[[1,1]].display()
     M --> R
     (x, y) |--> x^2
     sage: t[[1,2]]
-    scalar field 'zero' on the 2-dimensional manifold 'M'
+    Scalar field zero on the 2-dimensional differentiable manifold M
     sage: t[[1,2]].display()
     zero: M --> R
        (x, y) |--> 0
@@ -105,10 +105,10 @@ In other words, the single square brackets return an instance of
 coordinate function representing the component in some chart (by default,
 the manifold's default chart)::
 
-    sage: type(t[1,1])    # single bracket --> FunctionChart
-    <class 'sage.manifolds.differentiable.chart.FunctionChart'>
-    sage: type(t[[1,1]])  # double bracket --> ScalarField
-    <class 'sage.manifolds.differentiable.scalarfield.ScalarFieldAlgebra_with_category.element_class'>
+    sage: type(t[1,1])    # single bracket --> coordinate function
+    <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+    sage: type(t[[1,1]])  # double bracket --> scalar field
+    <class 'sage.manifolds.differentiable.scalarfield.DiffScalarFieldAlgebra_with_category.element_class'>
 
 Expressions in a chart different from the manifold's default one are
 obtained by specifying the chart as the last argument inside the
@@ -143,7 +143,7 @@ keys are the indices. Only the non-zero components and non-redundant
 components (in case of symmetries) are stored::
 
     sage: t.comp()._comp
-    {(1, 1): scalar field on the 2-dimensional manifold 'M'}
+    {(1, 1): Scalar field on the 2-dimensional differentiable manifold M}
 
 All the components can be set at once via [:]::
 
@@ -165,7 +165,7 @@ of the square brackets::
     sage: t[e,1,1] = x+y
     sage: t[e,2,1], t[e,2,2] = y, -3*x
     sage: t.comp(e)
-    2-indices components w.r.t. vector frame (M, (e_1,e_2))
+    2-indices components w.r.t. Vector frame (M, (e_1,e_2))
     sage: t.comp(e)[:]
     [x + y     0]
     [    y  -3*x]
@@ -207,7 +207,7 @@ fields; in the present case, T being of type (1,1), it acts on pairs
     sage: v = M.vector_field('V')
     sage: v[:] = (y, 2)
     sage: t(a,v)
-    scalar field 'T(a,V)' on the 2-dimensional manifold 'M'
+    Scalar field T(a,V) on the 2-dimensional differentiable manifold M
     sage: t(a,v).display()
     T(a,V): M --> R
        (x, y) |--> x^2*y^2 + 2*x + y
@@ -223,7 +223,7 @@ Check by means of the component expression of t(a,v)::
 A scalar field (rank-0 tensor field)::
 
     sage: f = M.scalar_field(x*y + 2, name='f') ; f
-    scalar field 'f' on the 2-dimensional manifold 'M'
+    Scalar field f on the 2-dimensional differentiable manifold M
     sage: f.tensor_type()
     (0, 0)
 
@@ -239,7 +239,7 @@ on scalar fields.
 A vector field (rank-1 contravariant tensor field)::
 
     sage: v = M.vector_field('v') ; v
-    vector field 'v' on the 2-dimensional manifold 'M'
+    Vector field v on the 2-dimensional differentiable manifold M
     sage: v.tensor_type()
     (1, 0)
     sage: v[1], v[2] = -x, y
@@ -249,7 +249,8 @@ A vector field (rank-1 contravariant tensor field)::
 A field of symmetric bilinear forms::
 
     sage: q = M.sym_bilin_form_field('Q') ; q
-    field of symmetric bilinear forms 'Q' on the 2-dimensional manifold 'M'
+    Field of symmetric bilinear forms Q on the 2-dimensional differentiable
+     manifold M
     sage: q.tensor_type()
     (0, 2)
 
@@ -271,9 +272,9 @@ Internally (dictionary :attr:`_comp` of the class
 :class:`~sage.tensor.modules.comp.Components`), only
 the non-zero and non-redundant components are stored::
 
-    sage: q.comp()._comp
-    {(1, 2): scalar field on the 2-dimensional manifold 'M',
-    (2, 2): scalar field on the 2-dimensional manifold 'M'}
+    sage: q.comp()._comp  # random (dictionary output)
+    {(1, 2): Scalar field on the 2-dimensional differentiable manifold M,
+     (2, 2): Scalar field on the 2-dimensional differentiable manifold M}
     sage: q.comp()._comp[(1,2)].expr()
     -x
     sage: q.comp()._comp[(2,2)].expr()
@@ -381,11 +382,14 @@ class TensorField(ModuleElement):
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
         sage: t = M.tensor_field(0,2, name='t') ; t
-        tensor field 't' of type (0,2) on the 2-dimensional manifold 'S^2'
+        Tensor field t of type (0,2) on the 2-dimensional differentiable
+         manifold S^2
         sage: t.parent()
-        module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional manifold 'S^2'
+        Module T^(0,2)(S^2) of type-(0,2) tensors fields on the 2-dimensional
+         differentiable manifold S^2
         sage: t.parent().category()
-        Category of modules over algebra of scalar fields on the 2-dimensional manifold 'S^2'
+        Category of modules over Algebra of differentiable scalar fields on the
+         2-dimensional differentiable manifold S^2
 
     The parent of `t` is not a free module, for the sphere `S^2` is not parallelizable::
 
@@ -440,7 +444,7 @@ class TensorField(ModuleElement):
     field::
 
         sage: f = t(a,b) ; f
-        scalar field 't(a,b)' on the 2-dimensional manifold 'S^2'
+        Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
         sage: f.display()
         t(a,b): S^2 --> R
         on U: (x, y) |--> -(2*x - 1)*y - 3*x
@@ -450,13 +454,15 @@ class TensorField(ModuleElement):
     result is then the common subset::
 
         sage: s = t(a.restrict(U), b) ; s
-        scalar field 't(a,b)' on the open subset 'U' of the 2-dimensional manifold 'S^2'
+        Scalar field t(a,b) on the Open subset U of the 2-dimensional
+         differentiable manifold S^2
         sage: s.display()
         t(a,b): U --> R
            (x, y) |--> -(2*x - 1)*y - 3*x
         on W: (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
         sage: s = t(a.restrict(U), b.restrict(W)) ; s
-        scalar field 't(a,b)' on the open subset 'W' of the 2-dimensional manifold 'S^2'
+        Scalar field t(a,b) on the Open subset W of the 2-dimensional
+         differentiable manifold S^2
         sage: s.display()
         t(a,b): W --> R
            (x, y) |--> -(2*x - 1)*y - 3*x
@@ -466,7 +472,8 @@ class TensorField(ModuleElement):
     a result whose domain is this subset::
 
         sage: s = t.restrict(V)(a,b) ; s
-        scalar field 't(a,b)' on the open subset 'V' of the 2-dimensional manifold 'S^2'
+        Scalar field t(a,b) on the Open subset V of the 2-dimensional
+         differentiable manifold S^2
         sage: s.display()
         t(a,b): V --> R
            (u, v) |--> -(3*u^3 + 3*u*v^2 - v^3 - (u^2 - 2*u)*v)/(u^4 + 2*u^2*v^2 + v^4)
@@ -477,16 +484,17 @@ class TensorField(ModuleElement):
         sage: t.parent().base_ring() is f.parent()
         True
         sage: s = f*t ; s
-        tensor field of type (0,2) on the 2-dimensional manifold 'S^2'
+        Tensor field of type (0,2) on the 2-dimensional differentiable
+         manifold S^2
         sage: s[[0,0]] == f*t[[0,0]]
         True
         sage: s.restrict(U) == f.restrict(U)*t.restrict(U)
         True
         sage: s = f*t.restrict(U) ; s
-        tensor field of type (0,2) on the open subset 'U' of the 2-dimensional manifold 'S^2'
+        Tensor field of type (0,2) on the Open subset U of the 2-dimensional
+         differentiable manifold S^2
         sage: s.restrict(U) == f.restrict(U)*t.restrict(U)
         True
-
 
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
@@ -506,7 +514,8 @@ class TensorField(ModuleElement):
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: t = M.tensor_field(0,2, name='t') ; t
-            tensor field 't' of type (0,2) on the 2-dimensional manifold 'M'
+            Tensor field t of type (0,2) on the 2-dimensional differentiable
+             manifold M
             sage: t[eU,:] = [[1+x^2, x*y], [0, 1+y^2]]
             sage: t.add_comp_by_continuation(eV, W, c_uv)
             sage: t.display(eU)
@@ -715,11 +724,11 @@ class TensorField(ModuleElement):
             sage: c_xy.<x,y> = M.chart()
             sage: t = M.tensor_field(1,2)
             sage: t.domain()
-            2-dimensional manifold 'M'
+            2-dimensional differentiable manifold M
             sage: U = M.open_subset('U', coord_def={c_xy: x<0})
             sage: h = t.restrict(U)
             sage: h.domain()
-            open subset 'U' of the 2-dimensional manifold 'M'
+            Open subset U of the 2-dimensional differentiable manifold M
 
         """
         return self._domain
@@ -748,7 +757,8 @@ class TensorField(ModuleElement):
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: t = M.tensor_field(0,2)
             sage: t.base_module()
-            module X(S^2) of vector fields on the 2-dimensional manifold 'S^2'
+            Module X(S^2) of vector fields on the 2-dimensional differentiable
+             manifold S^2
             sage: t.base_module() is M.vector_field_module()
             True
             sage: XM = M.vector_field_module()
@@ -939,13 +949,15 @@ class TensorField(ModuleElement):
             sage: v.display()
             v = d/dx
             sage: vU = v.restrict(U) ; vU
-            vector field 'v' on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Vector field v on the Open subset U of the 2-dimensional
+             differentiable manifold S^2
             sage: vU.display()
             v = d/dx
             sage: vU == eN[1]
             True
             sage: vW = v.restrict(W) ; vW
-            vector field 'v' on the open subset 'W' of the 2-dimensional manifold 'S^2'
+            Vector field v on the Open subset W of the 2-dimensional
+             differentiable manifold S^2
             sage: vW.display()
             v = d/dx
             sage: vW.display(eS_W, stereoS_W)
@@ -1164,23 +1176,23 @@ class TensorField(ModuleElement):
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: e = U.default_frame() ; e
-            coordinate frame (U, (d/dx,d/dy))
+            Coordinate frame (U, (d/dx,d/dy))
             sage: V = M.open_subset('V')
             sage: c_uv.<u, v> = V.chart()
             sage: f = V.default_frame() ; f
-            coordinate frame (V, (d/du,d/dv))
+            Coordinate frame (V, (d/du,d/dv))
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: t = M.tensor_field(1,1, name='t')
             sage: t[e,0,0] = - x + y^3
             sage: t[e,0,1] = 2+x
             sage: t[f,1,1] = - u*v
             sage: t.comp(e)
-            2-indices components w.r.t. coordinate frame (U, (d/dx,d/dy))
+            2-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy))
             sage: t.comp(e)[:]
             [y^3 - x   x + 2]
             [      0       0]
             sage: t.comp(f)
-            2-indices components w.r.t. coordinate frame (V, (d/du,d/dv))
+            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.comp(f)[:]
             [   0    0]
             [   0 -u*v]
@@ -1198,7 +1210,7 @@ class TensorField(ModuleElement):
             sage: a[:] = [[1+v, -u^2], [0, 1-u]]
             sage: h = f.new_frame(a, 'h')
             sage: t.comp(h)
-            2-indices components w.r.t. vector frame (V, (h_0,h_1))
+            2-indices components w.r.t. Vector frame (V, (h_0,h_1))
             sage: t.comp(h)[:]
             [             0 -u^3*v/(v + 1)]
             [             0           -u*v]
@@ -1235,11 +1247,11 @@ class TensorField(ModuleElement):
             sage: U = M.open_subset('U')
             sage: c_xy.<x, y> = U.chart()
             sage: e = U.default_frame() ; e
-            coordinate frame (U, (d/dx,d/dy))
+            Coordinate frame (U, (d/dx,d/dy))
             sage: V = M.open_subset('V')
             sage: c_uv.<u, v> = V.chart()
             sage: f = V.default_frame() ; f
-            coordinate frame (V, (d/du,d/dv))
+            Coordinate frame (V, (d/du,d/dv))
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: t = M.tensor_field(1,1, name='t')
             sage: t[e,0,0] = - x + y^3

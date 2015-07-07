@@ -216,7 +216,7 @@ cpdef clustering_coeff(g, vertices = None):
     return [average_clustering, clust_v_sage]
 
 
-cpdef dominator_tree(g, root, return_dict = True):
+cpdef dominator_tree(g, root, return_dict = False):
     r"""
     Uses Boost to compute the dominator tree of ``g``, rooted at ``root``.
 
@@ -235,24 +235,27 @@ cpdef dominator_tree(g, root, return_dict = True):
 
     - ``return_dict`` (boolean) - if ``True``, the function returns a
       dictionary associating to each vertex its parent in the dominator
-      tree. Otherwise, it returns the whole tree, as a ``Graph`` or a
-      ``DiGraph``.
+      tree. If ``False`` (default), it returns the whole tree, as a ``Graph``
+      or a ``DiGraph``.
 
     OUTPUT:
 
     The dominator tree, as a graph or as a dictionary, depending on the
     value of ``return_dict``. If the output is a dictionary, it will contain
-    ``None`` in correspondance of ``root`` and of vertices that are not
+    ``None`` in correspondence of ``root`` and of vertices that are not
     reachable from ``root``. If the output is a graph, it will not contain
     vertices that are not reachable from ``root``.
 
     EXAMPLES::
 
-        sage: graphs.GridGraph([2,2]).dominator_tree((0,0))
-        {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 0)}
-        sage: g = digraphs.Circuit(10).dominator_tree(5, return_dict = False)
+        sage: g = graphs.GridGraph([2,2]).dominator_tree((0,0))
         sage: g.to_dictionary()
-        {0: [9], 1: [0], 2: [1], 3: [2], 4: [3], 5: [], 6: [5], 7: [6], 8: [7], 9: [8]}
+        {(0, 0): [(0, 1), (1, 0), (1, 1)], (0, 1): [(0, 0)], (1, 0): [(0, 0)], (1, 1): [(0, 0)]}
+        sage: g = digraphs.Circuit(10).dominator_tree(5)
+        sage: g.to_dictionary()
+        {0: [1], 1: [2], 2: [3], 3: [4], 4: [], 5: [6], 6: [7], 7: [8], 8: [9], 9: [0]}
+        sage: graphs.GridGraph([2,2]).dominator_tree((0,0), return_dict = True)
+        {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 0)}
 
     TESTS:
 
@@ -307,7 +310,7 @@ cpdef dominator_tree(g, root, return_dict = True):
     if return_dict:
         return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()};
 
-    edges = [[v,result[vertex_to_int[v]]] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+    edges = [[int_to_vertex[result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
 
     if g.is_directed():
         if len(edges) == 0:

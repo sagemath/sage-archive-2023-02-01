@@ -5050,3 +5050,270 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     dQS = dualQuasisymmetric_Schur
 
+
+    class Zassenhaus_left(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hopf algebra of non-commutative symmetric functions in the left Zassenhaus basis.
+
+        This basis is the left-version of the basis defined in Section 2.5.1 of [HLNT09]_. 
+        It is multiplicative, with `Z_n` defined as the element of `NCSF_n`
+        satisfying the equation:
+
+        .. MATH::
+
+            \sigma_1 = ... exp(Z_n) ... exp(Z_2) exp(Z_1)
+
+        """
+        def __init__(self, NCSF):
+            r"""
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: ZL = NCSF.Zassenhaus_left(); ZL
+                Non-Commutative Symmetric Functions over the Rational Field in the Zassenhaus_left basis
+                sage: Z = NCSF.ZL(); Z
+                Non-Commutative Symmetric Functions over the Rational Field in the Zassenhaus_left basis
+                sage: TestSuite(Z).run()
+
+            TESTS:
+
+            Test coproduct and antipode on the multiplicative identity::
+
+                sage: Z.one()
+                ZL[]
+                sage: Z.one().coproduct()
+                ZL[] # ZL[]
+                sage: Z.one().antipode()
+                ZL[]
+
+            We include some sanity tests to verify that conversions between this
+            basis and other bases work the way they should::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: Z = NCSF.ZL()
+                sage: R = NCSF.ribbon()
+                sage: S = NCSF.complete()
+                sage: Z(S[3])
+                1/6*ZL[1, 1, 1] + ZL[2, 1] + ZL[3]
+                sage: all(S(Z(S[comp])) == S[comp] for comp in Compositions(5))
+                True
+                sage: all(Z(S(Z[comp])) == Z[comp] for comp in Compositions(5))
+                True
+                sage: all(R(Z(R[comp])) == R[comp] for comp in Compositions(5))
+                True
+                sage: all(Z(R(Z[comp])) == Z[comp] for comp in Compositions(5))
+                True
+
+            """
+            CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
+                                                prefix='ZL', bracket=False,
+                                                category=NCSF.MultiplicativeBasesOnPrimitiveElements())
+            self._register_coercions_()
+
+        def _register_coercions_(self):
+            S = self.realization_of().S()
+
+            to_complete = self.module_morphism(
+                                        on_basis = self._to_complete_on_basis,
+                                        codomain = S)
+            to_complete.register_as_coercion()
+
+            from_complete = S.module_morphism(
+                                        on_basis = self._from_complete_on_basis,
+                                        codomain = self)
+            from_complete.register_as_coercion()
+
+        def _to_complete_on_generator(self, n):
+            r"""
+                Expand a (left) Zassenhaus generator of non-commutative symmetric
+                functions in the complete basis.
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                - The expansion of the Zassenhaus generator indexed by ``n`` into the
+                  complete basis.
+
+                TESTS::
+
+                    sage: Z = NonCommutativeSymmetricFunctions(QQ).Zassenhaus_left()
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: Z._to_complete_on_generator(1)
+                    S[1]
+                    sage: Z._to_complete_on_generator(2)
+                    -1/2*S[1, 1] + S[2]
+
+
+                """
+            from sage.combinat.partition import Partitions
+            S = self.realization_of().S()
+            if n == 0 or n == 1:
+                return S[n]
+            res = S[n]
+            for partition in Partitions(n):
+                if len(partition) > 1:
+                    coeff = prod(factorial(e) for e in partition.to_exp()) 
+                    res = res - 1/coeff * prod(self._to_complete_on_generator(i) for i in partition)
+            return res
+
+        def _to_complete_on_basis(self, I):
+            S = self.realization_of().S()
+            return S.prod(self._to_complete_on_generator(i) for i in I)
+
+        @cached_method
+        def _complete_to_zassenhaus_transition_matrix(self, n):
+            r"""
+            The change of basis matrix from the S basis to the ZL basis.
+            """
+            from sage.matrix.constructor import matrix
+            S = self.realization_of().S()
+            m = []
+            for I in Compositions(n):
+                x = self._to_complete_on_basis(I)
+                m.append([x.coefficient(J) for J in Compositions(n)])
+            return matrix(m)
+
+        def _from_complete_on_basis(self, I):
+            m = self._complete_to_zassenhaus_transition_matrix(I.size())
+            i = Compositions(I.size()).list().index(I)
+            coeffs = m.inverse()[i]
+            return self._from_dict(dict(zip(Compositions(I.size()), coeffs)))
+
+    ZL = Zassenhaus_left
+
+    class Zassenhaus_right(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hopf algebra of non-commutative symmetric functions in the right Zassenhaus basis.
+
+        This basis is defined in Section 2.5.1 of [HLNT09]_.  
+        It is multiplicative, with `Z_n` defined as the element of `NCSF_n`
+        satisfying the equation:
+
+        .. MATH::
+            \sigma_1 = exp(Z_1) exp(Z_2) exp(Z_3) ... exp(Z_n) ...
+            
+        Note that there is a variant in Equation 5.26 of [NCSF2]_, which satisfies:
+        
+        .. MATH::
+            \sigma_1 = exp(Z_1) exp(Z_2/2) exp(Z_3/3) ... exp(Z_n/n) ...
+        """
+        def __init__(self, NCSF):
+            r"""
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: Z = Zassenhaus_right(NCSF); Z #other way?
+                Non-Commutative Symmetric Functions over the Integer Ring in the Zassenhaus_right basis
+                sage: TestSuite(Z).run()
+
+            TESTS:
+
+            Test coproduct and antipode on the multiplicative identity::
+
+                sage: Z =NCSF.ZR()
+                sage: Z.one()
+                ZR[]
+                sage: Z.one().coproduct()
+                ZR[] # ZR[]
+                sage: Z.one().antipode()
+                ZR[]
+
+            We include some sanity tests to verify that conversions between this
+            basis and other bases work the way they should::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: Z = NCSF.Zassenhaus_right()
+                sage: R = NCSF.ribbon()
+                sage: S = NCSF.complete()
+                sage: Z(S[3])
+                1/6*ZR[1, 1, 1] + ZR[1, 2] + ZR[3]
+                sage: all(S(Z(S[comp])) == S[comp] for comp in Compositions(5))
+                True
+                sage: all(Z(S(Z[comp])) == Z[comp] for comp in Compositions(5))
+                True
+                sage: all(R(Z(R[comp])) == R[comp] for comp in Compositions(5))
+                True
+                sage: all(Z(R(Z[comp])) == Z[comp] for comp in Compositions(5))
+                True
+
+            """
+            CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
+                                                prefix='ZR', bracket=False,
+                                                category=NCSF.MultiplicativeBasesOnPrimitiveElements())
+            self._register_coercions_()
+
+        def _register_coercions_(self):
+            S = self.realization_of().S()
+
+            to_complete = self.module_morphism(
+                                        on_basis = self._to_complete_on_basis,
+                                        codomain = S)
+            to_complete.register_as_coercion()
+
+            from_complete = S.module_morphism(
+                                        on_basis = self._from_complete_on_basis,
+                                        codomain = self)
+            from_complete.register_as_coercion()
+
+        def _to_complete_on_generator(self, n):
+            r"""
+                Expand a Zassenhaus generator of non-commutative symmetric
+                functions in the complete basis.
+
+                INPUT:
+
+                - ``n`` -- a positive integer
+
+                OUTPUT:
+
+                - The expansion of the Zassenhaus generator indexed by ``n`` into the
+                  complete basis.
+               
+
+                TESTS::
+
+                    sage: Z = NonCommutativeSymmetricFunctions(QQ).Zassenhaus_right()
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: Z._to_complete_on_generator(1)
+                    S[1]
+                    sage: Z._to_complete_on_generator(2)
+                    -1/2*S[1, 1] + S[2]
+                """
+            from sage.combinat.partition import Partitions
+            S = self.realization_of().S()
+            if n == 0 or n == 1:
+                return S[n]
+            res = S[n]
+            for partition in Partitions(n):
+                if len(partition) > 1:
+                    coeff = prod(factorial(e) for e in partition.to_exp())
+                    res = res - 1/coeff * prod(self._to_complete_on_generator(i) for i in reversed(partition))
+            return res
+
+        def _to_complete_on_basis(self, I):
+            S = self.realization_of().S()
+            return S.prod(self._to_complete_on_generator(i) for i in I)
+
+        @cached_method
+        def _complete_to_zassenhaus_transition_matrix(self, n):
+            r"""
+            The change of basis matrix from the S basis to the ZR basis.
+            """
+            from sage.matrix.constructor import matrix
+            S = self.realization_of().S()
+            m = []
+            for I in Compositions(n):
+                x = self._to_complete_on_basis(I)
+                m.append([x.coefficient(J) for J in Compositions(n)])
+            return matrix(m)
+
+        def _from_complete_on_basis(self, I):
+            m = self._complete_to_zassenhaus_transition_matrix(I.size())
+            i = Compositions(I.size()).list().index(I)
+            coeffs = m.inverse()[i]
+            return self._from_dict(dict(zip(Compositions(I.size()), coeffs)))
+
+    ZR = Zassenhaus_right

@@ -446,6 +446,12 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
     echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR).log\""
     echo >&5
+
+    # Add a target with just the bare package name such that
+    # "make ccache" for example builds the ccache package with
+    # dependency checking.
+    echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+    echo >&5
 done
 
 # Close the Makefile
@@ -522,10 +528,5 @@ if [ "$1" = "all" ]; then
     echo "    install_scripts('/usr/local/bin')"
     echo
     echo "at the Sage command prompt ('sage:')."
-    echo
-    echo "If you issued 'make', 'make all', or a similar command, then the"
-    echo "HTML version of the documentation will be built right now."
-    echo "Otherwise, if you want to (re)build the HTML documentation,"
-    echo "run 'make doc'.  To build the PDF version, run 'make doc-pdf'."
     echo
 fi

@@ -374,7 +374,8 @@ class Singular(Expect):
     - David Joyner and William Stein
     """
     def __init__(self, maxread=1000, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None):
+                 logfile=None, server=None,server_tmpdir=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -398,6 +399,31 @@ class Singular(Expect):
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.
+        self._seed = seed
+
+    def set_seed(self,seed=None):
+        """
+        Sets the seed for singular interpeter.
+        The seed should be an integer at least 1
+        and not more than 30 bits.
+        See
+        http://www.singular.uni-kl.de/Manual/html/sing_19.htm#SEC26
+        and
+        http://www.singular.uni-kl.de/Manual/html/sing_283.htm#SEC323
+
+        EXAMPLES::
+
+            sage: s = Singular()
+            sage: s.set_seed(1)
+            1
+            sage: [s.random(1,10) for i in range(5)]
+            [8, 10, 4, 9, 1]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval('system("--random",%d)' % seed)
+        self._seed = seed
+        return seed
 
     def _start(self, alt_message=None):
         """
@@ -422,6 +448,8 @@ class Singular(Expect):
         self.option("redThrough")
         self.option("intStrategy")
         self._saved_options = self.option('get')
+        # set random seed
+        self.set_seed(self._seed)
 
     def __reduce__(self):
         """

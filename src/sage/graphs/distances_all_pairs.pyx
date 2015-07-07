@@ -529,7 +529,7 @@ def is_distance_regular(G, parameters = False):
 
     if not G.is_regular():
         return False
-    k = G.degree(G.vertex_iterator().next())
+    k = G.degree(next(G.vertex_iterator()))
 
     # Matrix of distances
     cdef unsigned short * distance_matrix = c_distances_all_pairs(G)
@@ -1217,7 +1217,7 @@ def diameter(G, method='iFUB', source=None):
         raise ValueError("Unknown method for computing the diameter.")
 
     if source is None:
-        source = G.vertex_iterator().next()
+        source = next(G.vertex_iterator())
     elif not G.has_vertex(source):
         raise ValueError("The specified source is not a vertex of the input Graph.")
 

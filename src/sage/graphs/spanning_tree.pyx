@@ -378,7 +378,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     cdef int i = 0  # count the number of edges added so far
     union_find = dict()
     while i < m:
-        e = sortedE_iter.next()
+        e = next(sortedE_iter)
         components = []
         # acyclic test via union-find
         for startv in iter(e[0:2]):
@@ -478,7 +478,7 @@ def random_spanning_tree(self, output_as_graph=False):
     if N == 0 or not self.is_connected():
         raise ValueError('works only for non-empty connected graphs')
 
-    s = self.vertex_iterator().next()
+    s = next(self.vertex_iterator())
     found = set([s])
     cdef int found_nr = 1
     tree_edges = []

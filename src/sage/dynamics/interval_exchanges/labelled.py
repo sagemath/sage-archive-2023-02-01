@@ -784,7 +784,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: (p1 > p0) and (p1 == p1)
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return -1
 
         n = len(self)
@@ -1143,7 +1143,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             sage: p3 == p3 and p4 == p4 and p5 == p5 and p6 == p6
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return -1
 
         n = len(self)
@@ -1615,7 +1615,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
             True
         """
         return (
-            isinstance(self, type(other)) and
+            type(self) is type(other) and
             self._intervals == other._intervals and
             self._flips == other._flips)
 
@@ -1640,7 +1640,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
             False
         """
         return (
-            not isinstance(self, type(other)) or
+            type(self) is not type(other) or
             self._intervals != other._intervals or
             self._flips != other._flips)
 

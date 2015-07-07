@@ -114,7 +114,7 @@ from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
-from utilities import newlabel
+from utilities import newlabel, lift_cross_ratios
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
@@ -457,7 +457,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # representations
 
-    cpdef representation(self, B=None, reduced=False, labels=None, order=None):
+    cpdef representation(self, B=None, reduced=False, labels=None, order=None, lift_map=None):
         """
         Return a matrix representing the matroid.
 
@@ -493,6 +493,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         - ``order`` -- (default: ``None``) an ordering of the groundset
           elements. If provided, the columns (and, in case of a reduced
           representation, rows) will be presented in the given order.
+        - ``lift_map`` -- (default: ``None``) a dictionary containing the cross 
+          ratios of the representing matrix in it's domain. If provided, the 
+          representation will be transformed by mapping its cross ratios according
+          to ``lift_map``.
 
         OUTPUT:
 
@@ -507,7 +511,12 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         ``M._forget()`` is called): either the matrix used as input to create
         the matroid, or a matrix in which the lexicographically least basis
         corresponds to an identity. If only ``order`` is not ``None``, the
-        columns of this matrix will be permuted accordingly.
+        columns of this matrix will be permuted accordingly. 
+        
+        If a ``lift_map`` is provided, then the resulting matrix will be lifted 
+        using the method
+        :func:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+        See the docstring of this method for further details.
 
         .. NOTE::
 
@@ -578,10 +587,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 B = set(B)
                 A = self._basic_representation(B)
             A = A.matrix_from_rows_and_columns(range(A.nrows()), order_idx)
-            if labels:
-                return (A._matrix_(), order)
+            if lift_map is None:
+                if labels:
+                    return (A._matrix_(), order)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), order)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)
         else:
             if B is None:
                 B = self.basis()
@@ -604,10 +619,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     Ci.append(C.index(e))
                     Cl.append(e)
             A = A.matrix_from_rows_and_columns(Ri, Ci)
-            if labels or labels is None:
-                return (A._matrix_(), Rl, Cl)
+            if lift_map is None:
+                if labels or labels is None:
+                    return (A._matrix_(), Rl, Cl)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels or labels is None:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), Rl, Cl)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)        
 
     cpdef _current_rows_cols(self, B=None):
         """
@@ -2540,7 +2561,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in groundset")
         cochains = self.linear_coextension_cochains(F, cosimple=cosimple, fundamentals=fundamentals)
-        return self._linear_coextensions(element, cochains)
+        return self._linear_coextensions(element, cochains)     
 
     cpdef is_valid(self):
         r"""
@@ -3470,9 +3491,11 @@ cdef class BinaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                             groundset=[self._E[c] for c in C],
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<BinaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return BinaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
                              basis=bas,
                              keep_initial_representation=False)
 
@@ -4417,11 +4440,13 @@ cdef class TernaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                              groundset=[self._E[c] for c in C],
-                              basis=bas,
-                              keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<TernaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return TernaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -4438,6 +4463,66 @@ cdef class TernaryMatroid(LinearMatroid):
 
             sage: M = Matroid(Matrix(GF(3), [[]]))
             sage: M.is_valid()
+            True
+        """
+        return True
+
+    # representability
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A binary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.ternary_matroid() is N
+            True
+        """
+        return self
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_ternary()
             True
         """
         return True
@@ -5127,11 +5212,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                                 groundset=[self._E[c] for c in C],
-                                 basis=bas,
-                                 keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<QuaternaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return QuaternaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -5977,6 +6064,66 @@ cdef class RegularMatroid(LinearMatroid):
 
             sage: N = matroids.named_matroids.R10()
             sage: N.is_binary()
+            True
+        """
+        return True
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A ternary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just cast ``self`` to a TernaryMatroid.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.ternary_matroid()
+            Ternary matroid of rank 5 on 10 elements, type 4+
+
+        """
+        A, E = self.representation(B = self.basis(), reduced = False, labels = True)
+        return TernaryMatroid(matrix = A, groundset = E)
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a ternary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_ternary()
             True
         """
         return True

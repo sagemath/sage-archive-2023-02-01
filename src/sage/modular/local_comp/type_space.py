@@ -364,6 +364,15 @@ class TypeSpace(SageObject):
             14
             sage: TypeSpace(g, 7).is_minimal()
             True
+
+        Test that :trac:`13158` is fixed::
+
+            sage: f = Newforms(256,names='a')[0]
+            sage: T = TypeSpace(f,2)
+            sage: g = T.minimal_twist(); g
+            q - a*q^3 + O(q^6)
+            sage: g.level()
+            64
         """
         if self.is_minimal():
             raise ValueError( "Form is already minimal" )
@@ -382,8 +391,9 @@ class TypeSpace(SageObject):
             V = A.submodule(VV, check=False)
 
         D = V.decomposition()[0]
-        if len(D.star_eigenvalues()) == 1:
-            D._set_sign(D.star_eigenvalues()[0])
+        if len(D.star_eigenvalues()) == 2:
+            D = D.sign_submodule(1)
+        D._set_sign(D.star_eigenvalues()[0])
         M = ModularForms(D.group(), D.weight())
         ff = Newform(M, D, names='a')
         return ff

@@ -687,7 +687,7 @@ cdef class Expression(CommutativeRingElement):
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
             return pretty(sympify(self, evaluate=False), use_unicode=use_unicode)
-        except StandardError:
+        except Exception:
             return str(self)
 
     def _ascii_art_(self):
@@ -11546,7 +11546,7 @@ cdef class ExpressionIterator:
 
             sage: x,y,z = var('x,y,z')
             sage: i = (x+y).iterator()
-            sage: i.next()
+            sage: next(i)
             x
         """
         cdef GEx ex

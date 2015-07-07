@@ -34,7 +34,7 @@ def weak_popov_form(M,ascend=True):
 
 def row_reduced_form(M,transformation=False):
     """
-    This function computes a weak Popov form of a matrix over a rational
+    This function computes a row reduced form of a matrix over a rational
     function field `k(x)`, for `k` a field.
 
     INPUT:
@@ -44,11 +44,11 @@ def row_reduced_form(M,transformation=False):
      
     OUTPUT:
 
-    If transformation is not set, this function will output `W` the weak Popov form of M.
+    If transformation is not set, this function will output `W` the row reduced form of M.
     
     If transformation is set to True, this function will output a 2-tuple `(W,N)` consisting of two matrices over `k(x)`:
 
-    1. `W` - matrix giving a weak the Popov form of M
+    1. `W` - matrix giving a row reduced form of M
     2. `N` - matrix representing row operations used to transform
        `M` to `W`
 
@@ -70,6 +70,19 @@ def row_reduced_form(M,transformation=False):
         [(2*t + 1)/t]
         [          0]
 
+    The last example shows the usage of the transformation parameter.
+        
+    ::
+        sage: Fq.<a> = GF(2^3)
+        sage: Fx.<x> = Fq[]
+        sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+        sage: from sage.matrix.matrix_misc import row_reduced_form
+        sage: row_reduced_form(A,transformation=True)
+        (
+        [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
+        [                    x^3                   a*x^4], [      0                 1]
+        )
+            
     NOTES:
 
     See docstring for row_reduced_form method of matrices for

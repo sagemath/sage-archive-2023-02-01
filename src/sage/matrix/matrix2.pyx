@@ -6777,14 +6777,15 @@ cdef class Matrix(matrix1.Matrix):
         deprecation(16888, 'You can just call row_reduced_form() instead')
         return self.row_reduced_form(ascend)
 
-    def row_reduced_form(self):
+    def row_reduced_form(self,transformation=False):
         """
         This function computes a row reduced form of a matrix over a rational
         function field `k(x)`, for `k` a field.
 
         OUTPUT:
 
-        `W` - a matrix over `k(x)` giving a row reduced form of self
+        - `W` - a matrix over `k(x)` giving a row reduced form of self
+        - `transformation` - A boolean (default: False). If this boolean is set to True a second matrix is output (see OUTPUT).
         
         EXAMPLES:
 
@@ -6873,6 +6874,18 @@ cdef class Matrix(matrix1.Matrix):
             TypeError: the coefficients of M must lie in a univariate
             polynomial ring
 
+        The last example shows the usage of the transformation parameter.
+        
+        ::
+            sage: Fq.<a> = GF(2^3)
+            sage: Fx.<x> = Fq[]
+            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
+            sage: A.row_reduced_form(transformation=True)
+            (
+            [(a^2 + 1)*x^3 + x^2 + a                       a]  [      1 a^2 + 1]
+            [                    x^3                   a*x^4], [      0                 1]
+            )
+
 
         NOTES:
 
@@ -6890,8 +6903,8 @@ cdef class Matrix(matrix1.Matrix):
 
 
         """
-        import sage.matrix.matrix_misc
-        return sage.matrix.matrix_misc.row_reduced_form(self)
+        from sage.matrix.matrix_misc import row_reduced_form
+        return sage.matrix.matrix_misc.row_reduced_form(self,transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #

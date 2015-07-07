@@ -1,11 +1,11 @@
 r"""
 Tensor field modules
 
-The set of tensor fields along an open subset `U` of some manifold `S`
-with values in a open subset `V` of a manifold `M` (possibly `S=M` and `U=V`)
-is a module over the algebra `C^k(U)` of differentiable scalar fields
-on `U`. It is a free module iff `V` is parallelizable.
-Accordingly, two classes are devoted to tensor field modules:
+The set of tensor fields along an open subset `U` of some differentiable
+manifold `S` with values in a open subset `V` of a differentiable manifold `M`
+(possibly `S=M` and `U=V`) is a module over the algebra `C^k(U)` of
+differentiable scalar fields on `U`. It is a free module iff `V` is
+parallelizable. Accordingly, two classes are devoted to tensor field modules:
 
 - :class:`TensorFieldModule` for tensor fields with values in a generic (in
   practice, not parallelizable) open set `V`
@@ -49,9 +49,10 @@ from sage.manifolds.differentiable.automorphismfield import \
 class TensorFieldModule(UniqueRepresentation, Parent):
     r"""
     Module of tensor fields of a given type `(k,l)` along an open subset `U`
-    of some manifold `S` with values in a open subset `V` of a manifold `M`,
+    of some differentiable manifold `S` with values in a open subset `V` of a
+    differentiable manifold `M`,
 
-    Given two non-negative integers `k` and `l` and a differentiable mapping
+    Given two non-negative integers `k` and `l` and a differentiable map
 
     .. MATH::
 
@@ -75,10 +76,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
-    The standard case of tensor fields *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    The standard case of tensor fields *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    an open interval of `\RR`).
 
     If `V` is parallelizable, the class :class:`TensorFieldFreeModule` should
     be used instead.
@@ -89,7 +90,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the mapping `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
       `l` the covariant rank
 
@@ -103,9 +104,9 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                                restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
         sage: T20 = M.tensor_field_module((2,0)) ; T20
@@ -142,7 +143,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     The zero element::
 
         sage: z = T20.zero() ; z
-        Tensor field zero of type (2,0) on the 2-dimensional differentiable manifold M
+        Tensor field zero of type (2,0) on the 2-dimensional differentiable
+         manifold M
         sage: z is T20(0)
         True
         sage: z[c_xy.frame(),:]
@@ -226,8 +228,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         kcon = tensor_type[0]
         lcov = tensor_type[1]
         name = "T^(" + str(kcon) + "," + str(lcov) + ")(" + domain._name
-        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + r")}\left(" + \
-                     domain._latex_name
+        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + \
+                                               r")}\left(" + domain._latex_name
         if dest_map is domain._identity_map:
             name += ")"
             latex_name += r"\right)"
@@ -328,7 +330,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         Determine whether coercion to self exists from other parent.
 
         """
-        from sage.manifolds.differentiable.diff_form_module import DiffFormModule
+        from sage.manifolds.differentiable.diff_form_module import \
+                                                                 DiffFormModule
         from sage.manifolds.differentiable.automorphismfield_group import \
                                                          AutomorphismFieldGroup
         if isinstance(other, (TensorFieldModule, TensorFieldFreeModule)):
@@ -405,10 +408,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 class TensorFieldFreeModule(TensorFreeModule):
     r"""
     Free module of tensor fields of a given type `(k,l)` along an open
-    subset `U` of some manifold `S` with values in a parallelizable open
-    subset `V` of a manifold `M`.
+    subset `U` of some differentiable manifold `S` with values in a
+    parallelizable open subset `V` of a differentiable manifold `M`.
 
-    Given two non-negative integers `k` and `l` and a differentiable mapping
+    Given two non-negative integers `k` and `l` and a differentiable map
 
     .. MATH::
 
@@ -429,10 +432,10 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     i.e. `t(p)` is a tensor on the vector space `T_{\Phi(p)}M`.
 
-    The standard case of tensor fields *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    The standard case of tensor fields *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    an open interval of `\RR`).
 
     Since `V` is parallelizable, the set `T^{(k,l)}(U,\Phi)` is a free
     module over `C^k(U)`, the ring (algebra) of differentiable scalar
@@ -445,7 +448,7 @@ class TensorFieldFreeModule(TensorFreeModule):
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the mapping `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
       `l` the covariant rank
 
@@ -497,8 +500,8 @@ class TensorFieldFreeModule(TensorFreeModule):
         [0 0 0]
         [0 0 0]
 
-    The module `T^{(2,0)}(\RR^3)` coerces to any module of type-(2,0) tensor fields
-    defined on some subdomain of `\RR^3`::
+    The module `T^{(2,0)}(\RR^3)` coerces to any module of type-(2,0) tensor
+    fields defined on some subdomain of `\RR^3`::
 
         sage: U = M.open_subset('U', coord_def={c_xyz: x>0})
         sage: T20U = U.tensor_field_module((2,0))
@@ -549,8 +552,8 @@ class TensorFieldFreeModule(TensorFreeModule):
         kcon = tensor_type[0]
         lcov = tensor_type[1]
         name = "T^(" + str(kcon) + "," + str(lcov) + ")(" + domain._name
-        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + r")}\left(" + \
-                     domain._latex_name
+        latex_name = r"\mathcal{T}^{(" + str(kcon) + "," + str(lcov) + \
+                                               r")}\left(" + domain._latex_name
         if dest_map is domain._identity_map:
             name += ")"
             latex_name += r"\right)"

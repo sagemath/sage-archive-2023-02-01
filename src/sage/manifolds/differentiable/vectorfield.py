@@ -2,14 +2,14 @@ r"""
 Vector fields
 
 Given an open set `U` of a differentiable manifold `S`,  an open set `V`
-of a differentiable manifold `M` and a differentiable mapping
+of a differentiable manifold `M` and a differentiable map
 
 .. MATH::
 
     \Phi:\ U\subset S \longrightarrow V\subset M
 
 we define a *vector field along* `U` *with values on* `V` to be a
-differentiable mapping
+differentiable map
 
 .. MATH::
 
@@ -21,10 +21,10 @@ such that
 
     \forall p \in U,\ v(p) \in T_{\Phi(p)}M
 
-The standard case of vector fields *on* a manifold corresponds to `S=M`,
-`U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-of `\RR`).
+The standard case of vector fields *on* a differentiable manifold corresponds
+to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
+being an immersion and `\Phi` being a curve in `V` (`U` is then an open
+interval of `\RR`).
 
 Vector fields are implemented via two classes: :class:`VectorFieldParal` and
 :class:`VectorField`, depending respectively whether the open set `V`
@@ -64,12 +64,13 @@ class VectorField(TensorField):
     Vector field along an open set of a differentiable manifold.
 
     An instance of this class is a vector field along an open subset `U`
-    of some manifold `S` with values in an open subset `V`
-    of a manifold `M`, via a differentiable mapping `\Phi: U \rightarrow V`.
-    The standard case of a vector field *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    of some differentiable manifold `S` with values in an open subset `V`
+    of a differentiable manifold `M`, via a differentiable map
+    `\Phi: U \rightarrow V`.
+    The standard case of a vector field *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    an open interval of `\RR`).
 
     If `V` is parallelizable, the class :class:`VectorFieldParal` must be
     used instead.
@@ -82,8 +83,8 @@ class VectorField(TensorField):
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset V \subset M`
     - ``name`` -- (default: ``None``) name given to the vector field
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector field;
-      if none is provided, the LaTeX symbol is set to ``name``
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
+      field; if none is provided, the LaTeX symbol is set to ``name``
 
     EXAMPLES:
 
@@ -93,15 +94,17 @@ class VectorField(TensorField):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_tu.<t,u> = V.chart()
-        sage: transf = c_xy.transition_map(c_tu, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= t+u>0)
+        sage: transf = c_xy.transition_map(c_tu, (x+y, x-y), intersection_name='W',
+        ....:                              restrictions1= x>0, restrictions2= t+u>0)
         sage: inv = transf.inverse()
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_tu.frame()
         sage: c_tuW = c_tu.restrict(W) ; eVW = c_tuW.frame()
         sage: v = M.vector_field('v') ; v
-        vector field 'v' on the 2-dimensional manifold 'M'
+        Vector field v on the 2-dimensional differentiable manifold M
         sage: v.parent()
-        module X(M) of vector fields on the 2-dimensional manifold 'M'
+        Module X(M) of vector fields on the 2-dimensional differentiable
+         manifold M
 
     The vector field is first defined on the domain `U` by means of its
     components w.r.t. the frame eU::
@@ -126,7 +129,7 @@ class VectorField(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_tu: t^2}, name='f')
         sage: s = v(f) ; s
-        scalar field 'v(f)' on the 2-dimensional manifold 'M'
+        Scalar field v(f) on the 2-dimensional differentiable manifold M
         sage: s.display()
         v(f): M --> R
         on U: (x, y) |--> 2*x^2 - 2*y^2 + 2*x + 2*y
@@ -143,23 +146,27 @@ class VectorField(TensorField):
     the scalar field's one::
 
         sage: s = v(f.restrict(U)) ; s
-        scalar field 'v(f)' on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field v(f) on the Open subset U of the 2-dimensional
+         differentiable manifold M
         sage: s == v(f).restrict(U)
         True
         sage: s = v(f.restrict(W)) ; s
-        scalar field 'v(f)' on the open subset 'W' of the 2-dimensional manifold 'M'
+        Scalar field v(f) on the Open subset W of the 2-dimensional
+         differentiable manifold M
         sage: s.display()
         v(f): W --> R
            (x, y) |--> 2*x^2 - 2*y^2 + 2*x + 2*y
            (t, u) |--> 2*t*u + 2*t
         sage: s = v.restrict(U)(f) ; s
-        scalar field 'v(f)' on the open subset 'U' of the 2-dimensional manifold 'M'
+        Scalar field v(f) on the Open subset U of the 2-dimensional
+         differentiable manifold M
         sage: s.display()
         v(f): U --> R
            (x, y) |--> 2*x^2 - 2*y^2 + 2*x + 2*y
         on W: (t, u) |--> 2*t*u + 2*t
         sage: s = v.restrict(U)(f.restrict(V)) ; s
-        scalar field 'v(f)' on the open subset 'W' of the 2-dimensional manifold 'M'
+        Scalar field v(f) on the Open subset W of the 2-dimensional
+         differentiable manifold M
         sage: s.display()
         v(f): W --> R
            (x, y) |--> 2*x^2 - 2*y^2 + 2*x + 2*y
@@ -261,10 +268,11 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     with values on a parallelizable open set of a differentiable manifold.
 
     An instance of this class is a vector field along an open subset `U`
-    of some manifold `S` with values in a parallelizable open subset `V`
-    of a manifold `M`, via a differentiable mapping `\Phi: U \rightarrow V`.
-    The standard case of a vector field *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
+    of some differentiable manifold `S` with values in a parallelizable open
+    subset `V` of a differentiable manifold `M`, via a differentiable map
+    `\Phi: U \rightarrow V`. The standard case of a vector field *on* a
+    differentiable manifold corresponds to `S=M`, `U=V` and
+    `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
     immersion and `\Phi` being a curve in `V` (`U` is then an open interval
     of `\RR`).
 
@@ -276,8 +284,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset V \subset M`
     - ``name`` -- (default: ``None``) name given to the vector field
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector field;
-      if none is provided, the LaTeX symbol is set to ``name``
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
+      field; if none is provided, the LaTeX symbol is set to ``name``
 
     EXAMPLES:
 
@@ -286,7 +294,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: v = M.vector_field('V') ; v
-        vector field 'V' on the 3-dimensional manifold 'M'
+        Vector field V on the 3-dimensional differentiable manifold M
         sage: latex(v)
         V
 
@@ -294,9 +302,11 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     (algebra) of scalar fields on `M`::
 
         sage: v.parent()
-        free module X(M) of vector fields on the 3-dimensional manifold 'M'
+        Free module X(M) of vector fields on the 3-dimensional differentiable
+         manifold M
         sage: v.parent().base_ring()
-        algebra of scalar fields on the 3-dimensional manifold 'M'
+        Algebra of differentiable scalar fields on the 3-dimensional
+         differentiable manifold M
         sage: v.parent() is M.vector_field_module()
         True
 
@@ -312,11 +322,11 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: e = M.vector_frame('e') ; M.set_default_frame(e)
         sage: v[0], v[1], v[2] = (1, 4, 9)  # components on M's default frame (e)
         sage: v.comp()
-        1-index components w.r.t. vector frame (M, (e_0,e_1,e_2))
+        1-index components w.r.t. Vector frame (M, (e_0,e_1,e_2))
 
     The totality of the components are accessed via the operator [:]::
 
-        sage: v[:] = (1, 4, 9) # equivalent to v[0], v[1], v[2] = (1, 4, 9)
+        sage: v[:] = (1, 4, 9)  # equivalent to v[0], v[1], v[2] = (1, 4, 9)
         sage: v[:]
         [1, 4, 9]
 
@@ -324,7 +334,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     by the method
     :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.display`::
 
-        sage: v.display()   # displays the expansion on the manifold's default frame (e)
+        sage: v.display()  # displays the expansion on the manifold's default frame (e)
         V = e_0 + 4 e_1 + 9 e_2
 
     A subset of the components can be accessed by means of Python's slice
@@ -378,47 +388,38 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: v.display()
         v = -y d/dx + x d/dy
         sage: v(f)
-        scalar field 'v(f)' on the 2-dimensional manifold 'M'
+        Scalar field v(f) on the 2-dimensional differentiable manifold M
         sage: v(f).expr()
         2*x^2*y - y^3
         sage: latex(v(f))
         v\left(f\right)
 
-    Example of a vector field associated with a non-trivial mapping `\Phi`:
+    Example of a vector field associated with a non-trivial map `\Phi`:
     vector field along a curve in `M`::
 
-        sage: R.<t> = RealLine() ; R  # R as a 1-dimensional manifold
-        field R of real numbers
+        sage: R = DiffManifold(1, 'R')  # R as a 1-dimensional manifold
+        sage: T.<t> = R.chart()  # canonical chart on R
         sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
-        Curve 'Phi' in the 2-dimensional manifold 'M'
+        Differentiable map Phi from the 1-dimensional differentiable manifold R
+         to the 2-dimensional differentiable manifold M
         sage: Phi.display()
         Phi: R --> M
            t |--> (x, y) = (cos(t), sin(t))
         sage: w = R.vector_field('w', dest_map=Phi) ; w
-        vector field 'w' along the field R of real numbers with values on the
-         2-dimensional manifold 'M'
+        Vector field w along the 1-dimensional differentiable manifold R with
+         values on the 2-dimensional differentiable manifold M
         sage: w.parent()
-        free module X(R,Phi) of vector fields along the field R of real numbers
-         mapped into the 2-dimensional manifold 'M'
+        Free module X(R,Phi) of vector fields along the 1-dimensional
+         differentiable manifold R mapped into the 2-dimensional differentiable
+         manifold M
         sage: w[:] = (-sin(t), cos(t))
         sage: w.display()
         w = -sin(t) d/dx + cos(t) d/dy
 
-    Value at a given point::
-
-        sage: p = R(0, name='p') ; p
-        point 'p' on field R of real numbers
-        sage: w.at(p)
-        tangent vector w at point 'Phi(p)' on 2-dimensional manifold 'M'
-        sage: w.at(p).display()
-        w = d/dy
-        sage: w.at(p) == v.at(Phi(p))
-        True
-
     """
     def __init__(self, vector_field_module, name=None, latex_name=None):
-        FiniteRankFreeModuleElement.__init__(self, vector_field_module, name=name,
-                                         latex_name=latex_name)
+        FiniteRankFreeModuleElement.__init__(self, vector_field_module,
+                                             name=name, latex_name=latex_name)
         # TensorFieldParal attributes:
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
@@ -472,7 +473,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         EXAMPLES:
 
-        Action of a vector field on a scalar field on a 2-dimensional manifold::
+        Action of a vector field on a scalar field on a 2-dimensional
+        manifold::
 
             sage: M = DiffManifold(2, 'M')
             sage: c_cart.<x,y> = M.chart()
@@ -480,7 +482,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             sage: v = M.vector_field()
             sage: v[:] = (-y, x)
             sage: v(f)
-            scalar field on the 2-dimensional manifold 'M'
+            Scalar field on the 2-dimensional differentiable manifold M
             sage: v(f).expr()
             2*x^2*y - y^3
 

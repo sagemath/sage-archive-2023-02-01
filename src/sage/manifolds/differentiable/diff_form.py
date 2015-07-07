@@ -3,14 +3,14 @@ Differential forms
 
 Let `S` and `M` be two differentiable manifolds over `\RR`.
 Given a positive integer `p`, an open subset `U` of `S`,  an open subset
-`V` of `M` and differentiable mapping `\Phi: U \rightarrow V \subset M`,
+`V` of `M` and differentiable map `\Phi: U \rightarrow V \subset M`,
 a *differential form of degree* `p`, or *p-form*,
 *along* `U` *with values in* `V` is a field along `U` of alternating
 multilinear forms of degree `p` in the tangent spaces to `V`.
-The standard case of a differential form *on* a manifold corresponds to `S=M`,
-`U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-of `\RR`).
+The standard case of a differential form *on* a differentiable manifold
+corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are
+`\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then an open
+interval of `\RR`).
 
 Two classes implement differential forms, depending whether the open
 set `V` is parallelizable:
@@ -70,14 +70,14 @@ class DiffForm(TensorField):
     Differential form with values in an open subset of a differentiable
     manifold.
 
-    Given an positive integer `p`, an open set `U` of a manifold `S`,
-    an open set `V` of a manifold `M`  and a differentiable mapping
-    `\Phi: U \rightarrow V`, an instance of this class is a field along `U`
+    Given an positive integer `p`, an open set `U` of a differentiable manifold
+    `S`, an open set `V` of a differentiable manifold `M`  and a differentiable
+    map `\Phi: U \rightarrow V`, an instance of this class is a field along `U`
     of alternating multilinear forms of degree `p` in the tangent spaces to
-    `V`. The standard case of a differential form *on* a manifold corresponds
-    to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
-    being an immersion and `\Phi` being a curve in `V` (`U` is then an open
-    interval of `\RR`).
+    `V`. The standard case of a differential form *on* a differentiable
+    manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
+    common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
+    (`U` is then an open interval of `\RR`).
 
     If `V` is parallelizable, the class :class:`DiffFormParal` must be
     used instead.
@@ -88,7 +88,7 @@ class DiffForm(TensorField):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the mapping `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the differential
@@ -107,9 +107,9 @@ class DiffForm(TensorField):
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: a = M.diff_form(2, name='a') ; a
-        2-form 'a' on the 2-dimensional manifold 'M'
+        2-form 'a' on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^2(M) of 2-forms on the 2-dimensional manifold 'M'
+        Module /\^2(M) of 2-forms on the 2-dimensional differentiable manifold M
         sage: a.degree()
         2
 
@@ -125,9 +125,9 @@ class DiffForm(TensorField):
     A 1-form on M::
 
         sage: a = M.one_form('a') ; a
-        1-form 'a' on the 2-dimensional manifold 'M'
+        1-form 'a' on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^1(M) of 1-forms on the 2-dimensional manifold 'M'
+        Module /\^1(M) of 1-forms on the 2-dimensional differentiable manifold M
         sage: a.degree()
         1
 
@@ -143,7 +143,7 @@ class DiffForm(TensorField):
     The exterior derivative of the 1-form is a 2-form::
 
         sage: da = a.exterior_der() ; da
-        2-form 'da' on the 2-dimensional manifold 'M'
+        2-form 'da' on the 2-dimensional differentiable manifold M
         sage: da.display(eU)
         da = 2 dx/\dy
         sage: da.display(eV)
@@ -158,7 +158,7 @@ class DiffForm(TensorField):
     Adding two 1-forms results in another 1-form::
 
         sage: s = a + b ; s
-        1-form 'a+b' on the 2-dimensional manifold 'M'
+        1-form 'a+b' on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
         a+b = ((x - 1)*y + 1) dx + (x^2 + x) dy
         sage: s.display(eV)
@@ -167,7 +167,7 @@ class DiffForm(TensorField):
     The exterior product of two 1-forms is a 2-form::
 
         sage: s = a.wedge(b) ; s
-        2-form 'a/\b' on the 2-dimensional manifold 'M'
+        2-form 'a/\b' on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
         a/\b = (-2*x^2*y - x) dx/\dy
         sage: s.display(eV)
@@ -177,7 +177,7 @@ class DiffForm(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a ; s
-        1-form on the 2-dimensional manifold 'M'
+        1-form on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
         (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
         sage: s.display(eV)
@@ -201,7 +201,7 @@ class DiffForm(TensorField):
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: a = M.diff_form(2, name='a') ; a
-            2-form 'a' on the 2-dimensional manifold 'M'
+            2-form 'a' on the 2-dimensional differentiable manifold M
             sage: a[eU,0,1] = x*y^2 + 2*x
             sage: a.add_comp_by_continuation(eV, W, c_uv)
 
@@ -342,15 +342,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     Differential form with values in a parallelizable open subset of a
     differentiable manifold.
 
-    Given an positive integer `p`, an open set `U` of a manifold `S`,
-    a parallelizable open set `V` of a manifold `M`  and a differentiable
-    mapping
-    `\Phi: U \rightarrow V`, an instance of this class is a field along `U`
-    of alternating multilinear forms of degree `p` in the tangent spaces to
-    `V`. The standard case of a differential form *on* a manifold corresponds
-    to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
-    being an immersion and `\Phi` being a curve in `V` (`U` is then an open
-    interval of `\RR`).
+    Given an positive integer `p`, an open set `U` of a differentiable manifold
+    `S`, a parallelizable open set `V` of a differentiable manifold `M`  and a
+    differentiable map `\Phi: U \rightarrow V`, an instance of this class is a
+    field along `U` of alternating multilinear forms of degree `p` in the
+    tangent spaces to `V`.
+    The standard case of a differential form *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    an open interval of `\RR`).
 
     If `V` is not parallelizable, the class :class:`DiffForm` must
     be used instead.
@@ -361,7 +361,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the mapping `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the differential
@@ -374,9 +374,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: M = DiffManifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
         sage: a = M.diff_form(2, 'a') ; a
-        2-form 'a' on the 4-dimensional manifold 'M'
+        2-form 'a' on the 4-dimensional differentiable manifold M
         sage: a.parent()
-        Free module /\^2(M) of 2-forms on the 4-dimensional manifold 'M'
+        Free module /\^2(M) of 2-forms on the 4-dimensional differentiable manifold M
 
     A differential form is a tensor field of purely covariant type::
 
@@ -420,7 +420,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: b = M.diff_form(2)
         sage: b[0,1], b[0,2], b[0,3] = (1,2,3)
         sage: s = a + b ; s
-        2-form on the 4-dimensional manifold 'M'
+        2-form on the 4-dimensional differentiable manifold M
         sage: a[:], b[:], s[:]
         (
         [ 0  2  0  0]  [ 0  1  2  3]  [ 0  3  2  3]
@@ -429,7 +429,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         [ 0  0  0  0], [-3  0  0  0], [-3  0  0  0]
         )
         sage: s = a - b ; s
-        2-form on the 4-dimensional manifold 'M'
+        2-form on the 4-dimensional differentiable manifold M
         sage: s[:]
         [ 0  1 -2 -3]
         [-1  0  3  0]
@@ -615,9 +615,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.diff_form(2, name='a') ; a
-            2-form 'a' on the 2-dimensional manifold 'M'
+            2-form 'a' on the 2-dimensional differentiable manifold M
             sage: a.parent()
-            Free module /\^2(M) of 2-forms on the 2-dimensional manifold 'M'
+            Free module /\^2(M) of 2-forms on the 2-dimensional differentiable manifold M
             sage: a[0,1] = x*y
             sage: TestSuite(a).run()
 
@@ -692,7 +692,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: a = M.one_form('A')
             sage: a[:] = (t*x*y*z, z*y**2, x*z**2, x**2 + y**2)
             sage: da = a.exterior_der() ; da
-            2-form 'dA' on the 4-dimensional manifold 'M'
+            2-form 'dA' on the 4-dimensional differentiable manifold M
             sage: da.display()
             dA = -t*y*z dt/\dx - t*x*z dt/\dy - t*x*y dt/\dz + (-2*y*z + z^2) dx/\dy + (-y^2 + 2*x) dx/\dz + (-2*x*z + 2*y) dy/\dz
             sage: latex(da)
@@ -701,7 +701,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         The exterior derivative is nilpotent::
 
             sage: dda = da.exterior_der() ; dda
-            3-form 'ddA' on the 4-dimensional manifold 'M'
+            3-form 'ddA' on the 4-dimensional differentiable manifold M
             sage: dda.display()
             ddA = 0
             sage: dda == 0

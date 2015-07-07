@@ -19,7 +19,8 @@ AUTHORS:
 
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
-from sage.manifolds.differentiable.tensorfield import TensorField, TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField, \
+                                                      TensorFieldParal
 
 #******************************************************************************
 
@@ -28,10 +29,10 @@ class AutomorphismField(TensorField):
     Field of tangent-space automorphisms with values on a open
     subset of a differentiable manifold.
 
-    Given an open subset `U` of a manifold `S` and a differentiable mapping
-    `\Phi: U \rightarrow V`, where `V` is an open subset of a manifold `M`,
-    an instance of this class is a field of tangent-space automorphisms
-    along `U` with values in `V`.
+    Given an open subset `U` of a differentiable manifold `S` and a
+    differentiable map `\Phi: U \rightarrow V`, where `V` is an open subset of
+    a differentiable manifold `M`, an instance of this class is a field of
+    tangent-space automorphisms along `U` with values in `V`.
     The standard case of a field of tangent-space automorphisms *on* a
     manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
     common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
@@ -62,13 +63,15 @@ class AutomorphismField(TensorField):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+        ....:                              restrictions1= x>0, restrictions2= u+v>0)
         sage: inv = transf.inverse()
         sage: a = M.automorphism_field('a') ; a
-        field of tangent-space automorphisms 'a' on the 2-dimensional manifold 'M'
+        Field of tangent-space automorphisms a on the 2-dimensional
+         differentiable manifold M
         sage: a.parent()
-        General linear group of the module X(M) of vector fields on the
-         2-dimensional manifold 'M'
+        General linear group of the Module X(M) of vector fields on the
+         2-dimensional differentiable manifold M
 
     We first define the components of `a` w.r.t the coordinate frame on `U`::
 
@@ -87,16 +90,19 @@ class AutomorphismField(TensorField):
         sage: a.display(eU)
         a = d/dx*dx + x d/dx*dy + 2 d/dy*dy
         sage: a.display(eV)
-        a = (1/4*u + 1/4*v + 3/2) d/du*du + (-1/4*u - 1/4*v - 1/2) d/du*dv + (1/4*u + 1/4*v - 1/2) d/dv*du + (-1/4*u - 1/4*v + 3/2) d/dv*dv
+        a = (1/4*u + 1/4*v + 3/2) d/du*du + (-1/4*u - 1/4*v - 1/2) d/du*dv
+         + (1/4*u + 1/4*v - 1/2) d/dv*du + (-1/4*u - 1/4*v + 3/2) d/dv*dv
 
     In particular, we may ask for its inverse on the whole manifold `M`::
 
         sage: ia = a.inverse() ; ia
-        field of tangent-space automorphisms 'a^(-1)' on the 2-dimensional manifold 'M'
+        Field of tangent-space automorphisms a^(-1) on the 2-dimensional
+         differentiable manifold M
         sage: ia.display(eU)
         a^(-1) = d/dx*dx - 1/2*x d/dx*dy + 1/2 d/dy*dy
         sage: ia.display(eV)
-        a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv + (-1/8*u - 1/8*v + 1/4) d/dv*du + (1/8*u + 1/8*v + 3/4) d/dv*dv
+        a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv
+         + (-1/8*u - 1/8*v + 1/4) d/dv*du + (1/8*u + 1/8*v + 3/4) d/dv*dv
 
     """
     def __init__(self, vector_field_module, name=None, latex_name=None,
@@ -195,7 +201,8 @@ class AutomorphismField(TensorField):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:    intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: a = M.automorphism_field('a')
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -203,7 +210,8 @@ class AutomorphismField(TensorField):
             sage: W = U.intersection(V)
             sage: a.add_comp_by_continuation(eV, W, c_uv)
             sage: ia = a.inverse() ; ia
-            field of tangent-space automorphisms 'a^(-1)' on the 2-dimensional manifold 'M'
+            Field of tangent-space automorphisms a^(-1) on the 2-dimensional
+             differentiable manifold M
             sage: a[eU,:], ia[eU,:]
             (
             [1 x]  [     1 -1/2*x]
@@ -326,7 +334,8 @@ class AutomorphismField(TensorField):
         INPUT:
 
         - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
           ``self._codomain``
@@ -357,22 +366,25 @@ class AutomorphismField(TensorField):
             sage: stereoS_W = W.atlas()[1]  # restriction of stereographic coord. from South pole to W
             sage: eN_W = stereoN_W.frame() ; eS_W = stereoS_W.frame()
             sage: a = M.automorphism_field(name='a') ; a
-            field of tangent-space automorphisms 'a' on the 2-dimensional manifold 'S^2'
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold S^2
             sage: a[eN,:] = [[1, atan(x^2+y^2)], [0,3]]
             sage: a.add_comp_by_continuation(eS, W, chart=stereoS)
             sage: a.restrict(U)
-            field of tangent-space automorphisms 'a' on the open subset 'U' of
-             the 2-dimensional manifold 'S^2'
+            Field of tangent-space automorphisms a on the Open subset U of the
+             2-dimensional differentiable manifold S^2
             sage: a.restrict(U)[eN,:]
             [                1 arctan(x^2 + y^2)]
             [                0                 3]
             sage: a.restrict(V)
-            field of tangent-space automorphisms 'a' on the open subset 'V' of the 2-dimensional manifold 'S^2'
+            Field of tangent-space automorphisms a on the Open subset V of the
+             2-dimensional differentiable manifold S^2
             sage: a.restrict(V)[eS,:]
             [   (u^4 + 10*u^2*v^2 + v^4 + 2*(u^3*v - u*v^3)*arctan(1/(u^2 + v^2)))/(u^4 + 2*u^2*v^2 + v^4)  -(4*u^3*v - 4*u*v^3 + (u^4 - 2*u^2*v^2 + v^4)*arctan(1/(u^2 + v^2)))/(u^4 + 2*u^2*v^2 + v^4)]
             [                    4*(u^2*v^2*arctan(1/(u^2 + v^2)) - u^3*v + u*v^3)/(u^4 + 2*u^2*v^2 + v^4) (3*u^4 - 2*u^2*v^2 + 3*v^4 - 2*(u^3*v - u*v^3)*arctan(1/(u^2 + v^2)))/(u^4 + 2*u^2*v^2 + v^4)]
             sage: a.restrict(W)
-            field of tangent-space automorphisms 'a' on the open subset 'W' of the 2-dimensional manifold 'S^2'
+            Field of tangent-space automorphisms a on the Open subset W of the
+             2-dimensional differentiable manifold S^2
             sage: a.restrict(W)[eN_W,:]
             [                1 arctan(x^2 + y^2)]
             [                0                 3]
@@ -380,14 +392,17 @@ class AutomorphismField(TensorField):
         Restrictions of the field of tangent-space identity maps::
 
             sage: id = M.tangent_identity_field() ; id
-            field of tangent-space identity maps on the 2-dimensional manifold 'S^2'
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold S^2
             sage: id.restrict(U)
-            field of tangent-space identity maps on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Field of tangent-space identity maps on the Open subset U of the
+             2-dimensional differentiable manifold S^2
             sage: id.restrict(U)[eN,:]
             [1 0]
             [0 1]
             sage: id.restrict(V)
-            field of tangent-space identity maps on the open subset 'V' of the 2-dimensional manifold 'S^2'
+            Field of tangent-space identity maps on the Open subset V of the
+             2-dimensional differentiable manifold S^2
             sage: id.restrict(V)[eS,:]
             [1 0]
             [0 1]
@@ -425,10 +440,10 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     Field of tangent-space automorphisms with values on a parallelizable open
     subset of a differentiable manifold.
 
-    Given an open subset `U` of a manifold `S` and a differentiable mapping
-    `\Phi: U \rightarrow V`, where `V` is a parallelizable open subset of a
-    manifold `M`, an instance of this class is a field of tangent-space
-    automorphisms along `U` with values in `V`.
+    Given an open subset `U` of a differentiable manifold `S` and a
+    differentiable map `\Phi: U \rightarrow V`, where `V` is a parallelizable
+    open subset of a differentiable manifold `M`, an instance of this class is
+    a field of tangent-space automorphisms along `U` with values in `V`.
     The standard case of a field of tangent-space automorphisms *on* a
     manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
     common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
@@ -457,17 +472,18 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         sage: M = DiffManifold(2,'R^2')
         sage: c_xy.<x,y> = M.chart()
         sage: rot = M.automorphism_field('R') ; rot
-        field of tangent-space automorphisms 'R' on the 2-dimensional manifold
-         'R^2'
+        Field of tangent-space automorphisms R on the 2-dimensional
+         differentiable manifold R^2
         sage: rot[:] = [[sqrt(3)/2, -1/2], [1/2, sqrt(3)/2]]
         sage: rot.parent()
-        General linear group of the free module X(R^2) of vector fields on the
-         2-dimensional manifold 'R^2'
+        General linear group of the Free module X(R^2) of vector fields on the
+         2-dimensional differentiable manifold R^2
 
     The inverse automorphism is obtained via the method :meth:`inverse`::
 
         sage: inv = rot.inverse() ; inv
-        field of tangent-space automorphisms 'R^(-1)' on the 2-dimensional manifold 'R^2'
+        Field of tangent-space automorphisms R^(-1) on the 2-dimensional
+         differentiable manifold R^2
         sage: latex(inv)
         R^{-1}
         sage: inv[:]
@@ -492,11 +508,12 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a') ; a
-            field of tangent-space automorphisms 'a' on the 2-dimensional manifold 'M'
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
             sage: a[:] = [[1+x^2, x*y], [0, 1+y^2]]
             sage: a.parent()
-            General linear group of the free module X(M) of vector fields on
-             the 2-dimensional manifold 'M'
+            General linear group of the Free module X(M) of vector fields on
+             the 2-dimensional differentiable manifold M
             sage: a.parent() is M.automorphism_field_group()
             True
             sage: TestSuite(a).run()
@@ -628,7 +645,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         INPUT:
 
         - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ U \rightarrow V`, where `V` is a subset of
           ``self._codomain``
@@ -650,10 +668,12 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: D = M.open_subset('D') # the unit open disc
             sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)
             sage: a = M.automorphism_field(name='a') ; a
-            field of tangent-space automorphisms 'a' on the 2-dimensional manifold 'R^2'
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold R^2
             sage: a[:] = [[1, x*y], [0, 3]]
             sage: a.restrict(D)
-            field of tangent-space automorphisms 'a' on the open subset 'D' of the 2-dimensional manifold 'R^2'
+            Field of tangent-space automorphisms a on the Open subset D of the
+             2-dimensional differentiable manifold R^2
             sage: a.restrict(D)[:]
             [  1 x*y]
             [  0   3]
@@ -661,9 +681,11 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         Restriction to the disk of the field of tangent-space identity maps::
 
             sage: id = M.tangent_identity_field() ; id
-            field of tangent-space identity maps on the 2-dimensional manifold 'R^2'
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold R^2
             sage: id.restrict(D)
-            field of tangent-space identity maps on the open subset 'D' of the 2-dimensional manifold 'R^2'
+            Field of tangent-space identity maps on the Open subset D of the
+             2-dimensional differentiable manifold R^2
             sage: id.restrict(D)[:]
             [1 0]
             [0 1]

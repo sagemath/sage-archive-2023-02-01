@@ -1,11 +1,11 @@
 r"""
 Vector field modules
 
-The set of vector fields along an open subset `U` of some manifold `S`
-with values in a open subset `V` of a manifold `M` (possibly `S=M` and `U=V`)
-is a module over the algebra `C^k(U)` of differentiable scalar fields
-on `U`. It is a free module iff `V` is parallelizable.
-Accordingly, two classes are devoted to vector field modules:
+The set of vector fields along an open subset `U` of some differentiable
+manifold `S` with values in a open subset `V` of a differentiable manifold `M`
+(possibly `S=M` and `U=V`) is a module over the algebra `C^k(U)` of
+differentiable scalar fields on `U`. It is a free module iff `V` is
+parallelizable. Accordingly, two classes are devoted to vector field modules:
 
 - :class:`VectorFieldModule` for vector fields with values in a
   generic (in practice, not parallelizable) open set `V`
@@ -45,13 +45,14 @@ from sage.manifolds.differentiable.vectorfield import VectorField, \
 
 class VectorFieldModule(UniqueRepresentation, Parent):
     r"""
-    Module of vector fields along an open subset `U` of some manifold `S`
-    with values in a open subset `V` of a manifold `M`.
+    Module of vector fields along an open subset `U` of some differentiable
+    manifold `S` with values in a open subset `V` of a differentiable
+    manifold `M`.
 
     If `V` is parallelizable, the class :class:`VectorFieldFreeModule` should
     be used instead.
 
-    Given a differentiable mapping
+    Given a differentiable map
 
     .. MATH::
 
@@ -75,10 +76,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
-    The standard case of vector fields *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    The standard case of vector fields *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    an open interval of `\RR`).
 
     This is a Sage *parent* class, the corresponding *element* class being
     :class:`~sage.manifolds.differentiable.vectorfield.VectorField`.
@@ -86,7 +87,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the vector fields are defined
-    - ``dest_map`` -- (default: ``None``) destination map `\Phi:\ U \rightarrow V`
+    - ``dest_map`` -- (default: ``None``) destination map
+      `\Phi:\ U \rightarrow V`
       (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
       if none is provided, the identity is assumed (case of vector fields *on*
       `U`)
@@ -101,9 +103,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                                restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: XM = M.vector_field_module() ; XM
         Module X(M) of vector fields on the 2-dimensional differentiable
@@ -396,10 +398,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - ``tensor_type`` -- pair (k,l) with k being the contravariant rank
           and l the covariant rank
         - ``name`` -- (string; default: ``None``) name given to the tensor
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          tensor; if none is provided, the LaTeX symbol is set to ``name``
-        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
-          the tensor arguments: each symmetry is described by a tuple
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the tensor; if none is provided, the LaTeX symbol is set to ``name``
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
           containing the positions of the involved arguments, with the
           convention position=0 for the first argument. For instance:
 
@@ -407,11 +409,12 @@ class VectorFieldModule(UniqueRepresentation, Parent):
           * sym=[(0,2),(1,3,4)] for a symmetry between the 1st and 3rd
             arguments and a symmetry between the 2nd, 4th and 5th arguments.
 
-        - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
-          among the arguments, with the same convention as for ``sym``.
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+          antisymmetries among the arguments, with the same convention as for
+          ``sym``.
         - ``specific_type`` -- (default: ``None``) specific subclass of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for the
-          output
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
+          the output
 
         OUTPUT:
 
@@ -460,11 +463,12 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``degree`` -- the degree of the alternating form (i.e. its tensor rank)
+        - ``degree`` -- the degree of the alternating form (i.e. its tensor
+          rank)
         - ``name`` -- (string; default: ``None``) name given to the alternating
           form
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          alternating form; if none is provided, the LaTeX symbol is set to
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the alternating form; if none is provided, the LaTeX symbol is set to
           ``name``
 
         OUTPUT:
@@ -492,8 +496,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         - ``name`` -- (string; default: ``None``) name given to the linear
           form
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          linear form; if none is provided, the LaTeX symbol is set to
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the linear form; if none is provided, the LaTeX symbol is set to
           ``name``
 
         OUTPUT:
@@ -520,9 +524,10 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``name`` -- (string; default: ``None``) name given to the automorphism
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          automorphism; if none is provided, the LaTeX symbol is set to
+        - ``name`` -- (string; default: ``None``) name given to the
+          automorphism
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the automorphism; if none is provided, the LaTeX symbol is set to
           ``name``
 
         OUTPUT:
@@ -549,8 +554,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         INPUT:
 
         - ``name`` -- (string; default: 'Id') name given to the identity map
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          identity map;  if none is provided, the LaTeX symbol is set to
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the identity map;  if none is provided, the LaTeX symbol is set to
           '\mathrm{Id}' if ``name`` is 'Id' and to ``name`` otherwise
 
         OUTPUT:
@@ -572,10 +577,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
 class VectorFieldFreeModule(FiniteRankFreeModule):
     r"""
-    Free module of vector fields along an open subset `U` of some manifold `S`
-    with values in a parallelizable open subset `V` of a manifold `M`.
+    Free module of vector fields along an open subset `U` of some
+    differentiable manifold `S` with values in a parallelizable open subset `V`
+    of a differentiable manifold `M`.
 
-    Given a differentiable mapping
+    Given a differentiable map
 
     .. MATH::
 
@@ -601,10 +607,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     Its rank is the dimension of `M`.
 
-    The standard case of vector fields *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    The standard case of vector fields *on* a differentiable manifold
+    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `V`
+    (`U` is then an open interval of `\RR`).
 
     This is a Sage *parent* class, the corresponding *element* class being
     :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`.
@@ -612,7 +618,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the vector fields are defined
-    - ``dest_map`` -- (default: ``None``) destination map `\Phi:\ U \rightarrow V`
+    - ``dest_map`` -- (default: ``None``) destination map
+      `\Phi:\ U \rightarrow V`
       (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
       if none is provided, the identity is assumed (case of vector fields *on*
       `U`)
@@ -704,7 +711,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: V = M.open_subset('V') # the complement of the point t=pi
         sage: M.declare_union(U,V)   # S^1 is the union of U and V
         sage: c_u.<u> = V.chart('u:(0,2*pi)') # the angle t-pi
-        sage: t_to_u = c_t.transition_map(c_u, (t-pi,), intersection_name='W', restrictions1 = t!=pi, restrictions2 = u!=pi)
+        sage: t_to_u = c_t.transition_map(c_u, (t-pi,), intersection_name='W',
+        ....:                             restrictions1 = t!=pi, restrictions2 = u!=pi)
         sage: u_to_t = t_to_u.inverse()
         sage: W = U.intersection(V)
 
@@ -722,8 +730,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     `\partial/\partial t` and `\partial/\partial u` are 1::
 
         sage: e = M.vector_frame('e')
-        sage: U.set_change_of_frame(e.restrict(U), c_t.frame(), U.tangent_identity_field())
-        sage: V.set_change_of_frame(e.restrict(V), c_u.frame(), V.tangent_identity_field())
+        sage: U.set_change_of_frame(e.restrict(U), c_t.frame(),
+        ....:                       U.tangent_identity_field())
+        sage: V.set_change_of_frame(e.restrict(V), c_u.frame(),
+        ....:                       V.tangent_identity_field())
         sage: e[0].display(c_t.frame())
         e_0 = d/dt
         sage: e[0].display(c_u.frame())
@@ -896,8 +906,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``k`` -- (non-negative integer) the contravariant rank, the tensor type
-          being (k,l)
+        - ``k`` -- (non-negative integer) the contravariant rank, the tensor
+          type being (k,l)
         - ``l`` -- (non-negative integer) the covariant rank, the tensor type
           being (k,l)
 
@@ -985,9 +995,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``symbol`` -- (string; default: ``None``) a letter (of a few letters) to
-          denote a generic element of the basis; if ``None`` and ``from_frame=None``
-          the module's default basis is returned.
+        - ``symbol`` -- (string; default: ``None``) a letter (of a few letters)
+          to denote a generic element of the basis; if ``None`` and
+          ``from_frame=None`` the module's default basis is returned.
         - ``latex_symbol`` -- (string; default: ``None``) symbol to denote a
           generic element of the basis; if ``None``, the value of ``symbol`` is
           used.
@@ -1030,10 +1040,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         - ``tensor_type`` -- pair (k,l) with k being the contravariant rank
           and l the covariant rank
         - ``name`` -- (string; default: ``None``) name given to the tensor
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          tensor; if none is provided, the LaTeX symbol is set to ``name``
-        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries among
-          the tensor arguments: each symmetry is described by a tuple
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the tensor; if none is provided, the LaTeX symbol is set to ``name``
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
           containing the positions of the involved arguments, with the
           convention position=0 for the first argument. For instance:
 
@@ -1041,11 +1051,12 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
           * sym=[(0,2),(1,3,4)] for a symmetry between the 1st and 3rd
             arguments and a symmetry between the 2nd, 4th and 5th arguments.
 
-        - ``antisym`` -- (default: ``None``) antisymmetry or list of antisymmetries
-          among the arguments, with the same convention as for ``sym``.
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+          antisymmetries among the arguments, with the same convention as for
+          ``sym``.
         - ``specific_type`` -- (default: ``None``) specific subclass of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal` for the
-          output
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          for the output
 
         OUTPUT:
 
@@ -1099,13 +1110,13 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank and l
-          the covariant rank
+        - ``tensor_type`` -- pair (k,l) with k being the contravariant rank and
+          l the covariant rank
         - ``comp`` -- instance of :class:`~sage.tensor.modules.comp.Components`
           representing the tensor components in a given basis
         - ``name`` -- (string; default: ``None``) name given to the tensor
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the tensor;
-          if none is provided, the LaTeX symbol is set to ``name``
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the tensor; if none is provided, the LaTeX symbol is set to ``name``
 
         OUTPUT:
 
@@ -1163,9 +1174,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         INPUT:
 
-        - ``name`` -- (string; default: ``None``) name given to the automorphism
-        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote the
-          automorphism; if none is provided, the LaTeX symbol is set to
+        - ``name`` -- (string; default: ``None``) name given to the
+          automorphism
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the automorphism; if none is provided, the LaTeX symbol is set to
           ``name``
 
         OUTPUT:

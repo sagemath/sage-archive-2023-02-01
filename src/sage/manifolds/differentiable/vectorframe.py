@@ -140,12 +140,12 @@ EXAMPLES:
     The change-of-frame matrices::
 
         sage: M.change_of_frame(c_spher.frame(), e)
-        field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
+        Field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
         sage: M.change_of_frame(c_spher.frame(), e)[:]
         [        1         0]
         [        0 1/sin(th)]
         sage: M.change_of_frame(e, c_spher.frame())
-        field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
+        Field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
         sage: M.change_of_frame(e, c_spher.frame())[:]
         [      1       0]
         [      0 sin(th)]

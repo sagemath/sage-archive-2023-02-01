@@ -131,6 +131,9 @@ REFERENCE:
   tight bounds for the diameter of massive graphs. *ACM Journal of Experimental
   Algorithms* 13 (2008) http://dx.doi.org/10.1145/1412228.1455266
 
+.. [FK13] F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
+  of large graphs. *Algorithms* 6:100-118 (2013)
+  http://dx.doi.org/10.3390/a6010100
 
 Functions
 ---------
@@ -712,7 +715,7 @@ def distances_and_predecessors_all_pairs(G):
 
 cdef int * c_eccentricity(G) except NULL:
     r"""
-    Returns the vector of eccentricities in G.
+    Return the vector of eccentricities in G.
 
     The array returned is of length n, and its ith component is the eccentricity
     of the ith vertex in ``G.vertices()``.
@@ -726,9 +729,75 @@ cdef int * c_eccentricity(G) except NULL:
 
     return ecc
 
-def eccentricity(G):
+cdef int * c_eccentricity_bounding(G) except NULL:
     r"""
-    Returns the vector of eccentricities in G.
+    Return the vector of eccentricities in G using the algorithm of [FK13]_.
+
+    The array returned is of length n, and its ith component is the eccentricity
+    of the ith vertex in ``G.vertices()``.
+
+    The algorithm proposed in [FK13]_ is based on the observation that for all
+    nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
+    ecc[v] + d(v,w)`.Also the algorithms iteratively improves upper and lower
+    bounds on the eccentricity of each node until no further improvements can be
+    done. This algorithm offers good running time reduction on scale-free graphs.
+    """
+    # Copying the whole graph to obtain the list of neighbors quicker than by
+    # calling out_neighbors.  This data structure is well documented in the
+    # module sage.graphs.base.static_sparse_graph
+    cdef unsigned int n = G.order()
+    cdef short_digraph sd
+    init_short_digraph(sd, G)
+
+    # allocated some data structures
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef uint32_t * distances = <uint32_t *>sage_malloc(2 * n * sizeof(uint32_t))
+    if distances==NULL:
+        bitset_free(seen)
+        raise MemoryError()
+    cdef uint32_t * waiting_list = distances + n
+
+    cdef int * ecc = <int *>sage_malloc(3 * n * sizeof(int))
+    if ecc==NULL:
+        bitset_free(seen)
+        sage_free(distances)
+        raise MemoryError()
+    cdef int * LB = ecc + n
+    cdef int * UB = ecc + 2*n
+
+    memset(ecc, 0, 2*n*sizeof(int))
+    for i in range(n):
+        UB[i] = INT32_MAX
+
+    cdef int v, w
+    cdef list W = [v for _,v in sorted((sd.neighbors[v+1]-sd.neighbors[v],v) for v in range(n))]
+    cdef uint32_t tmp
+
+    sig_on()
+    while W:
+        v = W.pop()
+        # Compute the exact eccentricity of v
+        tmp = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
+        ecc[v] = INT32_MAX if tmp>n else tmp
+
+        # Improve the bounds on the eccentricity of other vertices
+        for w in W:
+            LB[w] = max(LB[w], max(ecc[v] - distances[w], distances[w]))
+            UB[w] = min(UB[w], ecc[v] + distances[w])
+            if LB[w]==UB[w]:
+                ecc[w] = LB[w]
+                W.remove(w)
+    sig_off()
+
+    sage_free(distances)
+    bitset_free(seen)
+
+    return ecc
+
+def eccentricity(G, method="bounds"):
+    r"""
+    Return the vector of eccentricities in G.
 
     The array returned is of length n, and its ith component is the eccentricity
     of the ith vertex in ``G.vertices()``.
@@ -739,6 +808,24 @@ def eccentricity(G):
         sage: g = graphs.PetersenGraph()
         sage: eccentricity(g)
         [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+    TEST:
+
+    All methods are valid::
+
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: g = graphs.RandomGNP(50,.1)
+        sage: eccentricity(g, method='standard')==eccentricity(g, method='bounds')
+        True
+
+    Asking for unknown method::
+
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: g = graphs.PathGraph(2)
+        sage: eccentricity(g, method='Nice Jazz Festival')
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown method 'Nice Jazz Festival'. Please contribute.
     """
     from sage.rings.infinity import Infinity
     cdef int n = G.order()
@@ -746,7 +833,13 @@ def eccentricity(G):
     if n == 0:
         return []
 
-    cdef int * ecc = c_eccentricity(G)
+    cdef int * ecc
+    if method=="bounds":
+        ecc = c_eccentricity_bounding(G)
+    elif method=="standard":
+        ecc = c_eccentricity(G)
+    else:
+        raise ValueError("Unknown method '{}'. Please contribute.".format(method))
 
     cdef list l_ecc = []
     cdef int i

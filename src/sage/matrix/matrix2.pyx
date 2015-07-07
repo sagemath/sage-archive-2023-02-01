@@ -6773,6 +6773,9 @@ cdef class Matrix(matrix1.Matrix):
         return extended
 
     def weak_popov_form(self, ascend=True):
+        """
+        This function is deprecated. "ascend" will produce an output similar to before (A list [W,N] only missing d), but, as before, will not result in sorting.
+        """
         from sage.misc.superseded import deprecation
         deprecation(16888, 'You can just call row_reduced_form() instead')
         return self.row_reduced_form(ascend)

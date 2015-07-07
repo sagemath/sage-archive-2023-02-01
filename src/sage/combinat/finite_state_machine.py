@@ -1562,7 +1562,8 @@ class FSMState(SageObject):
         new = FSMState(self.label(), self.word_out,
                        self.is_initial, self.is_final,
                        color=self.color,
-                       final_word_out=self.final_word_out)
+                       final_word_out=self.final_word_out,
+                       initial_probability=self.initial_probability)
         if hasattr(self, 'hook'):
             new.hook = self.hook
         return new
@@ -1600,6 +1601,7 @@ class FSMState(SageObject):
             new.hook = deepcopy(self.hook, memo)
         new.color = deepcopy(self.color, memo)
         new.final_word_out = deepcopy(self.final_word_out, memo)
+        new.initial_probability = deepcopy(self.initial_probability, memo)
         return new
 
 
@@ -1620,7 +1622,8 @@ class FSMState(SageObject):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState((1, 3), color=[1, 2],
-            ....:              is_final=True, final_word_out=3)
+            ....:              is_final=True, final_word_out=3,
+            ....:              initial_probability=1/3)
             sage: B = deepcopy(A)
             sage: B
             (1, 3)
@@ -1639,6 +1642,10 @@ class FSMState(SageObject):
             sage: B.final_word_out == A.final_word_out
             True
             sage: B.final_word_out is A.final_word_out
+            False
+            sage: B.initial_probability == A.initial_probability
+            True
+            sage: B.initial_probability is A.initial_probability
             False
         """
         return deepcopy(self, memo)
@@ -1820,7 +1827,8 @@ class FSMState(SageObject):
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
                 left.word_out == right.word_out and
-                color)
+                color and
+                left.initial_probability == right.initial_probability)
 
 
     def __nonzero__(self):

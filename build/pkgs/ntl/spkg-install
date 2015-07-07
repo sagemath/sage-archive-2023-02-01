@@ -62,7 +62,7 @@ ntl_configure()
     # Run the configure script, setting CC, CXX, CFLAGS etc as needed.
     # This ensures that they get written by DoConfig into 'makefile'.
     CFLAGS="-O2 -g $CFLAGS"
-    CXXFLAGS="-std=c++11 -O2 -g $CXXFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
 
     if [ "$SAGE64" = "yes" ]; then
         if [ -z "$CFLAG64" ]; then

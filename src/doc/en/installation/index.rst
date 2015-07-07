@@ -12,7 +12,7 @@ Sage should be simpler than you're used to with most software, since much
 testing is done on a wide range of computers.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    quick-guide
    binary

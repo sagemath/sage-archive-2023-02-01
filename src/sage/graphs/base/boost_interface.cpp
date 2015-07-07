@@ -4,16 +4,20 @@
 #include <boost/graph/edge_connectivity.hpp>
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/clustering_coefficient.hpp>
+#include <boost/graph/dominator_tree.hpp>
 
 #include <iostream>
 
 using namespace std;
 using namespace boost;
 
+typedef unsigned int v_index;
+typedef unsigned long e_index;
+
 // This struct is the output of the edge connectivity Boost algorithm.
 typedef struct {
-    int ec; // The edge connectivity
-    vector<int> edges; // The edges in a minimum cut, stored as a list of
+    v_index ec; // The edge connectivity
+    vector<v_index> edges; // The edges in a minimum cut, stored as a list of
                        // nodes. For instance, if the minimum cut is
                        // {(1,2),(3,4)}, the output vector will be (1,2,3,4).
 } result_ec;
@@ -46,7 +50,7 @@ class BoostGraph
 */
 {
     typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
-    int, no_property, no_property, EdgeListS> adjacency_list;
+    v_index, no_property, no_property, EdgeListS> adjacency_list;
     typedef typename boost::graph_traits<adjacency_list>::vertex_descriptor vertex_descriptor;
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
@@ -65,11 +69,11 @@ public:
         delete vertices;
     }
 
-    int num_verts() {
+    v_index num_verts() {
         return num_vertices(*graph);
     }
 
-    int num_edges() {
+    e_index num_edges() {
         return boost::num_edges(*graph);
     }
 
@@ -77,7 +81,7 @@ public:
         (*vertices).push_back(boost::add_vertex((*vertices).size(), *graph));
     }
 
-    void add_edge(int u, int v) {
+    void add_edge(v_index u, v_index v) {
         boost::add_edge((*vertices)[u], (*vertices)[v], *graph);
     }
 
@@ -87,7 +91,7 @@ public:
         back_insert_iterator<edge_container> inserter(disconnecting_set);
         to_return.ec = boost::edge_connectivity(*graph, inserter);
 
-        for (unsigned i = 0; i < disconnecting_set.size(); i++) {
+        for (v_index i = 0; i < disconnecting_set.size(); i++) {
             edge_descriptor edge = disconnecting_set[i];
             to_return.edges.push_back((*graph)[boost::source(edge, *graph)]);
             to_return.edges.push_back((*graph)[boost::target(edge, *graph)]);
@@ -95,7 +99,7 @@ public:
         return to_return;
     }
 
-    double clustering_coeff(int v) {
+    double clustering_coeff(v_index v) {
         return clustering_coefficient(*graph, (*vertices)[v]);
     }
 
@@ -109,11 +113,39 @@ public:
         ClusteringMap cm(coefs, *graph);
 
         to_return.average_clustering_coefficient = all_clustering_coefficients(*graph, cm);
-        for (unsigned i = 0; i < num_verts(); i++) {
+        for (v_index i = 0; i < num_verts(); i++) {
             to_return.clust_of_v.push_back(cm[(*graph)[i]]);
         }
 
         return to_return;
+    }
+
+    vector<v_index> dominator_tree(v_index v) {
+
+        vector<v_index> fathers;
+        typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type IndexMap;
+        typedef typename boost::iterator_property_map<typename std::vector<vertex_descriptor>::iterator, IndexMap> PredMap;
+
+        IndexMap indexMap(get(boost::vertex_index, (*graph)));
+
+        std::vector<vertex_descriptor> domTreePredVector = std::vector<vertex_descriptor>(
+                    num_vertices(*graph),
+                    boost::graph_traits<adjacency_list>::null_vertex());
+
+        PredMap domTreePredMap = make_iterator_property_map(
+                    domTreePredVector.begin(), indexMap);
+
+
+        lengauer_tarjan_dominator_tree(*graph, vertex(v, *graph), domTreePredMap);
+        for (v_index i = 0; i < num_verts(); i++) {
+            vertex_descriptor v = domTreePredMap[(*vertices)[i]];
+            if (v == boost::graph_traits<adjacency_list>::null_vertex()) {
+                fathers.push_back(-1);
+            } else {
+                fathers.push_back((*graph)[v]);
+            }
+        }
+        return fathers;
     }
 };
 

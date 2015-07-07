@@ -14,6 +14,7 @@ done
 ./bootstrap --prefix=$SAGE_LOCAL \
     --system-bzip2 \
     --system-zlib \
+    --system-curl \
     -- \
     -DCMAKE_PREFIX_PATH=$SAGE_LOCAL/lib \
     -DBZIP2_INCLUDE_DIR=$SAGE_LOCAL/include \

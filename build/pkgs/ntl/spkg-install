@@ -62,7 +62,7 @@ ntl_configure()
     # Run the configure script, setting CC, CXX, CFLAGS etc as needed.
     # This ensures that they get written by DoConfig into 'makefile'.
     CFLAGS="-O2 -g $CFLAGS"
-    CXXFLAGS="-O2 -g $CXXFLAGS"
+    CXXFLAGS="-std=c++11 -O2 -g $CXXFLAGS"
 
     if [ "$SAGE64" = "yes" ]; then
         if [ -z "$CFLAG64" ]; then
@@ -86,7 +86,8 @@ ntl_configure()
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
         NTL_GMP_LIP=on NTL_GF2X_LIB=on \
-        LIBTOOL="$CUR/src/libtool/libtool"
+        LIBTOOL="$CUR/src/libtool/libtool"\
+        NTL_LEGACY_SP_MULMOD=on
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring NTL."

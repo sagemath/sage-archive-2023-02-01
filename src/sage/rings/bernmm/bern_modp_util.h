@@ -39,7 +39,8 @@ namespace bernmm {
 
    (Implementation is adapted from ZZ.c in NTL 5.4.1.)
 */
-long PowerMod(long a, long ee, long n, NTL::mulmod_t ninv);
+//long PowerMod(long a, long ee, long n, NTL::mulmod_t ninv);
+long PowerMod(long a, long ee, long n, double ninv);
 
 
 /*
@@ -123,13 +124,15 @@ long next_prime(long p);
 /*
    Computes order of x mod p, given the factorisation F of p-1.
 */
-long order(long x, long p, NTL::mulmod_t pinv, const Factorisation& F);
+//long order(long x, long p, NTL::mulmod_t pinv, const Factorisation& F);
+long order(long x, long p, double pinv, const Factorisation& F);
 
 
 /*
    Finds the smallest primitive root mod p, given the factorisation F of p-1.
 */
-long primitive_root(long p, NTL::mulmod_t pinv, const Factorisation& F);
+//long primitive_root(long p, NTL::mulmod_t pinv, const Factorisation& F);
+long primitive_root(long p, double pinv, const Factorisation& F);
 
 
 };    // end namespace

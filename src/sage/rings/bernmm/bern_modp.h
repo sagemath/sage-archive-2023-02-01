@@ -30,8 +30,10 @@ long bern_modp(long p, long k);
 /*
    Exported for testing.
 */
-long _bern_modp_powg(long p, NTL::mulmod_t pinv, long k);
-long _bern_modp_pow2(long p, NTL::mulmod_t pinv, long k);
+//long _bern_modp_powg(long p, NTL::mulmod_t pinv, long k);
+//long _bern_modp_pow2(long p, NTL::mulmod_t pinv, long k);
+long _bern_modp_powg(long p, double pinv, long k);
+long _bern_modp_pow2(long p, double pinv, long k);
 
 
 };

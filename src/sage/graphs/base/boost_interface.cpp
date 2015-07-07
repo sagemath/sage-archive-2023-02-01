@@ -4,16 +4,20 @@
 #include <boost/graph/edge_connectivity.hpp>
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/clustering_coefficient.hpp>
+#include <boost/graph/dominator_tree.hpp>
 
 #include <iostream>
 
 using namespace std;
 using namespace boost;
 
+typedef int v_index;
+typedef long e_index;
+
 // This struct is the output of the edge connectivity Boost algorithm.
 typedef struct {
-    int ec; // The edge connectivity
-    vector<int> edges; // The edges in a minimum cut, stored as a list of
+    v_index ec; // The edge connectivity
+    vector<v_index> edges; // The edges in a minimum cut, stored as a list of
                        // nodes. For instance, if the minimum cut is
                        // {(1,2),(3,4)}, the output vector will be (1,2,3,4).
 } result_ec;
@@ -46,14 +50,16 @@ class BoostGraph
 */
 {
     typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
-    int, no_property, no_property, EdgeListS> adjacency_list;
+    property<vertex_index_t, v_index>, no_property, no_property, EdgeListS> adjacency_list;
     typedef typename boost::graph_traits<adjacency_list>::vertex_descriptor vertex_descriptor;
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
+    typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type vertex_to_int_map;
 
 public:
     adjacency_list *graph;
     vector<vertex_descriptor> *vertices;
+    vertex_to_int_map index;
 
     BoostGraph() {
         graph = new adjacency_list();
@@ -65,11 +71,11 @@ public:
         delete vertices;
     }
 
-    int num_verts() {
+    v_index num_verts() {
         return num_vertices(*graph);
     }
 
-    int num_edges() {
+    e_index num_edges() {
         return boost::num_edges(*graph);
     }
 
@@ -77,7 +83,7 @@ public:
         (*vertices).push_back(boost::add_vertex((*vertices).size(), *graph));
     }
 
-    void add_edge(int u, int v) {
+    void add_edge(v_index u, v_index v) {
         boost::add_edge((*vertices)[u], (*vertices)[v], *graph);
     }
 
@@ -87,33 +93,44 @@ public:
         back_insert_iterator<edge_container> inserter(disconnecting_set);
         to_return.ec = boost::edge_connectivity(*graph, inserter);
 
-        for (unsigned i = 0; i < disconnecting_set.size(); i++) {
+        for (v_index i = 0; i < disconnecting_set.size(); i++) {
             edge_descriptor edge = disconnecting_set[i];
-            to_return.edges.push_back((*graph)[boost::source(edge, *graph)]);
-            to_return.edges.push_back((*graph)[boost::target(edge, *graph)]);
+            to_return.edges.push_back(index[boost::source(edge, *graph)]);
+            to_return.edges.push_back(index[boost::target(edge, *graph)]);
         }
         return to_return;
     }
 
-    double clustering_coeff(int v) {
+    double clustering_coeff(v_index v) {
         return clustering_coefficient(*graph, (*vertices)[v]);
     }
 
     result_cc clustering_coeff_all() {
         result_cc to_return;
-
-        typedef typename exterior_vertex_property<adjacency_list, double>::container_type ClusteringContainer;
-        typedef typename exterior_vertex_property<adjacency_list, double>::map_type ClusteringMap;
-
-        ClusteringContainer coefs(num_vertices(*graph));
-        ClusteringMap cm(coefs, *graph);
-
-        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph, cm);
-        for (unsigned i = 0; i < num_verts(); i++) {
-            to_return.clust_of_v.push_back(cm[(*graph)[i]]);
-        }
-
+        to_return.clust_of_v.resize(num_verts());
+        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph,
+                        make_iterator_property_map(to_return.clust_of_v.begin(), index));
         return to_return;
+    }
+
+    vector<v_index> dominator_tree(v_index v) {
+        vector<v_index> fathers(num_verts());
+        vector<vertex_descriptor> fathers_descr(num_verts(),
+                    boost::graph_traits<adjacency_list>::null_vertex());
+
+        lengauer_tarjan_dominator_tree(*graph, (*vertices)[v],
+                                       make_iterator_property_map(
+                                           fathers_descr.begin(), index));
+
+        for (v_index i = 0; i < num_verts(); i++) {
+            vertex_descriptor v = fathers_descr[i];
+            if (v == boost::graph_traits<adjacency_list>::null_vertex()) {
+                fathers[i] = -1;
+            } else {
+                fathers[i] = index[v];
+            }
+        }
+        return fathers;
     }
 };
 

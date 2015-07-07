@@ -1,8 +1,9 @@
 Modify tools.c and tools.h to provide an error callback framework
 (SetErrorCallbackFunction).
 
-NTL provides its own error callback framework, but it is simpler
-than the one provided by this patch: there is no context object.
+NTL provides its own error callback framework, but it's not suitable
+for Sage since we don't want to see the error message printed, we want
+the error message to be part of the callback function.
 --- ntl.orig/src/tools.c	2014-08-27 05:51:42.000000000 +1200
 +++ ntl/src/tools.c	2014-10-09 22:02:59.679703796 +1300
 @@ -18,8 +18,35 @@

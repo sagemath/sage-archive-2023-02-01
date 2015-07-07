@@ -1507,7 +1507,7 @@ def GossetGraph():
 
     TESTS::
 
-        sage: g.is_isomorphic(polytopes.gosset_3_21().graph()) # not tested (~16s)
+        sage: g.is_isomorphic(polytopes.Gosset_3_21().graph()) # not tested (~16s)
         True
     """
     string = ('w~~~~rt{~Z\\ZxnvYZYmlfrb}|hDuhLlcmmMNf_^zzQGNYcP\\kcRZbaJjoNBx{'+

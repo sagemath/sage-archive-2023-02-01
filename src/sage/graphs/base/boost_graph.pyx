@@ -227,6 +227,20 @@ cpdef dominator_tree(g, root, return_dict = False):
     node's children are those nodes it immediately dominates. For more
     information, see :wikipedia:`Dominator_(graph_theory)`.
 
+    If the graph is connected and undirected, the parent of a vertex `v` is:
+
+     - the root if `v` is in the same biconnected component as the root;
+
+     - the first cut vertex in a path from `v` to the root, otherwise.
+
+    If the graph is not connected, the dominator tree of the whole graph is
+    equal to the dominator tree of the connected component of the root.
+
+    If the graph is directed, computing a dominator tree is more complicated,
+    and it needs time `O(m\log m)`, where `m` is the number of edges. The
+    implementation provided by Boost is the most general one, so it needs time
+    `O(m\log m)` even for undirected graphs.
+
     INPUT:
 
     - ``g`` (generic_graph) - the input graph.
@@ -246,14 +260,36 @@ cpdef dominator_tree(g, root, return_dict = False):
     reachable from ``root``. If the output is a graph, it will not contain
     vertices that are not reachable from ``root``.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    An undirected grid is biconnected, and its dominator tree is a star
+    (everyone's parent is the root)::
 
         sage: g = graphs.GridGraph([2,2]).dominator_tree((0,0))
         sage: g.to_dictionary()
         {(0, 0): [(0, 1), (1, 0), (1, 1)], (0, 1): [(0, 0)], (1, 0): [(0, 0)], (1, 1): [(0, 0)]}
+
+    If the graph is made by two 3-cycles `C_1,C_2` connected by an edge `(v,w)`,
+    with `v \in C_1`, `w \in C_2`, the cut vertices are `v` and `w`, the
+    biconnected components are `C_1`, `C_2`, and the edge `(v,w)`. If the root
+    is in `C_1`, the parent of each vertex in `C_1` is the root, the parent of
+    `w` is `v`, and the parent of each vertex in `C_2` is `w`::
+
+         sage: G = 2 * graphs.CycleGraph(3)
+         sage: v = 0
+         sage: w = 3
+         sage: G.add_edge(v,w)
+         sage: G.dominator_tree(1, return_dict=True)
+         {0: 1, 1: None, 2: 1, 3: 0, 4: 3, 5: 3}
+
+    An example with a directed graph::
+
         sage: g = digraphs.Circuit(10).dominator_tree(5)
         sage: g.to_dictionary()
         {0: [1], 1: [2], 2: [3], 3: [4], 4: [], 5: [6], 6: [7], 7: [8], 8: [9], 9: [0]}
+
+    If the output is a dictionary::
+
         sage: graphs.GridGraph([2,2]).dominator_tree((0,0), return_dict = True)
         {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 0)}
 

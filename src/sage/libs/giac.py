@@ -2,8 +2,8 @@
 """
 Wrappers for Giac functions
 
-We provide a python function to compute and convert to sage a groebner basis using the giacpy
-module.
+We provide a python function to compute and convert to sage a groebner
+basis using the giacpy module.
 
 AUTHORS:
 
@@ -131,20 +131,28 @@ def local_giacsettings(func):
 @local_giacsettings
 def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *args, **kwds):
     """
-    Computes a Groebner Basis of an ideal using giacpy. The result is automatically converted to sage.
+    Computes a Groebner Basis of an ideal using giacpy. The result is
+    automatically converted to sage.
 
     INPUT:
 
-    - ``gens`` - an ideal (or a list) of polynomials over a prime field of characteristic 0 or p<2^31
+    - ``gens`` - an ideal (or a list) of polynomials over a prime field
+      of characteristic 0 or p<2^31
 
-    - ``proba_epsilon`` - (default: None)
-       majoration of the probability of a wrong answer when probabilistic algorithms are allowed.
+    - ``proba_epsilon`` - (default: None) majoration of the probability
+       of a wrong answer when probabilistic algorithms are allowed.
 
-        * if ``proba_epsilon`` is None, the value of ``sage.structure.proof.all.polynomial()`` is taken. If it is false then the global ``giacpy.giacsettings.proba_epsilon`` is used.
+        * if ``proba_epsilon`` is None, the value of
+          ``sage.structure.proof.all.polynomial()`` is taken. If it is
+          false then the global ``giacpy.giacsettings.proba_epsilon`` is
+          used.
 
-        * if ``proba_epsilon`` is 0, probabilistic algorithms are disabled.
+        * if ``proba_epsilon`` is 0, probabilistic algorithms are
+          disabled.
 
-    - ``threads`` - (default: None) Maximal number of threads allowed for giac. If None, the global ``giacpy.giacsettings.threads`` is considered.
+    - ``threads`` - (default: None) Maximal number of threads allowed
+      for giac. If None, the global ``giacpy.giacsettings.threads`` is
+      considered.
 
     - ``prot`` - (default: False) if True print detailled informations
 

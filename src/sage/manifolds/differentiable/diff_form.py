@@ -1,7 +1,7 @@
 r"""
 Differential forms
 
-Let `S` and `M` be two differentiable manifolds over `\RR`.
+Let `S` and `M` be two differentiable manifolds.
 Given a positive integer `p`, an open subset `U` of `S`,  an open subset
 `V` of `M` and differentiable map `\Phi: U \rightarrow V \subset M`,
 a *differential form of degree* `p`, or *p-form*,

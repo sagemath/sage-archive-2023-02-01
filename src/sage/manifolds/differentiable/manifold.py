@@ -1159,11 +1159,15 @@ class DiffManifold(TopManifold):
             sage: U = S2.open_subset('U')  # the complement of the two poles
             sage: spher_coord.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
             sage: XU = U.vector_field_module() ; XU
-            free module X(U) of vector fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Free module X(U) of vector fields on the Open subset U of the
+             2-dimensional differentiable manifold S^2
             sage: XU.category()
-            Category of modules over algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Category of modules over Algebra of differentiable scalar fields
+             on the Open subset U of the 2-dimensional differentiable
+             manifold S^2
             sage: XU.base_ring()
-            algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Algebra of differentiable scalar fields on the Open subset U of the
+             2-dimensional differentiable manifold S^2
             sage: XU.base_ring() is U.scalar_field_algebra()
             True
 
@@ -1181,7 +1185,8 @@ class DiffManifold(TopManifold):
         The elements of `\mathcal{X}(U)` are vector fields on `U`::
 
             sage: XU.an_element()
-            vector field on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Vector field on the Open subset U of the 2-dimensional
+             differentiable manifold S^2
             sage: XU.an_element().display()
             2 d/dth + 2 d/dph
 
@@ -1193,9 +1198,12 @@ class DiffManifold(TopManifold):
             sage: cart_coord.<x, y, z> = R3.chart()
             sage: Phi = U.diff_map(R3, [sin(th)*cos(ph), sin(th)*sin(ph), cos(th)], name='Phi')
             sage: XU_R3 = U.vector_field_module(dest_map=Phi) ; XU_R3
-            free module X(U,Phi) of vector fields along the open subset 'U' of the 2-dimensional manifold 'S^2' mapped into the 3-dimensional manifold 'R^3'
+            Free module X(U,Phi) of vector fields along the Open subset U of
+             the 2-dimensional differentiable manifold S^2 mapped into the
+             3-dimensional differentiable manifold R^3
             sage: XU_R3.base_ring()
-            algebra of scalar fields on the open subset 'U' of the 2-dimensional manifold 'S^2'
+            Algebra of differentiable scalar fields on the Open subset U of the
+             2-dimensional differentiable manifold S^2
 
         `\mathcal{X}(U,\mathbb{R}^3)` is a free module because `\mathbb{R}^3`
         is parallelizable and its rank is 3::
@@ -1254,15 +1262,19 @@ class DiffManifold(TopManifold):
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
             sage: TU = U.tensor_field_module((2,1)) ; TU
-            free module T^(2,1)(U) of type-(2,1) tensors fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Free module T^(2,1)(U) of type-(2,1) tensors fields on the Open
+             subset U of the 3-dimensional differentiable manifold M
             sage: TU.category()
-            Category of modules over algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Category of modules over Algebra of differentiable scalar fields on
+             the Open subset U of the 3-dimensional differentiable manifold M
             sage: TU.base_ring()
-            algebra of scalar fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Algebra of differentiable scalar fields on the Open subset U of
+             the 3-dimensional differentiable manifold M
             sage: TU.base_ring() is U.scalar_field_algebra()
             True
             sage: TU.an_element()
-            tensor field of type (2,1) on the open subset 'U' of the 3-dimensional manifold 'M'
+            Tensor field of type (2,1) on the Open subset U of the
+             3-dimensional differentiable manifold M
             sage: TU.an_element().display()
             2 d/dx*d/dx*dx
 
@@ -1367,13 +1379,15 @@ class DiffManifold(TopManifold):
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
             sage: v = U.vector_field('v'); v
-            vector field 'v' on the open subset 'U' of the 3-dimensional manifold 'M'
+            Vector field v on the Open subset U of the 3-dimensional
+             differentiable manifold M
 
         Vector fields on `U` form the set `\mathcal{X}(U)`, which is a module
         over the algebra `C^k(U)` of differentiable scalar fields on `U`::
 
             sage: v.parent()
-            free module X(U) of vector fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Free module X(U) of vector fields on the Open subset U of the
+             3-dimensional differentiable manifold M
             sage: v in U.vector_field_module()
             True
 
@@ -1431,20 +1445,22 @@ class DiffManifold(TopManifold):
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
             sage: t = U.tensor_field(2, 0, 'T'); t
-            tensor field 'T' of type (2,0) on the open subset 'U' of the 3-dimensional manifold 'M'
+            Tensor field T of type (2,0) on the Open subset U of the
+             3-dimensional differentiable manifold M
 
         Type-(2,0) tensor fields on `U` form the set `\mathcal{T}^{(2,0)}(U)`,
         which is a module over the algebra `C^k(U)` of differentiable scalar
         fields on `U`::
 
             sage: t.parent()
-            free module T^(2,0)(U) of type-(2,0) tensors fields on the open subset 'U' of the 3-dimensional manifold 'M'
+            Free module T^(2,0)(U) of type-(2,0) tensors fields on the Open
+             subset U of the 3-dimensional differentiable manifold M
             sage: t in U.tensor_field_module((2,0))
             True
 
         See the documentation of class
-        :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for more
-        examples.
+        :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
+        more examples.
 
         """
         vmodule = self.vector_field_module(dest_map)
@@ -1481,15 +1497,17 @@ class DiffManifold(TopManifold):
             sage: M = DiffManifold(3, 'M')
             sage: c_xyz.<x,y,z> = M.chart()
             sage: t = M.sym_bilin_form_field('T'); t
-            field of symmetric bilinear forms 'T' on the 3-dimensional manifold 'M'
+            Field of symmetric bilinear forms T on the 3-dimensional
+             differentiable manifold M
 
         Such a object is a tensor field of rank 2 and type (0,2)::
 
             sage: t.parent()
-            free module T^(0,2)(M) of type-(0,2) tensors fields on the 3-dimensional manifold 'M'
-            sage: t._tensor_rank
+            Free module T^(0,2)(M) of type-(0,2) tensors fields on the
+             3-dimensional differentiable manifold M
+            sage: t.tensor_rank()
             2
-            sage: t._tensor_type
+            sage: t.tensor_type()
             (0, 2)
 
         The LaTeX symbol is deduced from the name or can be specified when
@@ -1505,7 +1523,8 @@ class DiffManifold(TopManifold):
 
             sage: e = M.vector_frame('e') ; M.set_default_frame(e)
             sage: t.set_comp()
-            Fully symmetric 2-indices components w.r.t. vector frame (M, (e_0,e_1,e_2))
+            Fully symmetric 2-indices components w.r.t. Vector frame
+             (M, (e_0,e_1,e_2))
             sage: type(t.comp())
             <class 'sage.tensor.modules.comp.CompFullySym'>
 
@@ -1536,10 +1555,12 @@ class DiffManifold(TopManifold):
             sage: v2 = M.vector_field('V_2')
             sage: v2[:] = (x+y,2)
             sage: s = t(v1,v2) ; s
-            scalar field 'T(V_1,V_2)' on the 2-dimensional manifold 'M'
+            Scalar field T(V_1,V_2) on the 2-dimensional differentiable
+             manifold M
             sage: s.expr()
             x^3 + (3*x^2 + x)*y - y^2
-            sage: s.expr() - t[0,0]*v1[0]*v2[0] - t[0,1]*(v1[0]*v2[1]+v1[1]*v2[0]) - t[1,1]*v1[1]*v2[1]
+            sage: s.expr() - t[0,0]*v1[0]*v2[0] - \
+            ....: t[0,1]*(v1[0]*v2[1]+v1[1]*v2[0]) - t[1,1]*v1[1]*v2[1]
             0
             sage: latex(s)
             T\left(V_1,V_2\right)
@@ -1552,7 +1573,8 @@ class DiffManifold(TopManifold):
             sage: b = M.sym_bilin_form_field()
             sage: b[0,0], b[0,1], b[1,1] = (-1,4,5)
             sage: s = a + b ; s
-            field of symmetric bilinear forms on the 2-dimensional manifold 'M'
+            Field of symmetric bilinear forms on the 2-dimensional
+             differentiable manifold M
             sage: s[:]
             [0 6]
             [6 8]
@@ -1563,12 +1585,12 @@ class DiffManifold(TopManifold):
             sage: c = M.tensor_field(0,2)
             sage: c[:] = [[-2, -3], [1,7]]
             sage: s1 = a + c ; s1
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
+            Tensor field of type (0,2) on the 2-dimensional differentiable manifold M
             sage: s1[:]
             [-1 -1]
             [ 3 10]
             sage: s2 = c + a ; s2
-            tensor field of type (0,2) on the 2-dimensional manifold 'M'
+            tensor field of type (0,2) on the 2-dimensional differentiable manifold M
             sage: s2[:]
             [-1 -1]
             [ 3 10]
@@ -1610,10 +1632,10 @@ class DiffManifold(TopManifold):
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(4, 'M')
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
-            open subset 'A' of the 4-dimensional manifold 'M'
+            open subset 'A' of the 4-dimensional differentiable manifold M
             sage: c_xyzt.<x,y,z,t> = A.chart()
             sage: f = A.diff_form(2, 'F'); f
-            2-form 'F' on the open subset 'A' of the 4-dimensional manifold 'M'
+            2-form 'F' on the open subset 'A' of the 4-dimensional differentiable manifold M
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for more examples.
@@ -1655,10 +1677,10 @@ class DiffManifold(TopManifold):
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
             sage: X.<x,y,z> = A.chart()
             sage: om = A.one_form('omega', r'\omega') ; om
-            1-form 'omega' on the open subset 'A' of the 3-dimensional manifold 'M'
+            1-form 'omega' on the open subset 'A' of the 3-dimensional differentiable manifold M
             sage: om.parent()
             Free module /\^1(A) of 1-forms on the open subset 'A' of the
-             3-dimensional manifold 'M'
+             3-dimensional differentiable manifold M
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for more examples.
@@ -1708,7 +1730,7 @@ class DiffManifold(TopManifold):
              manifold 'M'
             sage: a.parent()
             General linear group of the free module X(M) of vector fields on
-             the 3-dimensional manifold 'M'
+             the 3-dimensional differentiable manifold M
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField` for more
@@ -1861,12 +1883,12 @@ class DiffManifold(TopManifold):
             sage: c_xy.transition_map(c_uv, (x+y, x-y))
             coordinate change from chart (M, (x, y)) to chart (M, (u, v))
             sage: M.change_of_frame(c_xy.frame(), c_uv.frame())
-            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
             sage: M.change_of_frame(c_xy.frame(), c_uv.frame())[:]
             [ 1/2  1/2]
             [ 1/2 -1/2]
             sage: M.change_of_frame(c_uv.frame(), c_xy.frame())
-            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
             sage: M.change_of_frame(c_uv.frame(), c_xy.frame())[:]
             [ 1  1]
             [ 1 -1]
@@ -1878,13 +1900,13 @@ class DiffManifold(TopManifold):
         then identical to a change of basis in X(M)::
 
             sage: XM = M.vector_field_module() ; XM
-            free module X(M) of vector fields on the 2-dimensional manifold 'M'
+            free module X(M) of vector fields on the 2-dimensional differentiable manifold M
             sage: XM.print_bases()
-            Bases defined on the free module X(M) of vector fields on the 2-dimensional manifold 'M':
+            Bases defined on the free module X(M) of vector fields on the 2-dimensional differentiable manifold M:
              - (M, (d/dx,d/dy)) (default basis)
              - (M, (d/du,d/dv))
             sage: XM.change_of_basis(c_xy.frame(), c_uv.frame())
-            field of tangent-space automorphisms on the 2-dimensional manifold 'M'
+            field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
             sage: M.change_of_frame(c_xy.frame(), c_uv.frame()) is XM.change_of_basis(c_xy.frame(), c_uv.frame())
             True
 
@@ -1996,12 +2018,12 @@ class DiffManifold(TopManifold):
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M')
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
-            open subset 'A' of the 3-dimensional manifold 'M'
+            open subset 'A' of the 3-dimensional differentiable manifold M
             sage: c_xyz.<x,y,z> = A.chart()
             sage: e = A.vector_frame('e'); e
             vector frame (A, (e_0,e_1,e_2))
             sage: e[0]
-            vector field 'e_0' on the open subset 'A' of the 3-dimensional manifold 'M'
+            vector field 'e_0' on the open subset 'A' of the 3-dimensional differentiable manifold M
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame` for more

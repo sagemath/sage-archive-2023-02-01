@@ -2,11 +2,12 @@ r"""
 Vector frames
 
 The class :class:`VectorFrame` implements vector frames on differentiable
-manifolds over `\RR`.
+manifolds.
 By *vector frame*, it is meant a field `e` on some open domain `U` of a
-manifold `S` endowed with a differentiable mapping `\Phi: U\rightarrow V` to a
-parallelizable domain `V` of a manifold `M` such that for each `p\in U`,
-`e(p)` is a vector basis of the tangent space `T_{\Phi(p)}M`.
+differentiable manifold `S` endowed with a differentiable map
+`\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
+manifold `M` such that for each `p\in U`, `e(p)` is a vector basis of the
+tangent space `T_{\Phi(p)}M`.
 
 The standard case of a vector frame *on* `U` corresponds to `S=M`, `U=V`
 and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
@@ -36,7 +37,7 @@ EXAMPLES:
         sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; e
-        vector frame (M, (e_0,e_1,e_2))
+        Vector frame (M, (e_0,e_1,e_2))
         sage: latex(e)
         \left(M, \left(e_0,e_1,e_2\right)\right)
 
@@ -44,24 +45,26 @@ EXAMPLES:
     case it is the coordinate frame defined when introducing the chart c_xyz::
 
         sage: M.default_frame()
-        coordinate frame (M, (d/dx,d/dy,d/dz))
+        Coordinate frame (M, (d/dx,d/dy,d/dz))
 
     The default frame can be changed via the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.set_default_frame`::
 
         sage: M.set_default_frame(e)
         sage: M.default_frame()
-        vector frame (M, (e_0,e_1,e_2))
+        Vector frame (M, (e_0,e_1,e_2))
 
     The elements of a vector frame are vector fields on the manifold::
 
         sage: e._vec
-        (vector field 'e_0' on the 3-dimensional manifold 'M', vector field 'e_1' on the 3-dimensional manifold 'M', vector field 'e_2' on the 3-dimensional manifold 'M')
+        (Vector field e_0 on the 3-dimensional differentiable manifold M,
+         Vector field e_1 on the 3-dimensional differentiable manifold M,
+         Vector field e_2 on the 3-dimensional differentiable manifold M)
 
     Each element can be accessed by its index::
 
         sage: e[0]
-        vector field 'e_0' on the 3-dimensional manifold 'M'
+        Vector field e_0 on the 3-dimensional differentiable manifold M
 
     The index range depends on the starting index defined on the manifold::
 
@@ -69,9 +72,13 @@ EXAMPLES:
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e')
         sage: e._vec
-        (vector field 'e_1' on the 3-dimensional manifold 'M', vector field 'e_2' on the 3-dimensional manifold 'M', vector field 'e_3' on the 3-dimensional manifold 'M')
+        (Vector field e_1 on the 3-dimensional differentiable manifold M,
+         Vector field e_2 on the 3-dimensional differentiable manifold M,
+          Vector field e_3 on the 3-dimensional differentiable manifold M)
         sage: e[1], e[2], e[3]
-        (vector field 'e_1' on the 3-dimensional manifold 'M', vector field 'e_2' on the 3-dimensional manifold 'M', vector field 'e_3' on the 3-dimensional manifold 'M')
+        (Vector field e_1 on the 3-dimensional differentiable manifold M,
+         Vector field e_2 on the 3-dimensional differentiable manifold M,
+         Vector field e_3 on the 3-dimensional differentiable manifold M)
 
     Let us check that the vector fields e(i) are the frame vectors from
     their components w.r.t. to the frame e::
@@ -87,16 +94,16 @@ EXAMPLES:
     coframe, which bares the same name (here e)::
 
         sage: M.coframes()
-        [coordinate coframe (M, (dx,dy,dz)), coframe (M, (e^1,e^2,e^3))]
+        [Coordinate coframe (M, (dx,dy,dz)), Coframe (M, (e^1,e^2,e^3))]
         sage: f = M.coframes()[1] ; f
-        coframe (M, (e^1,e^2,e^3))
+        Coframe (M, (e^1,e^2,e^3))
 
     Each element of the coframe is a 1-form::
 
         sage: f[1], f[2], f[3]
-        (1-form 'e^1' on the 3-dimensional manifold 'M',
-        1-form 'e^2' on the 3-dimensional manifold 'M',
-        1-form 'e^3' on the 3-dimensional manifold 'M')
+        (1-form e^1 on the 3-dimensional differentiable manifold M,
+        1-form e^2 on the 3-dimensional differentiable manifold M,
+        1-form e^3 on the 3-dimensional differentiable manifold M)
         sage: latex(f[1]), latex(f[2]), latex(f[3])
         (e^1, e^2, e^3)
 
@@ -104,7 +111,7 @@ EXAMPLES:
     frame (e_i)::
 
         sage: f[1](e[1]) # the 1-form e^1 applied to the vector field e_1
-        scalar field 'e^1(e_1)' on the 3-dimensional manifold 'M'
+        Scalar field e^1(e_1) on the 3-dimensional differentiable manifold M
         sage: f[1](e[1]).expr() # the explicit expression of e^1(e_1)
         1
         sage: f[1](e[1]).expr(), f[1](e[2]).expr(), f[1](e[3]).expr()
@@ -120,32 +127,34 @@ EXAMPLES:
         sage: M = DiffManifold(2, 'S^2', start_index=1)
         sage: c_spher.<th,ph> = M.chart(r'th:[0,pi]:\theta ph:[0,2*pi):\phi')
         sage: b = M.default_frame() ; b
-        coordinate frame (S^2, (d/dth,d/dph))
+        Coordinate frame (S^2, (d/dth,d/dph))
         sage: b[1]
-        vector field 'd/dth' on the 2-dimensional manifold 'S^2'
+        Vector field d/dth on the 2-dimensional differentiable manifold S^2
         sage: b[2]
-        vector field 'd/dph' on the 2-dimensional manifold 'S^2'
+        Vector field d/dph on the 2-dimensional differentiable manifold S^2
 
     The orthonormal frame constructed from the coordinate frame::
 
         sage: change_frame = M.automorphism_field()
         sage: change_frame[:] = [[1,0], [0, 1/sin(th)]]
         sage: e = b.new_frame(change_frame, 'e') ; e
-        vector frame (S^2, (e_1,e_2))
+        Vector frame (S^2, (e_1,e_2))
         sage: e[1][:]
         [1, 0]
         sage: e[2][:]
         [0, 1/sin(th)]
 
-    The change-of-frame matrices::
+    The change-of-frame automorphisms and their matrices::
 
         sage: M.change_of_frame(c_spher.frame(), e)
-        Field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
+        Field of tangent-space automorphisms on the 2-dimensional
+         differentiable manifold S^2
         sage: M.change_of_frame(c_spher.frame(), e)[:]
         [        1         0]
         [        0 1/sin(th)]
         sage: M.change_of_frame(e, c_spher.frame())
-        Field of tangent-space automorphisms on the 2-dimensional manifold 'S^2'
+        Field of tangent-space automorphisms on the 2-dimensional
+         differentiable manifold S^2
         sage: M.change_of_frame(e, c_spher.frame())[:]
         [      1       0]
         [      0 sin(th)]
@@ -168,12 +177,13 @@ from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 
 class VectorFrame(FreeModuleBasis):
     r"""
-    Vector frame on a differentiable manifold over `\RR`.
+    Vector frame on a differentiable manifold.
 
     By *vector frame*, it is meant a field `e` on some open domain `U` of a
-    manifold `S` endowed with a differentiable mapping `\Phi: U\rightarrow V`
-    to a parallelizable domain `V` of a manifold `M` such that for each
-    `p\in U`, `e(p)` is a vector basis of the tangent space `T_{\Phi(p)}M`.
+    differentiable manifold `S` endowed with a differentiable map
+    `\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
+    manifold `M` such that for each `p\in U`, `e(p)` is a vector basis of the
+    tangent space `T_{\Phi(p)}M`.
 
     The standard case of a vector frame *on* `U` corresponds to `S=M`, `U=V`
     and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
@@ -190,12 +200,11 @@ class VectorFrame(FreeModuleBasis):
     - ``symbol`` -- a letter (of a few letters) to denote a
       generic vector of the frame; can be set to None if the parameter
       ``from_frame`` is filled.
-    - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic vector of
-      the frame; if ``None``, the value of ``symbol`` is used.
-    - ``from_frame`` -- (default: ``None``) vector frame `\tilde e` on the codomain
-      `V` of the destination map `\Phi`; the frame `e` = ``self`` is then
-      constructed so that `\forall p \in U, e(p) = \tilde e(\Phi(p))`
-
+    - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic vector
+      of the frame; if ``None``, the value of ``symbol`` is used.
+    - ``from_frame`` -- (default: ``None``) vector frame `\tilde e` on the
+      codomain `V` of the destination map `\Phi`; the frame `e` = ``self`` is
+      then constructed so that `\forall p \in U, e(p) = \tilde e(\Phi(p))`
 
     EXAMPLES:
 
@@ -205,7 +214,7 @@ class VectorFrame(FreeModuleBasis):
         sage: M = DiffManifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; e
-        vector frame (M, (e_0,e_1,e_2))
+        Vector frame (M, (e_0,e_1,e_2))
         sage: latex(e)
         \left(M, \left(e_0,e_1,e_2\right)\right)
 
@@ -215,23 +224,20 @@ class VectorFrame(FreeModuleBasis):
         sage: latex(e)
         \left(M, \left(\epsilon_0,\epsilon_1,\epsilon_2\right)\right)
 
-    Example with a non-trivial mapping `\Phi`: vector frame along a curve::
+    Example with a non-trivial map `\Phi`: vector frame along a curve::
 
-        sage: R.<t> = RealLine()
-        sage: U = R.open_interval(-1, 1)
-        sage: Phi = U.diff_map(M, [cos(t), sin(t), t], name='Phi', latex_name=r'\Phi')
+        sage: U = DiffManifold(1, 'U')  # open interval (-1,1) as a 1-dimensional manifold
+        sage: T.<t> = U.chart('t:(-1,1)')  # canonical chart on U
+        sage: Phi = U.diff_map(M, [cos(t), sin(t), t], name='Phi',
+        ....:                  latex_name=r'\Phi')
         sage: Phi
-        Curve 'Phi' in the 3-dimensional manifold 'M'
+        Differentiable map Phi from the 1-dimensional differentiable manifold U
+         to the 3-dimensional differentiable manifold M
         sage: f = U.vector_frame('f', dest_map=Phi) ; f
-        vector frame ((-1, 1), (f_0,f_1,f_2)) with values on the 3-dimensional
-         manifold 'M'
+        Vector frame (U, (f_0,f_1,f_2)) with values on the 3-dimensional
+         differentiable manifold M
         sage: f.domain()
-        Real interval (-1, 1)
-        sage: p = U(0, name='p') ; p
-        point 'p' on field R of real numbers
-        sage: f.at(p)
-        Basis (f_0,f_1,f_2) on the tangent space at point 'Phi(p)' on
-         3-dimensional manifold 'M'
+        1-dimensional differentiable manifold U
 
     """
     def __init__(self, vector_field_module, symbol, latex_symbol=None,
@@ -265,9 +271,9 @@ class VectorFrame(FreeModuleBasis):
             self._name = "(" + self._domain._name + ", (" + \
                         ",".join([self._vec[i]._name for i in range(n)]) + "))"
             self._latex_name = r"\left(" + self._domain._latex_name + \
-                        r" ,\left(" + \
-                        ",".join([self._vec[i]._latex_name for i in range(n)])+ \
-                        r"\right)\right)"
+                      r" ,\left(" + \
+                      ",".join([self._vec[i]._latex_name for i in range(n)])+ \
+                      r"\right)\right)"
             self._symbol = from_frame._symbol
             self._latex_symbol = from_frame._latex_symbol
             # Names of the dual coframe:
@@ -323,10 +329,12 @@ class VectorFrame(FreeModuleBasis):
         self._restrictions = {} # dict. of the restrictions of self to
                                # subdomains of self._domain, with the
                                # subdomains as keys
-        # NB: set(self._restrictions.itervalues()) is identical to self._subframes
+        # NB: set(self._restrictions.itervalues()) is identical to
+        #     self._subframes
 
 
-    ###### Methods that must be redefined by derived classes of FreeModuleBasis ######
+    ###### Methods that must be redefined by derived classes of ######
+    ###### FreeModuleBasis                                      ######
 
     def _repr_(self):
         r"""
@@ -334,7 +342,8 @@ class VectorFrame(FreeModuleBasis):
         """
         description = "Vector frame " + self._name
         if self._dest_map is not self._domain._identity_map:
-            description += " with values on the {}".format(self._dest_map._codomain)
+            description += " with values on the {}".format(
+                                                      self._dest_map._codomain)
         return description
 
 
@@ -400,8 +409,8 @@ class VectorFrame(FreeModuleBasis):
           to `n_i = P(e_i)`
         - ``symbol`` -- a letter (of a few letters) to denote a generic vector
           of the frame
-        - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic vector
-          of the frame; if ``None``, the value of ``symbol`` is used.
+        - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic
+          vector of the frame; if ``None``, the value of ``symbol`` is used.
 
         OUTPUT:
 
@@ -433,8 +442,10 @@ class VectorFrame(FreeModuleBasis):
             sage: a is rot
             False
             sage: a._components # random (dictionary output)
-            {vector frame (R^2, (e_0,e_1)): 2-indices components w.r.t. vector frame (R^2, (e_0,e_1)),
-            vector frame (R^2, (n_0,n_1)): 2-indices components w.r.t. vector frame (R^2, (n_0,n_1))}
+            {Vector frame (R^2, (e_0,e_1)): 2-indices components w.r.t.
+             Vector frame (R^2, (e_0,e_1)),
+             Vector frame (R^2, (n_0,n_1)): 2-indices components w.r.t.
+             Vector frame (R^2, (n_0,n_1))}
             sage: a.comp(n)[:]
             [1/2*sqrt(3)        -1/2]
             [        1/2 1/2*sqrt(3)]
@@ -463,7 +474,8 @@ class VectorFrame(FreeModuleBasis):
 
     def restrict(self, subdomain):
         r"""
-        Return the restriction of ``self`` to some subdomain of ``self._domain``.
+        Return the restriction of ``self`` to some subdomain of
+        ``self._domain``.
 
         If the restriction has not been defined yet, it is constructed here.
 
@@ -486,10 +498,10 @@ class VectorFrame(FreeModuleBasis):
             sage: a = M.automorphism_field()
             sage: a[:] = [[1-y^2,0], [1+x^2, 2]]
             sage: e = c_cart.frame().new_frame(a, 'e') ; e
-            vector frame (R^2, (e_0,e_1))
+            Vector frame (R^2, (e_0,e_1))
             sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
             sage: e_U = e.restrict(U) ; e_U
-            vector frame (U, (e_0,e_1))
+            Vector frame (U, (e_0,e_1))
 
         The vectors of the restriction have the same symbols as those of the
         original frame::
@@ -566,7 +578,7 @@ class VectorFrame(FreeModuleBasis):
             sage: ch_frame = M.automorphism_field()
             sage: ch_frame[1,1], ch_frame[2,2], ch_frame[3,3] = 1, 1/r, 1/(r*sin(th))
             sage: M.frames()
-            [coordinate frame (R^3, (d/dr,d/dth,d/dph))]
+            [Coordinate frame (R^3, (d/dr,d/dth,d/dph))]
             sage: e = c_spher.frame().new_frame(ch_frame, 'e')
             sage: e[1][:]  # components of e_1 in the manifold's default frame (d/dr, d/dth, d/dth)
             [1, 0, 0]
@@ -575,7 +587,8 @@ class VectorFrame(FreeModuleBasis):
             sage: e[3][:]
             [0, 0, 1/(r*sin(th))]
             sage: c = e.structure_coef() ; c
-            3-indices components w.r.t. vector frame (R^3, (e_1,e_2,e_3)), with antisymmetry on the index positions (1, 2)
+            3-indices components w.r.t. Vector frame (R^3, (e_1,e_2,e_3)), with
+             antisymmetry on the index positions (1, 2)
             sage: c[:]
             [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
              [[0, -1/r, 0], [1/r, 0, 0], [0, 0, 0]],
@@ -608,11 +621,11 @@ class VectorFrame(FreeModuleBasis):
 
     def along(self, mapping):
         r"""
-        Return the vector frame deduced from ``self`` via a mapping, the
-        codomain of which is included in the domain of ``self``.
+        Return the vector frame deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
 
         If ``self`` is the vector frame `e` on the open set `V` and if
-        `\Phi: U \rightarrow V` is a differentiable mapping from an open
+        `\Phi: U \rightarrow V` is a differentiable map from an open
         set `U` of some manifold `M` to `V`, the returned object is
         a vector frame `\tilde e` along `U` with values on `V` such that
 
@@ -622,7 +635,7 @@ class VectorFrame(FreeModuleBasis):
 
         INPUT:
 
-        - ``mapping`` -- differentiable mapping `\Phi: U \rightarrow V`
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow V`
 
         OUTPUT:
 
@@ -634,24 +647,17 @@ class VectorFrame(FreeModuleBasis):
 
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
-            sage: Phi = R.diff_map(M, {X: (cos(t), t)}, name='Phi',
+            sage: R = DiffManifold(1, 'R')  # R as a 1-dimensional manifold
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: Phi = R.diff_map(M, {(T,X): [cos(t), t]}, name='Phi',
             ....:                  latex_name=r'\Phi') ; Phi
-            Curve 'Phi' in the 2-dimensional manifold 'M'
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold R to the 2-dimensional differentiable manifold M
             sage: e = X.frame() ; e
-            coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (d/dx,d/dy))
             sage: te = e.along(Phi) ; te
-            vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional manifold 'M'
-
-
-        Check of the formula `\tilde e(p) = e(\Phi(p))`::
-
-            sage: p = R(pi) ; p
-            point on field R of real numbers
-            sage: te[0].at(p) == e[0].at(Phi(p))
-            True
-            sage: te[1].at(p) == e[1].at(Phi(p))
-            True
+            Vector frame (R, (d/dx,d/dy)) with values on the 2-dimensional
+             differentiable manifold M
 
         The result is cached::
 
@@ -679,10 +685,10 @@ class VectorFrame(FreeModuleBasis):
 
 class CoordFrame(VectorFrame):
     r"""
-    Coordinate frame on a differentiable manifold over `\RR`.
+    Coordinate frame on a differentiable manifold.
 
-    By *coordinate frame*, it is meant a vector frame on a manifold `M` that
-    is associated to a coordinate system (chart) on `M`.
+    By *coordinate frame*, it is meant a vector frame on a differentiable
+    manifold `M` that is associated to a coordinate system (chart) on `M`.
 
     INPUT:
 
@@ -696,14 +702,14 @@ class CoordFrame(VectorFrame):
         sage: DiffManifold._clear_cache_() # for doctests only
         sage: M = DiffManifold(2, 'S^2', start_index=1)
         sage: M.chart(r'th:[0,pi]:\theta ph:[0,2*pi):\phi')
-        chart (S^2, (th, ph))
+        Chart (S^2, (th, ph))
         sage: b = M.default_frame()
         sage: b
-        coordinate frame (S^2, (d/dth,d/dph))
+        Coordinate frame (S^2, (d/dth,d/dph))
         sage: b[1]
-        vector field 'd/dth' on the 2-dimensional manifold 'S^2'
+        Vector field d/dth on the 2-dimensional differentiable manifold S^2
         sage: b[2]
-        vector field 'd/dph' on the 2-dimensional manifold 'S^2'
+        Vector field d/dph on the 2-dimensional differentiable manifold S^2
         sage: latex(b)
         \left(S^2 ,\left(\frac{\partial}{\partial {\theta} },\frac{\partial}{\partial {\phi} }\right)\right)
 
@@ -728,14 +734,16 @@ class CoordFrame(VectorFrame):
                                      latex(self._chart._xx[i]) + r"}"
         self._name = "(" + self._domain._name + ", (" + \
                     ",".join([self._vec[i]._name for i in range(n)]) + "))"
-        self._latex_name = r"\left(" + self._domain._latex_name + r" ,\left(" + \
-                       ",".join([self._vec[i]._latex_name for i in range(n)])+ \
-                       r"\right)\right)"
+        self._latex_name = r"\left(" + self._domain._latex_name + \
+                     r" ,\left(" + \
+                     ",".join([self._vec[i]._latex_name for i in range(n)]) + \
+                     r"\right)\right)"
         self._symbol = self._name
         self._latex_symbol = self._latex_name
 
 
-    ###### Methods that must be redefined by derived classes of FreeModuleBasis ######
+    ###### Methods that must be redefined by derived classes of ######
+    ###### FreeModuleBasis                                      ######
 
     def _repr_(self):
         r"""
@@ -793,9 +801,11 @@ class CoordFrame(VectorFrame):
             sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
             sage: c_spher = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
             sage: b = M.default_frame() ; b
-            coordinate frame (R^3, (d/dr,d/dth,d/dph))
+            Coordinate frame (R^3, (d/dr,d/dth,d/dph))
             sage: c = b.structure_coef() ; c
-            3-indices components w.r.t. coordinate frame (R^3, (d/dr,d/dth,d/dph)), with antisymmetry on the index positions (1, 2)
+            3-indices components w.r.t. Coordinate frame
+             (R^3, (d/dr,d/dth,d/dph)), with antisymmetry on the index
+             positions (1, 2)
             sage: c == 0
             True
 
@@ -803,8 +813,8 @@ class CoordFrame(VectorFrame):
         from sage.tensor.modules.comp import CompWithSym
         if self._structure_coef is None:
             self._structure_coef = CompWithSym(self._fmodule._ring, self, 3,
-                                               start_index=self._fmodule._sindex,
-                                output_formatter=self._fmodule._output_formatter,
+                                             start_index=self._fmodule._sindex,
+                              output_formatter=self._fmodule._output_formatter,
                                                                  antisym=(1,2))
             # A just created CompWithSym is zero
         return self._structure_coef
@@ -814,13 +824,13 @@ class CoordFrame(VectorFrame):
 
 class CoFrame(FreeModuleCoBasis):
     r"""
-    Coframe on a differentiable manifold over `\RR`.
+    Coframe on a differentiable manifold.
 
     By *coframe*, it is meant a field `f` on some open domain `U` of a
-    manifold `S` endowed with a differentiable mapping `\Phi: U\rightarrow V`
-    to a parallelizable domain `V` of a manifold `M` such that for each
-    `p\in U`, `f(p)` is a basis of the vector space dual to the tangent space
-    `T_{\Phi(p)}M`.
+    differentiable manifold `S` endowed with a differentiable map
+    `\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
+    manifold `M` such that for each `p\in U`, `f(p)` is a basis of the vector
+    space dual to the tangent space `T_{\Phi(p)}M`.
 
     The standard case of a coframe *on* `U` corresponds to `S=M`, `U=V`
     and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
@@ -832,8 +842,8 @@ class CoFrame(FreeModuleCoBasis):
     - ``frame`` -- the vector frame dual to the coframe
     - ``symbol`` -- a letter (of a few letters) to denote a generic 1-form in
       the coframe
-    - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic 1-form in
-      the coframe; if ``None``, the value of ``symbol`` is used.
+    - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic 1-form
+      in the coframe; if ``None``, the value of ``symbol`` is used.
 
     EXAMPLES:
 
@@ -845,7 +855,7 @@ class CoFrame(FreeModuleCoBasis):
         sage: v = M.vector_frame('v')
         sage: from sage.manifolds.differentiable.vectorframe import CoFrame
         sage: e = CoFrame(v, 'e') ; e
-        coframe (M, (e^1,e^2,e^3))
+        Coframe (M, (e^1,e^2,e^3))
 
     Instead of importing CoFrame in the global namespace, the coframe can be
     obtained by means of the method
@@ -853,7 +863,7 @@ class CoFrame(FreeModuleCoBasis):
     but the symbol is then the same as the frame::
 
         sage: a = v.dual_basis() ; a
-        coframe (M, (v^1,v^2,v^3))
+        Coframe (M, (v^1,v^2,v^3))
         sage: a[1] == e[1]
         True
         sage: a[1] is e[1]
@@ -861,12 +871,12 @@ class CoFrame(FreeModuleCoBasis):
         sage: e[1].display(v)
         e^1 = v^1
 
-    The 1-forms composing the coframe are obtained via the () operator::
+    The 1-forms composing the coframe are obtained via the operator ``()``::
 
         sage: e[1], e[2], e[3]
-        (1-form 'e^1' on the 3-dimensional manifold 'M',
-         1-form 'e^2' on the 3-dimensional manifold 'M',
-         1-form 'e^3' on the 3-dimensional manifold 'M')
+        (1-form e^1 on the 3-dimensional differentiable manifold M,
+         1-form e^2 on the 3-dimensional differentiable manifold M,
+         1-form e^3 on the 3-dimensional differentiable manifold M)
 
     Checking that e is the dual of v::
 
@@ -908,7 +918,7 @@ class CoFrame(FreeModuleCoBasis):
 
 class CoordCoFrame(CoFrame):
     r"""
-    Coordinate coframe on a differentiable manifold over `\RR`.
+    Coordinate coframe on a differentiable manifold.
 
     By *coordinate coframe*, it is meant the n-tuple of the differentials of
     the coordinates of some chart on the manifold.
@@ -925,20 +935,20 @@ class CoordCoFrame(CoFrame):
         sage: M = DiffManifold(3, 'M', start_index=1)
         sage: c_xyz.<x,y,z> = M.chart()
         sage: M.frames()
-        [coordinate frame (M, (d/dx,d/dy,d/dz))]
+        [Coordinate frame (M, (d/dx,d/dy,d/dz))]
         sage: M.coframes()
-        [coordinate coframe (M, (dx,dy,dz))]
+        [Coordinate coframe (M, (dx,dy,dz))]
         sage: dX = M.coframes()[0] ; dX
-        coordinate coframe (M, (dx,dy,dz))
+        Coordinate coframe (M, (dx,dy,dz))
 
-    The 1-forms composing the coframe are obtained via the () operator::
+    The 1-forms composing the coframe are obtained via the operator ``()``::
 
         sage: dX[1]
-        1-form 'dx' on the 3-dimensional manifold 'M'
+        1-form dx on the 3-dimensional differentiable manifold M
         sage: dX[2]
-        1-form 'dy' on the 3-dimensional manifold 'M'
+        1-form dy on the 3-dimensional differentiable manifold M
         sage: dX[3]
-        1-form 'dz' on the 3-dimensional manifold 'M'
+        1-form dz on the 3-dimensional differentiable manifold M
         sage: dX[1][:]
         [1, 0, 0]
         sage: dX[2][:]
@@ -949,7 +959,7 @@ class CoordCoFrame(CoFrame):
     The coframe is the dual of the coordinate frame::
 
         sage: e = c_xyz.frame() ; e
-        coordinate frame (M, (d/dx,d/dy,d/dz))
+        Coordinate frame (M, (d/dx,d/dy,d/dz))
         sage: dX[1](e[1]).expr(), dX[1](e[2]).expr(), dX[1](e[3]).expr()
         (1, 0, 0)
         sage: dX[2](e[1]).expr(), dX[2](e[2]).expr(), dX[2](e[3]).expr()
@@ -960,7 +970,7 @@ class CoordCoFrame(CoFrame):
     Each 1-form of a coordinate coframe is closed::
 
         sage: dX[1].exterior_der()
-        2-form 'ddx' on the 3-dimensional manifold 'M'
+        2-form ddx on the 3-dimensional differentiable manifold M
         sage: dX[1].exterior_der() == 0
         True
 
@@ -974,7 +984,8 @@ class CoordCoFrame(CoFrame):
         n = self._manifold._dim
         for i in range(n):
             self._form[i]._name = "d" + str(self._chart._xx[i])
-            self._form[i]._latex_name = r"\mathrm{d}" + latex(self._chart._xx[i])
+            self._form[i]._latex_name = r"\mathrm{d}" + \
+                                        latex(self._chart._xx[i])
         self._name = "(" + self._domain._name + ", (" + \
                     ",".join([self._form[i]._name for i in range(n)]) + "))"
         self._latex_name = r"\left(" + self._domain._latex_name + \

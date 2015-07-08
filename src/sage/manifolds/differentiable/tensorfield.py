@@ -2,7 +2,7 @@ r"""
 Tensor fields
 
 The class :class:`TensorField` implements tensor fields on differentiable
-manifolds over `\RR`.
+manifolds.
 The derived class :class:`TensorFieldParal` is devoted to tensor fields with
 values on parallelizable open subsets.
 

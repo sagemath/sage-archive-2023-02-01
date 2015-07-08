@@ -161,7 +161,7 @@ from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digr
 cdef inline all_pairs_shortest_path_BFS(gg,
                                         unsigned short * predecessors,
                                         unsigned short * distances,
-                                        int            * eccentricity):
+                                        uint32_t       * eccentricity):
     """
     See the module's documentation.
     """
@@ -199,7 +199,6 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     cdef uint32_t * end
 
     cdef unsigned short * c_predecessors = predecessors
-    cdef int * c_eccentricity = eccentricity
     cdef int * c_distances = <int *> sage_malloc( n * sizeof(int))
     if c_distances == NULL:
         sage_free(waiting_list)
@@ -272,19 +271,24 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             waiting_beginning += 1
 
         # If not all the vertices have been met
-        for v in range(n):
-            if not bitset_in(seen, v):
+        if bitset_len(seen) < n:
+            bitset_complement(seen, seen)
+            v = bitset_next(seen, 0)
+            while v >= 0:
                 c_distances[v] = INT32_MAX
                 if predecessors != NULL:
                     c_predecessors[v] = -1
+                v = bitset_next(seen, v+1)
+
+            if eccentricity != NULL:
+                eccentricity[source] = UINT32_MAX
+
+        elif eccentricity != NULL:
+            eccentricity[source] = c_distances[waiting_list[n-1]]
+
 
         if predecessors != NULL:
             c_predecessors += n
-
-        if eccentricity != NULL:
-            c_eccentricity[source] = 0
-            for i in range(n):
-                c_eccentricity[source] = c_eccentricity[source] if c_eccentricity[source] >= c_distances[i] else c_distances[i]
 
         if distances != NULL:
             for i in range(n):
@@ -713,7 +717,7 @@ def distances_and_predecessors_all_pairs(G):
 # Eccentricity #
 ################
 
-cdef int * c_eccentricity(G) except NULL:
+cdef uint32_t * c_eccentricity(G) except NULL:
     r"""
     Return the vector of eccentricities in G.
 
@@ -722,14 +726,14 @@ cdef int * c_eccentricity(G) except NULL:
     """
     cdef unsigned int n = G.order()
 
-    cdef int * ecc = <int *> sage_malloc(n*sizeof(int))
+    cdef uint32_t * ecc = <uint32_t *> sage_calloc(n, sizeof(uint32_t))
     if ecc == NULL:
         raise MemoryError()
     all_pairs_shortest_path_BFS(G, NULL, NULL, ecc)
 
     return ecc
 
-cdef int * c_eccentricity_bounding(G) except NULL:
+cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     r"""
     Return the vector of eccentricities in G using the algorithm of [FK13]_.
 
@@ -758,8 +762,8 @@ cdef int * c_eccentricity_bounding(G) except NULL:
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
 
-    cdef int * LB = <int *>sage_calloc(n, sizeof(int))
-    cdef int * UB = <int *>sage_calloc(n, sizeof(int))
+    cdef uint32_t * LB = <uint32_t *>sage_calloc(n, sizeof(uint32_t))
+    cdef uint32_t * UB = <uint32_t *>sage_malloc(n * sizeof(uint32_t))
     if LB==NULL or UB==NULL:
         bitset_free(seen)
         sage_free(LB)
@@ -767,8 +771,7 @@ cdef int * c_eccentricity_bounding(G) except NULL:
         sage_free(distances)
         raise MemoryError()
 
-    for i in range(n):
-        UB[i] = INT32_MAX
+    memset(UB, -1, n * sizeof(uint32_t))
 
     cdef int v, w
     cdef list W = [v for _,v in sorted((sd.neighbors[v+1]-sd.neighbors[v],v) for v in range(n))]
@@ -778,15 +781,13 @@ cdef int * c_eccentricity_bounding(G) except NULL:
     while W:
         v = W.pop()
         # Compute the exact eccentricity of v
-        tmp = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
+        LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
         
-        if tmp==UINT32_MAX:
+        if LB[v]==UINT32_MAX:
             # The (di) graph is not (strongly) connected. We set maximum value and exit.
             for w in range(n):
-                LB[w] = INT32_MAX
+                LB[w] = UINT32_MAX
             break
-        else:
-            LB[v] = tmp
 
         # Improve the bounds on the eccentricity of other vertices
         for w in W:
@@ -851,12 +852,12 @@ def eccentricity(G, method="bounds"):
     if n == 0:
         return []
     elif G.is_directed():
-        if G.is_strongly_connected():
+        if not G.is_strongly_connected():
             return [Infinity]*n
     elif not G.is_connected():
         return [Infinity]*n
 
-    cdef int * ecc
+    cdef uint32_t * ecc
     if method=="bounds":
         ecc = c_eccentricity_bounding(G)
     elif method=="standard":

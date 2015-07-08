@@ -1,7 +1,6 @@
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
 from sage.ext.memory_allocator cimport MemoryAllocator
-from libc.string cimport memset
 
 def mcqd(G):
     """
@@ -26,9 +25,8 @@ def mcqd(G):
     # - qmax stores the max clique
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef bool ** c  = <bool **> mem.malloc(n*sizeof(bool *))
-    cdef bool * c0  = <bool *>  mem.malloc(n*n*sizeof(bool))
+    cdef bool * c0  = <bool *>  mem.calloc(n*n, sizeof(bool))
     cdef int * qmax = <int *>   mem.malloc(n*sizeof(int))
-    memset(c0, 0, n*n*sizeof(bool))
 
     c[0] = c0
 

@@ -73,7 +73,6 @@ include "sage/data_structures/bitset.pxi"
 from libc.stdint cimport uint32_t
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
 from sage.ext.memory_allocator cimport MemoryAllocator
-from libc.string cimport memset
 
 def is_asteroidal_triple_free(G, certificate=False):
     """
@@ -148,9 +147,8 @@ def is_asteroidal_triple_free(G, certificate=False):
     # ==> Initialize some data structures for is_asteroidal_triple_free_C
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t * waiting_list         = <uint32_t *>  mem.malloc(n * sizeof(uint32_t))
-    cdef uint32_t * _connected_structure = <uint32_t *>  mem.malloc(n * n * sizeof(uint32_t))
+    cdef uint32_t * _connected_structure = <uint32_t *>  mem.calloc(n * n , sizeof(uint32_t))
     cdef uint32_t ** connected_structure = <uint32_t **> mem.malloc(n * sizeof(uint32_t *))
-    memset(_connected_structure, 0, n * n * sizeof(uint32_t))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the

@@ -20,6 +20,7 @@ NTL_CLIENT;
 namespace bernmm {
 
 
+//long PowerMod(long a, long ee, long n, mulmod_t ninv)
 long PowerMod(long a, long ee, long n, double ninv)
 {
    long x, y;
@@ -89,6 +90,7 @@ PrimeTable::PrimeTable(long bound)
 }
 
 
+//long order(long x, long p, mulmod_t pinv, const Factorisation& F)
 long order(long x, long p, double pinv, const Factorisation& F)
 {
    // in the loop below, m is always some multiple of the order of x
@@ -113,6 +115,7 @@ long order(long x, long p, double pinv, const Factorisation& F)
 
 
 
+//long primitive_root(long p, mulmod_t pinv, const Factorisation& F)
 long primitive_root(long p, double pinv, const Factorisation& F)
 {
    if (p == 2)

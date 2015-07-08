@@ -40,9 +40,10 @@ namespace bernmm {
    PRECONDITIONS:
       5 <= p < NTL_SP_BOUND, p prime
       2 <= k <= p-3, k even
-      pinv = 1 / ((double) p)
+      pinv = PrepMulMod(p)
       g = a multiplicative generator of GF(p), in [0, p)
 */
+//long bernsum_powg(long p, mulmod_t pinv, long k, long g)
 long bernsum_powg(long p, double pinv, long k, long g)
 {
    long half_gm1 = (g + ((g & 1) ? 0 : p) - 1) / 2;    // (g-1)/2 mod p
@@ -50,6 +51,7 @@ long bernsum_powg(long p, double pinv, long k, long g)
    long g_to_km1 = PowerMod(g, k-1, p, pinv);
    long g_to_km1_to_j = g_to_km1;
    long sum = 0;
+   //muldivrem_t g_pinv = PrepMulDivRem(g, p);
    double g_pinv = ((double) g) / ((double) p);
    mulmod_precon_t g_to_km1_pinv = PrepMulModPrecon(g_to_km1, p, pinv);
 
@@ -210,7 +212,7 @@ public:
    PRECONDITIONS:
       5 <= p < NTL_SP_BOUND, p prime
       2 <= k <= p-3, k even
-      pinv = 1 / ((double) p)
+      pinv = PrepMulmod(p)
       g = a multiplicative generator of GF(p), in [0, p)
       n = multiplicative order of 2 in GF(p)
 */
@@ -224,6 +226,7 @@ public:
 #error Number of bits in a long must be divisible by TABLE_LG_SIZE
 #endif
 
+//long bernsum_pow2(long p, mulmod_t pinv, long k, long g, long n)
 long bernsum_pow2(long p, double pinv, long k, long g, long n)
 {
    // In the main summation loop we accumulate data into the _tables_ array;
@@ -481,6 +484,7 @@ long PrepRedc(long n)
    (See bernsum_pow2() for code comments; we only add comments here where
    something is different from bernsum_pow2())
 */
+//long bernsum_pow2_redc(long p, mulmod_t pinv, long k, long g, long n)
 long bernsum_pow2_redc(long p, double pinv, long k, long g, long n)
 {
    long pinv2 = PrepRedc(p);
@@ -651,10 +655,11 @@ long bernsum_pow2_redc(long p, double pinv, long k, long g, long n)
    PRECONDITIONS:
       5 <= p < NTL_SP_BOUND, p prime
       2 <= k <= p-3, k even
-      pinv = 1 / ((double) p)
+      pinv = PrepMulMod(p) 
 
    Algorithm: uses bernsum_powg() to compute the main sum.
 */
+//long _bern_modp_powg(long p, mulmod_t pinv, long k)
 long _bern_modp_powg(long p, double pinv, long k)
 {
    Factorisation F(p-1);
@@ -679,12 +684,13 @@ long _bern_modp_powg(long p, double pinv, long k)
    PRECONDITIONS:
       5 <= p < NTL_SP_BOUND, p prime
       2 <= k <= p-3, k even
-      pinv = 1 / ((double) p)
+      pinv = PrepMulMod(p) 
       2^k != 1 mod p
 
    Algorithm: uses bernsum_pow2() (or bernsum_pow2_redc() if p is small
    enough) to compute the main sum.
 */
+//long _bern_modp_pow2(long p, mulmod_t pinv, long k)
 long _bern_modp_pow2(long p, double pinv, long k)
 {
    Factorisation F(p-1);
@@ -715,8 +721,9 @@ long _bern_modp_pow2(long p, double pinv, long k)
    PRECONDITIONS:
       5 <= p < NTL_SP_BOUND, p prime
       2 <= k <= p-3, k even
-      pinv = 1 / ((double) p)
+      pinv = PrepMulMod(p)
 */
+//long _bern_modp(long p, mulmod_t pinv, long k)
 long _bern_modp(long p, double pinv, long k)
 {
    if (PowerMod(2, k, p, pinv) != 1)
@@ -765,6 +772,7 @@ long bern_modp(long p, long k)
    if (m == 0)
       return -1;
 
+   //mulmod_t pinv = PrepMulMod(p);
    double pinv = 1 / ((double) p);
    long x = _bern_modp(p, pinv, m);    // = B_m/m mod p
    return MulMod(x, k, p, pinv);

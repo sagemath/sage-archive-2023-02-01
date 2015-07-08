@@ -604,7 +604,7 @@ AUTHOR:
 #*****************************************************************************
 
 from collections import MutableMapping
-from itertools import product, combinations
+from itertools import product
 from parser import Parser
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.misc.latex import latex
@@ -1008,8 +1008,8 @@ class NormalFormGame(SageObject, MutableMapping):
         m1 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         m2 = matrix(QQ, self.players[0].num_strategies, self.players[1].num_strategies)
         for strategy_profile in self.utilities:
-                m1[strategy_profile] = self[strategy_profile][0]
-                m2[strategy_profile] = self[strategy_profile][1]
+            m1[strategy_profile] = self[strategy_profile][0]
+            m2[strategy_profile] = self[strategy_profile][1]
         return m1, m2
 
     def add_player(self, num_strategies):
@@ -1557,10 +1557,10 @@ class NormalFormGame(SageObject, MutableMapping):
             if (self._row_cond_dominance(pair[0], pair[1], M1)
                 # Check if any supports are dominated for col player
                and self._row_cond_dominance(pair[1], pair[0], M2.transpose())):
-                    a = self._solve_indifference(pair[0], pair[1], M2)
-                    b = self._solve_indifference(pair[1], pair[0], M1.transpose())
-                    if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
-                        equilibria.append([tuple(a), tuple(b)])
+                a = self._solve_indifference(pair[0], pair[1], M2)
+                b = self._solve_indifference(pair[1], pair[0], M1.transpose())
+                if a and b and self._is_NE(a, b, pair[0], pair[1], M1, M2):
+                    equilibria.append([tuple(a), tuple(b)])
 
         return sorted(equilibria)
 
@@ -2003,9 +2003,16 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def best_responses(self, strategy, player):
         """
-        For a given strategy for a player and the opponents payoff matrix,
+        For a given strategy for a player and the index of the oponent,
         computes the payoff for the opponent and returns a list of the indices
         of the best responses.
+
+        INPUT:
+
+        - ``strategy`` -- a probability distribution vector
+
+        - ``player`` -- the index of the oponent, ``0`` for Player 1, ``1`` for
+          Player 2
 
         EXAMPLES::
 
@@ -2029,8 +2036,8 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[1, 0], [0, 1], [0, 0]])
             sage: B = matrix([[1, 0], [0, 1], [0.7, 0.8]])
             sage: g = NormalFormGame([A, B])
-            sage: g.best_responses((1/2, 1/2), player=0)
-            [0, 1]
+            sage: g.best_responses((0, 1, 0), player=1)
+            [1]
 
             sage: A = matrix([[3,3],[2,5],[0,6]])
             sage: B = matrix([[3,3],[2,6],[3,1]])
@@ -2089,9 +2096,22 @@ class NormalFormGame(SageObject, MutableMapping):
             Traceback (most recent call last):
             ...
             ValueError: Strategy is not a probability distribution vector
+
+        If the player specified is not `0` or `1`, an error is raised::
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.best_responses((1/2, 1/2), player='Player1')
+            Traceback (most recent call last):
+            ...
+            ValueError: Player1 is not an index of the oponent, must be 0 or 1
         """
         if len(self.players) != 2:
             raise ValueError('Only available for 2 player games')
+
+        if player != 0 and player != 1:
+            raise ValueError('%s is not an index of the oponent, must be 0 or 1' % player)
 
         strategy = vector(strategy)
 

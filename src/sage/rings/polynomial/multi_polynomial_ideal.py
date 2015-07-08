@@ -3477,9 +3477,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: J = I.change_ring(P.change_ring(order='degrevlex'))
-            sage: gb = J.groebner_basis('giac'); gb  # optional - giacpy
-            // Giac share root-directory:...
-            ...
+            sage: gb = J.groebner_basis('giac') # optional - giacpy, random
+            sage: gb  # optional - giacpy
             [c^3 - 79/210*c^2 + 1/30*b + 1/70*c, b^2 - 3/5*c^2 - 1/5*b + 1/5*c, b*c + 6/5*c^2 - 1/10*b - 2/5*c, a + 2*b + 2*c - 1]
 
             sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # optional - giacpy

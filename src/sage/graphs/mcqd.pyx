@@ -1,5 +1,7 @@
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
+from sage.ext.memory_allocator cimport MemoryAllocator
+from libc.string cimport memset
 
 def mcqd(G):
     """
@@ -22,15 +24,11 @@ def mcqd(G):
     # - c0 is the adjacency matrix
     # - c points toward each row of the matrix
     # - qmax stores the max clique
-    cdef bool ** c = <bool **> sage_malloc(n*sizeof(bool *))
-    cdef bool * c0 = <bool *> sage_calloc(n*n,sizeof(bool))
-    cdef int * qmax = <int *> sage_malloc(n*sizeof(int))
-    sage_free(NULL)
-    if c == NULL or c0 == NULL or qmax == NULL:
-        sage_free(c)
-        sage_free(c0)
-        sage_free(qmax)
-        raise MemoryError("Allocation Failed")
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef bool ** c  = <bool **> mem.malloc(n*sizeof(bool *))
+    cdef bool * c0  = <bool *>  mem.malloc(n*n*sizeof(bool))
+    cdef int * qmax = <int *>   mem.malloc(n*sizeof(int))
+    memset(c0, 0, n*n*sizeof(bool))
 
     c[0] = c0
 
@@ -57,9 +55,6 @@ def mcqd(G):
 
     # Returns the answer
     cdef list answer = [vertices[qmax[i]] for i in range(clique_number)]
-    sage_free(c[0])
-    sage_free(c)
-    sage_free(qmax)
     del C
 
     return answer

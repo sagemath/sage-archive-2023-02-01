@@ -72,7 +72,8 @@ include "sage/data_structures/bitset.pxi"
 
 from libc.stdint cimport uint32_t
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
-
+from sage.ext.memory_allocator cimport MemoryAllocator
+from libc.string cimport memset
 
 def is_asteroidal_triple_free(G, certificate=False):
     """
@@ -145,6 +146,11 @@ def is_asteroidal_triple_free(G, certificate=False):
         return True if not certificate else (True, [])
 
     # ==> Initialize some data structures for is_asteroidal_triple_free_C
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t * waiting_list         = <uint32_t *>  mem.malloc(n * sizeof(uint32_t))
+    cdef uint32_t * _connected_structure = <uint32_t *>  mem.malloc(n * n * sizeof(uint32_t))
+    cdef uint32_t ** connected_structure = <uint32_t **> mem.malloc(n * sizeof(uint32_t *))
+    memset(_connected_structure, 0, n * n * sizeof(uint32_t))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors. This data structure is well documented in the
@@ -154,18 +160,6 @@ def is_asteroidal_triple_free(G, certificate=False):
 
     cdef bitset_t seen
     bitset_init(seen, n)
-
-    cdef uint32_t * waiting_list         = <uint32_t *> sage_malloc(n * sizeof(uint32_t))
-    cdef uint32_t * _connected_structure = <uint32_t *> sage_calloc(n * n, sizeof(uint32_t))
-    cdef uint32_t ** connected_structure = <uint32_t **> sage_malloc(n * sizeof(uint32_t *))
-
-    if waiting_list==NULL or _connected_structure==NULL or connected_structure==NULL:
-        bitset_free(seen)
-        sage_free(waiting_list)
-        sage_free(_connected_structure)
-        sage_free(connected_structure)
-        free_short_digraph(sd)
-        raise MemoryError()
 
     connected_structure[0] = _connected_structure
     for i in range(n-1):
@@ -183,11 +177,7 @@ def is_asteroidal_triple_free(G, certificate=False):
     finally:
         # Release memory
         bitset_free(seen)
-        sage_free(waiting_list)
-        sage_free(_connected_structure)
-        sage_free(connected_structure)
         free_short_digraph(sd)
-
 
     # ==> We return the result
 

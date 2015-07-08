@@ -52,7 +52,7 @@ class GiacSettingsDefaultContext:
         EXAMPLE::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy
-           sage: from giacpy import giacsettings # optional - giacpy
+           sage: from giacpy import giacsettings # optional - giacpy, random
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-12 # optional - giacpy
            sage: giacsettings.proba_epsilon < 1e-14 # optional - giacpy
@@ -228,7 +228,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         Traceback (most recent call last):
         ...
         ValueError: Variables names ['x2', 'x4'] conflict in giac. Change them or purge them from in giac with libgiac.purge('x2')
-        sage: libgiac.purge('x2'),libgiac.purge('x4')
+        sage: libgiac.purge('x2'),libgiac.purge('x4') # optional - giacpy
         (22, whywouldyoudothis)
         sage: gb_giac(I) # optional - giacpy
         Polynomial Sequence with 74 Polynomials in 8 Variables
@@ -250,7 +250,8 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     p = K.characteristic()
 
     # check for name confusions
-    blacklist = ['i'] + [str(j) for j in libgiac.VARS()]
+    blackgiacconstants = ['i', 'e'] # NB e^k is expanded to exp(k)
+    blacklist = blackgiacconstants + [str(j) for j in libgiac.VARS()]
     problematicnames = list(set(P.gens_dict().keys()).intersection(blacklist))
 
     if(len(problematicnames)>0):

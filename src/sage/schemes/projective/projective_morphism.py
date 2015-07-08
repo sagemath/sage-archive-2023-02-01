@@ -2299,12 +2299,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Bruin-Molnar] N. Bruin and A. Molnar, Minimal models for rational
-           functions in a dynamical setting
-           LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
-
-        .. [Molnar] A. Molnar, Fractional Linear Minimal Models of Rational Functions,
-           M.Sc. Thesis.
+        [Bruin-Molnar]_, [Molnar]_
 
         INPUT:
 

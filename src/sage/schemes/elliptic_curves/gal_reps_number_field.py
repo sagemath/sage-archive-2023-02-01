@@ -135,7 +135,7 @@ class GaloisRepresentation(SageObject):
             sage: rho1 == 42
             False
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self.E.is_isomorphic(other.E)
 

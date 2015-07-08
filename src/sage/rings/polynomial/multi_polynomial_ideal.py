@@ -3182,7 +3182,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         R = self.ring()
         S = other.ring()
         if R is not S: # rings are unique
-            if isinstance(R, type(S)) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
+            if type(R) is type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
                 other = other.change_ring(R)
             else:
                 return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))

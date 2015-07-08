@@ -453,6 +453,37 @@ def BubbleSortGraph(n):
         d[''.join(v)] = tmp_dict
     return Graph(d, name="Bubble sort")
 
+def chang_graphs():
+    r"""
+    Return the three Chang graphs.
+
+    Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
+    called the Chang graphs. The fourth is the line graph of `K_8`. For more
+    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+
+    EXAMPLES::
+
+        sage: chang_graphs = graphs.chang_graphs()
+        sage: four_srg = chang_graphs + [graphs.CompleteGraph(8).line_graph()]
+        sage: for g in four_srg:
+        ....:     print g.is_strongly_regular(parameters=True)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        sage: from itertools import combinations
+        sage: for g1,g2 in combinations(four_srg,2):
+        ....:     assert not g1.is_isomorphic(g2)
+    """
+    g1 = Graph("[}~~EebhkrRb_~SoLOIiAZ?LBBxDb?bQcggjHKEwoZFAaiZ?Yf[?dxb@@tdWGkwn",
+               loops=False, multiedges=False)
+    g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
+               loops=False, multiedges=False)
+    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+               loops=False, multiedges=False)
+    return [g1,g2,g3]
+
 def CirculantGraph(n, adjacency):
     r"""
     Returns a circulant graph with n nodes.

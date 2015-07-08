@@ -20,7 +20,7 @@ EXAMPLES::
     Polynomial Sequence with 45 Polynomials in 6 Variables
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2013 Frederic Han <frederic.han@imj-prg.fr>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -28,11 +28,10 @@ EXAMPLES::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from sage.structure.proof.all import polynomial as proof_polynomial
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
-
 
 #  Remarks for doctests:
 #     1) The first time that the c++ library giac is loaded a message appears.
@@ -99,19 +98,20 @@ def local_giacsettings(func):
 
     EXAMPLE::
 
-        sage: def testf(a,b): # optional - giacpy
+        sage: def testf(a,b):  # optional - giacpy
         ....:    giacsettings.proba_epsilon = a/100
         ....:    giacsettings.threads = b+2
         ....:    return (giacsettings.proba_epsilon, giacsettings.threads)
-        sage: from giacpy import giacsettings # optional - giacpy
-        sage: from sage.libs.giac import local_giacsettings # optional - giacpy
-        sage: gporig,gtorig = (giacsettings.proba_epsilon,giacsettings.threads) # optional - giacpy
-        sage: gp,gt = local_giacsettings(testf)(giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
-        sage: gporig == giacsettings.proba_epsilon # optional - giacpy
+
+        sage: from giacpy import giacsettings  # optional - giacpy
+        sage: from sage.libs.giac import local_giacsettings  # optional - giacpy
+        sage: gporig, gtorig = (giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
+        sage: gp, gt = local_giacsettings(testf)(giacsettings.proba_epsilon,giacsettings.threads)  # optional - giacpy
+        sage: gporig == giacsettings.proba_epsilon  # optional - giacpy
         True
-        sage: gtorig == giacsettings.threads # optional - giacpy
+        sage: gtorig == giacsettings.threads  # optional - giacpy
         True
-        sage: gp<gporig, gt-gtorig # optional - giacpy
+        sage: gp<gporig, gt-gtorig  # optional - giacpy
         (True, 2)
 
     """
@@ -170,11 +170,9 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: B.is_groebner() # optional - giacpy
         True
 
-    Computations over QQ can benefit of
+    Computations over QQ can benefit from
 
-    * a probabilistic lifting,
-
-    ::
+    * a probabilistic lifting::
 
         sage: P = PolynomialRing(QQ,5, 'x') # optional - giacpy
         sage: I = ideal([P.random_element(3,8) for j in range(5)]) # optional - giacpy
@@ -188,9 +186,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: B1.is_groebner() # optional - giacpy, long time
         True
 
-    * multi threaded operations
-
-    ::
+    * multi threaded operations::
 
         sage: P = PolynomialRing(QQ, 8, 'x') # optional - giacpy
         sage: I=sage.rings.ideal.Cyclic(P) # optional - giacpy
@@ -198,7 +194,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         Running a probabilistic check for the reconstructed Groebner basis...
         Time: CPU 168.98 s, Wall: 94.13 s
 
-    Get detailled information with ``prot``
+    You can get detailled information by setting ``prot=True``
 
     ::
 
@@ -254,8 +250,9 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
     p = K.characteristic()
 
     # check for name confusions
-    blacklist=['i']+[str(j) for j in libgiac.VARS()]
-    problematicnames=list(set(P.gens_dict().keys()).intersection(blacklist))
+    blacklist = ['i'] + [str(j) for j in libgiac.VARS()]
+    problematicnames = list(set(P.gens_dict().keys()).intersection(blacklist))
+
     if(len(problematicnames)>0):
         raise ValueError("The variables names %s will conflict in giac. Change this or try to purge this value in giac with libgiac.purge(\'%s\')"%(problematicnames,problematicnames[0]))
 
@@ -279,12 +276,12 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         giacsettings.proba_epsilon = proba_epsilon
 
     # prot
-    if (prot==True):
+    if prot:
         libgiac('debug_infolevel(2)')
 
     # threads
-    if not (threads is None):
-        giacsettings.threads=threads
+    if threads is not None:
+        giacsettings.threads = threads
 
     # compute de groebner basis with giac
     gb_giac = F.gbasis([P.gens()], "revlex")

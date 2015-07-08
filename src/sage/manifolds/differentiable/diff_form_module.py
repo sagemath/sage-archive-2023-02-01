@@ -4,7 +4,7 @@ Differential form modules
 The set `\Lambda^p(U,\Phi)` of `p`-forms along an open subset `U` of
 some differentiable manifold `S` with values in a open subset `V` of a
 differentiable manifold `M` (via a differentiable map `\Phi:\ U\rightarrow V`)
-is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`. *
+is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`.
 It is a free module iff `V` is parallelizable. Accordingly, two classes
 implement `\Lambda^p(U,\Phi)`:
 
@@ -53,7 +53,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
     `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
     `U` with values in `V` is a module over `C^k(U)`, the commutative
     algebra of differentiable scalar fields on `U` (see
-    :class:`~sage.manifolds.differentiable.scalarfield_algebra.ScalarFieldAlgebra`).
+    :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a differentiable manifold corresponds
     to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
     being an immersion and `\Phi` being a curve in `V` (`U` is then an open
@@ -484,7 +484,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
     `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
     `U` with values in `V` is a module over `C^k(U)`, the commutative
     algebra of differentiable scalar fields on `U` (see
-    :class:`~sage.manifolds.differentiable.scalarfield_algebra.ScalarFieldAlgebra`).
+    :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
     The standard case of `p`-forms *on* a differentiable manifold corresponds
     to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
     being an immersion and `\Phi` being a curve in `V` (`U` is then an open

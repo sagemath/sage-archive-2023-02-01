@@ -91,25 +91,29 @@ class DiffForm(TensorField):
       fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the differential
-      form; if none is provided, the LaTeX symbol is set to ``name``
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+      differential form; if none is provided, the LaTeX symbol is set to
+      ``name``
 
     EXAMPLES:
 
-    Differential form of degree 2 on a non-parallelizable 2-dimensional manifold::
+    Differential form of degree 2 on a non-parallelizable 2-dimensional
+    manifold::
 
         sage: M = DiffManifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+        ....:                              restrictions1= x>0, restrictions2= u+v>0)
         sage: inv = transf.inverse()
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: a = M.diff_form(2, name='a') ; a
-        2-form 'a' on the 2-dimensional differentiable manifold M
+        2-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^2(M) of 2-forms on the 2-dimensional differentiable manifold M
+        Module /\^2(M) of 2-forms on the 2-dimensional differentiable
+         manifold M
         sage: a.degree()
         2
 
@@ -120,14 +124,16 @@ class DiffForm(TensorField):
         sage: a.display(eU)
         a = (x*y^2 + 2*x) dx/\dy
         sage: a.display(eV)
-        a = (-1/16*u^3 + 1/16*u*v^2 - 1/16*v^3 + 1/16*(u^2 - 8)*v - 1/2*u) du/\dv
+        a = (-1/16*u^3 + 1/16*u*v^2 - 1/16*v^3
+         + 1/16*(u^2 - 8)*v - 1/2*u) du/\dv
 
     A 1-form on M::
 
         sage: a = M.one_form('a') ; a
-        1-form 'a' on the 2-dimensional differentiable manifold M
+        1-form a on the 2-dimensional differentiable manifold M
         sage: a.parent()
-        Module /\^1(M) of 1-forms on the 2-dimensional differentiable manifold M
+        Module /\^1(M) of 1-forms on the 2-dimensional differentiable
+         manifold M
         sage: a.degree()
         1
 
@@ -143,7 +149,7 @@ class DiffForm(TensorField):
     The exterior derivative of the 1-form is a 2-form::
 
         sage: da = a.exterior_der() ; da
-        2-form 'da' on the 2-dimensional differentiable manifold M
+        2-form da on the 2-dimensional differentiable manifold M
         sage: da.display(eU)
         da = 2 dx/\dy
         sage: da.display(eV)
@@ -158,16 +164,17 @@ class DiffForm(TensorField):
     Adding two 1-forms results in another 1-form::
 
         sage: s = a + b ; s
-        1-form 'a+b' on the 2-dimensional differentiable manifold M
+        1-form a+b on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
         a+b = ((x - 1)*y + 1) dx + (x^2 + x) dy
         sage: s.display(eV)
-        a+b = (1/4*u^2 + 1/4*(u + 2)*v + 1/2) du + (-1/4*u*v - 1/4*v^2 - 1/2*u + 1/2) dv
+        a+b = (1/4*u^2 + 1/4*(u + 2)*v + 1/2) du
+         + (-1/4*u*v - 1/4*v^2 - 1/2*u + 1/2) dv
 
     The exterior product of two 1-forms is a 2-form::
 
         sage: s = a.wedge(b) ; s
-        2-form 'a/\b' on the 2-dimensional differentiable manifold M
+        2-form a/\b on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
         a/\b = (-2*x^2*y - x) dx/\dy
         sage: s.display(eV)
@@ -201,7 +208,7 @@ class DiffForm(TensorField):
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: a = M.diff_form(2, name='a') ; a
-            2-form 'a' on the 2-dimensional differentiable manifold M
+            2-form a on the 2-dimensional differentiable manifold M
             sage: a[eU,0,1] = x*y^2 + 2*x
             sage: a.add_comp_by_continuation(eV, W, c_uv)
 
@@ -364,8 +371,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
       fields along `U` associated with the map `\Phi: U \rightarrow V`.
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the differential
-      form; if none is provided, the LaTeX symbol is set to ``name``
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+      differential form; if none is provided, the LaTeX symbol is set to
+      ``name``
 
     EXAMPLES:
 
@@ -374,9 +382,10 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: M = DiffManifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
         sage: a = M.diff_form(2, 'a') ; a
-        2-form 'a' on the 4-dimensional differentiable manifold M
+        2-form a on the 4-dimensional differentiable manifold M
         sage: a.parent()
-        Free module /\^2(M) of 2-forms on the 4-dimensional differentiable manifold M
+        Free module /\^2(M) of 2-forms on the 4-dimensional differentiable
+         manifold M
 
     A differential form is a tensor field of purely covariant type::
 
@@ -392,7 +401,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: a[1,0]
         -2
         sage: a.comp()
-        Fully antisymmetric 2-indices components w.r.t. coordinate frame (M, (d/dt,d/dx,d/dy,d/dz))
+        Fully antisymmetric 2-indices components w.r.t. Coordinate frame (M, (d/dt,d/dx,d/dy,d/dz))
         sage: type(a.comp())
         <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
 
@@ -402,7 +411,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: a[1,1] = 3
         Traceback (most recent call last):
         ...
-        ValueError: by antisymmetry, the component cannot have a nonzero value for the indices (1, 1)
+        ValueError: by antisymmetry, the component cannot have a nonzero value
+         for the indices (1, 1)
         sage: a[1,1] = 0  # OK, albeit useless
         sage: a[1,2] = 3  # OK
 
@@ -413,7 +423,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: a.display() # expansion with respect to the default coframe (dt, dx, dy, dz)
         a = 2 dt/\dx + 3 dx/\dy
         sage: latex(a.display()) # output for the notebook
-        a = 2 \mathrm{d} t\wedge \mathrm{d} x + 3 \mathrm{d} x\wedge \mathrm{d} y
+        a = 2 \mathrm{d} t\wedge \mathrm{d} x
+         + 3 \mathrm{d} x\wedge \mathrm{d} y
 
     Differential forms can be added or subtracted::
 
@@ -444,7 +455,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component
         sage: eps[:] # all the components are set from the previous line:
-        [[[0, 0, 0], [0, 0, 1], [0, -1, 0]], [[0, 0, -1], [0, 0, 0], [1, 0, 0]], [[0, 1, 0], [-1, 0, 0], [0, 0, 0]]]
+        [[[0, 0, 0], [0, 0, 1], [0, -1, 0]], [[0, 0, -1], [0, 0, 0], [1, 0, 0]],
+         [[0, 1, 0], [-1, 0, 0], [0, 0, 0]]]
         sage: eps.display()
         epsilon = dx/\dy/\dz
 
@@ -452,8 +464,10 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     change-of-frame formula::
 
         sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
-        sage: spher_to_cart = c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
-        sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2), atan2(sqrt(x^2+y^2),z), atan2(y, x))
+        sage: spher_to_cart = c_spher.transition_map(c_cart,
+        ....:                [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
+        sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2),
+        ....:                              atan2(sqrt(x^2+y^2),z), atan2(y, x))
         Check of the inverse coordinate transformation:
           r == r
           th == arctan2(r*sin(th), r*cos(th))
@@ -462,7 +476,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
           y == y
           z == z
         sage: eps.comp(c_spher.frame()) # computation of the components in the spherical frame
-        Fully antisymmetric 3-indices components w.r.t. coordinate frame (R3, (d/dr,d/dth,d/dph))
+        Fully antisymmetric 3-indices components w.r.t. Coordinate frame
+         (R3, (d/dr,d/dth,d/dph))
         sage: eps.comp(c_spher.frame())[1,2,3, c_spher]
         r^2*sin(th)
         sage: eps.display(c_spher.frame())
@@ -478,23 +493,26 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: b = M.one_form('B')
         sage: b[:] = (cos(z), sin(x), cos(y))
         sage: ab = a.wedge(b) ; ab
-        2-form 'A/\B' on the 3-dimensional manifold 'R3'
+        2-form A/\B on the 3-dimensional differentiable manifold R3
         sage: ab[:]
         [                         0  x*y*z*sin(x) + x*z*cos(z)  x*y*z*cos(y) - y*z*cos(z)]
         [-x*y*z*sin(x) - x*z*cos(z)                          0   -(x*cos(y) + y*sin(x))*z]
         [-x*y*z*cos(y) + y*z*cos(z)    (x*cos(y) + y*sin(x))*z                          0]
         sage: ab.display()
-        A/\B = (x*y*z*sin(x) + x*z*cos(z)) dx/\dy + (x*y*z*cos(y) - y*z*cos(z)) dx/\dz - (x*cos(y) + y*sin(x))*z dy/\dz
+        A/\B = (x*y*z*sin(x) + x*z*cos(z)) dx/\dy + (x*y*z*cos(y) - y*z*cos(z)) dx/\dz
+         - (x*cos(y) + y*sin(x))*z dy/\dz
 
     The tensor product of a 1-form and a 2-form is not a 3-form but a tensor
     field of type (0,3) with less symmetries::
 
         sage: c = a*ab ; c
-        tensor field 'A*(A/\B)' of type (0,3) on the 3-dimensional manifold 'R3'
+        Tensor field A*(A/\B) of type (0,3) on the 3-dimensional differentiable
+         manifold R3
         sage: c.symmetries()  #  the antisymmetry is only w.r.t. the last two arguments:
         no symmetry;  antisymmetry: (1, 2)
         sage: d = ab*a ; d
-        tensor field '(A/\B)*A' of type (0,3) on the 3-dimensional manifold 'R3'
+        Tensor field (A/\B)*A of type (0,3) on the 3-dimensional differentiable
+         manifold R3
         sage: d.symmetries()  #  the antisymmetry is only w.r.t. the first two arguments:
         no symmetry;  antisymmetry: (0, 1)
 
@@ -502,15 +520,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     method :meth:`exterior_der`::
 
         sage: da = a.exterior_der() ; da
-        2-form 'dA' on the 3-dimensional manifold 'R3'
+        2-form dA on the 3-dimensional differentiable manifold R3
         sage: da.display()
         dA = -(x + 1)*z dx/\dy - x*y dx/\dz + (x + z) dy/\dz
         sage: db = b.exterior_der() ; db
-        2-form 'dB' on the 3-dimensional manifold 'R3'
+        2-form dB on the 3-dimensional differentiable manifold R3
         sage: db.display()
         dB = cos(x) dx/\dy + sin(z) dx/\dz - sin(y) dy/\dz
         sage: dab = ab.exterior_der() ; dab
-        3-form 'd(A/\B)' on the 3-dimensional manifold 'R3'
+        3-form d(A/\B) on the 3-dimensional differentiable manifold R3
 
     As a 3-form over a 3-dimensional manifold, d(A/\\B) is necessarily
     proportional to the volume 3-form::
@@ -528,7 +546,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: v = M.vector_field('v')
         sage: v[:] = (y*z, -x*z, x*y)
         sage: ab.lie_der(v)
-        2-form on the 3-dimensional manifold 'R3'
+        2-form on the 3-dimensional differentiable manifold R3
 
     Let us check Cartan formula, which expresses the Lie derivative in terms
     of exterior derivatives::
@@ -539,14 +557,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     A 1-form on a `\RR^3`::
 
         sage: om = M.one_form('omega', r'\omega') ; om
-        1-form 'omega' on the 3-dimensional manifold 'R3'
+        1-form omega on the 3-dimensional differentiable manifold R3
 
     A 1-form is of course a differential form::
 
         sage: isinstance(om, sage.manifolds.differentiable.diff_form.DiffFormParal)
         True
         sage: om.parent()
-        Free module /\^1(R3) of 1-forms on the 3-dimensional manifold 'R3'
+        Free module /\^1(R3) of 1-forms on the 3-dimensional differentiable
+         manifold R3
         sage: om.tensor_type()
         (0, 1)
 
@@ -563,7 +582,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: v = M.vector_field('V')
         sage: v[:] = (x, 2*y, 3*z)
         sage: om(v)
-        scalar field 'omega(V)' on the 3-dimensional manifold 'R3'
+        Scalar field omega(V) on the 3-dimensional differentiable manifold R3
         sage: om(v).display()
         omega(V): R3 --> R
            (x, y, z) |--> 2*x*y + (5*x - 3*y)*z
@@ -579,7 +598,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         sage: b = M.one_form('B')
         sage: b[:] = (6, 5, 4)
         sage: c = a*b ; c
-        tensor field 'A*B' of type (0,2) on the 3-dimensional manifold 'R3'
+        Tensor field A*B of type (0,2) on the 3-dimensional differentiable
+         manifold R3
         sage: c[:]
         [ 6  5  4]
         [12 10  8]
@@ -590,7 +610,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     The exterior product of two 1-forms is a 2-form::
 
         sage: d = a.wedge(b) ; d
-        2-form 'A/\B' on the 3-dimensional manifold 'R3'
+        2-form A/\B on the 3-dimensional differentiable manifold R3
         sage: d[:]
         [  0  -7 -14]
         [  7   0  -7]
@@ -605,7 +625,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         True
 
     """
-    def __init__(self, vector_field_module, degree, name=None, latex_name=None):
+    def __init__(self, vector_field_module, degree, name=None,
+                 latex_name=None):
         r"""
         Construct a differential form.
 
@@ -615,9 +636,10 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.diff_form(2, name='a') ; a
-            2-form 'a' on the 2-dimensional differentiable manifold M
+            2-form a on the 2-dimensional differentiable manifold M
             sage: a.parent()
-            Free module /\^2(M) of 2-forms on the 2-dimensional differentiable manifold M
+            Free module /\^2(M) of 2-forms on the 2-dimensional differentiable
+             manifold M
             sage: a[0,1] = x*y
             sage: TestSuite(a).run()
 
@@ -692,16 +714,18 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: a = M.one_form('A')
             sage: a[:] = (t*x*y*z, z*y**2, x*z**2, x**2 + y**2)
             sage: da = a.exterior_der() ; da
-            2-form 'dA' on the 4-dimensional differentiable manifold M
+            2-form dA on the 4-dimensional differentiable manifold M
             sage: da.display()
-            dA = -t*y*z dt/\dx - t*x*z dt/\dy - t*x*y dt/\dz + (-2*y*z + z^2) dx/\dy + (-y^2 + 2*x) dx/\dz + (-2*x*z + 2*y) dy/\dz
+            dA = -t*y*z dt/\dx - t*x*z dt/\dy - t*x*y dt/\dz
+             + (-2*y*z + z^2) dx/\dy + (-y^2 + 2*x) dx/\dz
+             + (-2*x*z + 2*y) dy/\dz
             sage: latex(da)
             \mathrm{d}A
 
         The exterior derivative is nilpotent::
 
             sage: dda = da.exterior_der() ; dda
-            3-form 'ddA' on the 4-dimensional differentiable manifold M
+            3-form ddA on the 4-dimensional differentiable manifold M
             sage: dda.display()
             ddA = 0
             sage: dda == 0
@@ -740,7 +764,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                         break
                 if coord_frames == []:
                     for chart in dom._atlas:
-                        if chart != dom._def_chart: # the case def_chart is treated above
+                        if chart != dom._def_chart: # the case def_chart is
+                                                    # treated above
                             coordf = chart._frame
                             for frame in self._components:
                                 if (frame, coordf) in dom._frame_changes:
@@ -756,7 +781,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                 dc = CompFullyAntiSym(fmodule._ring, frame,
                                       self._tensor_rank+1,
                                       start_index=fmodule._sindex,
-                                     output_formatter=fmodule._output_formatter)
+                                    output_formatter=fmodule._output_formatter)
                 for ind, val in sc._comp.iteritems():
                     for i in fmodule.irange():
                         ind_d = (i,) + ind

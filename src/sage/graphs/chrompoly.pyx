@@ -158,12 +158,14 @@ def chromatic_polynomial(G, return_tree_basis = False):
                     i -= 1
     try:
         sig_on()
-        contract_and_count(chords1, chords2, num_chords, nverts, tot, parent)
-        sig_off()
-    except RuntimeError:
-        for i from 0 <= i <= nverts:
+        try:
+            contract_and_count(chords1, chords2, num_chords, nverts, tot, parent)
+        finally:
+            sig_off()
+    except BaseException:
+        for i in range(nverts):
             mpz_clear(tot[i])
-        raise RuntimeError("Error allocating memory for chrompoly.")
+        raise
     for i from 0 <= i <= nverts:
         mpz_init(coeffs[i]) # also sets them to 0
     mpz_init(coeff)

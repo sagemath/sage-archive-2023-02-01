@@ -226,15 +226,15 @@ def bandwidth(G, k=None):
 
     cdef MemoryAllocator mem = MemoryAllocator()
 
-    cdef unsigned short ** d                = <unsigned short **> mem.malloc( n   * sizeof(unsigned short *))
-    cdef unsigned short *  distances        = <unsigned short *>  mem.malloc( n*n * sizeof(unsigned short  ))
-    cdef index_t *         current          = <index_t *>         mem.malloc( n   * sizeof(index_t))
-    cdef index_t *         ordering         = <index_t *>         mem.malloc( n   * sizeof(index_t))
-    cdef index_t *         left_to_order    = <index_t *>         mem.malloc( n   * sizeof(index_t))
-    cdef index_t *         index_array_tmp  = <index_t *>         mem.malloc( n   * sizeof(index_t))
-    cdef range_t *         range_arrays     = <range_t *>         mem.malloc( n*n * sizeof(range_t))
-    cdef range_t **        ith_range_array  = <range_t **>        mem.malloc( n   * sizeof(range_t *))
-    cdef range_t *         range_array_tmp  = <range_t *>         mem.malloc( n   * sizeof(range_t))
+    cdef unsigned short ** d                = <unsigned short **> mem.allocarray(n,   sizeof(unsigned short *))
+    cdef unsigned short *  distances        = <unsigned short *>  mem.allocarray(n*n, sizeof(unsigned short  ))
+    cdef index_t *         current          = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         ordering         = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         left_to_order    = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef index_t *         index_array_tmp  = <index_t *>         mem.allocarray(n,   sizeof(index_t))
+    cdef range_t *         range_arrays     = <range_t *>         mem.allocarray(n*n, sizeof(range_t))
+    cdef range_t **        ith_range_array  = <range_t **>        mem.allocarray(n,   sizeof(range_t *))
+    cdef range_t *         range_array_tmp  = <range_t *>         mem.allocarray(n,   sizeof(range_t))
 
     cdef int i,j,kk
     all_pairs_shortest_path_BFS(G,NULL,distances,NULL) # compute the distance matrix

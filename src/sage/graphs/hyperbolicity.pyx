@@ -403,8 +403,8 @@ cdef inline distances_and_far_apart_pairs(gg,
 
     # The list of waiting vertices
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef uint32_t *       waiting_list = <uint32_t *>        mem.malloc(n * sizeof(uint32_t))
-    cdef unsigned short ** c_far_apart = <unsigned short **> mem.malloc(n * sizeof(unsigned short*))
+    cdef uint32_t *       waiting_list = <uint32_t *>        mem.allocarray(n, sizeof(uint32_t))
+    cdef unsigned short ** c_far_apart = <unsigned short **> mem.allocarray(n, sizeof(unsigned short*))
 
     # The vertices which have already been visited
     cdef bitset_t seen

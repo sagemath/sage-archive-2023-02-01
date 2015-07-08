@@ -24,9 +24,9 @@ def mcqd(G):
     # - c points toward each row of the matrix
     # - qmax stores the max clique
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef bool ** c  = <bool **> mem.malloc(n*sizeof(bool *))
+    cdef bool ** c  = <bool **> mem.allocarray(n, sizeof(bool *))
     cdef bool * c0  = <bool *>  mem.calloc(n*n, sizeof(bool))
-    cdef int * qmax = <int *>   mem.malloc(n*sizeof(int))
+    cdef int * qmax = <int *>   mem.allocarray(n, sizeof(int))
 
     c[0] = c0
 

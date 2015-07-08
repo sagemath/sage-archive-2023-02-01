@@ -186,7 +186,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     bitset_init(seen, n)
 
     # The list of waiting vertices, the beginning and the end of the list
-    cdef int * waiting_list = <int *> mem.malloc(n*sizeof(int))
+    cdef int * waiting_list = <int *> mem.allocarray(n, sizeof(int))
     cdef int waiting_beginning = 0
     cdef int waiting_end = 0
 
@@ -197,7 +197,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     cdef unsigned short * c_predecessors = predecessors
     cdef int * c_eccentricity = eccentricity
-    cdef int * c_distances = <int *> mem.malloc( n * sizeof(int))
+    cdef int * c_distances = <int *> mem.allocarray(n, sizeof(int))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors
@@ -1525,8 +1525,8 @@ def floyd_warshall(gg, paths = True, distances = False):
     cdef int w_int
 
     # init dist
-    t_dist = <unsigned short *>   mem.malloc(n*n*sizeof(unsigned short))
-    dist   = <unsigned short **>  mem.malloc(n*sizeof(unsigned short *))
+    t_dist = <unsigned short *>   mem.allocarray(n*n, sizeof(unsigned short))
+    dist   = <unsigned short **>  mem.allocarray(n, sizeof(unsigned short *))
     dist[0] = t_dist
     for 1 <= i< n:
         dist[i] = dist[i-1] + n
@@ -1539,8 +1539,8 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     if paths:
         # init prec
-        t_prec = <unsigned short *>  mem.malloc(n*n*sizeof(unsigned short))
-        prec   = <unsigned short **> mem.malloc(n*sizeof(unsigned short *))
+        t_prec = <unsigned short *>  mem.allocarray(n*n, sizeof(unsigned short))
+        prec   = <unsigned short **> mem.allocarray(n, sizeof(unsigned short *))
         prec[0] = t_prec
         for 1 <= i< n:
             prec[i] = prec[i-1] + n

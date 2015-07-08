@@ -105,13 +105,13 @@ def chromatic_polynomial(G, return_tree_basis = False):
     nedges = G.num_edges()
 
     cdef MemoryAllocator mem = MemoryAllocator()
-    queue       = <int *>   mem.malloc(nverts * sizeof(int))
-    chords1     = <int *>   mem.malloc((nedges - nverts + 1) * sizeof(int))
-    chords2     = <int *>   mem.malloc((nedges - nverts + 1) * sizeof(int))
-    parent      = <int *>   mem.malloc(nverts * sizeof(int))
-    bfs_reorder = <int *>   mem.malloc(nverts * sizeof(int))
-    tot         = <mpz_t *> mem.malloc((nverts+1) * sizeof(mpz_t))
-    coeffs      = <mpz_t *> mem.malloc((nverts+1) * sizeof(mpz_t))
+    queue       = <int *>   mem.allocarray(nverts, sizeof(int))
+    chords1     = <int *>   mem.allocarray((nedges - nverts + 1), sizeof(int))
+    chords2     = <int *>   mem.allocarray((nedges - nverts + 1), sizeof(int))
+    parent      = <int *>   mem.allocarray(nverts, sizeof(int))
+    bfs_reorder = <int *>   mem.allocarray(nverts, sizeof(int))
+    tot         = <mpz_t *> mem.allocarray((nverts+1), sizeof(mpz_t))
+    coeffs      = <mpz_t *> mem.allocarray((nverts+1), sizeof(mpz_t))
     num_chords = 0
 
     # Breadth first search from 0:
@@ -209,10 +209,10 @@ cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nver
         mpz_add_ui(tot[nverts], tot[nverts], 1)
         return 0
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int *new_chords1 = <int *> mem.malloc(num_chords * sizeof(int))
-    cdef int *new_chords2 = <int *> mem.malloc(num_chords * sizeof(int))
-    cdef int *ins_list1   = <int *> mem.malloc(num_chords * sizeof(int))
-    cdef int *ins_list2   = <int *> mem.malloc(num_chords * sizeof(int))
+    cdef int *new_chords1 = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *new_chords2 = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *ins_list1   = <int *> mem.allocarray(num_chords, sizeof(int))
+    cdef int *ins_list2   = <int *> mem.allocarray(num_chords, sizeof(int))
     cdef int i, j, k, x1, xj, z, num, insnum, parent_checked
     for i from 0 <= i < num_chords:
         # contract chord i, and recurse

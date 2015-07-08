@@ -758,15 +758,15 @@ cdef int * c_eccentricity_bounding(G) except NULL:
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
 
-    cdef int * ecc = <int *>sage_malloc(3 * n * sizeof(int))
-    if ecc==NULL:
+    cdef int * LB = <int *>sage_calloc(n, sizeof(int))
+    cdef int * UB = <int *>sage_calloc(n, sizeof(int))
+    if LB==NULL or UB==NULL:
         bitset_free(seen)
+        sage_free(LB)
+        sage_free(UB)
         sage_free(distances)
         raise MemoryError()
-    cdef int * LB = ecc + n
-    cdef int * UB = ecc + 2*n
 
-    memset(ecc, 0, 2*n*sizeof(int))
     for i in range(n):
         UB[i] = INT32_MAX
 
@@ -779,21 +779,28 @@ cdef int * c_eccentricity_bounding(G) except NULL:
         v = W.pop()
         # Compute the exact eccentricity of v
         tmp = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
-        ecc[v] = INT32_MAX if tmp>n else tmp
+        
+        if tmp==UINT32_MAX:
+            # The (di) graph is not (strongly) connected. We set maximum value and exit.
+            for w in range(n):
+                LB[w] = INT32_MAX
+            break
+        else:
+            LB[v] = tmp
 
         # Improve the bounds on the eccentricity of other vertices
         for w in W:
-            LB[w] = max(LB[w], max(ecc[v] - distances[w], distances[w]))
-            UB[w] = min(UB[w], ecc[v] + distances[w])
+            LB[w] = max(LB[w], max(LB[v] - distances[w], distances[w]))
+            UB[w] = min(UB[w], LB[v] + distances[w])
             if LB[w]==UB[w]:
-                ecc[w] = LB[w]
                 W.remove(w)
     sig_off()
 
     sage_free(distances)
+    sage_free(UB)
     bitset_free(seen)
 
-    return ecc
+    return LB
 
 def eccentricity(G, method="bounds"):
     r"""
@@ -818,6 +825,16 @@ def eccentricity(G, method="bounds"):
         sage: eccentricity(g, method='standard')==eccentricity(g, method='bounds')
         True
 
+    Case of not (strongly) connected (directed) graph::
+
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: g = 2*graphs.PathGraph(2)
+        sage: eccentricity(g, method='bounds')
+        [+Infinity, +Infinity, +Infinity, +Infinity]
+        sage: g = digraphs.Path(3)
+        sage: eccentricity(g, method='bounds')
+        [+Infinity, +Infinity, +Infinity]
+
     Asking for unknown method::
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
@@ -830,8 +847,14 @@ def eccentricity(G, method="bounds"):
     from sage.rings.infinity import Infinity
     cdef int n = G.order()
 
+    # Trivial cases
     if n == 0:
         return []
+    elif G.is_directed():
+        if G.is_strongly_connected():
+            return [Infinity]*n
+    elif not G.is_connected():
+        return [Infinity]*n
 
     cdef int * ecc
     if method=="bounds":
@@ -841,13 +864,7 @@ def eccentricity(G, method="bounds"):
     else:
         raise ValueError("Unknown method '{}'. Please contribute.".format(method))
 
-    cdef list l_ecc = []
-    cdef int i
-    for i in range(n):
-        if ecc[i] == INT32_MAX:
-            l_ecc.append(Infinity)
-        else:
-            l_ecc.append(ecc[i])
+    cdef list l_ecc = [ecc[i] for i in range(n)]
 
     sage_free(ecc)
 

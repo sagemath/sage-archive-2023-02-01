@@ -111,7 +111,7 @@ primes ?
     sage: b.formulas()[0]                               # optional -- internet
     'E.g.f.: exp(exp(x) - 1).'
 
-    sage: b.comments()[89]                              # optional -- internet
+    sage: [i for i in b.comments() if 'prime' in i][-1]     # optional -- internet
     'Number n is prime if mod(a(n)-2,n) = 0. -_Dmitry Kruchinin_, Feb 14 2012'
 
     sage: [n for n in range(2, 20) if (b(n)-2) % n == 0]    # optional -- internet
@@ -885,7 +885,7 @@ class OEISSequence(SageObject):
             sage: x = g.natural_object() ; type(x)      # optional -- internet
             <class 'sage.rings.continued_fraction.ContinuedFraction_periodic'>
 
-            sage: RDF(x) == RDF(euler_gamma)
+            sage: RDF(x) == RDF(euler_gamma)            # optional -- internet
             True
 
             sage: cfg = continued_fraction(euler_gamma)

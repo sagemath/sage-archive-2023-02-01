@@ -111,6 +111,7 @@ __append_to_doc(
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
+     "GossetGraph",
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
@@ -1862,6 +1863,7 @@ class GraphGenerators():
     FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(sage.graphs.generators.smallgraphs.GoldnerHararyGraph)
+    GossetGraph              = staticmethod(sage.graphs.generators.smallgraphs.GossetGraph)
     GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)

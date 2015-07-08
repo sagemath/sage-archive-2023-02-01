@@ -227,7 +227,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: groebner_basis_libgiac(I) # optional - giacpy
         Traceback (most recent call last):
         ...
-        ValueError: The variables names ['x2', 'x4'] will conflict in giac. Change this or try to purge this value in giac with libgiac.purge('x2')
+        ValueError: Variables names ['x2', 'x4'] conflict in giac. Change them or purge them from in giac with libgiac.purge('x2')
         sage: libgiac.purge('x2'),libgiac.purge('x4')
         (22, whywouldyoudothis)
         sage: groebner_basis_libgiac(I) # optional - giacpy
@@ -254,7 +254,8 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
     problematicnames = list(set(P.gens_dict().keys()).intersection(blacklist))
 
     if(len(problematicnames)>0):
-        raise ValueError("The variables names %s will conflict in giac. Change this or try to purge this value in giac with libgiac.purge(\'%s\')"%(problematicnames,problematicnames[0]))
+        raise ValueError("Variables names %s conflict in giac. Change them or purge them from in giac with libgiac.purge(\'%s\')"
+                         %(problematicnames, problematicnames[0]))
 
     if K.is_prime_field() and p == 0:
         F = libgiac(gens)

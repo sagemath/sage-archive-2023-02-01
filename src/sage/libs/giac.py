@@ -12,10 +12,10 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: from sage.libs.giac import groebner_basis_libgiac # optional - giacpy
+    sage: from sage.libs.giac import groebner_basis as gb_giac # optional - giacpy
     sage: P = PolynomialRing(QQ, 6, 'x')
     sage: I = sage.rings.ideal.Cyclic(P)
-    sage: B = groebner_basis_libgiac(I.gens()) # optional - giacpy, random
+    sage: B = gb_giac(I.gens()) # optional - giacpy, random
     sage: B # optional - giacpy
     Polynomial Sequence with 45 Polynomials in 6 Variables
 """
@@ -129,7 +129,7 @@ def local_giacsettings(func):
 
 
 @local_giacsettings
-def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *args, **kwds):
+def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **kwds):
     """
     Computes a Groebner Basis of an ideal using giacpy. The result is
     automatically converted to sage.
@@ -162,10 +162,10 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
 
     EXAMPLES::
 
-        sage: from sage.libs.giac import groebner_basis_libgiac # optional - giacpy
+        sage: from sage.libs.giac import groebner_basis as gb_giac # optional - giacpy
         sage: P = PolynomialRing(GF(previous_prime(2**31)), 6, 'x') # optional - giacpy
         sage: I = sage.rings.ideal.Cyclic(P) # optional - giacpy
-        sage: B=groebner_basis_libgiac(I.gens());B # optional - giacpy
+        sage: B=gb_giac(I.gens());B # optional - giacpy
         Polynomial Sequence with 45 Polynomials in 6 Variables
         sage: B.is_groebner() # optional - giacpy
         True
@@ -176,11 +176,11 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
 
         sage: P = PolynomialRing(QQ,5, 'x') # optional - giacpy
         sage: I = ideal([P.random_element(3,8) for j in range(5)]) # optional - giacpy
-        sage: B1 = groebner_basis_libgiac(I.gens(),1e-16) # optional - giacpy
+        sage: B1 = gb_giac(I.gens(),1e-16) # optional - giacpy
         Running a probabilistic check for the reconstructed Groebner basis.
         If successfull, error probability is less than 1e-16 ...
         sage: sage.structure.proof.all.polynomial(True) # optional - giacpy
-        sage: B2 = groebner_basis_libgiac(I.gens()) # optional - giacpy
+        sage: B2 = gb_giac(I.gens()) # optional - giacpy
         sage: B1==B2 # optional - giacpy
         True
         sage: B1.is_groebner() # optional - giacpy, long time
@@ -190,7 +190,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
 
         sage: P = PolynomialRing(QQ, 8, 'x') # optional - giacpy
         sage: I=sage.rings.ideal.Cyclic(P) # optional - giacpy
-        sage: time B = groebner_basis_libgiac(I.gens(),1e-6,threads=2) # doctest: +SKIP
+        sage: time B = gb_giac(I.gens(),1e-6,threads=2) # doctest: +SKIP
         Running a probabilistic check for the reconstructed Groebner basis...
         Time: CPU 168.98 s, Wall: 94.13 s
 
@@ -199,7 +199,7 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
     ::
 
         sage: I=sage.rings.ideal.Katsura(P) # optional - giacpy
-        sage: groebner_basis_libgiac(I,prot=True)  # optional - giacpy, random
+        sage: gb_giac(I,prot=True)  # optional - giacpy, random
         9381383 begin computing basis modulo 535718473
         9381501 begin new iteration zmod, number of pairs: 8, base size: 8
         ...end, basis size 74 prime number 1
@@ -224,13 +224,13 @@ def groebner_basis_libgiac(gens, proba_epsilon=None, threads=None, prot=False, *
         sage: from giacpy import libgiac # optional - giacpy
         sage: libgiac("x2:=22; x4:='whywouldyoudothis'") # optional - giacpy
         22,whywouldyoudothis
-        sage: groebner_basis_libgiac(I) # optional - giacpy
+        sage: gb_giac(I) # optional - giacpy
         Traceback (most recent call last):
         ...
         ValueError: Variables names ['x2', 'x4'] conflict in giac. Change them or purge them from in giac with libgiac.purge('x2')
         sage: libgiac.purge('x2'),libgiac.purge('x4')
         (22, whywouldyoudothis)
-        sage: groebner_basis_libgiac(I) # optional - giacpy
+        sage: gb_giac(I) # optional - giacpy
         Polynomial Sequence with 74 Polynomials in 8 Variables
 
     """

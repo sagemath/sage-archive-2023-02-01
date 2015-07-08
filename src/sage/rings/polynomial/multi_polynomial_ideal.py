@@ -3704,7 +3704,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             else:
                 raise NameError("Algorithm '%s' unknown."%algorithm)
         elif algorithm == 'giac:gbasis':
-            from sage.libs.giac import groebner_basis_libgiac
+            from sage.libs.giac import groebner_basis as groebner_basis_libgiac
             gb = groebner_basis_libgiac(self, prot=prot, *args, **kwds)
 
         else:

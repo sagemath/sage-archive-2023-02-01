@@ -11,8 +11,8 @@
 using namespace std;
 using namespace boost;
 
-typedef unsigned int v_index;
-typedef unsigned long e_index;
+typedef int v_index;
+typedef long e_index;
 
 // This struct is the output of the edge connectivity Boost algorithm.
 typedef struct {

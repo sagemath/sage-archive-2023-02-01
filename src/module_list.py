@@ -491,6 +491,17 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.lfunctions
+    ##
+    ################################
+
+    Extension('sage.lfunctions.zero_sums',
+              sources = ['sage/lfunctions/zero_sums.pyx'],
+              libraries = ["m","flint"],
+              depends = flint_depends),
+
+    ################################
+    ##
     ## sage.libs
     ##
     ################################

@@ -175,15 +175,15 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     * a probabilistic lifting::
 
         sage: P = PolynomialRing(QQ,5, 'x') # optional - giacpy
-        sage: I = ideal([P.random_element(3,8) for j in range(5)]) # optional - giacpy
-        sage: B1 = gb_giac(I.gens(),1e-16) # optional - giacpy
+        sage: I = ideal([P.random_element(3,7) for j in range(5)]) # optional - giacpy
+        sage: B1 = gb_giac(I.gens(),1e-16) # optional - giacpy, long time (1s)
         Running a probabilistic check for the reconstructed Groebner basis.
         If successfull, error probability is less than 1e-16 ...
         sage: sage.structure.proof.all.polynomial(True) # optional - giacpy
-        sage: B2 = gb_giac(I.gens()) # optional - giacpy
-        sage: B1==B2 # optional - giacpy
+        sage: B2 = gb_giac(I.gens()) # optional - giacpy, long time (4s)
+        sage: B1==B2 # optional - giacpy, long time
         True
-        sage: B1.is_groebner() # optional - giacpy, long time
+        sage: B1.is_groebner() # optional - giacpy, long time (20s)
         True
 
     * multi threaded operations::
@@ -199,7 +199,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     ::
 
         sage: I=sage.rings.ideal.Katsura(P) # optional - giacpy
-        sage: gb_giac(I,prot=True)  # optional - giacpy, random
+        sage: gb_giac(I,prot=True)  # optional - giacpy, random, long time (3s)
         9381383 begin computing basis modulo 535718473
         9381501 begin new iteration zmod, number of pairs: 8, base size: 8
         ...end, basis size 74 prime number 1
@@ -230,7 +230,7 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         ValueError: Variables names ['x2', 'x4'] conflict in giac. Change them or purge them from in giac with libgiac.purge('x2')
         sage: libgiac.purge('x2'),libgiac.purge('x4') # optional - giacpy
         (22, whywouldyoudothis)
-        sage: gb_giac(I) # optional - giacpy
+        sage: gb_giac(I) # optional - giacpy, long time (3s)
         Polynomial Sequence with 74 Polynomials in 8 Variables
 
     """

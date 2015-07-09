@@ -3489,7 +3489,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy
             sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy
-            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy
+            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy, long time (3s)
             Running a probabilistic check for the reconstructed Groebner basis...
             Polynomial Sequence with 143 Polynomials in 9 Variables
 

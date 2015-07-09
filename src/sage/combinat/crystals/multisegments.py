@@ -1,5 +1,5 @@
 r"""
-Crystal of Bernstien-Zelevinsky Multisegments
+Crystal of Bernstein-Zelevinsky Multisegments
 """
 
 #*****************************************************************************
@@ -102,24 +102,24 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
     - ``n`` -- for type `A_n^{(1)}`
 
-    EXAMPLES::
-
-        sage: B = crystals.infinity.Multisegments(2)
-        sage: x = B([(8,1),(6,0),(5,1),(5,0),(4,0),(4,1),(4,1),(3,0),(3,0),(3,1),(3,1),(1,0),(1,2),(1,2)]); x
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
-        sage: x.f(1)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (2; 1], (1; 2], (1; 2]}
-        sage: x.f(1).f(1)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0],
-         (3; 0], (3; 1], (3; 1], (2; 1], (1; 1], (1; 2], (1; 2]}
-        sage: x.e(1)
-        {(7; 0], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
-        sage: x.e(1).e(1)
-        sage: x.f(0)
-        {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
-         (3; 0], (3; 0], (3; 1], (3; 1], (2; 0], (1; 0], (1; 2]}
+#     EXAMPLES::
+#
+#         sage: B = crystals.infinity.Multisegments(2)
+#         sage: x = B([(8,1),(6,0),(5,1),(5,0),(4,0),(4,1),(4,1),(3,0),(3,0),(3,1),(3,1),(1,0),(1,2),(1,2)]); x
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
+#         sage: x.f(1)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (2; 1], (1; 2], (1; 2]}
+#         sage: x.f(1).f(1)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0],
+#          (3; 0], (3; 1], (3; 1], (2; 1], (1; 1], (1; 2], (1; 2]}
+#         sage: x.e(1)
+#         {(7; 0], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1], (3; 0], (3; 0], (3; 1], (3; 1], (1; 0], (1; 2], (1; 2]}
+#         sage: x.e(1).e(1)
+#         sage: x.f(0)
+#         {(8; 1], (6; 0], (5; 0], (5; 1], (4; 0], (4; 1], (4; 1],
+#          (3; 0], (3; 0], (3; 1], (3; 1], (2; 0], (1; 0], (1; 2]}
 
     We check an `\widehat{\mathfrak{sl}}_2` example against the generalized
     Young walls::
@@ -136,7 +136,7 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
     REFERENCES:
 
     .. [AJL2011] Susumu Ariki, Nicolas Jacon, and Cedric Lecouvey.
-       *The modular branching rule for affine Hecke algebras of type A*
+       *The modular branching rule for affine Hecke algebras of type A*.
        Adv. Math. 228:481-526 (2011).
 
     .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
@@ -222,11 +222,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return a string representation of ``self``.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]}
             """
             seg = lambda x: "({}; {}]".format(x[0], x[1])
             return "{" + ", ".join(seg(x) for x in self.value) + "}"
@@ -235,11 +235,11 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             r"""
             Return a LaTeX representation of ``self``.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: latex(B([(4,2), (3,0), (3,1), (1,1), (1,0)]))
-                \bigl\{(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]\bigr\}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: latex(B([(4,2), (3,0), (3,1), (1,1), (1,0)]))
+#                 \bigl\{(4; 2], (3; 0], (3; 1], (1; 0], (1; 1]\bigr\}
             """
             seg = lambda x: "({}; {}]".format(x[0], x[1])
             return "\\bigl\\{" + ", ".join(seg(x) for x in self.value) + "\\bigr\\}"
@@ -259,14 +259,14 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
             if there is no such block and ``ep`` is the number of unmatched
             `-`.
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b._sig(0)
-                (1, None, 1)
-                sage: b._sig(1)
-                (None, None, 0)
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b._sig(0)
+#                 (1, None, 1)
+#                 sage: b._sig(1)
+#                 (None, None, 0)
             """
             if not self.value:
                 return (None, None)
@@ -312,15 +312,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.e(0)
-                {(4; 2], (3; 0], (3; 1], (1; 1]}
-                sage: b.e(1)
-                sage: b.e(2)
-                {(3; 0], (3; 1], (3; 1], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.e(0)
+#                 {(4; 2], (3; 0], (3; 1], (1; 1]}
+#                 sage: b.e(1)
+#                 sage: b.e(2)
+#                 {(3; 0], (3; 1], (3; 1], (1; 0], (1; 1]}
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             m = self._sig(i)[0]
@@ -342,16 +342,16 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.f(0)
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 0], (1; 1]}
-                sage: b.f(1)
-                {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1], (1; 1]}
-                sage: b.f(2)
-                {(4; 2], (4; 2], (3; 0], (1; 0], (1; 1]}
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.f(0)
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 0], (1; 1]}
+#                 sage: b.f(1)
+#                 {(4; 2], (3; 0], (3; 1], (1; 0], (1; 1], (1; 1]}
+#                 sage: b.f(2)
+#                 {(4; 2], (4; 2], (3; 0], (1; 0], (1; 1]}
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             p = self._sig(i)[1]
@@ -370,16 +370,16 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             - ``i`` -- an element of the index set
 
-            EXAMPLES::
-
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.epsilon(0)
-                1
-                sage: b.epsilon(1)
-                0
-                sage: b.epsilon(2)
-                1
+#             EXAMPLES::
+#
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.epsilon(0)
+#                 1
+#                 sage: b.epsilon(1)
+#                 0
+#                 sage: b.epsilon(2)
+#                 1
             """
             i = IntegerModRing(self.parent()._cartan_type.rank())(i)
             return self._sig(i)[2]
@@ -399,15 +399,15 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.phi(0)
-                1
-                sage: b.phi(1)
-                0
-                sage: mg = B.module_generator()
-                sage: mg.f(1).phi(0)
-                -1
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.phi(0)
+#                 1
+#                 sage: b.phi(1)
+#                 0
+#                 sage: mg = B.module_generator()
+#                 sage: mg.f(1).phi(0)
+#                 -1
             """
             h = self.parent().weight_lattice_realization().simple_coroots()
             return self.epsilon(i) + self.weight().scalar(h[i])
@@ -418,10 +418,10 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: B = crystals.infinity.Multisegments(2)
-                sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
-                sage: b.weight()
-                4*delta
+#                 sage: B = crystals.infinity.Multisegments(2)
+#                 sage: b = B([(4,2), (3,0), (3,1), (1,1), (1,0)])
+#                 sage: b.weight()
+#                 4*delta
             """
             WLR = self.parent().weight_lattice_realization()
             alpha = WLR.simple_roots()

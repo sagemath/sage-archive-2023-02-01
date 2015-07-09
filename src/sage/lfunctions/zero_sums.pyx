@@ -1692,7 +1692,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: Z.analytic_rank_upper_bound(max_Delta=0.6,root_number="compute")
             0
 
-        The are a small number of curves which have pathalogically low-lying
+        The are a small number of curves which have pathologically low-lying
         zeroes. For these curves, this method will produce a bound that is
         strictly larger than the analytic rank, unless very large values of
         Delta are used. The following curve ("256944c1" in the Cremona tables)

@@ -2688,9 +2688,9 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             B = matrix(M)
             for (x,y) in product(range(n),range(m)):
                 if (x1!=x and y1!=y):
-                    if(M[x1,y]==1 and
-                       M[x,y1]==1 and
-                       M[x,y]==1):
+                    if(M[x1,y]!=0 and
+                       M[x,y1]!=0 and
+                       M[x,y]!=0):
                         B[x,y]=0
             
             # remove row x1 and y1

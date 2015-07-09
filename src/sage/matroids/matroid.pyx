@@ -5009,8 +5009,8 @@ cdef class Matroid(SageObject):
         S_2 = X_2|Y_2
         if len(S_2) < m:
             return False, None
-        if (self.rank(Y_2|(X-X_1)) - len(X-X_1)+
-            self.rank(Y_1|(X-X_2)) - len(X-X_2)==m-1):
+        if (self.rank(Y_2|(X-X_1)) - len(X-X_1) +
+            self.rank(Y_1|(X-X_2)) - len(X-X_2) == m-1):
             return True, S_2
         else:
             return False, None

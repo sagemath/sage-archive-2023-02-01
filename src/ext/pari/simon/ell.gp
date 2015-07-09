@@ -89,7 +89,6 @@ nf_scalar_or_multable_to_alg(nf, z) = {
   if (type(z) == "t_MAT", nfbasistoalg(nf, z[,1]), z);
 }
 
-{
 \\
 \\ Usual global variables
 \\
@@ -111,7 +110,6 @@ global(MAXPROB, LIMBIGPRIME):small;
   MAXPROB = 20;
   LIMBIGPRIME = 30; \\ for primes larger than this limit: use a probabilistic test
                     \\ LIMBIGPRIME = 0 means: only deterministic tests
-}
 
 \\ \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\          SCRIPT                             \\

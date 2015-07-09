@@ -52,7 +52,7 @@ class GiacSettingsDefaultContext:
         EXAMPLE::
 
            sage: from sage.libs.giac import GiacSettingsDefaultContext  # optional - giacpy
-           sage: from giacpy import giacsettings # optional - giacpy, random
+           sage: from giacpy import giacsettings # optional - giacpy
            sage: giacsettings.proba_epsilon = 1e-16 # optional - giacpy
            sage: with GiacSettingsDefaultContext(): giacsettings.proba_epsilon = 1e-12 # optional - giacpy
            sage: giacsettings.proba_epsilon < 1e-14 # optional - giacpy

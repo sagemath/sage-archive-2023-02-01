@@ -3484,6 +3484,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # optional - giacpy
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
 
+        Giac's gbasis over `\QQ` can benefit from a probabilistic lifting and
+        multi threaded operations::
+
+            sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy
+            sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy
+            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy
+            Running a probabilistic check for the reconstructed Groebner basis...
+            Polynomial Sequence with 143 Polynomials in 9 Variables
+
+        The list of available Giac options is provided at :func:`sage.libs.giac.groebner_basis`.
+
         Note that ``toy:buchberger`` does not return the reduced Groebner
         basis, ::
 
@@ -3635,7 +3646,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         ALGORITHM:
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
-        or a toy implementation.
+        Giac (if available), or a toy implementation.
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence

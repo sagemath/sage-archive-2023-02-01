@@ -114,16 +114,17 @@ from sage.matroids.matroid cimport Matroid
 from basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
-from utilities import newlabel
+from utilities import newlabel, spanning_stars, spanning_forest
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
+from sage.matrix.constructor import matrix
 from copy import copy, deepcopy
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import itertools
-from itertools import combinations
+from itertools import combinations, product
 
 cdef bint GF2_not_defined = True
 cdef GF2, GF2_one, GF2_zero
@@ -2595,7 +2596,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # connectivity
 
-    cpdef _is_3connected_shifting(self, certificate=False):
+    cpdef _is_3connected_shifting(self):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
 
@@ -2637,94 +2638,169 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             1
         """
         # build the table
+        # print "haha"
         if not self.is_connected():
-            return False
-        if self.rank()<self.size()-self.rank():
-            return self.dual()._is_3connected_shifting(certificate)
-        (M,Xp,Yp) = self.representation(reduced=True)
+            return False, self.components()[0]
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_3connected_shifting()
+        
+        # the partial matrix
+        (M,X,Y) = self.representation(reduced=True)
         # dictionary
         # create mapping between elements and columns
-        dX = dict(zip(Xp,range(len(Xp))))
-        dY = dict(zip(Yp,range(len(Yp))))
-
-        G = Graph()
-        for (x,y) in M.dict():
-            G.add_edge(Xp[x],Yp[y])
-        spanning_tree = kruskal(G)
-
-        for (x,y,z) in spanning_tree:
-            if x not in Xp:
-                t = x
-                x = y
-                y = t
-            P_rows=[dX[x]]
-            P_cols=[dY[y]]
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+        # print(M,X,Y)
+        for (x,y) in spanning_forest(M):
+            P_rows=[x]
+            P_cols=[y]
             Q_rows=[]
             Q_cols=[]
-
-            Z = range(len(Yp))
-            Z.remove(dY[y])
-            sol,cert = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, Z, 2)
+            sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 2)
             if sol:
-                if certificate:
-                    return False, cert
-                else:
-                    return False
-        if certificate:
-            return True, None
-        return True
+                cert = set([])
+                for x in cert_pair[0]:
+                    cert.add(dX[x])
+                for y in cert_pair[1]:
+                    cert.add(dY[y])
+                return False, cert
+        return True, None
 
-    cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, Z, m):
+    cpdef _is_4connected_shifting(self):
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_4connected_shifting()
+        if not self._is_3connected_shifting()[0]:
+            return self._is_3connected_shifting()
+
+        # the partial matrix
+        (M,X,Y) = self.representation(reduced=True)
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+
+        n = len(X)
+        m = len(Y)
+
+        sol=False
+        T = spanning_stars(M)
+
+        for (x1,y1) in T:
+            # The whiting out
+            B = matrix(M)
+            for (x,y) in product(range(n),range(m)):
+                if (x1!=x and y1!=y):
+                    if(M[x1,y]==1 and
+                       M[x,y1]==1 and
+                       M[x,y]==1):
+                        B[x,y]=0
+            
+            # remove row x1 and y1
+            Xp = range(n)
+            Xp.remove(x1)
+            Yp = range(m)
+            Yp.remove(y1)
+
+            B = B.matrix_from_rows_and_columns(Xp,Yp)
+
+            # produce a spanning forest of B
+            for (x,y) in spanning_forest(B):
+                if x >= x1:
+                    x = x + 1
+                if y >= y1:
+                    y = y + 1
+                # rank 2 matrix and rank 0 matrix
+                P_rows = [x,x1]
+                P_cols = [y,y1]
+                Q_rows = []
+                Q_cols = []
+                sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 3)
+                if sol:
+                    break
+                # rank 1 matrix and rank 1 matrix
+                P_rows = [x1]
+                P_cols = [y1]
+                Q_rows = [x]
+                Q_cols = [y]
+                sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 3)
+                if sol:
+                    break
+            if sol:
+                (certX, certY) = cert_pair
+                cert = set([])
+                for x in certX:
+                    cert.add(dX[x])
+                for y in certY:
+                    cert.add(dY[y])
+                return False, cert
+        return True, None
+
+    cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, m):
+        Z = range(M.ncols())
+        for y in P_cols+Q_cols:
+            Z.remove(y)
+        # print("Z",Z)
+        # print("P",P_cols)
+        # print("Q",Q_cols)
         for z in Z:
-            nP_cols = P_cols+[z]
-            nQ_cols = Q_cols+[z]
-            sol,cert = self.__shifting(M,P_rows,nP_cols,Q_rows,Q_cols,m)
+            sol,cert = self.__shifting(M,P_rows,P_cols+[z],Q_rows,Q_cols,m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,nP_cols,m)
+            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols+[z],m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,nQ_cols,m)
+            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols+[z],m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,Q_rows,nQ_cols,P_rows,P_cols,m)
+            sol,cert = self.__shifting(M,Q_rows,Q_cols+[z],P_rows,P_cols,m)
             if sol:
                 return True, cert
         return False, None
 
     cpdef __shifting(self, M, X_1, Y_2, X_2, Y_1, m):
-        # Returns true if there is a m-separator
+
+        # make copy because of destructive updates
+        X_1 = list(X_1)
+        X_2 = list(X_2)
+        Y_1 = list(Y_1)
+        Y_2 = list(Y_2)
+        X=set(range(M.nrows()))
+        Y=set(range(M.ncols()))
 
         if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
             M.matrix_from_rows_and_columns(X_2,Y_1).rank() != m-1):
             return False, None
         if len(X_1) + len(Y_1) < m:
             return False, None
-
+        remainX = X-set(X_1+X_2)
+        remainY = Y-set(Y_1+Y_2)
         while True:
             #rowshifts
             rowshift = False
-            for x in set(range(M.nrows()))-set(X_1+X_2):
+            for x in set(remainX):
                 if (M.matrix_from_rows_and_columns(X_2+[x],Y_1).rank() >
                     M.matrix_from_rows_and_columns(X_2,Y_1).rank()):
                     X_1.append(x)
+                    remainX.remove(x)
+                    # X_1 = list(set(X_1))
                     rowshift = True
             #colshifts
             colshift = False
-            for y in set(range(M.ncols()))-set(Y_1+Y_2):
+            for y in set(remainY):
                 if (M.matrix_from_rows_and_columns(X_1,Y_2+[y]).rank() >
                     M.matrix_from_rows_and_columns(X_1,Y_2).rank()):
                     Y_1.append(y)
+                    remainY.remove(y)
+                    # Y_1 = list(set(Y_1))
                     colshift = True
             if (colshift==False and rowshift==False):
                 break
-        S_1 = set(X_1)|set(Y_1)
         # size of S_2
-        if M.nrows()+M.ncols()-len(S_1) < m:
+        X_2 = list(X-set(X_1))
+        Y_2 = list(Y-set(Y_1))
+        if len(X_2)+len(Y_2) < m:
             return False, None
         if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
             M.matrix_from_rows_and_columns(X_2,Y_1).rank() == m-1):
-            return True, S_1
+            return True, (X_1, Y_1)
         else:
             return False, None
 

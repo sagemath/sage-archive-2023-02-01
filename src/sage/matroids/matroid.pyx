@@ -310,12 +310,13 @@ Methods
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from itertools import combinations, permutations
+from itertools import combinations, permutations, product
 from set_system cimport SetSystem
 from sage.graphs.spanning_tree import kruskal
 from sage.graphs.graph import Graph
+from sage.matrix.constructor import matrix
 
-from utilities import newlabel, sanitize_contractions_deletions
+from utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -4736,19 +4737,14 @@ cdef class Matroid(SageObject):
         else:
             return True
 
-    cpdef _is_3connected_shifting(self, certificate=False):
+    cpdef _is_3connected_shifting(self):
         r"""
-        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
-
-        INPUT:
-
-        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
-          then return ``True, None`` if the matroid is is 3-connected,
-          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+        Return ``True, None`` if the matroid is is 3-connected,
+        and ``False, X`` otherwise, where ``X`` is a `<3`-separation
 
         OUTPUT:
 
-        boolean, or a tuple ``(boolean, frozenset)``
+        a tuple ``(boolean, frozenset)``
 
         ALGORITHM:
 
@@ -4756,139 +4752,255 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: matroids.Uniform(2, 3)._is_3connected_shifting()
+            sage: matroids.Uniform(2, 3)._is_3connected_shifting()[0]
             True
             sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
             ....:                              [0, 1, 0, 1, 2, 0],
             ....:                              [0, 0, 1, 0, 0, 1]])
-            sage: M._is_3connected_shifting()
+            sage: M._is_3connected_shifting()[0]
             False
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
-            sage: N._is_3connected_shifting()
+            sage: N._is_3connected_shifting()[0]
             False
-            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()[0]
             True
-            sage: M = matroids.named_matroids.R6()
+            sage: M = matroids.named_matroids.R6()[0]
             sage: M._is_3connected_shifting()
             False
-            sage: B, X = M._is_3connected_shifting(True)
+            sage: B, X = M._is_3connected_shifting()
             sage: M.connectivity(X)
             1
         """
         # build the table
         if not self.is_connected():
-            return False
-        if self.rank()<self.size()-self.rank():
-            return self.dual()._is_3connected_shifting(certificate)
+            return False, self.components()[0]
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_3connected_shifting()
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
-        G = Graph()
-        for f in Y:
-            for e in (X & self.fundamental_circuit(X,f)):
-                G.add_edge(e,f)
-        spanning_tree = kruskal(G)
+        # Dictionary allow conversion between two representations
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+        rdX = dict(zip(X,range(len(X))))
+        rdY = dict(zip(Y,range(len(Y))))
+        
+        # the partial matrix
+        M = matrix(len(X),len(Y))
+        for y in Y:
+            for x in (X & self.fundamental_circuit(X,y)):
+                M[rdX[x],rdY[y]]=1
+        # print(M,X,Y)
 
-        for (x,y,z) in spanning_tree:
-            if x not in X:
-                t = x
-                x = y
-                y = t
-            P_rows=set([x])
-            P_cols=set([y])
+        for (x,y) in spanning_forest(M):
+            P_rows=set([dX[x]])
+            P_cols=set([dY[y]])
             Q_rows=set([])
             Q_cols=set([])
-            
-            Z = Y-P_cols
-            sol,cert = self._shifting_all(X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, 2)
+            sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 2)
             if sol:
-                if certificate:
-                    return False, cert
-                else:
-                    return False
-        if certificate:
-            return True, None
-        return True
+                return False, cert
+        return True, None
 
-    cpdef _is_4connected_shifting(self, certificate=False):
-        if not self._is_3connected_shifting(self):
-            return self._is_3connected_shifting(certificate)
-        # build the table
+    cpdef _is_4connected_shifting(self):
+        r"""
+        Return ``True, None`` if the matroid is is 4-connected,
+        and ``False, X`` otherwise, where ``X`` is a `<4`-separation
+
+        OUTPUT:
+
+        a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        EXAMPLES::
+            sage: M = matroids.Uniform(2, 6)
+            sage: B, X = M._is_4connected_shifting()
+            sage: (B, M.connectivity(X)<=3)
+            (False, True)
+            sage: matroids.Uniform(4, 8)._is_4connected_shifting()
+            (True, None)
+            sage: matroids.AG(5,2)._is_4connected_shifting()
+            (True, None)
+        """
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_4connected_shifting()
+        if not self._is_3connected_shifting()[0]:
+            return self._is_3connected_shifting()
+
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
-        # the larger side has rank 0
-        all_P_rows=[set(t) for t in combinations(X, 2)]
-        all_P_cols=[set(t) for t in combinations(Y, 2)]
-        for P_rows in all_P_rows:
-            for P_cols in all_P_cols:
-                Q_rows=set([])
-                Q_cols=set([])
-                Z = Y-P_cols
-                sol,cert = self._shifting_all(X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, 3)
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+        rdX = dict(zip(X,range(len(X))))
+        rdY = dict(zip(Y,range(len(Y))))
+
+        # the partial matrix
+        M = matrix(len(X),len(Y))
+        for y in Y:
+            for x in (X & self.fundamental_circuit(X,y)):
+                M[rdX[x],rdY[y]]=1
+        n = len(X)
+        m = len(Y)
+
+        # compute a connected set of stars
+
+        T = spanning_stars(M)
+        for (x1,y1) in T:
+            # The whiting out
+            B = matrix(M)
+            for (x,y) in product(range(n),range(m)):
+                if (x1!=x and y1!=y):
+                    if(M[x1,y]==1 and
+                       M[x,y1]==1 and
+                       M[x,y]==1):
+                        B[x,y]=0
+            
+            # remove row x1 and y1
+            Xp = range(n)
+            Xp.remove(x1)
+            Yp = range(m)
+            Yp.remove(y1)
+            #print(n,m,x1,y1,Xp,Yp)
+            B = B.matrix_from_rows_and_columns(Xp,Yp)
+
+            # produce a spanning forest of B
+            for (x,y) in spanning_forest(B):
+                if x >= x1:
+                    x = x+1
+                if y >= y1:
+                    y = y+1
+                # rank 2 matrix and rank 0 matrix
+                P_rows = set([dX[x],dX[x1]])
+                P_cols = set([dY[y],dY[y1]])
+                Q_rows = set([])
+                Q_cols = set([])
+                sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 3)
                 if sol:
                     return False, cert
-        # both sides have rank 1
-        for px in X:
-            for py in Y:
-                for qx in X-set([px]):
-                    for qy in Y-set([py]):
-                        Z = Y-set([py,qy])
-                        sol,cert = self._shifting_all(X, Y, set([px]), set([py]), set([qx]), set([qy]), Z, 3)
-                        if sol:
-                            if certificate:
-                                return False, cert
-                            else:
-                                return False
-        if certificate:
-            return True, None
-        return True
-        
-    cpdef _rk(self,X,Xp,Yp):
-        return self.rank(Yp|(X-Xp)) - len(X-Xp)
+                # rank 1 matrix and rank 1 matrix
+                P_rows = set([dX[x1]])
+                P_cols = set([dY[y1]])
+                Q_rows = set([dX[x]])
+                Q_cols = set([dY[y]])
+                sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 3)
+                if sol:
+                    return False, cert
+        return True, None
 
-    cpdef _shifting_all(self, X, Y, P_rows, P_cols, Q_rows, Q_cols, Z, m):
-        for z in Z:
-            nP_cols = set(P_cols)
-            nP_cols.add(z)
-            nQ_cols = set(Q_cols)
-            nQ_cols.add(z)
-            sol,cert = self._shifting(X,Y,(P_rows,nP_cols),(Q_rows,Q_cols),m)
+    cpdef _shifting_all(self, X, P_rows, P_cols, Q_rows, Q_cols, m):
+        r"""
+        Given a basis ``X``. If the submatrix of the partial matrix using rows 
+        `P_rows` columns `P_cols` and submatrix using rows `Q_rows` columns
+        `Q_cols` can be extended to a ``m``-separator, then it returns
+        `True, E`, where `E` is a ``m``-separator. Otherwise it returns
+        `False, None`
+
+        `P_rows` and `Q_rows` must be disjoint subsets of `X`.
+        `P_cols` and `Q_cols` must be disjoint subsets of `Y`.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``X`` -- A basis
+        - ``P_rows`` -- row index of the first submatrix
+        - ``P_cols`` -- column index of the first submatrix
+        - ``Q_rows`` -- row index of the second submatrix
+        - ``Q_cols`` -- column index of the second submatrix
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if there is no ``m``-separator.
+        - `True, E` -- if there exist a ``m``-separator ``E``.
+
+        EXAMPLES::
+
+        [NEED UPDATE]
+        """
+        Y = self.groundset()-X
+        for z in (Y - P_cols) - Q_cols:
+            sol,cert = self._shifting(X,P_rows,P_cols|set([z]),Q_rows,Q_cols,m)
             if sol:
                 return True, cert
-            sol,cert = self._shifting(X,Y,(Q_rows,Q_cols),(P_rows,nP_cols),m)
+            sol,cert = self._shifting(X,Q_rows,Q_cols,P_rows,P_cols|set([z]),m)
             if sol:
                 return True, cert
-            sol,cert = self._shifting(X,Y,(P_rows,P_cols),(Q_rows,nQ_cols),m)
+            sol,cert = self._shifting(X,P_rows,P_cols,Q_rows,Q_cols|set([z]),m)
             if sol:
                 return True, cert
-            sol,cert = self._shifting(X,Y,(Q_rows,nQ_cols),(P_rows,P_cols),m)
+            sol,cert = self._shifting(X,Q_rows,Q_cols|set([z]),P_rows,P_cols,m)
             if sol:
                 return True, cert
         return False, None
 
-    cpdef _shifting(self, X, Y, R_12, R_21, m):
+    cpdef _shifting(self, X, X_1, Y_2, X_2, Y_1, m):
+        r"""
+        Given a basis ``X``. If the submatrix of the partial matrix using rows 
+        `X_1` columns `Y_2` and submatrix using rows `X_2` columns
+        `Y_1` can be extended to a ``m``-separator, then it returns
+        `True, E`, where `E` is a ``m``-separator. Otherwise it returns
+        `False, None`
+
+        `X_1` and `X_2` must be disjoint subsets of `X`.
+        `Y_1` and `Y_2` must be disjoint subsets of `Y`.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``X`` -- A basis
+        - ``X_1`` -- row index of the first submatrix
+        - ``Y_2`` -- column index of the first submatrix
+        - ``X_2`` -- row index of the second submatrix
+        - ``Y_1`` -- column index of the second submatrix
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if there is no ``m``-separator.
+        - `True, E` -- if there exist a ``m``-separator ``E``.
+
+        EXAMPLES::
+
+        [NEED UPDATE]
+        """
+        
+        X_1 = set(X_1)
+        X_2 = set(X_2)
+        Y_1 = set(Y_1)
+        Y_2 = set(Y_2)
+        Y = self.groundset()-X
         # Returns true if there is a m-separator
-        X_1, Y_2 = R_12
-        X_2, Y_1 = R_21
-        if self._rk(X, X_1, Y_2) + self._rk(X, X_2, Y_1)!= m-1:
+        if (self.rank(Y_2|(X-X_1)) - len(X-X_1) 
+            + self.rank(Y_1|(X-X_2)) - len(X-X_2) != m-1):
             return False, None
         if len(X_1|Y_1) < m:
             return False, None
+        remainX = set(X-(X_1|X_2))
+        remainY = set(Y-(Y_1|Y_2))
         while True:
             #rowshifts
             rowshift = False
-            for x in X-(X_1|X_2):
-                if(self._rk(X, X_2|set([x]), Y_1)>self._rk(X, X_2, Y_1)):
-                    X_1 = X_1|set([x])
+            for x in set(remainX):
+                if(self.rank(Y_1|(X-(X_2|set([x])))) - len(X-(X_2|set([x])))
+                   > self.rank(Y_1|(X-X_2)) - len(X-X_2)):
+                    X_1.add(x)
+                    remainX.remove(x)
                     rowshift = True
             #colshifts
             colshift = False
-            for y in Y-(Y_1|Y_2):
-                if(self._rk(X, X_1, Y_2|set([y]))>self._rk(X, X_1, Y_2)):
-                    Y_1 = Y_1|set([y])
+            for y in set(remainY):
+                if(self.rank(Y_2|set([y])|(X-X_1)) - len(X-X_1)
+                   > self.rank(Y_2|(X-X_1)) - len(X-X_1)):
+                    Y_1.add(y)
+                    remainY.remove(y)
                     colshift = True
             if (colshift==False and rowshift==False):
                 break
@@ -4897,7 +5009,8 @@ cdef class Matroid(SageObject):
         S_2 = X_2|Y_2
         if len(S_2) < m:
             return False, None
-        if (self._rk(X, X_1, Y_2) + self._rk(X, X_2, Y_1)==m-1):
+        if (self.rank(Y_2|(X-X_1)) - len(X-X_1)+
+            self.rank(Y_1|(X-X_2)) - len(X-X_2)==m-1):
             return True, S_2
         else:
             return False, None

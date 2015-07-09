@@ -875,26 +875,10 @@ class GpElement(ExpectElement):
         EXAMPLES::
 
             sage: E = gp('ellinit([1,2,3,4,5])')
-            sage: loads(dumps(E))  # indirect doctest
-            [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, Vecsmall([1]),
-            [Vecsmall([128, -1])], [0, 0, 0, 0, 0, 0, 0, 0]]
-            sage: E.sage()
-            [1,
-             2,
-             3,
-             4,
-             5,
-             9,
-             11,
-             29,
-             35,
-             -183,
-             -3429,
-             -10351,
-             6128487/10351,
-             [1],
-             [[128, -1]],
-             [0, 0, 0, 0, 0, 0, 0, 0]]
+            sage: loads(dumps(E)) == E # indirect doctest
+            True
+            sage: gp(E.sage()) == E
+            False
 
         """
         return repr(self)

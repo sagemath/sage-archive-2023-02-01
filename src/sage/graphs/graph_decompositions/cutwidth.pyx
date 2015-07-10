@@ -104,7 +104,7 @@ MILP formulation for the cutwidth
 ---------------------------------
 
 We describe a mixed integer linear program (MILP) for determining an
-optimal layout for the cutwidth of `G`. 
+optimal layout for the cutwidth of `G`.
 
 **Variables:**
 
@@ -634,7 +634,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
         sage: cutwidth.cutwidth_MILP(G, lower_bound=G.size()+1)
         Traceback (most recent call last):
         ...
-        ValueError: Infeasible problem or unexpected error.
+        MIPSolverException: ...
 
     Giving anything else than a Graph::
 
@@ -662,7 +662,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     # All vertices at different positions
     for v in V:
         for k in range(N-1):
-            p.add_constraint( p.sum( x[v,i] for i in range(k) ) -k*x[v,k] <= 0 )
+            p.add_constraint( p.sum( x[v,i] for i in range(k) ) <= k*x[v,k] )
         p.add_constraint( x[v,N-1] == 1 )
     for k in range(N):
         p.add_constraint( p.sum( x[v,k] for v in V ) == k+1 )
@@ -671,8 +671,8 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     # [0,i] and the other is placed at a position in [i+1,n].
     for u,v in G.edge_iterator(labels=None):
         for i in range(N):
-            p.add_constraint( x[u,i] - x[v,i] - y[u,v,i] <= 0)
-            p.add_constraint( x[v,i] - x[u,i] - y[u,v,i] <= 0)
+            p.add_constraint( x[u,i] - x[v,i] <= y[u,v,i] )
+            p.add_constraint( x[v,i] - x[u,i] <= y[u,v,i] )
 
     # Lower bound on the solution
     p.add_constraint( lower_bound <= z['z'] )
@@ -680,14 +680,11 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     # Objective
     p.add_constraint( z['z'] <= G.size() )
     for i in range(N):
-        p.add_constraint( p.sum( y[u,v,i] for u,v in G.edge_iterator(labels=None) ) - z['z'] <= 0 )
+        p.add_constraint( p.sum( y[u,v,i] for u,v in G.edge_iterator(labels=None) ) <= z['z'] )
 
     p.set_objective( z['z'] )
 
-    try:
-        obj = p.solve( log=verbose )
-    except:
-        raise ValueError("Infeasible problem or unexpected error.")
+    obj = p.solve( log=verbose )
 
     # We now extract the ordering and the cost of the solution
     cw = int( p.get_values(z)['z'] )

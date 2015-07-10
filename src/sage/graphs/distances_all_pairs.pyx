@@ -746,6 +746,9 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     bounds on the eccentricity of each node until no further improvements can be
     done. This algorithm offers good running time reduction on scale-free graphs.
     """
+    if G.is_directed():
+        raise ValueError("The 'bounds' method only works on undirected graphs.")
+
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors.  This data structure is well documented in the
     # module sage.graphs.base.static_sparse_graph
@@ -850,8 +853,17 @@ def eccentricity(G, method="bounds"):
         sage: eccentricity(g, method='bounds')
         [+Infinity, +Infinity, +Infinity, +Infinity]
         sage: g = digraphs.Path(3)
-        sage: eccentricity(g, method='bounds')
+        sage: eccentricity(g, method='standard')
         [+Infinity, +Infinity, +Infinity]
+
+    The bounds method is for Graph only::
+
+        sage: from sage.graphs.distances_all_pairs import eccentricity
+        sage: g = digraphs.Circuit(2)
+        sage: eccentricity(g, method='bounds')
+        Traceback (most recent call last):
+        ...
+        ValueError: The 'bounds' method only works on undirected graphs.
 
     Asking for unknown method::
 
@@ -869,7 +881,9 @@ def eccentricity(G, method="bounds"):
     if n == 0:
         return []
     elif G.is_directed():
-        if not G.is_strongly_connected():
+        if method=='bounds':
+            raise ValueError("The 'bounds' method only works on undirected graphs.")
+        elif not G.is_strongly_connected():
             return [Infinity]*n
     elif not G.is_connected():
         return [Infinity]*n

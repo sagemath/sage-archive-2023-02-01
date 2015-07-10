@@ -863,7 +863,7 @@ def eccentricity(G, method="standard"):
         [+Infinity, +Infinity, +Infinity, +Infinity]
         sage: g = digraphs.Path(3)
         sage: eccentricity(g, method='standard')
-        [+Infinity, +Infinity, +Infinity]
+        [2, +Infinity, +Infinity]
 
     The bounds method is for Graph only::
 
@@ -889,11 +889,8 @@ def eccentricity(G, method="standard"):
     # Trivial cases
     if n == 0:
         return []
-    elif G.is_directed():
-        if method=='bounds':
-            raise ValueError("The 'bounds' method only works on undirected graphs.")
-        elif not G.is_strongly_connected():
-            return [Infinity]*n
+    elif G.is_directed() and method=='bounds':
+        raise ValueError("The 'bounds' method only works on undirected graphs.")
     elif not G.is_connected():
         return [Infinity]*n
 
@@ -905,7 +902,7 @@ def eccentricity(G, method="standard"):
     else:
         raise ValueError("Unknown method '{}'. Please contribute.".format(method))
 
-    cdef list l_ecc = [ecc[i] for i in range(n)]
+    cdef list l_ecc = [ecc[i] if ecc[i]!=UINT32_MAX else +Infinity for i in range(n)]
 
     sage_free(ecc)
 

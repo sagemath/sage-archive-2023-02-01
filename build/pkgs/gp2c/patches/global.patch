@@ -1,0 +1,126 @@
+Patch taken from upstream to fix global()
+
+diff --git a/src/genblock.c b/src/genblock.c
+index a3582d2..e626e0f 100644
+--- a/src/genblock.c
++++ b/src/genblock.c
+@@ -251,7 +251,11 @@ int genblockdeclaration(int args, int n, int flag, int type, int *seq)
+         /*Make sure GEN objects are gerepilable.*/
+         val = newnode(Ftag, newnode(Ftag, newsmall(0), Ggen), tv);
+       if (decl==global)
+-        fillvar(var,flag,tv,val);
++      {
++        int f=fillvar(var,flag,tv,-1);
++        if (autogc)
++          affectval(f,val,seq);
++      }
+       else
+         pushvar(var,flag,tv,val);
+       break;
+@@ -270,10 +274,12 @@ int genblockdeclaration(int args, int n, int flag, int type, int *seq)
+           val=newcall("_const_quote",newstringnode(entryname(stack[i]),-1));
+           affectval(fillvar(stack[i],flag,mint,-1),val,seq);
+         }
+-        else if (autogc)
++        else
+         {
++          int f = fillvar(stack[i],flag,mint,-1);
+           /*Make sure (implicitly GEN) objects are gerepilable.*/
+-          fillvar(stack[i],flag,mint, newsmall(0));
++          if (autogc)
++            affectval(f,  newsmall(0), seq);
+         }
+         break;
+       case function:
+diff --git a/src/topfunc.c b/src/topfunc.c
+index 872830e..bff787f 100644
+--- a/src/topfunc.c
++++ b/src/topfunc.c
+@@ -154,13 +154,12 @@ static int topfuncproto(int n, int fun, int pfun, int nf)
+           break;
+         case 'I':
+         case 'E':
+-          if (wr>=-1)
+-          {
+-        case 'J':
+-            seq = newnode(Flambda,var,newleaf(a));
+-            tree[a] = tree[seq];
+-            topfunclambda(a, n, fun, pfun, wr);
+-          }
++          if (wr<-1)
++            break;
++        case 'J': /* Fall through */
++          seq = newnode(Flambda,var,newleaf(a));
++          tree[a] = tree[seq];
++          topfunclambda(a, n, fun, pfun, wr);
+           break;
+       }
+       break;
+diff --git a/src/toplevel.c b/src/toplevel.c
+index f5999c4..23c92a8 100644
+--- a/src/toplevel.c
++++ b/src/toplevel.c
+@@ -120,7 +120,7 @@ void gentoplevel(int n)
+     }
+     else
+       gentoplevel(x);
+-    if (y>=0 && tree[y].f!=Fdeffunc)
++    if (y>=0 && tree[y].f!=Fdeffunc && tree[y].f!=Fseq)
+     {
+       int dy = detag(y);
+       if (isfunc(dy,"global"))
+diff --git a/test/gp/initfunc.gp b/test/gp/initfunc.gp
+index 03c1dd3..ed0b87d 100644
+--- a/test/gp/initfunc.gp
++++ b/test/gp/initfunc.gp
+@@ -1,4 +1,4 @@
+-global(y:var,n:small=0,m:small,k=2,L:vec,T2)
++global(y:var='y,n:small=0,m:small,k=2,L:vec,T2)
+ T=clone([4,3,2,2,1,1,1,1,0,0,0,0,0,0,0,0])
+ T2=clone([4,3,2,2,1,1,1,1,0,0,0,0,0,0,0,0])
+ L=[]~;
+@@ -15,3 +15,10 @@ aff()=print(n," ",m);
+ M=[1,2;3,4]
+ print(x^4+k);
+ pow_M(k)=M^k
++global(x1:int,x2:int);
++global(y1,y2):int;
++global(z1,z2);
++f1(x)=my(z=x^2+1);if(z==1,x1=x,x2=x);z
++f2(x)=my(z=x^2+1);if(z==1,y1=x,y2=x);z
++f3(x)=my(z=x^2+1);if(z==1,z1=x,z2=x);z
++global(t1);t1=0
+diff --git a/test/input/initfunc b/test/input/initfunc
+index 8506d08..46a126d 100644
+--- a/test/input/initfunc
++++ b/test/input/initfunc
+@@ -2,3 +2,9 @@ init_initfunc(); print(pow_M(2))
+ vector(100,i,mybfffo(i))
+ vector(31,i,mybfffo(1<<(i-1)))
+ for(i=1,5,count();aff())
++init_initfunc();f1(0)
++init_initfunc();f1(1)
++init_initfunc();f2(0)
++init_initfunc();f2(1)
++init_initfunc();f3(0)
++init_initfunc();f3(1)
+diff --git a/test/res/initfunc.res b/test/res/initfunc.res
+index 391d09d..a1e538c 100644
+--- a/test/res/initfunc.res
++++ b/test/res/initfunc.res
+@@ -13,3 +13,15 @@ x^4 + 2
+ 3 30
+ 4 30
+ 5 29
++x^4 + 2
++1
++x^4 + 2
++2
++x^4 + 2
++1
++x^4 + 2
++2
++x^4 + 2
++1
++x^4 + 2
++2

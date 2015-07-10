@@ -50,14 +50,16 @@ class BoostGraph
 */
 {
     typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
-    v_index, no_property, no_property, EdgeListS> adjacency_list;
+    property<vertex_index_t, v_index>, no_property, no_property, EdgeListS> adjacency_list;
     typedef typename boost::graph_traits<adjacency_list>::vertex_descriptor vertex_descriptor;
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
+    typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type vertex_to_int_map;
 
 public:
     adjacency_list *graph;
     vector<vertex_descriptor> *vertices;
+    vertex_to_int_map index;
 
     BoostGraph() {
         graph = new adjacency_list();
@@ -93,8 +95,8 @@ public:
 
         for (v_index i = 0; i < disconnecting_set.size(); i++) {
             edge_descriptor edge = disconnecting_set[i];
-            to_return.edges.push_back((*graph)[boost::source(edge, *graph)]);
-            to_return.edges.push_back((*graph)[boost::target(edge, *graph)]);
+            to_return.edges.push_back(index[boost::source(edge, *graph)]);
+            to_return.edges.push_back(index[boost::target(edge, *graph)]);
         }
         return to_return;
     }
@@ -105,44 +107,27 @@ public:
 
     result_cc clustering_coeff_all() {
         result_cc to_return;
-
-        typedef typename exterior_vertex_property<adjacency_list, double>::container_type ClusteringContainer;
-        typedef typename exterior_vertex_property<adjacency_list, double>::map_type ClusteringMap;
-
-        ClusteringContainer coefs(num_vertices(*graph));
-        ClusteringMap cm(coefs, *graph);
-
-        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph, cm);
-        for (v_index i = 0; i < num_verts(); i++) {
-            to_return.clust_of_v.push_back(cm[(*graph)[i]]);
-        }
-
+        to_return.clust_of_v.resize(num_verts());
+        to_return.average_clustering_coefficient = all_clustering_coefficients(*graph,
+                        make_iterator_property_map(to_return.clust_of_v.begin(), index));
         return to_return;
     }
 
     vector<v_index> dominator_tree(v_index v) {
-
-        vector<v_index> fathers;
-        typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type IndexMap;
-        typedef typename boost::iterator_property_map<typename std::vector<vertex_descriptor>::iterator, IndexMap> PredMap;
-
-        IndexMap indexMap(get(boost::vertex_index, (*graph)));
-
-        std::vector<vertex_descriptor> domTreePredVector = std::vector<vertex_descriptor>(
-                    num_vertices(*graph),
+        vector<v_index> fathers(num_verts());
+        vector<vertex_descriptor> fathers_descr(num_verts(),
                     boost::graph_traits<adjacency_list>::null_vertex());
 
-        PredMap domTreePredMap = make_iterator_property_map(
-                    domTreePredVector.begin(), indexMap);
+        lengauer_tarjan_dominator_tree(*graph, (*vertices)[v],
+                                       make_iterator_property_map(
+                                           fathers_descr.begin(), index));
 
-
-        lengauer_tarjan_dominator_tree(*graph, vertex(v, *graph), domTreePredMap);
         for (v_index i = 0; i < num_verts(); i++) {
-            vertex_descriptor v = domTreePredMap[(*vertices)[i]];
+            vertex_descriptor v = fathers_descr[i];
             if (v == boost::graph_traits<adjacency_list>::null_vertex()) {
-                fathers.push_back(-1);
+                fathers[i] = -1;
             } else {
-                fathers.push_back((*graph)[v]);
+                fathers[i] = index[v];
             }
         }
         return fathers;

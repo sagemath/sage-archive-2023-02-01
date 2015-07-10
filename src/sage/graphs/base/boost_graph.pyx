@@ -34,6 +34,7 @@ with ``delete()``.
     :func:`clustering_coeff`  | Returns the clustering coefficient of all vertices in the graph.
     :func:`edge_connectivity` | Returns the edge connectivity of the graph.
     :func:`dominator_tree` | Returns a dominator tree of the graph.
+    :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
 
 Functions
 ---------
@@ -362,3 +363,96 @@ cpdef dominator_tree(g, root, return_dict = False):
             return g
         else:
             return Graph(edges)
+
+
+cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
+    r"""
+    Uses Boost heuristics to approximate the bandwidth of the input graph.
+
+    The bandwidth `bw(M)` of a matrix `M` is the smallest integer `k` such that
+    all non-zero entries of `M` are at distance `k` from the diagonal. The
+    bandwidth `bw(g)` of an undirected graph `g` is the minimum bandwidth of
+    the adjacency matrix of `g`, over all possible relabellings of its vertices
+    (for more information, see the
+    :mod:`~sage.graphs.graph_decompositions.bandwidth`
+    module).
+
+    Unfortunately, exactly computing the bandwidth is NP-hard (and an
+    exponential algorithm is implemented in Sagemath in routine
+    :func:`~sage.graphs.graph_decompositions.bandwidth.bandwidth`). Here, we
+    implement two heuristics to find good orderings: Cuthill-McKee, and King.
+
+    This function works only in undirected graphs, and its running time is
+    `O(md_{max}\log d_{max})` for the Cuthill-McKee ordering, and
+    `O(md_{max}^2\log d_{max})` for the King ordering, where `m` is the number
+    of edges, and `d_{max}` is the maximum degree in the graph.
+
+    INPUT:
+
+    - ``g`` (``Graph``) - the input graph.
+
+    - ``algorithm`` (``'cuthill_mckee'`` or ``'king'``) - the heuristic used to
+      compute the ordering: Cuthill-McKee, or King.
+
+    OUTPUT:
+
+    A pair ``[bandwidth, ordering]``, where ``ordering`` is the ordering of
+    vertices, ``bandwidth`` is the bandwidth of that specific ordering (which
+    is not necessarily the bandwidth of the graph, because this is a heuristic).
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import bandwidth_heuristics
+        sage: bandwidth_heuristics(graphs.PathGraph(10))
+        [1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
+        [3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)]]
+        sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
+        [3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)]]
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: from sage.graphs.base.boost_graph import bandwidth_heuristics
+        sage: bandwidth_heuristics(digraphs.Path(10))
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Graph.
+        sage: bandwidth_heuristics("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Graph.
+
+    Given a wrong algorithm::
+
+        from sage.graphs.base.boost_graph import bandwidth_heuristics
+        sage: bandwidth_heuristics(graphs.PathGraph(3), algorithm='tip top')
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+    """
+    from sage.graphs.graph import Graph
+
+    if not isinstance(g, Graph):
+        raise ValueError("The input g must be a Graph.")
+    if not algorithm in ['cuthill_mckee', 'king']:
+        raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+
+    sig_on()
+    # These variables are automatically deleted when the function terminates.
+    cdef BoostVecGraph g_boost
+    cdef vector[v_index] result
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+
+    boost_graph_from_sage_graph(&g_boost, g)
+    result = <vector[v_index]> g_boost.bandwidth_ordering(algorithm=='cuthill_mckee')
+
+    cdef int n = g.num_verts()
+    cdef dict pos = {int_to_vertex[result[i]]:i for i in range(n)}
+    cdef int bandwidth = max([abs(pos[u]-pos[v]) for u,v in g.edges(labels=False)])
+
+    sig_off()
+    return [bandwidth, [int_to_vertex[result[i]] for i in range(n)]]

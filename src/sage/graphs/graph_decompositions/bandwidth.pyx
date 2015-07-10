@@ -100,6 +100,7 @@ include 'sage/ext/interrupt.pxi'
 from libc.stdint cimport uint16_t
 from libc.stdlib cimport malloc, free
 from sage.graphs.distances_all_pairs cimport all_pairs_shortest_path_BFS
+from sage.graphs.base.boost_graph import bandwidth_heuristics
 
 ctypedef uint16_t index_t
 

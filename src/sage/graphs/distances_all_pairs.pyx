@@ -742,7 +742,7 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     The algorithm proposed in [TK13]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
-    ecc[v] + d(v,w)`.Also the algorithms iteratively improves upper and lower
+    ecc[v] + d(v,w)`. Also the algorithms iteratively improves upper and lower
     bounds on the eccentricity of each node until no further improvements can be
     done. This algorithm offers good running time reduction on scale-free graphs.
     """
@@ -791,9 +791,9 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
         # Compute the exact eccentricity of v
         LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
-        
+
         if LB[v]==UINT32_MAX:
-            # The (di) graph is not (strongly) connected. We set maximum value
+            # The graph is not connected. We set maximum value
             # and exit.
             for w in range(n):
                 LB[w] = UINT32_MAX

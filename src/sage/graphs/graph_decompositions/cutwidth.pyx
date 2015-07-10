@@ -105,7 +105,7 @@ MILP formulation for the cutwidth
 
 We describe a mixed integer linear program (MILP) for determining an
 optimal layout for the cutwidth of `G`. 
-  
+
 **Variables:**
 
 - `x_v^k` -- Variable set to 1 if vertex `v` is placed in the ordering at
@@ -119,7 +119,7 @@ optimal layout for the cutwidth of `G`.
 - `z` -- Objective value to minimize. It is equal to the maximum over all
   position `k` of the number of edges with one extremity at position at most `k`
   and the other at position stricly more than `k`, that is `\sum_{uv\in
-  E}y_{u,v}^{y}`.
+  E}y_{u,v}^{k}`.
 
 
 **MILP formulation:**
@@ -128,25 +128,21 @@ optimal layout for the cutwidth of `G`.
     :nowrap:
 
     \begin{alignat}{2}
-    \text{Minimize:}
-    &z&\\
-    \text{Such that:}
-    \sum_{i=0}^{k-1}x_v^i &\leq k*x_v^{k}& \forall v\in V,\ k\in[1,n-1] \label{eq:1}\\
-    x_v^n & =1 & \forall v\in V \label{eq:2}\\
-    \sum_{v\in V}x_v^k & k+1 & \forall k\in[0,n-1] \label{eq:3}\\
-    y_{u,v}^k & \leq x_u^k+x_v^k & \forall uv\in E,\ \forall k\in[0,n-1] \label{eq:4}\\
-    y_{u,v}^k +\leq x_u^k+x_v^k&\leq 2 & \forall uv\in E,\ \forall k\in[0,n-1] \label{eq:5}\\
-    x_u^k \leq y_{u,v}^k+x_v^k & \forall uv\in E,\ \forall k\in[0,n-1] \label{eq:6}\\
-    x_v^k \leq y_{u,v}^k+x_u^k & \forall uv\in E,\ \forall k\in[0,n-1] \label{eq:7}\\
-    \sum_{uv\in E}y_{u,v}^k &\leq z & \forall k\in[0,n-1] \label{eq:8}\\
-    0 \leq z &\leq |E|&
+    &\text{Minimize:} \qquad &z&\\
+    &\text{Such that:}
+    & \sum_{i=0}^{k-1}x_v^i &\leq k*x_v^{k} & \quad \forall v\in V,\ k\in[1,n-1] &(1)\\
+    && x_v^n & =1  & \quad \forall v\in V &(2)\\
+    && \sum_{v\in V}x_v^k & = k+1 &\quad  \forall k\in[0,n-1]&(3)\\
+    && x_u^k - x_v^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1] &(4)\\
+    && x_v^k - x_u^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1] &(5)\\
+    && \sum_{uv\in E}y_{u,v}^k &\leq z &\quad  \forall k\in[0,n-1]&(6)\\
+    && 0 \leq z &\leq |E|&
     \end{alignat}
 
-Constraints `\eqref{eq:1}-\eqref{eq:3}` ensure that all vertices have a distinct
-position. Constraints `\eqref{eq:4}-\eqref{eq:7}` model a ``xor`` so that
-`y_{u,v}^k = x_u^k\xor x_v^k`. Constraint `\eqref{eq:8}` count the number of
-edges starting at position at most `k` and ending at a position stricly larger
-than `k`.
+Constraints (1)-(3) ensure that all vertices have a distinct
+position. Constraints (4)-(5) force variable `y_{u,v}^k` to 1 if the edge is in
+the cut. Constraint (6) count the number of edges starting at position at most
+`k` and ending at a position stricly larger than `k`.
 
 This formulation corresponds to method :meth:`cutwidth_MILP`.
 
@@ -672,12 +668,9 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
         p.add_constraint( p.sum( x[v,k] for v in V ) == k+1 )
 
     # Edge uv counts at position i if one of u or v is placed at a position in
-    # [0,i] and the other is placed at a position in [i+1,n]. So ee[u,v,i]==1,
-    # if and only if x[u,i]+x[v,i]==1. This is a xor.
+    # [0,i] and the other is placed at a position in [i+1,n].
     for u,v in G.edge_iterator(labels=None):
         for i in range(N):
-            p.add_constraint( y[u,v,i] - x[u,i] - x[v,i] <= 0)
-            p.add_constraint( y[u,v,i] + x[u,i] + x[v,i] <= 2)
             p.add_constraint( x[u,i] - x[v,i] - y[u,v,i] <= 0)
             p.add_constraint( x[v,i] - x[u,i] - y[u,v,i] <= 0)
 
@@ -690,16 +683,14 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
         p.add_constraint( p.sum( y[u,v,i] for u,v in G.edge_iterator(labels=None) ) - z['z'] <= 0 )
 
     p.set_objective( z['z'] )
-    p.set_binary( x )
-    p.set_binary( y )
 
     try:
         obj = p.solve( log=verbose )
-    except MIPSolverException:
+    except:
         raise ValueError("Infeasible problem or unexpected error.")
 
     # We now extract the ordering and the cost of the solution
-    cw = int(round( p.get_values(z)['z'] ))
+    cw = int( p.get_values(z)['z'] )
     val_x = p.get_values( x )
     seq = []
     to_see = set(V)

@@ -155,7 +155,7 @@ from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
 
-from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph
+from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
 
 
 cdef inline all_pairs_shortest_path_BFS(gg,
@@ -773,33 +773,50 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     memset(UB, -1, n * sizeof(uint32_t))
 
-    cdef int v, w
-    cdef list W = [v for _,v in sorted((sd.neighbors[v+1]-sd.neighbors[v],v) for v in range(n))]
-    cdef uint32_t tmp
+    cdef list W = range(n)
+    cdef uint32_t v, w, next_v, tmp, cpt = 0
+
+    # The first vertex is the one with largest degree
+    next_v = max((out_degree(sd, v), v) for v in range(n))[1]
 
     sig_on()
     while W:
-        v = W.pop()
+
+        v = next_v
+        W.remove(v)
+        cpt += 1
+
         # Compute the exact eccentricity of v
         LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
         
         if LB[v]==UINT32_MAX:
-            # The (di) graph is not (strongly) connected. We set maximum value and exit.
+            # The (di) graph is not (strongly) connected. We set maximum value
+            # and exit.
             for w in range(n):
                 LB[w] = UINT32_MAX
             break
 
-        # Improve the bounds on the eccentricity of other vertices
+        # Improve the bounds on the eccentricity of other vertices and select
+        # source of the next BFS
+        if not W:
+            break
+        next_v = W[0]
         for w in W:
             LB[w] = max(LB[w], max(LB[v] - distances[w], distances[w]))
             UB[w] = min(UB[w], LB[v] + distances[w])
             if LB[w]==UB[w]:
                 W.remove(w)
+            elif (cpt%2==0 and LB[w]<LB[next_v]) or (cpt%2==1 and UB[w]>UB[next_v]):
+                # The next vertex is either the vertex with largest upper bound
+                # or smallest lower bound
+                next_v = w
+
     sig_off()
 
     sage_free(distances)
     sage_free(UB)
     bitset_free(seen)
+    free_short_digraph(sd)
 
     return LB
 

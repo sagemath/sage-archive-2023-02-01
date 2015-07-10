@@ -131,7 +131,7 @@ REFERENCE:
   tight bounds for the diameter of massive graphs. *ACM Journal of Experimental
   Algorithms* 13 (2008) http://dx.doi.org/10.1145/1412228.1455266
 
-.. [FK13] F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
+.. [TK13] F. W. Takes and W. A. Kosters. Computing the eccentricity distribution
   of large graphs. *Algorithms* 6:100-118 (2013)
   http://dx.doi.org/10.3390/a6010100
 
@@ -735,12 +735,12 @@ cdef uint32_t * c_eccentricity(G) except NULL:
 
 cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     r"""
-    Return the vector of eccentricities in G using the algorithm of [FK13]_.
+    Return the vector of eccentricities in G using the algorithm of [TK13]_.
 
     The array returned is of length n, and its ith component is the eccentricity
     of the ith vertex in ``G.vertices()``.
 
-    The algorithm proposed in [FK13]_ is based on the observation that for all
+    The algorithm proposed in [TK13]_ is based on the observation that for all
     nodes `v,w\in V`, we have `\max(ecc[v]-d(v,w), d(v,w))\leq ecc[w] \leq
     ecc[v] + d(v,w)`.Also the algorithms iteratively improves upper and lower
     bounds on the eccentricity of each node until no further improvements can be
@@ -803,13 +803,13 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
         # source of the next BFS
         if not W:
             break
-        next_v = W[0]
+        next_v = UINT32_MAX
         for w in W:
             LB[w] = max(LB[w], max(LB[v] - distances[w], distances[w]))
             UB[w] = min(UB[w], LB[v] + distances[w])
             if LB[w]==UB[w]:
                 W.remove(w)
-            elif (cpt%2==0 and LB[w]<LB[next_v]) or (cpt%2==1 and UB[w]>UB[next_v]):
+            elif next_v==UINT32_MAX or (cpt%2==0 and LB[w]<LB[next_v]) or (cpt%2==1 and UB[w]>UB[next_v]):
                 # The next vertex is either the vertex with largest upper bound
                 # or smallest lower bound
                 next_v = w
@@ -823,14 +823,23 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
 
     return LB
 
-def eccentricity(G, method="bounds"):
+def eccentricity(G, method="standard"):
     r"""
     Return the vector of eccentricities in G.
 
     The array returned is of length n, and its ith component is the eccentricity
     of the ith vertex in ``G.vertices()``.
 
-    EXAMPLE::
+    INPUT:
+
+    - ``G`` -- a Graph or a DiGraph.
+
+    - ``method`` -- (default: 'standard') name of the method used to compute the
+      eccentricity of the vertices. Available methods are `'standard'` which
+      performs a BFS from each vertex and `'bounds'` which uses the fast
+      algorithm proposed in [TK13]_ for undirected graphs.
+
+    EXAMPLE:
 
         sage: from sage.graphs.distances_all_pairs import eccentricity
         sage: g = graphs.PetersenGraph()

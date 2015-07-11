@@ -1514,8 +1514,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._gobj.gethash()
 
-    # Boilerplate code from sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Create a formal symbolic inequality or equality.
 
@@ -1570,9 +1569,6 @@ cdef class Expression(CommutativeRingElement):
             sage: x == (x == x)
             False
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
         cdef Expression l, r
 
         l = left
@@ -3160,8 +3156,7 @@ cdef class Expression(CommutativeRingElement):
         """
         return 1/self
 
-    # Boilerplate code from sage/structure/element.pyx
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare self and right, returning -1, 0, or 1, depending on if
         self < right, self == right, or self > right, respectively.
@@ -3169,10 +3164,21 @@ cdef class Expression(CommutativeRingElement):
         Use this instead of the operators <=, <, etc. to compare symbolic
         expressions when you do not want to get a formal inequality back.
 
-        IMPORTANT: Both self and right *must* have the same type, or
+        IMPORTANT: Both self and right *must* have the same parent, or
         this function will not be called.
 
+        INPUT:
+
+        - ``right`` -- A :class:`Expression` instance.
+
+        OUTPUT: -1, 0 or 1
+
         EXAMPLES::
+
+            sage: a = sqrt(3)
+            sage: b = x^2+1
+            sage: a.__cmp__(b)   # indirect doctest
+            -1
 
             sage: x,y = var('x,y')
             sage: x.__cmp__(y)
@@ -3285,27 +3291,6 @@ cdef class Expression(CommutativeRingElement):
             I*x - 1/2
             sage: t.subs(x=I*x).subs(x=0).is_positive()
             False
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Compare ``left`` and ``right``.
-
-        INPUT:
-
-        - ``right`` -- A :class:`Expression` instance.
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: a = sqrt(3)
-            sage: b = x^2+1
-            sage: a.__cmp__(b)   # indirect doctest
-            -1
         """
         return print_order_compare(left._gobj, (<Expression>right)._gobj)
 

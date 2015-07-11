@@ -93,7 +93,7 @@ First we construct a circle::
 For what values $k$ does a vertical line $x=k$ intersect the combined
 figure of the circle and ellipse exactly three times? ::
 
-    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F  # optional - qepcad
+    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
     (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
     sage: qepcad(F)                                         # not tested
     x^2 - 3 <= 0 /\ 8 x^2 - 8 x - 29 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
@@ -131,7 +131,7 @@ the circle.
 Let us do some basic formula simplification and visualization.
 We will look at the region which is inside both the ellipse and the circle::
 
-    sage: F = qf.and_(ellipse < 0, circle < 0); F         # optional - qepcad
+    sage: F = qf.and_(ellipse < 0, circle < 0); F
     [3 x^2 + 2 x y + y^2 - x + y - 7 < 0 /\ x^2 + y^2 - 3 < 0]
     sage: qepcad(F)                                       # not tested
     y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0
@@ -171,7 +171,7 @@ structure, it also can be more efficient to construct.  Consider this
 formula for the projection of a particular semicircle onto the $x$
 axis::
 
-    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F  # optional - qepcad
+    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F
     (E y)[x^2 + y^2 - 3 = 0 /\ x + y > 0]
     sage: qepcad(F)                                             # not tested
     x^2 - 3 <= 0 /\ [ x > 0 \/ 2 x^2 - 3 < 0 ]
@@ -218,7 +218,7 @@ We can verify that this point is a solution.  To do so, we create
 a copy of ellipse as a polynomial over `\QQ` (instead of a symbolic
 expression). ::
 
-    sage: pellipse = QQ['x,y'](ellipse)                # optional - qepcad
+    sage: pellipse = QQ['x,y'](ellipse)
     sage: pellipse(**p) == 0                           # optional - qepcad
     True
 
@@ -246,7 +246,7 @@ And, of course, all these points really are not on the ellipse. ::
 Finally, for all-points, let us look again at finding vertical lines that
 intersect the union of the circle and the ellipse exactly three times. ::
 
-    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F   # optional - qepcad
+    sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
     (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
     sage: pts = qepcad(F, solution='all-points'); pts       # optional - qepcad
     [{'x': 1.732050807568878?}, {'x': 1.731054913462534?}, {'x': 0.678911384208004?}, {'x': -0.9417727377417167?}, {'x': -1.468193559928821?}, {'x': -1.468501968502953?}]
@@ -256,7 +256,7 @@ Since $y$ is bound by the quantifier, the solutions only refer to $x$.
 We can substitute one of these solutions into the original equation::
 
     sage: pt = pts[0]                             # optional - qepcad
-    sage: pcombo = QQ['x,y'](circle * ellipse)     # optional - qepcad
+    sage: pcombo = QQ['x,y'](circle * ellipse)
     sage: intersections = pcombo(y=polygen(AA, 'y'), **pt); intersections       # optional - qepcad
     y^4 + 4.464101615137755?*y^3 + 0.2679491924311227?*y^2
 
@@ -453,17 +453,17 @@ ellipse.  Suppose you want to find all vertical lines that intersect
 the circle twice, and also intersect the ellipse twice.  The vertical
 lines that intersect the circle twice can be found by simplifying::
 
-    sage: F = qf.exactly_k(2, y, circle == 0); F         # optional - qepcad
+    sage: F = qf.exactly_k(2, y, circle == 0); F
     (X2 y)[x^2 + y^2 - 3 = 0]
 
 and the vertical lines that intersect the ellipse twice are expressed by::
 
-    sage: G = qf.exactly_k(2, y, ellipse == 0); G        # optional - qepcad
+    sage: G = qf.exactly_k(2, y, ellipse == 0); G
     (X2 y)[3 x^2 + 2 x y + y^2 - x + y - 7 = 0]
 
 and the lines that intersect both figures would be::
 
-    sage: qf.and_(F, G)                                  # optional - qepcad
+    sage: qf.and_(F, G)
     Traceback (most recent call last):
     ...
     ValueError: QEPCAD formulas must be in prenex (quantifiers outermost) form

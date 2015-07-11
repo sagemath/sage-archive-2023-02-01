@@ -470,12 +470,12 @@ class Crystals(Category_singleton):
             INPUT::
 
             - ``Y`` -- a crystal
-            - ``category`` -- a subcategory of :class:`Crysals`() or ``None``
+            - ``category`` -- a subcategory of :class:`Crystals`() or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.categories.crystals.CrystalHomset`. If
             ``category`` is specified and is not a subcategory of
-            :class:`Crystals`, a ``TypeError`` is raised instead
+            :class:`Crystals`, a ``TypeError`` is raised instead.
 
             This method is not meant to be called directly. Please use
             :func:`sage.categories.homset.Hom` instead.
@@ -517,12 +517,13 @@ class Crystals(Category_singleton):
               morphism; the default is the generators of ``self``
             - ``automorphism`` -- (optional) the automorphism to perform the
               twisting
-            - ``virtualization`` -- a dictionary whose keys are in the index
+            - ``virtualization`` -- (optional) a dictionary whose keys are in the index
               set of the domain and whose values are lists of entries in the
-              index set of the codomain
-            - ``scaling_factors`` -- a dictionary whose keys are in the index
+              index set of the codomain; the default is the identity dictionary
+            - ``scaling_factors`` -- (optional) a dictionary whose keys are in the index
               set of the domain and whose values are scaling factors for the
-              weight, `\varepsilon` and `\varphi`.
+              weight, `\varepsilon` and `\varphi`. The default are all scaling factors
+              to be one.
             - ``category`` -- (optional) the category for the crystal morphism;
               the default is the category of :class:`Crystals`.
             - ``check`` -- (default: ``True``) check if the crystal morphism
@@ -570,7 +571,7 @@ class Crystals(Category_singleton):
                 sage: psi(lw) == mg.to_lowest_weight()[0]
                 True
 
-            We now take the other isomorphic factor in the tensor product::
+            We now take the other isomorphic highest weight component in the tensor product::
 
                 sage: mg = T.highest_weight_vectors()[1]; mg
                 [[[2]], [[1]], [[1]]]
@@ -578,7 +579,7 @@ class Crystals(Category_singleton):
                 sage: psi(lw)
                 [[[3]], [[2]], [[3]]]
 
-            We construct a crystal morphism as classical crystals using a
+            We construct a crystal morphism of classical crystals using a
             Kirillov-Reshetikhin crystal::
 
                 sage: B = crystals.Tableaux(['D', 4], shape=[1,1])
@@ -629,10 +630,10 @@ class Crystals(Category_singleton):
 
             INPUT:
 
-            - ``subset`` -- (Optional) A subset of vertices for
+            - ``subset`` -- (optional) A subset of vertices for
               which the digraph should be constructed
 
-            - ``index_set`` -- (Optional) The index set to draw arrows
+            - ``index_set`` -- (optional) The index set to draw arrows
 
             EXAMPLES::
 

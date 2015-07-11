@@ -29,9 +29,12 @@ cdef extern from "boost/graph/adjacency_list.hpp" namespace "boost":
         pass
 
 cdef extern from "boost_interface.cpp":
+    ctypedef unsigned long v_index
+    ctypedef unsigned long e_index
+
     cdef cppclass result_ec:
-        int ec
-        vector[int] edges
+        v_index ec
+        vector[v_index] edges
 
     cdef cppclass result_cc:
         float average_clustering_coefficient
@@ -40,12 +43,13 @@ cdef extern from "boost_interface.cpp":
     cdef cppclass BoostGraph[OutEdgeListS, VertexListS, DirectedS, EdgeListS]:
         BoostGraph()
         void add_vertex()
-        int num_verts()
-        void add_edge(int u, int v)
-        int num_edges()
+        v_index num_verts()
+        void add_edge(v_index u, v_index v)
+        e_index num_edges()
         result_ec edge_connectivity()
-        double clustering_coeff(int v)
+        double clustering_coeff(v_index v)
         result_cc clustering_coeff_all()
+        vector[v_index] dominator_tree(v_index v)
 
 ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS] BoostVecDiGraph

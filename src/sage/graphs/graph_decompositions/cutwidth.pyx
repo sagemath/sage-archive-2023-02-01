@@ -648,7 +648,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     if not isinstance(G, Graph):
         raise ValueError("The first input parameter must be a Graph.")
 
-    from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+    from sage.numerical.mip import MixedIntegerLinearProgram
     p = MixedIntegerLinearProgram( maximization = False, solver = solver )
 
     # Declaration of variables.

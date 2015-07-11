@@ -2644,7 +2644,7 @@ class PSL(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSL(2,13)
-            sage: G.ramification_module_decomposition_hurwitz_curve() # random, optional - database_gap
+            sage: G.ramification_module_decomposition_hurwitz_curve() # random, optional - database_gap, gap_packages
             [0, 7, 7, 12, 12, 12, 13, 15, 14]
 
         This means, for example, that the trivial representation does not
@@ -2692,7 +2692,7 @@ class PSL(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSL(2,7)
-            sage: G.ramification_module_decomposition_modular_curve() # random, optional - database_gap
+            sage: G.ramification_module_decomposition_modular_curve() # random, optional - database_gap, gap_packages
             [0, 4, 3, 6, 7, 8]
 
         This means, for example, that the trivial representation does not

@@ -316,11 +316,11 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 
         sage: from sage.graphs.graph_decompositions import cutwidth
         sage: for i in range(10):  # long test
-        ...       G = graphs.RandomGNP(10, 0.2)
-        ...       ve, le = cutwidth.cutwidth_dyn(G)
-        ...       vm, lm = cutwidth.cutwidth_MILP(G)
-        ...       if ve != vm:
-        ...          print "Something goes wrong!"
+        ....:     G = graphs.RandomGNP(10, 0.2)
+        ....:     ve, le = cutwidth.cutwidth_dyn(G)
+        ....:     vm, lm = cutwidth.cutwidth_MILP(G)
+        ....:     if ve != vm:
+        ....:        print "Something goes wrong!"
 
     Given a wrong algorithm::
 
@@ -621,11 +621,11 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
 
         sage: from sage.graphs.graph_decompositions import cutwidth
         sage: for i in range(10):  # long test
-        ...       G = graphs.RandomGNP(10, 0.2)
-        ...       ve, le = cutwidth.cutwidth_dyn(G)
-        ...       vm, lm = cutwidth.cutwidth_MILP(G)
-        ...       if ve != vm:
-        ...          print "The solution is not optimal!"
+        ....:     G = graphs.RandomGNP(10, 0.2)
+        ....:     ve, le = cutwidth.cutwidth_dyn(G)
+        ....:     vm, lm = cutwidth.cutwidth_MILP(G)
+        ....:     if ve != vm:
+        ....:        print "The solution is not optimal!"
 
     Giving a too large lower bound::
 

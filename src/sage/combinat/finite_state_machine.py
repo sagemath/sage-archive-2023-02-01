@@ -1556,8 +1556,26 @@ class FSMState(SageObject):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState('A')
-            sage: copy(A)
-            'A'
+            sage: A.is_initial = True
+            sage: A.is_final = True
+            sage: A.final_word_out = [1]
+            sage: A.color = 'green'
+            sage: A.initial_probability = 1/2
+            sage: B = copy(A)
+            sage: B.fully_equal(A)
+            True
+            sage: A.label() is B.label()
+            True
+            sage: A.is_initial is B.is_initial
+            True
+            sage: A.is_final is B.is_final
+            True
+            sage: A.final_word_out is B.final_word_out
+            True
+            sage: A.color is B.color
+            True
+            sage: A.initial_probability is B.initial_probability
+            True
         """
         new = FSMState(self.label(), self.word_out,
                        self.is_initial, self.is_final,

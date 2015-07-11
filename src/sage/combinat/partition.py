@@ -285,7 +285,6 @@ from sage.libs.flint.arith import number_of_partitions as flint_number_of_partit
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.symbolic.ring import var
 
 from sage.misc.lazy_import import lazy_import
@@ -293,7 +292,6 @@ lazy_import('sage.combinat.skew_partition', 'SkewPartition')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.cachefunc import cached_method, cached_function
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -306,7 +304,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialObject, cyclic_permutations_iterator
+from combinat import CombinatorialClass, CombinatorialElement, cyclic_permutations_iterator
 import tableau
 import permutation
 import composition
@@ -410,7 +408,7 @@ PartitionOptions=GlobalOptions(name='partitions',
     notation = dict(alt_name='convention')
 )
 
-class Partition(CombinatorialObject, Element):
+class Partition(CombinatorialElement):
     r"""
     A partition `p` of a nonnegative integer `n` is a
     non-increasing list of positive integers (the *parts* of the
@@ -547,8 +545,6 @@ class Partition(CombinatorialObject, Element):
         ...
         ValueError: [0, 7, 3] is not an element of Partitions
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, mu=None, **keyword):
         """
@@ -624,19 +620,17 @@ class Partition(CombinatorialObject, Element):
             ValueError: [3, 1, 7] is not an element of Partitions
         """
         if isinstance(mu, Partition):
-            Element.__init__(self, parent)
             # Since we are (suppose to be) immutable, we can share the underlying data
-            CombinatorialObject.__init__(self, mu._list)
+            CombinatorialElement.__init__(self, parent, mu._list)
             return
 
         elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in xrange(len(mu)-1)) \
                 and mu[-1] in NN):
-            Element.__init__(self, parent)
             if 0 in mu:
                 # strip all trailing zeros
-                CombinatorialObject.__init__(self, mu[:mu.index(0)])
+                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
             else:
-                CombinatorialObject.__init__(self, mu)
+                CombinatorialElement.__init__(self, parent, mu)
 
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
@@ -735,7 +729,7 @@ class Partition(CombinatorialObject, Element):
             [        ****  ***  *    **  *   * ]
             [ *****, *   , ** , *  , * , * , * ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
     def _repr_list(self):
@@ -1844,7 +1838,7 @@ class Partition(CombinatorialObject, Element):
             sage: p.larger_lex([3,1,1,1,1,1,1,1])
             True
         """
-        return CombinatorialObject.__gt__(self, rhs)
+        return CombinatorialElement.__gt__(self, rhs)
 
     def dominates(self, p2):
         r"""
@@ -3252,7 +3246,7 @@ class Partition(CombinatorialObject, Element):
         lcors = [[0,p[0]-1]]
         nn = len(p)
         if nn == 1:
-            return map(tuple, lcors)
+            return [tuple(_) for _ in lcors]
 
         lcors_index = 0
         for i in range(1, nn):
@@ -3262,7 +3256,7 @@ class Partition(CombinatorialObject, Element):
                 lcors.append([i,p[i]-1])
                 lcors_index += 1
 
-        return map(tuple, lcors)
+        return [tuple(_) for _ in lcors]
 
     inside_corners = corners
     removable_cells = corners     # for compatibility with partition tuples
@@ -4428,7 +4422,7 @@ class Partition(CombinatorialObject, Element):
             # if we know the total length alloted for each of the paths (sizes), and the number
             # of paths for each component. A multinomial picks the ordering of the components where
             # each step is taken.
-                return prod(path_counts)*factorial(sum(sizes))/prod(map(factorial,sizes))
+                return prod(path_counts) * factorial(sum(sizes)) / prod([factorial(_) for _ in sizes])
 
             sizes = [larger_quotients[i].size()-smaller_quotients[i].size() for i in range(k)]
             path_counts = [larger_quotients[i].dimension(smaller_quotients[i]) for i in range(k)]
@@ -4908,6 +4902,14 @@ class Partitions(UniqueRepresentation, Parent):
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
         [4, 3, 2, 1, 1, 1, 1]
+
+    Check that ``inner`` and ``outer`` indeed accept a partition as
+    argument (:trac:`18423`)::
+
+        sage: P = Partitions(5, inner=Partition([2,1]), outer=Partition([3,2])); P
+        Partitions of the integer 5 satisfying constraints inner=[2, 1], outer=[3, 2]
+        sage: P.list()
+        [[3, 2]]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4984,7 +4986,7 @@ class Partitions(UniqueRepresentation, Parent):
                 kwargs['max_length'] = min(len(kwargs['outer']),
                                            kwargs.get('max_length', infinity))
 
-                kwargs['ceiling'] = kwargs['outer']
+                kwargs['ceiling'] = tuple(kwargs['outer'])
                 del kwargs['outer']
 
             if 'inner' in kwargs:
@@ -5653,6 +5655,13 @@ class Partitions_n(Partitions):
             ....:     for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_uniform()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
          - It is a python Implementation of RANDPAR, see [nw]_.  The
@@ -5701,7 +5710,7 @@ class Partitions_n(Partitions):
             res.extend([d]*j)
             n = r
         res.sort(reverse=True)
-        return Partition(res)
+        return self.element_class(self, res)
 
     def random_element_plancherel(self):
         r"""
@@ -5726,6 +5735,13 @@ class Partitions_n(Partitions):
             ...       for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_plancherel()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
         - insert by Robinson-Schensted a uniform random permutations of n and
@@ -5737,7 +5753,8 @@ class Partitions_n(Partitions):
 
         - Florent Hivert (2009-11-23)
         """
-        return permutation.Permutations(self.n).random_element().left_tableau().shape()
+        T = permutation.Permutations(self.n).random_element().left_tableau()
+        return self.element_class(self, [len(row) for row in T])
 
     def first(self):
         """

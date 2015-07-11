@@ -93,8 +93,6 @@ else
     esac
 fi
 
-export SAGE_MP_LIBRARY
-
 ###############################################################################
 # Determine whether to install GCC (gcc, g++, gfortran).
 ###############################################################################
@@ -270,15 +268,6 @@ EOF
 echo >&5 "SHELL = `command -v bash`"
 echo >&5
 
-# If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
-# then turn off parallel building: disable just building multiple
-# packages at the same time.   Individual packages can still be built
-# in parallel by specifying '-j' in $MAKE.
-if [ "${SAGE_PARALLEL_SPKG_BUILD:-yes}" = no ]; then
-    echo ".NOTPARALLEL:" >&5
-    echo "" >&5
-fi
-
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {
@@ -293,127 +282,83 @@ newest_version() {
     fi
 }
 
+# Outputs the list of packages, filtered by 'type', e.g.:
+#
+#     filtered_packages_list base
+#     filtered_packages_list standard
+#     filtered_packages_list optional
+#     filtered_packages_list experimental
+#
+# Or, if you want all packages:
+#
+#     filtered_packages_list all
+#
+# The output consists of triples
+# PKG_NAME PKG_VERSION PKG_VAR
+#
+
+filtered_packages_list() {
+    # for each package in pkgs/
+    for DIR in $SAGE_ROOT/build/pkgs/*; do
+
+        PKG_TYPE_FILE="$DIR/type"
+        if [ -f "$PKG_TYPE_FILE" ]; then
+            PKG_TYPE=`cat $PKG_TYPE_FILE`
+        else
+            echo >&2 "\"$PKG_TYPE_FILE\" is missing. Create it, and set its content"
+            echo >&2 "to 'base', 'standard', 'optional' or 'experimental'."
+            return 1
+        fi
+
+        # Check consistency of 'DIR/type' file
+        if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ]; then
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
+            return 1
+        fi
+
+        # Filter
+        if [ "$1" = "$PKG_TYPE" -o "$1" = all ]; then
+            PKG_NAME=$(basename $DIR)
+            PKG_VAR="$(echo $PKG_NAME | sed 's/^4/FOUR/' | tr '[:lower:]' '[:upper:]')"
+            PKG_VERSION=$(newest_version $PKG_NAME)
+            echo "$PKG_NAME $PKG_VERSION $PKG_VAR"
+        fi
+    done
+}
+
+# Check that all packages define a (valid) 'type' file, or exit
+filtered_packages_list none || exit $?
+
+echo >&5 "# All Sage packages"
+
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&5 "$PKG_VAR = $PKG_VERSION"
+    echo "$PKG_VAR=$PKG_VERSION"
+done
+
 cat >&5 <<EOF
-# Standard packages
-ATLAS=`newest_version atlas`
-BACKPORTS_SSL_MATCH_HOSTNAME=`newest_version backports_ssl_match_hostname`
-BOEHM_GC=`newest_version boehm_gc`
-BOOST_CROPPED=`newest_version boost_cropped`
-BZIP2=`newest_version bzip2`
-CDDLIB=`newest_version cddlib`
-CEPHES=`newest_version cephes`
-CERTIFI=`newest_version certifi`
-CLIQUER=`newest_version cliquer`
-COMBINATORIAL_DESIGNS=`newest_version combinatorial_designs`
-CONWAY=`newest_version conway_polynomials`
-CVXOPT=`newest_version cvxopt`
-CYTHON=`newest_version cython`
-DATEUTIL=`newest_version dateutil`
-DOCUTILS=`newest_version docutils`
-ECL=`newest_version ecl`
-ECLIB=`newest_version eclib`
-ECM=`newest_version ecm`
-ELLIPTIC_CURVES=`newest_version elliptic_curves`
-FFLASFFPACK=`newest_version fflas_ffpack`
-FLINT=`newest_version flint`
-FLINTQS=`newest_version flintqs`
-FPLLL=`newest_version libfplll`
-FREETYPE=`newest_version freetype`
-GAP=`newest_version gap`
-GCC=`newest_version gcc`
-GD=`newest_version libgd`
-GFAN=`newest_version gfan`
-GF2X=`newest_version gf2x`
-GIT=`newest_version git`
-GIVARO=`newest_version givaro`
-GLPK=`newest_version glpk`
-GRAPHS=`newest_version graphs`
-GSL=`newest_version gsl`
-ICONV=`newest_version iconv`
-IML=`newest_version iml`
-IPYTHON=`newest_version ipython`
-JINJA2=`newest_version jinja2`
-JMOL=`newest_version jmol`
-JSONSCHEMA=`newest_version jsonschema`
-LCALC=`newest_version lcalc`
-LRCALC=`newest_version lrcalc`
-LIBGAP=`newest_version libgap`
-LIBPNG=`newest_version libpng`
-LINBOX=`newest_version linbox`
-M4RI=`newest_version m4ri`
-M4RIE=`newest_version m4rie`
-MARKUPSAFE=`newest_version markupsafe`
-MATHJAX=`newest_version mathjax`
-MATPLOTLIB=`newest_version matplotlib`
-MAXIMA=`newest_version maxima`
-MISTUNE=`newest_version mistune`
-MPC=`newest_version mpc`
-MPFI=`newest_version mpfi`
-MPFR=`newest_version mpfr`
-MPMATH=`newest_version mpmath`
-NETWORKX=`newest_version networkx`
-NTL=`newest_version ntl`
-NUMPY=`newest_version numpy`
-PALP=`newest_version palp`
-PARI=`newest_version pari`
-PARI_GALDATA=`newest_version pari_galdata`
-PARI_SEADATA_SMALL=`newest_version pari_seadata_small`
-PATCH=`newest_version patch`
-PEXPECT=`newest_version pexpect`
-PILLOW=`newest_version pillow`
-PIP=`newest_version pip`
-PKGCONF=`newest_version pkgconf`
-PKGCONFIG=`newest_version pkgconfig`
-POLYBORI=`newest_version polybori`
-POLYTOPES_DB=`newest_version polytopes_db`
-PPL=`newest_version ppl`
-PYCRYPTO=`newest_version pycrypto`
-PYGMENTS=`newest_version pygments`
-PYNAC=`newest_version pynac`
-PYPARSING=`newest_version pyparsing`
-PYTHON=`newest_version python`
-PYZMQ=`newest_version pyzmq`
-R=`newest_version r`
-RPY=`newest_version rpy2`
-RATPOINTS=`newest_version ratpoints`
-READLINE=`newest_version readline`
-RUBIKS=`newest_version rubiks`
-SAGENB=`newest_version sagenb`
-SAGETEX=`newest_version sagetex`
-SCIPY=`newest_version scipy`
-SCONS=`newest_version scons`
-SETUPTOOLS=`newest_version setuptools`
-SINGULAR=`newest_version singular`
-SIX=`newest_version six`
-SPHINX=`newest_version sphinx`
-SQLITE=`newest_version sqlite`
-SYMMETRICA=`newest_version symmetrica`
-SYMPOW=`newest_version sympow`
-SYMPY=`newest_version sympy`
-TACHYON=`newest_version tachyon`
-TORNADO=`newest_version tornado`
-NCURSES=`newest_version ncurses`
-ZEROMQ=`newest_version zeromq`
-ZLIB=`newest_version zlib`
-ZNPOLY=`newest_version zn_poly`
 
 # Directory to keep track of which packages are installed
 INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
 
+# Aliases for optional packages selected at build time
 EOF
 
-# Sage MP library
-sage_mp_library=`echo "$SAGE_MP_LIBRARY" | tr '[A-Z]' '[a-z]'`
-cat >&5 << EOF
-# Sage MP library
-SAGE_MP_LIBRARY=`newest_version $sage_mp_library`
 
-EOF
+# Python version
+if [ "$SAGE_PYTHON3" = yes ]; then
+    echo >&5 'PYTHON = $(PYTHON3)'
+else
+    echo >&5 'PYTHON = $(PYTHON2)'
+fi
+
+# Sage MP library
+echo >&5 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 echo >&5 -n 'TOOLCHAIN ='
 if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
-    echo >&5 -n ' $(INST)/ccache'
+    echo >&5 -n ' $(INST)/$(CCACHE)'
 fi
 if [ "$need_to_install_gcc" = yes ]; then
     echo >&5 -n ' $(INST)/$(GCC)'
@@ -422,12 +367,29 @@ if [ "$need_to_install_gcc" = yes ]; then
     export PREREQ_OPTIONS="--disable-compiler-checks $PREREQ_OPTIONS"
 fi
 echo >&5
+echo >&5
 
-echo >&5 'CSAGE_SOURCES = \'
-for file in "$SAGE_SRC/c_lib/src/"*.c "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
-    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+echo >&5 '# All standard packages'
+echo >&5 'STANDARD_PACKAGES = \'
+filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
 done
 echo >&5
+echo >&5
+
+echo >&5 '# All optional installed packages (triggers the auto-update)'
+echo >&5 'OPTIONAL_INSTALLED_PACKAGES = \'
+filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if [ "$PKG_NAME" = "gcc" ]; then
+        continue
+    fi
+    if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
+        echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
+    fi;
+done
+echo >&5
+echo >&5
+
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
@@ -449,19 +411,6 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
 done
 echo >&5
 
-cat >&5 <<EOF
-# don't just use \`install\` since we don't want to change permissions
-\$(SAGE_LOCAL)/bin/%: \$(SAGE_SRC)/bin/%
-	cp \$< \$@
-
-# don't just use \`install -D\` since we don't want to change permissions
-# cp won't correctly setup the SAGE_EXTCODE directory structure (unlike install)
-# so we need a mkdir here to cp can copy into an existing folder
-\$(SAGE_EXTCODE)/%: \$(SAGE_SRC)/ext/%
-	@mkdir -p "\$(@D)"
-	cp \$< \$@
-EOF
-
 # Copy build/deps
 cat >&5 <<EOF
 
@@ -473,6 +422,37 @@ cat >&5 <<EOF
 EOF
 
 cat "$SAGE_ROOT/build/deps" >&5
+# Copy build/deps
+
+cat >&5 <<EOF
+
+#==============================================================================
+# Rules generated from pkgs/<package>/dependencies files
+#==============================================================================
+
+EOF
+
+# Add a Makefile target corresponding to a given package
+filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
+    TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
+    if [ -f "$DEP_FILE" ]; then
+        DEPS=" $(head -n 1 $DEP_FILE)"
+    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    else
+        DEPS=""
+    fi
+    echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
+    echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR).log\""
+    echo >&5
+
+    # Add a target with just the bare package name such that
+    # "make ccache" for example builds the ccache package with
+    # dependency checking.
+    echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+    echo >&5
+done
 
 # Close the Makefile
 exec 5>&-
@@ -508,19 +488,33 @@ if [ $? -ne 0 ]; then
 ***************************************************************
 Error building Sage.
 
-The following package(s) may have failed to build:
+The following package(s) may have failed to build (not necessarily
+during this run of 'make $@'):
 EOF
 
     for f in "$SAGE_LOGS"/*.log; do
         # Look for recent error message in log file.
         # Note that "tail -n 20 ..." doesn't work on Solaris.
-        if tail -20 "$f" | grep "^Error" &>/dev/null; then
+        if tail -20 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
             base_f=`basename $f .log`
             cat >&2 <<EOF
 
-package: $base_f
-log file: $f
-build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+* package: $base_f
+  log file: $f
+  build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+EOF
+        fi
+    done
+
+    for f in "$SAGE_LOGS"/../doc*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -100 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+* documentation: $base_f
+  log file: $f
 EOF
         fi
     done
@@ -548,10 +542,5 @@ if [ "$1" = "all" ]; then
     echo "    install_scripts('/usr/local/bin')"
     echo
     echo "at the Sage command prompt ('sage:')."
-    echo
-    echo "If you issued 'make', 'make all', or a similar command, then the"
-    echo "HTML version of the documentation will be built right now."
-    echo "Otherwise, if you want to (re)build the HTML documentation,"
-    echo "run 'make doc'.  To build the PDF version, run 'make doc-pdf'."
     echo
 fi

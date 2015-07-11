@@ -88,39 +88,6 @@ lookup_param()
     sed -n "s/^${param} *= *//p" $file
 }
 
-verify_checksum()
-{
-    local file=$1
-    local checksums=$2
-
-    if [ ! -f $checksums ]; then
-        echo "No checksum file: $checksums"
-        exit 1
-    fi
-
-    if command -v shasum > /dev/null; then
-        expected=`lookup_param sha1 $checksums`
-        actual=`shasum -a 1 $file | sed 's/[^0-9a-f].*//'`
-    elif command -v md5sum > /dev/null; then
-        expected=`lookup_param md5 $checksums`
-        actual=`md5sum $file | sed 's/[^0-9a-f].*//'`
-    elif command -v md5 > /dev/null; then
-        expected=`lookup_param md5 $checksums`
-        actual=`md5 $file | sed 's/.*= *//'`
-    else
-        # POSIX; Note that Solaris is not compliant and its sed
-        # does not understand [[:space:]]
-        expected=`lookup_param cksum $checksums`
-        actual=`cksum $file | sed 's/[^0-9].*//'`
-    fi
-
-    echo "Checksum: $expected vs $actual"
-    if [ "$expected" != "$actual" ]; then
-        echo "Invalid checksum for $file"
-        exit 1
-    fi
-}
-
 # Handle -n, -t, -q options for recursive make
 # See Trac #12016.
 if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; then
@@ -222,13 +189,6 @@ if [ "$1" = '-c' ]; then
     shift
 fi
 
-# Don't verbosely extract files from spkgs by default (#10040):
-if [ "$SAGE_SPKG_LIST_FILES" = "yes" ]; then
-    UNTAR_VERBOSE=v
-else
-    unset UNTAR_VERBOSE
-fi
-
 ##################################################################
 # Figure out the package filename, download it if needed.
 ##################################################################
@@ -300,14 +260,21 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         PKG_NAME_UPSTREAM=`lookup_param tarball "$PKG_SCRIPTS/checksums.ini" | sed "s/VERSION/$PKG_BASE_VER/"`
         echo "Found local metadata for $PKG_NAME"
 
-        if [ $INFO -eq 0 ]; then
-            # see if we can the source tarball locally
-            if [ -f "$SAGE_DISTFILES/$PKG_NAME_UPSTREAM" ]; then
-                # Found a good tarball
-                PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
-                echo "Found local sources at $PKG_SRC"
-            fi
+        # Warning for experimental packages
+        if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
+            echo # The following message appears twice in this file
+            echo "=========================== WARNING ==========================="
+            echo "You are about to download and install an experimental package."
+            echo "This probably won't work at all for you! There is no guarantee"
+            echo "that it will build correctly, or behave as expected."
+            echo "Use at your own risk!"
+            echo "==============================================================="
+            read -p "Are you sure you want to continue [Y/n]? " answer
+            case "$answer" in
+                n*|N*) exit 0;;
+            esac
         fi
+
     else
         cd "$SAGE_DISTFILES"
         for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
@@ -341,38 +308,36 @@ fi
 
 # If we haven't found the package yet, we must download it
 if [ ! -f "$PKG_SRC" ]; then
-    if [ $INFO -eq 0 ]; then
-        echo "Attempting to download package $PKG_NAME"
+    if [ -n "$PKG_NAME_UPSTREAM" ]; then
+        # This is the new-style package way of downloading the tarball
+        sage-download-file $PKG_NAME_UPSTREAM || exit $?
+        PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
     else
-        echo "Attempting to get on-line info for package $PKG_NAME"
-    fi
-
-    # Reduce everything to case 4: full URL.
-    if [ -n "$PKG_HAS_PATH" ]; then
-        PKG_URL="$PKG_SRC"
-    else
-        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-            PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
+        # Handle all the legacy cruft. This branch can be deleted once
+        # we get rid of old-style spkgs
+        if [ $INFO -eq 0 ]; then
+            echo "Attempting to download package $PKG_NAME"
+        else
+            echo "Attempting to get on-line info for package $PKG_NAME"
+        fi
+        
+        # Reduce everything to case 4: full URL.
+        if [ -n "$PKG_HAS_PATH" ]; then
+            PKG_URL="$PKG_SRC"
         else
             # Handle cases 2a and 3, where the package name is something
             # like "foo" or "foo-1.2.3".
+            MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
+            if [ $? -ne 0 ]; then
+                exit 1
+            fi
             for repo in optional experimental standard huge archive; do
                 # Download the list of packages.
                 echo ">>> Checking online list of $repo packages."
-
-                # Huge packages are not mirrored
-                if [ $repo = huge ]; then
-                    URL_REPO="http://www.sagemath.org/spkg/huge"
-                else
-                    URL_REPO="${SAGE_SERVER}spkg/$repo"
-                fi
-
                 # File inside DOT_SAGE should be writable
                 repolist="${DOT_SAGE}/${repo}.list"
-
-                sage-download-file "$URL_REPO/list" >$repolist
+                sage-download-file --quiet "$MIRROR/$repo/list" $repolist
                 if [ $? -ne 0 ]; then
-                    echo >&2 "Error: failed to download $URL_REPO/list, aborting"
                     rm -f $repolist
                     exit 1
                 fi
@@ -389,24 +354,28 @@ if [ ! -f "$PKG_SRC" ]; then
 
                     # If INFO is set, try downloading only the .txt file
                     if [ $INFO -eq 1 ]; then
-                        PKG_URL="$URL_REPO/$pkg.txt"
-                        sage-download-file 2>/dev/null "$PKG_URL" && exit 0
+                        PKG_URL="$MIRROR/$repo/$pkg.txt"
+                        sage-download-file --quiet "$PKG_URL" && exit 0
                         # If the download failed (for whatever reason),
                         # fall through and use the .spkg file.
                     else
                         # Warn and ask the user if downloading an
                         # experimental or archive package.
                         if [ $repo = experimental ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an experimental package."
-                            echo "This probably won't work at all for you! There is no guarantee that it"
-                            echo "has ever been built correctly! Use at your own risk!"
+                            echo # The following message appears twice in this file
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an experimental package."
+                            echo "This probably won't work at all for you! There is no guarantee"
+                            echo "that it will build correctly, or behave as expected."
+                            echo "Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         elif [ $repo = archive ]; then
-                            echo
-                            echo "WARNING: you are about to download and install an archived package."
-                            echo "This means the package is likely to be outdated and it probably won't"
-                            echo "work at all for you! Use at your own risk!"
+                            echo "=========================== WARNING ==========================="
+                            echo "You are about to download and install an archived package."
+                            echo "This means the package is likely to be outdated and it probably"
+                            echo "won't work at all for you! Use at your own risk!"
+                            echo "==============================================================="
                             ask_download=yes
                         else
                             ask_download=no
@@ -419,54 +388,47 @@ if [ ! -f "$PKG_SRC" ]; then
                             esac
                         fi
                     fi
-                    PKG_URL="$URL_REPO/$pkg.spkg"
+                    PKG_URL="$MIRROR/$repo/$pkg.spkg"
                     break
                 fi
             done
+
+            if [ -z "$PKG_URL" ]; then
+                echo >&2 "Error: could not find a package matching $PKG_NAME on $MIRROR"
+                exit 1
+            fi
+    
+            # Check a second time whether the package is already installed.
+            if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
+                echo "Package $PKG_NAME is already installed."
+                echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
+                # Touch installed file such that "make" considers it up-to-date.
+                touch "$SAGE_SPKG_INST/$PKG_NAME"
+                exit 0
+            fi
         fi
-        if [ -z "$PKG_URL" ]; then
-            echo >&2 "Error: could not find a package matching $PKG_NAME on $SAGE_SERVER"
+    
+        # Trac #5852: check write permissions
+        mkdir -p "$SAGE_DISTFILES"
+        if [ ! -w "$SAGE_DISTFILES" ]; then
+            echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
             exit 1
         fi
-
-        # Check a second time whether the package is already installed.
-        if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
-            echo "Package $PKG_NAME is already installed."
-            echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
-            # Touch installed file such that "make" considers it up-to-date.
-            touch "$SAGE_SPKG_INST/$PKG_NAME"
-            exit 0
+        cd "$SAGE_DISTFILES" || exit $?
+    
+        # Download to a temporary file (such that we don't end up with a
+        # corrupted .spkg file).
+        PKG_TMP="${PKG_URL##*/}.tmp"
+        echo ">>> Trying to download $PKG_URL"
+        sage-download-file "$PKG_URL" "$PKG_TMP"
+        if [ $? -ne 0 ]; then
+            # Delete failed download
+            rm -f "$PKG_TMP"
+            exit 1
         fi
-    fi
-
-    # Trac #5852: check write permissions
-    mkdir -p "$SAGE_DISTFILES"
-    if [ ! -w "$SAGE_DISTFILES" ]; then
-        echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
-        exit 1
-    fi
-    cd "$SAGE_DISTFILES" || exit $?
-
-    # Download to a temporary file (such that we don't end up with a
-    # corrupted .spkg file).
-    PKG_TMP="${PKG_URL##*/}.tmp"
-    echo ">>> Trying to download $PKG_URL"
-    sage-download-file "$PKG_URL" >"$PKG_TMP"
-    if [ $? -ne 0 ]; then
-        # Delete failed download
-        rm -f "$PKG_TMP"
-        echo >&2 "Error: failed to download package $PKG_NAME"
-        exit 1
-    fi
-
-    PKG_SRC="`pwd`/${PKG_URL##*/}"
-    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-        verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
-    fi
-    mv -f "$PKG_TMP" "$PKG_SRC"
-else
-    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
-        verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
+    
+        PKG_SRC="`pwd`/${PKG_URL##*/}"
+        mv -f "$PKG_TMP" "$PKG_SRC"
     fi
 fi
 
@@ -581,7 +543,7 @@ else
     ls -l "$PKG_SRC"
 fi
 
-uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f - --no-same-owner
+uncompress_spkg "$PKG_SRC" | tar xf - --no-same-owner
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to extract $PKG_SRC"
     exit 1

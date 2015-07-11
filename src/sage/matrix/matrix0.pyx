@@ -12,16 +12,16 @@ EXAMPLES::
     [3 4]
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
@@ -535,7 +535,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: m=matrix(2,[1,2,3,4])
-            sage: m.__iter__().next()
+            sage: next(m.__iter__())
             (1, 2)
         """
 
@@ -1671,8 +1671,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             s = 'dense'
         return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
 
-    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None):
-        r"""
+    def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
+            *, unicode=False, shape=None):
+        ur"""
         Return a nice string representation of the matrix.
 
         INPUT:
@@ -1705,6 +1706,17 @@ cdef class Matrix(sage.structure.element.Matrix):
           use the value of ``minus_one`` as the representation of the
           negative of the one element.
 
+        - ``unicode`` - boolean (default: ``False``).
+          Whether to use Unicode symbols instead of ASCII symbols
+          for brackets and subdivision lines.
+
+        - ``shape`` - one of ``"square"`` or ``"round"`` (default: ``None``).
+          Switches between round and square brackets.
+          The default depends on the setting of the ``unicode`` keyword
+          argument. For Unicode symbols, the default is round brackets
+          in accordance with the TeX rendering,
+          while the ASCII rendering defaults to square brackets.
+
         EXAMPLES::
 
             sage: R = PolynomialRing(QQ,6,'z')
@@ -1732,9 +1744,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M.str(repr)
             '[ 1  0]\n[ 2 -1]'
 
+            sage: M = matrix([[1,2,3],[4,5,6],[7,8,9]])
+            sage: M.subdivide(None, 2)
+            sage: print(M.str(unicode=True))
+            ⎛1 2│3⎞
+            ⎜4 5│6⎟
+            ⎝7 8│9⎠
+            sage: M.subdivide([0,1,1,3], [0,2,3,3])
+            sage: print(M.str(unicode=True, shape="square"))
+            ⎡┼───┼─┼┼⎤
+            ⎢│1 2│3││⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢┼───┼─┼┼⎥
+            ⎢│4 5│6││⎥
+            ⎢│7 8│9││⎥
+            ⎣┼───┼─┼┼⎦
+
         TESTS:
 
-        Prior to Trac #11544 this could take a full minute to run (2011). ::
+        Prior to :trac:`11544` this could take a full minute to run (2011). ::
 
             sage: A = matrix(QQ, 4, 4, [1, 2, -2, 2, 1, 0, -1, -1, 0, -1, 1, 1, -1, 2, 1/2, 0])
             sage: e = A.eigenvalues()[3]
@@ -1742,17 +1770,90 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: P = K.basis_matrix()
             sage: P.str()
             '[             1.000000000000000? + 0.?e-17*I -2.116651487479748? + 0.0255565807096352?*I -0.2585224251020429? + 0.288602340904754?*I -0.4847545623533090? - 1.871890760086142?*I]'
+
+        Use single-row delimiters where appropriate::
+
+            sage: print(matrix([[1]]).str(unicode=True))
+            (1)
+            sage: print(matrix([[],[]]).str(unicode=True))
+            ()
+            sage: M = matrix([[1]])
+            sage: M.subdivide([0,1], [])
+            sage: print(M.str(unicode=True))
+            ⎛─⎞
+            ⎜1⎟
+            ⎝─⎠
         """
-        #x = self.fetch('repr')  # too confusing!!
-        #if not x is None: return x
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
 
+        # symbols is a string with 11 elements:
+        # - top left bracket         (tlb)
+        # - middle left bracket      (mlb)
+        # - bottom left bracket      (blb)
+        # - single-row left bracket  (slb)
+        # - top right bracket        (trb)
+        # - middle right bracket     (mrb)
+        # - bottom right bracket     (brb)
+        # - single-row right bracket (srb)
+        # - vertical line            (vl)
+        # - horizontal line          (hl)
+        # - crossing lines           (cl)
+        if shape is None:
+            shape = "round" if unicode else "square"
+        if unicode:
+            import unicodedata
+            hl = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            cl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            hl = '-'        # - horizontal line
+            vl = '|'        # - vertical line
+            cl = '+'        # - crossing lines
+        if shape == "square":
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_square_bracket as left,
+                    unicode_right_square_bracket as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_square_bracket as left,
+                    ascii_right_square_bracket as right
+                )
+        elif shape == "round":
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_parenthesis as left,
+                    unicode_right_parenthesis as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_parenthesis as left,
+                    ascii_right_parenthesis as right
+                )
+        else:
+            raise ValueError("No such shape")
+        tlb = left.top              # - top left bracket
+        mlb = left.extension        # - extension piece left bracket
+        blb = left.bottom           # - bottom left bracket
+        slb = left.character        # - single-row left bracket
+        trb = right.top             # - top right bracket
+        mrb = right.extension       # - extension piece right bracket
+        brb = right.bottom          # - bottom right bracket
+        srb = right.character       # - single-row right bracket
+
         if nr == 0 or nc == 0:
-            return "[]"
+            return slb + srb
 
         row_divs, col_divs = self.subdivisions()
+        row_div_counts = [0] * (nr + 1)
+        for r in row_divs:
+            row_div_counts[r] += 1
+        col_div_counts = [0] * (nc + 1)
+        for c in col_divs:
+            col_div_counts[c] += 1
 
         # Set the mapping based on keyword arguments
         if rep_mapping is None:
@@ -1778,78 +1879,69 @@ cdef class Matrix(sage.structure.element.Matrix):
                 rep = repr(x)
             S.append(rep)
 
-        tmp = []
-        for x in S:
-            tmp.append(len(x))
-
-        width = max(tmp)
+        width = max(map(len, S))
         rows = []
         m = 0
 
-        left_bracket = "["
-        right_bracket = "]"
-        while nc in col_divs:
-            right_bracket = "|" + right_bracket
-            col_divs.remove(nc)
-        while 0 in col_divs:
-            left_bracket += "|"
-            col_divs.remove(0)
-        line = '+'.join(['-'*((width+1)*(b-a)-1) for a,b in zip([0] + col_divs, col_divs + [nc])])
-        hline = (left_bracket + line + right_bracket).replace('|', '+')
+        hline = cl.join(hl * ((width + 1)*(b - a) - 1)
+                       for a,b in zip([0] + col_divs, col_divs + [nc]))
 
         # compute rows
         for r from 0 <= r < nr:
             rows += [hline] * row_divs.count(r)
             s = ""
             for c from 0 <= c < nc:
-                if c+1 in col_divs:
-                    sep = "|"*col_divs.count(c+1)
-                elif c == nc - 1:
-                    sep=""
+                if col_div_counts[c]:
+                    sep = vl * col_div_counts[c]
+                elif c == 0:
+                    sep = ""
                 else:
-                    sep=" "
-                entry = S[r*nc+c]
-                if c == 0:
-                    m = max(m, len(entry))
-                entry = " "*(width-len(entry)) + entry
-                s = s + entry + sep
-            rows.append(left_bracket + s + right_bracket)
-
+                    sep = " "
+                entry = S[r * nc + c]
+                entry = " " * (width - len(entry)) + entry
+                s = s + sep + entry
+            s = s + vl * col_div_counts[nc]
+            rows.append(s)
         rows += [hline] * row_divs.count(nr)
 
+        last_row = len(rows) - 1
+        if last_row == 0:
+            return slb + rows[0] + srb
+        rows[0] = tlb + rows[0] + trb
+        for r from 1 <= r < last_row:
+            rows[r] = mlb + rows[r] + mrb
+        rows[last_row] = blb + rows[last_row] + brb
         s = "\n".join(rows)
-        #self.cache('repr',s)
         return s
 
-##     def _latex_sparse(self, variable="x"):
-##         r"""
-##         Return a latex string that represents this matrix as a sparse
-##         matrix.  The rows are printed as sums $\sum a_i x_i$, where
-##         $x$ is the variable.
+    def _unicode_art_(self):
+        """
+        Unicode art representation of matrices
 
-##         EXAMPLES:
+        EXAMPLES::
 
-##         """
-##         cdef Py_ssize_t nr, nc, i, j
-##         nr = self._nrows
-##         nc = self._ncols
-##         s = "\\left(\\begin{align*}\n"
-##         for i from 0 <= i < nr:
-##             v = []
-##             for j from 0 <= j < nc:
-##                 x = self.get_unsafe(i, j)
-##                 if x != 0:
-##                     v.append((j, x))
-##             for j from 0 <= j < len(v):
-##                 s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
-##                 if j == 0:
-##                     s = s + "& + "
-##                 elif j < len(v) - 1:
-##                     s =  s + " + "
-##                 else:
-##                     s =  s + "\\\\\n"
-##         s = s + "\n\\end{align*}"
-##         return s
+            sage: A = matrix([[1,2], [3,4], [5,6]])
+            sage: A._unicode_art_()
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+            sage: unicode_art(A)    # indirect doctest
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+
+        If the matrix is too big, don't print all of the elements::
+
+            sage: A = random_matrix(ZZ, 100)
+            sage: unicode_art(A)
+            100 x 100 dense matrix over Integer Ring
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if self._nrows < max_rows and self._ncols < max_cols:
+            output = self.str(unicode=True)
+        else:
+            output = self.__repr__()
+        return UnicodeArt(output.splitlines())
 
     def _latex_(self):
         r"""

@@ -4,6 +4,8 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. _sec-installation-from-sources:
+
 Install from Source Code
 ========================
 
@@ -29,6 +31,9 @@ or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.
+
+.. contents:: Table of contents
+   :depth: 2
 
 Supported platforms
 -------------------
@@ -179,7 +184,12 @@ you would use
 
      sudo apt-get install binutils gcc make m4 perl tar
 
-to install all general requirements (this was tested on Ubuntu 12.04.2).
+to install all general requirements, or, if you don't want Sage to build its
+own GCC::
+
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+
+(This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -325,7 +335,7 @@ or similar commands. In addition to the base texlive install you will
 probably need a number of optional texlive packages, for example
 country-specific babel packages for the localized Sage
 documentation. The required texlive packages are listed in
-`SAGE_ROOT/src/ext/texlive/package-list.txt`.
+``SAGE_ROOT/src/ext/texlive/package-list.txt``.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -781,12 +791,6 @@ how it is built:
   You can benefit from this no-plot feature with other make targets by doing
   ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
 
-- ``make build-serial`` builds the components of Sage serially, rather
-  than in parallel (parallel building is the default).
-  Running ``make build-serial`` is equivalent to setting the environment
-  variable :envvar:`SAGE_PARALLEL_SPKG_BUILD` to "no" -- see below for
-  information about this variable.
-
 - ``make ptest`` and ``make ptestlong``: these run Sage's test suite.
   The first version skips tests that need more than a few seconds to complete
   and those which depend on optional packages or additional software.
@@ -819,6 +823,31 @@ speed up the process.)
 Building Sage involves building about 100 packages, each of which has its own
 compilation instructions.
 
+The Sage source tarball already includes the sources for all standard
+packages, that is, it allows you to build Sage without internet
+connection. The git repository, however, does not contain the source
+code for third-party packages. Instead, it will be downloaded as
+needed (Note: you can run ``make download`` to force downloading
+packages before building). Package downloads use the Sage mirror
+network, the nearest mirror will be determined automatically for
+you. This is influenced by the following environment variable:
+
+- :envvar:`SAGE_SERVER` - Try the specified mirror first, before
+  falling back to the official Sage mirror list. Note that Sage will
+  search the directory
+
+  - ``SAGE_SERVER/spkg/upstream``
+
+  for clean upstream tarballs, and it searches the directories
+
+  - ``SAGE_SERVER/spkg/standard/``,
+  - ``SAGE_SERVER/spkg/optional/``,
+  - ``SAGE_SERVER/spkg/experimental/``,
+  - ``SAGE_SERVER/spkg/archive/``
+
+  for old-style Sage packages.
+
+
 Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`MAKE` - one useful setting for this variable when building Sage is
@@ -850,14 +879,6 @@ Here are some of the more commonly used variables affecting the build process:
   If none of these specifies a number of jobs, use one thread (except for
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
-
-- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if set to ``no``, then build spkgs
-  serially rather than in parallel.
-  If this is set to ``no``, then each spkg may still take advantage of the setting
-  of :envvar:`MAKE` to build using multiple jobs, but the spkgs will be built
-  one at a time.
-  Alternatively, run ``make build-serial`` which sets this environment
-  variable for you.
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
@@ -939,15 +960,6 @@ Here are some of the more commonly used variables affecting the build process:
   to ``yes``, profiling support is enabled where possible. Note that
   Python-level profiling is always avaliable; This option enables
   profiling in Cython modules.
-
-- :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
-  extraction of tar files, i.e. Sage's spkg files.
-  Since some spkgs contain such a huge number of files that the log files
-  get very large and harder to search (and listing the contained files is
-  usually less valuable), we decided to turn this off by default.
-  This variable affects builds of Sage with ``make`` (and ``sage --upgrade``)
-  as well as the manual installation of individual spkgs with e.g. ``sage -i``
-  or ``sage -f``.
 
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
   package-specific documentation to
@@ -1247,25 +1259,6 @@ Sage uses the following environment variables when it runs:
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
 
-- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
-  ``sage -i <package-name>``, Sage downloads the file from the web, using the
-  address ``http://www.sagemath.org/`` by default, or the address given by
-  :envvar:`SAGE_SERVER` if it is set.
-  If you wish to set up your own server, then note that Sage will search the
-  directory
-
-  - ``SAGE_SERVER/packages/upstream``
-
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - and ``SAGE_SERVER/packages/archive/``
-
-  for old-style Sage packages.
-  See the script :file:`$SAGE_ROOT/src/bin/sage-spkg` for the implementation.
-
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
 
@@ -1407,14 +1400,6 @@ System-wide install
    or ``make ptestlong`` which tests files in parallel using multiple
    processes.
    You can also omit ``long`` to skip tests which take a long time.
-
-Sagetex
-~~~~~~~
-
-To make SageTeX available to your users, see the instructions for
-:ref:`installation in a multiuser environment <sagetex_installation_multiuser>`
-.
-
 
 Some common problems
 --------------------

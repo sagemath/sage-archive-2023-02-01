@@ -255,10 +255,6 @@ class DiGraph(GenericGraph):
     -  ``boundary`` - a list of boundary vertices, if
        empty, digraph is considered as a 'graph without boundary'
 
-    -  ``implementation`` - what to use as a backend for
-       the graph. Currently, the options are either 'networkx' or
-       'c_graph'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
@@ -277,16 +273,12 @@ class DiGraph(GenericGraph):
          than the sparse backend and smaller in memory, and it is immutable, so
          that the resulting graphs can be used as dictionary keys).
 
-       *Only available when* ``implementation == 'c_graph'``
-
     - ``immutable`` (boolean) -- whether to create a immutable digraph. Note
       that ``immutable=True`` is actually a shortcut for
-      ``data_structure='static_sparse'``. Set to ``False`` by default, only
-      available when ``implementation='c_graph'``
+      ``data_structure='static_sparse'``.
 
-    -  ``vertex_labels`` - only for implementation == 'c_graph'.
-       Whether to allow any object as a vertex (slower), or
-       only the integers 0, ..., n-1, where n is the number of vertices.
+    - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
+      only the integers 0, ..., n-1, where n is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)
@@ -373,14 +365,6 @@ class DiGraph(GenericGraph):
             sage: DiGraph(M)
             Digraph on 6 vertices
 
-    #. A c_graph implemented DiGraph can be constructed from a
-       networkx implemented DiGraph::
-
-            sage: D = DiGraph({0:[1],1:[2],2:[0]}, implementation="networkx")
-            sage: E = DiGraph(D,implementation="c_graph")
-            sage: D == E
-            True
-
     #. A dig6 string: Sage automatically recognizes whether a string is
        in dig6 format, which is a directed version of graph6::
 
@@ -414,17 +398,6 @@ class DiGraph(GenericGraph):
             sage: DiGraph(g)
             Digraph on 5 vertices
 
-       Note that in all cases, we copy the NetworkX structure.
-
-       ::
-
-            sage: import networkx
-            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-            sage: G = DiGraph(g, implementation='networkx')
-            sage: H = DiGraph(g, implementation='networkx')
-            sage: G._backend._nxg is H._backend._nxg
-            False
-
     TESTS::
 
         sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
@@ -445,7 +418,7 @@ class DiGraph(GenericGraph):
 
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-        sage: G = DiGraph(g, implementation='networkx')
+        sage: G = DiGraph(g)
         sage: G_imm = DiGraph(G, data_structure="static_sparse")
         sage: H_imm = DiGraph(G, data_structure="static_sparse")
         sage: H_imm is G_imm
@@ -580,33 +553,31 @@ class DiGraph(GenericGraph):
 
         # Choice of the backend
 
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
-        elif implementation == 'c_graph':
-            if multiedges or weighted:
-                if data_structure == "dense":
-                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+        if implementation != 'c_graph':
+            from sage.misc.superseded import deprecation
+            deprecation(18375,"The 'implementation' keyword is deprecated, "
+                        "and the graphs has been stored as a 'c_graph'")
 
-            if immutable:
-                data_structure = 'static_sparse'
+        if multiedges or weighted:
+            if data_structure == "dense":
+                raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
 
-            # If the data structure is static_sparse, we first build a graph
-            # using the sparse data structure, then reencode the resulting graph
-            # as a static sparse graph.
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if data_structure in ["sparse", "static_sparse"]:
-                CGB = SparseGraphBackend
-            elif data_structure == "dense":
-                 CGB = DenseGraphBackend
-            else:
-                raise ValueError("data_structure must be equal to 'sparse', "
-                                 "'static_sparse' or 'dense'")
-            self._backend = CGB(0, directed=True)
+        if immutable:
+            data_structure = 'static_sparse'
+
+        # If the data structure is static_sparse, we first build a graph
+        # using the sparse data structure, then reencode the resulting graph
+        # as a static sparse graph.
+        from sage.graphs.base.sparse_graph import SparseGraphBackend
+        from sage.graphs.base.dense_graph import DenseGraphBackend
+        if data_structure in ["sparse", "static_sparse"]:
+            CGB = SparseGraphBackend
+        elif data_structure == "dense":
+             CGB = DenseGraphBackend
         else:
-            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+            raise ValueError("data_structure must be equal to 'sparse', "
+                             "'static_sparse' or 'dense'")
+        self._backend = CGB(0, directed=True)
 
         if format is None and isinstance(data, str):
             format = 'dig6'
@@ -892,6 +863,7 @@ class DiGraph(GenericGraph):
             self.allow_loops(False if loops is False else True)
             self.add_edges(data)
             if multiedges is not True and self.has_multiple_edges():
+                from sage.misc.superseded import deprecation
                 deprecation(15706, "You created a graph with multiple edges "
                             "from a list. Please set 'multiedges' to 'True' "
                             "when you do so, as in the future the default "
@@ -900,6 +872,7 @@ class DiGraph(GenericGraph):
                 self.allow_multiple_edges(False)
 
             if loops is not True and self.has_loops():
+                from sage.misc.superseded import deprecation
                 deprecation(15706, "You created a graph with loops from a list. "+
                             "Please set 'loops' to 'True' when you do so, as in "+
                             "the future the default behaviour will be to ignore "+
@@ -1066,10 +1039,6 @@ class DiGraph(GenericGraph):
         becomes an edge.
 
         INPUT:
-
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
 
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
@@ -1323,8 +1292,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1333,11 +1302,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -1403,8 +1372,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1413,11 +1382,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -2949,42 +2918,74 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def layout_acyclic(self, **options):
+    def layout_acyclic(self, rankdir="up", **options):
         """
-        Computes a ranked layout so that all edges point upward.
+        Return a ranked layout so that all edges point upward.
 
         To this end, the heights of the vertices are set according to the level
         set decomposition of the graph (see :meth:`.level_sets`).
 
-        This is achieved by calling ``graphviz`` and ``dot2tex`` if available
-        (see :meth:`.layout_graphviz`), and using a random horizontal
-        placement of the vertices otherwise (see :meth:`.layout_acyclic_dummy`).
+        This is achieved by calling ``graphviz`` and ``dot2tex`` if
+        available (see :meth:`.layout_graphviz`), and using a spring
+        layout with fixed vertical placement of the vertices otherwise
+        (see :meth:`.layout_acyclic_dummy` and
+        :meth:`~GenericGraph.ranked_layout`).
 
         Non acyclic graphs are partially supported by ``graphviz``, which then
         chooses some edges to point down.
+
+        INPUT:
+
+        - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
+          which direction the edges should point toward
+        - ``**options`` -- passed down to :meth:`layout_ranked` or
+          :meth:`layout_graphviz`
 
         EXAMPLES::
 
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[],5:[1,6],6:[2,3]})
 
-        The actual layout computed will depend on whether dot2tex and
-        graphviz are installed, so we don't test it.
+        The actual layout computed depends on whether dot2tex and
+        graphviz are installed, so we don't test its relative values::
 
             sage: H.layout_acyclic()
             {0: [..., ...], 1: [..., ...], 2: [..., ...], 3: [..., ...], 5: [..., ...], 6: [..., ...]}
 
+            sage: H = DiGraph({0:[1]})
+            sage: pos = H.layout_acyclic(rankdir='up')
+            sage: pos[1][1] > pos[0][1] + .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='down')
+            sage: pos[1][1] < pos[0][1] - .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='right')
+            sage: pos[1][0] > pos[0][0] + .5
+            True
+            sage: pos = H.layout_acyclic(rankdir='left')
+            sage: pos[1][0] < pos[0][0] - .5
+            True
         """
         if have_dot2tex():
-            return self.layout_graphviz(**options)
+            return self.layout_graphviz(rankdir=rankdir, **options)
         else:
-            return self.layout_acyclic_dummy(**options)
+            return self.layout_acyclic_dummy(rankdir=rankdir, **options)
 
-    def layout_acyclic_dummy(self, heights = None, **options):
+    def layout_acyclic_dummy(self, heights=None, rankdir='up', **options):
         """
-        Computes a (dummy) ranked layout of an acyclic graph so that
-        all edges point upward. To this end, the heights of the
-        vertices are set according to the level set decomposition of
-        the graph (see :meth:`.level_sets`).
+        Return a ranked layout so that all edges point upward.
+
+        To this end, the heights of the vertices are set according to
+        the level set decomposition of the graph (see
+        :meth:`.level_sets`). This is achieved by a spring layout with
+        fixed vertical placement of the vertices otherwise (see
+        :meth:`.layout_acyclic_dummy` and
+        :meth:`~GenericGraph.ranked_layout`).
+
+        INPUT:
+
+        - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
+          which direction the edges should point toward
+        - ``**options`` -- passed down to :meth:`layout_ranked`
 
         EXAMPLES::
 
@@ -2992,6 +2993,15 @@ class DiGraph(GenericGraph):
             sage: H.layout_acyclic_dummy()
             {0: [1.00..., 0], 1: [1.00..., 1], 2: [1.51..., 2], 3: [1.50..., 3], 5: [2.01..., 0], 6: [2.00..., 1]}
 
+            sage: H = DiGraph({0:[1]})
+            sage: H.layout_acyclic_dummy(rankdir='up')
+            {0: [0.5..., 0], 1: [0.5..., 1]}
+            sage: H.layout_acyclic_dummy(rankdir='down')
+            {0: [0.5..., 1], 1: [0.5..., 0]}
+            sage: H.layout_acyclic_dummy(rankdir='left')
+            {0: [1, 0.5...], 1: [0, 0.5...]}
+            sage: H.layout_acyclic_dummy(rankdir='right')
+            {0: [0, 0.5...], 1: [1, 0.5...]}
             sage: H = DiGraph({0:[1,2],1:[3],2:[3],3:[1],5:[1,6],6:[2,3]})
             sage: H.layout_acyclic_dummy()
             Traceback (most recent call last):
@@ -3003,8 +3013,14 @@ class DiGraph(GenericGraph):
                 raise ValueError("`self` should be an acyclic graph")
             levels = self.level_sets()
             levels = [sorted(z) for z in levels]
+            if rankdir=='down' or rankdir=='left':
+                levels.reverse()
             heights = dict([[i, levels[i]] for i in range(len(levels))])
-        return self.layout_ranked(heights = heights, **options)
+        positions = self.layout_ranked(heights = heights, **options)
+        if rankdir == 'left' or rankdir == 'right':
+            for coordinates in positions.values():
+                coordinates.reverse()
+        return positions
 
     def level_sets(self):
         """
@@ -3161,7 +3177,7 @@ class DiGraph(GenericGraph):
             [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        return map(self.subgraph, self.strongly_connected_components())
+        return [self.subgraph(_) for _ in self.strongly_connected_components()]
 
     def strongly_connected_components_digraph(self, keep_labels = False):
         r"""
@@ -3227,7 +3243,7 @@ class DiGraph(GenericGraph):
         from sage.sets.set import Set
 
         scc = self.strongly_connected_components()
-        scc_set = map(Set,scc)
+        scc_set = [Set(_) for _ in scc]
 
         d = {}
         for i,c in enumerate(scc):

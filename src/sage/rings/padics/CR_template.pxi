@@ -9,7 +9,6 @@ See the documentation of mpz_linkage.pxi for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -181,7 +180,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef type t = self.__class__
+        cdef type t = type(self)
         cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow

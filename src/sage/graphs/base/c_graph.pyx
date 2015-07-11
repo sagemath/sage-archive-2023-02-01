@@ -42,6 +42,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 include "sage/data_structures/bitset.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.misc.long cimport pyobject_to_long
 
 cdef class CGraph:
     """
@@ -1206,16 +1207,16 @@ cdef class CGraphBackend(GenericGraphBackend):
         cdef dict vertex_ints   = self.vertex_ints
         cdef dict vertex_labels = self.vertex_labels
         cdef CGraph G = self._cg
-        cdef int u_int
+        cdef long u_long
         if u in vertex_ints:
             return vertex_ints[u]
         try:
-            u_int = u
+            u_long = pyobject_to_long(u)
         except Exception:
             return -1
-        if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
+        if u_long < 0 or u_long >= G.active_vertices.size or u_long in vertex_labels:
             return -1
-        return u_int
+        return u_long
 
     cdef vertex_label(self, int u_int):
         """
@@ -2208,13 +2209,9 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from #7673 ::
 
-            sage: G = Graph(implementation="networkx")
-            sage: G.add_edges([(0,1,9),(0,2,8),(1,2,7)])
-            sage: Gc = G.copy(implementation='c_graph')
-            sage: sp = G.shortest_path_length(0,1,by_weight=True)
-            sage: spc = Gc.shortest_path_length(0,1,by_weight=True)
-            sage: sp == spc
-            True
+            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
+            sage: G.shortest_path_length(0,1,by_weight=True)
+            9
         """
         if x == y:
             return 0
@@ -3033,7 +3030,7 @@ cdef class Search_iterator:
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
             <generator object breadth_first_search at ...
-            sage: g.breadth_first_search(0).next()
+            sage: next(g.breadth_first_search(0))
             0
         """
         cdef int v_int

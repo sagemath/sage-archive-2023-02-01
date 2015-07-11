@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# Script to prepare a GIAC spkg for Sage.  This script is only for the
+# package maintainer, not for building GIAC during a Sage install.
+#
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+# Sanity check: must be run from current directory
+if ! [ -f spkg-src ]; then
+    echo >&2 "This script must be run from its own source directory!"
+    exit 1
+fi
+
+# Exit on failure
+set -e
+
+#
+VERSION="1.2.0"
+VERSIONREV="13"
+
+# The upstream tarball name is: giac"$SOURCEORIG".tar.gz
+SOURCEORIG=_"$VERSION"-"$VERSIONREV"
+
+# Build a temporary working dir. 
+mkdir giactmpbuildpkg
+cd giactmpbuildpkg
+
+
+# Downloading upstream source
+wget "http://www-fourier.ujf-grenoble.fr/~parisse/debian/dists/stable/main/source/giac$SOURCEORIG.tar.gz"
+
+
+# untar upstream source
+tar -xzf giac"$SOURCEORIG".tar.gz
+
+
+# rename top sourcedir
+mv giac-"$VERSION" src
+
+# removing french html doc, but keep keywords, and working makefiles.
+# NB: the french html doc is huge and not GPL. 
+# it is freely redistibuable only for non commercial purposes.
+cd src/doc/fr
+rm -rf [^Mkx]*
+rm -rf *.pdf *.eps *.pdf *.png *.cxx *.cas *.jpg *.tex *.stamp *html* cas* *.fig fig*
+# repair the build procedure with a minimal Makefile.am
+echo -e "EXTRA_DIST = xcasmenu xcasex keywords\n\nlocaldocdir = \$(docdir)/fr \n\n\
+dist_localdoc_DATA = xcasmenu xcasex keywords html_mall html_mtt html_vall">Makefile.am
+# copy and adjust a minimal Makefile.in
+cp ../local/Makefile.in ./
+sed -ie 's|localdocdir = $(docdir)/local|localdocdir = $(docdir)/fr|' Makefile.in 
+sed -ie 's|doc/local|subdir = doc/fr|g' Makefile.in
+#
+touch html_mall
+touch html_mtt
+touch html_vall
+# 
+
+
+# building giac source tarball for the spkg
+cd ../../../
+tar -cz src -f ../giac-"$VERSION"."$VERSIONREV".tar.gz
+
+# cleaning extracted dir.
+cd ..
+rm -rf giactmpbuildpkg

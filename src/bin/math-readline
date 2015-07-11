@@ -6,13 +6,14 @@
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 
 import os, sys
+import six
 f1 = os.popen('math ', 'w')
 f1.flush()
 try:
     while True:
         sys.stdout.write('')
         try:
-            line = raw_input()
+            line = six.moves.input()
             f1.writelines(line+'\n')
             f1.flush()
         except KeyboardInterrupt:

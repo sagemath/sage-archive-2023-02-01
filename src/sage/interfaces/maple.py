@@ -257,7 +257,8 @@ class Maple(Expect):
     object, and ``maple.eval(...)`` to run a string using
     Maple (and get the result back as a string).
     """
-    def __init__(self, maxread=100, script_subdirectory=None, server=None, server_tmpdir=None, logfile=None):
+    def __init__(self, maxread=100, script_subdirectory=None, server=None,
+            server_tmpdir=None, logfile=None, ulimit=None):
         """
         Create an instance of the Maple interpreter.
 
@@ -282,11 +283,12 @@ class Maple(Expect):
                         name = 'maple',
                         prompt = '#-->',
                         command = __maple_command,
+                        server = server,
+                        server_tmpdir = server_tmpdir,
+                        ulimit = ulimit,
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=2048)  # 2048 is
@@ -913,8 +915,7 @@ class MapleElement(ExpectElement):
             sage: type(_)            # optional - maple
             <type 'float'>
         """
-        M = self.parent()
-        return float(maple.eval('evalf(%s)'%self.name()))
+        return float(maple.eval('evalf(%s)' % self.name()))
 
     def __hash__(self):
         """
@@ -1097,7 +1098,7 @@ class MapleElement(ExpectElement):
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
             sage: print latex(maple(pi - e^3))                   # optional - maple
             \pi-{{\rm e}^{3}}
-            sage: print maple(pi - e^3)._latex_()                # optional -- requires maple
+            sage: print maple(pi - e^3)._latex_()                # optional - maple
             \pi-{{\rm e}^{3}}
  
         .. note::
@@ -1119,7 +1120,7 @@ class MapleElement(ExpectElement):
             sage: m = maple('x^2 + 5*y')                            # optional - maple
             sage: m.sage()                                          # optional - maple
             x^2 + 5*y
-            sage: m._sage_()                                        # optional - requires maple
+            sage: m._sage_()                                        # optional - maple
             x^2 + 5*y
 
         ::
@@ -1155,7 +1156,6 @@ def reduce_load_Maple():
     return maple
 
 
-import os
 def maple_console():
     """
     Spawn a new Maple command-line session.

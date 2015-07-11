@@ -33,18 +33,17 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import ZZ
-from combinat import CombinatorialObject
+from combinat import CombinatorialElement
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
-class Composition(CombinatorialObject, Element):
+class Composition(CombinatorialElement):
     r"""
     Integer compositions
 
@@ -106,9 +105,12 @@ class Composition(CombinatorialObject, Element):
         [1, 1, 2, 1]
         sage: Composition(descents=({0,1,3},5))
         [1, 1, 2, 1]
-    """
-    __metaclass__ = ClasscallMetaclass
 
+    EXAMPLES::
+
+        sage: C = Composition([3,1,2])
+        sage: TestSuite(C).run()
+    """
     @staticmethod
     def __classcall_private__(cls, co=None, descents=None, code=None, from_subset=None):
         """
@@ -143,18 +145,6 @@ class Composition(CombinatorialObject, Element):
         else:
             return Compositions()(list(co))
 
-    def __init__(self, parent, lst):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: C = Composition([3,1,2])
-            sage: TestSuite(C).run()
-        """
-        CombinatorialObject.__init__(self, lst)
-        Element.__init__(self, parent)
-
     def _ascii_art_(self):
         """
         TESTS::
@@ -171,7 +161,7 @@ class Composition(CombinatorialObject, Element):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):
@@ -947,7 +937,7 @@ class Composition(CombinatorialObject, Element):
             ...
             ValueError: composition J (= [2, 1]) does not refine self (= [1, 2])
         """
-        return Compositions()(map(len,self.refinement_splitting(J)))
+        return Compositions()([len(_) for _ in self.refinement_splitting(J)])
 
     def major_index(self):
         """

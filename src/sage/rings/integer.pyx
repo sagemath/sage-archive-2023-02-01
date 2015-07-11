@@ -137,10 +137,12 @@ import operator
 import sys
 
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.long cimport pyobject_to_long
 
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
-from sage.ext.memory cimport check_allocarray
+from sage.ext.memory cimport check_malloc, check_allocarray
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
@@ -168,6 +170,9 @@ cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 from sage.structure.coerce cimport is_numpy_type
 from sage.structure.element import canonical_coercion, coerce_binop
+
+cdef extern from *:
+    int unlikely(int) nogil  # Defined by Cython
 
 cdef object numpy_long_interface = {'typestr': '=i4' if sizeof(long) == 4 else '=i8' }
 cdef object numpy_int64_interface = {'typestr': '=i8'}
@@ -1041,14 +1046,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef size_t n
         cdef char *s
         n = mpz_sizeinbase(self.value, base) + 2
-        s = <char *>PyMem_Malloc(n)
-        if s == NULL:
-            raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."
+        s = <char*>check_malloc(n)
         sig_on()
         mpz_get_str(s, base, self.value)
         sig_off()
         k = <object> PyString_FromString(s)
-        PyMem_Free(s)
+        sage_free(s)
         return k
 
     def __format__(self, *args, **kwargs):
@@ -1566,11 +1569,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        # self and right are guaranteed to be Integers, self safe to mutate
-        mpz_add(self.value, self.value, (<Integer>right).value)
-        return self
-
     cdef RingElement _add_long(self, long n):
         """
         Fast path for adding a C long.
@@ -1631,10 +1629,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer x = <Integer>PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        mpz_sub(self.value, self.value, (<Integer>right).value)
-        return self
 
     def __neg__(self):
         """
@@ -1718,17 +1712,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         else:
             mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
-
-    cpdef RingElement _imul_(self, RingElement right):
-        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
-            # We only use the signal handler (to enable ctrl-c out) when the
-            # product might take a while to compute
-            sig_on()
-            mpz_mul(self.value, self.value, (<Integer>right).value)
-            sig_off()
-        else:
-            mpz_mul(self.value, self.value, (<Integer>right).value)
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         r"""
@@ -1864,7 +1847,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^x
             sage: 2^1.5              # real number
             2.82842712474619
-            sage: 2^float(1.5)       # python float
+            sage: 2^float(1.5)       # python float  abs tol 3e-16
             2.8284271247461903
             sage: 2^I                # complex number
             2^I
@@ -1891,7 +1874,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^t
             Traceback (most recent call last):
             ...
-            TypeError: non-integral exponents not supported
+            TypeError:
+            'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'
+            object cannot be interpreted as an index
             sage: int(3)^-3
             1/27
             sage: type(int(3)^2)
@@ -1914,7 +1899,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef long nn
 
         try:
-            nn = PyNumber_Index(n)
+            nn = pyobject_to_long(n)
         except TypeError:
             s = parent_c(n)(self)
             return s**n
@@ -3979,9 +3964,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # we need (at most) log_2(#factors) concurrent sub-products
         cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2))
-        cdef mpz_t* sub_prods = <mpz_t*>sage_malloc(prod_count * sizeof(mpz_t))
-        if sub_prods == NULL:
-            raise MemoryError
+        cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
         for i from 0 <= i < prod_count:
             mpz_init(sub_prods[i])
 
@@ -6753,7 +6736,7 @@ cdef int total_alloc = 0
 cdef int use_pool = 0
 
 
-cdef PyObject* fast_tp_new(type t, args, kwds):
+cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
     cdef PyObject* new
@@ -6783,6 +6766,8 @@ cdef PyObject* fast_tp_new(type t, args, kwds):
         # objects (as indicated by the Py_TPFLAGS_HAVE_GC flag).
         # See below for a more detailed description.
         new = <PyObject*>PyObject_Malloc( sizeof_Integer )
+        if unlikely(new == NULL):
+            raise MemoryError
 
         # Now set every member as set in z, the global dummy Integer
         # created before this tp_new started to operate.
@@ -6806,7 +6791,7 @@ cdef PyObject* fast_tp_new(type t, args, kwds):
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
         new_mpz = <mpz_ptr>((<Integer>new).value)
-        new_mpz._mp_d = <mp_ptr>sage_malloc(GMP_LIMB_BITS >> 3)
+        new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
 
     # This line is only needed if Python is compiled in debugging mode
     # './configure --with-pydebug' or SAGE_DEBUG=yes. If that is the

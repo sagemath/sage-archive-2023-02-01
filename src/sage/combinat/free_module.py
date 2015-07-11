@@ -29,7 +29,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
-from sage.misc.ascii_art import AsciiArt, empty_ascii_art
+from sage.typeset.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -816,8 +816,8 @@ class CombinatorialFreeModuleElement(Element):
 
         .. NOTE::
 
-            #13406: the current implementation has been optimized, at
-            #the price of breaking the encapsulation for FreeModule
+            :trac:`13406`: the current implementation has been optimized, at
+            the price of breaking the encapsulation for FreeModule
             elements creation, with the following use case as metric,
             on a 2008' Macbook Pro::
 
@@ -874,7 +874,7 @@ class CombinatorialFreeModuleElement(Element):
             sage: F.get_action(F, operator.mul, False)
 
         This also works when a coercion of the coefficient is needed, for
-        example with polynomials or fraction fields #8832::
+        example with polynomials or fraction fields (:trac:`8832`)::
 
             sage: P.<q> = QQ['q']
             sage: V = CombinatorialFreeModule(P, Permutations())
@@ -1255,7 +1255,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         TESTS:
 
-        Regression test for :trac:10127`: ``self._indices`` needs to be
+        Regression test for :trac:`10127`: ``self._indices`` needs to be
         set early enough, in case the initialization of the categories
         use ``self.basis().keys()``. This occured on several occasions
         in non trivial constructions. In the following example,
@@ -1328,11 +1328,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: ascii_art(R.one())  # indirect doctest
             1
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         try:
             if m == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         return IndexedGenerators._ascii_art_generator(self, m)
 

@@ -95,7 +95,7 @@ figure of the circle and ellipse exactly three times? ::
 
     sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F  # optional - qepcad
     (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
-    sage: qepcad(F)                                         # optional - qepcad
+    sage: qepcad(F)                                         # not tested
     x^2 - 3 <= 0 /\ 8 x^2 - 8 x - 29 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
 
 Here we see that the solutions are among the eight ($4 + 2 + 2$) roots
@@ -116,7 +116,7 @@ input.  We can request output that is intended to be easy to interpret
 geometrically; then QEPCAD will use the extended language to produce
 a solution formula without the selection polynomials. ::
 
-    sage: qepcad(F, solution='geometric')                 # optional - qepcad
+    sage: qepcad(F, solution='geometric')                 # not tested
     x = _root_1 8 x^2 - 8 x - 29
     \/
     8 x^4 - 26 x^2 - 4 x + 13 = 0
@@ -133,7 +133,7 @@ We will look at the region which is inside both the ellipse and the circle::
 
     sage: F = qf.and_(ellipse < 0, circle < 0); F         # optional - qepcad
     [3 x^2 + 2 x y + y^2 - x + y - 7 < 0 /\ x^2 + y^2 - 3 < 0]
-    sage: qepcad(F)                                       # optional - qepcad
+    sage: qepcad(F)                                       # not tested
     y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0
 
 We get back the same formula we put in.  This is not surprising (we
@@ -142,7 +142,7 @@ enlightening either.  Again, if we ask for a 'geometric' output, then we see
 an output that lets us understand something about the shape of the solution
 set. ::
 
-    sage: qepcad(F, solution='geometric')                 # optional - qepcad
+    sage: qepcad(F, solution='geometric')                 # not tested
     [
       [
         x = _root_-2 8 x^4 - 26 x^2 - 4 x + 13
@@ -171,9 +171,9 @@ structure, it also can be more efficient to construct.  Consider this
 formula for the projection of a particular semicircle onto the $x$
 axis::
 
-    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F   # optional - qepcad
+    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F  # optional - qepcad
     (E y)[x^2 + y^2 - 3 = 0 /\ x + y > 0]
-    sage: qepcad(F)                                  # optional - qepcad
+    sage: qepcad(F)                                             # not tested
     x^2 - 3 <= 0 /\ [ x > 0 \/ 2 x^2 - 3 < 0 ]
 
 Here, the formula $x > 0$ had to be introduced in order to get a
@@ -183,7 +183,7 @@ with a solution formula, we can tell it to use the extended language;
 it is always possible to construct a solution formula in the extended
 language without introducing new polynomials. ::
 
-    sage: qepcad(F, solution='extended')                 # optional - qepcad
+    sage: qepcad(F, solution='extended')                        # not tested
     x^2 - 3 <= 0 /\ x > _root_1 2 x^2 - 3
 
 Up to this point, all the output we have seen has basically been in the
@@ -477,7 +477,7 @@ matter, since we're going to replace the truth values in the cells; we
 just need to use a formula that uses both polynomials.) ::
 
     sage: qe = qepcad(qf.and_(ellipse == 0, circle == 0), interact=True)       # optional - qepcad
-    sage: qe.go(); qe.go(); qe.go()                      # optional - qepcad
+    sage: qe.go(); qe.go(); qe.go()                         # optional - qepcad
     QEPCAD object has moved to phase 'Before Projection (y)'
     QEPCAD object has moved to phase 'Before Choice'
     QEPCAD object has moved to phase 'Before Solution'
@@ -488,7 +488,7 @@ also contains exactly two cells on the circle.
 
 Our input polynomials are 'level-2 projection factors', we see::
 
-    sage: qe.d_proj_factors()                           # optional - qepcad
+    sage: qe.d_proj_factors()                               # optional - qepcad
     P_1,1  = fac(J_1,1) = fac(dis(A_2,1))
            = 8 x^2 - 8 x - 29
     P_1,2  = fac(J_1,2) = fac(dis(A_2,2))
@@ -504,12 +504,12 @@ so we can test whether a cell is on the ellipse by checking that the
 sign of the corresponding projection factor is 0 in our cell.
 For instance, the cell (12,2) is on the ellipse::
 
-    sage: qe.cell(12,2).signs()[1][0]                  # optional - qepcad
+    sage: qe.cell(12,2).signs()[1][0]                       # optional - qepcad
     0
 
 So we can update the truth values as desired like this::
 
-    sage: for c in qe.cell():                                        # optional - qepcad
+    sage: for c in qe.cell():                               # optional - qepcad
     ....:     count_ellipse = 0
     ....:     count_circle = 0
     ....:     for c2 in c:
@@ -521,7 +521,7 @@ and then we can get our desired solution formula.  (The ``'G'`` stands for
 ``'geometric'``, and gives solutions using the same rules as
 ``solution='geometric'`` described above.) ::
 
-    sage: qe.solution_extension('G')     # optional - qepcad
+    sage: qe.solution_extension('G')                        # not tested
     8 x^2 - 8 x - 29 < 0
     /\
     x^2 - 3 < 0
@@ -533,9 +533,66 @@ Check the qepcad configuration file::
     sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
     'SINGULAR .../local/bin\n'
 
+Tests related to the not tested examples (nondeterministic order of atoms)::
+
+    sage: from sage.interfaces.qepcad import _qepcad_atoms
+    sage: var('a,b,c,d,x,y,z')
+    (a, b, c, d, x, y, z)
+    sage: qf = qepcad_formula
+    sage: ellipse = 3*x^2 + 2*x*y + y^2 - x + y - 7
+    sage: circle = x^2 + y^2 - 3
+
+    sage: F = qf.exactly_k(3, y, circle * ellipse == 0)
+    sage: _qepcad_atoms(qepcad(F))                                 # optional - qepcad
+    {'8 x^2 - 8 x - 29 <= 0',
+     '8 x^2 - 8 x - 29 = 0',
+     '8 x^4 - 26 x^2 - 4 x + 13 = 0',
+     '8 x^4 - 26 x^2 - 4 x + 13 >= 0',
+     'x^2 - 3 <= 0',
+     'x^2 - 3 = 0'}
+    sage: _qepcad_atoms(qepcad(F, solution='geometric'))           # optional - qepcad
+    {'8 x^4 - 26 x^2 - 4 x + 13 = 0',
+     'x = _root_-1 x^2 - 3',
+     'x = _root_1 8 x^2 - 8 x - 29'}
+
+    sage: F = qf.and_(ellipse < 0, circle < 0)
+    sage: _qepcad_atoms(qepcad(F))                                 # optional - qepcad
+    {'y^2 + 2 x y + y + 3 x^2 - x - 7 < 0', 'y^2 + x^2 - 3 < 0'}
+    sage: _qepcad_atoms(qepcad(F, solution='geometric'))           # optional - qepcad
+    {'8 x^4 - 26 x^2 - 4 x + 13 < 0',
+     'x < _root_-2 8 x^4 - 26 x^2 - 4 x + 13',
+     'x = _root_-2 8 x^4 - 26 x^2 - 4 x + 13',
+     'x = _root_2 8 x^4 - 26 x^2 - 4 x + 13',
+     'x > _root_2 8 x^4 - 26 x^2 - 4 x + 13',
+     'y^2 + 2 x y + y + 3 x^2 - x - 7 < 0',
+     'y^2 + x^2 - 3 < 0'}
+
+    sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0))
+    sage: _qepcad_atoms(qepcad(F))                                 # optional - qepcad
+    {'2 x^2 - 3 < 0', 'x > 0', 'x^2 - 3 <= 0'}
+    sage: _qepcad_atoms(qepcad(F, solution='extended'))            # optional - qepcad
+    {'x > _root_1 2 x^2 - 3', 'x^2 - 3 <= 0'}
+
+    sage: qe = qepcad(qf.and_(ellipse == 0, circle == 0), interact=True)       # optional - qepcad
+    sage: qe.go(); qe.go(); qe.go()                         # optional - qepcad
+    QEPCAD object has moved to phase 'Before Projection (y)'
+    QEPCAD object has moved to phase 'Before Choice'
+    QEPCAD object has moved to phase 'Before Solution'
+    sage: for c in qe.cell():                               # optional - qepcad
+    ....:     count_ellipse = 0
+    ....:     count_circle = 0
+    ....:     for c2 in c:
+    ....:         count_ellipse += (c2.signs()[1][0] == 0)
+    ....:         count_circle += (c2.signs()[1][1] == 0)
+    ....:     c.set_truth(count_ellipse == 2 and count_circle == 2)
+    sage: _qepcad_atoms(qe.solution_extension('G'))                # optional - qepcad
+    {'8 x^2 - 8 x - 29 < 0', 'x^2 - 3 < 0'}
+
+
 AUTHORS:
 
 - Carl Witty (2008-03): initial version
+- Thierry Monteil (2015-07) repackaging + noncommutative doctests.
 """
 
 #*****************************************************************************
@@ -557,6 +614,25 @@ from sage.misc.sage_eval import sage_eval
 from sage.repl.preparse import implicit_mul
 
 from expect import Expect, ExpectFunction, AsciiArtString
+
+def _qepcad_atoms(formula):
+    r"""
+    Return the atoms of a qepcad quantifier-free formula, as a set of strings.
+
+    INPUT::
+
+    - `formula` (string) - a quantifier-free formula.
+
+    .. note:: this function is pis-aller used for doctesting, not a complete
+    parser, which should be written in a further ticket.
+
+    EXAMPLES::
+
+    sage: from sage.interfaces.qepcad import _qepcad_atoms
+    sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\ y <= 0 /\ [ y = 0 \/ y^5 + 4 y + 8 = 0 ]')
+    {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
+    """
+    return set(i.strip() for i in flatten([i.split('\\/') for i in formula.replace('[','').replace(']','').split('/\\')]))
 
 def _qepcad_cmd(memcells=None):
     r"""
@@ -864,9 +940,9 @@ class Qepcad:
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.solution_extension('E') # optional - qepcad
+            sage: qe.solution_extension('E')                    # not tested
             x > _root_1 2 x^2 - 3 /\ y^2 + x^2 - 3 = 0 /\ [ 2 x^2 - 3 > 0 \/ y = _root_-1 y^2 + x^2 - 3 ]
-            sage: qe.solution_extension('G') # optional - qepcad
+            sage: qe.solution_extension('G')                    # not tested
             [
               [
                 2 x^2 - 3 < 0
@@ -884,8 +960,36 @@ class Qepcad:
               /\
               y^2 + x^2 - 3 = 0
             ]
-            sage: qe.solution_extension('T') # optional - qepcad
+            sage: qe.solution_extension('T')                    # not tested
             y + x > 0 /\ y^2 + x^2 - 3 = 0
+
+        TESTS:
+
+        Tests related to the not tested examples (nondeterministic order of atoms)::
+
+            sage: from sage.interfaces.qepcad import _qepcad_atoms
+            sage: var('x,y')
+            (x, y)
+            sage: qf = qepcad_formula
+            sage: qe = qepcad(qf.and_(x^2 + y^2 - 3 == 0, x + y > 0), interact=True) # optional - qepcad
+            sage: qe.go(); qe.go(); qe.go() # optional - qepcad
+            QEPCAD object has moved to phase 'Before Projection (y)'
+            QEPCAD object has moved to phase 'Before Choice'
+            QEPCAD object has moved to phase 'Before Solution'
+            sage: _qepcad_atoms(qe.solution_extension('E'))        # optional - qepcad
+            {'2 x^2 - 3 > 0',
+             'x > _root_1 2 x^2 - 3',
+             'y = _root_-1 y^2 + x^2 - 3',
+             'y^2 + x^2 - 3 = 0'}
+            sage: _qepcad_atoms(qe.solution_extension('G'))        # optional - qepcad
+            {'2 x^2 - 3 < 0',
+             'x = _root_-1 2 x^2 - 3',
+             'x > _root_-1 2 x^2 - 3',
+             'x^2 - 3 <= 0',
+             'y = _root_-1 y^2 + x^2 - 3',
+             'y^2 + x^2 - 3 = 0'}
+            sage: _qepcad_atoms(qe.solution_extension('T'))        # optional - qepcad
+            {'y + x > 0', 'y^2 + x^2 - 3 = 0'}
         """
         if kind == 'I':
             raise ValueError("Interactive solution construction not "
@@ -986,11 +1090,22 @@ class Qepcad:
 
         EXAMPLES::
 
-            sage: qe = qepcad(x^3 - x == 0, interact=True) # optional - qepcad
-            sage: qe.finish() # optional - qepcad
+            sage: qe = qepcad(x^3 - x == 0, interact=True)  # optional - qepcad
+            sage: qe.finish()                               # not tested
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
-            sage: qe.answer() # optional - qepcad
+            sage: qe.answer()                               # not tested
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
+
+        TESTS:
+
+        Tests related to the not tested examples (nondeterministic order of atoms)::
+
+            sage: from sage.interfaces.qepcad import _qepcad_atoms
+            sage: qe = qepcad(x^3 - x == 0, interact=True)  # optional - qepcad
+            sage: qe.finish()                               # random, optional - qepcad
+            x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
+            sage: _qepcad_atoms(qe.answer())                                       # optional - qepcad
+            {'x + 1 = 0', 'x + 1 >= 0', 'x - 1 <= 0', 'x - 1 = 0', 'x = 0'}
         """
         return AsciiArtString(self._parse_answer_stats()[0])
 
@@ -1326,13 +1441,13 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         (a, b, c, d, x, y, z, long_with_underscore_314159)
         sage: K.<q,r> = QQ[]
 
-        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # optional - qepcad
+        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # not tested
         a /= 0 \/ b > 0
 
         sage: qepcad(a > b)                            # optional - qepcad
         b - a < 0
 
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # optional - qepcad
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # not tested
         4 a c - b^2 <= 0 /\ [ c = 0 \/ a /= 0 \/ 4 a c - b^2 < 0 ]
 
         sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0), assume=(a != 0))    # optional - qepcad
@@ -1341,17 +1456,17 @@ def qepcad(formula, assume=None, interact=False, solution=None,
     For which values of $a$, $b$, $c$ does $a x^2 + b x + c$ have
     2 real zeroes? ::
 
-        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2   # optional - qepcad
+        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2   # not tested
         a /= 0 /\ 4 a c - b^2 < 0
 
     one real zero? ::
 
-        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1   # optional - qepcad
+        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1   # not tested
         [ a > 0 /\ 4 a c - b^2 = 0 ] \/ [ a < 0 /\ 4 a c - b^2 = 0 ] \/ [ a = 0 /\ 4 a c - b^2 < 0 ]
 
     No real zeroes? ::
 
-        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0     # optional - qepcad
+        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0     # not tested
         4 a c - b^2 >= 0 /\ c /= 0 /\ [ b = 0 \/ 4 a c - b^2 > 0 ]
 
     $3^{75}$ real zeroes? ::
@@ -1361,61 +1476,61 @@ def qepcad(formula, assume=None, interact=False, solution=None,
 
     We can check that the results don't overlap::
 
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')      # optional - qepcad
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')      # not tested
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')      # optional - qepcad
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')      # not tested
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')      # optional - qepcad
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')      # not tested
         FALSE
 
     and that the union of the results is as expected::
 
-        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))  # optional - qepcad
+        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))  # not tested
         b /= 0 \/ a /= 0 \/ c /= 0
 
     So we have finitely many zeroes if $a$, $b$, or $c$ is nonzero;
     which means we should have infinitely many zeroes if they are all
     zero. ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))          # optional - qepcad
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))          # not tested
         a = 0 /\ b = 0 /\ c = 0
 
     The polynomial is nonzero almost everywhere iff it is not
     identically zero. ::
 
-        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))    # optional - qepcad
+        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))    # not tested
         b /= 0 \/ a /= 0 \/ c /= 0
 
     The non-zeroes are continuous iff there are no zeroes or if
     the polynomial is zero. ::
 
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))         # optional - qepcad
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))         # not tested
         4 a c - b^2 >= 0 /\ [ a = 0 \/ 4 a c - b^2 > 0 ]
 
     The zeroes are continuous iff there are no or one zeroes, or if the
     polynomial is zero::
 
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))         # optional - qepcad
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))         # not tested
         a = 0 \/ 4 a c - b^2 >= 0
-        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')   # optional - qepcad
+        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')   # not tested
         a = 0 \/ 4 a c - b^2 >= 0
 
     Since polynomials are continuous and $y > 0$ is an open set,
     they are positive infinitely often iff they are positive at
     least once. ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # optional - qepcad
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # not tested
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))        # optional - qepcad
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # not tested
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
 
     However, since $y >= 0$ is not open, the equivalence does not
     hold if you replace 'positive' with 'nonnegative'.
     (We assume $a \neq 0$ to get simpler formulas.) ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # optional - qepcad
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # not tested
         a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))             # optional - qepcad
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))             # not tested
         a > 0 \/ 4 a c - b^2 <= 0
 
     TESTS:
@@ -1425,6 +1540,65 @@ def qepcad(formula, assume=None, interact=False, solution=None,
 
         sage: qepcad(qf.exists(a, a*long_with_underscore_314159 == 1))                # optional - qepcad
         longwithunderscore314159 /= 0
+
+    Tests related to the not tested examples (nondeterministic order of atoms)::
+
+        sage: from sage.interfaces.qepcad import _qepcad_atoms
+        sage: var('a,b,c,d,x,y,z,long_with_underscore_314159')
+        (a, b, c, d, x, y, z, long_with_underscore_314159)
+        sage: K.<q,r> = QQ[]
+
+        sage: _qepcad_atoms(qepcad('(E x)[a x + b > 0]', vars='(a,b,x)'))                       # optional - qepcad
+        {'a /= 0', 'b > 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.exists(x, a*x^2 + b*x + c == 0)))                         # optional - qepcad
+        {'4 a c - b^2 < 0', '4 a c - b^2 <= 0', 'a /= 0', 'c = 0'}
+
+        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); _qepcad_atoms(exact2)  # optional - qepcad
+        {'4 a c - b^2 < 0', 'a /= 0'}
+
+        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); _qepcad_atoms(exact1)  # optional - qepcad
+        {'4 a c - b^2 < 0', '4 a c - b^2 = 0', 'a < 0', 'a = 0', 'a > 0'}
+
+        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); _qepcad_atoms(exact0)        # optional - qepcad
+        {'4 a c - b^2 > 0', '4 a c - b^2 >= 0', 'b = 0', 'c /= 0'}
+
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')                        # optional - qepcad
+        FALSE
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')                        # optional - qepcad
+        FALSE
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')                        # optional - qepcad
+        FALSE
+
+        sage: _qepcad_atoms(qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c)))    # optional - qepcad
+        {'a /= 0', 'b /= 0', 'c /= 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0)))               # optional - qepcad
+        {'a = 0', 'b = 0', 'c = 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0)))         # optional - qepcad
+        {'a /= 0', 'b /= 0', 'c /= 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0)))              # optional - qepcad
+        {'4 a c - b^2 > 0', '4 a c - b^2 >= 0', 'a = 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0)))              # optional - qepcad
+        {'4 a c - b^2 >= 0', 'a = 0'}
+
+        sage: _qepcad_atoms(qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c'))   # optional - qepcad
+        {'4 a c - b^2 >= 0', 'a = 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0)))                # optional - qepcad
+        {'4 a c - b^2 < 0', 'a > 0', 'c > 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.exists(x, a*x^2 + b*x + c > 0)))                         # optional - qepcad
+        {'4 a c - b^2 < 0', 'a > 0', 'c > 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0)))  # optional - qepcad
+        {'4 a c - b^2 < 0', 'a > 0'}
+
+        sage: _qepcad_atoms(qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0)))       # optional - qepcad
+        {'4 a c - b^2 <= 0', 'a > 0'}
     """
     use_witness = False
     if solution == 'any-point':
@@ -2553,3 +2727,4 @@ class QepcadCell:
         vars = self._parent._varlist
 
         return dict([(vars[i], points[i]) for i in range(len(points))])
+

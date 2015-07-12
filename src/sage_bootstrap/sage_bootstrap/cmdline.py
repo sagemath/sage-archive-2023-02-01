@@ -119,7 +119,7 @@ class SagePkgApplication(CmdlineSubcommands):
         pari-2.8-1564-gdeac36e.tar.gz
         """
         package = Package(package_name)
-        print(package.tarball)
+        print(package.tarball.filename)
     
 
 class SageDownloadFileApplication(object):    

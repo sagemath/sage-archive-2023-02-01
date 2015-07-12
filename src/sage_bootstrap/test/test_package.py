@@ -16,6 +16,7 @@ Test Sage Package Handling
 
 import unittest
 from sage_bootstrap.package import Package
+from sage_bootstrap.tarball import Tarball
 
 
 class PackageTestCase(unittest.TestCase):
@@ -25,9 +26,12 @@ class PackageTestCase(unittest.TestCase):
         self.assertTrue(pkg.name, 'pari')
         self.assertTrue(pkg.path.endswith('build/pkgs/pari'))
         self.assertEqual(pkg.tarball_pattern, 'pari-VERSION.tar.gz')
-        self.assertTrue(pkg.tarball.startswith('pari-') and
-                        pkg.tarball.endswith('.tar.gz'))
-                        
+        self.assertEqual(pkg.tarball_filename, pkg.tarball.filename)
+        self.assertTrue(pkg.tarball.filename.startswith('pari-') and
+                        pkg.tarball.filename.endswith('.tar.gz'))
+        self.assertTrue(pkg.tarball.filename.startswith('pari-') and
+                        pkg.tarball.filename.endswith('.tar.gz'))
+        self.assertIsInstance(pkg.tarball, Tarball)
 
     def test_all(self):
         pari = Package('pari')

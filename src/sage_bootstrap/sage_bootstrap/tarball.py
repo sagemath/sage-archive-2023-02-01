@@ -39,7 +39,7 @@ class FileNotMirroredError(Exception):
 
 class Tarball(object):
     
-    def __init__(self, tarball_name):
+    def __init__(self, tarball_name, package=None):
         """
         A (third-party downloadable) tarball
 
@@ -53,15 +53,25 @@ class Tarball(object):
           of a tarball on the Sage mirror network.
         """
         self.__filename = tarball_name
-        self.__package = None
-        for pkg in Package.all():
-            if pkg.tarball == tarball_name:
-                self.__package = pkg
-        if self.package is None:
-            error = 'tarball {0} is not referenced by any Sage package'.format(tarball_name)
-            log.error(error)
-            raise ValueError(error)
+        if package is None:
+            self.__package = None
+            for pkg in Package.all():
+                if pkg.tarball_filename == tarball_name:
+                    self.__package = pkg
+            if self.package is None:
+                error = 'tarball {0} is not referenced by any Sage package'.format(tarball_name)
+                log.error(error)
+                raise ValueError(error)
+        else:
+            self.__package = package
+            if package.tarball_filename != tarball_name:
+                error = 'tarball {0} is not referenced by the {1} package'.format(tarball_name, package.name)
+                log.error(error)
+                raise ValueError(error)
 
+    def __repr__(self):
+        return 'Tarball {0}'.format(self.filename)
+            
     @property
     def filename(self):
         """
@@ -92,6 +102,9 @@ class Tarball(object):
         """
         return os.path.join(SAGE_DISTFILES, self.filename)
 
+    def __eq__(self, other):
+        return self.filename == other.filename
+        
     def _compute_hash(self, algorithm):
         with open(self.upstream_fqn, 'rb') as f:
             while True:

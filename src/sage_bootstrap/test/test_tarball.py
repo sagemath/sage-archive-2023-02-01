@@ -26,7 +26,8 @@ class TarballTestCase(unittest.TestCase):
 
     def test_tarball(self):
         pkg = Package('configure')
-        tarball = Tarball(pkg.tarball)
+        tarball = Tarball(pkg.tarball_filename)
+        self.assertEqual(tarball, pkg.tarball)
         self.assertEqual(pkg, tarball.package)
         with CapturedOutput() as (stdout, stderr):
             with CapturedLog() as log:
@@ -36,7 +37,7 @@ class TarballTestCase(unittest.TestCase):
 
     def test_checksum(self):
         pkg = Package('configure')
-        tarball = Tarball(pkg.tarball)
+        tarball = pkg.tarball
         with CapturedOutput() as (stdout, stderr):
             with CapturedLog() as log:
                 tarball.download()
@@ -49,7 +50,7 @@ class TarballTestCase(unittest.TestCase):
                 tarball.download()
         msg = log.messages()        
         self.assertTrue(
-            ('INFO', 'Attempting to download package {0} from mirrors'.format(pkg.tarball)) in msg)
+            ('INFO', 'Attempting to download package {0} from mirrors'.format(pkg.tarball_filename)) in msg)
         self.assertEqual(stdout.getvalue(), '')
         self.assertEqual(stderr.getvalue(),
             '[......................................................................]\n')

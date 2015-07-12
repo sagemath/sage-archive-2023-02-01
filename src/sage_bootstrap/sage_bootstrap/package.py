@@ -42,9 +42,13 @@ class Package(object):
            convention is that all package names are lower case.
         """
         self.__name = package_name
+        self.__tarball = None
         self._init_checksum()
         self._init_version()
 
+    def __repr__(self):
+        return 'Package {0}'.format(self.name)
+            
     @property
     def name(self):
         """
@@ -100,6 +104,38 @@ class Package(object):
     @property
     def tarball(self):
         """
+        Return the (primary) tarball
+
+        If there are multiple tarballs (currently unsupported), this
+        property returns the one that is unpacked automatically.
+
+        OUTPUT:
+
+        Instance of :class:`sage_bootstrap.tarball.Tarball`
+        """
+        if self.__tarball is None:
+            from sage_bootstrap.tarball import Tarball
+            self.__tarball = Tarball(self.tarball_filename, package=self)
+        return self.__tarball
+
+    @property
+    def tarball_pattern(self):
+        """
+        Return the (primary) tarball file pattern
+
+        If there are multiple tarballs (currently unsupported), this
+        property returns the one that is unpacked automatically.
+
+        OUTPUT:
+
+        String. The full-qualified tarball filename, but with
+        ``VERSION`` instead of the actual tarball filename.
+        """
+        return self.__tarball_pattern
+
+    @property
+    def tarball_filename(self):
+        """
         Return the (primary) tarball filename
 
         If there are multiple tarballs (currently unsupported), this
@@ -109,19 +145,7 @@ class Package(object):
 
         String. The full-qualified tarball filename.
         """
-        return self.__tarball
-
-    @property
-    def tarball_pattern(self):
-        """
-        Return the (primary) tarball file pattern
-
-        OUTPUT:
-
-        String. The full-qualified tarball filename, but with
-        ``VERSION`` instead of the actual tarball filename.
-        """
-        return self.__tarball_pattern
+        return self.tarball_pattern.replace('VERSION', self.version)
 
     @property
     def version(self):
@@ -200,6 +224,5 @@ class Package(object):
         else:
             self.__version = match.group('version')
             self.__patchlevel = match.group('patchlevel')
-        self.__tarball = self.__tarball_pattern.replace('VERSION', self.version)
         
         

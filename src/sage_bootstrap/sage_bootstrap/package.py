@@ -26,6 +26,21 @@ from sage_bootstrap.env import SAGE_ROOT
 class Package(object):
 
     def __init__(self, package_name):
+        """
+        Sage Package
+
+        A package is defined by a subdirectory of
+        ``SAGE_ROOT/build/pkgs/``. The name of the package is the name
+        of the subdirectory; The metadata of the package is contained
+        in various files in the package directory. This class provides
+        an abstraction to the metadata, you should never need to
+        access the package directory directly.
+
+        INPUT: 
+
+        -- ``package_name`` -- string. Name of the package. The Sage
+           convention is that all package names are lower case.
+        """
         self.name = package_name
         self._init_checksum()
         self._init_version()
@@ -35,6 +50,9 @@ class Package(object):
         
     @classmethod
     def all(cls):
+        """
+        Return all packages
+        """
         base = os.path.join(SAGE_ROOT, 'build', 'pkgs')
         for subdir in os.listdir(base):
             path = os.path.join(base, subdir) 
@@ -44,6 +62,9 @@ class Package(object):
 
     @property
     def path(self):
+        """
+        Return the package directory
+        """
         return os.path.join(SAGE_ROOT, 'build', 'pkgs', self.name)
             
     def _init_checksum(self):
@@ -63,7 +84,6 @@ class Package(object):
         self.md5 = result['md5']
         self.sha1 = result['sha1']
         self.cksum = result['cksum']
-        self.sha1 = result['sha1']
         self.tarball_pattern = result['tarball']
         
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')

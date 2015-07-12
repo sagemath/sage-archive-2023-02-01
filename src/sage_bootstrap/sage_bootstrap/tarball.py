@@ -24,10 +24,16 @@ from sage_bootstrap.mirror_list import MirrorList
 
 
 class ChecksumError(Exception):
+    """
+    Exception raised when the checksum of the tarball does not match
+    """
     pass
 
 
 class FileNotMirroredError(Exception):
+    """
+    Exception raised when the tarball cannot be downloaded from the mirrors
+    """
     pass
 
 
@@ -114,6 +120,9 @@ class Tarball(object):
             raise ChecksumError('checksum does not match')
 
     def save_as(self, destination):
+        """
+        Save the tarball as a new file
+        """
         import shutil
         shutil.copy(self.upstream_fqn, destination)
 

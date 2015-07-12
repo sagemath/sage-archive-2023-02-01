@@ -31,7 +31,7 @@ class PackageTestCase(unittest.TestCase):
                         pkg.tarball.filename.endswith('.tar.gz'))
         self.assertTrue(pkg.tarball.filename.startswith('pari-') and
                         pkg.tarball.filename.endswith('.tar.gz'))
-        self.assertIsInstance(pkg.tarball, Tarball)
+        self.assertTrue(isinstance(pkg.tarball, Tarball))
 
     def test_all(self):
         pari = Package('pari')

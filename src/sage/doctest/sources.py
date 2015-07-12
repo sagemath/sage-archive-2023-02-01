@@ -189,12 +189,13 @@ class DocTestSource(object):
         """
         docstring = "".join(doc)
         new_doctests = self.parse_docstring(docstring, namespace, start)
+        sig_on_count_doc_doctest = "sig_on_count() # check sig_on/off pairings (virtual doctest)\n"
         for dt in new_doctests:
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
-                                             and dt.examples[-1].sage_source == "sig_on_count()\n"):
+                                             and dt.examples[-1].sage_source == sig_on_count_doc_doctest):
                 # Line number refers to the end of the docstring
-                sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=docstring.count("\n"))
-                sigon.sage_source = "sig_on_count()\n"
+                sigon = doctest.Example(sig_on_count_doc_doctest, "0\n", lineno=docstring.count("\n"))
+                sigon.sage_source = sig_on_count_doc_doctest
                 dt.examples.append(sigon)
             doctests.append(dt)
 
@@ -1457,7 +1458,7 @@ class RestSource(SourceLanguage):
             ....:     print ex.sage_source,
             test1()
             test2()
-            sig_on_count()
+            sig_on_count() # check sig_on/off pairings (virtual doctest)
         """
         PythonStringSource = dynamic_class("sage.doctest.sources.PythonStringSource",
                                            (StringDocTestSource, PythonSource))

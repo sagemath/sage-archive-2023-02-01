@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":

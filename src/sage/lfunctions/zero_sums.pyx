@@ -334,7 +334,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         ::
 
-            sage: Z.logarithmic_derivative(2.2,num_terms=50000) # long time
+            sage: Z.logarithmic_derivative(2.2,num_terms=50000) # long time # rel tol 1.0e-14
             (0.5751579645060139, 0.008988775519160675)
 
         Attempting to compute values inside the critical strip
@@ -361,9 +361,8 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
             sage: Z.logarithmic_derivative(-3) # tol 1.0e-13
             (-Infinity, 2.7131584736258447e-14)
-
         """
-        if imag(s)==0:
+        if imag(s) == 0:
             F = RDF
         else:
             F = CDF

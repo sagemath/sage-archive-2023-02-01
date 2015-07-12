@@ -2185,17 +2185,19 @@ cdef class RealDoubleElement(FieldElement):
 
     def dilog(self):
         r"""
-        Return the dilogarithm of ``self``, defined by the
+        Return the dilogarithm of ``self``.
+
+        This is defined by the
         series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
-        value of self is greater than 1, the returned value is the
+        value of ``self`` is greater than 1, the returned value is the
         real part of (the analytic continuation to `\CC` of) the
-        dilogarithm of self.
+        dilogarithm of ``self``.
 
         EXAMPLES::
 
-            sage: RDF(1).dilog()
+            sage: RDF(1).dilog()  # rel tol 1.0e-13
             1.6449340668482264
-            sage: RDF(2).dilog()
+            sage: RDF(2).dilog()  # rel tol 1.0e-13
             2.46740110027234
         """
         return self._new_c(gsl_sf_dilog(self._value))

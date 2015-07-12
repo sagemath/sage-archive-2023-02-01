@@ -551,7 +551,7 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
                  virtualization=None, scaling_factors=None,
                  gens=None, check=True):
         """
-        Construct a virtual crystal morphism.
+        Construct a crystal morphism.
 
         TESTS::
 
@@ -564,8 +564,21 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
         """
+        if cartan_type is None:
+            cartan_type = parent.domain().cartan_type()
+        if isinstance(on_gens, dict):
+            gens = on_gens.keys()
+        I = cartan_type.index_set()
         if gens is None:
-            gens = parent.domain().highest_weight_vectors()
+            if cartan_type == parent.domain().cartan_type():
+                gens = parent.domain().highest_weight_vectors()
+            else:
+                gens = tuple(x for x in parent.domain() if x.is_highest_weight(I))
+            self._hw_gens = True
+        elif check:
+            self._hw_gens = all(x.is_highest_weight(I) for x in gens)
+        else:
+            self._hw_gens = False
         CrystalMorphismByGenerators.__init__(self, parent, on_gens, cartan_type,
                                              virtualization, scaling_factors,
                                              gens, check)
@@ -593,7 +606,27 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
             sage: psi = H(C.module_generators)
             sage: psi(B.module_generators[0])
             [[1, 1]]
+
+        We check with the morphism defined on the lowest weight vector::
+
+            sage: B = crystals.Tableaux(['A',2], shape=[1])
+            sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
+            sage: T = crystals.elementary.T(['A',2], La[2])
+            sage: Bp = T.tensor(B)
+            sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+            sage: H = Hom(Bp, C)
+            sage: x = C.module_generators[0].f_string([1,2])
+            sage: psi = H({Bp.lowest_weight_vectors()[0]: x})
+            sage: psi
+            ['A', 2] Crystal morphism:
+              From: Full tensor product of the crystals [The T crystal of type ['A', 2] and weight (1, 1, 0), The crystal of tableaux of type ['A', 2] and shape(s) [[1]]]
+              To:   The crystal of tableaux of type ['A', 2] and shape(s) [[2, 1]]
+              Defn: [(1, 1, 0), [[3]]] |--> [2, 1, 3]
+            sage: psi(Bp.highest_weight_vector())
+            [[1, 1], [2]]
         """
+        if not self._hw_gens:
+            return CrystalMorphismByGenerators._call_(self, x)
         mg, path = x.to_highest_weight(self._cartan_type.index_set())
         cur = self._on_gens(mg)
         for i in reversed(path):

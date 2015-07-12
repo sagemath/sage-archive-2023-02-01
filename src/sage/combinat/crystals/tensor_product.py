@@ -738,6 +738,11 @@ class TensorProductOfCrystals(CrystalOfWords):
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
     Tensor product of crystals with a generating set.
+
+    .. TODO::
+
+        Deprecate this class in favor of using
+        :meth:`~sage.categories.crystals.Crystals.ParentMethods.subcrystal`.
     """
     def __init__(self, crystals, generators, cartan_type):
         """
@@ -774,6 +779,10 @@ class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
 class FullTensorProductOfCrystals(TensorProductOfCrystals):
     """
     Full tensor product of crystals.
+
+    .. TODO::
+
+        Merge this into :class:`TensorProductOfCrystals`.
     """
     def __init__(self, crystals, **options):
         """

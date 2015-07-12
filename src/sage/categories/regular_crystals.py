@@ -210,6 +210,64 @@ class RegularCrystals(Category_singleton):
                                                for c, coeff in element)
             return element
 
+        def demazure_subcrystal(self, element, reduced_word, only_support=True):
+            r"""
+            Return the subcrystal corresponding to the application of
+            Demazure operators `D_i` for `i` from ``reduced_word`` on
+            ``element``.
+
+            INPUT:
+
+            - ``element`` -- an element of a free module indexed by the
+              underlying crystal
+            - ``reduced_word`` -- a reduced word of the Weyl group of the
+              same type as the underlying crystal
+            - ``only_support`` -- (default: ``True``) only include arrows
+              corresponding the the support of ``reduced_word``
+
+            OUTPUT:
+
+            - the Demazure subcrystal 
+
+            EXAMPLES::
+
+                sage: T = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: t = T.highest_weight_vector()
+                sage: S = T.demazure_subcrystal(t, [1,2])
+                sage: list(S)
+                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                 [[1, 2], [3]], [[2, 2], [3]]]
+                sage: S = T.demazure_subcrystal(t, [2,1])
+                sage: list(S)
+                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                 [[1, 3], [2]], [[1, 3], [3]]]
+
+            We construct an example where we don't only want the arrows
+            indicated by the support of the reduced word::
+
+                sage: K = crystals.KirillovReshetikhin(['A',1,1], 1, 2)
+                sage: mg = K.module_generator()
+                sage: S = K.demazure_subcrystal(mg, [1])
+                sage: S.digraph().edges()
+                [([[1, 2]], [[2, 2]], 1), ([[1, 1]], [[1, 2]], 1)]
+                sage: S = K.demazure_subcrystal(mg, [1], only_support=False)
+                sage: S.digraph().edges()
+                [([[1, 2]], [[1, 1]], 0),
+                 ([[1, 2]], [[2, 2]], 1),
+                 ([[1, 1]], [[1, 2]], 1),
+                 ([[2, 2]], [[1, 2]], 0)]
+            """
+            from sage.combinat.free_module import CombinatorialFreeModule
+            from sage.rings.all import QQ
+            C = CombinatorialFreeModule(QQ, self)
+            D = self.demazure_operator(C(element), reduced_word)
+            if only_support:
+                index_set = tuple(frozenset(reduced_word))
+            else:
+                index_set = self.cartan_type().index_set()
+            return self.subcrystal(contained=D.support(), generators=[element],
+                                   index_set=index_set)
+
         def _test_stembridge_local_axioms(self, index_set=None, verbose=False, complete=False, **options):
             r"""
             This implements tests for the Stembridge local characterization

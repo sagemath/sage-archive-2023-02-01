@@ -45,7 +45,6 @@ class InducedCrystal(Parent, UniqueRepresentation):
     - ``X`` -- the base set
     - ``phi`` -- the map `\Phi`
     - ``inverse`` -- (optional) the inverse map `\Phi^{-1}`
-    - ``codomain`` -- (optional) the codomain `C`
     - ``from_crystal`` -- (default: ``False``) if the induced structure is
       of the second type `\Phi : C \to X`
 
@@ -58,7 +57,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: G = GelfandTsetlinPatterns(4, 3)
         sage: phi = lambda x: D(x.to_tableau())
         sage: phi_inv = lambda x: G(x.to_tableau())
-        sage: I = crystals.Induced(G, phi, phi_inv, D)
+        sage: I = crystals.Induced(G, phi, phi_inv)
         sage: I.digraph().is_isomorphic(D.digraph(), edge_labels=True)
         True
 
@@ -88,7 +87,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: phi_inv = lambda d: RSK_inverse(d[0].to_tableau(), d[1].to_tableau(), output='permutation')
         sage: all(phi_inv(phi(p)) == p for p in P) # Check it really is the inverse
         True
-        sage: I = crystals.Induced(P, phi, phi_inv, T)
+        sage: I = crystals.Induced(P, phi, phi_inv)
         sage: I.digraph()
         Multi-digraph on 24 vertices
 
@@ -103,8 +102,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
         Digraph on 16 vertices
     """
     @staticmethod
-    def __classcall_private__(cls, X, phi, inverse=None,
-                              codomain=None, from_crystal=False):
+    def __classcall_private__(cls, X, phi, inverse=None, from_crystal=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -114,7 +112,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
         sage: G = GelfandTsetlinPatterns(4, 3)
         sage: phi = lambda x: D(x.to_tableau())
         sage: phi_inv = lambda x: G(x.to_tableau())
-        sage: I1 = crystals.Induced(G, phi, phi_inv, codomain=D)
+        sage: I1 = crystals.Induced(G, phi, phi_inv)
         sage: I2 = crystals.Induced(G, phi, phi_inv)
         sage: I1 is I2
         True
@@ -122,15 +120,9 @@ class InducedCrystal(Parent, UniqueRepresentation):
         if from_crystal:
             return InducedFromCrystal(X, phi, inverse)
 
-        if codomain is None:
-            try:
-                codomain = phi.codomain()
-            except AttributeError:
-                codomain = phi(X.an_element()).parent()
+        return super(InducedCrystal, cls).__classcall__(cls, X, phi, inverse)
 
-        return super(InducedCrystal, cls).__classcall__(cls, X, phi, inverse, codomain)
-
-    def __init__(self, X, phi, inverse, codomain):
+    def __init__(self, X, phi, inverse):
         """
         Initialize ``self``.
 
@@ -146,9 +138,14 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: import __main__
             sage: __main__.phi = phi
             sage: __main__.phi_inv = phi_inv
-            sage: I = crystals.Induced(G, phi, phi_inv, D)
+            sage: I = crystals.Induced(G, phi, phi_inv)
             sage: TestSuite(I).run()
         """
+        try:
+            codomain = phi.codomain()
+        except AttributeError:
+            codomain = phi(X.an_element()).parent()
+
         self._set = X
         self._phi = phi
 
@@ -172,6 +169,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
 
         self._cartan_type = codomain.cartan_type()
         Parent.__init__(self, category=codomain.category())
+
         self.module_generators = self
 
     def _repr_(self):
@@ -184,7 +182,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: G = GelfandTsetlinPatterns(4, 1)
             sage: def phi(x): return D(x.to_tableau())
             sage: def phi_inv(x): return G(x.to_tableau())
-            sage: crystals.Induced(G, phi, phi_inv, D)
+            sage: crystals.Induced(G, phi, phi_inv)
             Crystal of Gelfand-Tsetlin patterns of width 4 and max value 1
              induced by <function phi at 0x...>
         """
@@ -200,7 +198,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: G = GelfandTsetlinPatterns(4, 1)
             sage: def phi(x): return D(x.to_tableau())
             sage: def phi_inv(x): return G(x.to_tableau())
-            sage: I = crystals.Induced(G, phi, phi_inv, D)
+            sage: I = crystals.Induced(G, phi, phi_inv)
             sage: I([[1,1,0,0],[1,0,0],[1,0],[1]])
             [[1, 1, 0, 0], [1, 0, 0], [1, 0], [1]]
             sage: I(D(3,2,1))
@@ -228,7 +226,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: G = GelfandTsetlinPatterns(4, 1)
             sage: def phi(x): return D(x.to_tableau())
             sage: def phi_inv(x): return G(x.to_tableau())
-            sage: I = crystals.Induced(G, phi, phi_inv, D)
+            sage: I = crystals.Induced(G, phi, phi_inv)
             sage: all(g in I for g in G)
             True
             sage: [[1,1,0,0],[1,0,0],[1,0],[1]] in I
@@ -251,7 +249,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: G = GelfandTsetlinPatterns(4, 1)
             sage: def phi(x): return D(x.to_tableau())
             sage: def phi_inv(x): return G(x.to_tableau())
-            sage: I = crystals.Induced(G, phi, phi_inv, D)
+            sage: I = crystals.Induced(G, phi, phi_inv)
             sage: sorted([x for x in I])
             [[[0, 0, 0, 0], [0, 0, 0], [0, 0], [0]],
              [[1, 0, 0, 0], [0, 0, 0], [0, 0], [0]],
@@ -284,7 +282,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
             sage: T = crystals.TensorProduct(D, D)
             sage: phi = lambda p: T(D(RSK(p)[0]), D(RSK(p)[1]))
             sage: phi_inv = lambda d: RSK_inverse(d[0].to_tableau(), d[1].to_tableau(), output='permutation')
-            sage: I = crystals.Induced(P, phi, phi_inv, T)
+            sage: I = crystals.Induced(P, phi, phi_inv)
             sage: I.cardinality() == factorial(4)
             True
         """
@@ -304,7 +302,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
                 sage: G = GelfandTsetlinPatterns(4, 3)
                 sage: phi = lambda x: D(x.to_tableau())
                 sage: phi_inv = lambda x: G(x.to_tableau())
-                sage: I = crystals.Induced(G, phi, phi_inv, D)
+                sage: I = crystals.Induced(G, phi, phi_inv)
                 sage: elt = I([[1, 1, 0, 0], [1, 1, 0], [1, 0], [1]])
                 sage: elt.e(1)
                 sage: elt.e(2)
@@ -330,7 +328,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
                 sage: G = GelfandTsetlinPatterns(4, 3)
                 sage: phi = lambda x: D(x.to_tableau())
                 sage: phi_inv = lambda x: G(x.to_tableau())
-                sage: I = crystals.Induced(G, phi, phi_inv, D)
+                sage: I = crystals.Induced(G, phi, phi_inv)
                 sage: elt = I([[1, 1, 0, 0], [1, 1, 0], [1, 0], [1]])
                 sage: elt.f(1)
                 [[1, 1, 0, 0], [1, 1, 0], [1, 0], [0]]
@@ -357,7 +355,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
                 sage: G = GelfandTsetlinPatterns(4, 3)
                 sage: phi = lambda x: D(x.to_tableau())
                 sage: phi_inv = lambda x: G(x.to_tableau())
-                sage: I = crystals.Induced(G, phi, phi_inv, D)
+                sage: I = crystals.Induced(G, phi, phi_inv)
                 sage: elt = I([[1, 1, 0, 0], [1, 1, 0], [1, 0], [1]])
                 sage: [elt.epsilon(i) for i in I.index_set()]
                 [0, 1, 0]
@@ -374,7 +372,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
                 sage: G = GelfandTsetlinPatterns(4, 3)
                 sage: phi = lambda x: D(x.to_tableau())
                 sage: phi_inv = lambda x: G(x.to_tableau())
-                sage: I = crystals.Induced(G, phi, phi_inv, D)
+                sage: I = crystals.Induced(G, phi, phi_inv)
                 sage: elt = I([[1, 1, 0, 0], [1, 1, 0], [1, 0], [1]])
                 sage: [elt.phi(i) for i in I.index_set()]
                 [1, 0, 1]
@@ -391,7 +389,7 @@ class InducedCrystal(Parent, UniqueRepresentation):
                 sage: G = GelfandTsetlinPatterns(4, 3)
                 sage: phi = lambda x: D(x.to_tableau())
                 sage: phi_inv = lambda x: G(x.to_tableau())
-                sage: I = crystals.Induced(G, phi, phi_inv, D)
+                sage: I = crystals.Induced(G, phi, phi_inv)
                 sage: elt = I([[1, 1, 0, 0], [1, 1, 0], [1, 0], [1]])
                 sage: elt.weight()
                 (1, 0, 1, 0)

@@ -24,6 +24,7 @@ AUTHORS:
 #****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
@@ -59,6 +60,10 @@ class Subcrystal(Parent, UniqueRepresentation):
     - ``category`` -- (optional) the category for the subcrystal; the
       default is the :class:`~sage.categories.crystals.Crystals` category
 
+    .. SEEALSO::
+
+        :meth:`~sage.categories.crystals.Crystals.ParentMethods.subcrystal`
+
     EXAMPLES:
 
     We build out a subcrystal starting from an element and only going
@@ -91,13 +96,17 @@ class Subcrystal(Parent, UniqueRepresentation):
         sage: U = B.subcrystal(contained=lambda x: x in S and x in T)
         sage: list(U)
         [[[1, 1], [2]]]
+
+    .. TODO::
+
+        Include support for subcrystals which only contains certain arrows.
     """
     @staticmethod
     def __classcall_private__(cls, ambient, contained=None, generators=None,
                               virtualization=None, scaling_factors=None,
                               cartan_type=None, index_set=None, category=None):
         """
-        Normalize arguments to ensure a unique representation.
+        Normalize arguments to ensure a (relatively) unique representation.
 
         EXAMPLES::
 
@@ -136,7 +145,8 @@ class Subcrystal(Parent, UniqueRepresentation):
                                   generators, cartan_type, index_set, category)
 
         # We need to give these as optional arguments so it unpickles correctly
-        return super(Subcrystal, cls).__classcall__(cls, ambient, contained, tuple(generators),
+        return super(Subcrystal, cls).__classcall__(cls, ambient, contained,
+                                                    tuple(generators),
                                                     cartan_type=cartan_type,
                                                     index_set=tuple(index_set),
                                                     category=category)
@@ -157,7 +167,8 @@ class Subcrystal(Parent, UniqueRepresentation):
         self._cartan_type = cartan_type
         self._index_set = tuple(index_set)
         Parent.__init__(self, category=category)
-        self.module_generators = tuple(map(self, generators))
+        self.module_generators = tuple(self(g) for g in generators
+                                       if self._containing(g))
 
         if isinstance(contained, frozenset):
             self._cardinality = Integer(len(contained))
@@ -175,7 +186,8 @@ class Subcrystal(Parent, UniqueRepresentation):
         """
         return "Subcrystal of {}".format(self._ambient)
 
-    def _containing(self, x):
+    @lazy_attribute
+    def _containing(self):
         """
         Check if ``x`` is contained in ``self``.
 
@@ -189,10 +201,10 @@ class Subcrystal(Parent, UniqueRepresentation):
             True
         """
         if self._contained is None:
-            return True
+            return lambda x: True
         if isinstance(self._contained, frozenset):
-            return x in self._contained
-        return self._contained(x) # Otherwise it should be a function
+            return self._contained.__contains__
+        return self._contained # Otherwise it should be a function
 
     def __contains__(self, x):
         """

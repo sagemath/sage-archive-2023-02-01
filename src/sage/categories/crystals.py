@@ -22,6 +22,7 @@ from sage.combinat import ranker
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.integer import Integer
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+from sage.sets.family import Family
 
 class Crystals(Category_singleton):
     r"""
@@ -365,7 +366,7 @@ class Crystals(Category_singleton):
               - ``'upper'`` - using `e_i`
               - ``'lower'`` - using `f_i`
 
-            - ``contained`` -- (optional) a set (or function) defining the
+            - ``contained`` -- (optional) a set or function defining the
               containment in the subcrystal
 
             - ``virtualization``, ``scaling_factors`` -- (optional)
@@ -395,6 +396,41 @@ class Crystals(Category_singleton):
                 [[[1, 4]], [[1, 3]]]
                 sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='lower'))
                 [[[1, 4]], [[2, 4]]]
+
+                sage: G = C.subcrystal(index_set=[1,2,3]).digraph()
+                sage: GA = crystals.Tableaux('A3', shape=[2]).digraph()
+                sage: G.is_isomorphic(GA, edge_labels=True)
+                True
+
+            We construct the subcrystal which contains the necessary data
+            to construct the corresponding dual equivalence graph::
+
+                sage: C = crystals.Tableaux(['A',5], shape=[3,3])
+                sage: is_wt0 = lambda x: all(x.epsilon(i) == x.phi(i) for i in x.parent().index_set())
+                sage: def check(x):
+                ....:     if is_wt0(x):
+                ....:         return True
+                ....:     for i in x.parent().index_set()[:-1]:
+                ....:         L = [x.e(i), x.e_string([i,i+1]), x.f(i), x.f_string([i,i+1])]
+                ....:         if any(y is not None and is_wt0(y) for y in L):
+                ....:             return True
+                ....:     return False
+                sage: wt0 = [x for x in C if is_wt0(x)]
+                sage: S = C.subcrystal(contained=check, generators=wt0)
+                sage: S.module_generators[0]
+                [[1, 3, 5], [2, 4, 6]]
+                sage: S.module_generators[0].e(2).e(3).f(2).f(3)
+                [[1, 2, 5], [3, 4, 6]]
+
+            An example of a type `B_2` virtual crystal inside of a
+            type `A_3` ambient crystal::
+
+                sage: A = crystals.Tableaux(['A',3], shape=[2,1,1])
+                sage: S = A.subcrystal(virtualization={1:[1,3], 2:[2]},
+                ....:                  scaling_factors={1:1,2:1}, cartan_type=['B',2])
+                sage: B = crystals.Tableaux(['B',2], shape=[1])
+                sage: S.digraph().is_isomorphic(B.digraph(), edge_labels=True)
+                True
             """
             from sage.combinat.crystals.subcrystal import Subcrystal
             from sage.categories.finite_crystals import FiniteCrystals
@@ -405,7 +441,7 @@ class Crystals(Category_singleton):
                 from sage.combinat.root_system.cartan_type import CartanType
                 cartan_type = CartanType(cartan_type)
             if index_set is None:
-                index_set = self.index_set()
+                index_set = cartan_type.index_set()
             if generators is None:
                 generators = self.module_generators
 
@@ -418,12 +454,11 @@ class Crystals(Category_singleton):
                     return Subcrystal(self, contained, generators,
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
-                if contained is None and direction == 'both':
-                    if category is None:
-                        category = FiniteCrystals()
-                    return Subcrystal(self, contained, generators,
-                                      virtualization, scaling_factors,
-                                      cartan_type, index_set, category)
+
+                category = FiniteCrystals().or_subcategory(category)
+                return Subcrystal(self, contained, generators,
+                                  virtualization, scaling_factors,
+                                  cartan_type, index_set, category)
 
             # TODO: Make this work for virtual crystals as well
             if direction == 'both':
@@ -442,7 +477,10 @@ class Crystals(Category_singleton):
             # We perform the filtering here since checking containment
             #   in a frozenset should be fast
             if contained is not None:
-                subset = frozenset(x for x in subset if contained(x))
+                try:
+                    subset = frozenset(x for x in subset if x in contained)
+                except TypeError: # It does not have a containment test
+                    subset = frozenset(x for x in subset if contained(x))
             else:
                 subset = frozenset(subset)
 
@@ -454,9 +492,6 @@ class Crystals(Category_singleton):
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if index_set == self.index_set():
                     return self
-                return Subcrystal(self, subset, generators,
-                                  virtualization, scaling_factors,
-                                  cartan_type, index_set, category)
 
             return Subcrystal(self, subset, generators,
                               virtualization, scaling_factors,
@@ -517,13 +552,14 @@ class Crystals(Category_singleton):
               morphism; the default is the generators of ``self``
             - ``automorphism`` -- (optional) the automorphism to perform the
               twisting
-            - ``virtualization`` -- (optional) a dictionary whose keys are in the index
-              set of the domain and whose values are lists of entries in the
-              index set of the codomain; the default is the identity dictionary
-            - ``scaling_factors`` -- (optional) a dictionary whose keys are in the index
-              set of the domain and whose values are scaling factors for the
-              weight, `\varepsilon` and `\varphi`. The default are all scaling factors
-              to be one.
+            - ``virtualization`` -- (optional) a dictionary whose keys are
+              in the index set of the domain and whose values are lists of
+              entries in the index set of the codomain; the default is the
+              identity dictionary
+            - ``scaling_factors`` -- (optional) a dictionary whose keys are
+              in the index set of the domain and whose values are scaling
+              factors for the weight, `\varepsilon` and `\varphi`; the
+              default are all scaling factors to be one
             - ``category`` -- (optional) the category for the crystal morphism;
               the default is the category of :class:`Crystals`.
             - ``check`` -- (default: ``True``) check if the crystal morphism
@@ -571,7 +607,8 @@ class Crystals(Category_singleton):
                 sage: psi(lw) == mg.to_lowest_weight()[0]
                 True
 
-            We now take the other isomorphic highest weight component in the tensor product::
+            We now take the other isomorphic highest weight component
+            in the tensor product::
 
                 sage: mg = T.highest_weight_vectors()[1]; mg
                 [[[2]], [[1]], [[1]]]
@@ -589,7 +626,7 @@ class Crystals(Category_singleton):
                 sage: v = K.module_generators[1]
                 sage: psi = B.crystal_morphism([v], codomain=K, category=FiniteCrystals())
                 sage: psi
-                ['D', 4] Crystal morphism:
+                ['D', 4] -> ['D', 4, 1] Virtual Crystal morphism:
                   From: The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1]]
                   To:   Kirillov-Reshetikhin crystal of type ['D', 4, 1] with (r,s)=(2,2)
                   Defn: [2, 1] |--> [[1], [2]]
@@ -598,6 +635,76 @@ class Crystals(Category_singleton):
                 [[1], [2]]
                 sage: psi(b.to_lowest_weight()[0])
                 [[-2], [-1]]
+
+            We can define crystal morphisms using a different set of
+            generators. For example, we construct an example using the
+            lowest weight vector::
+
+                sage: B = crystals.Tableaux(['A',2], shape=[1])
+                sage: La = RootSystem(['A',2]).weight_lattice().fundamental_weights()
+                sage: T = crystals.elementary.T(['A',2], La[2])
+                sage: Bp = T.tensor(B)
+                sage: C = crystals.Tableaux(['A',2], shape=[2,1])
+                sage: x = C.module_generators[0].f_string([1,2])
+                sage: psi = Bp.crystal_morphism([x], generators=Bp.lowest_weight_vectors())
+                sage: psi(Bp.highest_weight_vector())
+                [[1, 1], [2]]
+
+            We can also use a dictonary to specify the generators and
+            their images::
+
+                sage: psi = Bp.crystal_morphism({Bp.lowest_weight_vectors()[0]: x})
+                sage: psi(Bp.highest_weight_vector())
+                [[1, 1], [2]]
+
+            We construct a twisted crystal morphism induced from the diagram
+            automorphism of type `A_3^{(1)}`::
+
+                sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
+                sage: B0 = crystals.GeneralizedYoungWalls(3, La[0])
+                sage: B1 = crystals.GeneralizedYoungWalls(3, La[1])
+                sage: phi = B0.crystal_morphism(B1.module_generators, automorphism={0:1, 1:2, 2:3, 3:0})
+                sage: phi
+                ['A', 3, 1] Twisted Crystal morphism:
+                  From: Highest weight crystal of generalized Young walls of Cartan type ['A', 3, 1] and highest weight Lambda[0]
+                  To:   Highest weight crystal of generalized Young walls of Cartan type ['A', 3, 1] and highest weight Lambda[1]
+                  Defn: [] |--> []
+                sage: x = B0.module_generators[0].f_string([0,1,2,3]); x
+                [[0, 3], [1], [2]]
+                sage: phi(x)
+                [[], [1, 0], [2], [3]]
+
+            We construct a virtual crystal morphism from type `G_2` into
+            type `D_4`::
+
+                sage: D = crystals.Tableaux(['D',4], shape=[1,1])
+                sage: G = crystals.Tableaux(['G',2], shape=[1])
+                sage: psi = G.crystal_morphism(D.module_generators,
+                ....:                          virtualization={1:[2],2:[1,3,4]},
+                ....:                          scaling_factors={1:1, 2:1})
+                sage: for x in G:
+                ....:     ascii_art(x, psi(x), sep='  |-->  ')
+                ....:     print ""
+                             1
+                  1  |-->    2
+                <BLANKLINE>
+                             1
+                  2  |-->    3
+                <BLANKLINE>
+                             2
+                  3  |-->   -3
+                <BLANKLINE>
+                             3
+                  0  |-->   -3
+                <BLANKLINE>
+                             3
+                 -3  |-->   -2
+                <BLANKLINE>
+                            -3
+                 -2  |-->   -1
+                <BLANKLINE>
+                            -2
+                 -1  |-->   -1
             """
             # Determine the codomain
             if codomain is None:
@@ -630,10 +737,10 @@ class Crystals(Category_singleton):
 
             INPUT:
 
-            - ``subset`` -- (optional) A subset of vertices for
+            - ``subset`` -- (optional) a subset of vertices for
               which the digraph should be constructed
 
-            - ``index_set`` -- (optional) The index set to draw arrows
+            - ``index_set`` -- (optional) the index set to draw arrows
 
             EXAMPLES::
 
@@ -641,29 +748,29 @@ class Crystals(Category_singleton):
                 sage: C.digraph()
                 Digraph on 6 vertices
 
-            The edges of the crystal graph are by default colored using blue for edge 1, red for edge 2,
-            and green for edge 3::
+            The edges of the crystal graph are by default colored using
+            blue for edge 1, red for edge 2, and green for edge 3::
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
-                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             One may also overwrite the colors::
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
                 sage: G.set_latex_options(color_by_label = {1:"red", 2:"purple", 3:"blue"})
-                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             Or one may add colors to yet unspecified edges::
 
                 sage: C = Crystals().example(4)
                 sage: G = C.digraph()
                 sage: C.cartan_type()._index_set_coloring[4]="purple"
-                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
-            Here is an example of how to take the top part up to a given depth of an infinite dimensional
-            crystal::
+            Here is an example of how to take the top part up to a
+            given depth of an infinite dimensional crystal::
 
                 sage: C = CartanType(['C',2,1])
                 sage: La = C.root_system().weight_lattice().fundamental_weights()
@@ -682,15 +789,12 @@ class Crystals(Category_singleton):
             the ``subset`` option::
 
                 sage: B = crystals.Tableaux(['A',2], shape=[2,1])
-                sage: C = CombinatorialFreeModule(QQ,B)
                 sage: t = B.highest_weight_vector()
-                sage: b = C(t)
-                sage: D = B.demazure_operator(b,[2,1]); D
-                B[[[1, 1], [2]]] + B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 1], [3]]] + B[[[1, 3], [3]]]
-                sage: G = B.digraph(subset=D.support())
-                sage: G.vertices()
-                [[[1, 1], [2]], [[1, 2], [2]], [[1, 3], [2]], [[1, 1], [3]], [[1, 3], [3]]]
-                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: D = B.demazure_subcrystal(t, [2,1])
+                sage: list(D)
+                [[[1, 1], [2]], [[1, 1], [3]], [[1, 2], [2]],
+                 [[1, 3], [2]], [[1, 3], [3]]]
+                sage: view(D, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             We can also choose to display particular arrows using the
             ``index_set`` option::
@@ -699,9 +803,9 @@ class Crystals(Category_singleton):
                 sage: G = C.digraph(index_set=[1,3])
                 sage: len(G.edges())
                 20
-                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
-            TODO: add more tests
+            .. TODO:: Add more tests.
             """
             from sage.graphs.all import DiGraph
             from sage.categories.highest_weight_crystals import HighestWeightCrystals
@@ -773,7 +877,7 @@ class Crystals(Category_singleton):
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
                 sage: T._latex_()  # optional - dot2tex graphviz
                 '...tikzpicture...'
-                sage: view(T, pdflatex = True, tightpage = True) # optional - dot2tex graphviz, not tested (opens external window)
+                sage: view(T, tightpage = True) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
@@ -1143,7 +1247,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def e(self, i):
             r"""
-            Returns `e_i` of ``self`` if it exists or ``None`` otherwise.
+            Return `e_i` of ``self`` if it exists or ``None`` otherwise.
 
             This method should be implemented by the element class of
             the crystal.
@@ -1160,7 +1264,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def f(self, i):
             r"""
-            Returns `f_i` of ``self`` if it exists or ``None`` otherwise.
+            Return `f_i` of ``self`` if it exists or ``None`` otherwise.
 
             This method should be implemented by the element class of
             the crystal.
@@ -1591,8 +1695,15 @@ class CrystalMorphism(Morphism):
     - ``parent`` -- a homset
     - ``cartan_type`` -- (optional) a Cartan type; the default is the
       Cartan type of the domain
+    - ``virtualization`` -- (optional) a dictionary whose keys are in
+      the index set of the domain and whose values are lists of entries
+      in the index set of the codomain
+    - ``scaling_factors`` -- (optional) a dictionary whose keys are in
+      the index set of the domain and whose values are scaling factors
+      for the weight, `\varepsilon` and `\varphi`
     """
-    def __init__(self, parent, cartan_type=None):
+    def __init__(self, parent, cartan_type=None,
+                 virtualization=None, scaling_factors=None):
         """
         Initialize ``self``.
 
@@ -1605,6 +1716,20 @@ class CrystalMorphism(Morphism):
         if cartan_type is None:
             cartan_type = parent.domain().cartan_type()
         self._cartan_type = cartan_type
+
+        index_set = cartan_type.index_set()
+        if scaling_factors is None:
+            scaling_factors = {i: 1 for i in index_set}
+        if virtualization is None:
+            virtualization = {i: (i,) for i in index_set}
+        elif not isinstance(virtualization, dict):
+            try:
+                virtualization = dict(virtualization)
+            except (TypeError, ValueError):
+                virtualization = {i: (virtualization(i),) for i in index_set}
+        self._virtualization = Family(virtualization)
+        self._scaling_factors = Family(scaling_factors)
+
         Morphism.__init__(self, parent)
 
     def _repr_type(self):
@@ -1621,8 +1746,24 @@ class CrystalMorphism(Morphism):
 
             sage: psi = H(lambda x: None, index_set=[1])
             sage: psi._repr_type()
-            "['A', 1] Crystal"
+            "['A', 1] -> ['A', 2] Virtual Crystal"
+
+            sage: B = crystals.Tableaux(['A',3], shape=[1])
+            sage: BT = crystals.Tableaux(['A',3], shape=[1,1,1])
+            sage: psi = B.crystal_morphism(BT.module_generators, automorphism={1:3, 2:2, 3:1})
+            sage: psi._repr_type()
+            "['A', 3] Twisted Crystal"
+
+            sage: KD = crystals.KirillovReshetikhin(['D',3,1], 2,1)
+            sage: KA = crystals.KirillovReshetikhin(['A',3,1], 2,1)
+            sage: psi = KD.crystal_morphism(KA.module_generators)
+            sage: psi._repr_type()
+            "['D', 3, 1] -> ['A', 3, 1] Virtual Crystal"
         """
+        if self.codomain().cartan_type() != self._cartan_type:
+            return "{} -> {} Virtual Crystal".format(self._cartan_type, self.codomain().cartan_type())
+        if any(self._virtualization[i] != (i,) for i in self._cartan_type.index_set()):
+            return "{} Twisted Crystal".format(self._cartan_type)
         return "{} Crystal".format(self._cartan_type)
 
     def cartan_type(self):
@@ -1715,6 +1856,34 @@ class CrystalMorphism(Morphism):
             return None
         return super(CrystalMorphism, self).__call__(x, *args, **kwds)
 
+    def virtualization(self):
+        """
+        Return the virtualization sets `\sigma_i`.
+
+        EXAMPLES::
+
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
+            sage: psi = B.crystal_morphism(C.module_generators)
+            sage: psi.virtualization()
+            Finite family {1: (1,), 2: (2,), 3: (3, 4)}
+        """
+        return self._virtualization
+
+    def scaling_factors(self):
+        """
+        Return the scaling factors `\gamma_i`.
+
+        EXAMPLES::
+
+            sage: B = crystals.Tableaux(['B',3], shape=[1])
+            sage: C = crystals.Tableaux(['D',4], shape=[2])
+            sage: psi = B.crystal_morphism(C.module_generators)
+            sage: psi.scaling_factors()
+            Finite family {1: 2, 2: 2, 3: 1}
+        """
+        return self._scaling_factors
+
 class CrystalMorphismByGenerators(CrystalMorphism):
     r"""
     A crystal morphism defined by a set of generators which create a virtual
@@ -1754,7 +1923,8 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             sage: H = Hom(B, C)
             sage: psi = H(C.module_generators)
         """
-        CrystalMorphism.__init__(self, parent, cartan_type)
+        CrystalMorphism.__init__(self, parent, cartan_type,
+                                 virtualization, scaling_factors)
 
         if gens is None:
             if isinstance(on_gens, dict):
@@ -1775,19 +1945,6 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             f = on_gens
         self._on_gens = f
         self._path_mg_cache = {x: (x, [], []) for x in self._gens}
-
-        index_set = self._cartan_type.index_set()
-        if scaling_factors is None:
-            scaling_factors = {i: 1 for i in index_set}
-        if virtualization is None:
-            virtualization = {i: (i,) for i in index_set}
-        elif not isinstance(virtualization, dict):
-            try:
-                virtualization = dict(virtualization)
-            except (TypeError, ValueError):
-                virtualization = {i: (virtualization(i),) for i in index_set}
-        self._virtualization = virtualization
-        self._scaling_factors = scaling_factors
 
         # Now that everything is initialized, run the check (if it is wanted)
         if check:
@@ -2170,7 +2327,7 @@ class CrystalHomset(Homset):
         sage: H = Hom(B, C)
         sage: psi = H(C.module_generators)
         sage: psi
-        ['B', 3] Crystal morphism:
+        ['B', 3] -> ['D', 4] Virtual Crystal morphism:
           From: The crystal of tableaux of type ['B', 3] and shape(s) [[1]]
           To:   The crystal of tableaux of type ['D', 4] and shape(s) [[2]]
           Defn: [1] |--> [1, 1]
@@ -2272,8 +2429,10 @@ class CrystalHomset(Homset):
         if cartan_type != self.codomain().cartan_type():
             fct = self.domain().cartan_type().as_folding()
             if fct.folding_of() == self.codomain().cartan_type():
-                virtualization = fct.folding_orbit()
-                scaling_factors = fct.scaling_factors()
+                if virtualization is None:
+                    virtualization = fct.folding_orbit()
+                if scaling_factors is None:
+                    scaling_factors = fct.scaling_factors()
 
         if automorphism is not None:
             if virtualization is not None:

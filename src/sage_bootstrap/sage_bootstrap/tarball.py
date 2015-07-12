@@ -43,21 +43,48 @@ class Tarball(object):
         """
         A (third-party downloadable) tarball
 
+        Note that the tarball might also be a different kind of
+        archive format that is supported, it does not necessarily have
+        to be tar.
+
         INPUT:
 
         - ``name`` - string. The full filename (``foo-1.3.tar.bz2``)
           of a tarball on the Sage mirror network.
         """
-        self.filename = tarball_name
-        self.package = None
+        self.__filename = tarball_name
+        self.__package = None
         for pkg in Package.all():
             if pkg.tarball == tarball_name:
-                self.package = pkg
+                self.__package = pkg
         if self.package is None:
             error = 'tarball {0} is not referenced by any Sage package'.format(tarball_name)
             log.error(error)
             raise ValueError(error)
-            
+
+    @property
+    def filename(self):
+        """
+        Return the tarball filename
+
+        OUTPUT:
+
+        String. The full filename (``foo-1.3.tar.bz2``) of the
+        tarball.
+        """
+        return self.__filename
+        
+    @property
+    def package(self):
+        """
+        Return the package that the tarball belongs to
+
+        OUTPUT:
+
+        Instance of :class:`sage_bootstrap.package.Package`
+        """
+        return self.__package
+        
     @property
     def upstream_fqn(self):
         """

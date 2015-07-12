@@ -41,9 +41,111 @@ class Package(object):
         -- ``package_name`` -- string. Name of the package. The Sage
            convention is that all package names are lower case.
         """
-        self.name = package_name
+        self.__name = package_name
         self._init_checksum()
         self._init_version()
+
+    @property
+    def name(self):
+        """
+        Return the package name
+
+         A package is defined by a subdirectory of
+        ``SAGE_ROOT/build/pkgs/``. The name of the package is the name
+        of the subdirectory.
+
+        OUTPUT:
+
+        String.
+        """
+        return self.__name
+
+    @property
+    def md5(self):
+        """
+        Return the MD5 checksum
+        
+        Do not use, this is ancient! Use :meth:`sha1` instead.
+
+        OUTPUT:
+
+        String.
+        """
+        return self.__md5
+
+    @property
+    def sha1(self):
+        """
+        Return the SHA1 checksum
+
+        OUTPUT:
+
+        String.
+        """
+        return self.__sha1
+
+    @property
+    def cksum(self):
+        """
+        Return the Ck sum checksum
+        
+        Do not use, this is ancient! Use :meth:`sha1` instead.
+
+        OUTPUT:
+
+        String.
+        """
+        return self.__cksum
+
+    @property
+    def tarball(self):
+        """
+        Return the (primary) tarball filename
+
+        If there are multiple tarballs (currently unsupported), this
+        property returns the one that is unpacked automatically.
+
+        OUTPUT:
+
+        String. The full-qualified tarball filename.
+        """
+        return self.__tarball
+
+    @property
+    def tarball_pattern(self):
+        """
+        Return the (primary) tarball file pattern
+
+        OUTPUT:
+
+        String. The full-qualified tarball filename, but with
+        ``VERSION`` instead of the actual tarball filename.
+        """
+        return self.__tarball_pattern
+
+    @property
+    def version(self):
+        """
+        Return the version
+
+        OUTPUT:
+
+        String. The package version. Excludes the Sage-specific
+        patchlevel.
+        """
+        return self.__version
+
+    @property
+    def patchlevel(self):
+        """
+        Return the patchlevel
+
+        OUTPUT:
+
+        String. The patchlevel of the package. Excludes the "p"
+        prefix.
+        """
+        return self.__patchlevel
 
     def __eq__(self, other):
         return self.tarball == other.tarball
@@ -81,10 +183,10 @@ class Package(object):
                     continue
                 var, value = match.groups()
                 result[var] = value
-        self.md5 = result['md5']
-        self.sha1 = result['sha1']
-        self.cksum = result['cksum']
-        self.tarball_pattern = result['tarball']
+        self.__md5 = result['md5']
+        self.__sha1 = result['sha1']
+        self.__cksum = result['cksum']
+        self.__tarball_pattern = result['tarball']
         
     VERSION_PATCHLEVEL = re.compile('(?P<version>.*)\.p(?P<patchlevel>[0-9]+)')
     
@@ -93,11 +195,11 @@ class Package(object):
             package_version = f.read().strip()
         match = self.VERSION_PATCHLEVEL.match(package_version)
         if match is None:
-            self.version = package_version
-            self.patchlevel = -1
+            self.__version = package_version
+            self.__patchlevel = -1
         else:
-            self.version = match.group('version')
-            self.patchlevel = match.group('patchlevel')
-        self.tarball = self.tarball_pattern.replace('VERSION', self.version)
+            self.__version = match.group('version')
+            self.__patchlevel = match.group('patchlevel')
+        self.__tarball = self.__tarball_pattern.replace('VERSION', self.version)
         
         

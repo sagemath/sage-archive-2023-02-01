@@ -27,7 +27,8 @@ from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.classcall_metaclass import typecall
 from sage.misc.misc import powerset
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
@@ -193,7 +194,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         :meth:`row_with_indices()` and :meth:`column_with_indices()`
         respectively.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):

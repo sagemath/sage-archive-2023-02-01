@@ -2621,7 +2621,7 @@ cdef class GapElement_RecordIterator(object):
             sage: iter = rec.__iter__()
             sage: iter.__next__()
             ('a', 123)
-            sage: iter.next()
+            sage: next(iter)
             ('b', 456)
         """
         cdef libGAP_UInt i = self.i

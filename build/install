@@ -446,6 +446,12 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
     echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR).log\""
     echo >&5
+
+    # Add a target with just the bare package name such that
+    # "make ccache" for example builds the ccache package with
+    # dependency checking.
+    echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+    echo >&5
 done
 
 # Close the Makefile
@@ -482,19 +488,33 @@ if [ $? -ne 0 ]; then
 ***************************************************************
 Error building Sage.
 
-The following package(s) may have failed to build:
+The following package(s) may have failed to build (not necessarily
+during this run of 'make $@'):
 EOF
 
     for f in "$SAGE_LOGS"/*.log; do
         # Look for recent error message in log file.
         # Note that "tail -n 20 ..." doesn't work on Solaris.
-        if tail -20 "$f" | grep "^Error" &>/dev/null; then
+        if tail -20 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
             base_f=`basename $f .log`
             cat >&2 <<EOF
 
-package: $base_f
-log file: $f
-build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+* package: $base_f
+  log file: $f
+  build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+EOF
+        fi
+    done
+
+    for f in "$SAGE_LOGS"/../doc*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -100 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+* documentation: $base_f
+  log file: $f
 EOF
         fi
     done
@@ -522,10 +542,5 @@ if [ "$1" = "all" ]; then
     echo "    install_scripts('/usr/local/bin')"
     echo
     echo "at the Sage command prompt ('sage:')."
-    echo
-    echo "If you issued 'make', 'make all', or a similar command, then the"
-    echo "HTML version of the documentation will be built right now."
-    echo "Otherwise, if you want to (re)build the HTML documentation,"
-    echo "run 'make doc'.  To build the PDF version, run 'make doc-pdf'."
     echo
 fi

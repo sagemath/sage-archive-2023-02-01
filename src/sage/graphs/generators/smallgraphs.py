@@ -1488,6 +1488,45 @@ def BuckyBall():
 
     return g
 
+def GossetGraph():
+    r"""
+    Return the Gosset graph.
+
+    The Gosset graph is the skeleton of the
+    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    has with 56 vertices and degree 27. For more information, see the
+    :wikipedia:`Gosset_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.GossetGraph(); g
+        Gosset Graph: Graph on 56 vertices
+
+        sage: g.order(), g.size()
+        (56, 756)
+
+    TESTS::
+
+        sage: g.is_isomorphic(polytopes.Gosset_3_21().graph()) # not tested (~16s)
+        True
+    """
+    string = ('w~~~~rt{~Z\\ZxnvYZYmlfrb}|hDuhLlcmmMNf_^zzQGNYcP\\kcRZbaJjoNBx{'+
+              '?N~o^}?A`}F_Kbbm_[QZ\\_]Cj\\oN_dm{BzB{?]WIMM@tPQRYBYRPIuAyJgQv?'+
+              '|Bxb_M[kWIR@jTQcciDjShXCkFMgpwqBKxeKoS`TYqdTCcKtkdKwWQXrbEZ@OdU'+
+              'mITZ@_e[{KXn?YPABzvY?IcO`zvYg@caC\\zlf?BaGR]zb{?@wOjv`~w??N_n_~'+
+              '~w???^_^~~{')
+
+    G = Graph(string,name="Gosset Graph")
+
+    ordering = [0, 2, 4, 6, 43, 23, 50, 18, 28, 9, 8, 7, 44, 3, 26, 35, 16, 14,
+                33, 15, 54, 30, 17, 21, 10, 13, 36, 31, 55, 53, 51, 49, 12, 32,
+                5, 37, 27, 46, 47, 48, 11, 52, 29, 20, 39, 41, 22, 40, 1, 25, 38,
+                34, 45, 42, 19, 24]
+
+    _circle_embedding(G,ordering)
+
+    return G
+
 def DoubleStarSnark():
     r"""
     Returns the double star snark.
@@ -3324,6 +3363,35 @@ def LjubljanaGraph(embedding=1):
 
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
+
+def LivingstoneGraph():
+    r"""
+    Returns the Livingstone Graph.
+
+    The Livingstone graph is a distance-transitive graph on 266 vertices whose
+    automorphism group is the :class:`J1 group
+    <sage.groups.perm_gps.permgroup_named.JankoGroup>`. For more information,
+    see the :wikipedia:`Livingstone_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
+        sage: g.order()                     # optional - gap_packages internet
+        266
+        sage: g.size()                      # optional - gap_packages internet
+        1463
+        sage: g.girth()                     # optional - gap_packages internet
+        5
+        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        True
+        sage: g.is_distance_regular()       # optional - gap_packages internet
+        True
+    """
+    from sage.groups.perm_gps.permgroup_named import JankoGroup
+    from sage.graphs.graph import Graph
+    G = JankoGroup(1)
+    edges = map(tuple,G.orbit((1,24),action="OnSets"))
+    return Graph(edges,name="Livingstone Graph")
 
 def M22Graph():
     r"""

@@ -2204,8 +2204,8 @@ class CrystalHomset(Homset):
     If the Cartan type is unambiguous, it is surpressed from the notation.
 
     We can also generalize the definition of a crystal morphism by considering
-    a map of `\sigma` of the (now possibly different) Dynkin diagrams `B` and
-    `C` a along with scaling factors `\gamma_i \in \ZZ` for `i \in I`.
+    a map of `\sigma` of the (now possibly different) Dynkin diagrams corresponding
+    to `B` and `C` a along with scaling factors `\gamma_i \in \ZZ` for `i \in I`.
     Let `\sigma_i` denote the orbit of `i` under `\sigma`. Then a *virtual*
     crystal morphism `\Psi` is a map `\Psi` such that the following holds:
 
@@ -2231,7 +2231,7 @@ class CrystalHomset(Homset):
           \Psi(b^{\prime}) = \widehat{f}_i \Psi(b) =
               \prod_{j \in \sigma_i} f_j^{\gamma_i} \Psi(b).
 
-    If `\gamma_i = 1` for all `I` and the Dynkin diagrams are the same, then
+    If `\gamma_i = 1` for all `i \in I` and the Dynkin diagrams are the same, then
     we call `\Psi` a *twisted* crystal morphism.
 
     INPUT:

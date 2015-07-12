@@ -127,22 +127,23 @@ optimal layout for the cutwidth of `G`.
 .. MATH::
     :nowrap:
 
-    \begin{alignat}{2}
-    &\text{Minimize:} \qquad &z&\\
-    &\text{Such that:}
-    & \sum_{i=0}^{k-1}x_v^i &\leq k*x_v^{k} & \quad \forall v\in V,\ k\in[1,n-1] &(1)\\
-    && x_v^n & =1  & \quad \forall v\in V &(2)\\
-    && \sum_{v\in V}x_v^k & = k+1 &\quad  \forall k\in[0,n-1]&(3)\\
-    && x_u^k - x_v^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1] &(4)\\
-    && x_v^k - x_u^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1] &(5)\\
-    && \sum_{uv\in E}y_{u,v}^k &\leq z &\quad  \forall k\in[0,n-1]&(6)\\
-    && 0 \leq z &\leq |E|&
-    \end{alignat}
+    \begin{alignat*}{2}
+    \intertext{Minimize:}
+    &z&\\
+    \intertext{Subject to:}
+    \sum_{i=0}^{k-1}x_v^i &\leq k*x_v^{k} & \forall v\in V,\ k\in[1,n-1] \quad(1)\\
+    x_v^n & =1  & \quad \forall v\in V \quad(2)\\
+    \sum_{v\in V}x_v^k & = k+1 &\quad  \forall k\in[0,n-1] \quad(3)\\
+    x_u^k - x_v^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1]  \quad(4)\\
+    x_v^k - x_u^k & \leq y_{u,v}^k &\quad  \forall uv\in E,\ \forall k\in[0,n-1] \quad(5)\\
+    \sum_{uv\in E}y_{u,v}^k &\leq z &\quad  \forall k\in[0,n-1] \quad(6)\\
+    0 \leq z &\leq |E|
+    \end{alignat*}
 
-Constraints (1)-(3) ensure that all vertices have a distinct
-position. Constraints (4)-(5) force variable `y_{u,v}^k` to 1 if the edge is in
-the cut. Constraint (6) count the number of edges starting at position at most
-`k` and ending at a position stricly larger than `k`.
+Constraints (1)-(3) ensure that all vertices have a distinct position.
+Constraints (4)-(5) force variable `y_{u,v}^k` to 1 if the edge is in the cut.
+Constraint (6) count the number of edges starting at position at most `k` and
+ending at a position stricly larger than `k`.
 
 This formulation corresponds to method :meth:`cutwidth_MILP`.
 

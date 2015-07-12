@@ -93,9 +93,9 @@ class Subcrystal(Parent, UniqueRepresentation):
     Now we take the crystal corresponding to the intersection of
     the previous two subcrystals::
 
-        sage: U = B.subcrystal(contained=lambda x: x in S and x in T)
+        sage: U = B.subcrystal(contained=lambda x: x in S and x in T, generators=B)
         sage: list(U)
-        [[[1, 1], [2]]]
+        [[[2, 3], [3]], [[1, 2], [3]], [[2, 2], [3]]]
 
     .. TODO::
 

@@ -455,10 +455,11 @@ class Crystals(Category_singleton):
                                       virtualization, scaling_factors,
                                       cartan_type, index_set, category)
 
-                category = FiniteCrystals().or_subcategory(category)
-                return Subcrystal(self, contained, generators,
-                                  virtualization, scaling_factors,
-                                  cartan_type, index_set, category)
+                if direction == 'both':
+                    category = FiniteCrystals().or_subcategory(category)
+                    return Subcrystal(self, contained, generators,
+                                      virtualization, scaling_factors,
+                                      cartan_type, index_set, category)
 
             # TODO: Make this work for virtual crystals as well
             if direction == 'both':

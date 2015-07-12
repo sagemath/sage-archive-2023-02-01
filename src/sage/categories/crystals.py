@@ -502,7 +502,7 @@ class Crystals(Category_singleton):
             Return the homset from ``self`` to ``Y`` in the
             category ``category``.
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- a crystal
             - ``category`` -- a subcategory of :class:`Crystals`() or ``None``

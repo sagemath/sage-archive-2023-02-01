@@ -1168,13 +1168,6 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         rnd = (<MPComplexField_class>self._parent).__rnd
         return complex(mpfr_get_d(self.value.re, rnd_re(rnd)), mpfr_get_d(self.value.im, rnd_im(rnd)))
 
-    # Boilerplate comparison code
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
-
     cpdef int _cmp_(self, Element other) except -2:
         r"""
         Compare ``self`` to ``other``.

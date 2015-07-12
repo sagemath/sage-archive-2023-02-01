@@ -428,30 +428,33 @@ unset R_HOME
 unset R_PROFILE
 # Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
 # Provide empty files to appease some R packages' installation scripts.
-R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
-if ! [ -f "$R_MAKEVARS_SITE" ] ; then
-    if ! [ -a "$R_MAKEVARS_SITE" ] ; then
-	echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
-    else
-	>&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
+   R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+   if ! [ -f "$R_MAKEVARS_SITE" ] ; then
+       if ! [ -a "$R_MAKEVARS_SITE" ] ; then
+	   echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
+       else
+	   >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+       fi
+   fi
+fi
+if [ -d "$DOT_SAGE" ] ; then
+    if ! [ -d "$DOT_SAGE/R" ] ; then
+	if ! [ -a  "$DOT_SAGE/R" ] ; then
+	    mkdir -p "$DOT_SAGE/R"
+	else
+	    >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
+	fi
+    fi
+    R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
+    if ! [ -f "$R_MAKEVARS_USER" ] ; then
+	if ! [ -a "$R_MAKEVARS_USER" ] ; then
+	    echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
+	else
+	    >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
+	fi
     fi
 fi
-if ! [ -d "$DOT_SAGE/R" ] ; then
-    if ! [ -a  "$DOT_SAGE/R" ] ; then
-	mkdir -p "$DOT_SAGE/R"
-    else
-	>&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
-    fi
-fi
-R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
-if ! [ -f "$R_MAKEVARS_USER" ] ; then
-    if ! [ -a "$R_MAKEVARS_USER" ] ; then
-	echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
-    else
-	>&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
-    fi
-fi
-
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
 ############ architecture flags

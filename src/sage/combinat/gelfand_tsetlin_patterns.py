@@ -42,7 +42,7 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.all import ZZ
@@ -134,7 +134,7 @@ class GelfandTsetlinPattern(ClonableArray):
     """
     # Note that the width == height, so len(gt) == len(gt[0]) except
     #   we don't have to check if it is the emtry GT pattern
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(self, gt):

@@ -9,7 +9,9 @@ Bialgebras with basis
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-def BialgebrasWithBasis(base_ring):
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+
+class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
     The category of bialgebras with a distinguished basis.
 
@@ -27,6 +29,11 @@ def BialgebrasWithBasis(base_ring):
 
         sage: TestSuite(BialgebrasWithBasis(ZZ)).run()
     """
-    from sage.categories.all import Bialgebras
-    return Bialgebras(base_ring).WithBasis()
+    class ParentMethods:
+        def foo(self):
+            return 'bar'
+
+    class ElementMethods:
+        def bar(self):
+            return 'foo fighters'
 

@@ -124,6 +124,27 @@ class VirtualCrystal(Subcrystal):
         sage: S.digraph().is_isomorphic(B.digraph(), edge_labels=True)
         True
 
+    We can also directly construct a virtual crystal using
+    :class:`VirtualCrystal` (however it is recommended to use either
+    :meth:`~sage.categories.crystals.Crystals.ParentMethods.crystal_morphism`
+    or :meth:`~sage.categories.crystals.Crystals.ParentMethods.subcrystal`)::
+
+        sage: from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+        sage: A = crystals.Tableaux(['A',3], shape=[2,1,1])
+        sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2}, cartan_type=['C',2])
+        sage: G = crystals.Tableaux(['C',2], shape=[1]).digraph()
+        sage: V.digraph().is_isomorphic(G, edge_labels=True)
+        True
+
+        sage: C1 = crystals.Tableaux(['A',3], shape=[1])
+        sage: C2 = crystals.Tableaux(['A',3], shape=[1,1,1])
+        sage: T = C1.tensor(C2)
+        sage: mg = T(C1.module_generators[0], C2.module_generators[0])
+        sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2},
+        ....:                    cartan_type=['C',2], generators=[mg])
+        sage: V.digraph().is_isomorphic(G, edge_labels=True)
+        True
+
     REFERENCES:
 
     - [FOS09]_
@@ -153,7 +174,7 @@ class VirtualCrystal(Subcrystal):
         else:
             cartan_type = CartanType(cartan_type)
         if index_set is None:
-            index_set = cartan_type.index_set
+            index_set = cartan_type.index_set()
         if generators is None:
             generators = ambient.module_generators
         virtualization = Family(virtualization)
@@ -164,7 +185,7 @@ class VirtualCrystal(Subcrystal):
         return super(Subcrystal, cls).__classcall__(cls, ambient, virtualization, scaling_factors,
                                                     contained, tuple(generators), cartan_type,
                                                     tuple(index_set), category)
-
+ 
     def __init__(self, ambient, virtualization, scaling_factors,
                  contained, generators, cartan_type, index_set, category):
         """

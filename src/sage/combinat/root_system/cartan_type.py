@@ -602,6 +602,16 @@ class CartanTypeFactory(SageObject):
             True
             sage: CartanType('A2')
             ['A', 2]
+
+        Check that we can pass any Cartan type as a single element list::
+
+            sage: CT = CartanType(['A2', 'A2', 'A2'])
+            sage: CartanType([CT])
+            A2xA2xA2
+
+            sage: CT = CartanType('A2').relabel({1:-1, 2:-2})
+            sage: CartanType([CT])
+            ['A', 2] relabelled by {1: -1, 2: -2}
         """
         if len(args) == 1:
             t = args[0]
@@ -614,6 +624,10 @@ class CartanTypeFactory(SageObject):
 
         if len(t) == 1: # Fix for trac #13774
             t = t[0]
+
+        # We need to make another check
+        if isinstance(t, CartanType_abstract):
+            return t
 
         if isinstance(t, str):
             if "x" in t:

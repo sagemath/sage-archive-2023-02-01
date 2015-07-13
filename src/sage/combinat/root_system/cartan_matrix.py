@@ -34,6 +34,7 @@ from sage.rings.all import ZZ
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
+from sage.graphs.digraph import DiGraph
 
 class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     r"""
@@ -265,12 +266,6 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 if not is_generalized_cartan_matrix(M):
                     raise ValueError("the input matrix is not a generalized Cartan matrix")
                 n = M.ncols()
-                if cartan_type is not None:
-                    cartan_type = CartanType(cartan_type)
-                elif n == 1:
-                    cartan_type = CartanType(['A', 1])
-                elif cartan_type_check:
-                    cartan_type = find_cartan_type_from_matrix(M)
                 data = M.dict()
                 subdivisions = M._subdivisions
 
@@ -280,23 +275,38 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if len(index_set) != n and len(set(index_set)) != n:
             raise ValueError("the given index set is not valid")
 
-        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, cartan_type, index_set)
+        # We can do the Cartan type initialization later as this is not
+        #   a unqiue representation
+        mat = typecall(cls, MatrixSpace(ZZ, n, sparse=True), data, False, False)
+        # FIXME: We have to initialize the CartanMatrix part separately because
+        #   of the __cinit__ of the matrix. We should get rid of this workaround
+        mat._CM_init(cartan_type, index_set, cartan_type_check)
         mat._subdivisions = subdivisions
         return mat
 
-    def __init__(self, parent, data, cartan_type, index_set):
+    def _CM_init(self, cartan_type, index_set, cartan_type_check):
         """
-        Initialize ``self``.
+        Initialize ``self`` as a Cartan matrix.
 
         TESTS::
 
-            sage: C = CartanMatrix(['A',1,1])
+            sage: C = CartanMatrix(['A',1,1]) # indirect doctest
             sage: TestSuite(C).run(skip=["_test_category", "_test_change_ring"])
         """
-        Matrix_integer_sparse.__init__(self, parent, data, False, False)
-        self._cartan_type = cartan_type
         self._index_set = index_set
         self.set_immutable()
+
+        if cartan_type is not None:
+            cartan_type = CartanType(cartan_type)
+        elif self.nrows() == 1:
+            cartan_type = CartanType(['A', 1])
+        elif cartan_type_check:
+            # Placeholder so we don't have to reimplement creating a
+            #   Dynkin diagram from a Cartan matrix
+            self._cartan_type = None
+            cartan_type = find_cartan_type_from_matrix(self)
+
+        self._cartan_type = cartan_type
 
     def __reduce__(self):
         """
@@ -879,64 +889,84 @@ def is_generalized_cartan_matrix(M):
     return True
 
 def find_cartan_type_from_matrix(CM):
-    """
-    Find a Cartan type by direct comparison of matrices given from the
-    generalized Cartan matrix ``CM`` and return ``None`` if not found.
+    r"""
+    Find a Cartan type by direct comparison of Dynkin diagrams given from
+    the generalized Cartan matrix ``CM`` and return ``None`` if not found.
 
     INPUT:
 
-    - ``CM`` -- A generalized Cartan matrix
+    - ``CM`` -- a generalized Cartan matrix
 
     EXAMPLES::
 
         sage: from sage.combinat.root_system.cartan_matrix import find_cartan_type_from_matrix
-        sage: M = matrix([[2,-1,-1], [-1,2,-1], [-1,-1,2]])
-        sage: find_cartan_type_from_matrix(M)
+        sage: CM = CartanMatrix([[2,-1,-1], [-1,2,-1], [-1,-1,2]])
+        sage: find_cartan_type_from_matrix(CM)
         ['A', 2, 1]
-        sage: M = matrix([[2,-1,0], [-1,2,-2], [0,-1,2]])
-        sage: find_cartan_type_from_matrix(M)
-        ['C', 3]
-        sage: M = matrix([[2,-1,-2], [-1,2,-1], [-2,-1,2]])
-        sage: find_cartan_type_from_matrix(M)
+        sage: CM = CartanMatrix([[2,-1,0], [-1,2,-2], [0,-1,2]])
+        sage: find_cartan_type_from_matrix(CM)
+        ['C', 3] relabelled by {1: 0, 2: 1, 3: 2}
+        sage: CM = CartanMatrix([[2,-1,-2], [-1,2,-1], [-2,-1,2]])
+        sage: find_cartan_type_from_matrix(CM)
     """
-    n = CM.ncols()
-    # Build the list to test based upon rank
-    if n == 1:
-        return CartanType(['A', 1])
-
-    test = [['A', n]]
-    if n >= 2:
-        if n == 2:
-            test += [['G',2], ['A',2,2]]
-        test += [['B',n], ['A',n-1,1]]
-    if n >= 3:
-        if n == 3:
-            test += [['G',2,1], ['D',4,3]]
-        test += [['C',n], ['BC',n-1,2], ['C',n-1,1]]
-    if n >= 4:
-        if n == 4:
-            test += [['F',4], ['G',2,1], ['D',4,3]]
-        test += [['D',n], ['B',n-1,1]]
-    if n == 5:
-        test += [['F',4,1], ['D',n-1,1]]
-    elif n == 6:
-        test.append(['E',6])
-    elif n == 7:
-        test += [['E',7], ['E',6,1]]
-    elif n == 8:
-        test += [['E',8], ['E',7,1]]
-    elif n == 9:
-        test.append(['E',8,1])
-
-    # Test every possible Cartan type and its dual
-    for x in test:
-        ct = CartanType(x)
-        if ct.cartan_matrix() == CM:
-            return ct
-        if ct == ct.dual():
+    types = []
+    for S in CM.dynkin_diagram().connected_components_subgraphs():
+        S = DiGraph(S) # We need a simple digraph here
+        n = S.num_verts()
+        # Build the list to test based upon rank
+        if n == 1:
+            types.append(CartanType(['A', 1]))
             continue
-        ct = ct.dual()
-        if ct.cartan_matrix() == CM:
-            return ct
-    return None
+
+        test = [['A', n]]
+        if n >= 2:
+            if n == 2:
+                test += [['G',2], ['A',2,2]]
+            test += [['B',n], ['A',n-1,1]]
+        if n >= 3:
+            if n == 3:
+                test.append(['G',2,1])
+            test += [['C',n], ['BC',n-1,2], ['C',n-1,1]]
+        if n >= 4:
+            if n == 4:
+                test.append(['F',4])
+            test += [['D',n], ['B',n-1,1]]
+        if n >= 5:
+            if n == 5:
+                test.append(['F',4,1])
+            test.append(['D',n-1,1])
+        if n == 6:
+            test.append(['E',6])
+        elif n == 7:
+            test += [['E',7], ['E',6,1]]
+        elif n == 8:
+            test += [['E',8], ['E',7,1]]
+        elif n == 9:
+            test.append(['E',8,1])
+
+        # Test every possible Cartan type and its dual
+        found = False
+        for x in test:
+            ct = CartanType(x)
+            T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
+            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            if iso:
+                types.append(ct.relabel(match))
+                found = True
+                break
+
+            if ct == ct.dual():
+                continue # self-dual, so nothing more to test
+
+            ct = ct.dual()
+            T = DiGraph(ct.dynkin_diagram()) # We need a simple digraph here
+            iso, match = T.is_isomorphic(S, certify=True, edge_labels=True)
+            if iso:
+                types.append(ct.relabel(match))
+                found = True
+                break
+        if not found:
+            return None
+
+    return CartanType(types)
 

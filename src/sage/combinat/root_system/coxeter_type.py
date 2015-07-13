@@ -35,7 +35,7 @@ class CoxeterType(SageObject):
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(cls, x):
+    def __classcall_private__(cls, *x):
         """
         Parse input ``x``.
 
@@ -44,6 +44,9 @@ class CoxeterType(SageObject):
             sage: CoxeterType(['A',3])
             Coxeter type of ['A', 3]
         """
+        if len(x) == 1:
+            x = x[0]
+
         if isinstance(x, CoxeterType):
             return x
 
@@ -51,6 +54,9 @@ class CoxeterType(SageObject):
             return CoxeterTypeFromCartanType(CartanType(x))
         except (ValueError, TypeError):
             pass
+
+        if len(x) == 1: # In case the input is similar to CoxeterType([['A',2]])
+            return CoxeterType(x[0])
 
         raise NotImplementedError("Coxeter types not from Cartan types not yet implemented")
 
@@ -322,7 +328,8 @@ class CoxeterType(SageObject):
              [['C', 1], True], [['C', 5], False],
              [['D', 2], True], [['D', 3], True], [['D', 5], True],
              [['E', 6], True], [['E', 7], True], [['E', 8], True],
-             [['F', 4], False], [['G', 2], False], [['I', 5], False], [['H', 3], False], [['H', 4], False],
+             [['F', 4], False], [['G', 2], False],
+             [['I', 5], False], [['H', 3], False], [['H', 4], False],
              [['A', 1, 1], False], [['A', 5, 1], True],
              [['B', 1, 1], False], [['B', 5, 1], False],
              [['C', 1, 1], False], [['C', 5, 1], False],
@@ -330,7 +337,8 @@ class CoxeterType(SageObject):
              [['E', 6, 1], True], [['E', 7, 1], True], [['E', 8, 1], True],
              [['F', 4, 1], False], [['G', 2, 1], False],
              [['BC', 1, 2], False], [['BC', 5, 2], False],
-             [['B', 5, 1]^*, False], [['C', 4, 1]^*, False], [['F', 4, 1]^*, False], [['G', 2, 1]^*, False],
+             [['B', 5, 1]^*, False], [['C', 4, 1]^*, False],
+             [['F', 4, 1]^*, False], [['G', 2, 1]^*, False],
              [['BC', 1, 2]^*, False], [['BC', 5, 2]^*, False]]
         """
         return False
@@ -554,4 +562,16 @@ class CoxeterTypeFromCartanType(CoxeterType, UniqueRepresentation):
             False
         """
         return self._cartan_type.is_simply_laced()
+
+    def relabel(self, relabelling):
+        """
+        Return a relabelled copy of ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CoxeterType(['A',2])
+            sage: ct.relabel({1:-1, 2:-2})
+            Coxeter type of ['A', 2] relabelled by {1: -1, 2: -2}
+        """
+        return CoxeterType(self._cartan_type.relabel(relabelling))
 

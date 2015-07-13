@@ -294,14 +294,18 @@ class Subcrystal(Parent, UniqueRepresentation):
                 sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
                 sage: S = A.subcrystal(max_depth=2)
                 sage: sorted(S)
-                [[[1, 1], [2, 2]](0),
-                 [[1, 1], [2, 3]](0),
-                 [[1, 2], [2, 3]](0),
-                 [[1, 1], [3, 3]](0),
-                 [[1, 1], [2, 3]](1),
-                 [[1, 2], [2, 3]](1),
-                 [[1, 2], [3, 3]](1),
-                 [[2, 2], [3, 3]](2)]
+                [[[1, 1]](-1),
+                [[1, 2]](-1),
+                [](0),
+                [[1, 1]](0),
+                [[1, 2]](0),
+                [[1, -2]](0),
+                [[2, 2]](0),
+                [](1),
+                [[2, -1]](1),
+                [[-2, -1]](1),
+                [[-1, -1]](1),
+                [[-1, -1]](2)]
             """
             if not isinstance(other, Subcrystal.Element):
                 return False

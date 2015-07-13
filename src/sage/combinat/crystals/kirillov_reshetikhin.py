@@ -1571,7 +1571,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         EXAMPLES::
 
             sage: K = crystals.KirillovReshetikhin(['C',3,1], 2,2)
-            sage: b=K.ambient_crystal()(rows=[[2,2],[3,3]])
+            sage: b = K.ambient_crystal()(rows=[[2,2],[3,3]])
             sage: K.from_ambient_crystal()(b)
             [[1, 1], [2, 2]]
         """
@@ -3741,6 +3741,11 @@ def horizontal_dominoes_removed(r, s):
 class AmbientRetractMap(Map):
     r"""
     The retraction map from the ambient crystal.
+
+    Consider a crystal embedding `\phi : X \to Y`, then the elements `X`
+    can be considered as a subcrystal of the ambient crystal `Y`. The
+    ambient retract is the partial map `\tilde{\phi} : Y \to X` such that
+    `\tilde{\phi} \circ \phi` is the identity on `X`.
     """
     def __init__(self, base, ambient, pdict_inv, index_set,
                  similarity_factor_domain=None, automorphism=None):

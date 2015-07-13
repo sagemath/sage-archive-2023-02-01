@@ -2202,19 +2202,23 @@ class CrystalHomset(Homset):
     If the Cartan type is unambiguous, it is surpressed from the notation.
 
     We can also generalize the definition of a crystal morphism by considering
-    a map of `\sigma` of the (now possibly different) Dynkin diagrams corresponding
-    to `B` and `C` a along with scaling factors `\gamma_i \in \ZZ` for `i \in I`.
-    Let `\sigma_i` denote the orbit of `i` under `\sigma`. Then a *virtual*
-    crystal morphism `\Psi` is a map `\Psi` such that the following holds:
+    a map of `\sigma` of the (now possibly different) Dynkin diagrams
+    corresponding to `B` and `C` a along with scaling factors
+    `\gamma_i \in \ZZ` for `i \in I`. Let `\sigma_i` denote the orbit of
+    `i` under `\sigma`. We write for any object `X` of `B`, the
+    corresponding object of `C` will be denoted by `\widehat{X}`.
+    Then a *virtual* crystal morphism `\Psi` is a map `\Psi` such that
+    the following holds:
 
     - `\Psi(0) = 0`.
     - If `b \in B` and `\Psi(b) \in C`, then for all `j \in \sigma_i`:
 
     .. MATH::
 
-        \varepsilon_i(b) = \frac{\varepsilon_j}{\gamma_j} \Psi(b), \quad
-        \widehat{\varphi}_i(b) = \frac{\varphi_j}{\gamma_j} \Psi(b), \quad
-        \mathrm{wt}(\Phi(b)) = c_i \sum_{j \in \sigma_i} \gamma_j \Lambda_j.
+        \varepsilon_i(b) = \frac{\widehat{\varepsilon}_j}{\gamma_j} \Psi(b),
+        \quad \varphi_i(b) = \frac{\widehat{\varphi}_j}{\gamma_j} \Psi(b),
+        \quad \mathrm{wt}(\Phi(b)) = c_i \sum_{j \in \sigma_i} \gamma_j
+        \widehat{\Lambda}_j,
 
     where `\mathrm{wt}(b) = \sum_i c_i \Lambda_i`.
 

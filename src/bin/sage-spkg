@@ -310,10 +310,7 @@ fi
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
         # This is the new-style package way of downloading the tarball
-        sage-download-file $PKG_NAME_UPSTREAM
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
+        sage-download-file $PKG_NAME_UPSTREAM || exit $?
         PKG_SRC="$SAGE_DISTFILES/$PKG_NAME_UPSTREAM"
     else
         # Handle all the legacy cruft. This branch can be deleted once
@@ -341,7 +338,6 @@ if [ ! -f "$PKG_SRC" ]; then
                 repolist="${DOT_SAGE}/${repo}.list"
                 sage-download-file --quiet "$MIRROR/$repo/list" $repolist
                 if [ $? -ne 0 ]; then
-                    echo >&2 "Error: failed to download $MIRROR/$repo/list, aborting"
                     rm -f $repolist
                     exit 1
                 fi
@@ -428,7 +424,6 @@ if [ ! -f "$PKG_SRC" ]; then
         if [ $? -ne 0 ]; then
             # Delete failed download
             rm -f "$PKG_TMP"
-            echo >&2 "Error: failed to download package $PKG_NAME"
             exit 1
         fi
     

@@ -30,6 +30,8 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 
@@ -275,6 +277,25 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             [[1, 2], [3, 4]]
         """
         return self.element_class(self, *args, **options)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T._coerce_map_from_(RC)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of rigged configurations of type ['A', 3]
+              To:   The infinity crystal of tableaux of type ['A', 3]
+        """
+        from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRiggedConfigurations
+        if isinstance(P, InfinityCrystalOfRiggedConfigurations):
+            from sage.combinat.rigged_configurations.bij_infinity import FromRCIsomorphism
+            return FromRCIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfTableaux, self)._coerce_map_from_(P)
 
     class Element(CrystalOfTableauxElement):
         r"""

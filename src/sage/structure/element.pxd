@@ -1,6 +1,7 @@
 from sage_object cimport SageObject
 from parent cimport Parent
 from cpython.number cimport PyNumber_Check
+from sage.misc.inherit_comparison cimport InheritComparisonMetaclass
 
 cdef inline parent_c(x):
     if isinstance(x, Element):

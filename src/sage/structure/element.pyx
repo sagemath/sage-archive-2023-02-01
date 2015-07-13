@@ -147,6 +147,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
+from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -285,6 +286,7 @@ def is_Element(x):
     """
     return isinstance(x, Element)
 
+
 cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
@@ -296,6 +298,10 @@ cdef class Element(SageObject):
     .. automethod:: _cmp_
     .. automethod:: _richcmp_
     """
+    def __getmetaclass__(_):
+        from sage.misc.inherit_comparison import InheritComparisonMetaclass
+        return InheritComparisonMetaclass
+
     def __init__(self, parent):
         r"""
         INPUT:
@@ -961,9 +967,10 @@ cdef class Element(SageObject):
         Compare ``self`` and ``other`` using the coercion framework,
         comparing according to the comparison operator ``op``.
 
-        This method exists only because of the strange way that Python
-        handles inheritance of ``__richcmp__``. A Cython class should
-        always define ``__richcmp__`` as calling ``_richcmp``.
+        This method exists only because of historical reasons: before
+        :trac:`18329`, the ``__richcmp__`` method would not be
+        inherited if ``__hash__`` was defined. Eventually, we should
+        completely replace ``_richcmp`` by ``__richcmp__``.
 
         Normally, a class will not redefine ``_richcmp`` but rely on
         this ``Element._richcmp`` method which uses coercion to
@@ -1036,14 +1043,10 @@ cdef class Element(SageObject):
             return rich_to_bool(op, -1)
 
     ####################################################################
-    # For a derived Cython class, you **must** put the __richcmp__
-    # method below in your subclasses, in order for it to take
-    # advantage of the above generic comparison code.
-    #
-    # You must also define either _cmp_ (if your subclass is totally
-    # ordered), _richcmp_ (if your subclass is partially ordered), or
-    # both (if your class has both a total order and a partial order,
-    # or if that gives better performance).
+    # For a Cython class, you must define either _cmp_ (if your subclass
+    # is totally ordered), _richcmp_ (if your subclass is partially
+    # ordered), or both (if your class has both a total order and a
+    # partial order, or if implementing both gives better performance).
     #
     # Rich comparisons (like a < b) will default to using _richcmp_,
     # three-way comparisons (like cmp(a,b)) will default to using

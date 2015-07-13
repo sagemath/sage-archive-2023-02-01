@@ -899,7 +899,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             [[1, 3], [2, 4]]
         """
         T = self.classical_crystal
-        return DiagramAutomorphism(T,
+        return CrystalDiagramAutomorphism(T,
                  lambda x: T(x.to_tableau().promotion(self._cartan_type[1])),
                  cache=False)
 
@@ -923,7 +923,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
             [[1, 2], [3, 3]]
         """
         T = self.classical_crystal
-        return DiagramAutomorphismInverse(T,
+        return CrystalDiagramAutomorphism(T,
                  lambda x: T(x.to_tableau().promotion_inverse(self._cartan_type[1])),
                  cache=False)
 
@@ -1024,7 +1024,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         T = self.classical_decomposition()
         ind = list(T.index_set())
         ind.remove(1)
-        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
+        return CrystalDiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
 
     def promotion_inverse(self):
         """
@@ -1405,7 +1405,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         T = self.classical_decomposition()
         ind = [1,2,3,4,5]
-        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind,
+        return CrystalDiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind,
                          automorphism=self.dynkin_diagram_automorphism)
 
     @cached_method
@@ -3160,7 +3160,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
+        return CrystalDiagramAutomorphism(T, self.promotion_on_highest_weight_vectors(), ind)
 
     @cached_method
     def promotion_inverse(self):
@@ -3188,7 +3188,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             elif i==n-1:
                 return n
             return i
-        return DiagramAutomorphism(T, self.promotion_on_highest_weight_vectors_inverse(), ind)
+        return CrystalDiagramAutomorphism(T, self.promotion_on_highest_weight_vectors_inverse(), ind)
 
 class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
     r"""
@@ -3802,9 +3802,9 @@ class AmbientRetractMap(Map):
                 return d
         return self._pdict_inv[x]
 
-class DiagramAutomorphism(CrystalMorphism):
+class CrystalDiagramAutomorphism(CrystalMorphism):
     """
-    The diagram automorphism.
+    The crystal automorphism induced from the diagram automorphism.
 
     For example, in type `A_n^{(1)}` this is the promotion operator and in
     type `D_n^{(1)}`, this corresponds to the automorphism induced from
@@ -3917,20 +3917,4 @@ class DiagramAutomorphism(CrystalMorphism):
     is_embedding = is_isomorphism
     is_strict = is_isomorphism
     __nonzero__ = is_isomorphism
-
-class DiagramAutomorphismInverse(DiagramAutomorphism):
-    r"""
-    The inverse promotion operator.
-    """
-    def _repr_type(self):
-        """
-        Return a string describing ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',3,1], 2,2)
-            sage: K.promotion_inverse()._repr_type()
-            'Inverse diagram automorphism'
-        """
-        return "Inverse diagram automorphism"
 

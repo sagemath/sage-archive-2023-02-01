@@ -1818,9 +1818,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     delta = left_box
 
-    def left_top(self):
+    def left_column_box(self):
         r"""
-        Return the image of ``self`` under the left column top splitting
+        Return the image of ``self`` under the left column box splitting
         map `\gamma`.
 
         Consider the map `\gamma : RC(B^{r,1} \otimes B) \to RC(B^{1,1}
@@ -1838,7 +1838,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             sage: ascii_art(mg)
             0[ ]0  0[ ][ ]0  0[ ]0
                    0[ ]0     0[ ]0
-            sage: ascii_art(mg.left_top())
+            sage: ascii_art(mg.left_column_box())
             0[ ]0  0[ ][ ]0  0[ ]0
             0[ ]0  0[ ]0     0[ ]0
                    0[ ]0
@@ -1848,7 +1848,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             sage: ascii_art(mg)
             1[ ]0  0[ ][ ]0  0[ ]0
                    0[ ]0     0[ ]0
-            sage: ascii_art(mg.left_top())
+            sage: ascii_art(mg.left_column_box())
             1[ ]1  0[ ][ ]0  0[ ]0
             1[ ]0  0[ ]0     0[ ]0
         """
@@ -1865,7 +1865,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
                 raise ValueError("only for non-spinor cases")
 
         if P.dims[0][1] > 1:
-            return self.left_split().left_top()
+            return self.left_split().left_column_box()
 
         B = [[1,1], [r-1,1]]
         B.extend(P.dims[1:])
@@ -1881,9 +1881,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             nu.rigging.insert(i, vac_num)
         return RC(*parts)
 
-    def right_bottom(self):
+    def right_column_box(self):
         r"""
-        Return the image of ``self`` under the right column bottom splitting
+        Return the image of ``self`` under the right column box splitting
         map `\gamma^*`.
 
         Consider the map `\gamma^* : RC(B \otimes B^{r,1}) \to RC(B \otimes
@@ -1903,7 +1903,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             sage: ascii_art(mg)
             1[ ]0  0[ ][ ]0  0[ ]0
                    0[ ]0     0[ ]0
-            sage: ascii_art(mg.right_bottom())
+            sage: ascii_art(mg.right_column_box())
             1[ ]0  0[ ][ ]0  0[ ]0
             1[ ]0  0[ ]0     0[ ]0
                    0[ ]0
@@ -1921,7 +1921,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
                 raise ValueError("only for non-spinor cases")
 
         if P.dims[-1][1] > 1:
-            return self.right_split().right_bottom()
+            return self.right_split().right_column_box()
 
         rc, e_string = self.to_highest_weight(P.cartan_type().classical().index_set())
 

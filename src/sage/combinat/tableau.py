@@ -77,7 +77,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
@@ -251,7 +251,7 @@ class Tableau(ClonableList):
         ValueError: A tableau must be a list of iterables.
 
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, t):
@@ -3836,8 +3836,6 @@ class SemistandardTableau(Tableau):
         ...
         ValueError: entries must be positive integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -3971,8 +3969,6 @@ class StandardTableau(SemistandardTableau):
         ...
         ValueError: the entries in each row of a semistandard tableau must be weakly increasing
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""

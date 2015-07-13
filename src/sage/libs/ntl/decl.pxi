@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 include "sage/ext/python.pxi"
 
 cdef extern from "ccobject.h":

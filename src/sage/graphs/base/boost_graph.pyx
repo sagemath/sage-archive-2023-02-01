@@ -404,11 +404,11 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
 
         sage: from sage.graphs.base.boost_graph import bandwidth_heuristics
         sage: bandwidth_heuristics(graphs.PathGraph(10))
-        [1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        (1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]))
-        [3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)]]
+        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
         sage: bandwidth_heuristics(graphs.GridGraph([3,3]), algorithm='king')
-        [3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)]]
+        (3, [(0, 0), (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (2, 1), (1, 2), (2, 2)])
 
     TESTS:
 
@@ -432,13 +432,24 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
         ...
         ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
 
+    Given a graph with no edges::
+
+        from sage.graphs.base.boost_graph import bandwidth_heuristics
+        sage: bandwidth_heuristics(Graph())
+        (0, [])
+        sage: bandwidth_heuristics(graphs.RandomGNM(10,0))
+        (0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
     """
     from sage.graphs.graph import Graph
 
+    # Tests for errors and trivial cases
     if not isinstance(g, Graph):
         raise ValueError("The input g must be a Graph.")
     if not algorithm in ['cuthill_mckee', 'king']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+    if g.num_edges()==0:
+        return (0, g.vertices());
 
     sig_on()
     # These variables are automatically deleted when the function terminates.
@@ -455,4 +466,4 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
     cdef int bandwidth = max([abs(pos[u]-pos[v]) for u,v in g.edges(labels=False)])
 
     sig_off()
-    return [bandwidth, [int_to_vertex[result[i]] for i in range(n)]]
+    return (bandwidth, [int_to_vertex[result[i]] for i in range(n)])

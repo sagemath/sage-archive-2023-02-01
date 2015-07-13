@@ -56,7 +56,8 @@ do this by symlinking::
     [user@localhost git-trac-command]$ ln -s `pwd`/git-trac ~/bin/
 
 See the `git-trac README <https://github.com/sagemath/git-trac-command>`_ for
-more details.
+more details. And this point you leave ``git-hub-command`` subdirectory, and only go 
+there whenever you need to update the ``git-trac`` command.
 
 
 

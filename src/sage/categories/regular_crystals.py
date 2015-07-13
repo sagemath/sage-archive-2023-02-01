@@ -248,12 +248,12 @@ class RegularCrystals(Category_singleton):
                 sage: mg = K.module_generator()
                 sage: S = K.demazure_subcrystal(mg, [1])
                 sage: S.digraph().edges()
-                [([[1, 2]], [[2, 2]], 1), ([[1, 1]], [[1, 2]], 1)]
+                [([[1, 1]], [[1, 2]], 1), ([[1, 2]], [[2, 2]], 1)]
                 sage: S = K.demazure_subcrystal(mg, [1], only_support=False)
                 sage: S.digraph().edges()
-                [([[1, 2]], [[1, 1]], 0),
+                [([[1, 1]], [[1, 2]], 1),
+                 ([[1, 2]], [[1, 1]], 0),
                  ([[1, 2]], [[2, 2]], 1),
-                 ([[1, 1]], [[1, 2]], 1),
                  ([[2, 2]], [[1, 2]], 0)]
             """
             from sage.combinat.free_module import CombinatorialFreeModule

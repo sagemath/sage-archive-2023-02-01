@@ -285,6 +285,30 @@ class Subcrystal(Parent, UniqueRepresentation):
         """
         An element of a subcrystal. Wraps an element in the ambient crystal.
         """
+        def __lt__(self, other):
+            """
+            Check less than.
+
+            EXAMPLES::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: sorted(S)
+                [[[1, 1], [2, 2]](0),
+                 [[1, 1], [2, 3]](0),
+                 [[1, 2], [2, 3]](0),
+                 [[1, 1], [3, 3]](0),
+                 [[1, 1], [2, 3]](1),
+                 [[1, 2], [2, 3]](1),
+                 [[1, 2], [3, 3]](1),
+                 [[2, 2], [3, 3]](2)]
+            """
+            if not isinstance(other, Subcrystal.Element):
+                return False
+            if other.parent() is not self.parent():
+                return False
+            return self.value < other.value
+
         def e(self, i):
             """
             Return `e_i` of ``self``.

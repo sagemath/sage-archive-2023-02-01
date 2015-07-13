@@ -3212,6 +3212,44 @@ class KR_type_D_tri1(KirillovReshetikhinGenericCrystal):
                + [l(-2)]*coords[4] + [l(-1)]*coords[5])
         return self.element_class(self, C(*lst))
 
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = crystals.KirillovReshetikhin(['D',4,3], 1, 3)
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 1, 3, model='KR')
+            sage: elt = KRC.module_generators[2].f_string([1,1,2,1,2]); elt
+            [[3, 0]]
+            sage: ret = KRT(elt); ret
+            [[3, 0, E]]
+            sage: test = KRC(ret); test
+            [[3, 0]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            # The classically HW element consists of 1, -1, and 'E'
+            wt = sum(x.value for x in to_hw[0] if x.value != 'E')
+            letters = elt.parent().letters
+            if wt:
+                rows = [[letters(1)]*int(wt)]
+            else:
+                rows = []
+            hw_elt = self(rows=rows)
+            f_str = reversed(to_hw[1])
+            return hw_elt.f_string(f_str)
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
+
     class Element(KirillovReshetikhinGenericCrystalElement):
         @cached_method
         def coordinates(self):

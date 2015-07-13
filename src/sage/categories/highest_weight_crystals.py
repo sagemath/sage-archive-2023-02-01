@@ -534,7 +534,9 @@ class HighestWeightCrystalMorphism(CrystalMorphismByGenerators):
     INPUT:
 
     - ``parent`` -- a homset
-    - ``on_gens`` -- a function for the images of the generators
+    - ``on_gens`` -- a function or list that determines the image of the
+      generators (if given a list, then this uses the order of the
+      generators of the domain) of the domain under ``self``
     - ``cartan_type`` -- (optional) a Cartan type; the default is the
       Cartan type of the domain
     - ``virtualization`` -- (optional) a dictionary whose keys are

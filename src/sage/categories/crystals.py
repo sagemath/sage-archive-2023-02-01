@@ -540,8 +540,10 @@ class Crystals(Category_singleton):
 
             INPUT:
 
-            - ``on_gens`` -- a function that determines the image of the
-              generators of ``self`` under the crystal morphism
+            - ``on_gens`` -- a function or list that determines the image
+              of the generators (if given a list, then this uses the order
+              of the generators of the domain) of ``self`` under the
+              crystal morphism
             - ``codomain`` -- (default: ``self``) the codomain of the morphism
             - ``cartan_type`` -- (optional) the Cartan type of the morphism;
               the default is the Cartan type of ``self``
@@ -1890,7 +1892,9 @@ class CrystalMorphismByGenerators(CrystalMorphism):
     INPUT:
 
     - ``parent`` -- a homset
-    - ``on_gens`` -- a function for the images of the generators
+    - ``on_gens`` -- a function or list that determines the image of the
+      generators (if given a list, then this uses the order of the
+      generators of the domain) of the domain under ``self``
     - ``cartan_type`` -- (optional) a Cartan type; the default is the
       Cartan type of the domain
     - ``virtualization`` -- (optional) a dictionary whose keys are in
@@ -1902,6 +1906,10 @@ class CrystalMorphismByGenerators(CrystalMorphism):
     - ``gens`` -- (optional) a finite list of generators to define the
       morphism; the default is to use the highest weight vectors of the crystal
     - ``check`` -- (default: ``True``) check if the crystal morphism is valid
+
+    .. SEEALSO::
+
+        :meth:`sage.categories.crystals.Crystals.ParentMethods.crystal_morphism`
     """
     def __init__(self, parent, on_gens, cartan_type=None,
                  virtualization=None, scaling_factors=None,
@@ -1936,7 +1944,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
             f = lambda x: on_gens[x]
         elif isinstance(on_gens, (list, tuple)):
             if len(self._gens) != len(on_gens):
-                raise ValueError("not all module generators have an image")
+                raise ValueError("invalid generator images")
             d = {x: y for x,y in zip(self._gens, on_gens)}
             f = lambda x: d[x]
         else:
@@ -2233,14 +2241,20 @@ class CrystalHomset(Homset):
           \Psi(b^{\prime}) = f_i \Psi(b) =
               \prod_{j \in \sigma_i} \widehat{f}_j^{\gamma_i} \Psi(b).
 
-    If `\gamma_i = 1` for all `i \in I` and the Dynkin diagrams are the same, then
-    we call `\Psi` a *twisted* crystal morphism.
+    If `\gamma_i = 1` for all `i \in I` and the Dynkin diagrams are
+    the same, then we call `\Psi` a *twisted* crystal morphism.
 
     INPUT:
 
     - ``X`` -- the domain
     - ``Y`` -- the codomain
     - ``category`` -- (optional) the category of the crystal morphisms
+
+    .. SEEALSO::
+
+        For the construction of an element of the homset, see
+        :class:`CrystalMorphismByGenerators` and
+        :meth:`~sage.categories.crystals.Crystals.ParentMethods.crystal_morphism`.
 
     EXAMPLES:
 

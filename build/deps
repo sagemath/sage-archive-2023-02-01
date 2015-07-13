@@ -76,7 +76,7 @@ start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKES)
+$(STARTED): $(STANDARD_PACKAGES)
 	"$(SAGE_LOCAL)/bin/sage-starts"
 
 

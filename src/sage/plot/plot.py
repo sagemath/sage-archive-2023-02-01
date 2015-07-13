@@ -1476,10 +1476,8 @@ def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
             options_temp = options.copy()
             fill_temp = options_temp.pop('fill', fill)
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
-
             color_temp = options_temp.pop('rgbcolor', 'automatic')
             color_temp = options_temp.pop('color',color_temp)
-
             linestyle_temp = options_temp.pop('linestyle',None)
 
             # passed more than one fill directive?

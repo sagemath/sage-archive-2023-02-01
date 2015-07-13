@@ -366,6 +366,9 @@ AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): move parts of this file to graphics.py (:trac:`12857`)
 
+- Aaron Lauve (2015-07-13): reworked handling of 'color' and 'linestyle'
+  when passed a list of functions; now more in-line with other CAS's. (:trac:`12962`)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>
@@ -377,7 +380,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 import os
 from functools import reduce
@@ -609,7 +611,7 @@ def xydata_from_point_list(points):
     return xdata, ydata
 
 @rename_keyword(color='rgbcolor')
-@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor=(0,0,1), plot_points=200,
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, rgbcolor='automatic', plot_points=200,
          adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles = False, exclude = None, legend_label=None,
          __original_opts=True, aspect_ratio='automatic')
 def plot(funcs, *args, **kwds):
@@ -677,9 +679,22 @@ def plot(funcs, *args, **kwds):
     - ``ymax`` - ending y value in the rendered figure. This parameter is passed
       directly to the ``show`` procedure and it could be overwritten.
 
-    - ``color`` - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1,
-      or a color name as a string (e.g., 'purple'), or an HTML color
-      such as '#aaff0b'.
+    COLOR OPTIONS:
+
+    - ``color`` - (Default: 'blue') One of:
+
+      - an RGB tuple (r,g,b) with each of r,g,b between 0 and 1.
+
+      - a color name as a string (e.g., 'purple').
+
+      - an HTML color such as '#aaff0b'.
+
+      - a list or dictionary of colors (valid only if `X` is a list):
+        if a dictionary, keys are taken from ``range(len(X))``;
+        the entries/values of the list/dictonary may be any of the options above.
+
+      - 'automatic' -- maps to blue if `X` is a single Sage object; and
+        maps to ``rainbow(len(X))`` if `X` is a list.
 
     - ``detect_poles`` - (Default: False) If set to True poles are detected.
       If set to "show" vertical asymptotes are drawn.
@@ -719,42 +734,49 @@ def plot(funcs, *args, **kwds):
 
     - ``hue`` - The color given as a hue
 
+    LINE OPTIONS:
+
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
     - ``linestyle`` - (default: "-") The style of the line, which is one of
-       - ``"-"`` or ``"solid"``
-       - ``"--"`` or ``"dashed"``
-       - ``"-."`` or ``"dash dot"``
-       - ``":"`` or ``"dotted"``
-       - ``"None"`` or ``" "`` or ``""`` (nothing)
+      - ``"-"`` or ``"solid"``
+      - ``"--"`` or ``"dashed"``
+      - ``"-."`` or ``"dash dot"``
+      - ``":"`` or ``"dotted"``
+      - ``"None"`` or ``" "`` or ``""`` (nothing)
+      - a list or dictionary (see below)
 
-       The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
+      The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
 
-       - ``"default"`` (connect the points with straight lines)
-       - ``"steps"`` or ``"steps-pre"`` (step function; horizontal
-         line is to the left of point)
-       - ``"steps-mid"`` (step function; points are in the middle of
-         horizontal lines)
-       - ``"steps-post"`` (step function; horizontal line is to the
-         right of point)
+      - ``"default"`` (connect the points with straight lines)
+      - ``"steps"`` or ``"steps-pre"`` (step function; horizontal
+        line is to the left of point)
+      - ``"steps-mid"`` (step function; points are in the middle of
+        horizontal lines)
+      - ``"steps-post"`` (step function; horizontal line is to the
+        right of point)
+
+      If `X` is a list, then ``linestyle`` may also be a list, with entries
+      taken from the strings above, or a dictionary, with keys in ``range(len(X))``
+      and values taken from the strings above.
 
     - ``marker``  - The style of the markers, which is one of
-       - ``"None"`` or ``" "`` or ``""`` (nothing) -- default
-       - ``","`` (pixel), ``"."`` (point)
-       - ``"_"`` (horizontal line), ``"|"`` (vertical line)
-       - ``"o"`` (circle), ``"p"`` (pentagon), ``"s"`` (square), ``"x"`` (x), ``"+"`` (plus), ``"*"`` (star)
-       - ``"D"`` (diamond), ``"d"`` (thin diamond)
-       - ``"H"`` (hexagon), ``"h"`` (alternative hexagon)
-       - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
-       - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
-       - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
-       - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down), ``8`` (octagon)
-       - ``"$...$"`` (math TeX string)
-       - ``(numsides, style, angle)`` to create a custom, regular symbol
+      - ``"None"`` or ``" "`` or ``""`` (nothing) -- default
+      - ``","`` (pixel), ``"."`` (point)
+      - ``"_"`` (horizontal line), ``"|"`` (vertical line)
+      - ``"o"`` (circle), ``"p"`` (pentagon), ``"s"`` (square), ``"x"`` (x), ``"+"`` (plus), ``"*"`` (star)
+      - ``"D"`` (diamond), ``"d"`` (thin diamond)
+      - ``"H"`` (hexagon), ``"h"`` (alternative hexagon)
+      - ``"<"`` (triangle left), ``">"`` (triangle right), ``"^"`` (triangle up), ``"v"`` (triangle down)
+      - ``"1"`` (tri down), ``"2"`` (tri up), ``"3"`` (tri left), ``"4"`` (tri right)
+      - ``0`` (tick left), ``1`` (tick right), ``2`` (tick up), ``3`` (tick down)
+      - ``4`` (caret left), ``5`` (caret right), ``6`` (caret up), ``7`` (caret down), ``8`` (octagon)
+      - ``"$...$"`` (math TeX string)
+      - ``(numsides, style, angle)`` to create a custom, regular symbol
 
-         - ``numsides`` -- the number of sides
-         - ``style`` -- ``0`` (regular polygon), ``1`` (star shape), ``2`` (asterisk), ``3`` (circle)
-         - ``angle`` -- the angular rotation in degrees
+        - ``numsides`` -- the number of sides
+        - ``style`` -- ``0`` (regular polygon), ``1`` (star shape), ``2`` (asterisk), ``3`` (circle)
+        - ``angle`` -- the angular rotation in degrees
 
     - ``markersize`` - the size of the marker in points
 
@@ -788,8 +810,14 @@ def plot(funcs, *args, **kwds):
         the j-th function in the list.  (But if ``d[i] == j``: Fill the area
         between the i-th function in the list and the horizontal line y = j.)
 
-    - ``fillcolor`` - (default: 'automatic') The color of the fill.
-      Either 'automatic' or a color.
+    - ``fillcolor`` - The color of the fill. One of:
+
+      - 'automatic' -- default
+
+      - a color, in RGB, color name, or HTML format
+
+      - a list or dictionary (valid in the event that `X` is a list),
+        with values taken from the options above.
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
@@ -850,6 +878,15 @@ def plot(funcs, *args, **kwds):
     as input::
 
         sage: plot([sin(n*x) for n in [1..4]], (0, pi))
+        Graphics object consisting of 4 graphics primitives
+
+    By default, color and linestyle will change from one primitive to the next.
+    This may be controlled by modifying ``color`` and ``linestyle`` options::
+
+        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color='blue', linestyle='-')
+        Graphics object consisting of 4 graphics primitives
+
+        sage: plot([sin(n*x)+n for n in [1..4]], (0, pi), color=['red','orange','green','purple'], linestyle=['-','-','--','-.'])
         Graphics object consisting of 4 graphics primitives
 
     We can also build a plot step by step from an empty plot::
@@ -1065,11 +1102,16 @@ def plot(funcs, *args, **kwds):
         sage: p1 = plot(sin(x), -pi, pi, fill = 'axis')
         sage: p2 = plot(sin(x), -pi, pi, fill = 'min')
         sage: p3 = plot(sin(x), -pi, pi, fill = 'max')
-        sage: p4 = plot(sin(x), -pi, pi, fill = 0.5)
+        sage: p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
-        sage: plot([sin(x), cos(2*x)*sin(4*x)], -pi, pi, fill = {0: 1}, fillcolor = 'red', fillalpha = 1)
-        Graphics object consisting of 3 graphics primitives
+    The basic options for filling a list of plots::
+
+        sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
+        sage: p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {0: 1, 1:[0]}, color = ['blue'])
+        sage: p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = [0, [0]], fillcolor = ['#f60'], fillalpha = 1, color = {1: 'blue'})
+        sage: p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill = [0, x/pi], fillcolor = 'grey', color=['red', 'blue'])
+        sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
     A example about the growth of prime numbers::
 
@@ -1092,9 +1134,9 @@ def plot(funcs, *args, **kwds):
     like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]), color = 'blue')
         Graphics object consisting of 9 graphics primitives
-        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]])) # long time
+        sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]), color = 'blue', linestyle = '-') # long time
         Graphics object consisting of 9 graphics primitives
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
@@ -1156,7 +1198,7 @@ def plot(funcs, *args, **kwds):
     Excluded points can also be given by an equation::
 
         sage: g(x) = x^2-2*x-2
-        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time 
+        sage: plot(1/g(x), (x, -3, 4), exclude = g(x) == 0, ymin = -5, ymax = 5) # long time
         Graphics object consisting of 3 graphics primitives
 
     ``exclude`` and ``detect_poles`` can be used together::
@@ -1279,7 +1321,6 @@ def plot(funcs, *args, **kwds):
     if kwds.get('parametric',False) and is_Vector(funcs):
         funcs = tuple(funcs)
 
-
     if hasattr(funcs, 'plot'):
         G = funcs.plot(*args, **original_opts)
     # if we are using the generic plotting method
@@ -1324,8 +1365,6 @@ def plot(funcs, *args, **kwds):
 
 def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
               label='', randomize=True, **options):
-    # rgbcolor=(0,1,1)
-    # color='green', linestyle='-', fill=False, fillcolor='automatic', \
     """
     Internal function which does the actual plotting.
 
@@ -1418,19 +1457,29 @@ def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
     else:
         f = funcs
 
+    # Keep ``rgbcolor`` option 'automatic' only for lists of functions.
+    # Otherwise, let the plot color be 'blue'.
+    if parametric or not isinstance(funcs, (list, tuple)):
+        if 'rgbcolor' in options.keys() and options['rgbcolor']=='automatic':
+            options['rgbcolor'] = (0,0,1) # default color for a single curve.
+
     #check to see if funcs is a list of functions that will
     #be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
         from sage.plot.colors import rainbow
-        rainbow_colors = rainbow(len(funcs))
+        rainbow_colors = rainbow(len(funcs)+1)
+
+        default_line_styles = ("-","--","-.",":")*len(funcs)
 
         G = Graphics()
         for i, h in enumerate(funcs):
             options_temp = options.copy()
-            fill_temp = options_temp.pop('fill', False)
+            fill_temp = options_temp.pop('fill', fill)
             fillcolor_temp = options_temp.pop('fillcolor', 'automatic')
-            color_temp = options_temp.pop('color',None)
-            options_temp.pop('rgbcolor',(0,0,1))
+
+            color_temp = options_temp.pop('rgbcolor', 'automatic')
+            color_temp = options_temp.pop('color',color_temp)
+
             linestyle_temp = options_temp.pop('linestyle',None)
 
             # passed more than one fill directive?
@@ -1441,13 +1490,23 @@ def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
                         if fill_entry_listQ[0] < len(funcs):
                             fill_entry = funcs[fill_entry_listQ[0]]
                         else:
-                            fill_entry = None
+                            fill_entry = False
                     else:
                         fill_entry = fill_entry_listQ
                 else:
-                    fill_entry = None
+                    fill_entry = False
             elif isinstance(fill_temp, (list, tuple)):
-                fill_entry = fill_temp[i]
+                if i < len(fill_temp):
+                    fill_entry_listQ = fill_temp[i]
+                    if isinstance(fill_entry_listQ, list):
+                        if fill_entry_listQ[0] < len(funcs):
+                            fill_entry = funcs[fill_entry_listQ[0]]
+                        else:
+                            fill_entry = False
+                    else:
+                        fill_entry = fill_entry_listQ
+                else:
+                    fill_entry = False
             else:
                 fill_entry = fill_temp
 
@@ -1456,40 +1515,53 @@ def _plot(funcs, xrange, parametric=False, polar=False, fill=False, \
                 if i in fillcolor_temp:
                     fillcolor_entry = fillcolor_temp[i]
                 else:
-                    fillcolor_entry = 'pink'
+                    fillcolor_entry = rainbow_colors[i]
             elif isinstance(fillcolor_temp, (list, tuple)):
-                fillcolor_entry = fillcolor_temp[i]
+                if i < len(fillcolor_temp):
+                    fillcolor_entry = fillcolor_temp[i]
+                else:
+                    fillcolor_entry = rainbow_colors[i]
+            elif fillcolor_temp == 'automatic':
+                fillcolor_entry = rainbow_colors[i]
             else:
                 fillcolor_entry = fillcolor_temp
 
             # passed more than one color directive?
             if isinstance(color_temp, dict):
-                if i in color_termp:
+                if i in color_temp:
                     color_entry = color_temp[i]
                 else:
-                    color_entry = rainbow_colors[i] 
-            elif isinstance(color_temp, (list,tuple)) and isinstance(color_temp[0], str):
-                color_entry = color_temp[i]
-            elif isinstance(color_temp, (list,tuple)):
-                color_entry = color_temp #rgbcolor(color_temp) ??
+                    color_entry = rainbow_colors[i]
+            elif isinstance(color_temp, (list,tuple)) and isinstance(color_temp[0], (str,list,tuple)):
+                if i < len(color_temp):
+                    color_entry = color_temp[i]
+                else:
+                    color_entry = rainbow_colors[i]
+            elif color_temp == 'automatic':
+                color_entry = rainbow_colors[i]
             else:
-                color_temp = rainbow_colors[i]
+                color_entry = color_temp
 
             # passed more than one linestyle directive?
-            default_line_styles = ("-","--","-.",":")*len(funcs)
             if isinstance(linestyle_temp, dict):
                 if i in linestyle_temp:
                     linestyle_entry = linestyle_temp[i]
                 else:
                     linestyle_entry = default_line_styles[i]
             elif isinstance(linestyle_temp, (list,tuple)):
-                linestyle_entry = linestyle_temp[i]
+                if i < len(linestyle_temp):
+                    linestyle_entry = linestyle_temp[i]
+                else:
+                    linestyle_entry = default_line_styles[i]
+            elif linestyle_temp == None:
+                linestyle_entry = default_line_styles[i]
             else:
-                linestyle_entry = '-.'
+                linestyle_entry = linestyle_temp
 
             if i >= 1:
                 legend_label=options_temp.pop('legend_label', None) # legend_label popped so the label isn't repeated for nothing
 
+            #print color_entry
             G += plot(h, xrange, polar = polar, fill = fill_entry, fillcolor = fillcolor_entry, \
                       color = color_entry, linestyle = linestyle_entry, \
                       **options_temp)

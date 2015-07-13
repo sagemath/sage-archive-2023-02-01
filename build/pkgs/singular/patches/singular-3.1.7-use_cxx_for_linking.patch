@@ -1,0 +1,43 @@
+Trac #18892: Singular fails to build on Ubuntu 15.04 32-bit
+
+Singular fails to build on Ubuntu 15.04 32-bit due to a missing symbol related to the stack protector
+
+Patch taken from https://raw.githubusercontent.com/cschwan/sage-on-gentoo/master/sci-mathematics/singular/files/singular-3.1.7-use_cxx_for_linking.patch
+
+
+diff -Naur Singular-3-1-7.orig/Singular/Makefile.in Singular-3-1-7/Singular/Makefile.in
+--- Singular-3-1-7.orig/Singular/Makefile.in	2014-11-20 02:06:05.000000000 +1300
++++ Singular-3-1-7/Singular/Makefile.in	2015-04-30 11:55:25.285611669 +1200
+@@ -67,7 +67,7 @@
+ ##
+ @SET_MAKE@
+ CC		= @CC@
+-LD              = @LD@
++LD              = @CXX@
+ CXX		= @CXX@
+ LEX		= sh flexer.sh
+ 
+diff -Naur Singular-3-1-7.orig/dyn_modules/modgen/Makefile.in Singular-3-1-7/dyn_modules/modgen/Makefile.in
+--- Singular-3-1-7.orig/dyn_modules/modgen/Makefile.in	2014-11-20 02:06:05.000000000 +1300
++++ Singular-3-1-7/dyn_modules/modgen/Makefile.in	2015-04-30 11:55:25.285611669 +1200
+@@ -20,7 +20,7 @@
+ ##
+ @SET_MAKE@
+ CC		= @CC@
+-LD              = @LD@
++LD              = @CXX@
+ CXX		= @CXX@
+ LEX		= sh ../../Singular/flexer.sh
+ PERL		= @PERL@
+diff -Naur Singular-3-1-7.orig/kernel/Makefile.in Singular-3-1-7/kernel/Makefile.in
+--- Singular-3-1-7.orig/kernel/Makefile.in	2014-11-20 02:06:05.000000000 +1300
++++ Singular-3-1-7/kernel/Makefile.in	2015-04-30 11:55:25.285611669 +1200
+@@ -30,7 +30,7 @@
+ ##
+ @SET_MAKE@
+ CC		= @CC@
+-LD              = @LD@
++LD              = @CXX@
+ CXX		= @CXX@
+ LEX		= @LEX@
+ PERL		= @PERL@

@@ -6,12 +6,12 @@ library here, nor should you import anything from sage_bootstrap into
 Sage (because this would reconfigure logging). They must be kept
 separate.
 
-Everything here must support Python 2.6, 2.7, and 3.3+. Use tox to
-automatically run the tests with all relevant Python versions. Tests
-are written as unittest, not as doctests, because the library is not
-meant to be used interactively. Note that the library comes with a
-setup.py file so that tox can test it, but it is not meant to be
-installed to SAGE_LOCAL.
+Everything here must support Python 2.6, 2.7, and 3.3+. Use tox
+(https://testrun.org/tox/latest/) to automatically run the tests with
+all relevant Python versions. Tests are written as unittest, not as
+doctests, because the library is not meant to be used interactively.
+Note that the library comes with a setup.py file so that tox can test
+it, but it is not meant to be installed to SAGE_LOCAL.
 
 Command-line utilities must be able to run as part of a pipe | filter
 chain. So you have to be careful about what you send to stdout. You

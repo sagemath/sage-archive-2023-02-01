@@ -23,16 +23,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
-from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 

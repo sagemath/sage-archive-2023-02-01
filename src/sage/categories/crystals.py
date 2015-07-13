@@ -14,7 +14,6 @@ from sage.misc.lazy_import import LazyImport
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
-from sage.categories.category import HomCategory
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
 from sage.misc.latex import latex
@@ -130,7 +129,6 @@ class Crystals(Category_singleton):
         if choice == "naive":
             return examples.NaiveCrystal(**kwds)
         else:
-            from sage.rings.integer import Integer
             if isinstance(choice, Integer):
                 return examples.HighestWeightCrystalOfTypeA(n=choice, **kwds)
             else:
@@ -1043,7 +1041,6 @@ class Crystals(Category_singleton):
                 'digraph G { \n  node [ shape=plaintext ];\n  N_0 [ label = " ", texlbl = "$1$" ];\n  N_1 [ label = " ", texlbl = "$2$" ];\n  N_2 [ label = " ", texlbl = "$3$" ];\n  N_0 -> N_1 [ label = " ", texlbl = "1" ];\n  N_1 -> N_2 [ label = " ", texlbl = "2" ];\n}'
             """
             import re
-            from sage.combinat import ranker
             rank = ranker.from_list(self.list())[0]
             vertex_key = lambda x: "N_"+str(rank(x))
 

@@ -47,7 +47,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.infinity import Infinity
 
 class GeneralizedYoungWall(CombinatorialElement):
     r"""

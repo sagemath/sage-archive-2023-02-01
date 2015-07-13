@@ -21,7 +21,7 @@ Kirillov-Reshetikhin Crystals
 # library is heavily inspired from MuPAD-Combinat.
 #****************************************************************************
 
-from sage.misc.cachefunc import cached_method, CachedFunction
+from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even, is_odd
@@ -3754,7 +3754,6 @@ class AmbientRetractMap(Map):
             sage: TestSuite(phi).run(skip=['_test_category', '_test_pickling'])
         """
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-        from sage.categories.homset import Hom
         Map.__init__(self, Hom(ambient, base, SetsWithPartialMaps()))
 
         if similarity_factor_domain is None:

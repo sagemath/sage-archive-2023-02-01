@@ -488,19 +488,33 @@ if [ $? -ne 0 ]; then
 ***************************************************************
 Error building Sage.
 
-The following package(s) may have failed to build:
+The following package(s) may have failed to build (not necessarily
+during this run of 'make $@'):
 EOF
 
     for f in "$SAGE_LOGS"/*.log; do
         # Look for recent error message in log file.
         # Note that "tail -n 20 ..." doesn't work on Solaris.
-        if tail -20 "$f" | grep "^Error" &>/dev/null; then
+        if tail -20 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
             base_f=`basename $f .log`
             cat >&2 <<EOF
 
-package: $base_f
-log file: $f
-build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+* package: $base_f
+  log file: $f
+  build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
+EOF
+        fi
+    done
+
+    for f in "$SAGE_LOGS"/../doc*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -100 "$f" 2>/dev/null | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+* documentation: $base_f
+  log file: $f
 EOF
         fi
     done

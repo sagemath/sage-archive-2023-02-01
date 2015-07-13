@@ -2203,11 +2203,11 @@ class CrystalHomset(Homset):
 
     We can also generalize the definition of a crystal morphism by considering
     a map of `\sigma` of the (now possibly different) Dynkin diagrams
-    corresponding to `B` and `C` a along with scaling factors
+    corresponding to `B` and `C` along with scaling factors
     `\gamma_i \in \ZZ` for `i \in I`. Let `\sigma_i` denote the orbit of
-    `i` under `\sigma`. We write for any object `X` of `B`, the
-    corresponding object of `C` will be denoted by `\widehat{X}`.
-    Then a *virtual* crystal morphism `\Psi` is a map `\Psi` such that
+    `i` under `\sigma`. We write objects for `B` as `X` with
+    corresponding objects of `C` as `\widehat{X}`.
+    Then a *virtual* crystal morphism `\Psi` is a map such that
     the following holds:
 
     - `\Psi(0) = 0`.
@@ -2215,9 +2215,9 @@ class CrystalHomset(Homset):
 
     .. MATH::
 
-        \varepsilon_i(b) = \frac{\widehat{\varepsilon}_j}{\gamma_j} \Psi(b),
-        \quad \varphi_i(b) = \frac{\widehat{\varphi}_j}{\gamma_j} \Psi(b),
-        \quad \mathrm{wt}(\Phi(b)) = c_i \sum_{j \in \sigma_i} \gamma_j
+        \varepsilon_i(b) = \frac{1}{\gamma_j} \widehat{\varepsilon}_j(\Psi(b)),
+        \quad \varphi_i(b) = \frac{1}{\gamma_j} \widehat{\varphi}_j(\Psi(b)),
+        \quad \mathrm{wt}(\Psi(b)) = \sum_i c_i \sum_{j \in \sigma_i} \gamma_j
         \widehat{\Lambda}_j,
 
     where `\mathrm{wt}(b) = \sum_i c_i \Lambda_i`.
@@ -2228,10 +2228,10 @@ class CrystalHomset(Homset):
 
       .. MATH::
 
-          \Psi(b^{\prime}) = \widehat{e}_i \Psi(b) =
-              \prod_{j \in \sigma_i} e_j^{\gamma_i} \Psi(b), \quad
-          \Psi(b^{\prime}) = \widehat{f}_i \Psi(b) =
-              \prod_{j \in \sigma_i} f_j^{\gamma_i} \Psi(b).
+          \Psi(b^{\prime}) = e_i \Psi(b) =
+              \prod_{j \in \sigma_i} \widehat{e}_j^{\gamma_i} \Psi(b), \quad
+          \Psi(b^{\prime}) = f_i \Psi(b) =
+              \prod_{j \in \sigma_i} \widehat{f}_j^{\gamma_i} \Psi(b).
 
     If `\gamma_i = 1` for all `i \in I` and the Dynkin diagrams are the same, then
     we call `\Psi` a *twisted* crystal morphism.

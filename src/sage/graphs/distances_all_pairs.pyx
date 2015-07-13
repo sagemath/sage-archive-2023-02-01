@@ -757,45 +757,36 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
     init_short_digraph(sd, G)
 
     # allocated some data structures
-    cdef bitset_t bits
-    bitset_init(bits, n)
-    cdef uint32_t * distances = <uint32_t *>sage_malloc(2 * n * sizeof(uint32_t))
-    if distances==NULL:
-        bitset_free(bits)
+    cdef bitset_t seen
+    bitset_init(seen, n)
+    cdef uint32_t * distances = <uint32_t *>sage_malloc(3 * n * sizeof(uint32_t))
+    cdef uint32_t * LB        = <uint32_t *>sage_calloc(n, sizeof(uint32_t))
+    if distances==NULL or LB==NULL:
+        bitset_free(seen)
+        sage_free(LB)
+        sage_free(distances)
+        free_short_digraph(sd)
         raise MemoryError()
     cdef uint32_t * waiting_list = distances + n
-
-    cdef uint32_t * LB = <uint32_t *>sage_calloc(n, sizeof(uint32_t))
-    cdef uint32_t * UB = <uint32_t *>sage_malloc(n * sizeof(uint32_t))
-    if LB==NULL or UB==NULL:
-        bitset_free(bits)
-        sage_free(LB)
-        sage_free(UB)
-        sage_free(distances)
-        raise MemoryError()
-
+    cdef uint32_t * UB           = distances + 2 * n
     memset(UB, -1, n * sizeof(uint32_t))
 
     cdef uint32_t v, w, next_v, tmp, cpt = 0
 
     # The first vertex is the one with largest degree
     next_v = max((out_degree(sd, v), v) for v in range(n))[1]
-    bitset_clear(bits)
-    bitset_complement(bits, bits)
     
     sig_on()
-    while bitset_len(bits):
+    while next_v!=UINT32_MAX:
 
         v = next_v
-        bitset_discard(bits, v)
         cpt += 1
 
         # Compute the exact eccentricity of v
-        LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, bits)
+        LB[v] = simple_BFS(n, sd.neighbors, v, distances, NULL, waiting_list, seen)
 
         if LB[v]==UINT32_MAX:
-            # The graph is not connected. We set maximum value
-            # and exit.
+            # The graph is not connected. We set maximum value and exit.
             for w in range(n):
                 LB[w] = UINT32_MAX
             break
@@ -803,23 +794,20 @@ cdef uint32_t * c_eccentricity_bounding(G) except NULL:
         # Improve the bounds on the eccentricity of other vertices and select
         # source of the next BFS
         next_v = UINT32_MAX
-        w = bitset_first(bits)
-        while w!=-1:
+        for w in range(n):
             LB[w] = max(LB[w], max(LB[v] - distances[w], distances[w]))
             UB[w] = min(UB[w], LB[v] + distances[w])
             if LB[w]==UB[w]:
-                bitset_discard(bits, w)
+                continue
             elif next_v==UINT32_MAX or (cpt%2==0 and LB[w]<LB[next_v]) or (cpt%2==1 and UB[w]>UB[next_v]):
                 # The next vertex is either the vertex with largest upper bound
                 # or smallest lower bound
                 next_v = w
-            w = bitset_next(bits, w+1)
 
     sig_off()
 
     sage_free(distances)
-    sage_free(UB)
-    bitset_free(bits)
+    bitset_free(seen)
     free_short_digraph(sd)
 
     return LB

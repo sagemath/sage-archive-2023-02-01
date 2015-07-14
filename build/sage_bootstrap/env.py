@@ -27,8 +27,8 @@ import os
 try:
     SAGE_ROOT = os.environ['SAGE_ROOT']
 except KeyError:
-    SAGE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__)))))
+    SAGE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))
 
 SAGE_SRC = os.environ.get('SAGE_SRC',
     os.path.join(SAGE_ROOT, 'src'))
@@ -37,7 +37,6 @@ SAGE_DISTFILES = os.environ.get('SAGE_DISTFILES',
 
 
 assert os.path.isfile(os.path.join(SAGE_ROOT, 'configure.ac')), SAGE_ROOT
-assert os.path.isfile(os.path.join(SAGE_SRC, 'sage_bootstrap', 'setup.py')), SAGE_SRC
 
 try:
     # SAGE_DISTFILES does not exist in a fresh git clone

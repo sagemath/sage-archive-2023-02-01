@@ -1542,7 +1542,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                         data = self.growth_group(data / coef_tmp)
 
                 return self.element_class(self, data, coef_tmp)
-        except:
+        except (ValueError, AttributeError):
             if coefficient is None:
                 raise ValueError('Coefficient is not specified. '
                                  'Cannot continue.')

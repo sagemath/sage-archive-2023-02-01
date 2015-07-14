@@ -317,16 +317,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
                 else:
                     from sage.data_structures.mutable_poset import MutablePoset
                     from sage.monoids.asymptotic_term_monoid import \
-                        _can_absorb_, _absorption_
+                        can_absorb, absorption
                     poset = MutablePoset(key=lambda elem: elem.growth,
-                                     can_merge=_can_absorb_,
-                                     merge=_absorption_)
+                                     can_merge=can_absorb,
+                                     merge=absorption)
                     return self.element_class(self, poset)
 
             from sage.monoids.asymptotic_term_monoid import OTerm, ExactTerm
             from sage.data_structures.mutable_poset import MutablePoset
-            from sage.monoids.asymptotic_term_monoid import _can_absorb_, \
-                _absorption_
+            from sage.monoids.asymptotic_term_monoid import can_absorb, \
+                absorption
             if isinstance(data, (OTerm, ExactTerm)):
                 data = (data,)
 
@@ -334,8 +334,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
                 data_iter = iter(data)
                 if all(isinstance(elem, (OTerm, ExactTerm)) for elem in data_iter):
                     poset = MutablePoset(key=lambda elem: elem.growth,
-                                         can_merge=_can_absorb_,
-                                         merge=_absorption_)
+                                         can_merge=can_absorb,
+                                         merge=absorption)
                     poset = poset.union(data)
             except:
                 raise TypeError('Input is ambiguous: cannot convert '

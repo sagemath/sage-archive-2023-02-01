@@ -1809,6 +1809,33 @@ cdef class Expression(CommutativeRingElement):
         """
         return haswild(self._gobj)
 
+    def is_algebraic(self):
+        """
+        Return True if this expression is known to be algebraic.
+
+        EXAMPLES::
+
+            sage: sqrt(2).is_algebraic()
+            True
+            sage: (5*sqrt(2)).is_algebraic()
+            True
+            sage: (sqrt(2) + 2^(1/3) - 1).is_algebraic()
+            True
+            sage: (I*golden_ratio + sqrt(2)).is_algebraic()
+            True
+            sage: (sqrt(2) + pi).is_algebraic()
+            False
+            sage: SR(QQ(2/3)).is_algebraic()
+            True
+            sage: SR(1.2).is_algebraic()
+            False
+        """
+        try:
+            ex = sage.rings.all.QQbar(self)
+        except (TypeError, ValueError, NotImplementedError):
+            return False
+        return True
+
     def is_real(self):
         """
         Return True if this expression is known to be a real number.
@@ -2514,6 +2541,15 @@ cdef class Expression(CommutativeRingElement):
             False
             sage: (cot(pi + x) == 0).test_relation()
             NotImplemented
+
+        Check that :trac:`18896` is fixed::
+
+            sage: m=540579833922455191419978421211010409605356811833049025*sqrt(1/2)
+            sage: m1=382247666339265723780973363167714496025733124557617743
+            sage: (m==m1).test_relation(domain=QQbar)
+            False
+            sage: (m==m1).test_relation()
+            False
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -2522,13 +2558,19 @@ cdef class Expression(CommutativeRingElement):
         cdef operators op = relational_operator(self._gobj)
         from sage.rings.real_mpfi import is_RealIntervalField
         from sage.rings.complex_interval_field import is_ComplexIntervalField
-        from sage.rings.all import RIF, CIF
+        from sage.rings.all import RIF, CIF, AA, QQbar
         if domain is None:
             is_interval = True
-            if op == equal or op == not_equal:
-                domain = CIF
+            if self.lhs().is_algebraic() and self.rhs().is_algebraic():
+                if op == equal or op == not_equal:
+                    domain = QQbar
+                else:
+                    domain = AA
             else:
-                domain = RIF
+                if op == equal or op == not_equal:
+                    domain = CIF
+                else:
+                    domain = RIF
         else:
             is_interval = is_RealIntervalField(domain) or is_ComplexIntervalField(domain)
         zero = domain(0)

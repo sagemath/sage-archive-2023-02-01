@@ -25,7 +25,7 @@ implements the following types of terms:
 
 A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
-:meth:`sage.monoids.AsymptoticTermMonoid.GenericTerm.absorb`). For
+:meth:`~sage.monoids.asymptotic_term_monoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
 `O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
@@ -42,6 +42,7 @@ AUTHORS:
 - Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
 - Daniel Krenn (2015-07): extensive review and patches
+- Benjamin Hackl (2015-07): cross-review and several other improvements
 """
 
 # *****************************************************************************
@@ -227,7 +228,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method calls `_can_absorb_`, which is has to be
+            This method calls :meth:`_can_absorb_`, which is has to be
             implemented/overridden in inherited class.
 
         EXAMPLES:
@@ -321,8 +322,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         OUTPUT:
 
         An asymptotic term or ``None`` if a cancellation occurs. If no
-        absorption can be performed, an :class:`ArithmeticError` is
-        raised.
+        absorption can be performed, an :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+        is raised.
 
         .. NOTE::
 
@@ -362,7 +363,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         The first example above corresponds to `O(x) + O(x) = O(x)`, and
         the second to `O(x) + 100x = O(x)`.
         If absorb is called on a term that cannot be absorbed, an
-        ``ArithmeticError`` is raised::
+        :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+        is raised::
 
             sage: ot1.absorb(ot2)
             Traceback (most recent call last):
@@ -451,7 +453,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         When it comes to absorption, note that the method
         :meth:`can_absorb` (which is called before absorption takes
         place) does not allow the absorption of generic terms. Thus,
-        an ``ArithmeticError`` is raised::
+        an :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+        is raised::
 
             sage: t2.absorb(t1)
             Traceback (most recent call last):

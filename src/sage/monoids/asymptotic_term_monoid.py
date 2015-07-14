@@ -9,7 +9,7 @@ The monoids build upon the (asymptotic) growth groups. While growth
 elements only model the growth of a function as it tends towards
 infinity (or tends towards another fixed point; see
 :mod:`~sage.groups.asymptotic_growth_group` for more details), an
-asymptotic term additonally specifies its "type" and performs the
+asymptotic term additionally specifies its "type" and performs the
 actual arithmetic operations (multiplication and partial
 addition/absorption of terms).
 
@@ -1583,7 +1583,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _an_element_(self):
         r"""
-        Return an element of this term monoid with coefficient.
+        Return an element of this term with coefficient monoid.
 
         INPUT:
 

@@ -352,7 +352,7 @@ def process_extlinks(s, embedded=False):
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
     from conf import pythonversion, extlinks
     sys.path = oldpath
     for key in extlinks:

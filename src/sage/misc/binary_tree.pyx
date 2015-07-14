@@ -25,6 +25,7 @@ cdef void free_binary_tree_node(binary_tree_node *self):
     sage_free(self)
 
 cdef void binary_tree_dealloc(binary_tree_node *self):
+    # deallocate the descendants of self, but NOT self
     if self.left != NULL:
         binary_tree_dealloc(self.left)
         free_binary_tree_node(self.left)
@@ -188,9 +189,28 @@ cdef class BinaryTree:
     def __init__(BinaryTree self):
         self.head = NULL
     def __dealloc__(BinaryTree self):
+        """
+        TESTS::
+
+            sage: def test():
+            ....:     from sage.rings.polynomial.polynomial_compiled import CompiledPolynomialFunction
+            ....:     import gc
+            ....:     from collections import Counter
+            ....:     gc.collect()
+            ....:     pre={id(c) for c in gc.get_objects()}
+            ....:     L = [-1, 9, -22, 21, -8, 1]
+            ....:     for _ in range(100):
+            ....:         CompiledPolynomialFunction(L)  # this creates and deallocs a binary tree
+            ....:     gc.collect()
+            ....:     post=Counter(type(o) for o in gc.get_objects() if id(o) not in pre)
+            ....:     return [(k,v) for (k,v) in post.iteritems() if v>10]
+            sage: test()   # indirect doctest
+            []
+
+        """
         if self.head != NULL:
             binary_tree_dealloc(self.head)
-            sage_free(self.head)
+            free_binary_tree_node(self.head)
 
     def insert(BinaryTree self, object key, object value = None):
         """

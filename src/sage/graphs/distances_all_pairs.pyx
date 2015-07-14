@@ -891,7 +891,8 @@ def eccentricity(G, method="standard"):
     else:
         raise ValueError("Unknown method '{}'. Please contribute.".format(method))
 
-    cdef list l_ecc = [ecc[i] if ecc[i]!=UINT32_MAX else +Infinity for i in range(n)]
+    from sage.rings.integer import Integer
+    cdef list l_ecc = [Integer(ecc[i]) if ecc[i]!=UINT32_MAX else +Infinity for i in range(n)]
 
     sage_free(ecc)
 

@@ -9,7 +9,7 @@ an algorithm is already implemented in a well-tested library then
 consider incorporating that library into Sage. The current list of
 available packages are the subdirectories of ``SAGE_ROOT/build/pkgs/``.
 The management of packages is done through a bash script located in
-``SAGE_ROOT/local/bin/sage-spkg``. This script is typically invoked by
+``SAGE_ROOT/build/bin/sage-spkg``. This script is typically invoked by
 giving the command::
 
     [user@localhost]$ sage -i <options> <package name>...

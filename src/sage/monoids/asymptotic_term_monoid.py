@@ -412,12 +412,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         from sage.structure.element import get_coercion_model
 
-        try:
-            return get_coercion_model().bin_op(self, other,
-                                               lambda self, other:
-                                               self._absorb_(other))
-        except TypeError:
-            return False
+        return get_coercion_model().bin_op(self, other,
+                                           lambda self, other:
+                                           self._absorb_(other))
 
 
     def _absorb_(self, other):

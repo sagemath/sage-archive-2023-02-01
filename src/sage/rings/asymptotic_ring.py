@@ -15,6 +15,28 @@ AUTHORS:
 
 - Benjamin Hackl (2015-06): initial version
 
+
+.. WARNING::
+
+    As this code is experimental, a warning is thrown when an
+    asymptotic ring (or an associated structure) is created for the
+    first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/17600 for details.
+        sage: T = atm.ExactTermMonoid(G, ZZ)
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/17715 for details.
+        sage: R.<x> = AsymptoticRing('monomial', ZZ)
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/17716 for details.
+
 """
 
 # *****************************************************************************
@@ -220,6 +242,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                                                         coefficient_ring, category)
 
 
+    @sage.misc.superseded.experimental(trac_number=17716)
     def __init__(self, growth_group=None, coefficient_ring=None, category=None):
         r"""
         ...

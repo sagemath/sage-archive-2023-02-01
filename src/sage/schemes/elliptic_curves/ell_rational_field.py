@@ -2280,8 +2280,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 G.append(eval(X[k:j].replace(':',',')))
                 X = X[j:]
                 i = X.find('Generator ')
-        G = [self.point(x, check=True) for x in G]
-        G.sort()
+        G = sorted([self.point(x, check=True) for x in G])
         return G, proved
 
     def gens_certain(self):

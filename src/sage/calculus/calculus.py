@@ -1843,7 +1843,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     cursor = 0
     l = []
     for m in maxima_var.finditer(s):
-        if symtable.has_key(m.group(0)):
+        if m.group(0) in symtable:
             l.append(s[cursor:m.start()])
             l.append(symtable.get(m.group(0)))
             cursor = m.end()

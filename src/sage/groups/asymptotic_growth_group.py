@@ -17,6 +17,24 @@ AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
+
+.. WARNING::
+
+    As this code is experimental, warnings are thrown when a growth
+    group is created for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
+
+    TESTS::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: G = agg.GenericGrowthGroup(ZZ); G
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/17600 for details.
+        Generic Growth Group over Integer Ring
+        sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
+        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See http://trac.sagemath.org/17600 for details.
+        Monomial Growth Group in x over Integer Ring
 """
 
 #*****************************************************************************
@@ -458,6 +476,7 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
+    @sage.misc.superseded.experimental(trac_number=17600)
     def __init__(self, base, category=None):
         r"""
         See :class:`GenericGrowthElement` for more information.
@@ -1066,6 +1085,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             cls, base, var, category)
 
 
+    @sage.misc.superseded.experimental(trac_number=17600)
     def __init__(self, base, var, category):
         r"""
         For more information see :class:`MonomialGrowthGroup`.

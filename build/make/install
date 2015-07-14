@@ -98,7 +98,7 @@ fi
 ###############################################################################
 
 # Determine various compilers.  These variables should not be exported,
-# they are only used in this build/install script to determine whether to
+# they are only used in this build/make/install script to determine whether to
 # install GCC.  The "real" $CC, $CXX,... variables for building Sage are
 # set in sage-env.
 

@@ -154,7 +154,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/deps might also need
+# required for upgrading.  Note that build/make/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #

@@ -1357,15 +1357,15 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
         sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
         sage: TC_ZZ = atm.TermWithCoefficientMonoid(MG_ZZ, QQ); TC_ZZ
-        Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
+        Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Rational Field
         sage: TC_QQ = atm.TermWithCoefficientMonoid(MG_QQ, QQ); TC_QQ
-        Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+        Monoid for asymptotic terms over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
         Conversion map:
-          From: Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
-          To:   Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+          From: Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Rational Field
+          To:   Monoid for asymptotic terms over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
     """
 
     # enable the category framework for elements
@@ -1381,9 +1381,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P_ZZ = atm.TermWithCoefficientMonoid(MG, ZZ); P_ZZ
-            Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+            Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
             sage: P_QQ = atm.TermWithCoefficientMonoid(MG, QQ); P_QQ
-            Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
+            Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Rational Field
             sage: P_QQ.category()
             Join of Category of monoids and Category of posets
         """
@@ -1436,9 +1436,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x')
             sage: TC_ZZ = atm.TermWithCoefficientMonoid(MG_ZZ, ZZ); TC_ZZ
-            Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+            Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
             sage: TC_QQ = atm.TermWithCoefficientMonoid(MG_QQ, QQ); TC_QQ
-            Monoid for asymptotic terms with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+            Monoid for asymptotic terms over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
             sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
             sage: TC_ZZ.has_coerce_map_from(TC_QQ)  # indirect doctest
@@ -1572,10 +1572,10 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.TermWithCoefficientMonoid(MG, ZZ)._repr_()
-            'Monoid for asymptotic terms with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring'
+            'Monoid for asymptotic terms over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring'
         """
-        return 'Monoid for asymptotic terms with coefficients from %s ' \
-               'over %s' % (self.base_ring, self.growth_group)
+        return 'Monoid for asymptotic terms over %s with coefficients ' \
+               'from %s' % (self.growth_group, self.base_ring)
 
 
     def _an_element_(self):
@@ -1807,20 +1807,20 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         sage: MG_ZZ = agg.MonomialGrowthGroup(ZZ, 'x'); x_ZZ = MG_ZZ.gen()
         sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x_QQ = MG_QQ.gen()
         sage: ET_ZZ = atm.ExactTermMonoid(MG_ZZ, ZZ); ET_ZZ
-        Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+        Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
         sage: ET_QQ = atm.ExactTermMonoid(MG_QQ, QQ); ET_QQ
-        Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+        Exact Term Monoid over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
         sage: ET_QQ.coerce_map_from(ET_ZZ)
         Conversion map:
-          From: Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
-          To:   Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Rational Field
+          From: Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
+          To:   Exact Term Monoid over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
 
     Exact term monoids can also be created using the term factory::
 
         sage: atm.TermMonoid('exact', MG_ZZ, ZZ) is ET_ZZ
         True
         sage: atm.TermMonoid('exact', agg.MonomialGrowthGroup(ZZ, 'x'), QQ)
-        Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring
+        Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Rational Field
     """
     # enable the category framework for elements
     Element = ExactTerm
@@ -1843,10 +1843,10 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: atm.ExactTermMonoid(MG, QQ)._repr_()
-            'Exact Term Monoid with coefficients from Rational Field over Monomial Growth Group in x over Integer Ring'
+            'Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Rational Field'
         """
-        return 'Exact Term Monoid with coefficients from %s over %s' % \
-               (self.base_ring, self.growth_group)
+        return 'Exact Term Monoid over %s with coefficients from %s' % \
+               (self.growth_group, self.base_ring)
 
 
 class TermMonoidFactory(sage.structure.factory.UniqueFactory):
@@ -1879,7 +1879,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: OT = atm.TermMonoid('O', MG); OT
         Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: ET = atm.TermMonoid('exact', MG, ZZ); ET
-        Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+        Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
     """
     def create_key_and_extra_args(self, term, growth_group, base_ring=None,
                                   **kwds):
@@ -1929,7 +1929,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid('O', MG)
             Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
             sage: atm.TermMonoid('exact', MG, ZZ)
-            Exact Term Monoid with coefficients from Integer Ring over Monomial Growth Group in x over Integer Ring
+            Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
         """
 
         term, growth_group, base_ring = key

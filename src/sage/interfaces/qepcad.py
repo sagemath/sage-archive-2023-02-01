@@ -95,7 +95,7 @@ figure of the circle and ellipse exactly three times? ::
 
     sage: F = qf.exactly_k(3, y, circle * ellipse == 0); F
     (X3 y)[(3 x^2 + 2 x y + y^2 - x + y - 7) (x^2 + y^2 - 3) = 0]
-    sage: qepcad(F)                                         # not tested
+    sage: qepcad(F)                                         # not tested (random order)
     x^2 - 3 <= 0 /\ 8 x^2 - 8 x - 29 <= 0 /\ 8 x^4 - 26 x^2 - 4 x + 13 >= 0 /\ [ 8 x^4 - 26 x^2 - 4 x + 13 = 0 \/ x^2 - 3 = 0 \/ 8 x^2 - 8 x - 29 = 0 ]
 
 Here we see that the solutions are among the eight ($4 + 2 + 2$) roots
@@ -116,7 +116,7 @@ input.  We can request output that is intended to be easy to interpret
 geometrically; then QEPCAD will use the extended language to produce
 a solution formula without the selection polynomials. ::
 
-    sage: qepcad(F, solution='geometric')                 # not tested
+    sage: qepcad(F, solution='geometric')                 # not tested (random order)
     x = _root_1 8 x^2 - 8 x - 29
     \/
     8 x^4 - 26 x^2 - 4 x + 13 = 0
@@ -133,7 +133,7 @@ We will look at the region which is inside both the ellipse and the circle::
 
     sage: F = qf.and_(ellipse < 0, circle < 0); F
     [3 x^2 + 2 x y + y^2 - x + y - 7 < 0 /\ x^2 + y^2 - 3 < 0]
-    sage: qepcad(F)                                       # not tested
+    sage: qepcad(F)                                       # not tested (random order)
     y^2 + 2 x y + y + 3 x^2 - x - 7 < 0 /\ y^2 + x^2 - 3 < 0
 
 We get back the same formula we put in.  This is not surprising (we
@@ -142,7 +142,7 @@ enlightening either.  Again, if we ask for a 'geometric' output, then we see
 an output that lets us understand something about the shape of the solution
 set. ::
 
-    sage: qepcad(F, solution='geometric')                 # not tested
+    sage: qepcad(F, solution='geometric')                 # not tested (random order)
     [
       [
         x = _root_-2 8 x^4 - 26 x^2 - 4 x + 13
@@ -173,7 +173,7 @@ axis::
 
     sage: F = qf.exists(y, qf.and_(circle == 0, x + y > 0)); F
     (E y)[x^2 + y^2 - 3 = 0 /\ x + y > 0]
-    sage: qepcad(F)                                             # not tested
+    sage: qepcad(F)                                             # not tested (random order)
     x^2 - 3 <= 0 /\ [ x > 0 \/ 2 x^2 - 3 < 0 ]
 
 Here, the formula $x > 0$ had to be introduced in order to get a
@@ -183,7 +183,7 @@ with a solution formula, we can tell it to use the extended language;
 it is always possible to construct a solution formula in the extended
 language without introducing new polynomials. ::
 
-    sage: qepcad(F, solution='extended')                        # not tested
+    sage: qepcad(F, solution='extended')                        # not tested (random order)
     x^2 - 3 <= 0 /\ x > _root_1 2 x^2 - 3
 
 Up to this point, all the output we have seen has basically been in the
@@ -521,7 +521,7 @@ and then we can get our desired solution formula.  (The ``'G'`` stands for
 ``'geometric'``, and gives solutions using the same rules as
 ``solution='geometric'`` described above.) ::
 
-    sage: qe.solution_extension('G')                        # not tested
+    sage: qe.solution_extension('G')                        # not tested (random order)
     8 x^2 - 8 x - 29 < 0
     /\
     x^2 - 3 < 0
@@ -940,9 +940,9 @@ class Qepcad:
             QEPCAD object has moved to phase 'Before Projection (y)'
             QEPCAD object has moved to phase 'Before Choice'
             QEPCAD object has moved to phase 'Before Solution'
-            sage: qe.solution_extension('E')                    # not tested
+            sage: qe.solution_extension('E')                    # not tested (random order)
             x > _root_1 2 x^2 - 3 /\ y^2 + x^2 - 3 = 0 /\ [ 2 x^2 - 3 > 0 \/ y = _root_-1 y^2 + x^2 - 3 ]
-            sage: qe.solution_extension('G')                    # not tested
+            sage: qe.solution_extension('G')                    # not tested (random order)
             [
               [
                 2 x^2 - 3 < 0
@@ -960,7 +960,7 @@ class Qepcad:
               /\
               y^2 + x^2 - 3 = 0
             ]
-            sage: qe.solution_extension('T')                    # not tested
+            sage: qe.solution_extension('T')                    # not tested (random order)
             y + x > 0 /\ y^2 + x^2 - 3 = 0
 
         TESTS:
@@ -1091,9 +1091,9 @@ class Qepcad:
         EXAMPLES::
 
             sage: qe = qepcad(x^3 - x == 0, interact=True)  # optional - qepcad
-            sage: qe.finish()                               # not tested
+            sage: qe.finish()                               # not tested (random order)
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
-            sage: qe.answer()                               # not tested
+            sage: qe.answer()                               # not tested (random order)
             x - 1 <= 0 /\ x + 1 >= 0 /\ [ x = 0 \/ x - 1 = 0 \/ x + 1 = 0 ]
 
         TESTS:
@@ -1441,13 +1441,13 @@ def qepcad(formula, assume=None, interact=False, solution=None,
         (a, b, c, d, x, y, z, long_with_underscore_314159)
         sage: K.<q,r> = QQ[]
 
-        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # not tested
+        sage: qepcad('(E x)[a x + b > 0]', vars='(a,b,x)')      # not tested (random order)
         a /= 0 \/ b > 0
 
         sage: qepcad(a > b)                            # optional - qepcad
         b - a < 0
 
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # not tested
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0))        # not tested (random order)
         4 a c - b^2 <= 0 /\ [ c = 0 \/ a /= 0 \/ 4 a c - b^2 < 0 ]
 
         sage: qepcad(qf.exists(x, a*x^2 + b*x + c == 0), assume=(a != 0))    # optional - qepcad
@@ -1456,17 +1456,17 @@ def qepcad(formula, assume=None, interact=False, solution=None,
     For which values of $a$, $b$, $c$ does $a x^2 + b x + c$ have
     2 real zeroes? ::
 
-        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2   # not tested
+        sage: exact2 = qepcad(qf.exactly_k(2, x, a*x^2 + b*x + c == 0)); exact2   # not tested (random order)
         a /= 0 /\ 4 a c - b^2 < 0
 
     one real zero? ::
 
-        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1   # not tested
+        sage: exact1 = qepcad(qf.exactly_k(1, x, a*x^2 + b*x + c == 0)); exact1   # not tested (random order)
         [ a > 0 /\ 4 a c - b^2 = 0 ] \/ [ a < 0 /\ 4 a c - b^2 = 0 ] \/ [ a = 0 /\ 4 a c - b^2 < 0 ]
 
     No real zeroes? ::
 
-        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0     # not tested
+        sage: exact0 = qepcad(qf.forall(x, a*x^2 + b*x + c != 0)); exact0     # not tested (random order)
         4 a c - b^2 >= 0 /\ c /= 0 /\ [ b = 0 \/ 4 a c - b^2 > 0 ]
 
     $3^{75}$ real zeroes? ::
@@ -1476,61 +1476,61 @@ def qepcad(formula, assume=None, interact=False, solution=None,
 
     We can check that the results don't overlap::
 
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')      # not tested
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact1), vars='a,b,c')      # not tested (random order)
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')      # not tested
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact0, exact2), vars='a,b,c')      # not tested (random order)
         FALSE
-        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')      # not tested
+        sage: qepcad(r'[[%s] /\ [%s]]' % (exact1, exact2), vars='a,b,c')      # not tested (random order)
         FALSE
 
     and that the union of the results is as expected::
 
-        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))  # not tested
+        sage: qepcad(r'[[%s] \/ [%s] \/ [%s]]' % (exact0, exact1, exact2), vars=(a,b,c))  # not tested (random order)
         b /= 0 \/ a /= 0 \/ c /= 0
 
     So we have finitely many zeroes if $a$, $b$, or $c$ is nonzero;
     which means we should have infinitely many zeroes if they are all
     zero. ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))          # not tested
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c == 0))          # not tested (random order)
         a = 0 /\ b = 0 /\ c = 0
 
     The polynomial is nonzero almost everywhere iff it is not
     identically zero. ::
 
-        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))    # not tested
+        sage: qepcad(qf.all_but_finitely_many(x, a*x^2 + b*x + c != 0))    # not tested (random order)
         b /= 0 \/ a /= 0 \/ c /= 0
 
     The non-zeroes are continuous iff there are no zeroes or if
     the polynomial is zero. ::
 
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))         # not tested
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c != 0))         # not tested (random order)
         4 a c - b^2 >= 0 /\ [ a = 0 \/ 4 a c - b^2 > 0 ]
 
     The zeroes are continuous iff there are no or one zeroes, or if the
     polynomial is zero::
 
-        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))         # not tested
+        sage: qepcad(qf.connected_subset(x, a*x^2 + b*x + c == 0))         # not tested (random order)
         a = 0 \/ 4 a c - b^2 >= 0
-        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')   # not tested
+        sage: qepcad(r'[[%s] \/ [%s] \/ [a = 0 /\ b = 0 /\ c = 0]]' % (exact0, exact1), vars='a,b,c')   # not tested (random order)
         a = 0 \/ 4 a c - b^2 >= 0
 
     Since polynomials are continuous and $y > 0$ is an open set,
     they are positive infinitely often iff they are positive at
     least once. ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # not tested
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c > 0))        # not tested (random order)
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # not tested
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c > 0))                 # not tested (random order)
         c > 0 \/ a > 0 \/ 4 a c - b^2 < 0
 
     However, since $y >= 0$ is not open, the equivalence does not
     hold if you replace 'positive' with 'nonnegative'.
     (We assume $a \neq 0$ to get simpler formulas.) ::
 
-        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # not tested
+        sage: qepcad(qf.infinitely_many(x, a*x^2 + b*x + c >= 0), assume=(a != 0))    # not tested (random order)
         a > 0 \/ 4 a c - b^2 < 0
-        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))             # not tested
+        sage: qepcad(qf.exists(x, a*x^2 + b*x + c >= 0), assume=(a != 0))             # not tested (random order)
         a > 0 \/ 4 a c - b^2 <= 0
 
     TESTS:

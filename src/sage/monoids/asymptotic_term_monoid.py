@@ -203,7 +203,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(MG)
-            sage: t1, t2 = P(x), P(x^2)
+            sage: t1 = P(x); t2 = P(x^2)
             sage: t1, t2
             (Generic Term with growth x, Generic Term with growth x^2)
             sage: t1 * t2
@@ -241,7 +241,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(growth_group=MG)
             sage: ET = atm.ExactTermMonoid(growth_group=MG, base_ring=QQ)
-            sage: ot1, ot2 = OT(x), OT(x^2)
+            sage: ot1 = OT(x); ot2 = OT(x^2)
             sage: et1 = ET(x^2, 2)
 
         :class:`OTerm` is able to absorb other :class:`OTerm`,
@@ -296,7 +296,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: GG = agg.GenericGrowthGroup(ZZ)
             sage: GT = atm.GenericTermMonoid(GG)
-            sage: t1, t2 = GT(GG(raw_element=21)), GT(GG(raw_element=42))
+            sage: t1 = GT(GG(raw_element=21)); t2 = GT(GG(raw_element=42))
             sage: t1.can_absorb(t2)  # indirect doctest
             False
             sage: t2.can_absorb(t1)  # indirect doctest
@@ -342,9 +342,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: MG_QQ = agg.MonomialGrowthGroup(QQ, 'x'); x = MG_QQ.gen()
             sage: OT = atm.OTermMonoid(MG_QQ)
             sage: ET = atm.ExactTermMonoid(growth_group=MG_QQ, base_ring=QQ)
-            sage: ot1, ot2 = OT(x), OT(x^2)
-            sage: et1, et2 = ET(x, 100), ET(x^2, 2)
-            sage: et3, et4 = ET(x^2, 1), ET(x^2, -2)
+            sage: ot1 = OT(x); ot2 = OT(x^2)
+            sage: et1 = ET(x, 100); et2 = ET(x^2, 2)
+            sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
 
         Because of the definition of `O`-terms (see
         :wikipedia:`Big_O_notation`), they are able to absorb all
@@ -445,7 +445,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(MG)
-            sage: t1, t2 = P(x), P(x^2)
+            sage: t1 = P(x); t2 = P(x^2)
 
         When it comes to absorption, note that the method
         :meth:`can_absorb` (which is called before absorption takes
@@ -484,11 +484,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: OT = atm.OTermMonoid(MG)
             sage: ET_ZZ = atm.ExactTermMonoid(MG, ZZ)
             sage: ET_QQ = atm.ExactTermMonoid(MG, QQ)
-            sage: g1, g2 = GT(x), GT(x^2); g1, g2
+            sage: g1 = GT(x); g2 = GT(x^2); g1, g2
             (Generic Term with growth x, Generic Term with growth x^2)
-            sage: o1, o2 = OT(x^-1), OT(x^3); o1, o2
+            sage: o1 = OT(x^-1); o2 = OT(x^3); o1, o2
             (O(1/x), O(x^3))
-            sage: t1, t2 = ET_ZZ(x^2, 5), ET_QQ(x^3, 2/7); t1, t2
+            sage: t1 = ET_ZZ(x^2, 5); t2 = ET_QQ(x^3, 2/7); t1, t2
             (5*x^2, 2/7*x^3)
 
         In order for the comparison to work, the terms have come from
@@ -560,7 +560,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: GT = atm.GenericTermMonoid(MG)
-            sage: t1, t2 = GT(x^-2), GT(x^5); t1, t2
+            sage: t1 = GT(x^-2); t2 = GT(x^5); t1, t2
             (Generic Term with growth x^(-2), Generic Term with growth x^5)
             sage: t1._le_(t2)
             True
@@ -627,7 +627,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: MG_x = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG_x.gen()
         sage: MG_y = agg.MonomialGrowthGroup(QQ, 'y'); y = MG_y.gen()
-        sage: GT_x_ZZ, GT_y_QQ = atm.GenericTermMonoid(MG_x), atm.GenericTermMonoid(MG_y)
+        sage: GT_x_ZZ = atm.GenericTermMonoid(MG_x); GT_y_QQ = atm.GenericTermMonoid(MG_y)
         sage: GT_x_ZZ
         Generic Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: GT_y_QQ
@@ -877,8 +877,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: P = atm.GenericTermMonoid(growth_group=MG)
-            sage: t1, t2 = P(x), P(x^2)
-            sage: P.le(t1,t2)
+            sage: t1 = P(x); t2 = P(x^2)
+            sage: P.le(t1, t2)
             True
         """
         return self(left) <= self(right)
@@ -904,7 +904,7 @@ class OTerm(GenericTerm):
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
         sage: OT = atm.OTermMonoid(MG)
-        sage: t1, t2, t3 = OT(x^-7), OT(x^5), OT(x^42)
+        sage: t1 = OT(x^-7); t2 = OT(x^5); t3 = OT(x^42)
         sage: t1, t2, t3
         (O(x^(-7)), O(x^5), O(x^42))
         sage: t1.can_absorb(t2)
@@ -945,7 +945,7 @@ class OTerm(GenericTerm):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(MG)
-            sage: t1, t2, t3 = OT(x), OT(x^2), OT(x^3)
+            sage: t1 = OT(x); t2 = OT(x^2); t3 = OT(x^3)
             sage: t1._repr_(), t2._repr_()
             ('O(x)', 'O(x^2)')
             sage: t3
@@ -976,7 +976,7 @@ class OTerm(GenericTerm):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: OT = atm.TermMonoid('O', agg.MonomialGrowthGroup(ZZ, 'x'))
-            sage: t1, t2 = OT(x^21), OT(x^42)
+            sage: t1 = OT(x^21); t2 = OT(x^42)
             sage: t1.can_absorb(t2)  # indirect doctest
             False
             sage: t2.can_absorb(t1)  # indirect doctest
@@ -1013,7 +1013,7 @@ class OTerm(GenericTerm):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: OT = atm.OTermMonoid(growth_group=MG)
-            sage: ot1, ot2 = OT(x), OT(x^2)
+            sage: ot1 = OT(x); ot2 = OT(x^2)
             sage: ot1.absorb(ot1)
             O(x)
             sage: ot2.absorb(ot1)
@@ -1271,13 +1271,13 @@ class TermWithCoefficient(GenericTerm):
             exact terms (i.e. :class:`ExactTerm`). First, an example
             for abstract terms::
 
-            sage: t1, t2 = CT(x^2, 2), CT(x^3, 3)
+            sage: t1 = CT(x^2, 2); t2 = CT(x^3, 3)
             sage: t1 * t2
             Asymptotic Term with coefficient 6 and growth x^5
 
             And now, an example for exact terms::
 
-            sage: t1, t2 = ET(x^2, 2), ET(x^3, 3)
+            sage: t1 = ET(x^2, 2); t2 = ET(x^3, 3)
             sage: t1 * t2
             6*x^5
         """
@@ -1310,7 +1310,7 @@ class TermWithCoefficient(GenericTerm):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: ET = atm.ExactTermMonoid(MG, QQ)
-            sage: t1, t2, t3 = ET(x, 5), ET(x^2, 3), ET(x^2, 42)
+            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
             sage: t1 <= t2
             True
             sage: t2 <= t1
@@ -1727,7 +1727,7 @@ class ExactTerm(TermWithCoefficient):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: ET = atm.TermMonoid('exact', agg.MonomialGrowthGroup(ZZ, 'x'), ZZ)
-            sage: t1, t2, t3 = ET(x^21, 1), ET(x^21, 2), ET(x^42, 1)
+            sage: t1 = ET(x^21, 1); t2 = ET(x^21, 2); t3 = ET(x^42, 1)
             sage: t1.can_absorb(t2)  # indirect doctest
             True
             sage: t2.can_absorb(t1)  # indirect doctest
@@ -1766,7 +1766,7 @@ class ExactTerm(TermWithCoefficient):
         Asymptotic exact terms can absorb other asymptotic exact
         terms with the same growth::
 
-            sage: et1, et2 = ET(x^2, 2), ET(x^2, -2)
+            sage: et1 = ET(x^2, 2); et2 = ET(x^2, -2)
             sage: et1.absorb(et1)
             4*x^2
             sage: et1.absorb(et2) is None

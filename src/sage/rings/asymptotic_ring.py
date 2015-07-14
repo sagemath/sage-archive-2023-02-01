@@ -311,6 +311,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if poset is None:
             if type(data) == self.element_class and data.parent() == self:
                 return data
+            elif isinstance(data, AsymptoticExpression):
+                return self.element_class(self, data.poset)
+
             if data in self.coefficient_ring:
                 if data != 0:
                     return self.create_term('exact', 1, data)

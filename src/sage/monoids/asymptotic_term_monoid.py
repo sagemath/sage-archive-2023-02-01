@@ -1924,14 +1924,16 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     def create_object(self, version, key, **kwds):
         r"""
+        Create a object from the given arguments.
+
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: atm.TermMonoid('O', MG)
+            sage: atm.TermMonoid('O', MG)  # indirect doctest
             Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
-            sage: atm.TermMonoid('exact', MG, ZZ)
+            sage: atm.TermMonoid('exact', MG, ZZ)  # indirect doctest
             Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
         """
 

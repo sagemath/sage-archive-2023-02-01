@@ -16,7 +16,7 @@ addition/absorption of terms).
 Besides an abstract base term :class:`GenericTerm`, this module
 implements the following types of terms:
 
-- :class:`OTerm` -- O terms in infinity, see
+- :class:`OTerm` -- `O`-terms in infinity, see
   :wikipedia:`Big_O_notation`.
 - :class:`TermWithCoefficient` -- abstract base class for
   asymptotic terms with coefficients.
@@ -349,7 +349,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         Because of the definition of `O`-terms (see
         :wikipedia:`Big_O_notation`), they are able to absorb all
         other asymptotic terms with weaker or equal growth. The
-        result of the absorption is the original `O` Term::
+        result of the absorption is the original `O`-term::
 
             sage: ot1.absorb(ot1)
             O(x)
@@ -886,11 +886,11 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
 class OTerm(GenericTerm):
     r"""
-    Class for an asymptotic term representing an `O` term with
-    specified growth. For the mathematical properties of `O` terms
+    Class for an asymptotic term representing an `O`-term with
+    specified growth. For the mathematical properties of `O`-terms
     see :wikipedia:`Big_O_Notation`.
 
-    `O` terms can *absorb* terms of weaker or equal growth.
+    `O`-terms can *absorb* terms of weaker or equal growth.
 
     INPUT:
 
@@ -919,7 +919,7 @@ class OTerm(GenericTerm):
         False
 
     The conversion of growth elements also works for the creation
-    of `O` terms::
+    of `O`-terms::
 
         sage: x = SR('x'); x.parent()
         Symbolic Ring
@@ -929,7 +929,7 @@ class OTerm(GenericTerm):
 
     def _repr_(self):
         r"""
-        A representation string for this O term.
+        A representation string for this `O`-term.
 
         INPUT:
 
@@ -956,7 +956,7 @@ class OTerm(GenericTerm):
 
     def _can_absorb_(self, other):
         r"""
-        Check, whether this `O` term can absorb ``other``.
+        Check, whether this `O`-term can absorb ``other``.
 
         INPUT:
 
@@ -987,15 +987,15 @@ class OTerm(GenericTerm):
 
     def _absorb_(self, other):
         r"""
-        Let this `O` term absorb another `O` term ``other``.
+        Let this `O`-term absorb another `O`-term ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic `O` term.
+        - ``other`` -- an asymptotic `O`-term.
 
         OUTPUT:
 
-        An asymptotic `O` term.
+        An asymptotic `O`-term.
 
         .. NOTE::
 
@@ -1003,9 +1003,9 @@ class OTerm(GenericTerm):
             it can be assumed that this element and ``other``
             have the same parent.
 
-            Also, observe that the result of a "dominant" `O` term
-            absorbing another `O` term, always is the "dominant"
-            `O` term again.
+            Also, observe that the result of a "dominant" `O`-term
+            absorbing another `O`-term, always is the "dominant"
+            `O`-term again.
 
         EXAMPLES::
 
@@ -1028,7 +1028,7 @@ class OTerm(GenericTerm):
 
 class OTermMonoid(GenericTermMonoid):
     r"""
-    Parent for asymptotic big `O` terms.
+    Parent for asymptotic big `O`-terms.
 
     INPUT:
 
@@ -1046,9 +1046,9 @@ class OTermMonoid(GenericTermMonoid):
         sage: MG_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
         sage: MG_y_QQ = agg.MonomialGrowthGroup(QQ, 'y')
         sage: OT_x_ZZ = atm.OTermMonoid(MG_x_ZZ); OT_x_ZZ
-        Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
+        Asymptotic O-Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: OT_y_QQ = atm.OTermMonoid(MG_y_QQ); OT_y_QQ
-        Asymptotic O Term Monoid over Monomial Growth Group in y over Rational Field
+        Asymptotic O-Term Monoid over Monomial Growth Group in y over Rational Field
 
     `O`-term monoids can also be created by using the
     :class:`term factory <TermMonoid>`::
@@ -1056,7 +1056,7 @@ class OTermMonoid(GenericTermMonoid):
         sage: atm.TermMonoid('O', MG_x_ZZ) is OT_x_ZZ
         True
         sage: atm.TermMonoid('O', agg.MonomialGrowthGroup(QQ, 'x'))
-        Asymptotic O Term Monoid over Monomial Growth Group in x over Rational Field
+        Asymptotic O-Term Monoid over Monomial Growth Group in x over Rational Field
     """
     # enable the category framework for elements
     Element = OTerm
@@ -1134,9 +1134,9 @@ class OTermMonoid(GenericTermMonoid):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x'); x = MG.gen()
             sage: atm.OTermMonoid(MG)._repr_()
-            'Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring'
+            'Asymptotic O-Term Monoid over Monomial Growth Group in x over Integer Ring'
         """
-        return 'Asymptotic O Term Monoid over %s' % self.growth_group
+        return 'Asymptotic O-Term Monoid over %s' % self.growth_group
 
 
 class TermWithCoefficient(GenericTerm):
@@ -1637,7 +1637,7 @@ class ExactTerm(TermWithCoefficient):
         sage: ET(x^0, 4) * ET(x^5, 2)
         8*x^5
 
-    They may also be multiplied with `O` terms::
+    They may also be multiplied with `O`-terms::
 
         sage: OT = atm.OTermMonoid(MG)
         sage: ET(x^2, 42) * OT(x)
@@ -1880,7 +1880,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
         sage: OT = atm.TermMonoid('O', MG); OT
-        Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
+        Asymptotic O-Term Monoid over Monomial Growth Group in x over Integer Ring
         sage: ET = atm.TermMonoid('exact', MG, ZZ); ET
         Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
     """
@@ -1932,7 +1932,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: atm.TermMonoid('O', MG)  # indirect doctest
-            Asymptotic O Term Monoid over Monomial Growth Group in x over Integer Ring
+            Asymptotic O-Term Monoid over Monomial Growth Group in x over Integer Ring
             sage: atm.TermMonoid('exact', MG, ZZ)  # indirect doctest
             Exact Term Monoid over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
         """

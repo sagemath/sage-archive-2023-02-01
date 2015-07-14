@@ -16,7 +16,7 @@ diff -Naur Singular-3-1-7.orig/Singular/Makefile.in Singular-3-1-7/Singular/Make
 +LD              = @CXX@
  CXX		= @CXX@
  LEX		= sh flexer.sh
- 
+
 diff -Naur Singular-3-1-7.orig/dyn_modules/modgen/Makefile.in Singular-3-1-7/dyn_modules/modgen/Makefile.in
 --- Singular-3-1-7.orig/dyn_modules/modgen/Makefile.in	2014-11-20 02:06:05.000000000 +1300
 +++ Singular-3-1-7/dyn_modules/modgen/Makefile.in	2015-04-30 11:55:25.285611669 +1200
@@ -41,3 +41,33 @@ diff -Naur Singular-3-1-7.orig/kernel/Makefile.in Singular-3-1-7/kernel/Makefile
  CXX		= @CXX@
  LEX		= @LEX@
  PERL		= @PERL@
+diff -Naur Singular-3-1-7.orig/Singular/configure Singular-3-1-7/Singular/configure
+--- Singular-3-1-7.orig/Singular/configure	2015-07-15 10:18:31.000000000 +1200
++++ Singular-3-1-7/Singular/configure	2015-07-15 10:41:16.000000000 +1200
+@@ -6876,7 +6876,7 @@
+ 	  	LD_DYN_FLAGS1="-dynamic"
+ 	  	LD_DYN_FLAGS2="-ldl"
+ 	  	SFLAGS="-fpic -DPIC"
+-	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                 if test "${LD+set}" != set; then
+ 		  LD=libtool
+                 fi
+@@ -6933,7 +6933,7 @@
+ 	  	LD_DYN_FLAGS1="-dynamic"
+ 	  	LD_DYN_FLAGS2="-ldl"
+ 	  	SFLAGS="-fpic -DPIC"
+-	  	SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++	  	SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                 if test "${LD+set}" != set; then
+ 		  LD=libtool
+                 fi
+@@ -6990,7 +6990,7 @@
+                 LD_DYN_FLAGS1="-dynamic"
+                 LD_DYN_FLAGS2="-ldl"
+                 SFLAGS="-fpic -DPIC"
+-                SLDFLAGS="-dynamic -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
++                SLDFLAGS="-dynamiclib -twolevel_namespace -weak_reference_mismatches weak -undefined dynamic_lookup"
+                  if test "${LD+set}" != set; then
+                   LD=libtool
+                  fi

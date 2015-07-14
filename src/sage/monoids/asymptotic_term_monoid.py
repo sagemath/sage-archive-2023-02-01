@@ -567,7 +567,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: t2._le_(t1)
             False
         """
-        return self.parent().le(self, other)
+        return self.growth <= other.growth
 
 
     def _repr_(self):
@@ -881,7 +881,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: P.le(t1,t2)
             True
         """
-        return left.growth <= right.growth
+        return self(left) <= self(right)
 
 
 class OTerm(GenericTerm):
@@ -1325,8 +1325,11 @@ class TermWithCoefficient(GenericTerm):
             sage: ET(x, -2) <= ET(x, 1)
             False
         """
+
+
         if self.growth == other.growth:
-            return self.coefficient <= other.coefficient
+            return abs(self.coefficient) < abs(other.coefficient) or \
+                self.coefficient == other.coefficient
         else:
             return super(TermWithCoefficient, self)._le_(other)
 

@@ -2375,6 +2375,14 @@ def continued_fraction(x, value=None):
         ....:     cff = continued_fraction(x)
         ....:     cfe = QQ(x).continued_fraction()
         ....:     assert cff == cfe, "%s %s %s"%(x,cff,cfe)
+
+    TESTS::
+
+    Fixed :trac:`18901`. For RealLiteral, continued_fraction calls
+    continued_fraction_list::
+
+        sage: continued_fraction(1.575709393346379)
+        [1; 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
     """
 
     if isinstance(x, ContinuedFraction_base):

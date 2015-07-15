@@ -57,7 +57,18 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     """
     def __init__(self, parent, poset, simplify=True):
         r"""
-        ...
+        See :class:`AsymptoticExpression` for more information.
+
+        TESTS::
+
+            sage: R_x.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R_y.<y> = AsymptoticRing('monomial', ZZ)
+            sage: R_x is R_y
+            False
+            sage: ex1 = x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
+            sage: ex2 = x + O(R_x(1))
+            sage: ex1 * ex2
+            O(x^5) + 5*x^6
         """
         self._poset_ = poset
         if simplify:
@@ -68,7 +79,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     @property
     def poset(self):
         r"""
+        The poset of this asymptotic expression.
 
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: expr = 7 * x^12 + x^5 + O(x^3)
+            sage: expr.poset
+            poset(O(x^3), 1*x^5, 7*x^12)
         """
         return self._poset_
 
@@ -104,6 +122,29 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     def _repr_(self, reverse=False):
         r"""
         A representation string for this asymptotic expression.
+
+        INPUT:
+
+        - ``reverse`` -- a boolean (default: ``False``).
+
+        OUTPUT:
+
+        A string.
+
+        .. NOTE::
+
+            By default, the elements with the weakest growth are
+            printed first. If ``reverse`` is ``True``, then the
+            printing order is reversed.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: expr = (5*x^2 + 12*x) * (x^3 + O(x))
+            sage: repr(expr)  # indirect doctest
+            'O(x^3) + 12*x^4 + 5*x^5'
+            sage: expr._repr_(reverse=True)
+            '5*x^5 + 12*x^4 + O(x^3)'
         """
         s = ' + '.join(repr(elem) for elem in
                        self.poset.elements_topological(include_special=False,
@@ -125,6 +166,27 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         OUTPUT:
 
         An :class:`AsymptoticExpression`.
+
+        EXAMPLES::
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: expr1 = x^123; expr2 = x^321
+            sage: expr1._add_(expr2)
+            1*x^123 + 1*x^321
+            sage: expr1 + expr2  # indirect doctest
+            1*x^123 + 1*x^321
+
+        If an `O`-term is added to an asymptotic expression, then
+        the `O`-term absorbs everything it can::
+
+            sage: x^123 + x^321 + O(x^555)  # indirect doctest
+            O(x^555)
+
+        TESTS::
+
+            sage: x + O(x)
+            O(x)
+            sage: O(x) + x
+            O(x)
         """
         pst = self.poset.copy().union(other.poset)
         return self.parent()(poset=pst)
@@ -168,6 +230,16 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         OUTPUT:
 
         An :class:`AsymptoticExpression`.
+
+        TESTS::
+
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: T = atm.OTermMonoid(R.growth_group)
+            sage: expr = 10*x^2 + O(x)
+            sage: t = T(R.growth_group.gen())
+            sage: expr._mul_term_(t)
+            O(x^3)
         """
         return self.parent()([other * elem for elem in self.poset.elements()])
 
@@ -191,6 +263,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
             point.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: ex1 = 5*x^12
+            sage: ex2 = x^3 + O(x)
+            sage: ex1 * ex2  # indirect doctest
+            O(x^13) + 5*x^15
         """
         return self.parent()(sum(self._mul_term_(term_other) for
                                  term_other in other.poset.elements()))
@@ -224,7 +304,6 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         else:
             return sum(self.parent().create_term('O', shell.element) for shell
                        in self.poset.oo.predecessors())
-
 
 
 
@@ -283,7 +362,25 @@ class AsymptoticRing(sage.rings.ring.Ring,
     @sage.misc.superseded.experimental(trac_number=17716)
     def __init__(self, growth_group=None, coefficient_ring=None, category=None):
         r"""
-        ...
+        See :class:`AsymptoticRing` for more information.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: R1 = AsymptoticRing(G, ZZ); R1
+            Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
+            sage: R2.<x> = AsymptoticRing('monomial', QQ); R2
+            Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+            sage: R1 is R2
+            False
+
+        ::
+
+            sage: R3 = AsymptoticRing(G)
+            Traceback (most recent call last):
+            ...
+            TypeError: __classcall__() takes at least 3 arguments (2 given)
         """
         if growth_group is None:
             raise ValueError('Growth group not specified. Cannot continue.')
@@ -342,7 +439,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def _element_constructor_(self, data, poset=None, simplify=True):
         r"""
-        Converts a given object to this asymptotic ring.
+        Convert a given object to this asymptotic ring.
 
         INPUT:
 
@@ -536,7 +633,36 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def create_term(self, type, growth=None, coefficient=None):
         r"""
-        ...
+        Create a simple asymptotic expression consisting of a single
+        term.
+
+        INPUT:
+
+        - ``type`` -- 'O' or 'exact',
+
+        - ``growth`` -- a growth element,
+
+        - ``coefficient`` -- a ring element.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            This method calls the factory
+            :class:`~sage.monoids.asymptotic_term_monoid.TermMonoid`
+            with the appropriate arguments.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: R = AsymptoticRing(G, ZZ)
+            sage: R.create_term('O', x^2)
+            O(x^2)
+            sage: R.create_term('exact', x^456, 123)
+            123*x^456
         """
         from sage.monoids.asymptotic_term_monoid import TermMonoid
         if type == 'O':

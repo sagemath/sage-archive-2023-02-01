@@ -164,7 +164,7 @@ class Subcrystal(Parent, UniqueRepresentation):
         self._cartan_type = cartan_type
         self._index_set = tuple(index_set)
         Parent.__init__(self, category=category)
-        self.module_generators = tuple(self(g) for g in generators
+        self.module_generators = tuple(self.element_class(self, g) for g in generators
                                        if self._containing(g))
 
         if isinstance(contained, frozenset):

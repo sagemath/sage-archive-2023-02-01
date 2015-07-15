@@ -2189,6 +2189,14 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
         [1, 100000000000000000000, 2688, 8, 1]
         sage: continued_fraction_list(1 + 10^-20 - e^-100, nterms=5)
         [1, 100000000000000000000, 2688, 8, 1]
+
+    Fixed :trac:`18901`::
+
+        sage: a = 1.575709393346379
+        sage: type(a)
+        <type 'sage.rings.real_mpfr.RealLiteral'>
+        sage: continued_fraction_list(a)
+        [1, 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
     """
     from rational_field import QQ
 
@@ -2367,16 +2375,6 @@ def continued_fraction(x, value=None):
         ....:     cff = continued_fraction(x)
         ....:     cfe = QQ(x).continued_fraction()
         ....:     assert cff == cfe, "%s %s %s"%(x,cff,cfe)
-
-    TESTS:
-
-    Fixed :trac:`18901`::
-
-        sage: a = 1.575709393346379
-        sage: type(a)
-        <type 'sage.rings.real_mpfr.RealLiteral'>
-        sage: continued_fraction(a)
-        [1; 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
     """
 
     if isinstance(x, ContinuedFraction_base):

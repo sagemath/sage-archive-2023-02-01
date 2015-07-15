@@ -138,6 +138,7 @@ usage_advanced() {
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
+    echo "  -pip [...]          -- invoke pip, the Python package manager"
 
     echo
     ####  1.......................26..................................................78

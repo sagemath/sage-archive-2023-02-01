@@ -2558,7 +2558,8 @@ cdef class Expression(CommutativeRingElement):
         cdef operators op = relational_operator(self._gobj)
         from sage.rings.real_mpfi import is_RealIntervalField
         from sage.rings.complex_interval_field import is_ComplexIntervalField
-        from sage.rings.all import RIF, CIF, AA, QQbar
+        from sage.rings.all import RIF, CIF
+        from sage.rings.qqbar import is_AlgebraicField, is_AlgebraicRealField, AA, QQbar
         if domain is None:
             is_interval = True
             if self.lhs().is_algebraic() and self.rhs().is_algebraic():
@@ -2572,7 +2573,10 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     domain = RIF
         else:
-            is_interval = is_RealIntervalField(domain) or is_ComplexIntervalField(domain)
+            is_interval = (is_RealIntervalField(domain)
+                           or is_ComplexIntervalField(domain)
+                           or is_AlgebraicField(domain)
+                           or is_AlgebraicRealField(domain))
         zero = domain(0)
         diff = self.lhs() - self.rhs()
         vars = diff.variables()

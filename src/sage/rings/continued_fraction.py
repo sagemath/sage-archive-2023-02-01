@@ -2225,7 +2225,10 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
 
     cf = None
 
-    from sage.rings.real_mpfi import is_RealIntervalField
+    from sage.rings.real_mpfi import RealIntervalField, is_RealIntervalField
+    from sage.rings.real_mpfr import RealLiteral
+    if isinstance(x, RealLiteral):
+        x = RealIntervalField(x.prec())(x)
     if is_RealIntervalField(x.parent()):
         cf = continued_fraction(rat_interval_cf_list(
                  x.lower().exact_rational(),
@@ -2364,6 +2367,16 @@ def continued_fraction(x, value=None):
         ....:     cff = continued_fraction(x)
         ....:     cfe = QQ(x).continued_fraction()
         ....:     assert cff == cfe, "%s %s %s"%(x,cff,cfe)
+
+    TESTS:
+
+    Fixed :trac:`18901`::
+
+        sage: a = 1.575709393346379
+        sage: type(a)
+        <type 'sage.rings.real_mpfr.RealLiteral'>
+        sage: continued_fraction(a)
+        [1; 1, 1, 2, 1, 4, 18, 1, 5, 2, 25037802, 7, 1, 3, 1, 28, 1, 8, 2]
     """
 
     if isinstance(x, ContinuedFraction_base):
@@ -2396,9 +2409,16 @@ def continued_fraction(x, value=None):
 
     # input for numbers
     #TODO: the approach used below might be not what the user expects as we
-    # have currently in sage (version 6.2)
-    # sage: RR.random_element() in QQ
-    # True
+    # have currently in sage (version 6.8)
+    #
+    #     sage: RR.random_element() in QQ
+    #     True
+    #
+    # But, be careful with real literals
+    #
+    #     sage: a = 1.575709393346379
+    #     sage: a in QQ
+    #     False
     from rational_field import QQ
     if x in QQ:
         return QQ(x).continued_fraction()
@@ -2409,10 +2429,10 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
+    from real_mpfi import RealIntervalField, RealIntervalFieldElement
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
-        from real_mpfi import RealIntervalField
         RIF = RealIntervalField(53)
         try:
             RIF(x)
@@ -2432,7 +2452,7 @@ def continued_fraction(x, value=None):
     if x.parent() == SR:
         return ContinuedFraction_real(x)
 
-    raise ValueError("does not know how to compute the continued fraction of %s, try the function continued_fraction_list instead"%x)
+    return continued_fraction(continued_fraction_list(x))
 
 def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
     r"""

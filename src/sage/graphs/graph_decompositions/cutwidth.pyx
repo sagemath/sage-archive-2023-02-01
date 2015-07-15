@@ -232,6 +232,8 @@ def width_of_cut_decomposition(G, L):
     """
     if not is_valid_ordering(G, L):
         raise ValueError("The input linear vertex ordering L is not valid for G.")
+    elif G.order()<=1:
+        return 0
 
     position = {u:i for i,u in enumerate(L)}
 
@@ -257,7 +259,7 @@ def width_of_cut_decomposition(G, L):
 # Front end method for cutwidth
 ################################################################################
 
-def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
+def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
     r"""
     Return the cutwidth of the graph and the corresponding vertex ordering.
 
@@ -279,6 +281,14 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
       soon as a solution with width at most ``cut_off`` is found, if any. If
       this bound cannot be reached, the best solution found is returned.
 
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. This parameter is
+      used only when ``algorithm='MILP'``. For more information on LP solvers
+      and which default solver is used, see the method
+      :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+      class
+      :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
+
     - ``verbose`` (boolean) -- whether to display information on the
       computations.
 
@@ -293,40 +303,40 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 
         sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
         sage: G = graphs.CompleteGraph(5)
-        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        sage: cw,L = cutwidth(G); cw
         6
         sage: K = graphs.CompleteGraph(6)
-        sage: cw,L = cutwidth(K, algorithm="exponential"); cw
+        sage: cw,L = cutwidth(K); cw
         9
-        sage: cw,L = cutwidth(K+K, algorithm="exponential"); cw
+        sage: cw,L = cutwidth(K+K); cw
         9
 
     The cutwidth of a `p\times q` Grid Graph with `p\leq q` is `p+1`::
 
         sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
         sage: G = graphs.Grid2dGraph(3,3)
-        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        sage: cw,L = cutwidth(G); cw
         4
         sage: G = graphs.Grid2dGraph(3,5)
-        sage: cw,L = cutwidth(G, algorithm="exponential"); cw
+        sage: cw,L = cutwidth(G); cw
         4
 
     TESTS:
 
     Comparison of algorithms::
 
-        sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: for i in range(10):  # long test
-        ....:     G = graphs.RandomGNP(10, 0.2)
-        ....:     ve, le = cutwidth.cutwidth_dyn(G)
-        ....:     vm, lm = cutwidth.cutwidth_MILP(G)
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: for i in range(2):  # long test
+        ....:     G = graphs.RandomGNP(7, 0.3)
+        ....:     ve, le = cutwidth(G, algorithm="exponential")
+        ....:     vm, lm = cutwidth(G, algorithm="MILP", solver='GLPK')
         ....:     if ve != vm:
         ....:        print "Something goes wrong!"
 
     Given a wrong algorithm::
 
         sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
-        sage: cutwidth(Graph(), algorithm="SuperFast")
+        sage: cutwidth(graphs.PathGraph(2), algorithm="SuperFast")
         Traceback (most recent call last):
         ...
         ValueError: Algorithm "SuperFast" has not been implemented yet. Please contribute.
@@ -354,6 +364,9 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
 
     if not cut_off in ZZ:
         raise ValueError("The specified cut off parameter must be an integer.")
+    elif G.size() <= cut_off:
+        # We have a trivial solution
+        return width_of_cut_decomposition(G, G.vertices()), G.vertices()
 
     if not G.is_connected():
         # The graph has several connected components. We solve the problem on
@@ -362,16 +375,17 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
         cw, L = 0, []
         for V in G.connected_components():
 
-            if len(V)==1:
-                # We can directly add this vertex to the solution
+            # We build the connected subgraph
+            H = G.subgraph(V)
+            if H.size() <= max(cw, cut_off):
+                # We can directly add these vertices to the solution
                 L.extend(V)
 
             else:
-                # We build the connected subgraph and do a recursive call to get
-                # its cutwidth and corresponding ordering
-                H = G.subgraph(V)
+                # We do a recursive call on H
                 cwH,LH = cutwidth(H, algorithm = algorithm,
-                                  cut_off      = max(cut_off,cw))
+                                  cut_off      = max(cut_off,cw),
+                                  solver = solver, verbose = verbose)
 
                 # We update the cutwidth and ordering
                 cw = max(cw, cwH)
@@ -384,7 +398,7 @@ def cutwidth(G, algorithm="exponential", cut_off=0, verbose=False):
         return cutwidth_dyn(G, lower_bound=cut_off)
 
     elif algorithm == "MILP":
-        return cutwidth_MILP(G, lower_bound=cut_off)
+        return cutwidth_MILP(G, lower_bound=cut_off, solver=solver, verbose=verbose)
 
     else:
         raise ValueError('Algorithm "{}" has not been implemented yet. Please contribute.'.format(algorithm))
@@ -590,7 +604,7 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     Cutwidth of a Cycle graph::
 
         sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: G = graphs.CycleGraph(10)
+        sage: G = graphs.CycleGraph(5)
         sage: cw, L = cutwidth.cutwidth_MILP(G); cw
         2
         sage: cw == cutwidth.width_of_cut_decomposition(G, L)
@@ -601,16 +615,16 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     Cutwidth of a Complete graph::
 
         sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: G = graphs.CompleteGraph(5)
+        sage: G = graphs.CompleteGraph(4)
         sage: cw, L = cutwidth.cutwidth_MILP(G); cw
-        6
+        4
         sage: cw == cutwidth.width_of_cut_decomposition(G, L)
         True
 
     Cutwidth of a Path graph::
 
         sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: G = graphs.PathGraph(5)
+        sage: G = graphs.PathGraph(3)
         sage: cw, L = cutwidth.cutwidth_MILP(G); cw
         1
         sage: cw == cutwidth.width_of_cut_decomposition(G, L)
@@ -621,26 +635,26 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     Comparison with exponential algorithm::
 
         sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: for i in range(10):  # long test
-        ....:     G = graphs.RandomGNP(10, 0.2)
+        sage: for i in range(2):  # long test
+        ....:     G = graphs.RandomGNP(7, 0.3)
         ....:     ve, le = cutwidth.cutwidth_dyn(G)
-        ....:     vm, lm = cutwidth.cutwidth_MILP(G)
+        ....:     vm, lm = cutwidth.cutwidth_MILP(G, solver='GLPK')
         ....:     if ve != vm:
         ....:        print "The solution is not optimal!"
 
     Giving a too large lower bound::
 
-        sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: G = graphs.CycleGraph(4)
-        sage: cutwidth.cutwidth_MILP(G, lower_bound=G.size()+1)
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth_MILP
+        sage: G = graphs.CycleGraph(3)
+        sage: cutwidth_MILP(G, lower_bound=G.size()+1)
         Traceback (most recent call last):
         ...
         MIPSolverException: ...
 
     Giving anything else than a Graph::
 
-        sage: from sage.graphs.graph_decompositions import cutwidth
-        sage: cutwidth.cutwidth_MILP([])
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth_MILP
+        sage: cutwidth_MILP([])
         Traceback (most recent call last):
         ...
         ValueError: The first input parameter must be a Graph.

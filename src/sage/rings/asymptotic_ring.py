@@ -141,9 +141,20 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         OUTPUT:
 
         An :class:`AsymptoticExpression`.
+
+        .. NOTE::
+
+            Subtraction of two asymptotic expressions is implemented
+            by means of addition: `e_1 - e_2 = e_1 + (-1)\cdot e_2`.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: expr1 = x^123; expr2 = x^321
+            sage: expr1 - expr2  # indirect doctest
+            1*x^123 + -1*x^321
         """
-        return self + other._mul_term_(
-            self.parent().create_term('exact', growth=1, coefficient=-1))
+        return self + (-1) * other
 
     def _mul_term_(self, other):
         r"""

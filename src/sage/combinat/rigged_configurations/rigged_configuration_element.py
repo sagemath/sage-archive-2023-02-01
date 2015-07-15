@@ -1902,7 +1902,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             block = 0
             for j,i in enumerate(p):
                 if p[block] != i:
-                    riggings[block:i] = sorted(riggings[block:i], reverse=True)
+                    riggings[block:j] = sorted(riggings[block:j], reverse=True)
                     block = j
             riggings[block:] = sorted(riggings[block:], reverse=True)
             rig.append(riggings)

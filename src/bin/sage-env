@@ -154,7 +154,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/deps might also need
+# required for upgrading.  Note that build/make/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #
@@ -258,7 +258,7 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
 fi 
-export PATH="$SAGE_SRC/sage_bootstrap/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.

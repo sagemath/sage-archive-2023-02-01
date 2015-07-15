@@ -106,10 +106,10 @@ fi
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
-. "${0%spkg}env"
+. sage-env
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
+    echo >&2 "Error setting environment variables by sourcing sage-env."
     echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."
     exit 1
 fi
@@ -320,7 +320,7 @@ if [ ! -f "$PKG_SRC" ]; then
         else
             echo "Attempting to get on-line info for package $PKG_NAME"
         fi
-        
+
         # Reduce everything to case 4: full URL.
         if [ -n "$PKG_HAS_PATH" ]; then
             PKG_URL="$PKG_SRC"
@@ -397,7 +397,7 @@ if [ ! -f "$PKG_SRC" ]; then
                 echo >&2 "Error: could not find a package matching $PKG_NAME on $MIRROR"
                 exit 1
             fi
-    
+
             # Check a second time whether the package is already installed.
             if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
                 echo "Package $PKG_NAME is already installed."
@@ -407,7 +407,7 @@ if [ ! -f "$PKG_SRC" ]; then
                 exit 0
             fi
         fi
-    
+
         # Trac #5852: check write permissions
         mkdir -p "$SAGE_DISTFILES"
         if [ ! -w "$SAGE_DISTFILES" ]; then
@@ -415,7 +415,7 @@ if [ ! -f "$PKG_SRC" ]; then
             exit 1
         fi
         cd "$SAGE_DISTFILES" || exit $?
-    
+
         # Download to a temporary file (such that we don't end up with a
         # corrupted .spkg file).
         PKG_TMP="${PKG_URL##*/}.tmp"
@@ -426,7 +426,7 @@ if [ ! -f "$PKG_SRC" ]; then
             rm -f "$PKG_TMP"
             exit 1
         fi
-    
+
         PKG_SRC="`pwd`/${PKG_URL##*/}"
         mv -f "$PKG_TMP" "$PKG_SRC"
     fi

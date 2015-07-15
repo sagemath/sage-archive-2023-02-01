@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 from glob import glob
 from distutils.extension import Extension
@@ -42,7 +40,10 @@ givaro_depends = [SAGE_INC + '/givaro/givconfig.h']
 
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
-aliases = dict(INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"))
+aliases = dict(
+        GSL_LIBRARIES=['gsl', BLAS, BLAS2],
+        INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
+        )
 
 #########################################################
 ### M4RI flags
@@ -220,15 +221,6 @@ ext_modules = [
     Extension('sage.combinat.matrices.dancing_links',
               sources = ['sage/combinat/matrices/dancing_links.pyx'],
               language='c++'),
-
-    Extension('sage.structure.list_clone',
-              sources=['sage/structure/list_clone.pyx']),
-
-    Extension('sage.structure.list_clone_demo',
-              sources=['sage/structure/list_clone_demo.pyx']),
-
-    Extension('sage.structure.list_clone_timings_cy',
-              sources=['sage/structure/list_clone_timings_cy.pyx']),
 
     Extension('sage.sets.finite_set_map_cy',
               sources=['sage/sets/finite_set_map_cy.pyx']),
@@ -456,8 +448,8 @@ ext_modules = [
               libraries=['planarity']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
-                         'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
+              libraries=['rw']),
 
     Extension('sage.graphs.graph_decompositions.bandwidth',
               sources = ['sage/graphs/graph_decompositions/bandwidth.pyx']),
@@ -488,6 +480,10 @@ ext_modules = [
 
     Extension('sage.graphs.base.dense_graph',
               sources = ['sage/graphs/base/dense_graph.pyx']),
+
+    Extension('sage.graphs.base.boost_graph',
+              sources = ['sage/graphs/base/boost_graph.pyx'],
+              language = 'c++'),
 
     ################################
     ##
@@ -589,45 +585,7 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.gsl.callback',
-              sources = ['sage/gsl/callback.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.dwt',
-              sources = ['sage/gsl/dwt.pyx'],
-              libraries=['gsl',BLAS],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.fft',
-              sources = ['sage/gsl/fft.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.gsl_array',
-              sources = ['sage/gsl/gsl_array.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.integration',
-              sources = ['sage/gsl/integration.pyx'],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')],
-              libraries=['gsl',BLAS, BLAS2]),
-
-    Extension('sage.gsl.interpolation',
-              sources = ['sage/gsl/interpolation.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.ode',
-              sources = ['sage/gsl/ode.pyx'],
-              libraries=['gsl',BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
-
-    Extension('sage.gsl.probability_distribution',
-              sources = ['sage/gsl/probability_distribution.pyx'],
-              libraries=['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
+    Extension('*', ['sage/gsl/*.pyx']),
 
     ################################
     ##
@@ -638,6 +596,15 @@ ext_modules = [
     Extension('sage.interacts.library_cython',
               sources = ['sage/interacts/library_cython.pyx'],
               libraries = []),
+
+    ################################
+    ##
+    ## sage.interfaces
+    ##
+    ################################
+
+    Extension('sage.interfaces.sagespawn',
+              sources = ['sage/interfaces/sagespawn.pyx']),
 
     ################################
     ##
@@ -1015,8 +982,7 @@ ext_modules = [
               sources = ['sage/matrix/echelon_matrix.pyx']),
 
     Extension('sage.matrix.change_ring',
-              sources = ['sage/matrix/change_ring.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/change_ring.pyx']),
 
     Extension('sage.matrix.matrix',
               sources = ['sage/matrix/matrix.pyx']),
@@ -1031,8 +997,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix2.pyx']),
 
     Extension('sage.matrix.matrix_complex_double_dense',
-              sources = ['sage/matrix/matrix_complex_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_complex_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_cyclo_dense',
               sources = ['sage/matrix/matrix_cyclo_dense.pyx'],
@@ -1043,8 +1008,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_dense.pyx']),
 
     Extension('sage.matrix.matrix_double_dense',
-              sources = ['sage/matrix/matrix_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_generic_dense',
               sources = ['sage/matrix/matrix_generic_dense.pyx']),
@@ -1107,8 +1071,7 @@ ext_modules = [
               sources = ['sage/matrix/matrix_rational_sparse.pyx']),
 
     Extension('sage.matrix.matrix_real_double_dense',
-              sources = ['sage/matrix/matrix_real_double_dense.pyx'],
-              libraries=[BLAS, BLAS2]),
+              sources = ['sage/matrix/matrix_real_double_dense.pyx']),
 
     Extension('sage.matrix.matrix_sparse',
               sources = ['sage/matrix/matrix_sparse.pyx']),
@@ -1245,12 +1208,10 @@ ext_modules = [
               sources = ['sage/modules/module.pyx']),
 
     Extension('sage.modules.vector_complex_double_dense',
-              ['sage/modules/vector_complex_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_complex_double_dense.pyx']),
 
     Extension('sage.modules.vector_double_dense',
-              ['sage/modules/vector_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_double_dense.pyx']),
 
     Extension('sage.modules.vector_integer_dense',
               sources = ['sage/modules/vector_integer_dense.pyx']),
@@ -1269,8 +1230,7 @@ ext_modules = [
               sources = ['sage/modules/vector_rational_dense.pyx']),
 
     Extension('sage.modules.vector_real_double_dense',
-              ['sage/modules/vector_real_double_dense.pyx'],
-              libraries = [BLAS, BLAS2]),
+              ['sage/modules/vector_real_double_dense.pyx']),
 
     ################################
     ##
@@ -1334,6 +1294,14 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.parallel
+    ##
+    ################################
+
+    Extension('*', ['sage/parallel/**/*.pyx']),
+
+    ################################
+    ##
     ## sage.plot
     ##
     ################################
@@ -1346,8 +1314,7 @@ ext_modules = [
               extra_compile_args=["-std=c99"]),
 
     Extension('sage.plot.plot3d.implicit_surface',
-              sources = ['sage/plot/plot3d/implicit_surface.pyx'],
-              libraries = ['gsl']),
+              sources = ['sage/plot/plot3d/implicit_surface.pyx']),
 
     Extension('sage.plot.plot3d.index_face_set',
               sources = ['sage/plot/plot3d/index_face_set.pyx'],
@@ -1439,7 +1406,7 @@ ext_modules = [
     Extension('sage.rings.complex_double',
               sources = ['sage/rings/complex_double.pyx'],
               extra_compile_args=["-std=c99", "-D_XPG6"],
-              libraries = (['gsl', BLAS, BLAS2, 'm'])),
+              libraries = (['m'])),
 
     Extension('sage.rings.complex_interval',
               sources = ['sage/rings/complex_interval.pyx'],
@@ -1500,9 +1467,7 @@ ext_modules = [
               libraries=['ntl']),
 
     Extension('sage.rings.real_double',
-              sources = ['sage/rings/real_double.pyx'],
-              libraries = ['gsl', BLAS, BLAS2],
-              define_macros=[('GSL_DISABLE_DEPRECATED','1')]),
+              sources = ['sage/rings/real_double.pyx']),
 
     Extension('sage.rings.real_interval_absolute',
               sources = ['sage/rings/real_interval_absolute.pyx']),
@@ -1889,24 +1854,6 @@ ext_modules = [
     ##
     ################################
 
-    Extension('sage.structure.category_object',
-              sources = ['sage/structure/category_object.pyx']),
-
-    Extension('sage.structure.coerce',
-              sources = ['sage/structure/coerce.pyx']),
-
-    Extension('sage.structure.coerce_actions',
-              sources = ['sage/structure/coerce_actions.pyx']),
-
-    Extension('sage.structure.coerce_dict',
-              sources = ['sage/structure/coerce_dict.pyx']),
-
-    Extension('sage.structure.coerce_maps',
-              sources = ['sage/structure/coerce_maps.pyx']),
-
-    Extension('sage.structure.debug_options',
-              sources=['sage/structure/debug_options.pyx']),
-
     # Compile this with -Os because it works around a bug with
     # GCC-4.7.3 + Cython 0.19 on Itanium, see Trac #14452. Moreover, it
     # actually results in faster code than -O3.
@@ -1914,35 +1861,7 @@ ext_modules = [
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
 
-    Extension('sage.structure.element_wrapper',
-              sources = ['sage/structure/element_wrapper.pyx']),
-
-    Extension('sage.structure.factory',
-              sources = ['sage/structure/factory.pyx']),
-
-    Extension('sage.structure.generators',
-              sources = ['sage/structure/generators.pyx']),
-
-    Extension('sage.structure.mutability',
-              sources = ['sage/structure/mutability.pyx']),
-
-    Extension('sage.structure.misc',
-              sources = ['sage/structure/misc.pyx']),
-
-    Extension('sage.structure.parent',
-              sources = ['sage/structure/parent.pyx']),
-
-    Extension('sage.structure.parent_base',
-              sources = ['sage/structure/parent_base.pyx']),
-
-    Extension('sage.structure.parent_gens',
-              sources = ['sage/structure/parent_gens.pyx']),
-
-    Extension('sage.structure.parent_old',
-              sources = ['sage/structure/parent_old.pyx']),
-
-    Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']),
+    Extension('*', ['sage/structure/*.pyx']),
 
     ################################
     ##

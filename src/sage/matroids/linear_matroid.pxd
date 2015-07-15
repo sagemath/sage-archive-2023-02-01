@@ -19,12 +19,13 @@ cdef class LinearMatroid(BasisExchangeMatroid):
     cdef list _setup_internal_representation(self, matrix, reduced_matrix, ring, keep_initial_representation)
     cdef __exchange_value(self, long x, long y)
 
-    cpdef representation(self, B=*, reduced=*, labels=*, order=*)
+    cpdef representation(self, B=*, reduced=*, labels=*, order=*, lift_map=*)
     cpdef _current_rows_cols(self, B=*)
     cpdef representation_vectors(self)
     cpdef LeanMatrix _basic_representation(self, B=*)
     cpdef LeanMatrix _reduced_representation(self, B=*)
-
+    
+    
     cpdef bint _is_field_isomorphism(self, LinearMatroid other, morphism)
     cpdef is_field_equivalent(self, other)
     cpdef is_field_isomorphism(self, other, morphism)

@@ -55,15 +55,13 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     r"""
     ...
     """
-    def __init__(self, parent, poset):
+    def __init__(self, parent, poset, simplify=True):
         r"""
         ...
         """
-        for shell in poset.shells_topological(reverse=True):
-            from sage.monoids.asymptotic_term_monoid import OTerm
-            if isinstance(shell.element, OTerm) and shell.element.growth in poset:
-                poset.merge(shell.key)
         self._poset_ = poset
+        if simplify:
+            self._simplify_()
         super(AsymptoticExpression, self).__init__(parent=parent)
 
 
@@ -73,6 +71,35 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         """
         return self._poset_
+
+
+    def _simplify_(self):
+        r"""
+        Simplify this asymptotic expression.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An :class:`AsymptoticExpression`.
+
+        .. NOTE::
+
+            This asymptotic expression is simplified by letting
+            `O`-terms that are included in this expression absorb all
+            terms of lesser growth.
+
+        TESTS::
+
+        """
+        from sage.monoids.asymptotic_term_monoid import OTerm
+        for shell in self.poset.shells_topological(reverse=True):
+            if shell.element.growth in self.poset and isinstance(shell.element,
+                                                                 OTerm):
+                self.poset.merge(shell.key)
+
 
     def _repr_(self, reverse=False):
         r"""
@@ -302,7 +329,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return self._coefficient_ring_
 
 
-    def _element_constructor_(self, data, poset=None):
+    def _element_constructor_(self, data, poset=None, simplify=True):
         r"""
         Converts a given object to this asymptotic ring.
 
@@ -335,7 +362,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             if type(data) == self.element_class and data.parent() == self:
                 return data
             elif isinstance(data, AsymptoticExpression):
-                return self.element_class(self, data.poset)
+                return self.element_class(self, data.poset, simplify)
 
             if data in self.coefficient_ring:
                 if data != 0:
@@ -347,7 +374,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                     poset = MutablePoset(key=lambda elem: elem.growth,
                                      can_merge=can_absorb,
                                      merge=absorption)
-                    return self.element_class(self, poset)
+                    return self.element_class(self, poset, simplify)
 
             from sage.monoids.asymptotic_term_monoid import OTerm, ExactTerm
             from sage.data_structures.mutable_poset import MutablePoset
@@ -367,7 +394,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                 raise TypeError('Input is ambiguous: cannot convert '
                                 '%s to an asymptotic expression' % (data,))
 
-        return self.element_class(self, poset)
+        return self.element_class(self, poset, simplify)
 
 
     def _coerce_map_from_(self, R):

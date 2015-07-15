@@ -90,18 +90,20 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
       - If ``G`` is directed, then we only consider its undirected version.
 
-      - If ``G`` is weighted, we ignore all of its self-loops. Note that a
-        weighted graph should only have numeric weights. You cannot assign
-        numeric weights to some edges of ``G``, but have ``None`` as a
-        weight for some other edge. If your input graph is weighted, you are
-        responsible for assign numeric weight to each of its edges.
-        Furthermore, we remove multiple edges as follows. First we convert
-        ``G`` to be undirected. Suppose there are multiple edges from `u` to
-        `v`. Among all such multiple edges, we choose one with minimum weight.
+      - If ``G`` is weighted and ``wfunction`` is not ``None``, the edge weights
+        are overridden by the function ``wfunction``. Otherwise, the input graph
+        should only have numeric weights. You cannot assign numeric weights to
+        some edges of ``G``, but have ``None`` as a weight for some other edge.
+        If your input graph is weighted, you are responsible for assign numeric
+        weight to each of its edges. Furthermore, we remove multiple edges as
+        follows. First we convert ``G`` to be undirected. Suppose there are
+        multiple edges from `u` to `v`. Among all such multiple edges, we choose
+        one with minimum weight.
 
     - ``wfunction`` -- A weight function: a function that takes an edge and
-      returns a numeric weight. Default: ``None``. The default is to
-      assign each edge a weight of 1.
+      returns a numeric weight. If ``wfunction=None`` (default), the algorithm
+      uses the edge weight, if available, otherwise it assigns each edge a
+      weight of 1 (in the latter case, the output can be any spanning tree).
 
     - ``check`` -- Whether to first perform sanity checks on the input
       graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
@@ -114,11 +116,10 @@ cpdef kruskal(G, wfunction=None, bint check=False):
       - Is ``G`` directed?
       - Does ``G`` have self-loops?
       - Does ``G`` have multiple edges?
-      - Is ``G`` weighted?
 
       By default, we turn off the sanity checks for performance reasons. This
       means that by default the function assumes that its input graph is
-      simple, connected, is not a tree, and has at least one vertex.
+      undirected, simple, connected, is not a tree, and has at least one vertex.
       If the input graph does not satisfy all of the latter conditions, you
       should set ``check=True`` to perform some sanity checks and
       preprocessing on the input graph. To further improve the runtime of this
@@ -129,19 +130,6 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     The edges of a minimum spanning tree of ``G``, if one exists, otherwise
     returns the empty list.
-
-    - If ``G`` is a tree, return the edges of ``G`` regardless of whether
-      ``G`` is weighted or unweighted, directed or undirected.
-
-    - If ``G`` is unweighted, default to using unit weight for each edge of
-      ``G``. The default behaviour is to use the already assigned weights of
-      ``G`` provided that ``G`` is weighted.
-
-    - If ``G`` is weighted and a weight function is also supplied, then use
-      the already assigned weights of ``G``, not the weight function. If you
-      really want to use a weight function for ``G`` even if ``G`` is
-      weighted, first convert ``G`` to be unweighted and pass in the weight
-      function.
 
     .. seealso::
 
@@ -239,6 +227,17 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: kruskal(G, check=True)
         [('g', 'h', 1), ('c', 'i', 2), ('f', 'g', 2), ('a', 'b', 4), ('c', 'f', 4), ('c', 'd', 7), ('a', 'h', 8), ('d', 'e', 9)]
 
+    An example with custom edge labels::
+
+        sage: G = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+        sage: weight = lambda e:3-e[0]-e[1]
+        sage: kruskal(G, check=True)
+        [(0, 1, 1), (1, 2, 1)]
+        sage: kruskal(G, wfunction=weight, check=True)
+        [(1, 2, 1), (0, 2, 10)]
+        sage: kruskal(G, wfunction=weight, check=False)
+        [(1, 2, 1), (0, 2, 10)]
+
     TESTS:
 
     The input graph must not be empty. ::
@@ -308,6 +307,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: T = graphs.RandomTree(randint(1, 50))  # long time
         sage: T.edges() == kruskal(T, check=True)  # long time
         True
+
     """
     g = G
     sortedE_iter = None
@@ -323,7 +323,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             return G.edges()
         g = G.to_undirected()
         g.allow_loops(False)
-        if g.weighted():
+        if g.weighted() and wfunction is None:
             # If there are multiple edges from u to v, retain the edge of
             # minimum weight among all such edges.
             if g.allows_multiple_edges():
@@ -356,21 +356,20 @@ cpdef kruskal(G, wfunction=None, bint check=False):
                 # all multiple edges should now be removed; check this!
                 assert g.multiple_edges() == []
                 g.allow_multiple_edges(False)
-            # sort edges by weights
+
+    # G is assumed to be connected, simple, undirected, and with at least a
+    # vertex
+    # We sort edges, as specified.
+    if wfunction is None:
+        if g.weighted():
             from operator import itemgetter
             sortedE_iter = iter(sorted(g.edges(), key=itemgetter(2)))
         else:
-            g = g.to_simple()
-            if wfunction is None:
-                sortedE_iter = iter(sorted(g.edges()))
-            else:
-                sortedE_iter = iter(sorted(g.edges(), key=wfunction))
-    # G is assumed to be simple, undirected, and unweighted
-    else:
-        if wfunction is None:
             sortedE_iter = iter(sorted(g.edges()))
-        else:
-            sortedE_iter = iter(sorted(g.edges(), key=wfunction))
+    else:
+        sortedE_iter = iter(sorted(g.edges(), key=wfunction))
+
+
     # Kruskal's algorithm
     T = []
     cdef int n = g.order()

@@ -25,11 +25,10 @@ cdef void free_binary_tree_node(binary_tree_node *self):
     sage_free(self)
 
 cdef inline void binary_tree_dealloc(binary_tree_node *self):
-    if self == NULL:
-        return
-    binary_tree_dealloc(self.left)
-    binary_tree_dealloc(self.right)
-    free_binary_tree_node(self)
+    if self != NULL:
+        binary_tree_dealloc(self.left)
+        binary_tree_dealloc(self.right)
+        free_binary_tree_node(self)
 
 
 cdef void binary_tree_insert(binary_tree_node *self, int key, object value):

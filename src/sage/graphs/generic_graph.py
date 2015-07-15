@@ -3311,7 +3311,9 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``weight_function`` -- A function that takes an edge and returns a
-          numeric weight. Defaults to assigning each edge a weight of 1.
+          numeric weight. If ``None`` (default), the algorithm uses the edge
+          weights, if available, otherwise it assigns weight 1 to each edge (in
+          the latter case, the output can be any spanning tree).
 
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
@@ -3328,7 +3330,8 @@ class GenericGraph(GenericGraph_pyx):
             implementation.
 
         - ``starting_vertex`` -- The vertex from which to begin the search
-          for a minimum spanning tree.
+          for a minimum spanning tree (available only for ``Prim_fringe`` and
+          ``Prim_edge``).
 
         - ``check`` -- Boolean; default: ``False``. Whether to first perform
           sanity checks on the input graph ``G``. If appropriate, ``check``

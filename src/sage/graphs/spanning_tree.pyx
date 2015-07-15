@@ -102,8 +102,8 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     - ``wfunction`` -- A weight function: a function that takes an edge and
       returns a numeric weight. If ``wfunction=None`` (default), the algorithm
-      uses the edge weight, if available, otherwise it assigns each edge a
-      weight of 1 (in the latter case, the output can be any spanning tree).
+      uses the edge weight, if available, otherwise it assigns weight 1 to each
+      edge (in the latter case, the output can be any spanning tree).
 
     - ``check`` -- Whether to first perform sanity checks on the input
       graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the

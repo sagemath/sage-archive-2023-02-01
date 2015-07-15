@@ -86,6 +86,17 @@ hope to get better performances.
     There is some symmetry to break as the reverse of a satisfiable ordering is
     also a satisfiable ordering.
 
+This module contains the following methods
+------------------------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`bandwidth` | Compute the bandwidth of an undirected graph
+    :meth:`bandwidth_heuristics()<sage.graphs.base.boost_graph.bandwidth_heuristics>` | Uses Boost heuristics to approximate the bandwidth of the input graph
+
 Functions
 ---------
 """

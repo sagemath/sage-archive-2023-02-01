@@ -190,7 +190,9 @@ cdef class BinaryTree:
         self.head = NULL
     def __dealloc__(BinaryTree self):
         """
-        TESTS::
+        TESTS:
+
+        We test that :trac:`18897` is fixed::
 
             sage: def test():
             ....:     from sage.rings.polynomial.polynomial_compiled import CompiledPolynomialFunction

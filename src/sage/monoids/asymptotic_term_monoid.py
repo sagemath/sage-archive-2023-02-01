@@ -138,7 +138,7 @@ def can_absorb(left, right):
         sage: atm.can_absorb(T(x^3), T(x^2))
         True
     """
-    return left.can_absorb(right)
+    return left.can_absorb(right) or right.can_absorb(left)
 
 
 class GenericTerm(sage.structure.element.MonoidElement):

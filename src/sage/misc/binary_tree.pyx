@@ -24,14 +24,12 @@ cdef void free_binary_tree_node(binary_tree_node *self):
         Py_DECREF(<object>self.value)
     sage_free(self)
 
-cdef void binary_tree_dealloc(binary_tree_node *self):
-    # deallocate the descendants of self, but NOT self
-    if self.left != NULL:
-        binary_tree_dealloc(self.left)
-        free_binary_tree_node(self.left)
-    if self.right != NULL:
-        binary_tree_dealloc(self.right)
-        free_binary_tree_node(self.right)
+cdef inline void binary_tree_dealloc(binary_tree_node *self):
+    if self == NULL:
+        return
+    binary_tree_dealloc(self.left)
+    binary_tree_dealloc(self.right)
+    free_binary_tree_node(self)
 
 
 cdef void binary_tree_insert(binary_tree_node *self, int key, object value):
@@ -186,7 +184,7 @@ cdef class BinaryTree:
     """
     A simple binary tree with integer keys.
     """
-    def __init__(BinaryTree self):
+    def __cinit__(BinaryTree self):
         self.head = NULL
     def __dealloc__(BinaryTree self):
         """
@@ -210,9 +208,7 @@ cdef class BinaryTree:
             []
 
         """
-        if self.head != NULL:
-            binary_tree_dealloc(self.head)
-            free_binary_tree_node(self.head)
+        binary_tree_dealloc(self.head)
 
     def insert(BinaryTree self, object key, object value = None):
         """

@@ -3358,7 +3358,7 @@ class GenericGraph(GenericGraph_pyx):
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -3370,9 +3370,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (3, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (4, 3, None), (4, 1, None), (4, 0, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
 
         NetworkX algorithm::
 
@@ -3401,9 +3401,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
             sage: weight = lambda e:3-e[0]-e[1]
             sage: g.min_spanning_tree(weight_function=weight)
-            [(1, 2, 1), (0, 2, 10)]
+            [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
-            [(0, 2, 10), (2, 1, 1)]
+            [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
@@ -3436,7 +3436,7 @@ class GenericGraph(GenericGraph_pyx):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
                 x = fringe_list[u][1]
-                edges.append((x, u, self.edge_label(x, u)))
+                edges.append((min(x,u), max(x,u), self.edge_label(x, u)))
                 tree.add(u)
                 fringe_list.pop(u)
                 # update fringe list
@@ -3444,7 +3444,7 @@ class GenericGraph(GenericGraph_pyx):
                     w = weight_function((u, neighbor))
                     if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
                         fringe_list[neighbor] = (w, u)
-            return edges
+            return sorted(edges)
 
         elif algorithm == "Prim_edge":
             if starting_vertex is None:
@@ -3476,12 +3476,12 @@ class GenericGraph(GenericGraph_pyx):
                         break
                     else:
                         i += 1
-            return edges
+            return sorted(edges)
 
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(u, v, dict(weight=weight_function((u, v)))) for u, v, l in self.edge_iterator()])
-            return [(u,v,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()]
+            return sorted([(u,v,self.edge_label(u,v)) if u<v else (v,u,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()])
 
         else:
             raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)

@@ -143,7 +143,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
         sage: E = kruskal(G, check=True); E
-        [(1, 6, 10), (3, 4, 12), (2, 7, 14), (2, 3, 16), (4, 5, 22), (5, 6, 25)]
+        [(1, 6, 10), (2, 3, 16), (2, 7, 14), (3, 4, 12), (4, 5, 22), (5, 6, 25)]
 
     Variants of the previous example. ::
 
@@ -200,7 +200,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: G.weighted(True)
         sage: H.weighted(True)
         sage: kruskal(G, check=True)
-        [(1, 2, 1), (2, 5, 1), (3, 4, 3), (1, 6, 10), (2, 7, 14), (2, 3, 16)]
+        [(1, 2, 1), (1, 6, 10), (2, 3, 16), (2, 5, 1), (2, 7, 14), (3, 4, 3)]
         sage: kruskal(G, check=True) == kruskal(H, check=True)
         True
 
@@ -216,7 +216,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...   "BWI":{"MIA":946}})
         sage: G.weighted(True)
         sage: kruskal(G, check=True)
-        [('JFK', 'PVD', 144), ('BWI', 'JFK', 184), ('BOS', 'JFK', 187), ('LAX', 'SFO', 337), ('BWI', 'ORD', 621), ('DFW', 'ORD', 802), ('BWI', 'MIA', 946), ('DFW', 'LAX', 1235)]
+        [('BOS', 'JFK', 187), ('BWI', 'JFK', 184), ('BWI', 'MIA', 946), ('BWI', 'ORD', 621), ('DFW', 'LAX', 1235), ('DFW', 'ORD', 802), ('JFK', 'PVD', 144), ('LAX', 'SFO', 337)]
 
     An example from pages 568--569 in [CormenEtAl2001]_. ::
 
@@ -225,7 +225,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         ...   "e":{"f":10}, "f":{"g":2}, "g":{"h":1, "i":6}, "h":{"i":7}})
         sage: G.weighted(True)
         sage: kruskal(G, check=True)
-        [('g', 'h', 1), ('c', 'i', 2), ('f', 'g', 2), ('a', 'b', 4), ('c', 'f', 4), ('c', 'd', 7), ('a', 'h', 8), ('d', 'e', 9)]
+        [('a', 'b', 4), ('a', 'h', 8), ('c', 'd', 7), ('c', 'f', 4), ('c', 'i', 2), ('d', 'e', 9), ('f', 'g', 2), ('g', 'h', 1)]
 
     An example with custom edge labels::
 
@@ -234,9 +234,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: kruskal(G, check=True)
         [(0, 1, 1), (1, 2, 1)]
         sage: kruskal(G, wfunction=weight, check=True)
-        [(1, 2, 1), (0, 2, 10)]
+        [(0, 2, 10), (1, 2, 1)]
         sage: kruskal(G, wfunction=weight, check=False)
-        [(1, 2, 1), (0, 2, 10)]
+        [(0, 2, 10), (1, 2, 1)]
 
     TESTS:
 
@@ -401,7 +401,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             T.append(e)
             # union the components by making one the parent of the other
             union_find[components[0]] = components[1]
-    return T
+    return sorted(T)
 
 
 def random_spanning_tree(self, output_as_graph=False):

@@ -276,6 +276,50 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                                  term_other in other.poset.elements()))
 
 
+    def __pow__(self, power):
+        r"""
+        Return this element to the power of ``power``.
+
+        INPUT:
+
+        - ``power`` -- an element.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        TESTS::
+
+            sage: R_QQ.<x> = AsymptoticRing('monomial', QQ)
+            sage: x^(1/7)
+            1*x^(1/7)
+            sage: R_ZZ.<y> = AsymptoticRing('monomial', ZZ)
+            sage: y^(1/7)
+            Traceback (most recent call last):
+            ...
+            ValueError: Exponent 1/7 not in base of growth group Monomial Growth Group in y over Integer Ring
+            sage: (x^(1/2) + O(x^0))^15
+            O(x^7) + 1*x^(15/2)
+        """
+        P = self.parent()
+        if len(self.poset._shells_) == 1:
+            expr = self.poset.elements().next()
+            if power in P.growth_group.base():
+                from sage.monoids.asymptotic_term_monoid import TermWithCoefficient
+                if isinstance(expr, TermWithCoefficient):
+                    new_growth = expr.growth ** power
+                    new_coef = expr.coefficient ** power
+                    return P(expr.parent()(new_growth, new_coef))
+                else:
+                    new_growth = expr.growth ** power
+                    return P(expr.parent()(new_growth))
+            else:
+                raise ValueError('Exponent %s not in base of growth group %s' %
+                                 (power, P.growth_group))
+
+        return super(AsymptoticExpression, self).__pow__(power)
+
+
     def O(self):
         r"""
         Convert all terms in this asymptotic expression to `O`-terms.

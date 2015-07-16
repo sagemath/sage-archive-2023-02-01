@@ -3308,6 +3308,10 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the edges of a minimum spanning tree.
 
+        At the moment, no algorithm for directed graph is implemented: if the
+        graph is directed, a minimum spanning tree of the corresponding
+        undirected graph is returned.
+
         INPUT:
 
         - ``weight_function`` -- A function that takes an edge and returns a
@@ -3409,10 +3413,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
 
+        If the graph is directed, it is transformed into an undirected graph::
+
+            sage: g = digraphs.Circuit(3)
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
+            sage: g.to_undirected().min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
         """
         if algorithm == "Kruskal":
             from spanning_tree import kruskal
-            return kruskal(self, wfunction=weight_function, check=check)
+            if self.is_directed():
+                return kruskal(self.to_undirected(), wfunction=weight_function, check=check)
+            else:
+                return kruskal(self, wfunction=weight_function, check=check)
 
         if weight_function is None:
             if self.weighted():

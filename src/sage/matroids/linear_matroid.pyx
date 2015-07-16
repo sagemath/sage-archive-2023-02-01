@@ -2670,7 +2670,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         # create mapping between elements and columns
         dX = dict(zip(range(len(X)),X))
         dY = dict(zip(range(len(Y)),Y))
-        # print(M,X,Y)
+
         for (x,y) in spanning_forest(M):
             P_rows=[x]
             P_cols=[y]
@@ -2802,17 +2802,17 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         rU = dict(zip(lU_2,range(len(U_2))))
         rV = dict(zip(lV_2,range(len(V_2))))
 
-
+        M2 = GenericMatrix(len(X),len(Y),M)
         # find a unique representation of every column in U_1xY_3 using columns in U_1xV_2
-        B = self._reduced_representation().matrix_from_rows_and_columns(list(U_1), range(len(Y)))
+        B = M2.matrix_from_rows_and_columns(list(U_1), range(len(Y)))
         gauss_jordan_reduce(B, lV_2)
-
         # find a unique representation of every rows in X_3xV_1 using rows in U_2xV_1
-        BT = self._reduced_representation().transpose().matrix_from_rows_and_columns(list(V_1),range(len(X)))
+        BT = M2.transpose().matrix_from_rows_and_columns(list(V_1),range(len(X)))
         gauss_jordan_reduce(BT, lU_2)
 
-        X_p = X_1
-        Y_p = Y_1
+        X_p = set(X_1)
+        Y_p = set(Y_1)
+
         while True:
             #rowshifts
             X_p_new = set([])

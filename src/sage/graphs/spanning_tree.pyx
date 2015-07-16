@@ -266,7 +266,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("The input G must be an undirected graph.")
-    g = G
+
     sortedE_iter = None
     # sanity checks
     if check:
@@ -278,9 +278,9 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         if G.num_verts() == G.num_edges() + 1:
             # G is a tree
             return G.edges()
-        g = G.copy()
-        g.allow_loops(False)
-        g.allow_multiple_edges(False, keep_label='min')
+        g = G.to_simple(to_undirected=False, keep_label='min')
+    else:
+        g = G
 
 
     # G is assumed to be connected, undirected, and with at least a vertex

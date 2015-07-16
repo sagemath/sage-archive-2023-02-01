@@ -5,9 +5,13 @@
 # See
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 
-import os, sys
-import six
-f1 = os.popen('math ', 'w')
+import subprocess, sys, six
+try:
+    subprocess.check_output('which math', shell=True)
+except:
+    sys.exit('ERROR: executable math not found')
+
+f1 = subprocess.Popen('math', shell=True, stdin=subprocess.PIPE).stdin
 f1.flush()
 try:
     while True:

@@ -37,6 +37,7 @@ Special Base Classes, Decorators, etc.
    sage/misc/constant_function
    sage/misc/classcall_metaclass
    sage/misc/cython_metaclass
+   sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
@@ -180,7 +181,11 @@ Formatted Output
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/ascii_art
+   sage/typeset/symbols
+   sage/typeset/character_art
+   sage/typeset/character_art_factory
+   sage/typeset/ascii_art
+   sage/typeset/unicode_art
    sage/misc/sage_input
    sage/misc/table
 

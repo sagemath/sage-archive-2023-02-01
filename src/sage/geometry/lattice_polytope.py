@@ -518,8 +518,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         .. NOTE::
 
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
+            Two lattice polytopes are equal if they have the same vertices 
+            listed in the same order.
 
         TESTS::
 
@@ -3160,6 +3160,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 pplot += text3d(i+self.nvertices(), bc+index_shift*(p-bc), rgbcolor=pindex_color)
         return pplot
 
+    def polyhedron(self):
+        r"""
+        Return the Polyhedron object determined by this polytope's vertices.
+        
+        EXAMPLES::
+        
+            sage: o = lattice_polytope.cross_polytope(2)
+            sage: o.polyhedron()
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        return Polyhedron(vertices=[list(v) for v in self._vertices])        
+    
     def show3d(self):
         """
         Show a 3d picture of the polytope with default settings and without axes or frame.
@@ -5881,7 +5894,7 @@ def read_palp_matrix(data, permutation=False):
     if permutation:
         last_piece = first_line[-1]
         last_piece = last_piece.split('=')
-        if last_piece[0] <> 'perm':
+        if last_piece[0] != 'perm':
             raise ValueError('PALP did not return a permutation.')
         p = _palp_convert_permutation(last_piece[1])
         return (mat, p)

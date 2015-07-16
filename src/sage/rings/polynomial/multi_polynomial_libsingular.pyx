@@ -1108,15 +1108,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLES::
 
             sage: R.<x,y> = ZZ[]
-            sage: macaulay2(R)        # optional
+            sage: macaulay2(R)        # optional - macaulay2
             ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = QQ[]
-            sage: macaulay2(R)        # optional, indirect doctest
+            sage: macaulay2(R)        # optional - macaulay2, indirect doctest
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 
             sage: R.<x,y> = GF(17)[]
-            sage: print macaulay2(R)        # optional
+            sage: print macaulay2(R)        # optional - macaulay2
             ZZ
             -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             17
@@ -4773,17 +4773,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: f = (x^3 + 2*y^2*x)^7; f          # indirect doctest
             x^21 + 2*x^7*y^14
 
-            sage: h = macaulay2(f); h               # optional
+            sage: h = macaulay2(f); h               # optional - macaulay2
              21     7 14
             x   + 2x y
-            sage: k = macaulay2(x+y); k             # optional
+            sage: k = macaulay2(x+y); k             # optional - macaulay2
             x + y
-            sage: k + h                             # optional
+            sage: k + h                             # optional - macaulay2
              21     7 14
             x   + 2x y   + x + y
-            sage: R(h)                              # optional
+            sage: R(h)                              # optional - macaulay2
             x^21 + 2*x^7*y^14
-            sage: R(h^20) == f^20                   # optional
+            sage: R(h^20) == f^20                   # optional - macaulay2
             True
         """
         m2_parent = macaulay2(self.parent())

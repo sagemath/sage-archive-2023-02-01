@@ -580,7 +580,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.private_key(19, 23)
             (19, 23, -6, 5)
@@ -655,7 +655,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.public_key(3, 7)
             21

@@ -610,33 +610,57 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         INPUT:
 
+        - ``k`` -- a non-negative integer
 
-        -  ``k`` - an integer
+        - ``algorithm`` -- either ``'recurrence'`` (default) or
+          ``'definition'``
 
-        -  ``algorithm`` - string (default: 'recurrence');
-           either 'recurrence' or 'definition'. The 'recurrence' algorithm
-           expresses generalized Bernoulli numbers in terms of classical
-           Bernoulli numbers using a recurrence formula and is usually
-           optimal. In this case ``**opts`` is passed onto the bernoulli
-           function.
+        - ``cache`` -- if True, cache answers
 
-        -  ``cache`` - if True, cache answers
+        - ``**opts`` -- optional arguments; not used directly, but
+          passed to the :func:`bernoulli` function if this is called
 
+        OUTPUT:
 
-        Let eps be this character (not necessarily primitive), and let
-        `k \geq 0` be an integer weight. This function computes the
-        (generalized) Bernoulli number `B_{k,eps}`, e.g., as
-        defined on page 44 of Diamond-Im:
+        Let `\varepsilon` be a (not necessarily primitive) character
+        of modulus `N`.  This function returns the generalized
+        Bernoulli number `B_{k,\varepsilon}`, as defined by the
+        following identity of power series (see for example
+        [Diamond-Im]_, Section 2.2):
 
         .. math::
 
-                       \sum_{a=1}^{N} \varepsilon(a) t*e^{at} / (e^{Nt}-1) = sum_{k=0}^{\infty} B_{k,eps}/{k!} t^k.
+            \sum_{a=1}^N \frac{\varepsilon(a) t e^{at}}{e^{Nt}-1}
+            = sum_{k=0}^{\infty} \frac{B_{k,\varepsilon}}{k!} t^k.
 
+        ALGORITHM:
 
-        where `N` is the modulus of `\varepsilon`.
+        The ``'recurrence'`` algorithm computes generalized Bernoulli
+        numbers via classical Bernoulli numbers using the formula in
+        [Cohen-II]_, Proposition 9.4.5; this is usually optimal.  The
+        ``definition`` algorithm uses the definition directly.
 
-        The default algorithm is the recurrence on page 656 of Cohen's GTM
-        'Number Theory and Diophantine Equations', section 9.
+        .. WARNING::
+
+            In the case of the trivial Dirichlet character modulo 1,
+            this function returns `B_{1,\varepsilon} = 1/2`, in
+            accordance with the above definition, but in contrast to
+            the value `B_1 = -1/2` for the classical Bernoulli number.
+            Some authors use an alternative definition giving
+            `B_{1,\varepsilon} = -1/2`; see the discussion in
+            [Cohen-II]_, Section 9.4.1.
+
+        REFERENCES:
+
+        .. [Cohen-II] H. Cohen, Number Theory and Diophantine
+           Equations, Volume II.  Graduate Texts in Mathematics 240.
+           Springer, 2007.
+
+        .. [Diamond-Im] F. Diamond and J. Im, Modular forms and
+           modular curves.  In: V. Kumar Murty (ed.), Seminar on
+           Fermat's Last Theorem (Toronto, 1993-1994), 39-133.  CMS
+           Conference Proceedings 17.  American Mathematical Society,
+           1995.
 
         EXAMPLES::
 
@@ -649,6 +673,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             10*zeta6 + 4
             sage: eps.bernoulli(3, algorithm="definition")
             10*zeta6 + 4
+
+        TESTS:
+
+        Check that :trac:`17586` is fixed::
+
+            sage: DirichletGroup(1)[0].bernoulli(1)
+            1/2
+
         """
         if cache:
             try:
@@ -660,13 +692,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
         N = self.modulus()
         K = self.base_ring()
 
-        if N != 1 and self(-1) != K((-1)**k):
-            ans = K(0)
-            if cache:
-                self.__bernoulli[k] = ans
-            return ans
-
-        if algorithm == "recurrence":
+        if N == 1:
+            # By definition, the first Bernoulli number of the trivial
+            # character is 1/2, in contrast to the value B_1 = -1/2.
+            ber = K.one()/2 if k == 1 else K(bernoulli(k))
+        elif self(-1) != K((-1)**k):
+            ber = K.zero()
+        elif algorithm == "recurrence":
             # The following code is pretty fast, at least compared to
             # the other algorithm below.  That said, I'm sure it could
             # be sped up by a factor of 10 or more in many cases,
@@ -675,14 +707,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
             # instead of calls to the bernoulli function.  Likewise
             # computing all binomial coefficients can be done much
             # more efficiently.
-            if self.modulus() == 1:
-                ber = K(bernoulli(k))
-            else:
-                v = self.values()
-                S = lambda n: sum(v[r] * r**n for r in range(1, N))
-                ber = K(sum(binomial(k,j) * bernoulli(j, **opts) *
-                                    N**(j-1) * S(k-j) for j in range(k+1)))
-
+            v = self.values()
+            S = lambda n: sum(v[r] * r**n for r in range(1, N))
+            ber = K(sum(binomial(k,j) * bernoulli(j, **opts) *
+                        N**(j-1) * S(k-j) for j in range(k+1)))
         elif algorithm == "definition":
             # This is better since it computes the same thing, but requires
             # no arith in a poly ring over a number field.
@@ -691,11 +719,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             t = R.gen()
             # g(t) = t/(e^{Nt}-1)
             g = t/((N*t).exp(prec) - 1)
-
             # h(n) = g(t)*e^{nt}
             h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
             ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
-
         else:
             raise ValueError("algorithm = '%s' unknown"%algorithm)
 
@@ -1422,24 +1448,42 @@ class DirichletCharacter(MultiplicativeGroupElement):
             Cyclotomic Field of order 4 and degree 2
             sage: (e^12).minimize_base_ring().base_ring()
             Rational Field
+
+        TESTS:
+
+        Check that :trac:`18479` is fixed::
+
+            sage: f = Newforms(Gamma1(25), names='a')[1]
+            sage: eps = f.character()
+            sage: eps.minimize_base_ring() == eps
+            True
+        
+        A related bug (see :trac:`18086`)::
+
+            sage: K.<a,b>=NumberField([x^2 + 1, x^2 - 3])
+            sage: chi = DirichletGroup(7, K).0
+            sage: chi.minimize_base_ring()
+            Dirichlet character modulo 7 of conductor 7 mapping 3 |--> -1/2*b*a + 1/2
         """
-        if isinstance(self.base_ring(),rings.RationalField):
+        R = self.base_ring()
+        if R.is_prime_field():
+            return self
+        p = R.characteristic()
+
+        if p:
+            K = rings.IntegerModRing(p)
+        elif self.order() <= 2:
+            K = rings.QQ
+        elif (isinstance(R, number_field.NumberField_generic)
+              and arith.euler_phi(self.order()) < R.absolute_degree()):
+            K = rings.CyclotomicField(self.order())
+        else:
             return self
 
-        if self.is_trivial() and self.base_ring().characteristic() == 0:
-            return self.change_ring(rings.QQ)
-
-        if isinstance(self.base_ring(),number_field.NumberField_generic):
-            if self.order() <= 2:
-                return self.change_ring(rings.RationalField())
-            if arith.euler_phi(self.order()) == self.base_ring().degree():
-                return self
-            K = rings.CyclotomicField(self.order())
+        try:
             return self.change_ring(K)
-
-        #raise NotImplementedError, "minimize_base_ring is currently " + \
-        #      "only implemented when the base ring is a number field."
-        return self
+        except (TypeError, ValueError, ArithmeticError):
+            return self
 
     def modulus(self):
         """

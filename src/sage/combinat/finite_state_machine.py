@@ -7307,7 +7307,8 @@ class FiniteStateMachine(SageObject):
             sage: B.determinisation()
             Automaton with 1 state
         """
-        def composition_transition((state1, state2), input):
+        def composition_transition(states, input):
+            (state1, state2) = states
             return [((new_state1, new_state2), output_second)
                     for _, new_state1, output_first in
                     first.process([input],

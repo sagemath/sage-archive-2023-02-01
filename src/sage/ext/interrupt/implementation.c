@@ -43,7 +43,7 @@ AUTHORS:
 #include <sys/prctl.h>
 #endif
 #include "interrupt/struct_signals.h"
-#include "build/cythonized/sage/ext/interrupt/interrupt.h"
+#include "interrupt/interrupt.h"
 
 
 /* Interrupt debug level.  This only works if ENABLE_DEBUG_INTERRUPT

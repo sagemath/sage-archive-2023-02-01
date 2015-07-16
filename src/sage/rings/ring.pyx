@@ -100,6 +100,7 @@ cdef class Ring(ParentWithGens):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -210,15 +211,17 @@ cdef class Ring(ParentWithGens):
 
     def __xor__(self, n):
         r"""
-        Trap the operation ``^``. It's next to impossible to test this since
-        ``^`` is intercepted first by the preparser.
+        Trap the operation ``^``.
 
         EXAMPLES::
 
-            sage: RR^3 # not tested
+            sage: eval('RR^3')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: use ** for exponentiation, not '^', which means xor in Python, and has the wrong precedence
         """
-        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
-              "in Python, and has the wrong precedence."
+        raise RuntimeError("use ** for exponentiation, not '^', which means xor "
+              "in Python, and has the wrong precedence")
 
     def base_extend(self, R):
         """
@@ -2227,6 +2230,68 @@ cdef class Field(PrincipalIdealDomain):
         if a:
             a = a.monic()
         return a
+
+    def _xgcd_univariate_polynomial(self, a, b):
+        """
+        Return an extended gcd of ``a`` and ``b``.
+
+        INPUT:
+
+        - ``a``, ``b`` -- two univariate polynomials
+
+        OUTPUT:
+
+        A tuple ``(d, u, v)`` of polynomials such that ``d`` is the
+        greatest common divisor (monic or zero) of ``a`` and ``b``,
+        and ``u``, ``v`` satisfy ``d = u*a + v*b``.
+
+        .. WARNING:
+
+            If the base ring is inexact, the results may not be
+            entirely stable.
+
+        ALGORITHM:
+
+        This uses the extended Euclidean algorithm; see for example
+        [Cohen]_, Algorithm 3.2.2.
+
+        REFERENCES:
+
+        .. [Cohen] H. Cohen, A Course in Computational Algebraic
+           Number Theory.  Graduate Texts in Mathematics 138.
+           Springer-Verlag, 1996.
+
+        TESTS::
+
+            sage: for A in (RR, CC, QQbar):
+            ....:     g = A._xgcd_univariate_polynomial
+            ....:     R.<x> = A[]
+            ....:     z, h = R(0), R(1/2)
+            ....:     assert(g(2*x, 2*x^2) == (x, h, z) and
+            ....:            g(z, 2*x) == (x, z, h) and
+            ....:            g(2*x, z) == (x, h, z) and
+            ....:            g(z, z) == (z, z, z))
+
+        """
+        R = a.parent()
+        zero = R.zero()
+        if not b:
+            if not a:
+                return (zero, zero, zero)
+            c = ~a.leading_coefficient()
+            return (c*a, R(c), zero)
+        elif not a:
+            c = ~b.leading_coefficient()
+            return (c*b, zero, R(c))
+        (u, d, v1, v3) = (R.one(), a, zero, b)
+        while v3:
+            q, r = d.quo_rem(v3)
+            (u, d, v1, v3) = (v1, v3, u - v1*q, r)
+        v = (d - a*u) // b
+        if d:
+            c = ~d.leading_coefficient()
+            d, u, v = c*d, c*u, c*v
+        return d, u, v
 
 
 cdef class Algebra(Ring):

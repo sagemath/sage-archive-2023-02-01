@@ -343,16 +343,16 @@ def process_extlinks(s, embedded=False):
 
         sage: from sage.misc.sagedoc import process_extlinks
         sage: process_extlinks('See :trac:`1234`, :wikipedia:`Wikipedia <Sage_(mathematics_software)>`, and :trac:`4321` ...')
-        'See http://trac.sagemath.org/1234, http://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
+        'See http://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
         sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
         'See :trac:`1234` for more information.'
         sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')
-        'see http://docs.python.org/release/.../reference/datamodel.html#implementing-descriptors ...'
+        'see https://docs.python.org/release/.../reference/datamodel.html#implementing-descriptors ...'
     """
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
     from conf import pythonversion, extlinks
     sys.path = oldpath
     for key in extlinks:
@@ -797,7 +797,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                                       if re.search(string, line, flags)]
                         for extra in [extra1, extra2, extra3, extra4, extra5]:
                             if extra:
-                                match_list = [s for s in match_list 
+                                match_list = [s for s in match_list
                                                 if re.search(extra, s[1], re.MULTILINE | flags)]
                         for num, line in match_list:
                             results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
@@ -943,9 +943,9 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     ``search_src(string, interact=False).splitlines()`` gives the
     number of matches. ::
 
-        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 10
+        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 40
         True
-        sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+        sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
         True
 
     A little recursive narcissism: let's do a doctest that searches for
@@ -965,8 +965,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 10
-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 40
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
@@ -1446,7 +1446,7 @@ def help(module=None):
         if hasattr(module, '_sage_doc_'):
             from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
             docstr = 'Help on ' + str(module) + '\n'
-            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n'
             pydoc.pager(docstr + _sage_getdoc_unformatted(module))
         else:
             python_help(module)

@@ -135,7 +135,7 @@ cdef class PolyDict:
 
         for m in left:
             try:
-                n = right.next()
+                n = next(right)
             except StopIteration:
                 return 1 # left has terms, right doesn't
             ret =  fn(m,n)
@@ -147,7 +147,7 @@ cdef class PolyDict:
             #try next pair
 
         try:
-            n = right.next()
+            n = next(right)
         except StopIteration:
             return 0 # both have no terms
 

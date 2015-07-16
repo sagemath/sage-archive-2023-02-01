@@ -19,6 +19,7 @@ Path Semigroups
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
@@ -335,9 +336,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
         elif not data:
             raise ValueError("No data given to define this path")
         elif data == 1:
-            start = end = self._quiver.vertex_iterator().next()
+            start = end = next(self._quiver.vertex_iterator())
             path = []
-        elif isinstance(data, basestring): # one edge
+        elif isinstance(data, six.string_types): # one edge
             i = L.get(data, None)
             if i is None:
                 raise ValueError("data={!r} is not the label of an edge".format(data))
@@ -345,7 +346,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             path = [i]
         elif not isinstance(data, (tuple,list)):
             raise TypeError("data={} is not valid. A path must be initialized from either a tuple or a list".format(data))
-        elif isinstance(data[0], basestring):  # a list of labels
+        elif isinstance(data[0], six.string_types):  # a list of labels
             start = L.get(data[0])
             if start is None:
                 raise ValueError("data[0]={!r} is not the label of an edge".format(data[0]))
@@ -361,7 +362,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             path = []
         else:  # a list of edges
             if any(len(x) != 3 for x in data):
-                x = (x for x in data if len(x) != 3).next()
+                x = next((x for x in data if len(x) != 3))
                 raise ValueError("each edge must be a triple, got {}".format(x))
             start = data[0][0]
             end = data[-1][1]
@@ -379,7 +380,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
                     raise ValueError("Start and endpoint of a path of length 0 must coincide")
             else:
                 if any(x is None for x in path):
-                    i = (i for i,x in enumerate(path) if x is None).next()
+                    i = next((i for i,x in enumerate(path) if x is None))
                     raise ValueError("{} is not an edge".format(data[i]))
                 for n in range(1,len(path)):
                     e0 = E[path[n-1]][1]

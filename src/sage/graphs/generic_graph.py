@@ -3302,17 +3302,23 @@ class GenericGraph(GenericGraph_pyx):
             return edges
 
     def min_spanning_tree(self,
-                          weight_function=lambda e: 1,
+                          weight_function=None,
                           algorithm="Kruskal",
                           starting_vertex=None,
                           check=False):
         r"""
         Returns the edges of a minimum spanning tree.
 
+        At the moment, no algorithm for directed graph is implemented: if the
+        graph is directed, a minimum spanning tree of the corresponding
+        undirected graph is returned.
+
         INPUT:
 
         - ``weight_function`` -- A function that takes an edge and returns a
-          numeric weight. Defaults to assigning each edge a weight of 1.
+          numeric weight. If ``None`` (default), the algorithm uses the edge
+          weights, if available, otherwise it assigns weight 1 to each edge (in
+          the latter case, the output can be any spanning tree).
 
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
@@ -3329,7 +3335,8 @@ class GenericGraph(GenericGraph_pyx):
             implementation.
 
         - ``starting_vertex`` -- The vertex from which to begin the search
-          for a minimum spanning tree.
+          for a minimum spanning tree (available only for ``Prim_fringe`` and
+          ``Prim_edge``).
 
         - ``check`` -- Boolean; default: ``False``. Whether to first perform
           sanity checks on the input graph ``G``. If appropriate, ``check``
@@ -3356,7 +3363,7 @@ class GenericGraph(GenericGraph_pyx):
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -3368,14 +3375,67 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (3, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
-            [(2, 4), (4, 3), (4, 1), (4, 0)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
+
+        NetworkX algorithm::
+
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None)]
+
+        TESTS:
+
+        Check that, if ``weight_function`` is not provided, then edge weights
+        are used::
+
+            sage: g = Graph(weighted=True)
+            sage: g.add_edges([[0,1,1],[1,2,1],[2,0,10]])
+            sage: g.min_spanning_tree()
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, 1), (1, 2, 1)]
+
+        Check that, if ``weight_function`` is provided, it overrides edge
+        weights::
+
+            sage: g = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+            sage: weight = lambda e:3-e[0]-e[1]
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+
+        If the graph is directed, it is transformed into an undirected graph::
+
+            sage: g = digraphs.Circuit(3)
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
+            sage: g.to_undirected().min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
         """
         if algorithm == "Kruskal":
             from spanning_tree import kruskal
-            return kruskal(self, wfunction=weight_function, check=check)
-        elif algorithm == "Prim_fringe":
+            if self.is_directed():
+                return kruskal(self.to_undirected(), wfunction=weight_function, check=check)
+            else:
+                return kruskal(self, wfunction=weight_function, check=check)
+
+        if weight_function is None:
+            if self.weighted():
+                weight_function = lambda e:self.edge_label(e[0], e[1])
+            else:
+                weight_function = lambda e:1
+
+        if algorithm == "Prim_fringe":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
             else:
@@ -3390,7 +3450,8 @@ class GenericGraph(GenericGraph_pyx):
             for i in range(self.order() - 1):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
-                edges.append((fringe_list[u][1], u))
+                x = fringe_list[u][1]
+                edges.append((min(x,u), max(x,u), self.edge_label(x, u)))
                 tree.add(u)
                 fringe_list.pop(u)
                 # update fringe list
@@ -3398,7 +3459,8 @@ class GenericGraph(GenericGraph_pyx):
                     w = weight_function((u, neighbor))
                     if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
                         fringe_list[neighbor] = (w, u)
-            return edges
+            return sorted(edges)
+
         elif algorithm == "Prim_edge":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
@@ -3429,11 +3491,13 @@ class GenericGraph(GenericGraph_pyx):
                         break
                     else:
                         i += 1
-            return edges
+            return sorted(edges)
+
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(u, v, dict(weight=weight_function((u, v)))) for u, v, l in self.edge_iterator()])
-            return list(networkx.mst(G))
+            return sorted([(u,v,self.edge_label(u,v)) if u<v else (v,u,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()])
+
         else:
             raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)
 

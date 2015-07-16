@@ -2617,9 +2617,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # connectivity
 
-    cpdef _is_3connected_shifting(self):
+    cpdef _is_3connected_shifting(self, certificate=False):
         r"""
-        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
 
         INPUT:
 
@@ -2655,18 +2656,19 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: M._is_3connected_shifting()
             False
             sage: B, X = M._is_3connected_shifting(True)
-            sage: M.connectivity(X)
-            1
+            sage: M.connectivity(X)<3
+            True
         """
-        # build the table
         if not self.is_connected():
-            return False, self.components()[0]
+            if certificate:
+                return False, self.components()[0]
+            else:
+                return False
         if self.rank()>self.size()-self.rank():
-            return self.dual()._is_3connected_shifting()
+            return self.dual()._is_3connected_shifting(certificate)
         
         # the partial matrix
         (M,X,Y) = self.representation(reduced=True)
-        # dictionary
         # create mapping between elements and columns
         dX = dict(zip(range(len(X)),X))
         dY = dict(zip(range(len(Y)),Y))
@@ -2678,19 +2680,57 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             Q_cols=[]
             sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 2)
             if sol:
-                cert = set([])
-                for x in cert_pair[0]:
-                    cert.add(dX[x])
-                for y in cert_pair[1]:
-                    cert.add(dY[y])
-                return False, cert
-        return True, None
+                if certificate:
+                    cert = set([])
+                    for x in cert_pair[0]:
+                        cert.add(dX[x])
+                    for y in cert_pair[1]:
+                        cert.add(dY[y])
+                    return False, cert
+                return False
+        if certificate:
+            return True, None
+        return True
 
-    cpdef _is_4connected_shifting(self):
+    cpdef _is_4connected_shifting(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 4-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<4`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2, 6)
+            sage: B, X = M._is_4connected_shifting(True)
+            sage: (B, M.connectivity(X)<=3)
+            (False, True)
+            sage: matroids.Uniform(4, 8)._is_4connected_shifting()
+            True
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M._is_4connected_shifting()
+            True
+        """
         if self.rank()>self.size()-self.rank():
-            return self.dual()._is_4connected_shifting()
-        if not self._is_3connected_shifting()[0]:
-            return self._is_3connected_shifting()
+            return self.dual()._is_4connected_shifting(certificate)
+        if not self._is_3connected_shifting():
+            return self._is_3connected_shifting(certificate)
 
         # the partial matrix
         (M,X,Y) = self.representation(reduced=True)
@@ -2743,16 +2783,63 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 if sol:
                     break
             if sol:
-                (certX, certY) = cert_pair
-                cert = set([])
-                for x in certX:
-                    cert.add(dX[x])
-                for y in certY:
-                    cert.add(dY[y])
-                return False, cert
-        return True, None
+                if certificate:
+                    (certX, certY) = cert_pair
+                    cert = set([])
+                    for x in certX:
+                        cert.add(dX[x])
+                    for y in certY:
+                        cert.add(dY[y])
+                    return False, cert
+                return False
+        if certificate:
+            return True, None
+        return True
 
     cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, m):
+        r"""
+        Given a partial matrix `M`. If the submatrix `M` using rows
+        `P_rows` columns `P_cols` and submatrix using rows `Q_rows` columns
+        `Q_cols` can be extended to a ``m``-separator, then it returns
+        `True, E`, where `E` is a ``m``-separator. Otherwise it returns
+        `False, None`
+
+        `P_rows` and `Q_rows` must be disjoint subsets of row indices.
+        `P_cols` and `Q_cols` must be disjoint subsets of column indices.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``M`` -- A partial matrix
+        - ``P_rows`` -- list of row indices of the first submatrix
+        - ``P_cols`` -- list of column indices of the first submatrix
+        - ``Q_rows`` -- list of row indices of the second submatrix
+        - ``Q_cols`` -- list of column indices of the second submatrix
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
+        - `True, E` -- if there exist a ``m``-separator ``E``.
+
+        EXAMPLES::
+
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M.__shifting_all(M.representation(reduced=True)[0],[0,1],[0,1],[],[],3)
+            (False, None)
+            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
+            ....:                                          [1,1,1,1,0],
+            ....:                                          [0,1,1,1,0],
+            ....:                                          [0,0,0,1,1]])
+            sage: M.__shifting_all(M.representation(reduced=True)[0], [1], [1], [0], [0], 3)[0]
+            True
+
+        """
         Z = range(M.ncols())
         for y in P_cols+Q_cols:
             Z.remove(y)
@@ -2772,6 +2859,52 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return False, None
 
     cpdef __shifting(self, M, U_1, V_2, U_2, V_1, z2, z1, m):
+        r"""
+        Given a partial matrix `M`. 
+        Let `E_1` be the submatrix of `M` using rows `U_1` and columns `V_2` with
+        optional column `z2` attached.
+        Let `E_2` be the submatrix of `M` using rows `U_2` and columns `V_1` with
+        optional column `z1` attached.
+        If `E_1` and `E_2` can be extended to a ``m``-separator, then it 
+        returns `True, E`, where `E` is a ``m``-separator. Otherwise it 
+        returns `False, None`
+
+        `U_1` and `U_2` must be disjoint subsets of row indices.
+        `V_1` and `V_2` must be disjoint subsets of column indices.
+
+        Internal version does not verify the above properties hold. 
+
+        INPUT:
+
+        - ``M`` -- A partial matrix
+        - ``U_1`` -- list of row indices of the first submatrix
+        - ``V_2`` -- list of column indices of the first submatrix
+        - ``U_2`` -- list of row indices of the second submatrix
+        - ``V_1`` -- list of column indices of the second submatrix
+        - ``z2``  -- start by add an additional column with index `z2` to `V_2`
+        - ``z1``  -- start by add an additional column with index `z1` to `V_1`
+        - ``m`` -- separation size
+
+        OUTPUT:
+
+        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
+        - `True, (X,Y)` -- row indices `X` and column indices `Y` defines a ``m``-separator.
+
+        EXAMPLES::
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M.__shifting(M.representation(reduced=True)[0],[0,1],[0,1],[],[],2,None,3)
+            (False, None)
+            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
+            ....:                                          [1,1,1,1,0],
+            ....:                                          [0,1,1,1,0],
+            ....:                                          [0,0,0,1,1]])
+            sage: M.__shifting(M.representation(reduced=True)[0],[1], [1], [0], [0], None, 2, 3)[0]
+            True
+        """
         # make copy because of destructive updates
         X_1 = list(U_1)
         X_2 = list(U_2)
@@ -2785,6 +2918,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         lX_2 = len(X_2)
         lY_2 = len(Y_2)
 
+        # both matrices should be non-singular
         if (M.matrix_from_rows_and_columns(list(U_1),list(V_2)).rank() +
             M.matrix_from_rows_and_columns(list(U_2),list(V_1)).rank() != m-1):
             return False, None

@@ -359,7 +359,6 @@ def get_nonisomorphic_matroids(MSet):
             OutSet.append(M)
     return OutSet
 
-
 def spanning_forest(M):
     r"""
     Return a list of edges of a spanning forest of the bipartite
@@ -377,9 +376,9 @@ def spanning_forest(M):
 
     EXAMPLES::
 
-        sage: len(spanning_forest(matrix([[1,1,1],[1,1,1],[1,1,1]])))
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[1,1,1],[1,1,1],[1,1,1]])))
         5
-        sage: len(spanning_forest(matrix([[0,0,1],[0,1,0],[0,1,0]])))
+        sage: len(sage.matroids.utilities.spanning_forest(matrix([[0,0,1],[0,1,0],[0,1,0]])))
         3
     """
     # Given a matrix, produce a spanning tree
@@ -415,7 +414,10 @@ def spanning_stars(M):
     A list of tuples `(row,column)` in a spanning forest of the bipartite graph defined by ``M``
     
     EXAMPLES::
-        [NEED UPDATE]
+
+        sage: edges = sage.matroids.utilities.spanning_stars(matrix([[1,1,1],[1,1,1],[1,1,1]]))
+        sage: Graph(map(lambda (x,y): (x+3,y), edges)).is_connected()
+        True
     """
 
     G = Graph()
@@ -424,10 +426,6 @@ def spanning_stars(M):
         G.add_edge(x+m,y)
 
     delta = (M.nrows()+m)**0.5
-
-    #print(M)
-    #print(G)
-
     # remove low degree vertices
     H = []
     # candidate vertices
@@ -478,9 +476,7 @@ def spanning_stars(M):
             t = x
             x = y
             y = t
-    #    print(x,y)
         T.append((x-m,y))
-    # print(T)
     return T
 
 # Partial fields and lifting

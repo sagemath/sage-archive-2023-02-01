@@ -4714,7 +4714,7 @@ cdef class Matroid(SageObject):
         if algorithm == "intersection":
             return self._is_3connected_CE(separation)
         if algorithm == "shifting":
-            return self._is_3connected_shifting()
+            return self._is_3connected_shifting(certificate)
         raise ValueError("Not a valid algorithm.")
 
 
@@ -4815,14 +4815,20 @@ cdef class Matroid(SageObject):
         else:
             return True
 
-    cpdef _is_3connected_shifting(self):
+    cpdef _is_3connected_shifting(self, certificate=False):
         r"""
-        Return ``True, None`` if the matroid is is 3-connected,
-        and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
 
         OUTPUT:
 
-        a tuple ``(boolean, frozenset)``
+        boolean, or a tuple ``(boolean, frozenset)``
 
         ALGORITHM:
 
@@ -4830,32 +4836,34 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: matroids.Uniform(2, 3)._is_3connected_shifting()[0]
+            sage: matroids.Uniform(2, 3)._is_3connected_shifting()
             True
             sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
             ....:                              [0, 1, 0, 1, 2, 0],
             ....:                              [0, 0, 1, 0, 0, 1]])
-            sage: M._is_3connected_shifting()[0]
+            sage: M._is_3connected_shifting()
             False
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
-            sage: N._is_3connected_shifting()[0]
+            sage: N._is_3connected_shifting()
             False
-            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()[0]
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()
             True
-            sage: M = matroids.named_matroids.R6()[0]
+            sage: M = matroids.named_matroids.R6()
             sage: M._is_3connected_shifting()
             False
-            sage: B, X = M._is_3connected_shifting()
+            sage: B, X = M._is_3connected_shifting(True)
             sage: M.connectivity(X)
             1
         """
-        # build the table
         if not self.is_connected():
-            return False, self.components()[0]
+            if certificate:
+                return False, self.components()[0]
+            else:
+                return False
         if self.rank()>self.size()-self.rank():
-            return self.dual()._is_3connected_shifting()
+            return self.dual()._is_3connected_shifting(certificate)
         X = set(self.basis())
         Y = set(self.groundset()-X)
         
@@ -4870,7 +4878,6 @@ cdef class Matroid(SageObject):
         for y in Y:
             for x in (X & self.fundamental_circuit(X,y)):
                 M[rdX[x],rdY[y]]=1
-        # print(M,X,Y)
 
         for (x,y) in spanning_forest(M):
             P_rows=set([dX[x]])
@@ -4879,36 +4886,52 @@ cdef class Matroid(SageObject):
             Q_cols=set([])
             sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 2)
             if sol:
-                return False, cert
-        return True, None
+                if certificate:
+                    return False, cert
+                return False
+        if certificate:
+            return True, None
+        return True
 
-    cpdef _is_4connected_shifting(self):
+    cpdef _is_4connected_shifting(self, certificate=False):
         r"""
-        Return ``True, None`` if the matroid is is 4-connected,
-        and ``False, X`` otherwise, where ``X`` is a `<4`-separation
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 4-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<4`-separation
 
         OUTPUT:
 
-        a tuple ``(boolean, frozenset)``
+        boolean, or a tuple ``(boolean, frozenset)``
 
         ALGORITHM:
 
         The shifting algorithm
 
         EXAMPLES::
+
             sage: M = matroids.Uniform(2, 6)
-            sage: B, X = M._is_4connected_shifting()
+            sage: B, X = M._is_4connected_shifting(True)
             sage: (B, M.connectivity(X)<=3)
             (False, True)
             sage: matroids.Uniform(4, 8)._is_4connected_shifting()
-            (True, None)
-            sage: matroids.AG(5,2)._is_4connected_shifting()
-            (True, None)
+            True
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M._is_4connected_shifting()
+            True
         """
         if self.rank()>self.size()-self.rank():
-            return self.dual()._is_4connected_shifting()
-        if not self._is_3connected_shifting()[0]:
-            return self._is_3connected_shifting()
+            return self.dual()._is_4connected_shifting(certificate)
+        if not self._is_3connected_shifting():
+            return self._is_3connected_shifting(certificate)
 
         X = set(self.basis())
         Y = set(self.groundset()-X)
@@ -4944,7 +4967,6 @@ cdef class Matroid(SageObject):
             Xp.remove(x1)
             Yp = range(m)
             Yp.remove(y1)
-            #print(n,m,x1,y1,Xp,Yp)
             B = B.matrix_from_rows_and_columns(Xp,Yp)
 
             # produce a spanning forest of B
@@ -4960,7 +4982,9 @@ cdef class Matroid(SageObject):
                 Q_cols = set([])
                 sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 3)
                 if sol:
-                    return False, cert
+                    if certificate:
+                        return False, cert
+                    return False
                 # rank 1 matrix and rank 1 matrix
                 P_rows = set([dX[x1]])
                 P_cols = set([dY[y1]])
@@ -4968,8 +4992,12 @@ cdef class Matroid(SageObject):
                 Q_cols = set([dY[y]])
                 sol,cert = self._shifting_all(X, P_rows, P_cols, Q_rows, Q_cols, 3)
                 if sol:
-                    return False, cert
-        return True, None
+                    if certificate:
+                        return False, cert
+                    return False
+        if certificate:
+            return True, None
+        return True
 
     cpdef _shifting_all(self, X, P_rows, P_cols, Q_rows, Q_cols, m):
         r"""
@@ -4987,10 +5015,10 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- A basis
-        - ``P_rows`` -- row index of the first submatrix
-        - ``P_cols`` -- column index of the first submatrix
-        - ``Q_rows`` -- row index of the second submatrix
-        - ``Q_cols`` -- column index of the second submatrix
+        - ``P_rows`` -- a set of row indices of the first submatrix
+        - ``P_cols`` -- a set of column indices of the first submatrix
+        - ``Q_rows`` -- a set of row indices of the second submatrix
+        - ``Q_cols`` -- a set of column indices of the second submatrix
         - ``m`` -- separation size
 
         OUTPUT:
@@ -5000,7 +5028,20 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-        [NEED UPDATE]
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M._shifting_all(M.basis(),set([0,1]),set([0,1]),set([]),set([]),3)
+            (False, None)
+            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
+            ....:                                          [1,1,1,1,0],
+            ....:                                          [0,1,1,1,0],
+            ....:                                          [0,0,0,1,1]])
+            sage: M._shifting_all(M.basis(), set([0,1]), set([5,8]), set([]), set([]), 3)[0]
+            True
+
         """
         Y = self.groundset()-X
         for z in (Y - P_cols) - Q_cols:
@@ -5034,10 +5075,10 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- A basis
-        - ``X_1`` -- row index of the first submatrix
-        - ``Y_2`` -- column index of the first submatrix
-        - ``X_2`` -- row index of the second submatrix
-        - ``Y_1`` -- column index of the second submatrix
+        - ``X_1`` -- set of row indices of the first submatrix
+        - ``Y_2`` -- set of column indices of the first submatrix
+        - ``X_2`` -- set of row indices of the second submatrix
+        - ``Y_1`` -- set of column indices of the second submatrix
         - ``m`` -- separation size
 
         OUTPUT:
@@ -5047,7 +5088,19 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-        [NEED UPDATE]
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M._shifting(M.basis(),set([0,1]),set([0,1]),set([]),set([]),3)
+            (False, None)
+            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
+            ....:                                          [1,1,1,1,0],
+            ....:                                          [0,1,1,1,0],
+            ....:                                          [0,0,0,1,1]])
+            sage: M._shifting(M.basis(), set([0,1]), set([5,8]), set([]), set([4]), 3)[0]
+            True
         """
         
         X_1 = set(X_1)
@@ -5057,7 +5110,6 @@ cdef class Matroid(SageObject):
 
         lX_2 = len(X_2)
         lY_2 = len(Y_2)
-
 
         Y = self.groundset()-X
         # Returns true if there is a m-separator
@@ -5091,6 +5143,7 @@ cdef class Matroid(SageObject):
         Y_2 = Y-Y_1
         S_2 = X_2|Y_2
         
+
         if len(S_2) < m:
             return False, None
         if (lX_2==len(X_2) and lY_2==len(Y_2)):

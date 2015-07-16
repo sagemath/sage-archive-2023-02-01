@@ -138,8 +138,8 @@ cdef class Matroid(SageObject):
     cpdef connectivity(self, S, T=*)
     cpdef _connectivity(self, S, T)
     
-    cpdef _is_3connected_shifting(self)
-    cpdef _is_4connected_shifting(self)
+    cpdef _is_3connected_shifting(self, certificate=*)
+    cpdef _is_4connected_shifting(self, certificate=*)
     cpdef _shifting_all(self, X, P_rows, P_cols, Q_rows, Q_cols, m)
     cpdef _shifting(self, X, X_1, Y_2, X_2, Y_1, m)
 

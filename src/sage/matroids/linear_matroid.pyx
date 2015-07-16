@@ -2757,29 +2757,39 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         for y in P_cols+Q_cols:
             Z.remove(y)
         for z in Z:
-            sol,cert = self.__shifting(M,P_rows,P_cols+[z],Q_rows,Q_cols,m)
+            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols,z,None,m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols+[z],m)
+            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols,None,z,m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols+[z],m)
+            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols,None,z,m)
             if sol:
                 return True, cert
-            sol,cert = self.__shifting(M,Q_rows,Q_cols+[z],P_rows,P_cols,m)
+            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols,z,None,m)
             if sol:
                 return True, cert
         return False, None
 
-    cpdef __shifting(self, M, X_1, Y_2, X_2, Y_1, m):
+    cpdef __shifting(self, M, U_1, V_2, U_2, V_1, z2, z1, m):
         # make copy because of destructive updates
-        X_1 = list(X_1)
-        X_2 = list(X_2)
-        Y_1 = list(Y_1)
-        Y_2 = list(Y_2)
+        X_1 = list(U_1)
+        X_2 = list(U_2)
+        if z1 == None:
+            Y_1 = list(V_1)
+            Y_2 = list(V_2) + [z2]
+        else:
+            Y_1 = list(V_1) + [z1]
+            Y_2 = list(V_2)
 
         lX_2 = len(X_2)
         lY_2 = len(Y_2)
+
+        if (M.matrix_from_rows_and_columns(list(U_1),list(V_2)).rank() +
+            M.matrix_from_rows_and_columns(list(U_2),list(V_1)).rank() != m-1):
+            return False, None
+        if len(X_1) + len(Y_1) < m:
+            return False, None
 
         X=set(range(M.nrows()))
         Y=set(range(M.ncols()))
@@ -2787,30 +2797,44 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         X_3 = X-set(X_1+X_2)
         Y_3 = Y-set(Y_1+Y_2)
 
-        if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
-            M.matrix_from_rows_and_columns(X_2,Y_1).rank() != m-1):
-            return False, None
-        if len(X_1) + len(Y_1) < m:
-            return False, None
+        lU_2 = sorted(list(U_2))
+        lV_2 = sorted(list(V_2))
+        rU = dict(zip(lU_2,range(len(U_2))))
+        rV = dict(zip(lV_2,range(len(V_2))))
 
+
+        # find a unique representation of every column in U_1xY_3 using columns in U_1xV_2
+        B = self._reduced_representation().matrix_from_rows_and_columns(list(U_1), range(len(Y)))
+        gauss_jordan_reduce(B, lV_2)
+
+        # find a unique representation of every rows in X_3xV_1 using rows in U_2xV_1
+        BT = self._reduced_representation().transpose().matrix_from_rows_and_columns(list(V_1),range(len(X)))
+        gauss_jordan_reduce(BT, lU_2)
+
+        X_p = X_1
+        Y_p = Y_1
         while True:
             #rowshifts
-            rowshift = False
+            X_p_new = set([])
             for x in set(X_3):
-                if (M.matrix_from_rows_and_columns(X_2+[x],Y_1).rank() >
-                    M.matrix_from_rows_and_columns(X_2,Y_1).rank()):
-                    X_1.append(x)
-                    X_3.remove(x)
-                    rowshift = True
+                for y in Y_p:
+                    if sum([BT.get_unsafe(rU[u],x)*M[u,y] for u in U_2]) != M[x,y]:
+                        X_1.append(x)
+                        X_3.remove(x)
+                        X_p_new.add(x)
+                        break
             #colshifts
-            colshift = False
+            Y_p_new = set([])
             for y in set(Y_3):
-                if (M.matrix_from_rows_and_columns(X_1,Y_2+[y]).rank() >
-                    M.matrix_from_rows_and_columns(X_1,Y_2).rank()):
-                    Y_1.append(y)
-                    Y_3.remove(y)
-                    colshift = True
-            if (colshift==False and rowshift==False):
+                for x in X_p:
+                    if sum([B.get_unsafe(rV[v],y)*M[x,v] for v in V_2]) != M[x,y]:
+                        Y_1.append(y)
+                        Y_3.remove(y)
+                        Y_p_new.add(y)
+                        break
+            X_p = X_p_new
+            Y_p = Y_p_new
+            if (not X_p_new and not Y_p_new):
                 break
 
         # size of S_2

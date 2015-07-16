@@ -50,6 +50,7 @@ cdef extern from "boost_interface.cpp":
         double clustering_coeff(v_index v)
         result_cc clustering_coeff_all()
         vector[v_index] dominator_tree(v_index v)
+        vector[v_index] bandwidth_ordering(bool)
 
 ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS] BoostVecDiGraph

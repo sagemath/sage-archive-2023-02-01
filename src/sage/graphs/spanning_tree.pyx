@@ -290,15 +290,6 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         sage: G = my_disconnected_graph(100, 50, directed=False, multiedges=True, loops=True)  # long time
         sage: kruskal(G, check=True)  # long time
         []
-        sage: G = my_disconnected_graph(100, 50, directed=True, multiedges=False, loops=False)  # long time
-        sage: kruskal(G, check=True)  # long time
-        []
-        sage: G = my_disconnected_graph(100, 50, directed=True, multiedges=True, loops=False)  # long time
-        sage: kruskal(G, check=True)  # long time
-        []
-        sage: G = my_disconnected_graph(100, 50, directed=True, multiedges=True, loops=True)  # long time
-        sage: kruskal(G, check=True)  # long time
-        []
 
     If the input graph is a tree, then return its edges. ::
 

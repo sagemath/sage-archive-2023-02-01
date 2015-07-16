@@ -2494,15 +2494,27 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.multiple_edges(None)
 
-    def allow_multiple_edges(self, new, check=True):
+    def allow_multiple_edges(self, new, check=True, keep_label='any'):
         """
         Changes whether multiple edges are permitted in the (di)graph.
 
         INPUT:
 
-        - ``new`` - boolean.
+        - ``new`` (boolean): if ``True``, the new graph will allow multiple
+          edges.
 
-        EXAMPLES::
+        - ``check`` (boolean): if ``True`` and ``new`` is ``False``, we remove
+          all multiple edges from the graph.
+
+        - ``keep_label`` (``'any','min','max'``): used only if ``new`` is
+          ``False`` and ``check`` is ``True``. If there are multiple edges with
+          different labels, this variable defines which label should be kept:
+          any label (``'any'``), the smallest label (``'min'``), or the largest
+          (``'max'``).
+
+        EXAMPLES:
+
+        The standard behavior with undirected graphs::
 
             sage: G = Graph(multiedges=True,sparse=True); G
             Multi-graph on 0 vertices
@@ -2510,17 +2522,33 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges()
-            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            [(0, 1, 1), (0, 1, 2), (0, 1, 3)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.edges()
-            [(0, 1, None)]
+            [(0, 1, 1)]
+
+        If we ask for the minimum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='min')
+            sage: G.edges()
+            [(0, 1, 1)]
+
+        If we ask for the maximum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='max')
+            sage: G.edges()
+            [(0, 1, 3)]
+
+        The standard behavior with digraphs::
 
             sage: D = DiGraph(multiedges=True,sparse=True); D
             Multi-digraph on 0 vertices
@@ -2540,15 +2568,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        seen = set()
+        seen = dict()
+
+        if not keep_label in ['any','min','max']:
+            raise ValueError("Variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
             for u,v,l in self.multiple_edges():
-                if (u,v) in seen:
-                    self.delete_edge(u,v,l)
+                if not (u,v) in seen:
+                    # This is the first time we see this edge
+                    seen[(u,v)] = l
                 else:
-                    seen.add((u,v))
+                    # This edge has already been seen: we have to remove
+                    # something from the graph.
+                    oldl = seen[(u,v)]
+                    if ((keep_label=='min' and l<oldl) or (keep_label=='max' and l>oldl)):
+                        # Keep the new edge, delete the old one
+                        self.delete_edge((u,v,oldl))
+                        seen[(u,v)] = l
+                    else:
+                        # Delete the new edge
+                        self.delete_edge((u,v,l))
 
         self._backend.multiple_edges(new)
 
@@ -14614,10 +14655,22 @@ class GenericGraph(GenericGraph_pyx):
             return G.copy(immutable=True)
         return G
 
-    def to_simple(self):
+    def to_simple(self, to_undirected=True, keep_label='any'):
         """
-        Returns a simple version of itself (i.e., undirected and loops and
-        multiple edges are removed).
+        Returns a simple version of itself.
+
+        In particular, loops and multiple edges are removed, and the graph might
+        optionally be converted to an undirected graph.
+
+        INPUT:
+
+        - ``to_undirected`` - boolean - if ``True``, the graph is also converted
+          to an undirected graph.
+
+        - ``keep_label`` (``'any','min','max'``): if there are multiple edges
+          with different labels, this variable defines which label should be
+          kept: any label (``'any'``), the smallest label (``'min'``), or the
+          largest (``'max'``).
 
         EXAMPLES::
 
@@ -14634,10 +14687,17 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: H.allows_multiple_edges()
             False
+            sage: G.to_simple(to_undirected=False, keep_label='min').edges()
+            [(2, 3, 1), (3, 2, None)]
+            sage: G.to_simple(to_undirected=False, keep_label='max').edges()
+            [(2, 3, 2), (3, 2, None)]
         """
-        g=self.to_undirected()
+        if to_undirected:
+            g=self.to_undirected()
+        else:
+            g=copy(self)
         g.allow_loops(False)
-        g.allow_multiple_edges(False)
+        g.allow_multiple_edges(False, keep_label=keep_label)
         return g
 
     def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):

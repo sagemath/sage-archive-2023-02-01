@@ -73,51 +73,6 @@ Methods
 
 include "sage/ext/interrupt.pxi"
 
-cpdef simplify(g):
-    r"""
-    Removes all self-loops and multiple edges from the input graph ``g``.
-
-    The graph ``g`` is not copied for performance reasons. If ``g`` is labeled
-    and edge ``(u,v)`` has many labels, only the minimum label will be kept.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.spanning_tree import simplify
-        sage: g = Graph([[1,1,1],[1,2,2],[1,2,4],[2,3,3],[2,3,1]], multiedges=True, loops=True)
-        sage: simplify(g)
-        sage: g.edges()
-        [(1, 2, 2), (2, 3, 1)]
-    """
-    g.allow_loops(False)
-    # If there are multiple edges from u to v, retain the edge of
-    # minimum weight among all such edges.
-    if g.allows_multiple_edges():
-        # If there are multiple edges from u to v, retain only the
-        # start and end vertices of such edges. Let a and b be the
-        # start and end vertices, respectively, of a weighted edge
-        # (a, b, w) having weight w. Then there are multiple weighted
-        # edges from a to b if and only if the set uniqE has the
-        # tuple (a, b) as an element.
-        uniqE = set()
-        for u, v, _ in iter(g.multiple_edges(to_undirected=True)):
-            uniqE.add((u, v))
-        # Let (u, v) be an element in uniqE. Then there are multiple
-        # weighted edges from u to v. Let W be a list of all edge
-        # weights of multiple edges from u to v, sorted in
-        # nondecreasing order. If w is the first element in W, then
-        # (u, v, w) is an edge of minimum weight (there may be
-        # several edges of minimum weight) among all weighted edges
-        # from u to v. If i >= 2 is the i-th element in W, delete the
-        # multiple weighted edge (u, v, i).
-        for u, v in uniqE:
-            W = sorted(g.edge_label(u, v))
-            for w in W[1:]:
-                g.delete_edge(u, v, w)
-    # all multiple edges should now be removed; check this!
-    assert g.multiple_edges() == []
-    g.allow_multiple_edges(False)
-
-
 cpdef kruskal(G, wfunction=None, bint check=False):
     r"""
     Minimum spanning tree using Kruskal's algorithm.
@@ -324,7 +279,8 @@ cpdef kruskal(G, wfunction=None, bint check=False):
             # G is a tree
             return G.edges()
         g = G.copy()
-        simplify(g)
+        g.allow_loops(False)
+        g.allow_multiple_edges(False, keep_label='min')
 
 
     # G is assumed to be connected, undirected, and with at least a vertex

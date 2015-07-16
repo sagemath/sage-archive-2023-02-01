@@ -81,6 +81,8 @@ import operator
 cdef dict operator_dict = operator.__dict__
 from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
+from cpython.weakref cimport PyWeakref_GET_OBJECT, PyWeakref_NewRef
+
 from sage_object cimport SageObject
 from sage.categories.map cimport Map
 import sage.categories.morphism
@@ -413,11 +415,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         an integer and a rational::
 
             sage: left_morphism, right_morphism = maps[ZZ, QQ]
-            sage: print copy(left_morphism)
+            sage: print copy(left_morphism_ref())
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
-            sage: print right_morphism
+            sage: print right_morphism_ref
             None
 
         We can see that it coerces the left operand from an integer to a
@@ -1265,33 +1267,74 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: parent(w+v) is W
             True
+
+        TESTS:
+
+        We check that with :trac:`14058`, parents are still eligible for
+        garbage collection after being involved in binary operations::
+
+            sage: import gc
+            sage: T=type(GF(2))
+            sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
+            sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N1 > N0
+            True
+            sage: del L
+            sage: gc.collect() #random
+            3939
+            sage: N2=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N2-N0
+            0
+
         """
         try:
-            return self._coercion_maps.get(R, S, None)
+            refs = self._coercion_maps.get(R, S, None)
+            if refs is None:
+                return None
+            R_map_ref, S_map_ref = refs
+            if R_map_ref is None:
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if S_map is not None:
+                    return None, S_map
+            elif S_map_ref is None:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                if R_map is not None:
+                    return R_map, None
+            else:
+                R_map = <object>PyWeakref_GET_OBJECT(R_map_ref)
+                S_map = <object>PyWeakref_GET_OBJECT(S_map_ref)
+                if R_map is not None and S_map is not None:
+                    return R_map, S_map
         except KeyError:
-            homs = self.discover_coercion(R, S)
-            if 0:
-                # This breaks too many things that are going to change
-                # in the new coercion model anyways.
-                # COERCE TODO: Enable it then.
-                homs = self.verify_coercion_maps(R, S, homs)
+            pass
+        homs = self.discover_coercion(R, S)
+        if 0:
+            # This breaks too many things that are going to change
+            # in the new coercion model anyways.
+            # COERCE TODO: Enable it then.
+            homs = self.verify_coercion_maps(R, S, homs)
+        else:
+            if homs is not None:
+                x_map, y_map = homs
+                if x_map is not None and not isinstance(x_map, Map):
+                    raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
+                if y_map is not None and not isinstance(y_map, Map):
+                    raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
+        if homs is None:
+            refs = None
+            swap = None
+        else:
+            R_map, S_map = homs
+            R_map_ref = None if R_map is None else PyWeakref_NewRef(R_map, None)
+            S_map_ref = None if S_map is None else PyWeakref_NewRef(S_map, None)
+            refs = R_map_ref, S_map_ref
+            if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
+                swap = None, PyWeakref_NewRef((<Parent>S).coerce_map_from(R), None)
             else:
-                if homs is not None:
-                    x_map, y_map = homs
-                    if x_map is not None and not isinstance(x_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-                    if y_map is not None and not isinstance(y_map, Map):
-                        raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
-            if homs is None:
-                swap = None
-            else:
-                R_map, S_map = homs
-                if R_map is None and isinstance(S, Parent) and (<Parent>S).has_coerce_map_from(R):
-                    swap = None, (<Parent>S)._internal_coerce_map_from(R)
-                else:
-                    swap = S_map, R_map
-            self._coercion_maps.set(R, S, None, homs)
-            self._coercion_maps.set(S, R, None, swap)
+                swap = S_map_ref, R_map_ref
+        self._coercion_maps.set(R, S, None, refs)
+        self._coercion_maps.set(S, R, None, swap)
         return homs
 
     cpdef verify_coercion_maps(self, R, S, homs, bint fix=False):

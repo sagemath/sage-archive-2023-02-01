@@ -5,25 +5,27 @@
 # See
 #    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/363500
 
-import subprocess, sys, six
-try:
-    subprocess.check_output('which math', shell=True)
-except:
-    sys.exit('ERROR: executable math not found')
+import sys, signal, subprocess
+import readline
+from six.moves import input
 
-f1 = subprocess.Popen('math', shell=True, stdin=subprocess.PIPE).stdin
-f1.flush()
-try:
-    while True:
-        sys.stdout.write('')
-        try:
-            line = six.moves.input()
-            f1.writelines(line+'\n')
-            f1.flush()
-        except KeyboardInterrupt:
-            f1.close()
-            break
-except EOFError:
-    pass
+def child_exited(*args):
+    global child
+    status = child.poll()
+    if status is not None:
+        sys.exit(status)
+
+signal.signal(signal.SIGCHLD, child_exited)
+
+child = subprocess.Popen('math', shell=True, stdin=subprocess.PIPE)
+pipe = child.stdin
+while True:
+    try:
+        line = input()
+        pipe.write(line + '\n')
+        pipe.flush()
+    except KeyboardInterrupt:
+        pipe.close()
+    except EOFError:
+        break
 sys.stdout.write('\n')
-sys.exit()

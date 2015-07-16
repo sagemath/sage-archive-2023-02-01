@@ -857,7 +857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         height = self.height()
         n = H.order()
         cur = H.maximal_elements()[0]
-        next = [H.neighbor_in_iterator(cur)]
+        next_ = [H.neighbor_in_iterator(cur)]
 
         @cached_function
         def is_modular_elt(a):
@@ -867,16 +867,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         if not is_modular_elt(cur):
             return False
-        while len(next) < height:
+        while len(next_) < height:
             try:
-                cur = next[-1].next()
+                cur = next(next_[-1])
             except StopIteration:
-                next.pop()
-                if not next:
+                next_.pop()
+                if not next_:
                     return False
                 continue
             if is_modular_elt(cur):
-                next.append(H.neighbor_in_iterator(cur))
+                next_.append(H.neighbor_in_iterator(cur))
         return True
 
     def sublattice(self, elms):

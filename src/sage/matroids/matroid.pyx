@@ -4590,12 +4590,16 @@ cdef class Matroid(SageObject):
             2
         """
         S = set(S)
+        if not S.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if T is None:
-            return self.rank(S) + self.rank(self.groundset()-S) - self.full_rank()
+            return self._rank(S) + self._rank(self.groundset()-S) - self.full_rank()
         T = set(T)
+        if not T.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if S.intersection(T):
-            raise ValueError("no well-defined matroid connectivity between intersecting sets")
-        return self._connectivity(S, T)
+            raise ValueError("S and T are not disjoint")
+        return len(self._link(S, T)[0]) - self.full_rank() + self._rank(S) + self._rank(T)
 
     cpdef _connectivity(self, S, T):
         r"""
@@ -4631,12 +4635,142 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.BetsyRoss()
-            sage: M._connectivity('ab', 'cd')
+            sage: M._connectivity(set('ab'), set('cd'))
             2
         """
-        N1 = self.minor(T,S)
-        N2 = self.minor(S,T)
-        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
+        return len(self._link(S,T)[0]) - self.full_rank() + self.rank(S) + self.rank(T)
+
+    cpdef link(self, S, T):
+        r"""
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            E = X\cup Y, X\cap Y = \emptyset \}.
+
+        Here `M` denotes this matroid.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M.link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        if not self.groundset().issuperset(S):
+            raise ValueError("S is not a subset of the ground set")
+        if not self.groundset().issuperset(T):
+            raise ValueError("T is not a subset of the ground set")
+        if not S.isdisjoint(T):
+            raise ValueError("S and T are not disjoint")
+        return self._link(S, T)
+
+    cpdef _link(self, S, T):
+        r"""
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            E = X\cup Y, X\cap Y = \emptyset \}.
+
+        Here `M` denotes this matroid.
+
+        Internal version that does not verify that ``S`` and ``T``
+        are sets, are disjoint, are subsets of the groundset.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M._link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        # compute maximal common independent set of self\S/T and self/T\S
+        F = set(self.groundset()) - (S | T)
+        I = self._augment(S|T, F)
+        found_path = True
+        while found_path:
+            X = F - I
+            X1 = X - self._closure(T|I)
+            X2 = X - self._closure(S|I)
+            Y = X1.intersection(X2)
+            if Y:
+                y = min(Y)
+                I = I.union([y])
+                continue
+            predecessor = {x: None for x in X1}
+            next_layer = set(X1)
+            found_path = False
+            while next_layer and not found_path:
+                todo = next_layer
+                next_layer = set()
+                while todo and not found_path:
+                    u = todo.pop()
+                    if u in X:
+                        out_neighbors = self._circuit(I|S.union([u])) - S.union([u])
+                    else:
+                        out_neighbors = X - self._closure((I|T) - set([u]))
+                    out_neighbors= out_neighbors-set(predecessor)
+                    for y in out_neighbors:
+                        predecessor[y] = u
+                        if y in X2:
+                            found_path = True
+                            break
+                        next_layer.add(y)
+            if found_path:
+                path = set([y])             # reconstruct path
+                while predecessor[y] is not None:
+                    y = predecessor[y]
+                    path.add(y)
+                I = I.symmetric_difference(path)
+        return frozenset(I), frozenset(predecessor)|S
+
 
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""
@@ -4717,7 +4851,6 @@ cdef class Matroid(SageObject):
             return self._is_3connected_shifting(certificate)
         raise ValueError("Not a valid algorithm.")
 
-
     cpdef _is_3connected_CE(self, certificate=False):
         r"""
         Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
@@ -4760,56 +4893,87 @@ cdef class Matroid(SageObject):
             sage: M.connectivity(X)
             1
         """
-        if self.loops() or self.coloops():
-            return False
+        cdef set E, G, H, S, T
+        cdef frozenset I, X
+        # test (2-)connectedness
+        C = self.components()
+        if len(C)>1:
+            if certificate:
+                for X in C:
+                    return False, X
+            else:
+                return False
+        # now 2-separations are exact
+        # test if groundset size is at least 4
         E = set(self.groundset())
-        e = E.pop()
-        f = E.pop()
-        S = {e, f}
-        w = {e:1 for e in E}
-        I = set()
-        for T in combinations(E, 2):
-            T = set(T)
-            N1 = self.minor(T,S)
-            N2 = self.minor(S,T)
-            # make previous I a common independent set of current N1, N2
-            I = I - T
-            I = N1.max_independent(I)
-            I = N2.max_independent(I)
-            J = N1._intersection_augmentation(N2, w, I)
-            while J[0]:
-                I = I.symmetric_difference(J[1])
-                J = N1._intersection_augmentation(N2, w, I)
-            # check if connectivity between S,T is <2
-            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+        if len(E)<4:
+            if certificate:
+                return True, None
+                # there is no partition A,B of the ground set such that |A|, |B| >= 2
+            else:
+                return True
+        # now there exist two disjoint pairs
+        # test if there are any parallel pairs
+        for e in E:
+            X = self._closure([e])
+            if len(X)>1:
                 if certificate:
-                    return False, S.union(J[1])
+                    return False, self._circuit(X)
+                    # r(C) + r(E\C) - r(E) <= r(C) < 2, |C| = 2, |E\C| >= 2
                 else:
                     return False
-        for g in E:
-            S = {e, g}
-            I = I - S
-            for h in E:
-                if g is h:
-                    continue
-                T = {f, h}
-                T = set(T)
-                N1 = self.minor(T,S)
-                N2 = self.minor(S,T)
-                # make previous I a common independent set of current N1, N2
-                I = I - T
-                I = N1.max_independent(I)
-                I = N2.max_independent(I)
-                J = N1._intersection_augmentation(N2, w, I)
-                while J[0]:
-                    I = I.symmetric_difference(J[1])
-                    J = N1._intersection_augmentation(N2, w, I)
-                # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
+        # now each pair has rank 2
+        e = E.pop()
+        f = E.pop()
+        # check 2-separations with e,f on the same side
+        S = {e, f}
+        G = set(E)
+        while G:
+            g = G.pop()
+            H = set(G)
+            while H:
+                h = H.pop()
+                T = {g, h}
+                I, X = self._link(S, T)
+                # check if connectivity between S,T is < 2
+                if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
                     if certificate:
-                        return False, S.union(J[1])
+                        return False, X
                     else:
                         return False
+                # if h' is not spanned by I+g, then I is a connector for {e,f}, {g,h'}
+                H.intersection_update(self._closure(I.union([g])))
+        g = E.pop()
+        # check 2-separations with e,g on one side, f on the other
+        S = {e, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {f, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + f, then I is a connector for {e, g}, {f, h'}
+            H.intersection_update(self._closure(I.union([f])))
+        # check all 2-separations with f,g on one side, e on the other
+        S = {f, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {e, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + e, then I is a connector for {f, g}, {e, h'}
+            H.intersection_update(self._closure(I.union([e])))
         if certificate:
             return True, None
         else:

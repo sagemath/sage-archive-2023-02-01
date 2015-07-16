@@ -317,7 +317,7 @@ def steiner_triple_system(n):
         t = (n-3) // 6
         Z = range(2*t+1)
 
-        T = lambda (x,y) : x + (2*t+1)*y
+        T = lambda x_y : x_y[0] + (2*t+1)*x_y[1]
 
         sts = [[(i,0),(i,1),(i,2)] for i in Z] + \
             [[(i,k),(j,k),(((t+1)*(i+j)) % (2*t+1),(k+1)%3)] for k in range(3) for i in Z for j in Z if i != j]
@@ -326,7 +326,7 @@ def steiner_triple_system(n):
 
         t = (n-1) // 6
         N = range(2*t)
-        T = lambda (x,y) : x+y*t*2 if (x,y) != (-1,-1) else n-1
+        T = lambda x_y : x_y[0]+x_y[1]*t*2 if x_y != (-1,-1) else n-1
 
         L1 = lambda i,j : (i+j) % ((n-1)//3)
         L = lambda i,j : L1(i,j)//2 if L1(i,j)%2 == 0 else t+(L1(i,j)-1)//2

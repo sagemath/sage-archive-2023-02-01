@@ -5894,7 +5894,7 @@ def read_palp_matrix(data, permutation=False):
     if permutation:
         last_piece = first_line[-1]
         last_piece = last_piece.split('=')
-        if last_piece[0] <> 'perm':
+        if last_piece[0] != 'perm':
             raise ValueError('PALP did not return a permutation.')
         p = _palp_convert_permutation(last_piece[1])
         return (mat, p)

@@ -25,6 +25,48 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Named Graphs
 #######################################################################
 
+def HarborthGraph():
+    r"""
+    Return the Harborth Graph
+
+    The Harborth graph has 104 edges and 52 vertices, and is the smallest known
+    example of a 4-regular matchstick graph. For more information, see the
+    :wikipedia:`Harborth_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HarborthGraph(); g
+        Harborth Graph: Graph on 52 vertices
+        sage: g.is_regular(4)
+        True
+
+    """
+    g = Graph(':s_OGKI?@_?g[QABAo__YEFCp@?iIEbqHWuWLbbh?}[OfcXpGhNHdYPY_SgdYX]'+
+              'pZkfJPuo[lfZHys^mFcDs}`pG{UNNgoHC}DIgrI[qjMhTyDQrQlVydrBYmWkn',
+              loops=False, multiedges=False)
+
+    g.set_pos({ 0: ( 51.5, 400.0),  1: ( 90.6, 308.0),  2: ( 90.6, 492.0),
+                3: (129.8, 216.0),  4: (129.8, 584.0),  5: (150.7, 387.9),
+                6: (150.7, 412.1),  7: (169.0, 124.0),  8: (169.0, 676.0),
+                9: (189.9, 295.9), 10: (189.9, 504.1), 11: (229.1, 203.9),
+               12: (229.1, 596.1), 13: (250.0, 400.0), 14: (251.4, 180.6),
+               15: (251.4, 619.4), 16: (256.1, 300.2), 17: (256.1, 499.8),
+               18: (259.3, 080.9), 19: (259.3, 719.1), 20: (333.8, 237.2),
+               21: (333.8, 562.8), 22: (341.7, 137.5), 23: (341.7, 662.5),
+               24: (350.0, 037.9), 25: (350.0, 336.0), 26: (350.0, 464.0),
+               27: (350.0, 762.1), 28: (358.3, 137.5), 29: (358.3, 662.5),
+               30: (366.2, 237.2), 31: (366.2, 562.8), 32: (440.7, 080.9),
+               33: (440.7, 719.1), 34: (443.9, 300.2), 35: (443.9, 499.8),
+               36: (448.6, 180.6), 37: (448.6, 619.4), 38: (450.0, 400.0),
+               39: (470.9, 203.9), 40: (470.9, 596.1), 41: (510.1, 295.9),
+               42: (510.1, 504.1), 43: (531.0, 124.0), 44: (531.0, 676.0),
+               45: (549.3, 387.9), 46: (549.3, 412.1), 47: (570.2, 216.0),
+               48: (570.2, 584.0), 49: (609.4, 308.0), 50: (609.4, 492.0),
+               51: (648.5, 400.0)})
+    g.name("Harborth Graph")
+    return g
+
+
 def HarriesGraph(embedding=1):
     r"""
     Returns the Harries Graph.
@@ -1488,6 +1530,45 @@ def BuckyBall():
 
     return g
 
+def GossetGraph():
+    r"""
+    Return the Gosset graph.
+
+    The Gosset graph is the skeleton of the
+    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    has with 56 vertices and degree 27. For more information, see the
+    :wikipedia:`Gosset_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.GossetGraph(); g
+        Gosset Graph: Graph on 56 vertices
+
+        sage: g.order(), g.size()
+        (56, 756)
+
+    TESTS::
+
+        sage: g.is_isomorphic(polytopes.Gosset_3_21().graph()) # not tested (~16s)
+        True
+    """
+    string = ('w~~~~rt{~Z\\ZxnvYZYmlfrb}|hDuhLlcmmMNf_^zzQGNYcP\\kcRZbaJjoNBx{'+
+              '?N~o^}?A`}F_Kbbm_[QZ\\_]Cj\\oN_dm{BzB{?]WIMM@tPQRYBYRPIuAyJgQv?'+
+              '|Bxb_M[kWIR@jTQcciDjShXCkFMgpwqBKxeKoS`TYqdTCcKtkdKwWQXrbEZ@OdU'+
+              'mITZ@_e[{KXn?YPABzvY?IcO`zvYg@caC\\zlf?BaGR]zb{?@wOjv`~w??N_n_~'+
+              '~w???^_^~~{')
+
+    G = Graph(string,name="Gosset Graph")
+
+    ordering = [0, 2, 4, 6, 43, 23, 50, 18, 28, 9, 8, 7, 44, 3, 26, 35, 16, 14,
+                33, 15, 54, 30, 17, 21, 10, 13, 36, 31, 55, 53, 51, 49, 12, 32,
+                5, 37, 27, 46, 47, 48, 11, 52, 29, 20, 39, 41, 22, 40, 1, 25, 38,
+                34, 45, 42, 19, 24]
+
+    _circle_embedding(G,ordering)
+
+    return G
+
 def DoubleStarSnark():
     r"""
     Returns the double star snark.
@@ -1822,6 +1903,34 @@ def CoxeterGraph():
 
     g.name("Coxeter Graph")
 
+    return g
+
+def DejterGraph():
+    r"""
+    Return the Dejter graph.
+
+    The Dejter graph is obtained from the binary 7-cube by deleting a copy of
+    the Hamming code of length 7. It is 6-regular, with 112 vertices and 336
+    edges. For more information, see the :wikipedia:`Dejter_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.DejterGraph(); g
+        Dejter Graph: Graph on 112 vertices
+        sage: g.is_regular(k=6)
+        True
+        sage: g.girth()
+        4
+    """
+    from sage.graphs.generators.families import CubeGraph
+    from sage.coding.code_constructions import HammingCode
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    from string import join
+    g = CubeGraph(7)
+    g.delete_vertices([join(map(str,x),"")
+                       for x in HammingCode(3, FiniteField(2))])
+    g.name("Dejter Graph")
     return g
 
 def DesarguesGraph():
@@ -2301,6 +2410,33 @@ def ErreraGraph():
         13: [15],
         14: [16]}
     return Graph(edge_dict, name="Errera graph")
+
+def F26AGraph():
+    r"""
+    Return the F26A graph.
+
+    The F26A graph is a symmetric bipartite cubic graph with 26 vertices and 39
+    edges. For more information, see the :wikipedia:`F26A_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.F26AGraph(); g
+        F26A Graph: Graph on 26 vertices
+        sage: g.order(),g.size()
+        (26, 39)
+        sage: g.automorphism_group().cardinality()
+        78
+        sage: g.girth()
+        6
+        sage: g.is_bipartite()
+        True
+        sage: g.characteristic_polynomial().factor()
+        (x - 3) * (x + 3) * (x^4 - 5*x^2 + 3)^6
+    """
+    from sage.graphs.generators.families import LCFGraph
+    g= LCFGraph(26, [7,-7],13)
+    g.name("F26A Graph")
+    return g
 
 def FlowerSnark():
     """
@@ -3239,6 +3375,93 @@ def KrackhardtKiteGraph():
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
     return Graph(edges, pos=pos_dict, name="Krackhardt Kite Graph")
 
+def Klein3RegularGraph():
+    r"""
+    Return the Klein 3-regular graph.
+
+    The cubic Klein graph has 56 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein7RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein3RegularGraph(); g
+        Klein 3-regular Graph: Graph on 56 vertices
+        sage: g.order(), g.size()
+        (56, 84)
+        sage: g.girth()
+        7
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        3
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g3 = Graph(':w`_GKWDBap`CMWFCpWsQUNdBwwuXPHrg`U`RIqypehVLqgHupYcFJyAv^Prk]'+
+               'EcarHwIVHAKh|\\tLVUxT]`ZDTJ{Af[o_AuKs{r_?ef',
+               loops=False, multiedges=False)
+    _circle_embedding(g3,[0, 2, 3, 4, 6, 8, 14, 1, 37, 30, 34, 48, 55, 43, 40,
+                          45, 18, 20, 47, 42, 23, 17, 16, 10, 41, 11, 49, 25,
+                          51, 26, 54, 9, 22, 15, 21, 12, 24, 7, 52, 31, 32, 36,
+                          46, 35, 29, 50, 27, 19, 28, 5, 33, 13, 53, 39, 38, 44])
+    g3.name("Klein 3-regular Graph")
+    return g3
+
+def Klein7RegularGraph():
+    r"""
+    Return the Klein 7-regular graph.
+
+    The 7-valent Klein graph has 24 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein3RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein7RegularGraph(); g
+        Klein 7-regular Graph: Graph on 24 vertices
+        sage: g.order(), g.size()
+        (24, 84)
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        4
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g7 = Graph(':W__@`AaBbC_CDbDcE`F_AG_@DEH_IgHIJbFGIKaFHILeFGHMdFKN_EKOPaCNP'+
+               'Q`HOQRcGLRS`BKMSTdJKLPTU',loops=False,multiedges=False)
+    _circle_embedding(g7,[0, 2, 3, 1, 9, 16, 20, 21, 4, 19, 17, 7, 15,
+                          10, 8, 13, 11, 5, 23, 22, 14, 12, 18, 6])
+    g7.name("Klein 7-regular Graph")
+    return g7
+
+def LocalMcLaughlinGraph():
+    r"""
+    Return the local McLaughlin graph
+
+    The local McLaughlin graph is a strongly regular graph with parameters
+    `(162,56,10,24)`. It can be obtained from
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph` by
+    considering the stabilizer of a point: one of its orbits has cardinality
+    162.
+
+    EXAMPLES::
+
+        sage: g = graphs.LocalMcLaughlinGraph(); g   # long time # optional - gap_packages
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        (162, 56, 10, 24)
+    """
+    g = McLaughlinGraph()
+    orbits = g.automorphism_group().stabilizer(1).orbits()
+    orbit = [x for x in orbits if len(x) == 162][0]
+    g = g.subgraph(vertices=orbit)
+    g.relabel()
+    g.name("Local McLaughlin Graph")
+    return g
+
 def LjubljanaGraph(embedding=1):
     r"""
     Returns the Ljubljana Graph.
@@ -3324,6 +3547,35 @@ def LjubljanaGraph(embedding=1):
 
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
+
+def LivingstoneGraph():
+    r"""
+    Returns the Livingstone Graph.
+
+    The Livingstone graph is a distance-transitive graph on 266 vertices whose
+    automorphism group is the :class:`J1 group
+    <sage.groups.perm_gps.permgroup_named.JankoGroup>`. For more information,
+    see the :wikipedia:`Livingstone_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
+        sage: g.order()                     # optional - gap_packages internet
+        266
+        sage: g.size()                      # optional - gap_packages internet
+        1463
+        sage: g.girth()                     # optional - gap_packages internet
+        5
+        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        True
+        sage: g.is_distance_regular()       # optional - gap_packages internet
+        True
+    """
+    from sage.groups.perm_gps.permgroup_named import JankoGroup
+    from sage.graphs.graph import Graph
+    G = JankoGroup(1)
+    edges = map(tuple,G.orbit((1,24),action="OnSets"))
+    return Graph(edges,name="Livingstone Graph")
 
 def M22Graph():
     r"""

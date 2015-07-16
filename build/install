@@ -411,19 +411,6 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
 done
 echo >&5
 
-cat >&5 <<EOF
-# don't just use \`install\` since we don't want to change permissions
-\$(SAGE_LOCAL)/bin/%: \$(SAGE_SRC)/bin/%
-	cp \$< \$@
-
-# don't just use \`install -D\` since we don't want to change permissions
-# cp won't correctly setup the SAGE_EXTCODE directory structure (unlike install)
-# so we need a mkdir here to cp can copy into an existing folder
-\$(SAGE_EXTCODE)/%: \$(SAGE_SRC)/ext/%
-	@mkdir -p "\$(@D)"
-	cp \$< \$@
-EOF
-
 # Copy build/deps
 cat >&5 <<EOF
 
@@ -452,7 +439,7 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
     elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
-        DEPS='| $(STANDARD_PACKAGES)' # default for optional packages
+        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
     else
         DEPS=""
     fi

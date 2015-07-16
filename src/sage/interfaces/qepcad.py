@@ -1517,7 +1517,6 @@ def qepcad_banner():
     qex = Qepcad_expect()
     qex._start()
     banner = qex.expect().before
-    qex.quit(timeout=0)
     return AsciiArtString(banner)
 
 def qepcad_version():

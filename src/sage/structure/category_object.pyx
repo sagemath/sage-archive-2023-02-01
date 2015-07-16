@@ -799,51 +799,6 @@ cdef class CategoryObject(sage_object.SageObject):
             self._hash_value = hash(repr(self))
         return self._hash_value
 
-#     #################################################################################
-#     # Morphisms of objects with generators
-#     #################################################################################
-
-
-## COERCE TODO: see categories.MultiplicativeAbelianGroups
-
-# cdef class ParentWithMultiplicativeAbelianGens(Parent):
-#     def generator_orders(self):
-#         if self._generator_orders is not None:
-#             return self._generator_orders
-#         else:
-#             g = []
-#             for x in self.gens():
-#                 g.append(x.multiplicative_order())
-#             self._generator_orders = g
-#             return g
-
-#     def __iter__(self):
-#         """
-#         Return an iterator over the elements in this object.
-#         """
-#         return gens_py.multiplicative_iterator(self)
-
-
-
-# cdef class ParentWithAdditiveAbelianGens(Parent):
-#     def generator_orders(self):
-#         if self._generator_orders is not None:
-#             return self._generator_orders
-#         else:
-#             g = []
-#             for x in self.gens():
-#                 g.append(x.additive_order())
-#             self._generator_orders = g
-#             return g
-
-#     def __iter__(self):
-#         """
-#         Return an iterator over the elements in this object.
-#         """
-#         return gens_py.abelian_iterator(self)
-
-
-
 
 class localvars:
     r"""

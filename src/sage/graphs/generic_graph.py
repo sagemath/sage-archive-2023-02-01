@@ -3323,14 +3323,18 @@ class GenericGraph(GenericGraph_pyx):
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
           following algorithms are supported:
-
+          
           - ``"Kruskal"`` -- Kruskal's algorithm.
+
+          - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation).
 
           - ``"Prim_fringe"`` -- a variant of Prim's algorithm.
             ``"Prim_fringe"`` ignores the labels on the edges.
 
           - ``"Prim_edge"`` -- a variant of Prim's algorithm.
 
+          - ``"Prim_Boost"`` -- Prim's algorithm (Boost implementation).
+          
           - ``NetworkX`` -- Uses NetworkX's minimum spanning tree
             implementation.
 
@@ -3364,6 +3368,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
+            sage: g.min_spanning_tree(weight_function=weight, algorithm='Kruskal_Boost')
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -3378,7 +3384,9 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
             [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
-
+            sage: g.min_spanning_tree(weight_function=weight, algorithm='Prim_Boost')
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
+            
         NetworkX algorithm::
 
             sage: g.min_spanning_tree(algorithm='NetworkX')
@@ -3393,9 +3401,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([[0,1,1],[1,2,1],[2,0,10]])
             sage: g.min_spanning_tree()
             [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Kruskal_Boost')
+            [(0, 1, 1), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe')
             [(0, 1, 1), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_edge')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_Boost')
             [(0, 1, 1), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='NetworkX')
             [(0, 1, 1), (1, 2, 1)]
@@ -3407,9 +3419,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: weight = lambda e:3-e[0]-e[1]
             sage: g.min_spanning_tree(weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Kruskal_Boost', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_Boost', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
@@ -3422,12 +3438,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.to_undirected().min_spanning_tree(weight_function=weight)
             [(0, 2, None), (1, 2, None)]
         """
-        if algorithm == "Kruskal":
-            from spanning_tree import kruskal
+        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost"]:
             if self.is_directed():
-                return kruskal(self.to_undirected(), wfunction=weight_function, check=check)
+                g = self.to_undirected()
             else:
-                return kruskal(self, wfunction=weight_function, check=check)
+                g = self
+                
+            if algorithm == "Kruskal":
+                from spanning_tree import kruskal
+                return kruskal(g, wfunction=weight_function, check=check)
+            else:
+                from sage.graphs.base.boost_graph import min_spanning_tree
+                return min_spanning_tree(g, 
+                                         weight_function=weight_function, 
+                                         algorithm=algorithm.split("_")[0])
 
         if weight_function is None:
             if self.weighted():

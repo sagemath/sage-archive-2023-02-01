@@ -1230,20 +1230,6 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value + (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        """
-        Add ``right`` to ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(0.5)
-            sage: a += RDF(3); a # indirect doctest
-            3.5
-        """
-        # self and right are guaranteed to be Integers
-        self._value += (<RealDoubleElement>right)._value
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.
@@ -1257,19 +1243,6 @@ cdef class RealDoubleElement(FieldElement):
         x._value = self._value - (<RealDoubleElement>right)._value
         return x
 
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        """
-        Subtract ``right`` from ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(0.5)
-            sage: a -= RDF(3); a # indirect doctest
-            -2.5
-        """
-        self._value -= (<RealDoubleElement>right)._value
-        return self
-
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
@@ -1282,19 +1255,6 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value * (<RealDoubleElement>right)._value
         return x
-
-    cpdef RingElement _imul_(self, RingElement right):
-        """
-        Multiply ``right`` py ``self`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(2.5)
-            sage: a *= RDF(3); a # indirect doctest
-            7.5
-        """
-        self._value *= (<RealDoubleElement>right)._value
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -1310,21 +1270,6 @@ cdef class RealDoubleElement(FieldElement):
         cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
         x._value = self._value / (<RealDoubleElement>right)._value
         return x
-
-    cpdef RingElement _idiv_(self, RingElement right):
-        """
-        Divide ``self`` by ``right`` and store result in ``self``.
-
-        EXAMPLES::
-
-            sage: a = RDF(1.5)
-            sage: a /= RDF(2); a # indirect doctest
-            0.75
-            sage: a /= RDF(0); a
-            +infinity
-        """
-        self._value /= (<RealDoubleElement>right)._value
-        return self
 
     def __neg__(self):
         """
@@ -1700,7 +1645,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return gsl_isinf(self._value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 
@@ -1723,9 +1668,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: n == RDF(1)
             False
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
         # We really need to use the correct operators, to deal
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value
@@ -2240,6 +2182,25 @@ cdef class RealDoubleElement(FieldElement):
             0.9092974268256817
         """
         return self._new_c(gsl_sf_sin(self._value))
+
+    def dilog(self):
+        r"""
+        Return the dilogarithm of ``self``.
+
+        This is defined by the
+        series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
+        value of ``self`` is greater than 1, the returned value is the
+        real part of (the analytic continuation to `\CC` of) the
+        dilogarithm of ``self``.
+
+        EXAMPLES::
+
+            sage: RDF(1).dilog()  # rel tol 1.0e-13
+            1.6449340668482264
+            sage: RDF(2).dilog()  # rel tol 1.0e-13
+            2.46740110027234
+        """
+        return self._new_c(gsl_sf_dilog(self._value))
 
     def restrict_angle(self):
         r"""

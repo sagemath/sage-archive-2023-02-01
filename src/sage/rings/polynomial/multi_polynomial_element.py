@@ -1415,7 +1415,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: type(0//y)
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
         """
-        if not isinstance(self, type(right)) or self.parent() is not right.parent():
+        if type(self) is not type(right) or self.parent() is not right.parent():
             self, right = canonical_coercion(self, right)
             return self // right  # this looks like recursion, but, in fact, it may be that self, right are a totally new composite type
         # handle division by monomials without using Singular
@@ -1662,8 +1662,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 unit = unit * v[i][0]
                 del v[i]
                 break
-        F = Factorization(v, unit=unit)
-        F.sort()
+        F = sorted(Factorization(v, unit=unit))
         return F
 
     def lift(self,I):

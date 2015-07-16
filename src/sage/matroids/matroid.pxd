@@ -138,6 +138,8 @@ cdef class Matroid(SageObject):
     cpdef connectivity(self, S, T=*)
     cpdef _connectivity(self, S, T)
     cpdef is_kconnected(self, k, certificate=*)
+    cpdef link(self, S, T)
+    cpdef _link(self, S, T)
     cpdef is_3connected(self, certificate=*, algorithm=*, separation=*)
     cpdef _is_3connected_CE(self, certificate=*)
     cpdef _is_3connected_BC(self, certificate=*)

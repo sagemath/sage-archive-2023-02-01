@@ -111,6 +111,18 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         TESTS::
 
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: OT = atm.TermMonoid('O', G); ET = atm.TermMonoid('exact', G, ZZ)
+            sage: R = AsymptoticRing(G, ZZ)
+            sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: expr = R(lst, simplify=False); expr  # indirect doctest
+            1*x + 2*x^2 + O(x^3) + 4*x^4
+            sage: expr._simplify_(); expr
+            O(x^3) + 4*x^4
+            sage: R(lst)  # indirect doctest
+            O(x^3) + 4*x^4
         """
         from sage.monoids.asymptotic_term_monoid import OTerm
         for shell in self.poset.shells_topological(reverse=True):

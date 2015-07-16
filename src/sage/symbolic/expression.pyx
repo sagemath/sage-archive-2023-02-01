@@ -2953,8 +2953,8 @@ cdef class Expression(CommutativeRingElement):
             sage: ex.substitute(a=z, b=z)
             (r1*x2 - r2 - x1)/x3
 
-        Check that only integer +/- 1 gets special treatment in Pynac
-        (:trac:`12257`)::
+        Check that floating point numbers +/- 1.0 are treated
+        differently from integers +/- 1 (:trac:`12257`)::
 
             sage: (1*x).operator()
             sage: (1.0*x).operator()
@@ -3446,8 +3446,8 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(0)^SR(0)
             1
 
-        Check that only integer +/- 1 gets special treatment in Pynac
-        (:trac:`12257`)::
+        Check that floating point numbers +/- 1.0 are treated
+        differently from integers +/- 1 (:trac:`12257`)::
 
             sage: (x^1).operator()
             sage: (x^1.0).operator()

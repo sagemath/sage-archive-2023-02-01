@@ -1147,10 +1147,8 @@ class SageDev(MercurialPatchMixin):
             Automatic merge failed, there are conflicting commits.
             <BLANKLINE>
             Auto-merging alices_file
-            CONFLICT (add/add): Merge conflict in alices_file
-            <BLANKLINE>
-            Please edit the affected files to resolve the conflicts. When you are finished,
-            your resolution will be commited.
+            CONFLICT (add/add): Merge conflict in alices_file...
+            Please edit the affected files to resolve the conflicts...
             Finished? [ok/Abort] abort
 
         Undo the latest commit by alice, so we can pull again::
@@ -3132,8 +3130,7 @@ class SageDev(MercurialPatchMixin):
             Automatic merge failed, there are conflicting commits.
             <BLANKLINE>
             Auto-merging alice2
-            CONFLICT (add/add): Merge conflict in alice2
-            <BLANKLINE>
+            CONFLICT (add/add): Merge conflict in alice2...
             Please edit the affected files to resolve the conflicts. When you are finished,
             your resolution will be commited.
             Finished? [ok/Abort] abort

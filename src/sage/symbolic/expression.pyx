@@ -2407,6 +2407,28 @@ cdef class Expression(CommutativeRingElement):
 
             sage: bool(log(2)*Infinity == Infinity)
             True
+
+        More checks for comparisons with infinity (see :trac:`12967`)::
+
+            sage: assert(bool(SR(oo) > 5))
+            sage: assert(bool(5 < SR(oo)))
+            sage: assert(bool(SR(2) < Infinity))
+            sage: assert(bool(pi < Infinity))
+            sage: assert(not bool(pi>Infinity))
+            sage: assert(bool(2*pi < Infinity))
+            sage: assert(bool(SR(pi) < SR(Infinity)))
+            sage: assert(bool(sqrt(2) < oo))
+            sage: assert(bool(log(2) < oo))
+            sage: assert(bool(e < oo))
+            sage: assert(bool(e+pi < oo))
+            sage: assert(bool(e^pi < oo))
+            sage: assert(not bool(SR(2) < -oo))
+            sage: assert(bool(SR(2) > -oo))
+            sage: assert(bool(exp(2) > -oo))
+            sage: assert(bool(SR(oo) > sqrt(2)))
+            sage: assert(bool(sqrt(2) < SR(oo)))
+            sage: assert(bool(SR(-oo) < sqrt(2)))
+            sage: assert(bool(sqrt(2) > SR(-oo)))
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly

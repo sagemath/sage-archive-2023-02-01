@@ -2659,7 +2659,6 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             1
         """
         # build the table
-        # print "haha"
         if not self.is_connected():
             return False, self.components()[0]
         if self.rank()>self.size()-self.rank():
@@ -2697,7 +2696,6 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         (M,X,Y) = self.representation(reduced=True)
         dX = dict(zip(range(len(X)),X))
         dY = dict(zip(range(len(Y)),Y))
-
         n = len(X)
         m = len(Y)
 
@@ -2706,7 +2704,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
         for (x1,y1) in T:
             # The whiting out
-            B = matrix(M)
+            B = copy(M)
             for (x,y) in product(range(n),range(m)):
                 if (x1!=x and y1!=y):
                     if(M[x1,y]!=0 and
@@ -2758,9 +2756,6 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         Z = range(M.ncols())
         for y in P_cols+Q_cols:
             Z.remove(y)
-        # print("Z",Z)
-        # print("P",P_cols)
-        # print("Q",Q_cols)
         for z in Z:
             sol,cert = self.__shifting(M,P_rows,P_cols+[z],Q_rows,Q_cols,m)
             if sol:
@@ -2777,53 +2772,55 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         return False, None
 
     cpdef __shifting(self, M, X_1, Y_2, X_2, Y_1, m):
-
         # make copy because of destructive updates
         X_1 = list(X_1)
         X_2 = list(X_2)
         Y_1 = list(Y_1)
         Y_2 = list(Y_2)
+
+        lX_2 = len(X_2)
+        lY_2 = len(Y_2)
+
         X=set(range(M.nrows()))
         Y=set(range(M.ncols()))
+
+        X_3 = X-set(X_1+X_2)
+        Y_3 = Y-set(Y_1+Y_2)
 
         if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
             M.matrix_from_rows_and_columns(X_2,Y_1).rank() != m-1):
             return False, None
         if len(X_1) + len(Y_1) < m:
             return False, None
-        remainX = X-set(X_1+X_2)
-        remainY = Y-set(Y_1+Y_2)
+
         while True:
             #rowshifts
             rowshift = False
-            for x in set(remainX):
+            for x in set(X_3):
                 if (M.matrix_from_rows_and_columns(X_2+[x],Y_1).rank() >
                     M.matrix_from_rows_and_columns(X_2,Y_1).rank()):
                     X_1.append(x)
-                    remainX.remove(x)
-                    # X_1 = list(set(X_1))
+                    X_3.remove(x)
                     rowshift = True
             #colshifts
             colshift = False
-            for y in set(remainY):
+            for y in set(Y_3):
                 if (M.matrix_from_rows_and_columns(X_1,Y_2+[y]).rank() >
                     M.matrix_from_rows_and_columns(X_1,Y_2).rank()):
                     Y_1.append(y)
-                    remainY.remove(y)
-                    # Y_1 = list(set(Y_1))
+                    Y_3.remove(y)
                     colshift = True
             if (colshift==False and rowshift==False):
                 break
+
         # size of S_2
         X_2 = list(X-set(X_1))
         Y_2 = list(Y-set(Y_1))
         if len(X_2)+len(Y_2) < m:
             return False, None
-        if (M.matrix_from_rows_and_columns(X_1,Y_2).rank() +
-            M.matrix_from_rows_and_columns(X_2,Y_1).rank() == m-1):
-            return True, (X_1, Y_1)
-        else:
+        if (lX_2==len(X_2) and lY_2==len(Y_2)):
             return False, None
+        return True, (X_1, Y_1)
 
     # Copying, loading, saving
 

@@ -4713,6 +4713,8 @@ cdef class Matroid(SageObject):
             return self._is_3connected_BC(separation)
         if algorithm == "intersection":
             return self._is_3connected_CE(separation)
+        if algorithm == "shifting":
+            return self._is_3connected_shifting()
         raise ValueError("Not a valid algorithm.")
 
 
@@ -5052,6 +5054,11 @@ cdef class Matroid(SageObject):
         X_2 = set(X_2)
         Y_1 = set(Y_1)
         Y_2 = set(Y_2)
+
+        lX_2 = len(X_2)
+        lY_2 = len(Y_2)
+
+
         Y = self.groundset()-X
         # Returns true if there is a m-separator
         if (self.rank(Y_2|(X-X_1)) - len(X-X_1) 
@@ -5083,13 +5090,12 @@ cdef class Matroid(SageObject):
         X_2 = X-X_1
         Y_2 = Y-Y_1
         S_2 = X_2|Y_2
+        
         if len(S_2) < m:
             return False, None
-        if (self.rank(Y_2|(X-X_1)) - len(X-X_1) +
-            self.rank(Y_1|(X-X_2)) - len(X-X_2) == m-1):
-            return True, S_2
-        else:
+        if (lX_2==len(X_2) and lY_2==len(Y_2)):
             return False, None
+        return True, S_2
 
     cpdef _is_3connected_BC(self, certificate=False):
         r"""

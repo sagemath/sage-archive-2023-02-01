@@ -558,14 +558,18 @@ class Polynomial_generic_sparse(Polynomial):
             True
         """
         d1 = self.__coeffs
+        keys1 = d1.keys()
+        keys1.sort()
+        keys1.reverse()
+
         d2 = other.__coeffs
-        keys1 = list(reversed(sorted(d1.keys())))
-        keys2 = list(reversed(sorted(d2.keys())))
-        n1 = len(keys1)
-        n2 = len(keys2)
-        if n1 == 0 and n2 == 0: return 0
-        elif n1 == 0: return -1
-        elif n2 == 0: return 1
+        keys2 = d2.keys()
+        keys2.sort()
+        keys2.reverse()
+
+        if not keys1 and not keys2: return 0
+        if not keys1: return -1
+        if not keys2: return 1
 
         c = cmp(keys1[0], keys2[0])
         if c: return c
@@ -583,6 +587,8 @@ class Polynomial_generic_sparse(Polynomial):
             c = cmp (d1[k1], d2[k2])
             if c: return c
 
+        n1 = len(keys1)
+        n2 = len(keys2)
         c = cmp(n1, n2)
         if c > 0: return cmp(d1[keys1[n2]], 0)
         elif c < 0: return cmp(0, d2[keys2[n1]])

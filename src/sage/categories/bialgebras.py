@@ -127,9 +127,10 @@ class Bialgebras(Category_over_base_ring):
 
             Compute the convolution product of no maps on the Hopf algebra of
             symmetric functions in non-commuting variables. This should
-            return ...::
+            return ...
 
-                sage: TODO: finish the above sentence
+            TODO: finish the above sentence ::
+
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
                 sage: T = m.convolution_product()
                 sage: [T(m(lam)) for lam in SetPartitions(0).list() + SetPartitions(2).list()]
@@ -381,7 +382,7 @@ class Bialgebras(Category_over_base_ring):
                 sage: m[[1,3],[2]].convolution_product([Antipode, Antipode])
                 3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
 
-                sage: m[[]].convolution_product([]), m[[1,3],[2]].convolution_product([])
+                sage: m[[]].convolution_product([])
                 m{}
                 sage: m[[1,3],[2]].convolution_product([])
                 0

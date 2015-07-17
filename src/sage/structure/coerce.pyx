@@ -414,7 +414,27 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         Now lets see what happens when we do a binary operations with
         an integer and a rational::
 
-            sage: left_morphism, right_morphism = maps[ZZ, QQ]
+            sage: left_morphism_ref, right_morphism_ref = maps[ZZ, QQ]
+
+        Note that by :trac:`14058` the coercion model only stores a weak
+        reference to the coercion maps in this case::
+
+            sage: left_morphism_ref
+            <weakref at ...; to 'sage.rings.rational.Z_to_Q' at ...
+            (RingHomset_generic_with_category._abstract_element_class)>
+
+        Moreover, the weakly referenced coercion map uses only a weak
+        reference to the codomain::
+
+            sage: left_morphism_ref()
+            (map internal to coercion system -- copy before use)
+            Natural morphism:
+              From: Integer Ring
+              To:   Rational Field
+
+        To get an actual valid map, we simply copy the weakly referenced
+        coercion map::
+                
             sage: print copy(left_morphism_ref())
             Natural morphism:
               From: Integer Ring

@@ -42,6 +42,7 @@ AUTHORS:
 from sage.calculus.functions       import jacobian
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset        import Hom, End
+from sage.combinat.sf.sf           import SymmetricFunctions
 from sage.functions.all            import sqrt
 from sage.libs.pari.all            import PariError
 from sage.matrix.constructor       import matrix, identity_matrix
@@ -50,7 +51,7 @@ from sage.misc.cachefunc           import cached_method
 from sage.misc.misc                import subsets
 from sage.misc.mrange              import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all                import Integer, moebius
+from sage.rings.all                import Integer, moebius, CIF
 from sage.rings.arith              import gcd, lcm, next_prime, binomial, primes
 from sage.rings.complex_field      import ComplexField_class,ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField_class
@@ -2298,12 +2299,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Bruin-Molnar] N. Bruin and A. Molnar, Minimal models for rational
-           functions in a dynamical setting
-           LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
-
-        .. [Molnar] A. Molnar, Fractional Linear Minimal Models of Rational Functions,
-           M.Sc. Thesis.
+        [Bruin-Molnar]_, [Molnar]_
 
         INPUT:
 
@@ -2895,6 +2891,185 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         points.pop(i)
                         break
             return points
+
+    def multiplier_spectra(self,n,formal = True):
+        r"""
+        Computes the formal ``n`` multiplier spectra of ``self``, which is the set of multipliers of the
+        periodic points of formal period ``n`` of ``self`` included with the appropriate multiplicity.
+        User can also specify to compute the ``n`` multiplier spectra instead which includes the
+        multipliers of all periodic points of period ``n`` of ``self``. ``self`` must be defined over
+        projective space of dimension 1 over a number field.
+
+        INPUT:
+
+        - ``n`` - a positive integer, the period
+
+        - ``formal`` - a Boolean. True specifies to find the formal ``n`` multiplier spectra of ``self``. False
+            specifies to find the ``n`` multiplier spectra of ``self``. Default: True
+
+        OUTPUT:
+
+        - a list of QQbar elements
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([4608*x^10 - 2910096*x^9*y + 325988068*x^8*y^2 + 31825198932*x^7*y^3 - 4139806626613*x^6*y^4\
+            - 44439736715486*x^5*y^5 + 2317935971590902*x^4*y^6 - 15344764859590852*x^3*y^7 + 2561851642765275*x^2*y^8\
+            + 113578270285012470*x*y^9 - 150049940203963800*y^10, 4608*y^10])
+            sage: f.multiplier_spectra(1)
+            [0, -7198147681176255644585/256, 848446157556848459363/19683, -3323781962860268721722583135/35184372088832,
+            529278480109921/256, -4290991994944936653/2097152, 1061953534167447403/19683, -3086380435599991/9,
+            82911372672808161930567/8192, -119820502365680843999, 3553497751559301575157261317/8192]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: z = QQ['z'].0
+            sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - w/4*y^2,y^2])
+            sage: f.multiplier_spectra(2,False)
+            [0, 5.931851652578137? + 0.?e-17*I, 0.0681483474218635? - 1.930649271699173?*I,
+            0.0681483474218635? + 1.930649271699173?*I]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 3/4*y^2,y^2])
+            sage: f.multiplier_spectra(2)
+            [1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 7/4*y^2,y^2])
+            sage: f.multiplier_spectra(3)
+            [1, 1]
+        """
+        PS = self.domain()
+        n = Integer(n)
+
+        if (n < 1):
+            raise ValueError("Period must be a positive integer")
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if not is_ProjectiveSpace(PS):
+            raise NotImplementedError("Not implemented for subschemes")
+        if (PS.dimension_relative() > 1):
+            raise NonImplementedError("Only implemented for dimension 1")
+        if not self.is_endomorphism():
+            raise TypeError("self must be an endomorphism")
+        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
+            raise NotImplementedError("self must be a map over a number field")
+
+        f = self.change_ring(QQbar)
+
+        PS = f.domain()
+
+        if not formal:
+            G = f.nth_iterate_map(n)
+            F = G[0]*PS.gens()[1] - G[1]*PS.gens()[0]
+        else:
+            # periodic points of formal period n are the roots of the nth dynatomic polynomial
+            K = f._number_field_from_algebraics()
+            F = K.dynatomic_polynomial(n)
+            if K.domain().base_ring() != QQ: # need to coerce F to poly over QQbar. This is only needed if base ring is not QQ
+                abspoly = K.domain().base_ring().absolute_polynomial()
+                phi = K.domain().base_ring().hom(QQbar.polynomial_root(abspoly,abspoly.any_root(CIF)),QQbar)
+                Kx = K.coordinate_ring()
+                QQbarx = QQbar[Kx.variable_names()]
+                phix = Kx.hom(phi,QQbarx)
+                F = phix(F)
+
+        other_roots = F([(f.domain().gens()[0]),1]).univariate_polynomial().roots(ring=QQbar)
+
+        points = []
+
+        minfty = min([e[1] for e in F.exponents()]) # include the point at infinity with the right multiplicity
+        for i in range(minfty):
+            points.append(PS([1,0]))
+
+        for R in other_roots:
+            for i in range(R[1]):
+                points.append(PS([R[0],1])) # include copies of higher multiplicity roots
+
+        newpoints = [] # should include one representative point per cycle, included with the right multiplicity
+
+        while(points != []):
+            P = points[0]
+            newpoints.append(P)
+            points.pop(0)
+            Q = P
+            for i in range(1,n):
+                try:
+                    points.remove(f(Q))
+                except ValueError:
+                    pass
+                Q = f(Q)
+
+        multipliers = [f.multiplier(P,n)[0,0] for P in newpoints]
+
+        return multipliers
+
+    def sigma_invariants(self,n,formal = True):
+        r"""
+        Computes the values of the elementary symmetric polynomials of the formal ``n`` multilpier spectra
+        of ``self``. Can specify to instead compute the values corresponding to the elementary symmetric
+        polynomials of the ``n`` multiplier spectra of ``self``, which include the multipliers of all periodic
+        points of period ``n`` of ``self``. `self`` must be defined over projective space of dimension 1 over
+        a number field.
+
+        INPUT:
+
+        - ``n`` - a positive integer, the period.
+
+        - ``formal`` - a Boolean. True specifies to find the values of the elementary symmetric polynomials
+            corresponding to the formal ``n`` multiplier spectra of ``self``. False specifies to instead find
+            the values corresponding to the ``n`` multiplier spectra of ``self``, which includes the multipliers
+            of all periodic points of period ``n`` of ``self``. Default: True
+
+        OUTPUT:
+
+        - a list of QQbar elements
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
+            + 28193217129*y^5,512*y^5])
+            sage: f.sigma_invariants(1)
+            [19575526074450617/1048576, -9078122048145044298567432325/2147483648,
+            -2622661114909099878224381377917540931367/1099511627776,
+            -2622661107937102104196133701280271632423/549755813888,
+            338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: z = QQ['z'].0
+            sage: K = NumberField(z^4 - 4*z^2 + 1,'z')
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - 5/4*y^2,y^2])
+            sage: f.sigma_invariants(2,False)
+            [13.00000000000000?, 11.00000000000000?, -25.00000000000000?, 0]
+        """
+        polys = []
+
+        multipliers = self.multiplier_spectra(n, formal)
+
+        e = SymmetricFunctions(QQbar).e()
+
+        N = len(multipliers)
+        for i in range(0,N):
+            polys.append(e([i+1]).expand(N)(multipliers))
+        return polys
+
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
 

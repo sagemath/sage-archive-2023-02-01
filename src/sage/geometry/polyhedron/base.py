@@ -12,7 +12,7 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
+import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
 from sage.misc.all import cached_method, prod
@@ -646,7 +646,7 @@ class Polyhedron_base(Element):
                     continue
                 elif opt is False:
                     return False
-                elif isinstance(opt, (basestring, list, tuple)):
+                elif isinstance(opt, (six.string_types, list, tuple)):
                     merged['color'] = opt
                 else:
                     merged.update(opt)
@@ -947,6 +947,62 @@ class Polyhedron_base(Element):
             1
         """
         return len(self.lines())
+
+    def to_linear_program(self, solver=None):
+        r"""
+        Return the polyhedron as a :class:`MixedIntegerLinearProgram`.
+
+        INPUT:
+
+        - ``solver`` -- select a solver (data structure). See the documentation
+          of for :class:`MixedIntegerLinearProgram`. Set to ``None`` by default.
+
+        Note that the :class:`MixedIntegerLinearProgram` object will have the
+        null function as an objective.
+
+        .. SEEALSO::
+
+            :meth:`~MixedIntegerLinearProgram.polyhedron` -- return the
+            polyhedron associated with a :class:`MixedIntegerLinearProgram`
+            object.
+
+        EXAMPLE::
+
+            sage: polytopes.cube().to_linear_program()
+            Mixed Integer Program  ( maximization, 3 variables, 6 constraints )
+
+        TESTS::
+
+            sage: p=polytopes.flow_polytope(digraphs.DeBruijn(3,2)); p
+            A 19-dimensional polyhedron in QQ^27 defined as the convex hull of 1 vertex and 148 rays
+            sage: p.to_linear_program().polyhedron() == p
+            True
+            sage: p=polytopes.icosahedron()
+            sage: p.to_linear_program(solver='PPL')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot use PPL on exact irrational data.
+        """
+        from sage.rings.rational_field import QQ
+        R = self.base_ring()
+        if (solver is not None and
+            solver.lower() == 'ppl' and
+            R.is_exact() and (not R == QQ)):
+            raise NotImplementedError('Cannot use PPL on exact irrational data.')
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+        p = MixedIntegerLinearProgram(solver=solver)
+        x = p.new_variable(real=True, nonnegative=False)
+
+        for ineqn in self.inequalities_list():
+            b = -ineqn.pop(0)
+            p.add_constraint(p.sum([x[i]*ineqn[i] for i in range(len(ineqn))]) >= b)
+
+        for eqn in self.equations_list():
+            b = -eqn.pop(0)
+            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == -b)
+
+        return p
 
     def Hrepresentation(self, index=None):
         """
@@ -3304,21 +3360,20 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrs
+            sage: polytopes.hypercube(3)._volume_lrs() #optional - lrslib
             8.0
-            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrs
+            sage: (polytopes.hypercube(3)*2)._volume_lrs() #optional - lrslib
             64.0
-            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrs
+            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrslib
             2.0
 
         REFERENCES:
 
              David Avis's lrs program.
         """
-        if is_package_installed('lrs') != True:
-            print 'You must install the optional lrs package ' \
-                  'for this function to work'
-            raise NotImplementedError
+        if not is_package_installed('lrslib'):
+            raise NotImplementedError('You must install the optional lrslib package '
+                                       'for this function to work')
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -3375,6 +3430,17 @@ class Polyhedron_base(Element):
             sage: polytopes.twenty_four_cell().volume()
             2
 
+        Volume of the same polytopes, using the optional package lrslib
+        (which requires a rational polytope).  For mysterious historical
+        reasons, Sage casts lrs's exact answer to a float::
+
+            sage: I3 = polytopes.hypercube(3)
+            sage: I3.volume(engine='lrs') #optional - lrslib
+            8.0
+            sage: C24 = polytopes.twenty_four_cell()
+            sage: C24.volume(engine='lrs') #optional - lrslib
+            2.0
+
         If the base ring is exact, the answer is exact::
 
             sage: P5 = polytopes.regular_polygon(5)
@@ -3386,11 +3452,14 @@ class Polyhedron_base(Element):
             sage: numerical_approx(_)
             2.18169499062491
 
-        Volume of the same polytopes, using the optional package lrs::
+        Different engines may have different ideas on the definition
+        of volume of a lower-dimensional object::
 
-            sage: P5 = polytopes.regular_polygon(5, base_ring=RDF)
-            sage: P5.volume(engine='lrs') #optional - lrs
-            2.37764129...
+            sage: I = Polyhedron([(0,0), (1,1)])
+            sage: I.volume()
+            0
+            sage: I.volume(engine='lrs') #optional - lrslib
+            1.0
         """
         if engine=='lrs':
             return self._volume_lrs(**kwds)

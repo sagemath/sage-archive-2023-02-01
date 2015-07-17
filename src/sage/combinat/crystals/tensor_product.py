@@ -47,6 +47,7 @@ from sage.combinat.tableau import Tableau
 from letters import CrystalOfLetters
 from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
+from sage.structure.element import get_coercion_model
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -623,7 +624,7 @@ class TensorProductOfCrystals(CrystalOfWords):
          Crystal of generalized Young walls of type ['A', 15, 1],
          Crystal of generalized Young walls of type ['A', 15, 1]]
 
-        sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
         sage: C = crystals.GeneralizedYoungWalls(2,2*La[2])
         sage: D = crystals.GeneralizedYoungWalls(2,3*La[0]+La[2])
@@ -843,6 +844,31 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         """
         return self.cartesian_product.cardinality()
 
+    @cached_method
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.B(['A',4], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['A', 4]
+            sage: T = crystals.infinity.Tableaux(['A',4])
+            sage: T.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+            sage: TP = crystals.TensorProduct(B, T)
+            sage: TP.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
+
 class TensorProductOfCrystalsElement(ImmutableListWithParent):
     r"""
     A class for elements of tensor products of crystals.
@@ -1032,7 +1058,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
             sage: T = crystals.TensorProduct(B,B)
             sage: b1 = B.highest_weight_vector().f_string([1,0])
@@ -1160,7 +1186,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(3,La[0])
             sage: T = crystals.TensorProduct(B,B,B)
             sage: b1 = B.highest_weight_vector().f_string([0,3])

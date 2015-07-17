@@ -209,7 +209,6 @@ following variable to the correct path.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from string import join
 import os
 from sage.symbolic.all import I, pi
 from sage.functions.log import exp
@@ -311,7 +310,8 @@ class Sandpile(DiGraph):
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors(v):
-                    if isinstance(g.edge_label(v,n), type(1)) and g.edge_label(v,n) >=0:
+                    if (isinstance(g.edge_label(v,n), int)
+                            and g.edge_label(v,n) >= 0):
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
@@ -322,8 +322,8 @@ class Sandpile(DiGraph):
             for v in g.vertices():
                 edges = {}
                 for n in g.neighbors_out(v):
-                    if (isinstance(g.edge_label(v,n), type(1))
-                        and g.edge_label(v,n)>=0):
+                    if (isinstance(g.edge_label(v,n), int)
+                            and g.edge_label(v,n) >= 0):
                         edges[n] = g.edge_label(v,n)
                     else:
                         edges[n] = 1
@@ -1981,7 +1981,7 @@ class Sandpile(DiGraph):
             return self._resolution
         else:
             r = ['R^'+str(i) for i in self._betti]
-            return join(r,' <-- ')
+            return ' <-- '.join(r)
 
     def _set_groebner(self):
         r"""
@@ -4094,21 +4094,21 @@ class SandpileDivisor(dict):
         mat_file.write(str(n)+' ')
         mat_file.write(str(n)+'\n')
         for r in L:
-            mat_file.write(join(map(str,r)))
+            mat_file.write(''.join(map(str,r)))
             mat_file.write('\n')
         mat_file.close()
         # relations file
         rel_file = open(lin_sys_rel,'w')
         rel_file.write('1 ')
         rel_file.write(str(n)+'\n')
-        rel_file.write(join(['>']*n))
+        rel_file.write(''.join(['>']*n))
         rel_file.write('\n')
         rel_file.close()
         # right-hand side file
         rhs_file = open(lin_sys_rhs,'w')
         rhs_file.write('1 ')
         rhs_file.write(str(n)+'\n')
-        rhs_file.write(join([str(-i) for i in self.values()]))
+        rhs_file.write(''.join([str(-i) for i in self.values()]))
         rhs_file.write('\n')
         rhs_file.close()
         # sign file
@@ -4122,7 +4122,7 @@ class SandpileDivisor(dict):
         by this vector, we transform any solution into a nonnegative solution.
         What if the vector in the kernel does not have full support though?
         """
-        sign_file.write(join(['2']*n))  # so maybe a 1 could go here
+        sign_file.write(''.join(['2']*n))  # so maybe a 1 could go here
         sign_file.write('\n')
         sign_file.close()
         # compute

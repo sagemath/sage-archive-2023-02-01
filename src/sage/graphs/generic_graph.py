@@ -4576,7 +4576,7 @@ class GenericGraph(GenericGraph_pyx):
           original version is recursive. We emulate the recursion using a stack.
 
         .. SEEALSO::
-            
+
             :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
@@ -4730,7 +4730,7 @@ class GenericGraph(GenericGraph_pyx):
         type `B`.
 
         .. SEEALSO::
-        
+
             :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
@@ -8133,10 +8133,17 @@ class GenericGraph(GenericGraph_pyx):
             b=p.get_values(b)
             return [v for v in g.vertices() if b[v]==1]
 
-    def edge_connectivity(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
+    def edge_connectivity(self,
+                          value_only = True,
+                          implementation = None,
+                          use_edge_labels = False,
+                          vertices = False,
+                          solver = None,
+                          verbose = 0):
         r"""
-        Returns the edge connectivity of the graph. For more information, see
-        the
+        Returns the edge connectivity of the graph.
+
+        For more information, see the
         `Wikipedia article on connectivity
         <http://en.wikipedia.org/wiki/Connectivity_(graph_theory)>`_.
 
@@ -8159,11 +8166,23 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, both the value and a minimum edge cut
             are returned.
 
+        - ``implementation`` -- selects an implementation:
+
+          - When set to ``None`` (default): selects the best implementation
+            available.
+
+          - When set to ``"boost"``, we use the Boost graph library (which is
+            much more efficient). It is not available when ``edge_labels=True``,
+            and it is unreliable for directed graphs (see :trac:`18753`).
+
+          - When set to ``"Sage"``, we use Sage's implementation.
+
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a weighted minimum cut
             where each edge has a weight defined by its label. (If
-            an edge has no label, `1` is assumed.)
+            an edge has no label, `1` is assumed.). Implies
+            ``boost`` = ``False``.
 
           - When set to ``False``, each edge has weight `1`.
 
@@ -8174,9 +8193,9 @@ class GenericGraph(GenericGraph_pyx):
             ``value_only=False``.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
+          solver to be used (ignored if ``implementation='boost'``). If set to
+          ``None``, the default one is used. For more information on LP solvers
+          and which default solver is used, see the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -8188,74 +8207,156 @@ class GenericGraph(GenericGraph_pyx):
 
         A basic application on the PappusGraph::
 
-           sage: g = graphs.PappusGraph()
-           sage: g.edge_connectivity()
-           3
+            sage: g = graphs.PappusGraph()
+            sage: g.edge_connectivity()
+            3
 
         The edge connectivity of a complete graph ( and of a random graph )
         is its minimum degree, and one of the two parts of the bipartition
         is reduced to only one vertex. The cutedges isomorphic to a
         Star graph::
 
-           sage: g = graphs.CompleteGraph(5)
-           sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True)
-           sage: print value
-           4
-           sage: len(setA) == 1 or len(setB) == 1
-           True
-           sage: cut = Graph()
-           sage: cut.add_edges(edges)
-           sage: cut.is_isomorphic(graphs.StarGraph(4))
-           True
+            sage: g = graphs.CompleteGraph(5)
+            sage: [ value, edges, [ setA, setB ]] = g.edge_connectivity(vertices=True)
+            sage: print value
+            4
+            sage: len(setA) == 1 or len(setB) == 1
+            True
+            sage: cut = Graph()
+            sage: cut.add_edges(edges)
+            sage: cut.is_isomorphic(graphs.StarGraph(4))
+            True
 
         Even if obviously in any graph we know that the edge connectivity
         is less than the minimum degree of the graph::
 
-           sage: g = graphs.RandomGNP(10,.3)
-           sage: min(g.degree()) >= g.edge_connectivity()
-           True
+            sage: g = graphs.RandomGNP(10,.3)
+            sage: min(g.degree()) >= g.edge_connectivity()
+            True
 
         If we build a tree then assign to its edges a random value, the
         minimum cut will be the edge with minimum value::
 
-           sage: g = graphs.RandomGNP(15,.5)
-           sage: tree = Graph()
-           sage: tree.add_edges(g.min_spanning_tree())
-           sage: for u,v in tree.edge_iterator(labels=None):
-           ...        tree.set_edge_label(u,v,random())
-           sage: minimum = min([l for u,v,l in tree.edge_iterator()])
-           sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)
-           sage: l == minimum
-           True
+            sage: g = graphs.RandomGNP(15,.5)
+            sage: tree = Graph()
+            sage: tree.add_edges(g.min_spanning_tree())
+            sage: for u,v in tree.edge_iterator(labels=None):
+            ...        tree.set_edge_label(u,v,random())
+            sage: minimum = min([l for u,v,l in tree.edge_iterator()])
+            sage: [value, [(u,v,l)]] = tree.edge_connectivity(value_only=False, use_edge_labels=True)
+            sage: l == minimum
+            True
 
-        When ``value_only = True``, this function is optimized for small
-        connectivity values and does not need to build a linear program.
+        When ``value_only = True`` and ``implementation="sage"``, this function is
+        optimized for small connectivity values and does not need to build a
+        linear program.
 
-        It is the case for connected graphs which are not
-        connected ::
+        It is the case for graphs which are not connected ::
 
-           sage: g = 2 * graphs.PetersenGraph()
-           sage: g.edge_connectivity()
-           0.0
-
-        Or if they are just 1-connected ::
-
-           sage: g = graphs.PathGraph(10)
-           sage: g.edge_connectivity()
-           1.0
+            sage: g = 2 * graphs.PetersenGraph()
+            sage: g.edge_connectivity(implementation="sage")
+            0.0
 
         For directed graphs, the strong connectivity is tested
         through the dedicated function ::
 
-           sage: g = digraphs.ButterflyGraph(3)
-           sage: g.edge_connectivity()
-           0.0
+            sage: g = digraphs.ButterflyGraph(3)
+            sage: g.edge_connectivity(implementation="sage")
+            0.0
+
+        We check that the result with Boost is the same as the result without
+        Boost ::
+
+            sage: g = graphs.RandomGNP(15,.3)
+            sage: g.edge_connectivity() == g.edge_connectivity(implementation="sage")
+            True
+
+        Boost interface also works with directed graphs ::
+
+            sage: digraphs.Circuit(10).edge_connectivity(implementation = "boost", vertices = True)
+            [1, [(0, 1)], [{0}, {1, 2, 3, 4, 5, 6, 7, 8, 9}]]
+
+        However, the Boost algorithm is not reliable if the input is directed
+        (see :trac:`18753`)::
+
+            sage: g = digraphs.Path(3)
+            sage: g.edge_connectivity()
+            0.0
+            sage: g.edge_connectivity(implementation="boost")
+            1
+            sage: g.add_edge(1,0)
+            sage: g.edge_connectivity()
+            0.0
+            sage: g.edge_connectivity(implementation="boost")
+            0
+
+        TESTS:
+
+        Checking that the two implementations agree::
+
+            sage: for i in range(10):
+            ....:     g = graphs.RandomGNP(30,0.3)
+            ....:     e1 = g.edge_connectivity(implementation="boost")
+            ....:     e2 = g.edge_connectivity(implementation="sage")
+            ....:     assert (e1 == e2)
+
+        Disconnected graphs and ``vertices=True``::
+
+            sage: g = graphs.PetersenGraph()
+            sage: (2*g).edge_connectivity(vertices=True)
+            [0, [], [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]]
         """
         self._scream_if_not_simple(allow_loops=True)
         g=self
 
         if vertices:
             value_only=False
+
+        if implementation is None:
+            if use_edge_labels or g.is_directed():
+                implementation = "sage"
+            else:
+                implementation = "boost"
+
+        implementation = implementation.lower()
+        if implementation not in ["boost", "sage"]:
+            raise ValueError("'implementation' must be set to 'boost', 'sage' or None.")
+        elif implementation=="boost" and use_edge_labels:
+            raise ValueError("The Boost implementation is currently not able to handle edge labels")
+
+        # Otherwise, an error is created
+        if g.num_edges() == 0 or g.num_verts() == 0:
+            if value_only:
+                return 0
+            elif vertices:
+                return [0,[],[[],[]]]
+            else:
+                return [0,[]]
+
+        if implementation == "boost":
+            from sage.graphs.base.boost_graph import edge_connectivity
+
+            [obj, edges] = edge_connectivity(g)
+
+            if value_only:
+                return obj
+
+            val = [obj, edges]
+
+            if vertices and not obj == 0:
+                H = copy(self)
+                H.delete_edges(edges)
+
+                if H.is_directed():
+                    a = set(H.breadth_first_search([x for x,y in edges]))
+                    b = set(H).difference(a)
+                    val.append([a,b])
+                else:
+                    val.append(H.connected_components())
+            elif vertices:
+                val.append(self.connected_components())
+
+            return val
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
@@ -12122,7 +12223,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.triangles(self.networkx_graph(copy=False), nbunch)
 
-    def clustering_average(self):
+    def clustering_average(self, implementation=None):
         r"""
         Returns the average clustering coefficient.
 
@@ -12136,15 +12237,63 @@ class GenericGraph(GenericGraph_pyx):
 
         See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
+        INPUT:
+
+        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
+          if ``'networkx'``, then the NetworkX algorithm is used. If ``None``,
+          the best option is chosen. Boost implementation only works on
+          undirected graphs.
+
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_average()
             0.25
-        """
-        import networkx
-        return networkx.average_clustering(self.networkx_graph(copy=False))
+            sage: (graphs.FruchtGraph()).clustering_average(implementation='networkx')
+            0.25
 
-    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=None):
+        TESTS:
+
+        Boost does not work with DiGraph::
+
+            sage: digraphs.Circuit(10).clustering_average(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected graphs.
+
+        The result is the same with Boost and NetworkX::
+
+            sage: G = graphs.RandomGNM(10,20)
+            sage: average_boost    = G.clustering_average(implementation='boost')
+            sage: average_networkx = G.clustering_average(implementation='networkx')
+            sage: average_boost-average_networkx # tol abs 1e-12
+            0
+
+        """
+        if implementation == None:
+            if not self.is_directed():
+                implementation = 'boost'
+            else:
+                implementation = 'networkx'
+
+        if not implementation in ['networkx','boost']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', or None.")
+
+        if (implementation == 'boost'):
+            if self.is_directed():
+                raise ValueError("Boost algorithm is only implemented for " +
+                                 "undirected graphs.")
+            from sage.graphs.base.boost_graph import clustering_coeff
+            return clustering_coeff(self)[0]
+        else:
+            import networkx
+            return networkx.average_clustering(self.networkx_graph(copy=False))
+
+    def clustering_coeff(self,
+                         nodes=None,
+                         weight=False,
+                         implementation=None,
+                         return_vertex_weights=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -12172,14 +12321,20 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
+        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
+          if ``'networkx'``, then the NetworkX algorithm is used, if 'None', the
+          best option is chosen by the algorithm. Boost implementation only
+          works on undirected graphs, and only if ``weight`` is ``False``.
+
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff().values()
+            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='networkx').values()
             [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333,
              0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
              0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
              0.0]
-            sage: (graphs.FruchtGraph()).clustering_coeff()
+
+            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='boost')
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
              3: 0.3333333333333333, 4: 0.3333333333333333,
              5: 0.3333333333333333, 6: 0.3333333333333333,
@@ -12192,6 +12347,7 @@ class GenericGraph(GenericGraph_pyx):
             5: 0.3333333333333333, 6: 0.3333333333333333,
             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
             10: 0.3333333333333333, 11: 0.0}
+
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
@@ -12199,7 +12355,12 @@ class GenericGraph(GenericGraph_pyx):
             ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        TESTS::
+            sage: (graphs.GridGraph([5,5])).clustering_coeff(nodes=[(0,0),(0,1),(2,2)])
+            {(0, 0): 0.0, (0, 1): 0.0, (2, 2): 0.0}
+
+        TESTS:
+
+        Check that the option 'return_vertex_weights' is deprecated::
 
             sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
             ...     weight=True, return_vertex_weights=False)
@@ -12207,13 +12368,57 @@ class GenericGraph(GenericGraph_pyx):
             has been deprecated and is ignored.
             See http://trac.sagemath.org/17134 for details.
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+
+        Boost does not work with weights::
+
+            sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+
+        Boost does not work with DiGraph::
+
+            sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+
+        Check that the result is the same with Boost and NetworkX::
+
+            sage: G = graphs.RandomGNM(10,20)
+            sage: clust_boost = G.clustering_coeff(implementation='boost')
+            sage: clust_networkx = G.clustering_coeff(implementation='networkx')
+            sage: for v in G:
+            ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
+            ....:         print "Error:"
+            ....:         print "   Boost clustering of", v, "is", clust_boost[v]
+            ....:         print "NetworkX clustering of", v, "is", clust_networkx[v]
+
         """
         if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
-        import networkx
-        return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+
+        if implementation == None:
+            if (not self.is_directed()) and not weight:
+                implementation = 'boost'
+            else:
+                implementation = 'networkx'
+
+        if not implementation in ['networkx','boost']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', or None.")
+
+        if (implementation == 'boost'):
+            if self.is_directed() or weight:
+                raise ValueError("Boost algorithm is only implemented for " +
+                                 "undirected, unweighted graphs.")
+            from sage.graphs.base.boost_graph import clustering_coeff
+            return clustering_coeff(self, nodes)[1]
+        else:
+            import networkx
+            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
 
     def cluster_transitivity(self):
         r"""
@@ -13734,10 +13939,10 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
@@ -13882,10 +14087,10 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`breadth_first_search`
-    
+
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
 
@@ -15087,7 +15292,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [0.833..., 0.543...],
              ('1', 0): [1.12..., -0.830...],
              ('1', 1): [2.50..., -0.545...]}
-        
+
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
              ('0', 1): [0.3..., 1],
@@ -15099,7 +15304,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [1.61..., 0.260..., -0.927...],
              ('1', 0): [0.674..., -0.528..., -0.343...],
              ('1', 1): [1.07..., -0.260..., 0.927...]}
-             
+
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
@@ -15513,6 +15718,7 @@ class GenericGraph(GenericGraph_pyx):
              ('...', ...): [...,...],
              ('...', ...): [...,...]}
             sage: g.plot(layout = "graphviz")  # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
 
         Note: the actual coordinates are not deterministic
 
@@ -15520,14 +15726,21 @@ class GenericGraph(GenericGraph_pyx):
         ``dot`` layout program. One may specify an alternative layout
         program::
 
-            sage: g.plot(layout = "graphviz", prog = "dot")    # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "neato")  # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "twopi")  # optional - dot2tex graphviz
-            sage: g.plot(layout = "graphviz", prog = "fdp")    # optional - dot2tex graphviz
+            sage: g.plot(layout = "graphviz", prog = "dot")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "neato") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "twopi") # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
+            sage: g.plot(layout = "graphviz", prog = "fdp")   # optional - dot2tex graphviz
+            Graphics object consisting of 29 graphics primitives
             sage: g = graphs.BalancedTree(5,2)
             sage: g.plot(layout = "graphviz", prog = "circo")  # optional - dot2tex graphviz
+            Graphics object consisting of 62 graphics primitives
 
-        TODO: put here some cool examples showcasing graphviz features.
+        .. TODO::
+
+            Put here some cool examples showcasing graphviz features.
 
         This requires ``graphviz`` and the ``dot2tex`` spkg. Here are
         some installation tips:
@@ -15539,8 +15752,10 @@ class GenericGraph(GenericGraph_pyx):
          - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
            and install it with ``sage -i dot2tex-2.8.?.spkg``
 
-        TODO: use the graphviz functionality of Networkx 1.0 once it
-        will be merged into Sage.
+        .. TODO::
+
+            Use the graphviz functionality of Networkx 1.0 once it
+            will be merged into Sage.
         """
         assert_have_dot2tex()
         assert dim == 2, "3D graphviz layout not implemented"
@@ -15755,6 +15970,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``save_pos`` - save position computed during plotting
 
         .. NOTE::
+
+            - This method supports any parameter accepted by
+              :meth:`sage.plot.graphics.Graphics.show`.
 
             - See the documentation of the :mod:`sage.graphs.graph_plot` module
               for information and examples of how to define parameters that will

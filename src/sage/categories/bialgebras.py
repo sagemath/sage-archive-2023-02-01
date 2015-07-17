@@ -68,17 +68,17 @@ class Bialgebras(Category_over_base_ring):
 
             INPUT:
 
-             - ``maps`` -- any number of linear maps `R, S, \dots, T` on
-               ``self``, say of length `n \geq 0`.
+             - ``maps`` -- any number `n \geq 0` of linear maps `R, S, \dots,
+               T` on ``self``; or a single ``list`` or ``tuple`` of such maps.
 
             OUTPUT:
 
              - the new map `R * S * \cdots * T` representing their convolution
                product.
 
-            MATH::
+            .. MATH::
 
-                (R*S*\cdots *T) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)},
+                (R*S*\cdots*T) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)},
 
             where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
             with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
@@ -126,10 +126,8 @@ class Bialgebras(Category_over_base_ring):
                 [0, R[2], R[2, 1] + R[3], R[2, 2] + R[4]]
 
             Compute the convolution product of no maps on the Hopf algebra of
-            symmetric functions in non-commuting variables. This should
-            return ...
-
-            TODO: finish the above sentence ::
+            symmetric functions in non-commuting variables. This is the
+            composition of the counit with the unit::
 
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
                 sage: T = m.convolution_product()
@@ -159,9 +157,8 @@ class Bialgebras(Category_over_base_ring):
                 sage: T(x)
                 2*[1, 3, 2] + [2, 1, 3] + 2*[2, 3, 1] + 3*[3, 1, 2] + 3*[3, 2, 1]
             """
-            # Be flexible on how the maps are entered...
-            # TODO : test this if statement and explain what it means to be
-            # flexible
+            # Be flexible on how the maps are entered: accept a list/tuple of
+            # maps as well as multiple arguments
             if len(maps) == 1 and isinstance(maps[0], (list, tuple)):
                 T = tuple(maps[0])
             else:
@@ -173,6 +170,10 @@ class Bialgebras(Category_over_base_ring):
             # TYPE-CHECK:
             if not H in ModulesWithBasis:
                 raise AttributeError('`self` (%s) must belong to ModulesWithBasis. Try defining convolution product on a basis of `self` instead.' % H._repr_())
+
+            # TODO: (1) create a ticket for speeding this up
+            # TODO: (2) replace this with the faster version; i.e., a module
+            # morphism constructed from ``lambda x: x.convolution_product(*maps)``
 
             # SPEED-NOTE:
             # The code below, written as a composition of morphisms, is
@@ -189,6 +190,7 @@ class Bialgebras(Category_over_base_ring):
 
                 return Mu_n * apply_T * Delta_n
 
+        # TODO: delete this method
         def _convolution_product_from_elements(self, *maps):
             """
             Return the convolution product (a map) of the maps.
@@ -265,7 +267,7 @@ class Bialgebras(Category_over_base_ring):
                     T = lambda x: x.antipode()
                     n = abs(n)
                 else:
-                    raise AttributeError("`self` has no antipode, hence cannot take negative convolution powers of identity_map: %s < 0" % str(n))
+                    raise ValueError("`self` has no antipode, hence cannot take negative convolution powers of identity_map: %s < 0" % str(n))
             else:
                 T = lambda x: x
             return self.convolution_product([T] * n)
@@ -277,16 +279,17 @@ class Bialgebras(Category_over_base_ring):
 
             INPUT:
 
-             - ``maps`` -- any number of linear maps `R, S, \dots, T` on
-               ``self.parent()``, say of length `n \geq 0`.
+             - ``maps`` -- any number `n \geq 0` of linear maps `R, S, \dots,
+               T` on ``self.parent()``; or a single ``list`` or ``tuple`` of
+               such maps.
 
             OUTPUT:
 
              - `(R * S * \cdots * T)` applied to ``self``.
 
-            MATH::
+            .. MATH::
 
-                (R*S*\cdots *T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h),
+                (R*S*\cdots*T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h),
 
             where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
             with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
@@ -313,27 +316,34 @@ class Bialgebras(Category_over_base_ring):
 
                 Remove dependency on ``modules_with_basis`` methods.
 
-            EXAMPLES::
+            EXAMPLES:
+
+            We compute convolution products of the identity and antipode maps
+            on Schur functions::
 
                 sage: Id = lambda x: x
                 sage: Antipode = lambda x: x.antipode()
                 sage: s = SymmetricFunctions(QQ).schur()
                 sage: s[3].convolution_product(Id, Id)
                 2*s[2, 1] + 4*s[3]
-
-            TODO : what is the next line testing? ::
-
-                sage: s[3,2].convolution_product(Id, Id) == s[3,2].convolution_product([Id, Id])
-                True
                 sage: s[3,2].convolution_product(Id) == s[3,2]
                 True
+
+            The method accepts multiple arguments, or a single argument
+            consisting of a list of maps::
+
+                sage: s[3,2].convolution_product(Id, Id)
+                2*s[2, 1, 1, 1] + 6*s[2, 2, 1] + 6*s[3, 1, 1] + 12*s[3, 2] + 6*s[4, 1] + 2*s[5]
+                sage: s[3,2].convolution_product([Id, Id])
+                2*s[2, 1, 1, 1] + 6*s[2, 2, 1] + 6*s[3, 1, 1] + 12*s[3, 2] + 6*s[4, 1] + 2*s[5]
+
+            We test the defining property of the antipode morphism; namely,
+            that the antipode is the inverse of the identity map in the
+            convolution algebra whose identity element is the composition of
+            the counit and unit::
+
                 sage: s[3,2].convolution_product() == s[3,2].convolution_product(Antipode, Id) == s[3,2].convolution_product(Id, Antipode)
                 True
-
-            TODO : what is the next line testing? ::
-
-                sage: s[3,2].counit().parent() == s[3,2].convolution_product().parent()
-                False
 
             ::
 
@@ -343,6 +353,8 @@ class Bialgebras(Category_over_base_ring):
                 sage: (Psi[5,1] - Psi[1,5]).convolution_product(Id, Id, Id)
                 -3*Psi[1, 5] + 3*Psi[5, 1]
 
+            ::
+
                 sage: G = SymmetricGroup(3)
                 sage: QG = GroupAlgebra(G,QQ)
                 sage: x = QG.sum_of_terms([(p,p.length()) for p in Permutations(3)]); x
@@ -351,7 +363,7 @@ class Bialgebras(Category_over_base_ring):
                 5*[1, 2, 3] + 2*[2, 3, 1] + 2*[3, 1, 2]
                 sage: x.convolution_product(Id, Id, Id)
                 4*[1, 2, 3] + [1, 3, 2] + [2, 1, 3] + 3*[3, 2, 1]
-                sage: x.convolution_product(Id, Id, Id, Id, Id, Id)
+                sage: x.convolution_product([Id]*6)
                 9*[1, 2, 3]
 
 
@@ -378,14 +390,17 @@ class Bialgebras(Category_over_base_ring):
                 sage: S[4].convolution_product([Id]*5)
                 5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
 
+            ::
+
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
                 sage: m[[1,3],[2]].convolution_product([Antipode, Antipode])
                 3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
-
                 sage: m[[]].convolution_product([])
                 m{}
                 sage: m[[1,3],[2]].convolution_product([])
                 0
+
+            ::
 
                 sage: QS = SymmetricGroupAlgebra(QQ, 5)
                 sage: x = QS.sum_of_terms(zip(Permutations(5)[3:6],[1,2,3])); x
@@ -395,6 +410,8 @@ class Bialgebras(Category_over_base_ring):
                 sage: x.convolution_product(Id, Antipode, Antipode, Antipode)
                 3*[1, 2, 3, 4, 5] + [1, 2, 4, 5, 3] + 2*[1, 2, 5, 3, 4]
 
+            ::
+
                 sage: G = SymmetricGroup(3)
                 sage: QG = GroupAlgebra(G,QQ)
                 sage: x = QG.sum_of_terms([(p,p.length()) for p in Permutations(3)]); x
@@ -403,10 +420,15 @@ class Bialgebras(Category_over_base_ring):
                 9*[1, 2, 3]
                 sage: x.convolution_product([Id, Antipode, Antipode, Antipode])
                 5*[1, 2, 3] + 2*[2, 3, 1] + 2*[3, 1, 2]
+
+            ::
+
+                sage: s[3,2].counit().parent() == s[3,2].convolution_product().parent()
+                False
+
             """
-            # Be flexible on how the maps are entered...
-            # TODO : test this if statement and explain what it means to be
-            # flexible
+            # Be flexible on how the maps are entered: accept a list/tuple of
+            # maps as well as multiple arguments
             if len(maps) == 1 and isinstance(maps[0], (list, tuple)):
                 T = tuple(maps[0])
             else:

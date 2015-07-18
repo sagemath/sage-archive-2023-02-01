@@ -4779,13 +4779,14 @@ cdef class Matroid(SageObject):
                 I = I.symmetric_difference(path)
         return frozenset(I), frozenset(predecessor)|S
 
-
     cpdef is_kconnected(self, k, certificate=False):
         r"""
-        Return ``True`` if the matroid is k-connected, ``False`` otherwise.
+        Return ``True`` if the matroid is `k`-connected, ``False`` otherwise.  It can
+        optionally return a separator as a witness.
 
         INPUT:
 
+        - ``k`` -- a integer greater or equal to 1.
         - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is k-connected,
           and ``False, X`` otherwise, where ``X`` is a `<k`-separation
@@ -4796,11 +4797,11 @@ cdef class Matroid(SageObject):
 
         .. SEEALSO::
 
-            :meth:`is_connected`
+            :meth:`is_connected`, `is_3connected`
 
         ALGORITHM:
 
-        Compute the connectivity between all `S` and `T` with `k-1` elements.
+        Apply linking algorithm to find small separator.
 
         EXAMPLES::
 
@@ -4818,23 +4819,33 @@ cdef class Matroid(SageObject):
             False
             sage: matroids.named_matroids.BetsyRoss().is_kconnected(3)
             True
+            sage: matroids.AG(5,2).is_kconnected(4)
+            True
             sage: M = matroids.named_matroids.R6()
             sage: M.is_kconnected(3)
             False
             sage: B, X = M.is_kconnected(3,True)
-            sage: M.connectivity(X)
-            1
+            sage: M.connectivity(X)<3
+            True
         """
+        # base case
+        if k<1:
+            raise ValueError("k is less than 1")
         if k<=2:
             return self.is_connected(certificate)
-        if not self.is_kconnected(k-1):
-            return self.is_kconnected(k-1, certificate)
+        if k==3:
+            return self.is_3connected(certificate)
+        # recursive case
+        sol,cert = self.is_kconnected(k-1, True)
+        if not sol:
+            if certificate:
+                return False, cert
+            return False
         m = k-1
         E = set(self.groundset())
         w = {e:1 for e in E}
         Q = set(list(E)[:m])
         E = E-Q
-        I = set()
         for r in range(len(Q)/2):
             for Q1 in map(set,combinations(Q, r)):
                 Q2 = Q-Q1
@@ -4843,13 +4854,15 @@ cdef class Matroid(SageObject):
                     T = Q1|A
                     for B in map(set,combinations(E-A, m - len(Q2))):
                         S = Q2|B
-                        # this will be updated to adopt Rudi's implementation
-                        if(self.connectivity(T,S)<m):
+                        I, _ = self._link(S, T)
+                        if(len(I) - self.full_rank() + self.rank(S) + self.rank(T) < m):
+                            if certificate:
+                                return False, I
                             return False
         if certificate:
             return True, None
-        else:
-            return True
+        return True
+
 
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""

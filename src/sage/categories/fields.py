@@ -97,11 +97,11 @@ class Fields(CategoryWithAxiom):
             sage: _ = gc.collect()
             sage: n = len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)])
             sage: for i in prime_range(100):
-            ...     R = ZZ.quotient(i)
-            ...     t = R in Fields()
+            ....:     R = ZZ.quotient(i)
+            ....:     t = R in Fields()
             sage: _ = gc.collect()
-            sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n
-            1
+            sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n <= 1
+            True
 
         """
         try:

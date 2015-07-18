@@ -1243,9 +1243,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
         a = self._element_constructor
         b = other._element_constructor
         if ismethod(a):
-            a = a.im_func
+            a = a.__func__
         if ismethod(b):
-            b = b.im_func
+            b = b.__func__
         return a == b
 
     def __ne__(self, other):

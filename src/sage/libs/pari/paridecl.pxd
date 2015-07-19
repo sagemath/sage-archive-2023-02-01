@@ -66,23 +66,24 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # paricom.h
 
-    GEN     gpi
-    GEN     geuler
-    GEN     gen_m1
     GEN     gen_1
+    GEN     gen_m1
     GEN     gen_2
+    GEN     gen_m2
     GEN     ghalf
-    GEN     gi
     GEN     gen_0
     GEN     gnil
-    cdef void NEXT_PRIME_VIADIFF(long, byteptr)
-    extern int INIT_JMPm, INIT_SIGm, INIT_DFTm
-    extern int new_galois_format, precdl
+    int     PARI_SIGINT_block, PARI_SIGINT_pending
+    void    NEXT_PRIME_VIADIFF(long, byteptr)
+    void    PREC_PRIME_VIADIFF(long, byteptr)
+    int     INIT_JMPm, INIT_SIGm, INIT_DFTm, INIT_noPRIMEm, INIT_noIMTm
+    int     new_galois_format, factor_add_primes, factor_proven
+    int     precdl
     # The "except 0" here is to ensure compatibility with
     # _pari_err_handle() in handle_error.pyx
-    extern int (*cb_pari_err_handle)(GEN) except 0
-    extern int (*cb_pari_handle_exception)(long) except 0
-    extern void (*cb_pari_err_recover)(long)
+    int     (*cb_pari_err_handle)(GEN) except 0
+    int     (*cb_pari_handle_exception)(long) except 0
+    void    (*cb_pari_err_recover)(long)
 
     # kernel/gmp/int.h
 

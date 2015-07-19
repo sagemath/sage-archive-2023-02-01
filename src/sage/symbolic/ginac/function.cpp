@@ -1494,7 +1494,7 @@ std::string function::get_name() const
 
 bool function::info(unsigned inf) const
 {
-	if (get_serial() == exp_SERIAL::serial)
+        if (serial == exp_SERIAL::serial)
         {
                 const ex& arg = op(0);
                 switch (inf) {
@@ -1502,12 +1502,10 @@ bool function::info(unsigned inf) const
                         return arg.info(info_flags::real);
                 case info_flags::positive:
                         return arg.info(info_flags::real);
-		case info_flags::inexact:
-                        return arg.info(info_flags::inexact);
                 }
+                return false;
         }
-	else if (get_serial() == log_SERIAL::serial)
-        {
+        else if (serial == log_SERIAL::serial) {
                 const ex& arg = op(0);
                 switch (inf) {
                 case info_flags::real:
@@ -1522,6 +1520,48 @@ bool function::info(unsigned inf) const
                                 arg.info(info_flags::positive) and
                                 ex_to<numeric>(arg) < *_num1_p;
                 }
+                return false;
+        }
+        else if (serial == abs_SERIAL::serial) {
+                switch (inf) {
+                case info_flags::real or info_flags::nonnegative:
+                        return true;
+                }
+                return false;
+        }
+        else if (serial == real_part_function_SERIAL::serial) {
+                switch (inf) {
+                case info_flags::real or info_flags::nonnegative:
+                        return true;
+                }
+                return false;
+        }
+        else if (serial == imag_part_function_SERIAL::serial) {
+                switch (inf) {
+                case info_flags::real or info_flags::nonnegative:
+                        return true;
+                }
+                return false;
+        }
+        else if (serial == binomial_SERIAL::serial) {
+                const ex& arg = op(0);
+                switch (inf) {
+                case info_flags::real or info_flags::nonnegative:
+                        return arg.info(inf);
+                case info_flags::integer:
+                        return arg.info(inf) and op(1).info(inf);
+                }
+                return false;
+        }
+        else if (serial == factorial_SERIAL::serial) {
+                const ex& arg = op(0);
+                switch (inf) {
+                case info_flags::real or info_flags::nonnegative:
+                        return arg.info(inf);
+                case info_flags::integer:
+                        return arg.info(inf);
+                }
+                return false;
         }
         return false;
 }

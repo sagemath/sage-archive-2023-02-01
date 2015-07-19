@@ -34,10 +34,9 @@ with ``delete()``.
     :func:`clustering_coeff`  | Returns the clustering coefficient of all vertices in the graph.
     :func:`edge_connectivity` | Returns the edge connectivity of the graph.
     :func:`dominator_tree` | Returns a dominator tree of the graph.
-<<<<<<< HEAD
-=======
     :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
->>>>>>> t/18876/boost_cuthill_mckee__king_ordering
+    :func:`min_spanning_tree` | Computes a minimum spanning tree of a (weighted) graph.
+
 
 Functions
 ---------
@@ -75,15 +74,15 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
                                           weight_function = None):
     r"""
     Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
-    
+
     The Boost graph ``*g`` must represent an empty weighted graph. The edge
     weights are chosen as follows:
-    
+
     - if ``weight_function`` is not ``None``, this function is used;
-    
+
     - if ``weight_function`` is ``None`` and ``g`` is weighted, the weights of
       ``g`` are used;
-      
+
     - otherwise, all weights are set to 1.
     """
 
@@ -100,18 +99,21 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
 
     for i in range(N):
         g.add_vertex()
-    
+
     if weight_function is not None:
         for u,v in g_sage.edge_iterator(labels=False):
-            g.add_edge(vertex_to_int[u],
-                       vertex_to_int[v],
-                       weight_function((u,v)))
-    else: 
+            g.add_edge(vertex_to_int[u],vertex_to_int[v],weight_function((u,v)))
+
+    elif g_sage.weighted():
         for u,v,w in g_sage.edge_iterator():
             try:
-                g.add_edge(vertex_to_int[u], vertex_to_int[v], w)   
+                g.add_edge(vertex_to_int[u], vertex_to_int[v], w)
             except Exception:
                 g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
+
+    else:
+        for u,v in g_sage.edge_iterator(labels=False):
+            g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
 
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
@@ -515,7 +517,7 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
     sig_off()
     return (bandwidth, [int_to_vertex[result[i]] for i in range(n)])
 
-cpdef min_spanning_tree(g, 
+cpdef min_spanning_tree(g,
                         weight_function=None,
                         algorithm='Kruskal'):
     r"""
@@ -524,7 +526,7 @@ cpdef min_spanning_tree(g,
     INPUT:
 
     - ``g`` (``Graph``) - the input graph.
-    
+
     - ``weight_function`` (function) - a function that associates a weight to
       each edge. If ``None`` (default), the weights of ``g`` are used, if
       available, otherwise all edges have weight 1.
@@ -535,12 +537,16 @@ cpdef min_spanning_tree(g,
 
     The edges of a minimum spanning tree of ``g``, if one exists, otherwise
     the empty list.
-    
+
+    .. seealso::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+
     EXAMPLES::
 
         sage: from sage.graphs.base.boost_graph import min_spanning_tree
-        sage: min_spanning_tree(graphs.PathGraph(10))
-        [1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]]
+        sage: min_spanning_tree(graphs.PathGraph(4))
+        [(0, 1, None), (1, 2, None), (2, 3, None)]
 
     TESTS:
 
@@ -549,7 +555,7 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree("I am not a graph!")
         Traceback (most recent call last):
         ...
-        ValueError: The input g must be a Graph.
+        ValueError: The input g must be a Sage Graph.
 
     Given a wrong algorithm::
 
@@ -558,20 +564,16 @@ cpdef min_spanning_tree(g,
         Traceback (most recent call last):
         ...
         ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
-
     """
     from sage.graphs.graph import Graph
-           
+
     if not isinstance(g, Graph):
         raise ValueError("The input g must be a Sage Graph.")
     if not algorithm in ['Kruskal', 'Prim']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
-    
+
     if g.allows_loops() or g.allows_multiple_edges():
-        h = g.copy()
-        from sage.graphs.spanning_tree import simplify
-        simplify(h)
-        g = h
+        g = g.to_simple()
     # Now g has no self loops and no multiple edges.
     sig_on()
     # These variables are automatically deleted when the function terminates.
@@ -581,12 +583,12 @@ cpdef min_spanning_tree(g,
     cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
 
     boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
-    
+
     if algorithm=='Kruskal':
         result = <vector[v_index]> g_boost.kruskal_min_spanning_tree()
     elif algorithm=='Prim':
         result = <vector[v_index]> g_boost.prim_min_spanning_tree()
-        
+
     cdef int n = g.num_verts()
     sig_off()
 

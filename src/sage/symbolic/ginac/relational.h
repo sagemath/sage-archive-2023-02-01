@@ -45,6 +45,13 @@ public:
 		greater_or_equal
 	};
 	
+	enum result {
+		True,
+		False,
+		undecidable,
+		notimplemented
+	};
+
 	// other constructors
 public:
 	relational(ex  lhs, ex  rhs, operators oper=equal);
@@ -79,22 +86,11 @@ public:
 	virtual operators the_operator() const;
 
 	// non-virtual functions in this class
-private:
-	// For conversions to boolean, as would be used in an if conditional,
-	// implicit conversions from bool to int have a large number of
-	// undesirable side effects.  The following safe_bool type enables
-	// use of relational objects in conditionals without those side effects
-	struct safe_bool_helper {
-		void nonnull() {};
-	};
-
-	typedef void (safe_bool_helper::*safe_bool)();
-	
-	safe_bool make_safe_bool(bool) const;
-
 public:
-	operator safe_bool() const;
-	safe_bool operator!() const;
+	operator bool() const {
+		return decide() == result::True;
+	}
+	result decide() const;
 
 // member variables
 	
@@ -103,14 +99,6 @@ protected:
 	ex rh;
 	operators o;
 };
-
-// utility functions
-
-// inlined functions for efficiency
-inline relational::safe_bool relational::operator!() const
-{
-	return make_safe_bool(!static_cast<bool>(*this));
-}
 
 } // namespace GiNaC
 

@@ -29,7 +29,6 @@
 #include "add.h"
 #include "mul.h"
 #include "inifcns.h"
-#include "symbol.h"
 
 #include <string>
 #include <stdexcept>
@@ -239,34 +238,21 @@ bool infinity::is_equal_same_type(const basic & other) const
 bool infinity::compare_other_type(const ex & other,
         relational::operators o) const
 {
-        if (is_unsigned_infinity())
-                throw(std::domain_error("comparison with unsigned infinity"));
-
-        if (not has_symbol(other)) {
-                const ex& e = other.evalf();
-                if (not is_exactly_a<numeric>(e))
-                        return false;
-                const numeric& num = ex_to<numeric>(e);
-                if (num.imag() > 0)
-                        return false;
-                if (num.info(info_flags::positive) or
-                        num.info(info_flags::negative) or
-                        num.info(info_flags::nonnegative) or
-                        num.info(info_flags::rational) or
-                        num.info(info_flags::integer)) {
-
-                        if (o == relational::not_equal)
-                                return true;
-                        else if (o == relational::equal)
-                                return false;
-                        else if (o == relational::less_or_equal or
-                                o == relational::less)
-                                return is_minus_infinity();
-                        else
-                                return is_plus_infinity();
-                }
-        }
-        return false;
+        const ex& e = other.evalf();
+        if (not is_exactly_a<numeric>(e))
+                return false;
+        const numeric& num = ex_to<numeric>(e);
+        if (num.imag() > 0)
+                return false;
+        if (o == relational::not_equal)
+                return true;
+        else if (o == relational::equal)
+                return false;
+        else if (o == relational::less_or_equal or
+                o == relational::less)
+                return is_minus_infinity();
+        else
+                return is_plus_infinity();
 }
 
 unsigned infinity::calchash() const

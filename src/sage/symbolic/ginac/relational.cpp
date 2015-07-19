@@ -446,9 +446,22 @@ relational::operator relational::safe_bool() const
         }
 
 	const ex df = lh-rh;
-	if (!is_exactly_a<numeric>(df))
-		// cannot decide on non-numerical results
-		return o==not_equal ? make_safe_bool(true) : make_safe_bool(false);
+	if (!is_exactly_a<numeric>(df)) {
+                switch (o) {
+		// cannot decide on most non-numerical results
+		case equal:
+			return make_safe_bool(false);
+		case not_equal:
+			return make_safe_bool(true);
+		case less_or_equal:
+                        return make_safe_bool((-df).info(info_flags::positive));
+		case greater_or_equal:
+                        return make_safe_bool(df.info(info_flags::positive));
+		default:
+                        throw(std::logic_error("invalid relational operator"));
+                }
+                return make_safe_bool(false);
+        }
 
 	switch (o) {
 		case equal:

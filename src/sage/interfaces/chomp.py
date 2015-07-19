@@ -535,6 +535,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
     else:
         raise TypeError("Complex and/or subcomplex are not cubical complexes.")
 
+
 def homchain(complex=None, **kwds):
     r"""
     Compute the homology of a chain complex using the CHomP program
@@ -588,6 +589,7 @@ def homchain(complex=None, **kwds):
         return CHomP()('homchain', complex, **kwds)
     else:
         raise TypeError("Complex is not a chain complex.")
+
 
 def process_generators_cubical(gen_string, dim):
     r"""

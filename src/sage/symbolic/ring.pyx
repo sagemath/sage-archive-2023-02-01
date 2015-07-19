@@ -32,7 +32,7 @@ from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.rings.all import RR, CC
+from sage.rings.all import RR, CC, ZZ
 
 pynac_symbol_registry = {}
 
@@ -796,6 +796,8 @@ cdef unsigned sage_domain_to_ginac(object domain) except +:
             return domain_positive
         elif domain is CC or domain == 'complex':
             return domain_complex
+        elif domain is ZZ or domain == 'integer':
+            return domain_integer
         else:
             raise ValueError("domain must be one of 'complex', 'real' or 'positive'")
 

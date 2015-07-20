@@ -256,10 +256,11 @@ class CHomP:
             if verbose:
                 print "Generators:"
                 print gens
-
         #
         #    process output
         #
+        if output.find('ERROR') != -1:
+            raise RuntimeError('error inside CHomP')
         # output contains substrings of one of the forms
         # "H_1 = Z", "H_1 = Z_2 + Z", "H_1 = Z_2 + Z^2",
         # "H_1 = Z + Z_2 + Z"

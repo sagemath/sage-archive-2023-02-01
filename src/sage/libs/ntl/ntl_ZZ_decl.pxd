@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     #### ZZ_c
     ctypedef struct ZZ_c "struct ZZ":

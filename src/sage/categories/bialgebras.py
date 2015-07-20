@@ -15,6 +15,7 @@ from sage.categories.tensor import tensor
 from sage.functions.other import floor, ceil
 from sage.rings.integer import Integer
 from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.misc.lazy_import import LazyImport
 
 class Bialgebras(Category_over_base_ring):
     """
@@ -437,4 +438,6 @@ class Bialgebras(Category_over_base_ring):
                 fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
                 def split(a,b): return tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
                 return (self.coproduct()).apply_multilinear_morphism(split)
+
+    WithBasis = LazyImport('sage.categories.bialgebras_with_basis', 'BialgebrasWithBasis')
 

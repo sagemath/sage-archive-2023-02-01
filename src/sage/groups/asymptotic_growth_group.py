@@ -1517,3 +1517,100 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             1
         """
         return 1
+
+class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
+    r"""
+    Factory for asymptotic growth groups.
+
+    INPUT:
+
+    - ``rep`` -- a string (short representation of a growth group).
+
+    OUTPUT:
+
+    An asymptotic growth group.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: agg.GrowthGroup('x^ZZ')._repr_long_()
+        'Monomial Growth Group in x over Integer Ring'
+        sage: agg.GrowthGroup('log(x)^QQ')._repr_long_()
+        'Monomial Growth Group in log(x) over Rational Field'
+    """
+    def create_key_and_extra_args(self, rep, **kwds):
+        r"""
+        Given the arguments and keyword, create a key that uniquely
+        determines this object.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
+            (('x^ZZ',), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'asdf' is not a valid short representation
+        """
+        factors = rep.split(' * ')
+        if not all('^' in f for f in factors):
+            raise ValueError("'%s' is not a valid short representation" % rep)
+
+        return (rep,), kwds
+
+
+    def create_object(self, version, key, **kwds):
+        r"""
+        Create a object from the given arguments.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GrowthGroup('as^df')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'as^df' is not a valid short representation
+            sage: agg.GrowthGroup('x^y^z')
+            Traceback (most recent call last):
+            ...
+            ValueError: Variable names must not include '^'
+        """
+
+        rep, = key
+        factors_rep = rep.split(' * ')
+
+        if len(factors_rep) > 1:
+            raise NotImplementedError('Cartesian product of growth groups not '
+                                      'yet implemented')
+        # note: implementation already for cartesian products!
+        factors = []
+        for factor in factors_rep:
+            sp = factor.split('^')
+            if len(sp) != 2:
+                raise ValueError("Variable names must not include '^'")
+            (var, base) = sp
+            try:
+                # monomial growth group: 'var^base'
+                base = string_to_parent(base)
+                G = MonomialGrowthGroup(base, var, **kwds)
+            except:
+                # exponential growth group: 'base^var'
+                (base, var) = sp
+                try:
+                    base = string_to_parent(base)
+                    # G = ExponentialGrowthGroup(base, var, **kwds)
+                    raise NotImplementedError('Exponential growth groups not '
+                                              'yet implemented')
+                except ValueError:
+                    raise ValueError("'%s' is not a valid short "
+                                     "representation" % factor)
+            factors.append(G)
+
+        # todo: factors --> lists with factors over same variable.
+        return factors[0]
+
+
+
+GrowthGroup = GrowthGroupFactory("GrowthGroup")
+

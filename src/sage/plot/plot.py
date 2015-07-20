@@ -1105,6 +1105,15 @@ def plot(funcs, *args, **kwds):
         sage: p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
+        .. PLOT::
+
+            p1 = plot(sin(x), -pi, pi, fill = 'axis')
+            p2 = plot(sin(x), -pi, pi, fill = 'min')
+            p3 = plot(sin(x), -pi, pi, fill = 'max')
+            p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
+            g = graphics_array([[p1, p2], [p3, p4]]) # long time
+            sphinx_plot(g.show(frame=True, axes=False))
+
     The basic options for filling a list of plots::
 
         sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
@@ -1112,6 +1121,16 @@ def plot(funcs, *args, **kwds):
         sage: p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = [0, [0]], fillcolor = ['#f60'], fillalpha = 1, color = {1: 'blue'})
         sage: p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill = [0, x/pi], fillcolor = 'grey', color=['red', 'blue'])
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
+
+        .. PLOT::
+
+            p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
+            p2 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {0: 1, 1:[0]}, color = ['blue'])
+            p3 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = [0, [0]], fillcolor = ['#f60'], fillalpha = 1, color = {1: 'blue'})
+            p4 = plot([sin(x), cos(2*x)*sin(x)], (x,-pi, pi), fill = [0, x/pi], fillcolor = 'grey', color=['red', 'blue'])
+            g = graphics_array([[p1, p2], [p3, p4]]) # long time
+            sphinx_plot(g.show(frame=True, axes=False))
+
 
     A example about the growth of prime numbers::
 
@@ -1138,6 +1157,14 @@ def plot(funcs, *args, **kwds):
         Graphics object consisting of 9 graphics primitives
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]), color = 'blue', linestyle = '-') # long time
         Graphics object consisting of 9 graphics primitives
+
+        .. PLOT::
+
+            def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
+            p1 = plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]), color = 'blue')
+            p2 = plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]), color = 'blue', linestyle = '-') # long time
+            g = graphics_array([p1,p2])
+            sphinx_plot(g.show(frame=True, axes=False))
 
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# This script must be run from folder SAGE_ROOT. It modifies the file
+# python-igraph-0.7.0.tar.gz into python_igraph-0.7.0.tar.gz, and it modifies
+# the name of the top folder accordingly.
+
+if [ -e upstream/python_igraph-0.7.0.tar.gz ]
+then
+    echo "The modified .tar file already exists."
+    exit
+fi
+
+if [ -e upstream/python-igraph-0.7.0.tar.gz ]
+then
+    tar -zxf upstream/python-igraph-0.7.0.tar.gz -C local/var/tmp/sage/build/
+    cd local/var/tmp/sage/build
+    mv python-igraph-0.7.0 python_igraph-0.7.0
+    tar -zcf python_igraph-0.7.0.tar.gz python_igraph-0.7.0
+    rm -rf python_igraph-0.7.0
+    cd ../../../../..
+    mv local/var/tmp/sage/build/python_igraph-0.7.0.tar.gz upstream/python_igraph-0.7.0.tar.gz
+    rm upstream/python-igraph-0.7.0.tar.gz
+    ./sage -sh sage-fix-pkg-checksums
+    echo "Correctly modified .tar file."
+else
+    echo "File python-igraph-0.7.0.tar.gz not found in folder upstream."
+fi

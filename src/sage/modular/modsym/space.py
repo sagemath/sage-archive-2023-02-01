@@ -1144,7 +1144,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: eps = f.q_eigenform_character('a'); eps
             Dirichlet character modulo 13 of conductor 13 mapping 2 |--> -a - 1
             sage: parent(eps)
-            Group of Dirichlet characters of modulus 13 over Number Field in a with defining polynomial x^2 + 3*x + 3
+            Group of Dirichlet characters modulo 13 with values in Number Field in a with defining polynomial x^2 + 3*x + 3
             sage: eps(3)
             a + 1
 

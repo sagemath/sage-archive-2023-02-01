@@ -216,8 +216,7 @@ cyclotomic field.
 ::
 
     sage: G = DirichletGroup(8); G
-    Group of Dirichlet characters of modulus 8 over Cyclotomic
-    Field of order 2 and degree 1
+    Group of Dirichlet characters modulo 8 with values in Cyclotomic Field of order 2 and degree 1
     sage: v = G.list(); v
     [Dirichlet character modulo 8 of conductor 1 mapping 7 |--> 1, 5 |--> 1,
     Dirichlet character modulo 8 of conductor 4 mapping 7 |--> -1, 5 |--> 1,
@@ -230,7 +229,7 @@ cyclotomic field.
 
 Sage both represents Dirichlet characters by giving a "matrix",
 i.e., the list of images of canonical generators of
-:math:`(\ZZ/N\ZZ)^*`, and as vectors modulo and
+:math:`(\ZZ/N\ZZ)^*`, and as vectors modulo an
 integer :math:`n`. For years, I was torn between these two
 representations, until J. Quer and I realized that the best
 approach is to use both and make it easy to convert between them.

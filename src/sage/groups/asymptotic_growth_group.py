@@ -30,11 +30,11 @@ AUTHORS:
         sage: G = agg.GenericGrowthGroup(ZZ); G
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17600 for details.
-        Generic Growth Group over Integer Ring
+        GenericGrowthGroup(Integer Ring)
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17600 for details.
-        Monomial Growth Group in x over Integer Ring
+        x^ZZ
 """
 
 #*****************************************************************************
@@ -71,7 +71,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         sage: g = agg.GenericGrowthElement(G, 42); g
         GenericGrowthElement(42)
         sage: g.parent()
-        Generic Growth Group over Integer Ring
+        GenericGrowthGroup(Integer Ring)
         sage: G(raw_element=42) == g
         True
     """
@@ -90,13 +90,13 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         TESTS::
 
             sage: G(raw_element=42).category()
-            Category of elements of Generic Growth Group over Integer Ring
+            Category of elements of GenericGrowthGroup(Integer Ring)
 
         ::
 
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: G(raw_element=42).category()
-            Category of elements of Generic Growth Group over Integer Ring
+            Category of elements of GenericGrowthGroup(Integer Ring)
 
         ::
 
@@ -463,7 +463,7 @@ class GenericGrowthGroup(
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GenericGrowthGroup(ZZ); G
-        Generic Growth Group over Integer Ring
+        GenericGrowthGroup(Integer Ring)
 
     .. SEEALSO::
 
@@ -526,9 +526,10 @@ class GenericGrowthGroup(
                                                  base=base)
 
 
-    def _repr_(self):
+    def _repr_long_(self):
         r"""
-        A representation string for this generic growth group.
+        A long (longer than :meth:`._repr_`) representation string
+        for this generic growth group.
 
         INPUT:
 
@@ -541,16 +542,15 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.GenericGrowthGroup(ZZ)  # indirect doctest
-            Generic Growth Group over Integer Ring
+            sage: agg.GenericGrowthGroup(ZZ)._repr_long_()
+            'Generic Growth Group over Integer Ring'
         """
         return 'Generic Growth Group over %s' % (self.base(),)
 
 
     def _repr_short_(self):
         r"""
-        A short (shorter than :meth:`._repr_`) representation string
-        for this abstract growth group.
+        A short representation string for this abstract growth group.
 
         INPUT:
 
@@ -559,10 +559,6 @@ class GenericGrowthGroup(
         OUTPUT:
 
         A string.
-
-        .. NOTE::
-
-            This is used in :class:`CartesianProductGrowthGroups`.
 
         EXAMPLES::
 
@@ -571,6 +567,9 @@ class GenericGrowthGroup(
             'GenericGrowthGroup(Rational Field)'
         """
         return 'GenericGrowthGroup(%s)' % (self.base(),)
+
+    # the default representation is the short representation:
+    _repr_ = _repr_short_
 
 
     def __hash__(self):
@@ -988,7 +987,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b = a^(1/2); b
             x^(7/2)
             sage: b.parent()
-            Monomial Growth Group in x over Rational Field
+            x^QQ
             sage: b^12
             x^42
         """
@@ -1063,9 +1062,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: P = agg.MonomialGrowthGroup(ZZ, 'x'); P
-        Monomial Growth Group in x over Integer Ring
+        x^ZZ
         sage: agg.MonomialGrowthGroup(ZZ, log(SR.var('y')))
-        Monomial Growth Group in log(y) over Integer Ring
+        log(y)^ZZ
 
     .. SEEALSO::
 
@@ -1120,13 +1119,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.MonomialGrowthGroup(ZZ, 'x')
-            Monomial Growth Group in x over Integer Ring
+            x^ZZ
             sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
-            Monomial Growth Group in n over Rational Field
+            n^QQ
             sage: agg.MonomialGrowthGroup(ZZ, ZZ['y'].gen())
-            Monomial Growth Group in y over Integer Ring
+            y^ZZ
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
-            Monomial Growth Group in log(x) over Rational Field
+            log(x)^QQ
 
         TESTS::
 
@@ -1147,9 +1146,10 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)
 
 
-    def _repr_(self):
+    def _repr_long_(self):
         r"""
-        A representation string for this monomial growth group.
+        A long (longer than :meth:`._repr_`) representation string
+        for this monomial growth group.
 
         INPUT:
 
@@ -1162,12 +1162,12 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.MonomialGrowthGroup(ZZ, 'x')  # indirect doctest
-            Monomial Growth Group in x over Integer Ring
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')._repr_long_()
+            'Monomial Growth Group in x over Integer Ring'
 
         TESTS::
 
-            sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_()
+            sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_long_()
             'Monomial Growth Group in v_107 over Rational Field'
         """
         return 'Monomial Growth Group in %s over %s' % (self._var_, self.base())
@@ -1175,8 +1175,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _repr_short_(self):
         r"""
-        A short (shorter than :meth:`._repr_`) representation string
-        for this monomial growth group.
+        A short representation string for this monomial growth group.
 
         INPUT:
 
@@ -1185,10 +1184,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         OUTPUT:
 
         A string.
-
-        .. NOTE::
-
-            This is used in :class:`CartesianProductGrowthGroups`.
 
         EXAMPLES::
 
@@ -1214,6 +1209,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             repr_base = '(' + repr_base + ')'
 
         return '%s^%s' % (self._var_, repr_base)
+
+    # the default representation is the short representation:
+    _repr_ = _repr_short_
 
 
     def __hash__(self):

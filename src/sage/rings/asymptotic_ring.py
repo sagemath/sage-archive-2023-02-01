@@ -784,7 +784,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: 1/2 * x_QQ^2 + 7/8 * x_QQ^3
             1/2*x^2 + 7/8*x^3
         """
-        if R is self.coefficient_ring:
+        if self.coefficient_ring.has_coerce_map_from(R):
             return True
         elif isinstance(R, AsymptoticRing):
             if self.growth_group.has_coerce_map_from(R.growth_group) and \

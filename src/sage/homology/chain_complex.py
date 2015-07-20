@@ -827,7 +827,6 @@ class ChainComplex_class(Parent):
             return tuple(result)
 
         import collections
-        deg = start
         result = collections.deque()
         result.append(start)
 
@@ -1192,7 +1191,7 @@ class ChainComplex_class(Parent):
              2: [(Vector space of dimension 1 over Rational Field,
                Chain(2:(1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1)))]}
         """
-        from sage.interfaces.chomp import have_chomp, homchain
+        from sage.interfaces.chomp import have_chomp
 
         if deg is not None and deg not in self.grading_group():
             raise ValueError('degree is not an element of the grading group')

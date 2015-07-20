@@ -14,6 +14,7 @@ The ``codes`` object may be used to access the codes that Sage can build.
 - :func:`codes.ExtendedBinaryGolayCode <sage.coding.code_constructions.ExtendedBinaryGolayCode>`
 - :func:`codes.ExtendedQuadraticResidueCode <sage.coding.code_constructions.ExtendedQuadraticResidueCode>`
 - :func:`codes.ExtendedTernaryGolayCode <sage.coding.code_constructions.ExtendedTernaryGolayCode>`
+- :class:`grs.GeneralizedReedSolomonCode <sage.coding.grs.GeneralizedReedSolomonCode>`
 - :func:`codes.HammingCode <sage.coding.code_constructions.HammingCode>`
 - :func:`codes.LinearCodeFromCheckMatrix <sage.coding.code_constructions.LinearCodeFromCheckMatrix>`
 - :func:`codes.QuadraticResidueCode <sage.coding.code_constructions.QuadraticResidueCode>`
@@ -51,4 +52,9 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ReedSolomonCode, TernaryGolayCode,
                                 ToricCode, TrivialCode, WalshCode)
 
+from grs import GeneralizedReedSolomonCode
+
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+
+import encoders_catalog as encoders
+import decoders_catalog as decoders

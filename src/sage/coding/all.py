@@ -24,7 +24,6 @@ deprecated_callable_import(15445,
                             "QuadraticResidueCodeEvenPair",
                             "QuadraticResidueCodeOddPair",
                             "RandomLinearCode",
-                            "ReedSolomonCode",
                             "TernaryGolayCode",
                             "ToricCode",
                             "TrivialCode",
@@ -69,6 +68,8 @@ from linear_code import (LinearCode, LinearCodeFromVectorSpace,
                          self_orthogonal_binary_codes)
 
 from sd_codes import self_dual_codes_binary
+from decoder import Decoder
+from encoder import Encoder
 
 lazy_import("sage.coding.delsarte_bounds",
     ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])

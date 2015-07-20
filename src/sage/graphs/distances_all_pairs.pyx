@@ -958,7 +958,9 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     - ``source`` -- Starting node of the BFS.
 
     """
-    cdef uint32_t LB, tmp, s, m, d, i, j, k
+    # The while loop below might not be entered so we have to make sure that
+    # s and d which are returned are initialized.
+    cdef uint32_t LB, tmp, s = 0, m, d = 0
 
     # Allocate some arrays and a bitset
     cdef bitset_t seen

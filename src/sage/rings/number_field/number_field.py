@@ -7376,8 +7376,7 @@ class NumberField_absolute(NumberField_generic):
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
-        r = f.roots(K, multiplicities=False)
-        r.sort()
+        r = sorted(f.roots(K, multiplicities=False))
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.

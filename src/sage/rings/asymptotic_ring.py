@@ -366,7 +366,85 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 class AsymptoticRing(sage.rings.ring.Ring,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    ...
+    Parent for asymptotic expressions.
+
+    INPUT:
+
+    - ``growth_group`` -- a partially ordered group (e.g. an instance
+      of :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`),
+      or a string that describes the type of the growth group (e.g.
+      "monomial").
+
+    - ``coefficient_ring`` -- the ring which contains the
+      coefficients of the expressions.
+
+    - ``category`` -- the category of the parent can be specified
+      in order to broaden the base structure. It has to be a
+      subcategory of ``Category of rings``. This is also the default
+      category if ``None`` is specified.
+
+    - ``names`` -- a tuple consisting of strings representing the
+      associated variables.
+
+    OUTPUT:
+
+    An asymptotic ring.
+
+    .. NOTE::
+
+        See the following examples for more information on how to
+        create an asymptotic ring.
+
+    EXAMPLES:
+
+    We begin with the explicit construction of an asymptotic ring,
+    i.e. by explicitly specifying the underlying growth group::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
+        sage: R_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R_x
+        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+
+    Note that the coefficient ring of the asymptotic ring and the
+    base ring of the underlying growth group do not need to
+    coincide::
+
+        sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
+        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Integer Ring
+
+    As mentioned above, the ring can also be constructed without
+    explicitly specifying the growth group. For example, passing the
+    string "monomial" as an argument for ``growth_group`` constructs
+    a ring over an appropriate growth group. Note that in this case,
+    also the variable name needs to be specified explicitly::
+
+        sage: R2_x = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ, names=('x',)); R2_x
+        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+
+    Alternatively, the preparser allows us to write::
+
+        sage: R3_x.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ); R3_x
+        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+
+    According to the conventions for parents, uniqueness is ensured::
+
+        sage: R_x is R2_x is R3_x
+        True
+
+    Furthermore, the coercion framework is also involved. Coercion
+    between two asymptotic rings is possible (given that the
+    underlying growth groups and coefficient rings are chosen
+    appropriately)::
+
+        sage: R_x.has_coerce_map_from(R_ZZ_x)
+        True
+
+    Additionally, for the sake of convenience, the coefficient ring
+    also coerces into the asymptotic ring (representing constant
+    quantities)::
+
+        sage: R_x.has_coerce_map_from(QQ)
+        True
     """
     # enable the category framework for elements
     Element = AsymptoticExpression

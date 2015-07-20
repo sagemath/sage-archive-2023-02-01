@@ -17,6 +17,7 @@ AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
+- Benjamin Hackl (2015-07): short representation strings
 
 .. WARNING::
 
@@ -49,6 +50,43 @@ AUTHORS:
 #*****************************************************************************
 
 import sage
+
+def parent_to_string(P):
+    r"""
+    Helper method for short representations.
+
+    INPUT:
+
+    A parent.
+
+    OUTPUT:
+
+    A string.
+
+    TESTS::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: agg.parent_to_string(ZZ)
+        'ZZ'
+        sage: agg.parent_to_string(QQ)
+        'QQ'
+        sage: agg.parent_to_string(SR)
+        'SR'
+        sage: agg.parent_to_string(ZZ[x])
+        '(Univariate Polynomial Ring in x over Integer Ring)'
+    """
+    if P is sage.rings.integer_ring.ZZ:
+        return 'ZZ'
+    elif P is sage.rings.rational_field.QQ:
+        return 'QQ'
+    elif P is sage.symbolic.ring.SR:
+        return 'SR'
+    else:
+        rep = P._repr_()
+        if ' ' in rep:
+            rep = '(' + rep + ')'
+        return rep
+
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
@@ -1195,20 +1233,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^(Univariate Polynomial Ring in x over Rational Field)'
         """
-        from sage.rings.integer_ring import ZZ
-        from sage.rings.rational_field import QQ
-
-        base = self.base()
-        if base == ZZ:
-            repr_base = 'ZZ'
-        elif base == QQ:
-            repr_base = 'QQ'
-        else:
-            repr_base = repr(base)
-        if ' ' in repr_base:
-            repr_base = '(' + repr_base + ')'
-
-        return '%s^%s' % (self._var_, repr_base)
+        return '%s^%s' % (self._var_, parent_to_string(self.base()))
 
     # the default representation is the short representation:
     _repr_ = _repr_short_

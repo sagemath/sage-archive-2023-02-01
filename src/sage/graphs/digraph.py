@@ -245,8 +245,6 @@ class DiGraph(GenericGraph):
 
        -  ``NX`` - data must be a NetworkX DiGraph.
 
-       -  ``igraph`` - data must be an igraph Graph.
-
            .. NOTE::
 
                As Sage's default edge labels is ``None`` while NetworkX uses
@@ -255,6 +253,8 @@ class DiGraph(GenericGraph):
                behaviour can be overruled by setting the keyword
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
+
+       -  ``igraph`` - data must be an igraph Graph.
 
     -  ``boundary`` - a list of boundary vertices, if
        empty, digraph is considered as a 'graph without boundary'

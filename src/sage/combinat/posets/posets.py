@@ -2904,7 +2904,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return ``True`` if ``y`` covers ``x`` and ``False`` otherwise.
 
         Element `y` covers `x` if `x < y` and there is no `z` such that
-        `x < z y`.
+        `x < z < y`.
 
         EXAMPLES::
 

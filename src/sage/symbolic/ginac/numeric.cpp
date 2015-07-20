@@ -585,6 +585,8 @@ bool numeric::info(unsigned inf) const {
                         return is_negative();
                 case info_flags::nonnegative:
                         return is_zero() || is_positive();
+                case info_flags::nonzero:
+                        return not is_zero();
                 case info_flags::posint:
                         return is_pos_integer();
                 case info_flags::negint:

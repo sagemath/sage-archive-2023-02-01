@@ -459,6 +459,7 @@ bool mul::info(unsigned inf) const
 		case info_flags::integer:
 		case info_flags::crational:
 		case info_flags::cinteger:
+                case info_flags::nonzero:
 		case info_flags::even:
 		case info_flags::crational_polynomial:
 		case info_flags::rational_function: {

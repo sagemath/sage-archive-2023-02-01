@@ -1498,8 +1498,9 @@ bool function::info(unsigned inf) const
         {
                 const ex& arg = op(0);
                 switch (inf) {
+                case info_flags::nonzero:
+                        return true;
                 case info_flags::real:
-                        return arg.info(info_flags::real);
                 case info_flags::positive:
                         return arg.info(info_flags::real);
                 }
@@ -1524,22 +1525,31 @@ bool function::info(unsigned inf) const
         }
         else if (serial == abs_SERIAL::serial) {
                 switch (inf) {
-                case info_flags::real or info_flags::nonnegative:
+                case info_flags::real:
+                case info_flags::nonnegative:
                         return true;
+                case info_flags::nonzero:
+                        return op(0).info(info_flags::nonzero);
                 }
                 return false;
         }
         else if (serial == real_part_function_SERIAL::serial) {
                 switch (inf) {
-                case info_flags::real or info_flags::nonnegative:
+                case info_flags::real:
+                case info_flags::nonnegative:
                         return true;
+                case info_flags::nonzero:
+                        return op(0).info(info_flags::nonzero);
                 }
                 return false;
         }
         else if (serial == imag_part_function_SERIAL::serial) {
                 switch (inf) {
-                case info_flags::real or info_flags::nonnegative:
+                case info_flags::real:
+                case info_flags::nonnegative:
                         return true;
+                case info_flags::nonzero:
+                        return op(0).info(info_flags::nonzero);
                 }
                 return false;
         }

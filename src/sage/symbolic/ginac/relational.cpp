@@ -411,9 +411,9 @@ relational::result relational::decide() const
                                 return result::False;
 		case not_equal:
                         if (ex_to<numeric>(df).is_zero())
-                                return result::True;
-                        else
                                 return result::False;
+                        else
+                                return result::True;
 		case less:
 		case less_or_equal:
 			if (lh_inf.is_minus_infinity() and rh_inf.is_plus_infinity())
@@ -444,7 +444,7 @@ relational::result relational::decide() const
                 else {
                         inf = ex_to<infinity>(lh);
                 }
-                if (inf.is_unsigned_infinity() or not other.info(info_flags::real))
+                if (inf.is_unsigned_infinity() and o!=equal and o!=not_equal)
                         return result::undecidable;
                 if (has_symbol(other))
                         return result::notimplemented;
@@ -455,13 +455,31 @@ relational::result relational::decide() const
         }
 
 	const ex df = lh-rh;
+//        This will only work when Pynac knows about existing assumptions
+//        if ((not df.info(info_flags::real)) and o!=equal and o!=not_equal)
+//                return result::undecidable;
 	if (!is_exactly_a<numeric>(df)) {
                 switch (o) {
 		case equal:
+                        if (df.info(info_flags::nonzero))
+                                return result::False;
+                        else
+                                return result::notimplemented;
 		case not_equal:
+                        if (df.info(info_flags::nonzero))
+                                return result::True;
+                        else
+                                return result::notimplemented;
                 case less:
+                        if (df.info(info_flags::nonzero) and (-df).info(info_flags::positive))
+                                return result::True;
+                        else
+                                return result::notimplemented;
                 case greater:
-			return result::notimplemented;
+                        if (df.info(info_flags::nonzero) and df.info(info_flags::positive))
+                                return result::True;
+                        else
+                                return result::notimplemented;
 		case less_or_equal:
                         if ((-df).info(info_flags::positive))
                                 return result::True;

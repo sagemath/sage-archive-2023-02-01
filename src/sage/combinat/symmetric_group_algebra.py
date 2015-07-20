@@ -387,7 +387,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         try:
             W = self.basis().keys().__class__(n)
-        except StandardError:
+        except Exception:
             raise NotImplementedError("Constructing the sibling algebra of a different order "
                                       "only implemented for PermutationGroup and SymmetricGroup")
         return SymmetricGroupAlgebra(self.base_ring(), W)

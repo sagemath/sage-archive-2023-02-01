@@ -29,6 +29,7 @@ Classes and functions
 # http://www.gnu.org/licenses/
 ###########################################################################
 
+import six
 from sage.structure.sage_object import SageObject
 
 ###########################################################################
@@ -245,7 +246,7 @@ class Huffman(SageObject):
         # index of each alphabetic symbol
         self._index = None
 
-        if isinstance(source,basestring):
+        if isinstance(source, six.string_types):
             self._build_code(frequency_table(source))
         elif isinstance(source, dict):
             self._build_code(source)

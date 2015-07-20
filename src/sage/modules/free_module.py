@@ -603,12 +603,12 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
                                 "free module elements!")
             M = FreeModule(R, len(x))
             try:
-                gens = map(M, gens)
+                gens = [M(_) for _ in gens]
             except TypeError:
                 R = R.fraction_field()
                 M = FreeModule(R, len(x))
                 try:
-                    gens = map(M, gens)
+                    gens = [M(_) for _ in gens]
                 except TypeError:
                     raise ValueError("The elements of gens (= %s) must be "
                                      "defined over base_ring (= %s) or its "
@@ -910,7 +910,7 @@ done from the right side.""")
         ``check`` is ``True``, confirm that the
         element specified by x does in fact lie in self.
 
-        .. note:::
+        .. note::
 
            In the case of an inexact base ring (i.e. RDF), we don't
            verify that the element is in the subspace, even when
@@ -2073,7 +2073,7 @@ done from the right side.""")
         EXAMPLES::
 
             sage: R = QQ^2
-            sage: macaulay2(R) # optional
+            sage: macaulay2(R) # optional - macaulay2
               2
             QQ
         """

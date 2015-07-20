@@ -124,6 +124,7 @@ import re
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/decl.pxi'
 include 'sage/libs/pari/pari_err.pxi'
 
 from sage.libs.gmp.mpz cimport *

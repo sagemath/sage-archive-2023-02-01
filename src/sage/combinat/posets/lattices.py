@@ -211,9 +211,8 @@ class FiniteMeetSemilattice(FinitePoset):
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
             return self._vertex_to_element(self._hasse_diagram._meet[i,j])
-        L = map(self._element_to_vertex, x)
         m = self.cardinality()-1 # m = top element
-        for i in L:
+        for i in (self._element_to_vertex(_) for _ in x):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
 
@@ -375,9 +374,8 @@ class FiniteJoinSemilattice(FinitePoset):
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
             return self._vertex_to_element(self._hasse_diagram._join[i,j])
-        L = map(self._element_to_vertex, x)
         j = 0 # j = bottom element
-        for i in L:
+        for i in (self._element_to_vertex(_) for _ in x):
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
 
@@ -859,7 +857,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         height = self.height()
         n = H.order()
         cur = H.maximal_elements()[0]
-        next = [H.neighbor_in_iterator(cur)]
+        next_ = [H.neighbor_in_iterator(cur)]
 
         @cached_function
         def is_modular_elt(a):
@@ -869,16 +867,16 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         if not is_modular_elt(cur):
             return False
-        while len(next) < height:
+        while len(next_) < height:
             try:
-                cur = next[-1].next()
+                cur = next(next_[-1])
             except StopIteration:
-                next.pop()
-                if not next:
+                next_.pop()
+                if not next_:
                     return False
                 continue
             if is_modular_elt(cur):
-                next.append(H.neighbor_in_iterator(cur))
+                next_.append(H.neighbor_in_iterator(cur))
         return True
 
     def sublattice(self, elms):

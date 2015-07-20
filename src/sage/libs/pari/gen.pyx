@@ -69,6 +69,7 @@ cdef extern from "misc.h":
 
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.pylong cimport mpz_set_pylong
+from sage.libs.pari.closure cimport objtoclosure
 
 from pari_instance cimport PariInstance, prec_bits_to_words, pari_instance
 cdef PariInstance P = pari_instance
@@ -7543,7 +7544,7 @@ cdef class gen(gen_auto):
         pari_catch_sig_on()
         return P.new_gen(nfinit0(self.g, flag, prec_bits_to_words(precision)))
 
-    def nfisisom(self, gen other):
+    def nfisisom(self, other):
         """
         nfisisom(x, y): Determine if the number fields defined by x and y
         are isomorphic. According to the PARI documentation, this is much
@@ -7579,9 +7580,20 @@ cdef class gen(gen_auto):
             sage: H = NumberField(x^2-2,'alpha')
             sage: F._pari_().nfisisom(H._pari_())
             0
+
+        TESTS:
+
+        This method converts its second argument (:trac:`18728`)::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: L.<b> = NumberField(x^2 + 3)
+            sage: pari(K).nfisisom(L)
+            [-1/2*y - 1/2, 1/2*y - 1/2]
+
         """
+        cdef gen t0 = objtogen(other)
         pari_catch_sig_on()
-        return P.new_gen(nfisisom(self.g, other.g))
+        return P.new_gen(nfisisom(self.g, t0.g))
 
     def nfrootsof1(self):
         """
@@ -7826,6 +7838,15 @@ cdef class gen(gen_auto):
             sage: f()
             [0, 0, 1.00000000000000]
 
+        Variadic closures are supported as well (:trac:`18623`)::
+
+            sage: f = pari("(v[..])->length(v)")
+            sage: f('a', f)
+            2
+            sage: g = pari("(x,y,z[..])->[x,y,z]")
+            sage: g(), g(1), g(1,2), g(1,2,3), g(1,2,3,4)
+            ([0, 0, []], [1, 0, []], [1, 2, []], [1, 2, [3]], [1, 2, [3, 4]])
+
         Using keyword arguments, we can substitute in more complicated
         objects, for example a number field::
 
@@ -7847,12 +7868,9 @@ cdef class gen(gen_auto):
         if t == t_CLOSURE:
             if nkwds > 0:
                 raise TypeError("cannot evaluate a PARI closure using keyword arguments")
-            # XXX: use undocumented internals to get arity of closure
-            # (In PARI 2.6, there is closure_arity() which does this)
-            arity = self.g[1]
-            if nargs > arity:
-                raise TypeError("PARI closure takes at most %d argument%s (%d given)"%(
-                    arity, "s" if (arity!=1) else "", nargs))
+            if closure_is_variadic(self.g):
+                arity = closure_arity(self.g) - 1
+                args = list(args[:arity]) + [0]*(arity-nargs) + [args[arity:]]
             t0 = objtogen(args)
             pari_catch_sig_on()
             result = closure_callgenvec(self.g, t0.g)
@@ -7932,7 +7950,7 @@ cdef class gen(gen_auto):
             sage: pari('() -> 42')(1,2,3)
             Traceback (most recent call last):
             ...
-            TypeError: PARI closure takes at most 0 arguments (3 given)
+            PariError: too many parameters in user-defined function call
             sage: pari('n -> n')(n=2)
             Traceback (most recent call last):
             ...
@@ -9470,6 +9488,9 @@ cpdef gen objtogen(s):
         for i from 0 <= i < length:
             v[i] = objtogen(s[i])
         return v
+
+    if callable(s):
+        return objtoclosure(s)
 
     if s is None:
         raise ValueError("Cannot convert None to pari")

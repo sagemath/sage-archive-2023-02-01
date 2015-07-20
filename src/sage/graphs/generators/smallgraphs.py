@@ -1728,8 +1728,16 @@ def ChvatalGraph():
         2
         2
         4
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.ChvatalGraph()
+        sage: G.is_isomorphic(Graph(networkx.chvatal_graph()))
+        True
     """
-    import networkx
+    edges = {0:[1, 4, 6, 9], 1:[2, 5, 7], 2:[3, 6, 8], 3:[4, 7, 9], 4:[5, 8],
+             5:[10, 11], 6:[10, 11], 7:[8, 11], 8:[10], 9:[10, 11]}
     pos_dict = {}
     for i in range(5, 10):
         x = float(cos((pi / 2) + ((2 * pi) / 5) * i))
@@ -1742,7 +1750,7 @@ def ChvatalGraph():
     pos_dict[10] = (0.5, 0)
     pos_dict[11] = (-0.5, 0)
 
-    return Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+    return Graph(edges, pos=pos_dict, name="Chvatal graph")
 
 def ClebschGraph():
     r"""
@@ -2483,8 +2491,6 @@ def FruchtGraph():
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic
     identity graph. It is planar and it is Hamiltonian.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the first
     seven nodes are on the outer circle, with the next four on an inner
@@ -2504,7 +2510,16 @@ def FruchtGraph():
         sage: FRUCHT.graph6_string()
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.FruchtGraph()
+        sage: G.is_isomorphic(Graph(networkx.frucht_graph()))
+        True
     """
+    edges = {0:[1, 6, 7], 1:[2, 7], 2:[3, 8], 3:[4, 9], 4:[5, 9],
+             5:[6, 10], 6:[10], 7:[11], 8:[9, 11], 10:[11]}
     pos_dict = {}
     for i in range(7):
         x = float(2*(cos((pi/2) + ((2*pi)/7)*i)))
@@ -2515,9 +2530,7 @@ def FruchtGraph():
     pos_dict[9] = (0,-1)
     pos_dict[10] = (1,0)
     pos_dict[11] = (0,0)
-    import networkx
-    G = networkx.frucht_graph()
-    return Graph(G, pos=pos_dict, name="Frucht graph")
+    return Graph(edges, pos=pos_dict, name="Frucht graph")
 
 def GoldnerHararyGraph():
     r"""
@@ -2727,8 +2740,6 @@ def HeawoodGraph():
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the nodes are
     positioned in a circular layout with the first node appearing at
@@ -2748,15 +2759,22 @@ def HeawoodGraph():
         sage: H.graph6_string()
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.HeawoodGraph()
+        sage: G.is_isomorphic(Graph(networkx.heawood_graph()))
+        True
     """
+    edges = {0:[1, 5, 13], 1:[2, 10], 2:[3, 7], 3:[4, 12], 4:[5, 9], 5:[6],
+             6:[7, 11], 7:[8], 8:[9, 13], 9:[10], 10:[11], 11:[12], 12:[13]}
     pos_dict = {}
     for i in range(14):
         x = float(cos((pi/2) + (pi/7)*i))
         y = float(sin((pi/2) + (pi/7)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.heawood_graph()
-    return Graph(G, pos=pos_dict, name="Heawood graph")
+    return Graph(edges, pos=pos_dict, name="Heawood graph")
 
 def HerschelGraph():
     r"""
@@ -3188,8 +3206,6 @@ def KrackhardtKiteGraph():
     - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
       http://www.orgnet.com/sna.html
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the graph is
     drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
@@ -3210,11 +3226,18 @@ def KrackhardtKiteGraph():
 
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.KrackhardtKiteGraph()
+        sage: G.is_isomorphic(Graph(networkx.krackhardt_kite_graph()))
+        True
     """
+    edges = {0:[1, 2, 3, 5], 1:[3, 4, 6], 2:[3, 5], 3:[4, 5, 6],
+             4:[6], 5:[6, 7], 6:[7], 7:[8], 8:[9]}
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
-    import networkx
-    G = networkx.krackhardt_kite_graph()
-    return Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
+    return Graph(edges, pos=pos_dict, name="Krackhardt Kite Graph")
 
 def LjubljanaGraph(embedding=1):
     r"""
@@ -3301,6 +3324,35 @@ def LjubljanaGraph(embedding=1):
 
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
+
+def LivingstoneGraph():
+    r"""
+    Returns the Livingstone Graph.
+
+    The Livingstone graph is a distance-transitive graph on 266 vertices whose
+    automorphism group is the :class:`J1 group
+    <sage.groups.perm_gps.permgroup_named.JankoGroup>`. For more information,
+    see the :wikipedia:`Livingstone_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
+        sage: g.order()                     # optional - gap_packages internet
+        266
+        sage: g.size()                      # optional - gap_packages internet
+        1463
+        sage: g.girth()                     # optional - gap_packages internet
+        5
+        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        True
+        sage: g.is_distance_regular()       # optional - gap_packages internet
+        True
+    """
+    from sage.groups.perm_gps.permgroup_named import JankoGroup
+    from sage.graphs.graph import Graph
+    G = JankoGroup(1)
+    edges = map(tuple,G.orbit((1,24),action="OnSets"))
+    return Graph(edges,name="Livingstone Graph")
 
 def M22Graph():
     r"""
@@ -3470,10 +3522,10 @@ def McLaughlinGraph():
     from itertools import combinations
     from sage.sets.set import Set
 
-    blocks = WittDesign(23).blocks()
-    blocks = map(Set, blocks)
+    blocks = [Set(_) for _ in WittDesign(23).blocks()]
+
     B = [b for b in blocks if 0 in b]
-    C = [b for b in blocks if not 0 in b]
+    C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
         for x in range(23):
@@ -3721,6 +3773,33 @@ def PetersenGraph():
     P.name("Petersen graph")
     return P
 
+def PerkelGraph():
+    r"""
+    Return the Perkel Graph.
+
+    The Perkel Graph is a 6-regular graph with `57` vertices and `171` edges. It
+    is the unique distance-regular graph with intersection array
+    `(6,5,2;1,1,3)`. For more information, see the :wikipedia:`Perkel_graph` or
+    http://www.win.tue.nl/~aeb/graphs/Perkel.html.
+
+    EXAMPLE::
+
+        sage: g = graphs.PerkelGraph(); g
+        Perkel Graph: Graph on 57 vertices
+        sage: g.is_distance_regular(parameters=True)
+        ([6, 5, 2, None], [None, 1, 1, 3])
+    """
+    g = Graph(name="Perkel Graph")
+    for i in range(19):
+        g.add_edges(((0, i), (1, (i + j) % 19)) for j in [2, 5, 7])
+        g.add_edges(((0, i), (2, (i + j) % 19)) for j in [5, -4, -8])
+        g.add_edges(((1, i), (2, (i + j) % 19)) for j in [7, -4, -5])
+    g.relabel()
+    _circle_embedding(g,[0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
+                         48, 40, 17, 20, 27, 43, 16, 7, 14, 6, 4, 15, 41, 24, 37,
+                         28, 9, 55, 38, 19, 34, 39, 36, 54, 52, 44, 23, 12, 22,
+                         32, 10, 13, 26, 1, 21, 42, 56, 49, 31, 47, 11, 25])
+    return g
 
 def RobertsonGraph():
     """
@@ -4073,10 +4152,9 @@ def ThomsenGraph():
         'EFz_'
         sage: (graphs.ThomsenGraph()).show() # long time
     """
+    edges = {0:[3, 4, 5], 1:[3, 4, 5], 2:[3, 4, 5]}
     pos_dict = {0:(-1,1),1:(0,1),2:(1,1),3:(-1,0),4:(0,0),5:(1,0)}
-    import networkx
-    G = networkx.complete_bipartite_graph(3,3)
-    return Graph(G, pos=pos_dict, name="Thomsen graph")
+    return Graph(edges, pos=pos_dict, name="Thomsen graph")
 
 def TietzeGraph():
     r"""

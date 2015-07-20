@@ -48,6 +48,7 @@ import time
 import gc
 import quit
 import cleaner
+import six
 from random import randrange
 
 ########################################################
@@ -57,6 +58,7 @@ from random import randrange
 ########################################################
 import pexpect
 from pexpect import ExceptionPexpect
+from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement, AsciiArtString
 
 from sage.structure.element import RingElement
@@ -175,10 +177,9 @@ class Expect(Interface):
         self._expect = None
         self._session_number = 0
         self.__init_code = init_code
-        self.__max_startup_time = max_startup_time
 
         #Handle the log file
-        if isinstance(logfile, basestring):
+        if isinstance(logfile, six.string_types):
             self.__logfile = None
             self.__logfilename = logfile
         else:
@@ -421,7 +422,12 @@ If this all works, you can then make calls like:
         os.chdir(self.__path)
         try:
             try:
-                self._expect = pexpect.spawn(cmd, logfile=self.__logfile, env=pexpect_env)
+                self._expect = SageSpawn(cmd,
+                        logfile=self.__logfile,
+                        timeout=None,  # no timeout
+                        env=pexpect_env,
+                        name=self._repr_(),
+                        quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
                 # Change pexpect errors to RuntimeError
                 raise RuntimeError("unable to start %s because the command %r failed: %s\n%s" %
@@ -436,7 +442,6 @@ If this all works, you can then make calls like:
         if self._do_cleaner():
             cleaner.cleaner(self._expect.pid, cmd)
 
-        self._expect.timeout = self.__max_startup_time
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
@@ -470,64 +475,91 @@ If this all works, you can then make calls like:
             except pexpect.TIMEOUT:
                 return
 
-    def __del__(self):
-        try:
-            if self._expect is None:
-                return
-            try:
-                self.quit()
-            except (TypeError, AttributeError):
-                pass
-
-            # The following programs around a bug in pexpect.
-            def dummy(): pass
-            try:
-                self._expect.close = dummy
-            except Exception:
-                pass
-        except Exception:
-            pass
-
-    def quit(self, verbose=False, timeout=0.25):
+    def _reset_expect(self):
         """
+        Delete ``self._expect`` and reset any state.
+
+        This is called by :meth:`quit` and :meth:`detach`.
+
         EXAMPLES::
 
-            sage: a = maxima('y')
-            sage: maxima.quit()
-            sage: a._check_valid()
-            Traceback (most recent call last):
-            ...
-            ValueError: The maxima session in which this object was defined is no longer running.
+            sage: gp("eulerphi(49)")
+            42
+            sage: print gp._expect
+            PARI/GP interpreter with PID ...
+            sage: gp._reset_expect()
+            sage: print gp._expect
+            None
+            sage: gp("eulerphi(49)")
+            42
         """
         self._session_number += 1
         try:
             del self.__local_tmpfile
         except AttributeError:
             pass
-        if self._expect is None:
-            return
-        # Send a kill -9 to the process *group*.
-        # this is *very useful* when external binaries are started up
-        # by shell scripts, and killing the shell script doesn't
-        # kill the binary.
-        E = self._expect
-        if verbose:
-            if self.is_remote():
-                    print "Exiting spawned %s process (local pid=%s, running on %s)"%(self,E.pid,self._server)
-            else:
-                print "Exiting spawned %s process."%self
-        try:
-#            TO DO: This should be implemented or the remote tmp will get crowded
-#            self._remove_remote_tmpfile()
-            E.sendline(self._quit_string())
-            self._so_far(wait=timeout)
-            # In case of is_remote(), killing the local "ssh -t" also kills the remote process it initiated
-            os.killpg(E.pid, 9)
-            os.kill(E.pid, 9)
-        except (RuntimeError, OSError):
-            pass
         self._expect = None
-        return
+
+    def quit(self, verbose=False, timeout=None):
+        """
+        Quit the running subprocess.
+
+        INPUT:
+
+        - ``verbose`` -- (boolean, default ``False``) print a message
+          when quitting this process?
+
+        EXAMPLES::
+
+            sage: a = maxima('y')
+            sage: maxima.quit(verbose=True)
+            Exiting Maxima with PID ... running .../local/bin/maxima ...
+            sage: a._check_valid()
+            Traceback (most recent call last):
+            ...
+            ValueError: The maxima session in which this object was defined is no longer running.
+
+        Calling ``quit()`` a second time does nothing::
+
+            sage: maxima.quit(verbose=True)
+        """
+        if timeout is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(17686, 'the timeout argument to quit() is deprecated and ignored')
+        if self._expect is not None:
+            if verbose:
+                if self.is_remote():
+                    print "Exiting %r (running on %s)"%(self._expect, self._server)
+                else:
+                    print "Exiting %r"%(self._expect,)
+            self._expect.close()
+        self._reset_expect()
+
+    def detach(self):
+        """
+        Forget the running subprocess: keep it running but pretend that
+        it's no longer running.
+
+        EXAMPLES::
+
+            sage: a = maxima('y')
+            sage: saved_expect = maxima._expect  # Save this to close later
+            sage: maxima.detach()
+            sage: a._check_valid()
+            Traceback (most recent call last):
+            ...
+            ValueError: The maxima session in which this object was defined is no longer running.
+            sage: saved_expect.close()  # Close child process
+
+        Calling ``detach()`` a second time does nothing::
+
+            sage: maxima.detach()
+        """
+        try:
+            self._expect._keep_alive()
+        except AttributeError:
+            pass
+        self._reset_expect()
 
     def _quit_string(self):
         """
@@ -546,6 +578,8 @@ If this all works, you can then make calls like:
         """
         Send an interrupt to the application.  This is used internally
         by :meth:`interrupt`.
+
+        First CTRL-C to stop the current command, then quit.
         """
         self._expect.sendline(chr(3))
         self._expect.sendline(self._quit_string())
@@ -806,7 +840,7 @@ If this all works, you can then make calls like:
         Since the test of the next method would fail, we re-start
         Singular now. ::
 
-            sage: singular(2+3)
+            sage: singular('2+3')
             Singular crashed -- automatically restarting.
             5
 
@@ -848,7 +882,7 @@ If this all works, you can then make calls like:
 
             if len(line)>0:
                 try:
-                    if isinstance(wait_for_prompt, basestring):
+                    if isinstance(wait_for_prompt, six.string_types):
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
@@ -906,11 +940,10 @@ If this all works, you can then make calls like:
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
-    def interrupt(self, tries=20, timeout=0.3, quit_on_fail=True):
+    def interrupt(self, tries=5, timeout=2.0, quit_on_fail=True):
         E = self._expect
         if E is None:
             return True
-        success = False
         try:
             for i in range(tries):
                 self._send_interrupt()
@@ -919,15 +952,13 @@ If this all works, you can then make calls like:
                 except (pexpect.TIMEOUT, pexpect.EOF):
                     pass
                 else:
-                    success = True
-                    break
+                    return True  # Success
         except Exception:
             pass
-        if success:
-            pass
-        elif quit_on_fail:
+        # Failed to interrupt...
+        if quit_on_fail:
             self.quit()
-        return success
+        return False
 
     ###########################################################################
     # BEGIN Synchronization code.
@@ -939,7 +970,7 @@ If this all works, you can then make calls like:
 
         EXAMPLES::
 
-            sage: singular(2+3)
+            sage: singular('2+3')
             5
             sage: singular._before()
             '5\r\n'
@@ -1034,35 +1065,22 @@ If this all works, you can then make calls like:
         """
         if expr is None:
             # the following works around gap._prompt_wait not being defined
-            expr = (hasattr(self,'_prompt_wait') and self._prompt_wait) or self._prompt
+            expr = getattr(self, '_prompt_wait', None) or self._prompt
         if self._expect is None:
             self._start()
         try:
             if timeout:
-                i = self._expect.expect(expr,timeout=timeout)
+                i = self._expect.expect(expr, timeout=timeout)
             else:
                 i = self._expect.expect(expr)
             if i > 0:
                 v = self._expect.before
                 self.quit()
                 raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
-        except KeyboardInterrupt as err:
-            i = 0
-            while True:
-                try:
-                    print "Control-C pressed.  Interrupting %s. Please wait a few seconds..."%self
-                    self._sendstr('quit;\n'+chr(3))
-                    self._sendstr('quit;\n'+chr(3))
-                    self.interrupt()
-                    self.interrupt()
-                except KeyboardInterrupt:
-                    i += 1
-                    if i > 10:
-                        break
-                    pass
-                else:
-                    break
-            raise err
+        except KeyboardInterrupt:
+            print("Control-C pressed. Interrupting %s. Please wait a few seconds..."%self)
+            self.interrupt()
+            raise
 
     def _sendstr(self, str):
         r"""
@@ -1205,7 +1223,7 @@ If this all works, you can then make calls like:
             except AttributeError:
                 pass
 
-        if not isinstance(code, basestring):
+        if not isinstance(code, six.string_types):
             raise TypeError('input code must be a string.')
 
         #Remove extra whitespace
@@ -1293,7 +1311,7 @@ class ExpectElement(InterfaceElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
-        if isinstance(value, basestring) and parent._eval_using_file_cutoff and \
+        if isinstance(value, six.string_types) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 

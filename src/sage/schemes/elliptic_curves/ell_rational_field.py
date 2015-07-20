@@ -3064,6 +3064,60 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__lseries = Lseries_ell(self)
             return self.__lseries
 
+    def lseries_gross_zagier(self, A):
+        """
+        Return the Gross-Zagier L-series attached to ``self``
+        and an ideal class `A`.
+
+        INPUT:
+
+        - ``A`` -- an ideal class in an imaginary quadratic number field `K`
+
+        This L-series `L(E,A,s)` is defined as the product of a shifted L-function of the
+        quadratic character associated to `K` and the Dirichlet series whose `n`-th
+        coefficient is the product of the `n`-th factor of the L-series of `E` and
+        the number of integral ideal in `A` of norm `n`. For any character `\chi`
+        on the class group of `K`, one gets `L_K(E,\chi,s) = \sum_{A} \chi(A) L(E,A,s)`
+        where `A` runs through the class group of `K`.
+
+        For the exact definition see section IV of [GrossZagier]_.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: K.<a> = QuadraticField(-40)
+            sage: A = K.class_group().gen(0); A
+            Fractional ideal class (2, 1/2*a)
+            sage: L = E.lseries_gross_zagier(A)  ; L
+            Gross Zagier L-series attached to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field with ideal class Fractional ideal class (2, 1/2*a)
+            sage: L(1)
+            0.000000000000000
+            sage: L.taylor_series(1, 5)
+            0.000000000000000 - 5.51899839494458*z + 13.6297841350649*z^2 - 16.2292417817675*z^3 + 7.94788823722712*z^4 + O(z^5)
+
+        These should be equal::
+
+            sage: L(2) + E.lseries_gross_zagier(A^2)(2)
+            0.502803417587467
+            sage: E.lseries()(2) * E.quadratic_twist(-40).lseries()(2)
+            0.502803417587467
+
+        REFERENCES:
+
+        .. [GrossZagier] B. Gross and D. Zagier, *Heegner points and
+           derivatives of L-series.* Invent. Math. 84 (1986), no. 2, 225-320.
+        """
+        try:
+            return self.__lseries_gross_zagier[A]
+        except AttributeError:
+            self.__lseries_gross_zagier = {}
+        except KeyError:
+            pass
+
+        from sage.modular.modform.l_series_gross_zagier import GrossZagierLseries
+        self.__lseries_gross_zagier[A] = GrossZagierLseries(self, A)
+        return self.__lseries_gross_zagier[A]
+
     def Lambda(self, s, prec):
         r"""
         Returns the value of the Lambda-series of the elliptic curve E at
@@ -6664,7 +6718,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
     for i in range(1,r):
         RPi[i] = RPi[i-1] + RgensN[i]
 
-    tors_points_R = map(ER, tors_points)
+    tors_points_R = [ER(_) for _ in tors_points]
     while True:
         if all([n==0 for n in ni]):
              use_t(E(0))

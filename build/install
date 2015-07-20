@@ -268,15 +268,6 @@ EOF
 echo >&5 "SHELL = `command -v bash`"
 echo >&5
 
-# If the user (or the Makefile) has set SAGE_PARALLEL_SPKG_BUILD=no,
-# then turn off parallel building: disable just building multiple
-# packages at the same time.   Individual packages can still be built
-# in parallel by specifying '-j' in $MAKE.
-if [ "${SAGE_PARALLEL_SPKG_BUILD:-yes}" = no ]; then
-    echo ".NOTPARALLEL:" >&5
-    echo "" >&5
-fi
-
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {
@@ -386,12 +377,19 @@ done
 echo >&5
 echo >&5
 
-
-echo >&5 'CSAGE_SOURCES = \'
-for file in "$SAGE_SRC/c_lib/src/"*.cpp "$SAGE_SRC/c_lib/include"/*.h; do
-    echo >&5 "                \$(SAGE_SRC)${file#$SAGE_SRC} \\"
+echo >&5 '# All optional installed packages (triggers the auto-update)'
+echo >&5 'OPTIONAL_INSTALLED_PACKAGES = \'
+filtered_packages_list optional | while read PKG_NAME PKG_VERSION PKG_VAR; do
+    if [ "$PKG_NAME" = "gcc" ]; then
+        continue
+    fi
+    if [ -f $SAGE_SPKG_INST/$PKG_NAME-* ]; then
+        echo >&5 "    \$(INST)/\$($PKG_VAR) \\"
+    fi;
 done
 echo >&5
+echo >&5
+
 echo >&5 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
     echo >&5 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
@@ -412,19 +410,6 @@ for file in `find "$SAGE_SRC"/ext -type f`; do
     echo >&5 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&5
-
-cat >&5 <<EOF
-# don't just use \`install\` since we don't want to change permissions
-\$(SAGE_LOCAL)/bin/%: \$(SAGE_SRC)/bin/%
-	cp \$< \$@
-
-# don't just use \`install -D\` since we don't want to change permissions
-# cp won't correctly setup the SAGE_EXTCODE directory structure (unlike install)
-# so we need a mkdir here to cp can copy into an existing folder
-\$(SAGE_EXTCODE)/%: \$(SAGE_SRC)/ext/%
-	@mkdir -p "\$(@D)"
-	cp \$< \$@
-EOF
 
 # Copy build/deps
 cat >&5 <<EOF
@@ -450,13 +435,22 @@ EOF
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
+    TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
+    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+        DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
     else
         DEPS=""
     fi
     echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
     echo >&5 "	+\$(PIPE) \"\$(SAGE_SPKG) \$($PKG_VAR) 2>&1\" \"tee -a \$(SAGE_LOGS)/\$($PKG_VAR).log\""
+    echo >&5
+
+    # Add a target with just the bare package name such that
+    # "make ccache" for example builds the ccache package with
+    # dependency checking.
+    echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
     echo >&5
 done
 
@@ -534,10 +528,5 @@ if [ "$1" = "all" ]; then
     echo "    install_scripts('/usr/local/bin')"
     echo
     echo "at the Sage command prompt ('sage:')."
-    echo
-    echo "If you issued 'make', 'make all', or a similar command, then the"
-    echo "HTML version of the documentation will be built right now."
-    echo "Otherwise, if you want to (re)build the HTML documentation,"
-    echo "run 'make doc'.  To build the PDF version, run 'make doc-pdf'."
     echo
 fi

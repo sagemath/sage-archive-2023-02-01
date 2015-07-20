@@ -121,24 +121,6 @@ underscores).
 
    When implementing ``_add_`` in a Cython extension class, use
    ``cpdef _add_`` instead of ``def _add_``.
-
-For speed, there are also *inplace* versions of the arithmetic commands.
-**Do not** call them directly, they may mutate the object and will be called
-when and only when it has been determined that the old object will no longer
-be accessible from the calling function after this operation.
-
--  **def RingElement._iadd_**
-
-   This is the function you should override to implement inplace
-   addition in a Python subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the **same
-   parent**. Its return value **must** have the **same parent** as its
-   arguments.
-
-   The default implementation of this function is to call ``_add_``,
-   so if no one has defined a Python implementation, the correct Cython
-   implementation will get called.
 """
 
 ##################################################################
@@ -147,14 +129,14 @@ be accessible from the calling function after this operation.
 ##################################################################
 
 include "sage/ext/python.pxi"
-include "coerce.pxi"
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
+from cpython.number cimport PyNumber_TrueDivide
 
 import types
-cdef add, sub, mul, div, iadd, isub, imul, idiv
-from operator import add, sub, mul, div, iadd, isub, imul, idiv
+cdef add, sub, mul, div, truediv, iadd, isub, imul, idiv
+from operator import add, sub, mul, div, truediv, iadd, isub, imul, idiv
 
 cdef MethodType
 from types import MethodType
@@ -694,15 +676,9 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self,'__call__'):
+        if not hasattr(self, '__call__'):
             return self
-        parent=self._parent
-        # We should better not test for ParentWIthGens,
-        # as this is essentially deprecated.
-        #from sage.structure.parent_gens import is_ParentWithGens
-        #if not is_ParentWithGens(parent):
-        #    return self
-        # Better: Duck typing!
+        parent = self._parent
         try:
             ngens = parent.ngens()
         except (AttributeError, NotImplementedError, TypeError):
@@ -1390,15 +1366,7 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            # If we hold the only references to this object, we can
-            # safely mutate it. NOTE the threshold is different by one
-            # for __add__ and __iadd__.
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
-
-        global coercion_model
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, add)
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -1406,16 +1374,8 @@ cdef class ModuleElement(Element):
 
     def __iadd__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._iadd_(<ModuleElement>right)
-            else:
-                return self._add_(<ModuleElement>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(self, right, iadd)
-
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        return self._add_(right)
+            return self._add_(<ModuleElement>right)
+        return coercion_model.bin_op(self, right, iadd)
 
     ##################################################
     # Subtraction
@@ -1427,11 +1387,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
-        global coercion_model
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, sub)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
@@ -1441,16 +1397,8 @@ cdef class ModuleElement(Element):
 
     def __isub__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._isub_(<ModuleElement>right)
-            else:
-                return self._sub_(<ModuleElement>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(self, right, isub)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        return self._sub_(right)
+            return self._sub_(<ModuleElement>right)
+        return coercion_model.bin_op(self, right, isub)
 
     ##################################################
     # Negation
@@ -1466,7 +1414,6 @@ cdef class ModuleElement(Element):
 
     cpdef ModuleElement _neg_(self):
         # default implementation is to try multiplying by -1.
-        global coercion_model
         if self._parent._base is None:
             return coercion_model.bin_op(-1, self, mul)
         else:
@@ -1482,15 +1429,11 @@ cdef class ModuleElement(Element):
             return (<ModuleElement>right)._mul_long(PyInt_AS_LONG(left))
         if have_same_parent_c(left, right):
             raise TypeError(arith_error_message(left, right, mul))
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
              raise TypeError
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, imul)
 
     # rmul -- left * self
@@ -1521,9 +1464,6 @@ cdef class ModuleElement(Element):
         Generic path for multiplying by a C long, assumed to commute.
         """
         return coercion_model.bin_op(self, n, mul)
-
-    cpdef ModuleElement _ilmul_(self, RingElement right):
-        return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
         if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -1571,7 +1511,6 @@ cdef class MonoidElement(Element):
         Top-level multiplication operator for monoid elements.
         See extensive documentation at the top of element.pyx.
         """
-        global coercion_model
         if have_same_parent_c(left, right):
             return (<MonoidElement>left)._mul_(<MonoidElement>right)
         try:
@@ -1691,10 +1630,33 @@ cdef class MultiplicativeGroupElement(MonoidElement):
     def _add_(self, x):
         raise ArithmeticError("addition not defined in a multiplicative group")
 
-    def __div__(left, right):
+    def __truediv__(left, right):
+        """
+        Top-level true division operator for multiplicative group
+        elements. See extensive documentation at the top of
+        element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: operator.truediv(2, K.ideal(i+1))
+            Fractional ideal (-i + 1)
+        """
         if have_same_parent_c(left, right):
-            return left._div_(right)
-        global coercion_model
+            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
+        return coercion_model.bin_op(left, right, truediv)
+
+    def __div__(left, right):
+        """
+        Top-level division operator for multiplicative group elements.
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent_c(left, right):
+            return (<MultiplicativeGroupElement>left)._div_(<MultiplicativeGroupElement>right)
         return coercion_model.bin_op(left, right, div)
 
     cpdef MultiplicativeGroupElement _div_(self, MultiplicativeGroupElement right):
@@ -1735,10 +1697,7 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
         if PyInt_CheckExact(right):
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
         elif PyInt_CheckExact(left):
@@ -1759,10 +1718,7 @@ cdef class RingElement(ModuleElement):
         """
         cdef long n
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
         if PyInt_CheckExact(right):
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
@@ -1895,10 +1851,7 @@ cdef class RingElement(ModuleElement):
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
+            return (<RingElement>left)._mul_(<RingElement>right)
         if PyInt_CheckExact(right):
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
         elif PyInt_CheckExact(left):
@@ -1914,16 +1867,8 @@ cdef class RingElement(ModuleElement):
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt <= inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
-
-        global coercion_model
+            return (<RingElement>left)._mul_(<RingElement>right)
         return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _imul_(RingElement self, RingElement right):
-        return self._mul_(right)
 
     def __pow__(self, n, dummy):
         """
@@ -2019,22 +1964,32 @@ cdef class RingElement(ModuleElement):
     ##################################
 
     def __truediv__(self, right):
-        # in sage all divs are true
-        if not isinstance(self, Element):
-            return coercion_model.bin_op(self, right, div)
-        return self.__div__(right)
+        """
+        Top-level true division operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+
+        If two elements have the same parent, we just call ``_div_``
+        because all divisions of Sage elements are really true
+        divisions.
+
+        EXAMPLES::
+
+            1/3*pisage: operator.truediv(2, 3)
+            2/3
+            sage: operator.truediv(pi, 3)
+            1/3*pi
+        """
+        if have_same_parent_c(self, right):
+            return (<RingElement>self)._div_(<RingElement>right)
+        return coercion_model.bin_op(self, right, truediv)
 
     def __div__(self, right):
         """
-        Top-level multiplication operator for ring elements.
+        Top-level division operator for ring elements.
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt < inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
-        global coercion_model
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, div)
 
     cpdef RingElement _div_(self, RingElement right):
@@ -2056,15 +2011,8 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
-        global coercion_model
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, idiv)
-
-    cpdef RingElement _idiv_(RingElement self, RingElement right):
-        return self._div_(right)
 
     def __invert__(self):
         if self.is_one():
@@ -2312,7 +2260,6 @@ cdef class CommutativeRingElement(RingElement):
 
         else:
             #Different parents, use coercion
-            global coercion_model
             a, b = coercion_model.canonical_coercion(self, x)
             return a.divides(b)
 
@@ -2573,10 +2520,7 @@ cdef class Vector(ModuleElement):
     def __imul__(left, right):
         if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, imul)
-
 
     def __mul__(left, right):
         """
@@ -2740,8 +2684,6 @@ cdef class Vector(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<Vector>left)._dot_product_(<Vector>right)
-        # Always do this
-        global coercion_model
         return coercion_model.bin_op(left, right, mul)
 
     cpdef Element _dot_product_(Vector left, Vector right):
@@ -2753,14 +2695,14 @@ cdef class Vector(ModuleElement):
     cpdef Vector _pairwise_product_(Vector left, Vector right):
         raise TypeError("unsupported operation for '%s' and '%s'"%(parent_c(left), parent_c(right)))
 
-    def __div__(self, right):
+    def __truediv__(self, right):
         right = py_scalar_to_element(right)
         if isinstance(right, RingElement):
             # Let __mul__ do the job
-            return self.__mul__(~right)
+            return self * ~right
         if isinstance(right, Vector):
             try:
-                W = right.parent().submodule([right])
+                W = (<Vector>right)._parent.submodule([right])
                 return W.coordinates(self)[0] / W.coordinates(right)[0]
             except ArithmeticError:
                 if right.is_zero():
@@ -2768,6 +2710,9 @@ cdef class Vector(ModuleElement):
                 else:
                     raise ArithmeticError("vector is not in free module")
         raise TypeError(arith_error_message(self, right, div))
+
+    def __div__(self, right):
+        return PyNumber_TrueDivide(self, right)
 
     def _magma_init_(self, magma):
         """
@@ -2821,9 +2766,7 @@ cdef class Matrix(ModuleElement):
     def __imul__(left, right):
         if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, imul)
+        return coercion_model.bin_op(left, right, imul)
 
     def __mul__(left, right):
         """
@@ -3008,9 +2951,32 @@ cdef class Matrix(ModuleElement):
         """
         if have_same_parent_c(left, right):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, mul)
+        return coercion_model.bin_op(left, right, mul)
+
+    def __truediv__(left, right):
+        """
+        Division of the matrix ``left`` by the matrix or scalar
+        ``right``.
+
+        EXAMPLES::
+
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: operator.truediv(a, 5)
+            [ 0 1/5]
+            [2/5 3/5]
+            sage: a = matrix(ZZ, 2, range(4))
+            sage: b = matrix(ZZ, 2, [1,1,0,5])
+            sage: operator.truediv(a, b)
+            [  0 1/5]
+            [  2 1/5]
+            sage: c = matrix(QQ, 2, [3,2,5,7])
+            sage: operator.truediv(c, a)
+            [-5/2  3/2]
+            [-1/2  5/2]
+        """
+        if have_same_parent_c(left, right):
+            return left * ~right
+        return coercion_model.bin_op(left, right, truediv)
 
     def __div__(left, right):
         """
@@ -3061,16 +3027,9 @@ cdef class Matrix(ModuleElement):
             [      (t^4 + t^2 - 2*t - 3)/(t^5 - 3*t)               (t^4 - t - 1)/(t^5 - 3*t)]
             [       (-t^3 + t^2 - t - 6)/(t^5 - 3*t) (t^4 + 2*t^3 + t^2 - t - 2)/(t^5 - 3*t)]
         """
-        cdef Matrix rightinv
         if have_same_parent_c(left, right):
-            rightinv = ~<Matrix>right
-            if have_same_parent_c(left,rightinv):
-                return (<Matrix>left)._matrix_times_matrix_(rightinv)
-            else:
-                return (<Matrix>(left.change_ring(rightinv.parent().base_ring())))._matrix_times_matrix_(rightinv)
-        else:
-            global coercion_model
-            return coercion_model.bin_op(left, right, div)
+            return left * ~right
+        return coercion_model.bin_op(left, right, div)
 
     cdef Vector _vector_times_matrix_(matrix_right, Vector vector_left):
         raise TypeError
@@ -3353,11 +3312,9 @@ cpdef canonical_coercion(x, y):
         [1 0], [0 1]
         )
     """
-    global coercion_model
     return coercion_model.canonical_coercion(x,y)
 
 cpdef bin_op(x, y, op):
-    global coercion_model
     return coercion_model.bin_op(x,y,op)
 
 

@@ -12,6 +12,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
+    :meth:`~GenericGraph.igraph_graph` | Create a new igraph graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
@@ -1309,6 +1310,35 @@ class GenericGraph(GenericGraph_pyx):
                     except (TypeError, ValueError, NetworkXError):
                         N.add_edge(u,v,weight=l)
             return N
+
+    def igraph_graph(self):
+        r"""
+        Converts the graph into an igraph graph.
+
+        For more information on the Python version of igraph, see
+        http://igraph.org/python/.
+
+        EXAMPLES::
+
+            sage: G = graphs.TetrahedralGraph()
+            sage: H = G.igraph_graph()
+            sage: H.summary()
+            'IGRAPH U--- 4 6 -- '
+            sage: G = digraphs.Path(3)
+            sage: H = G.igraph_graph()
+            sage: H.summary()
+            'IGRAPH D--- 3 2 -- '
+        """
+
+        import igraph
+        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        edgelist = [(v_to_int[v],v_to_int[w])
+                    for v,w in self.edges(labels=False)]
+        if self.is_directed():
+            g = igraph.Graph(edgelist, directed=True)
+        else:
+            g = igraph.Graph(edgelist, directed=False)
+        return g
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""

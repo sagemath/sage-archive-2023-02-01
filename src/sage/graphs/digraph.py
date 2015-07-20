@@ -206,6 +206,8 @@ class DiGraph(GenericGraph):
 
        #.  A NetworkX digraph
 
+       #.  An igraph Graph (see http://igraph.org/python/)
+
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
@@ -242,6 +244,8 @@ class DiGraph(GenericGraph):
           Given this format, weighted is ignored (assumed True).
 
        -  ``NX`` - data must be a NetworkX DiGraph.
+
+       -  ``igraph`` - data must be an igraph Graph.
 
            .. NOTE::
 
@@ -398,6 +402,13 @@ class DiGraph(GenericGraph):
             sage: DiGraph(g)
             Digraph on 5 vertices
 
+    #. An igraph Graph::
+
+            sage: import igraph
+            sage: g = igraph.Graph([(0,1),(1,2),(0,2)], directed = True)
+            sage: DiGraph(g)
+            Digraph on 3 vertices
+
     TESTS::
 
         sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
@@ -443,6 +454,14 @@ class DiGraph(GenericGraph):
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
 
+    If the input is an undirected igraph graph, the output is transformed into
+    a directed graph::
+
+        sage: import igraph
+        sage: G = igraph.Graph([(0,1),(1,2),(0,2)], directed = False)
+        sage: H = DiGraph(G)
+        sage: H.edges(labels=False)
+        [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
     """
     _directed = True
 
@@ -613,6 +632,9 @@ class DiGraph(GenericGraph):
                 format = 'NX'
             elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 format = 'NX'
+        import igraph
+        if format is None and isinstance(data, igraph.Graph):
+            format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -850,6 +872,12 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            if data.is_directed():
+                self.add_edges(data.get_edgelist())
+            else:
+                self.add_edges(data.get_edgelist())
+                self.add_edges([(w,v) for (v,w) in data.get_edgelist()])
         elif format == 'int':
             if weighted   is None: weighted   = False
             self.allow_loops(True if loops else False,check=False)

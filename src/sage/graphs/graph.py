@@ -626,6 +626,8 @@ class Graph(GenericGraph):
 
       #.  A NetworkX graph
 
+      #.  An igraph graph (see http://igraph.org/python/)
+
     -  ``pos`` -  a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
@@ -678,6 +680,8 @@ class Graph(GenericGraph):
           labelled p if and only if E is congruent to F mod p
 
        -  ``NX`` - data must be a NetworkX Graph.
+
+       -  ``igraph`` - data must be an igraph Graph.
 
            .. NOTE::
 
@@ -953,6 +957,13 @@ class Graph(GenericGraph):
            sage: DiGraph(g)
            Digraph on 5 vertices
 
+    #. An igraph graph::
+
+           sage: import igraph
+           sage: g = igraph.Graph([(0,1),(0,2)])
+           sage: Graph(g)
+           Graph on 3 vertices
+
     By default, graphs are mutable and can thus not be used as a dictionary
     key::
 
@@ -1164,9 +1175,11 @@ class Graph(GenericGraph):
             import networkx
             if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 data = data.to_undirected()
-                format = 'NX'
             elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
+        import igraph
+        if format is None and isinstance(data, igraph.Graph):
+            format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -1377,6 +1390,8 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            self.add_edges(data.get_edgelist())
         elif format == 'rule':
             f = data[1]
             verts = data[0]
@@ -6071,7 +6086,7 @@ class Graph(GenericGraph):
         for x in IndependentSets(self, complement = True):
             number_of[len(x)] += 1
         return sum(coeff*t**i for i,coeff in enumerate(number_of) if coeff)
-    
+
     ### Miscellaneous
 
     def cores(self, k = None, with_labels=False):

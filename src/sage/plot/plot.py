@@ -1105,15 +1105,6 @@ def plot(funcs, *args, **kwds):
         sage: p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
         sage: graphics_array([[p1, p2], [p3, p4]]).show(frame=True, axes=False) # long time
 
-        .. PLOT::
-
-            p1 = plot(sin(x), -pi, pi, fill = 'axis')
-            p2 = plot(sin(x), -pi, pi, fill = 'min')
-            p3 = plot(sin(x), -pi, pi, fill = 'max')
-            p4 = plot(sin(x), -pi, pi, fill = 0.5 + cos(x))
-            g = graphics_array([[p1, p2], [p3, p4]]) # long time
-            sphinx_plot(g.show(frame=True, axes=False))
-
     The basic options for filling a list of plots::
 
         sage: p1 = plot([sin(x), cos(2*x)*sin(x)], -pi, pi, fill = {1: [0]}, fillcolor = 'blue', fillalpha = .25, color = 'blue')
@@ -2613,7 +2604,7 @@ def graphics_array(array, nrows=None, ncols=None):
         else:
             assert False
         array = reshape(array, nrows, ncols)
-    return graphics_array(array)
+    return GraphicsArray(array)
 
 def var_and_list_of_values(v, plot_points):
     """

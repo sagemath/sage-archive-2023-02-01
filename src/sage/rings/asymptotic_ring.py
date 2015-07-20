@@ -53,7 +53,111 @@ import sage
 
 class AsymptoticExpression(sage.rings.ring_element.RingElement):
     r"""
-    ...
+    Class for asymptotic expressions. ...
+
+    INPUT:
+
+    - ``parent`` -- the parent of the asymptotic expression.
+
+    - ``poset`` -- a mutable poset representing the underlying
+      growth structure.
+
+    - ``simplify`` -- a boolean, controls automatic simplification
+      (absorption) of asymptotic expressions. Default: ``True``.
+
+    EXAMPLES:
+
+    There are ways to create an asymptotic expression. First,
+    we construct the corresponding parents::
+
+        sage: R_x.<x> = AsymptoticRing('monomial', QQ)
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: G = agg.MonomialGrowthGroup(ZZ, 'y')
+        sage: R_y = AsymptoticRing(G, ZZ); y = R_y.gen()
+
+    At this point, `x` and `y` are already asymptotic expressions::
+
+        sage: (x, y)
+        (1*x, 1*y)
+        sage: isinstance(x, sage.rings.asymptotic_ring.AsymptoticExpression)
+        True
+        sage: type(x)
+        <class 'sage.rings.asymptotic_ring.AsymptoticRing_with_category.element_class'>
+
+    The usual ring operations can be performed::
+
+        sage: x^2 + 3*(x - x^2)
+        3*x + -2*x^2
+        sage: (3*x + 2)^3
+        8*1 + 36*x + 54*x^2 + 27*x^3
+
+    In addition to that, special powers (determined by the base ring
+    of the growth group) can also be computed::
+
+        sage: (x^(5/2) + x^(1/7)) * x^(-1/5)
+        1*x^(-2/35) + 1*x^(23/10)
+
+    One of the central ideas behind computing with asymptotic
+    expressions is that the `O`-notation (see
+    :wikipedia:`Big_O_notation`) can be used. For example, we have::
+
+        sage: (x + 2*x^2 + 3*x^3 + 4*x^4) * (O(x) + x^2)
+        O(x^5) + 4*x^6
+
+    In particular, :meth:`~sage.rings.big_oh.O` can be used to
+    construct the asymptotic expressions. With the help of the
+    ``poset``, we can also have a look at the inner structure
+    of an asymptotic expression::
+
+        sage: expr1 = x + 2*x^2 + 3*x^3 + 4*x^4; expr2 = O(x) + x^2
+        sage: print(expr1.poset.repr_full())
+        poset(1*x, 2*x^2, 3*x^3, 4*x^4)
+        +-- null
+        |   +-- no predecessors
+        |   +-- successors:   1*x
+        +-- 1*x
+        |   +-- predecessors:   null
+        |   +-- successors:   2*x^2
+        +-- 2*x^2
+        |   +-- predecessors:   1*x
+        |   +-- successors:   3*x^3
+        +-- 3*x^3
+        |   +-- predecessors:   2*x^2
+        |   +-- successors:   4*x^4
+        +-- 4*x^4
+        |   +-- predecessors:   3*x^3
+        |   +-- successors:   oo
+        +-- oo
+        |   +-- predecessors:   4*x^4
+        |   +-- no successors
+        sage: print(expr2.poset.repr_full())
+        poset(O(x), 1*x^2)
+        +-- null
+        |   +-- no predecessors
+        |   +-- successors:   O(x)
+        +-- O(x)
+        |   +-- predecessors:   null
+        |   +-- successors:   1*x^2
+        +-- 1*x^2
+        |   +-- predecessors:   O(x)
+        |   +-- successors:   oo
+        +-- oo
+        |   +-- predecessors:   1*x^2
+        |   +-- no successors
+        sage: print((expr1 * expr2).poset.repr_full())
+        poset(O(x^5), 4*x^6)
+        +-- null
+        |   +-- no predecessors
+        |   +-- successors:   O(x^5)
+        +-- O(x^5)
+        |   +-- predecessors:   null
+        |   +-- successors:   4*x^6
+        +-- 4*x^6
+        |   +-- predecessors:   O(x^5)
+        |   +-- successors:   oo
+        +-- oo
+        |   +-- predecessors:   4*x^6
+        |   +-- no successors
     """
     def __init__(self, parent, poset, simplify=True):
         r"""

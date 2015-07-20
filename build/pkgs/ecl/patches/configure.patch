@@ -1,0 +1,119 @@
+diff --git a/src/configure b/src/configure
+index 8bf77b8..a782383 100755
+--- a/src/configure
++++ b/src/configure
+@@ -643,6 +643,8 @@ CL_FIXNUM_BITS
+ CL_FIXNUM_TYPE
+ XMKMF
+ ECL_VERSION_NUMBER
++IMPLIB_LDFLAGS
++IMPLIB_NAME
+ SONAME_LDFLAGS
+ SONAME
+ SONAME1
+@@ -659,6 +661,8 @@ INFOEXT
+ ECL_GC_DIR
+ thehost
+ INSTALL_TARGET
++IMPLIB_PREFIX
++IMPLIB_EXT
+ SHAREDPREFIX
+ SHAREDEXT
+ LIBEXT
+@@ -2552,7 +2556,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ 
+ 
+ ac_aux_dir=
+-for ac_dir in gmp "$srcdir"/gmp; do
++for ac_dir in . "$srcdir"/.; do
+   if test -f "$ac_dir/install-sh"; then
+     ac_aux_dir=$ac_dir
+     ac_install_sh="$ac_aux_dir/install-sh -c"
+@@ -2568,7 +2572,7 @@ for ac_dir in gmp "$srcdir"/gmp; do
+   fi
+ done
+ if test -z "$ac_aux_dir"; then
+-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in gmp \"$srcdir\"/gmp" "$LINENO" 5
++  as_fn_error $? "cannot find install-sh, install.sh, or shtool in . \"$srcdir\"/." "$LINENO" 5
+ fi
+ 
+ # These three variables are undocumented and unsupported,
+@@ -4868,10 +4872,13 @@ MV="mv"
+ 
+ 
+ 
++
+ ECL_GC_DIR=gc-unstable
+ ECL_LDRPATH=''
+ SHAREDEXT='so'
+ SHAREDPREFIX='lib'
++IMPLIB_EXT=''
++IMPLIB_PREFIX=''
+ LIBPREFIX='lib'
+ LIBEXT='a'
+ PICFLAG='-fPIC'
+@@ -4883,6 +4890,8 @@ THREAD_OBJ="$THREAD_OBJ threads/process threads/queue threads/mutex threads/cond
+ clibs=''
+ SONAME=''
+ SONAME_LDFLAGS=''
++IMPLIB_NAME=''
++IMPLIB_LDFLAGS=''
+ case "${host_os}" in
+ 	# libdir may have a dollar expression inside
+ 	linux*)
+@@ -4985,10 +4994,14 @@ case "${host_os}" in
+ 		shared='yes'
+ 		THREAD_CFLAGS='-D_THREAD_SAFE'
+ 		THREAD_LIBS='-lpthread'
+-		SHARED_LDFLAGS="-shared ${LDFLAGS}"
+-		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
+-		SHAREDPREFIX=''
++		SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
++		BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
++		SHAREDPREFIX='cyg'
+ 		SHAREDEXT='dll'
++		IMPLIB_PREFIX='lib'
++		IMPLIB_EXT='dll.a'
++		IMPLIB_NAME="${IMPLIB_PREFIX}ecl.${IMPLIB_EXT}"
++		IMPLIB_LDFLAGS="-Wl,--out-implib,${IMPLIB_NAME}"
+ 		PICFLAG=''
+ 		if test "x$host_cpu" = "xx86_64" ; then
+ 		   # Our GMP library is too old and does not support
+@@ -5003,10 +5016,14 @@ case "${host_os}" in
+                 enable_threads='yes'
+ 		THREAD_CFLAGS='-D_THREAD_SAFE'
+ 		THREAD_GC_FLAGS='--enable-threads=win32'
+-		SHARED_LDFLAGS=''
+-		BUNDLE_LDFLAGS=''
++		SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
++		BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
+ 		SHAREDPREFIX=''
+ 		SHAREDEXT='dll'
++		IMPLIB_PREFIX='lib'
++		IMPLIB_EXT='dll.a'
++		IMPLIB_NAME="${IMPLIB_PREFIX}ecl.${IMPLIB_EXT}"
++		IMPLIB_LDFLAGS="-Wl,--out-implib,${IMPLIB_NAME}"
+ 		PICFLAG=''
+ 		INSTALL_TARGET='flatinstall'
+ 		TCPLIBS='-lws2_32'
+@@ -6214,6 +6231,20 @@ fi
+ 
+ 
+ 
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for import name" >&5
++$as_echo_n "checking for import name... " >&6; }
++if test "${enable_soname}" != yes; then
++   IMPLIB_NAME=''
++   { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
++$as_echo "none" >&6; }
++else
++   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${IMPLIB_NAME}" >&5
++$as_echo "${IMPLIB_NAME}" >&6; }
++fi
++
++
++
++
+ ECL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 10000 + $PACKAGE_MINOR * 100 + $PACKAGE_LEAST))
+ 
+ 

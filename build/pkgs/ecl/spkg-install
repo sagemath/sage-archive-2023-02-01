@@ -18,6 +18,11 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# cd src
+# libtoolize  # to generate configure script
+# autoreconf -ivf
+# cd ..
+
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64
 fi

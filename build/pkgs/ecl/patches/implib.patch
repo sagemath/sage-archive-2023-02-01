@@ -1,24 +1,3 @@
-diff --git a/src/Makefile.in b/src/Makefile.in
-index 12e9f05..74bc216 100644
---- a/src/Makefile.in
-+++ b/src/Makefile.in
-@@ -174,10 +174,14 @@ install:
- 	  if test -s $$i ; then \
- 	   if echo $$i | grep dll; then \
- 	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(bindir); \
--	   fi; \
--	   $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
-+           else \
-+            $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
-+           fi \
- 	  fi \
- 	done
-+        if [ "x@IMPLIB_NAME@" != "x" -a -f "@IMPLIB_NAME@" ]; then \
-+          $(INSTALL_LIBRARY) @IMPLIB_NAME@ $(DESTDIR)$(libdir); \
-+        fi
- 	if [ "x@SONAME@" != "x" -a -f "@SONAME@" ]; then \
- 	  ( cd $(DESTDIR)$(libdir) && $(RM) -f @SONAME3@ @SONAME2@ @SONAME1@ && \
- 	    mv @SONAME@ @SONAME3@ && \
 diff --git a/src/aclocal.m4 b/src/aclocal.m4
 index 63d8997..79ff24d 100644
 --- a/src/aclocal.m4
@@ -107,101 +86,6 @@ index 773fe99..697c115 100755
  			     #+msvc "@SHARED_LDFLAGS@ @LDFLAGS@ @STATICLIBS@ @CLIBS@")
         (c::*cc-flags* (concatenate 'string "-DECL_API -I@true_builddir@/c " c::*cc-flags*))
         (extra-args nil))
-diff --git a/src/configure b/src/configure
-index 2bb42e1..8bce82c 100755
---- a/src/configure
-+++ b/src/configure
-@@ -643,6 +643,8 @@ CL_FIXNUM_BITS
- CL_FIXNUM_TYPE
- XMKMF
- ECL_VERSION_NUMBER
-+IMPLIB_LDFLAGS
-+IMPLIB_NAME
- SONAME_LDFLAGS
- SONAME
- SONAME1
-@@ -659,6 +661,8 @@ INFOEXT
- ECL_GC_DIR
- thehost
- INSTALL_TARGET
-+IMPLIB_PREFIX
-+IMPLIB_EXT
- SHAREDPREFIX
- SHAREDEXT
- LIBEXT
-@@ -4872,6 +4876,8 @@ ECL_GC_DIR=gc-unstable
- ECL_LDRPATH=''
- SHAREDEXT='so'
- SHAREDPREFIX='lib'
-+IMPLIB_EXT=''
-+IMPLIB_PREFIX=''
- LIBPREFIX='lib'
- LIBEXT='a'
- PICFLAG='-fPIC'
-@@ -4883,6 +4889,8 @@ THREAD_OBJ="$THREAD_OBJ threads/process threads/queue threads/mutex threads/cond
- clibs=''
- SONAME=''
- SONAME_LDFLAGS=''
-+IMPLIB_NAME=''
-+IMPLIB_LDFLAGS=''
- case "${host_os}" in
- 	# libdir may have a dollar expression inside
- 	linux*)
-@@ -4985,10 +4993,14 @@ case "${host_os}" in
- 		shared='yes'
- 		THREAD_CFLAGS='-D_THREAD_SAFE'
- 		THREAD_LIBS='-lpthread'
--		SHARED_LDFLAGS="-shared ${LDFLAGS}"
--		BUNDLE_LDFLAGS="-shared ${LDFLAGS}"
--		SHAREDPREFIX=''
-+		SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
-+		BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
-+		SHAREDPREFIX='cyg'
- 		SHAREDEXT='dll'
-+		IMPLIB_PREFIX='lib'
-+		IMPLIB_EXT='dll.a'
-+		IMPLIB_NAME="${IMPLIB_PREFIX}ecl.${IMPLIB_EXT}"
-+		IMPLIB_LDFLAGS="-Wl,--out-implib,${IMPLIB_NAME}"
- 		PICFLAG=''
- 		if test "x$host_cpu" = "xx86_64" ; then
- 		   # Our GMP library is too old and does not support
-@@ -5003,10 +5015,14 @@ case "${host_os}" in
-                 enable_threads='yes'
- 		THREAD_CFLAGS='-D_THREAD_SAFE'
- 		THREAD_GC_FLAGS='--enable-threads=win32'
--		SHARED_LDFLAGS=''
--		BUNDLE_LDFLAGS=''
-+		SHARED_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
-+		BUNDLE_LDFLAGS="-shared -Wl,--enable-auto-image-base ${LDFLAGS}"
- 		SHAREDPREFIX=''
- 		SHAREDEXT='dll'
-+		IMPLIB_PREFIX='lib'
-+		IMPLIB_EXT='dll.a'
-+		IMPLIB_NAME="${IMPLIB_PREFIX}ecl.${IMPLIB_EXT}"
-+		IMPLIB_LDFLAGS="-Wl,--out-implib,${IMPLIB_NAME}"
- 		PICFLAG=''
- 		INSTALL_TARGET='flatinstall'
- 		TCPLIBS='-lws2_32'
-@@ -6214,6 +6230,19 @@ fi
- 
- 
- 
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for import name" >&5
-+$as_echo_n "checking for import name... " >&6; }
-+if test "${enable_soname}" != yes; then
-+   IMPLIB_NAME=''
-+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
-+$as_echo "none" >&6; }
-+else
-+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${IMPLIB_NAME}" >&5
-+$as_echo "${IMPLIB_NAME}" >&6; }
-+fi
-+
-+
-+
- ECL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 10000 + $PACKAGE_MINOR * 100 + $PACKAGE_LEAST))
- 
- 
 diff --git a/src/configure.ac b/src/configure.ac
 index e076e09..15d307a 100644
 --- a/src/configure.ac
@@ -227,3 +111,24 @@ index e076e09..15d307a 100644
  dnl Related to that, the package version number
  ECL_VERSION_NUMBER=$(($PACKAGE_MAJOR * 10000 + $PACKAGE_MINOR * 100 + $PACKAGE_LEAST))
  AC_SUBST(ECL_VERSION_NUMBER)
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 12e9f05..74bc216 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -174,10 +174,14 @@ install:
+ 	  if test -s $$i ; then \
+ 	   if echo $$i | grep dll; then \
+ 	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(bindir); \
+-	   fi; \
+-	   $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
++	   else \
++	    $(INSTALL_LIBRARY) $$i $(DESTDIR)$(libdir); \
++	   fi \
+ 	  fi \
+ 	done
++	if [ "x@IMPLIB_NAME@" != "x" -a -f "@IMPLIB_NAME@" ]; then \
++	  $(INSTALL_LIBRARY) @IMPLIB_NAME@ $(DESTDIR)$(libdir); \
++	fi
+ 	if [ "x@SONAME@" != "x" -a -f "@SONAME@" ]; then \
+ 	  ( cd $(DESTDIR)$(libdir) && $(RM) -f @SONAME3@ @SONAME2@ @SONAME1@ && \
+ 	    mv @SONAME@ @SONAME3@ && \

@@ -51,6 +51,48 @@ AUTHORS:
 
 import sage
 
+def string_to_parent(s):
+    r"""
+    Helper method for the growth group factory.
+
+    INPUT:
+
+    A string.
+
+    OUTPUT:
+
+    A parent.
+
+    TESTS::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: agg.string_to_parent('ZZ')
+        Integer Ring
+        sage: agg.string_to_parent('QQ')
+        Rational Field
+        sage: agg.string_to_parent('SR')
+        Symbolic Ring
+
+    ::
+
+        sage: agg.string_to_parent('abcdef')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'abcdef' cannot be parsed
+    """
+    if s == 'ZZ':
+        from sage.rings.integer_ring import ZZ
+        return ZZ
+    elif s == 'QQ':
+        from sage.rings.rational_field import QQ
+        return QQ
+    elif s == 'SR':
+        from sage.symbolic.ring import SR
+        return SR
+    else:
+        raise ValueError("'%s' cannot be parsed" % s)
+
+
 def parent_to_string(P):
     r"""
     Helper method for short representations.

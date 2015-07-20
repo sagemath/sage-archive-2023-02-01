@@ -58,7 +58,7 @@ cdef extern from "sage/modular/arithgroup/farey.hpp":
         size_t nu2()
         size_t nu3()
         object is_element(mpz_t, mpz_t, mpz_t, mpz_t)
-        object word_problem(mpz_t, mpz_t, mpz_t, mpz_t)
+        object word_problem(mpz_t, mpz_t, mpz_t, mpz_t, cpp_SL2Z *)
         size_t get_cusp_class(mpz_t, mpz_t)
         object get_cusps()
         object get_cusp_widths()

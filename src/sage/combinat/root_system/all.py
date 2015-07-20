@@ -11,6 +11,7 @@ from coxeter_matrix import CoxeterMatrix, coxeter_matrix
 from coxeter_type import CoxeterType
 from root_system import RootSystem, WeylDim
 from weyl_group import WeylGroup, WeylGroupElement
+lazy_import('sage.combinat.root_system.extended_affine_weyl_group', 'ExtendedAffineWeylGroup')
 from coxeter_group import CoxeterGroup
 from weyl_characters import WeylCharacterRing, WeightRing
 from branching_rules import BranchingRule, branching_rule_from_plethysm, branching_rule

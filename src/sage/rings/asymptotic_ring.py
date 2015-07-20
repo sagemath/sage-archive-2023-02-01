@@ -718,7 +718,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         INPUT:
 
-        Noting.
+        Nothing.
 
         OUTPUT:
 

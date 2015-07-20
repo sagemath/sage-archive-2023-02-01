@@ -664,10 +664,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             sage: AR_ZZ = AsymptoticRing('monomial', coefficient_ring=ZZ, names='x'); AR_ZZ
             Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
-            sage: (x_ZZ,) = AR_ZZ.gens()
+            sage: x_ZZ = AR_ZZ.gen()
             sage: AR_QQ = AsymptoticRing('monomial', coefficient_ring=QQ, names='x'); AR_QQ
             Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
-            sage: (x_QQ,) = AR_QQ.gens()
+            sage: x_QQ = AR_QQ.gen()
             sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
             True
             sage: x_ZZ * x_QQ
@@ -740,6 +740,34 @@ class AsymptoticRing(sage.rings.ring.Ring,
         from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
         if isinstance(self.growth_group, MonomialGrowthGroup):
             return self.create_term('exact', self.growth_group.gen(), 1),
+
+
+    def gen(self, n=0):
+        r"""
+        Return the ``n``-th generator of this asymptotic ring.
+
+        INPUT:
+
+        - ``n`` -- a positive integer or `0`. Default: `0`.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            Generators do not necessarily exist. This depends on the
+            underlying growth group. For example, monomial growth
+            groups have a generator, and exponential growth groups
+            don't.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.gen()
+            1*x
+        """
+        return self.gens()[n]
 
     def ngens(self):
         r"""

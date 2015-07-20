@@ -1240,7 +1240,7 @@ class ChainComplex_class(Parent):
             else:
                 return zero_homology
         if verbose:
-            print('Computing homology of the chain complex in dimension %s...' % n)
+            print('Computing homology of the chain complex in dimension %s...' % deg)
 
         fraction_field = base_ring.fraction_field()
         def change_ring(X):

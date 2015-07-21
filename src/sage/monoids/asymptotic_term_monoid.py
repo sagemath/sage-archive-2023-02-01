@@ -127,6 +127,11 @@ def can_absorb(left, right):
 
     A boolean.
 
+    .. NOTE::
+
+        This method returns whether one of the two input terms is
+        able to absorb the other.
+
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
@@ -134,7 +139,7 @@ def can_absorb(left, right):
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
         sage: T = atm.TermMonoid('O', G)
         sage: atm.can_absorb(T(x^2), T(x^3))
-        False
+        True
         sage: atm.can_absorb(T(x^3), T(x^2))
         True
     """

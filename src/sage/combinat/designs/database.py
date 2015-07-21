@@ -4189,6 +4189,204 @@ def BIBD_96_6_1():
              [15, 31, 47, 63, 79, 95], [2, 18, 34, 50, 66, 82]]]
     return map(list,frozenset(BIBD))
 
+def BIBD_106_6_1():
+    r"""
+    Return a (106,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_106_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(106, BIBD_106_6_1())
+        (106,6,1)-Balanced Incomplete Block Design
+    """
+    bibd = [((0,0), ( 1,0), ( 3,0), (11,0), (38,0), ( 0,1)),
+            ((0,0), (13,0), (30,0), (23,1), (35,1), (51,1)),
+            ((0,0), ( 5,0), (19,0), (25,0), (36,1), (39,1)),
+            ((0,0), ( 4,0), (28,1), (30,1), (37,1), (47,1)),
+            ((0,0), ( 7,0), (29,0), ( 8,1), (16,1), (48,1)),
+            ((0,0), ( 2,1), ( 7,1), (25,1), (29,1), (49,1)),
+            ((0,0), ( 9,0), (21,0), (12,1), (13,1), (27,1))]
+
+    return [[((x+i)%53+y*53) for x,y in B] for i in range(53) for B in bibd]
+
+def BIBD_111_6_1():
+    r"""
+    Return a (111,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_111_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(111, BIBD_111_6_1())
+        (111,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [(( 0,0), ( 1,0), ( 3,0), ( 7,0), (17,0), ( 0,1)),
+            (( 0,0), ( 5,0), (19,1), (28,1), (10,2), (30,2)),
+            (( 5,0), (33,0), (13,1), (34,1), (19,2), ( 7,2)),
+            (( 9,0), (27,0), (16,1), (11,1), (12,2), (36,2)),
+            ((10,0), (23,0), (26,1), ( 8,1), ( 1,2), ( 6,2)),
+            ((13,0), (24,0), (19,1), (18,1), ( 5,2), (32,2)),
+            ((26,0), (34,0), ( 1,1), ( 7,1), (10,2), (33,2))]
+    gens = lambda B: [frozenset(((x*10)%37,(y+1)%3) for x,y in B),
+                      frozenset(((x+1) %37,      y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_136_6_1():
+    r"""
+    Return a (136,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_136_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(136, BIBD_136_6_1())
+        (136,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    inf=(None,None)
+    bibd = [((0,0), ( 3,0), (15,0), (35,0), ( 6,2), (10,2)),
+            ((0,0), (22,0), (11,1), (30,1), ( 1,2), (18,2)),
+            ((0,0), ( 5,0), (18,1), (41,1), (13,2), (42,2)),
+            ((0,0), (11,0), (17,0), ( 4,2), ( 5,2), (28,2)),
+            ((0,0), ( 1,0), ( 0,1), (16,1), ( 0,2), (31,2)),
+            ( inf ,( 0,0), ( 9,0), (18,0), (27,0), (36,0))]
+    gens = lambda B: [frozenset(((x*16)%45,(y+1)%3) if (x,y)!=inf else inf for x,y in B),
+                      frozenset(((x+1) %45,y)       if (x,y)!=inf else inf for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+
+def BIBD_141_6_1():
+    r"""
+    Return a (141,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_141_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(141, BIBD_141_6_1())
+        (141,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    a = 'a'
+    inf = (None,None)
+    bibd = [((0,0), (16,0), (24,0), (24,1), (15,2), (25,2)),
+            ((0,0), ( 3,0), (26,0), (13,1), (33,1), (34,a)),
+            ((0,0), (13,0), (18,0), (15,1), ( 7,2), ( 0,a)),
+            ((0,0), ( 2,0), (14,1), (23,1), (26,a), (32,a)),
+            ((0,0), ( 4,0), (29,1), ( 6,2), ( 9,a), (20,a)),
+            ((0,0), ( 1,0), (12,2), ( 2,a), ( 4,a), (19,a)),
+            ( inf ,( 0,0), ( 7,0), (14,0), (21,0), (28,0)),
+            ( inf ,( 0,a), ( 7,a), (14,a), (21,a), (28,a))]
+
+    gens = lambda B: [frozenset(((x*16)%35,(y+1)%3 if y!=a else a) if (x,y)!=inf else inf for x,y in B),
+                      frozenset(((x+1) %35, y )                    if (x,y)!=inf else inf for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_171_6_1():
+    r"""
+    Return a (171,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_171_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(171, BIBD_171_6_1())
+        (171,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [(( 0,0), (19,0), (39,0), (41,0), (14,1), (38,2)),
+            (( 0,0), (21,0), (44,0), (48,0), (26,1), (11,2)),
+            (( 0,0), ( 1,0), (43,0), ( 8,2), (15,2), (44,2)),
+            (( 0,0), ( 3,0), (31,0), (23,1), (43,1), (36,2)),
+            (( 0,0), (40,0), (50,0), (11,1), (25,2), (34,2)),
+            (( 0,0), (12,0), ( 0,1), (27,1), ( 0,2), (18,2)),
+            ((37,0), (42,0), (31,1), ( 9,1), (46,2), ( 6,2))]
+
+    gens = lambda B: [frozenset(((x*7) %57,(y+1)%3) for x,y in B),
+                      frozenset(((x+1) %57,      y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_196_6_1():
+    r"""
+    Return a (196,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_196_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(196, BIBD_196_6_1())
+        (196,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    a = 'a'
+    bibd = [((0,0), ( 2,0), (12,0), (45,0), ( 3,1), (11,a)),
+            ((0,0), ( 3,0), ( 8,0), ( 5,1), (17,1), (39,a)),
+            ((0,0), ( 9,0), (36,0), (24,1), (44,1), (37,a)),
+            ((0,0), (15,0), (34,1), (41,1), (47,2), (18,a)),
+            ((0,0), ( 7,0), (31,0), (13,1), (35,2), (41,a)),
+            ((0,0), (14,0), (32,1), (10,2), (22,a), (44,a)),
+            ((0,0), (23,0), (21,1), (39,1), (19,a), (25,a)),
+            ((0,0), (33,1), ( 0,a), ( 5,a), (29,a), (47,a)),
+            ((0,0), ( 1,0), ( 0,1), (30,1), ( 0,2), (18,2)),
+            ((8,0), (19,0), (44,1), (31,1), (46,2), (48,2))]
+
+    gens = lambda B: [frozenset(((x*30)%49,(y+1)%3 if y!=a else a) for x,y in B),
+                      frozenset(((x+1) %49,   y)                   for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
+def BIBD_201_6_1():
+    r"""
+    Return a (201,6,1)-BIBD.
+
+    This constructions appears in II.3.32 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_201_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(201, BIBD_201_6_1())
+        (201,6,1)-Balanced Incomplete Block Design
+    """
+    from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+    from incidence_structures import IncidenceStructure
+    bibd = [((0,0), ( 1,0), ( 4,2), ( 9,2), (34,2), (62,2)),
+            ((0,1), ( 2,1), (15,1), ( 8,2), (27,2), (49,2)),
+            ((0,0), ( 3,0), (22,0), (54,1), (13,2), (40,2)),
+            ((0,0), (36,0), (40,0), (31,1), (34,1), ( 5,2)),
+            ((0,0), (50,0), (55,0), ( 6,1), (24,1), (26,2)),
+            ((0,0), ( 2,0), ( 3,1), (14,1), (35,1), (25,2)),
+            ((3,1), (20,1), (44,1), (36,2), (39,2), (59,2)),
+            ((0,0), ( 0,1), (30,1), (38,1), (66,1), ( 0,2))]
+
+    gens = lambda B: [frozenset(((x*29)%67,y) for x,y in B),
+                      frozenset(((x+1) %67,y) for x,y in B)]
+    bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
+    return IncidenceStructure(bibd)._blocks
+
 # Index of the BIBD constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
@@ -4197,10 +4395,17 @@ def BIBD_96_6_1():
 # This dictionary is used by designs.BalancedIncompleteBlockDesign
 
 BIBD_constructions = {
+    ( 66,6,1): BIBD_66_6_1,
+    ( 76,6,1): BIBD_76_6_1,
+    ( 96,6,1): BIBD_96_6_1,
     (120,8,1): RBIBD_120_8_1,
-    (66,6,1) : BIBD_66_6_1,
-    (76,6,1) : BIBD_76_6_1,
-    (96,6,1) : BIBD_96_6_1,
+    (106,6,1): BIBD_106_6_1,
+    (111,6,1): BIBD_111_6_1,
+    (136,6,1): BIBD_136_6_1,
+    (141,6,1): BIBD_141_6_1,
+    (171,6,1): BIBD_171_6_1,
+    (196,6,1): BIBD_196_6_1,
+    (201,6,1): BIBD_201_6_1,
 }
 
 # Create the list of DF for the documentation

@@ -576,22 +576,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR1 is AR2
             True
         """
-        if not isinstance(names, tuple):
-            names = (names,)
-
-        if len(names) > 1:
-            raise NotImplementedError('Currently only one variable is supported')
-        if isinstance(growth_group, str) and names is None:
-            raise ValueError('names has to be specified if the growth group '
-                             'is to be constructed')
-        elif growth_group == 'monomial':
-            from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
-            # coefficient ring acts as the base ring of the growth group!
-            growth_group = MonomialGrowthGroup(coefficient_ring, names[0])
-        elif hasattr(growth_group, '_var_') and names is not None:
-            if names[0] == growth_group._var_:
-                raise ValueError('Specified variable %s and growth group variable '
-                                 '%s do not match' % (names[0], growth_group._var_))
+        if isinstance(growth_group, str):
+            from sage.groups.asymptotic_growth_group import GrowthGroup
+            growth_group = GrowthGroup(growth_group)
 
         return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
                                                         coefficient_ring, category)

@@ -1551,12 +1551,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                 P = data.parent()
                 from sage.symbolic.ring import SR
                 import operator
+                from sage.symbolic.operators import mul_vararg
                 if P is SR:
-                    if 'mul' in str(data.operator()):
-                        # in 6.7, mul in SR is mul_varargs from
-                        # sage.interfaces.maxima_lib. after a rebase to
-                        # sage 6.8, this comparison can be fixed to
-                        # --> if data.operator() == operator.mul
+                    if data.operator() == mul_vararg:
                         data, coef_tmp = data.operands()
                         data = self.growth_group(data)
                     elif data.operator() == operator.pow or \

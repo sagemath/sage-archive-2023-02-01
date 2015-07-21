@@ -412,7 +412,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et3.absorb(et2)
             3*x^2
             sage: et3.absorb(et4)
-            -1*x^2
+            -x^2
 
         Note that, for technical reasons, the coefficient `0` is not
         allowed, and thus ``None`` is returned if two exact terms
@@ -1631,7 +1631,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: atm.TermWithCoefficientMonoid(G, ZZ).an_element()  # indirect doctest
             Asymptotic Term with coefficient 1 and growth x
             sage: atm.ExactTermMonoid(G, ZZ).an_element()  # indirect doctest
-            1*x
+            x
         """
         return self(self.growth_group.an_element(),
                     self.base_ring.an_element())
@@ -1730,8 +1730,25 @@ class ExactTerm(TermWithCoefficient):
             sage: ET = atm.ExactTermMonoid(G, ZZ)
             sage: et1 = ET(x^2, 2); et1
             2*x^2
+
+        TESTS::
+
+            sage: ET(x^2, 1)
+            x^2
+            sage: ET(x^2, -1)
+            -x^2
+            sage: ET(x^0, 42)
+            42
         """
-        return '%s*%s' % (self.coefficient, self.growth)
+        if self.growth._raw_element_ == 0:
+            return '%s' % self.coefficient
+        else:
+            if self.coefficient == 1:
+                return '%s' % self.growth
+            elif self.coefficient == -1:
+                return '-%s' % self.growth
+            else:
+                return '%s*%s' % (self.coefficient, self.growth)
 
 
     def _can_absorb_(self, other):
@@ -1807,7 +1824,7 @@ class ExactTerm(TermWithCoefficient):
             sage: ET(x^5, 1).absorb(et1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: 1*x^5 cannot absorb 2*x^2
+            ArithmeticError: x^5 cannot absorb 2*x^2
         """
         coeff_new = self.coefficient + other.coefficient
         if coeff_new == 0:

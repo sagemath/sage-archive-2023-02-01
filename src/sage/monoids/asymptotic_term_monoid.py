@@ -42,7 +42,7 @@ AUTHORS:
 - Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
 - Daniel Krenn (2015-07): extensive review and patches
-- Benjamin Hackl (2015-07): cross-review and several other improvements
+- Benjamin Hackl (2015-07): cross-review; short notation
 
 .. WARNING::
 

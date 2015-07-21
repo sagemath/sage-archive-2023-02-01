@@ -79,7 +79,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     At this point, `x` and `y` are already asymptotic expressions::
 
         sage: (x, y)
-        (1*x, 1*y)
+        (x, y)
         sage: isinstance(x, sage.rings.asymptotic_ring.AsymptoticExpression)
         True
         sage: type(x)
@@ -90,13 +90,13 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         sage: x^2 + 3*(x - x^2)
         3*x + -2*x^2
         sage: (3*x + 2)^3
-        8*1 + 36*x + 54*x^2 + 27*x^3
+        8 + 36*x + 54*x^2 + 27*x^3
 
     In addition to that, special powers (determined by the base ring
     of the growth group) can also be computed::
 
         sage: (x^(5/2) + x^(1/7)) * x^(-1/5)
-        1*x^(-2/35) + 1*x^(23/10)
+        x^(-2/35) + x^(23/10)
 
     One of the central ideas behind computing with asymptotic
     expressions is that the `O`-notation (see
@@ -112,15 +112,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         sage: expr1 = x + 2*x^2 + 3*x^3 + 4*x^4; expr2 = O(x) + x^2
         sage: print(expr1.poset.repr_full())
-        poset(1*x, 2*x^2, 3*x^3, 4*x^4)
+        poset(x, 2*x^2, 3*x^3, 4*x^4)
         +-- null
         |   +-- no predecessors
-        |   +-- successors:   1*x
-        +-- 1*x
+        |   +-- successors:   x
+        +-- x
         |   +-- predecessors:   null
         |   +-- successors:   2*x^2
         +-- 2*x^2
-        |   +-- predecessors:   1*x
+        |   +-- predecessors:   x
         |   +-- successors:   3*x^3
         +-- 3*x^3
         |   +-- predecessors:   2*x^2
@@ -132,18 +132,18 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         |   +-- predecessors:   4*x^4
         |   +-- no successors
         sage: print(expr2.poset.repr_full())
-        poset(O(x), 1*x^2)
+        poset(O(x), x^2)
         +-- null
         |   +-- no predecessors
         |   +-- successors:   O(x)
         +-- O(x)
         |   +-- predecessors:   null
-        |   +-- successors:   1*x^2
-        +-- 1*x^2
+        |   +-- successors:   x^2
+        +-- x^2
         |   +-- predecessors:   O(x)
         |   +-- successors:   oo
         +-- oo
-        |   +-- predecessors:   1*x^2
+        |   +-- predecessors:   x^2
         |   +-- no successors
         sage: print((expr1 * expr2).poset.repr_full())
         poset(O(x^5), 4*x^6)
@@ -166,7 +166,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         sage: R_log.<xl> = AsymptoticRing('log(x)^QQ', QQ)
         sage: (O(xl) + xl^3)^4
-        O(log(x)^10) + 1*log(x)^12
+        O(log(x)^10) + log(x)^12
     """
     def __init__(self, parent, poset, simplify=True):
         r"""
@@ -199,7 +199,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr = 7 * x^12 + x^5 + O(x^3)
             sage: expr.poset
-            poset(O(x^3), 1*x^5, 7*x^12)
+            poset(O(x^3), x^5, 7*x^12)
         """
         return self._poset_
 
@@ -231,7 +231,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
-            1*x + 2*x^2 + O(x^3) + 4*x^4
+            x + 2*x^2 + O(x^3) + 4*x^4
             sage: expr._simplify_(); expr
             O(x^3) + 4*x^4
             sage: R(lst)  # indirect doctest
@@ -296,9 +296,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1._add_(expr2)
-            1*x^123 + 1*x^321
+            x^123 + x^321
             sage: expr1 + expr2  # indirect doctest
-            1*x^123 + 1*x^321
+            x^123 + x^321
 
         If an `O`-term is added to an asymptotic expression, then
         the `O`-term absorbs everything it can::
@@ -339,7 +339,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1 - expr2  # indirect doctest
-            1*x^123 + -1*x^321
+            x^123 + -x^321
         """
         return self + (-1) * other
 
@@ -417,14 +417,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
             sage: R_QQ.<x> = AsymptoticRing('x^QQ', QQ)
             sage: x^(1/7)
-            1*x^(1/7)
+            x^(1/7)
             sage: R_ZZ.<y> = AsymptoticRing('y^ZZ', ZZ)
             sage: y^(1/7)
             Traceback (most recent call last):
             ...
             ValueError: Exponent 1/7 not in base of growth group y^ZZ
             sage: (x^(1/2) + O(x^0))^15
-            O(x^7) + 1*x^(15/2)
+            O(x^7) + x^(15/2)
         """
         P = self.parent()
         if len(self.poset._shells_) == 1:
@@ -464,7 +464,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: AR = AsymptoticRing(MG, ZZ)
             sage: x = AR.create_term('exact', x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
-            O(x^2) + 1*x^10 + 42*x^42
+            O(x^2) + x^10 + 42*x^42
             sage: expr.O()
             O(x^42)
         """
@@ -701,7 +701,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: 3 * x^3
             3*x^3
             sage: 3 * x^3 + x
-            1*x + 3*x^3
+            x + 3*x^3
             sage: (3 * x^3) * (5 * x)
             15*x^4
             sage: 3 * x^3 + O(x^5)
@@ -778,7 +778,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
             True
             sage: x_ZZ * x_QQ
-            1*x^2
+            x^2
 
         ::
 
@@ -842,7 +842,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: AR.gens()
-            (1*x,)
+            (x,)
         """
         from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
         if isinstance(self.growth_group, MonomialGrowthGroup):
@@ -872,7 +872,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: R.gen()
-            1*x
+            x
         """
         return self.gens()[n]
 

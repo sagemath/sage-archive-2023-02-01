@@ -4239,6 +4239,33 @@ def BIBD_111_6_1():
     bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
     return IncidenceStructure(bibd)._blocks
 
+def BIBD_126_6_1():
+    r"""
+    Return a (126,6,1)-BIBD.
+
+    This constructions appears in VI.16.92 from [DesignHandbook]_.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_126_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(126, BIBD_126_6_1())
+        (126,6,1)-Balanced Incomplete Block Design
+    """
+    from itertools import product
+    bibd = [[((x+xx)%5, (y+yy)%5, (z+zz)%5) for x,y,z in B]
+            for xx,yy,zz in product(range(5),repeat=3)
+            for B in
+            [[(0,0,1),(0,0,4),(1,2,2),(1,3,3),(4,2,1),(4,3,4)],
+             [(0,0,2),(0,0,3),(1,4,4),(1,1,1),(4,4,2),(4,1,3)],
+             [(0,4,3),(0,1,2),(2,2,0),(2,3,0),(3,3,2),(3,2,3)],
+             [(0,3,1),(0,2,4),(2,4,0),(2,1,0),(3,1,4),(3,4,1)]]]
+
+    bibd.extend([[(125,0,0), (0,x,y),(1,x,y),(2,x,y),(3,x,y),(4,x,y)]
+                 for x,y in product(range(5),repeat=2)])
+    return [[x+y*5+z*25 for x,y,z in B]
+            for B in bibd]
+
 def BIBD_136_6_1():
     r"""
     Return a (136,6,1)-BIBD.
@@ -4401,6 +4428,7 @@ BIBD_constructions = {
     (120,8,1): RBIBD_120_8_1,
     (106,6,1): BIBD_106_6_1,
     (111,6,1): BIBD_111_6_1,
+    (126,6,1): BIBD_126_6_1,
     (136,6,1): BIBD_136_6_1,
     (141,6,1): BIBD_141_6_1,
     (171,6,1): BIBD_171_6_1,

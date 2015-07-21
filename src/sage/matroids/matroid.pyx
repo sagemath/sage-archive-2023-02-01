@@ -4843,21 +4843,23 @@ cdef class Matroid(SageObject):
             return False
         m = k-1
         E = set(self.groundset())
-        w = {e:1 for e in E}
         Q = set(list(E)[:m])
         E = E-Q
         for r in range(len(Q)/2):
             for Q1 in map(set,combinations(Q, r)):
                 Q2 = Q-Q1
+                # optimization, ignore half of the {Q1,Q2}
+                if (len(Q2)==r and min(Q1)!=min(Q)):
+                    continue
                 # Given Q1, Q2 partition of Q, find all extensions
                 for A in map(set,combinations(E, m - len(Q1))):
                     T = Q1|A
                     for B in map(set,combinations(E-A, m - len(Q2))):
                         S = Q2|B
-                        I, _ = self._link(S, T)
-                        if(len(I) - self.full_rank() + self.rank(S) + self.rank(T) < m):
+                        _, X = self._link(S, T)
+                        if self._connectivity(X, self.groundset()-X)<m:
                             if certificate:
-                                return False, I
+                                return False, X
                             return False
         if certificate:
             return True, None

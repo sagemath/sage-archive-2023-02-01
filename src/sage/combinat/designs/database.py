@@ -21,6 +21,9 @@ This module implements:
 
 - :func:`RBIBD(120,8,1) <RBIBD_120_8_1>`
 
+- `(v,k,\lambda)`-BIBD:
+{LIST_OF_BIBD}
+
 - `(v,k,\lambda)`-difference families:
 {LIST_OF_DF}
 
@@ -2788,6 +2791,10 @@ DF = {
            [0,11,31,35],[0,12,26,34,],[0,5,30,33]]},
 ( 91, 6, 1):
   {(91,): [[0,1,3,7,25,38], [0,16,21,36,48,62], [0,30,40,63,74,82]]},
+
+( 91, 7, 1): # from the La Jolla covering repository, attributed to Colin Barker
+  {(91,): [[8, 9, 14, 25, 58, 81, 85], [5, 33, 35, 42, 45, 67, 88], [4, 17, 30, 43, 56, 69, 82]]},
+
 (121, 5, 1):
   {(121,): [[0,14,26,51,60],[0,15,31,55,59],[0,10,23,52,58],
             [0,3,36,56,57],[0,7,18,45,50],[0,8,30,47,49]]},
@@ -4114,6 +4121,74 @@ def RBIBD_120_8_1():
     equiv = [[M.nonzero_positions_in_row(x) for x in S] for S in equiv]
     return [B for S in equiv for B in S]
 
+def BIBD_66_6_1():
+    r"""
+    Return a (66,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_66_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(66, BIBD_66_6_1())
+        (66,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*5)%65 if x<65 else x for x in b])
+            for i in range(65)
+            for b in
+            [6, 38, 42, 46, 53, 62], [9, 11, 21, 49, 56, 60], [18, 31, 37, 44, 52, 60],
+            [0, 12, 29, 46, 51, 63], [0, 6, 21, 30, 43, 48], [4, 17, 22, 36, 47, 59],
+            [0, 1, 2, 3, 4, 65], [23, 39, 44, 53, 59, 63], [12, 22, 28, 48, 55, 60],
+            [19, 22, 25, 40, 49, 50], [4, 30, 37, 50, 58, 61]]
+    return map(list,frozenset(BIBD))
+
+def BIBD_76_6_1():
+    r"""
+    Return a (76,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_76_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(76, BIBD_76_6_1())
+        (76,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*4)%76 if x<76 else x for x in b])
+            for i in range(76)
+            for b in
+            [[3, 5, 21, 33, 72, 73], [4, 37, 57, 58, 64, 75], [7, 14, 44, 47, 59, 63],
+             [10, 20, 61, 63, 71, 72], [13, 26, 30, 39, 45, 67], [11, 21, 25, 30, 55, 58],
+             [2, 5, 34, 52, 54, 70], [6, 8, 29, 48, 70, 71], [10, 15, 36, 41, 44, 56],
+             [0, 6, 13, 27, 44, 72]]]
+    return map(list,frozenset(BIBD))
+
+def BIBD_96_6_1():
+    r"""
+    Return a (96,6,1)-BIBD.
+
+    This BIBD was obtained from La Jolla covering repository
+    (https://www.ccrwest.org/cover.html) where it is attributed to Colin Barker.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.designs.database import BIBD_96_6_1
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: BalancedIncompleteBlockDesign(96, BIBD_96_6_1())
+        (96,6,1)-Balanced Incomplete Block Design
+    """
+    BIBD = [frozenset([(x+i*2)%96 if x<96 else x for x in b])
+            for i in range(96)
+            for b in
+            [[3, 13, 32, 47, 68, 87], [9, 36, 70, 75, 81, 88], [22, 52, 72, 76, 78, 79],
+             [15, 23, 41, 43, 46, 58], [7, 8, 21, 57, 66, 94], [8, 22, 30, 51, 55, 93],
+             [15, 31, 47, 63, 79, 95], [2, 18, 34, 50, 66, 82]]]
+    return map(list,frozenset(BIBD))
+
 # Index of the BIBD constructions
 #
 # Associates to triple (v,k,lambda) a function that return a
@@ -4123,7 +4198,16 @@ def RBIBD_120_8_1():
 
 BIBD_constructions = {
     (120,8,1): RBIBD_120_8_1,
+    (66,6,1) : BIBD_66_6_1,
+    (76,6,1) : BIBD_76_6_1,
+    (96,6,1) : BIBD_96_6_1,
 }
+
+# Create the list of DF for the documentation
+_all_l = sorted(set(l for v,k,l in BIBD_constructions.keys()))
+LIST_OF_BIBD = "\n".join("    - `\lambda={}`:\n       ".format(l) +
+                       ", ".join("`({},{},{})`".format(v,k,l) for v,k,_ in sorted(BIBD_constructions) if _ == l)
+                       for l in _all_l)
 
 # Evenly Distributed Sets (EDS)
 #
@@ -4417,9 +4501,10 @@ __doc__ = __doc__.format(
     LIST_OF_OA_CONSTRUCTIONS   = LIST_OF_OA_CONSTRUCTIONS,
     LIST_OF_MOLS_CONSTRUCTIONS = LIST_OF_MOLS_CONSTRUCTIONS,
     LIST_OF_VMT_VECTORS        = LIST_OF_VMT_VECTORS,
+    LIST_OF_BIBD               = LIST_OF_BIBD,
     LIST_OF_DF                 = LIST_OF_DF,
     LIST_OF_DM                 = LIST_OF_DM,
     LIST_OF_QDM                = LIST_OF_QDM,
     LIST_OF_EDS                = LIST_OF_EDS)
-del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS,LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM, LIST_OF_EDS
+del LIST_OF_OA_CONSTRUCTIONS, LIST_OF_MOLS_CONSTRUCTIONS, LIST_OF_VMT_VECTORS,LIST_OF_DF, LIST_OF_DM, LIST_OF_QDM, LIST_OF_EDS, LIST_OF_BIBD
 del PolynomialRing, ZZ, a,

@@ -147,9 +147,9 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
     For `k > 5` there are currently very few constructions::
 
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31, 91, 121]
+        [1, 6, 31, 66, 76, 91, 96, 121]
         sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [51, 61, 66, 76, 81, 96, 106, 111, 126, 136, 141]
+        [51, 61, 81, 106, 111, 126, 136, 141]
 
     Here are some constructions with `k \geq 7` and `v` a prime power::
 

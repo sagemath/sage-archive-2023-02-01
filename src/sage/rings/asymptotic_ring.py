@@ -33,7 +33,7 @@ AUTHORS:
         sage: T = atm.ExactTermMonoid(G, ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17715 for details.
-        sage: R.<x> = AsymptoticRing('monomial', ZZ)
+        sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17716 for details.
 
@@ -70,7 +70,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     There are ways to create an asymptotic expression. First,
     we construct the corresponding parents::
 
-        sage: R_x.<x> = AsymptoticRing('monomial', QQ)
+        sage: R_x.<x> = AsymptoticRing('x^QQ', QQ)
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GrowthGroup('y^ZZ')
         sage: R_y = AsymptoticRing(G, ZZ); y = R_y.gen()
@@ -165,8 +165,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         TESTS::
 
-            sage: R_x.<x> = AsymptoticRing('monomial', ZZ)
-            sage: R_y.<y> = AsymptoticRing('monomial', ZZ)
+            sage: R_x.<x> = AsymptoticRing('x^ZZ', ZZ)
+            sage: R_y.<y> = AsymptoticRing('y^ZZ', ZZ)
             sage: R_x is R_y
             False
             sage: ex1 = x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
@@ -187,7 +187,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr = 7 * x^12 + x^5 + O(x^3)
             sage: expr.poset
             poset(O(x^3), 1*x^5, 7*x^12)
@@ -255,7 +255,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr = (5*x^2 + 12*x) * (x^3 + O(x))
             sage: repr(expr)  # indirect doctest
             'O(x^3) + 12*x^4 + 5*x^5'
@@ -284,7 +284,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         An :class:`AsymptoticExpression`.
 
         EXAMPLES::
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1._add_(expr2)
             1*x^123 + 1*x^321
@@ -327,7 +327,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1 - expr2  # indirect doctest
             1*x^123 + -1*x^321
@@ -350,7 +350,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         TESTS::
 
             sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: T = atm.OTermMonoid(R.growth_group)
             sage: expr = 10*x^2 + O(x)
             sage: t = T(R.growth_group.gen())
@@ -382,7 +382,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: ex1 = 5*x^12
             sage: ex2 = x^3 + O(x)
             sage: ex1 * ex2  # indirect doctest
@@ -406,10 +406,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         TESTS::
 
-            sage: R_QQ.<x> = AsymptoticRing('monomial', QQ)
+            sage: R_QQ.<x> = AsymptoticRing('x^QQ', QQ)
             sage: x^(1/7)
             1*x^(1/7)
-            sage: R_ZZ.<y> = AsymptoticRing('monomial', ZZ)
+            sage: R_ZZ.<y> = AsymptoticRing('y^ZZ', ZZ)
             sage: y^(1/7)
             Traceback (most recent call last):
             ...
@@ -522,12 +522,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
     a ring over an appropriate growth group. Note that in this case,
     also the variable name needs to be specified explicitly::
 
-        sage: R2_x = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ, names=('x',)); R2_x
+        sage: R2_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R2_x
         Asymptotic Ring over x^QQ with coefficients from Rational Field
 
     Alternatively, the preparser allows us to write::
 
-        sage: R3_x.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ); R3_x
+        sage: R3_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
         Asymptotic Ring over x^QQ with coefficients from Rational Field
 
     According to the conventions for parents, uniqueness is ensured::
@@ -572,7 +572,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR1 = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
-            sage: AR2.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=ZZ)
+            sage: AR2.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR1 is AR2
             True
         """
@@ -595,7 +595,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: R1 = AsymptoticRing(G, ZZ); R1
             Asymptotic Ring over x^ZZ with coefficients from Integer Ring
-            sage: R2.<x> = AsymptoticRing('monomial', QQ); R2
+            sage: R2.<x> = AsymptoticRing('x^QQ', QQ); R2
             Asymptotic Ring over x^QQ with coefficients from Rational Field
             sage: R1 is R2
             False
@@ -681,7 +681,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: 3 * x^3
             3*x^3
             sage: 3 * x^3 + x
@@ -753,10 +753,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: AR_ZZ = AsymptoticRing('monomial', coefficient_ring=ZZ, names='x'); AR_ZZ
+            sage: AR_ZZ = AsymptoticRing('x^ZZ', coefficient_ring=ZZ); AR_ZZ
             Asymptotic Ring over x^ZZ with coefficients from Integer Ring
             sage: x_ZZ = AR_ZZ.gen()
-            sage: AR_QQ = AsymptoticRing('monomial', coefficient_ring=QQ, names='x'); AR_QQ
+            sage: AR_QQ = AsymptoticRing('x^QQ', coefficient_ring=QQ); AR_QQ
             Asymptotic Ring over x^QQ with coefficients from Rational Field
             sage: x_QQ = AR_QQ.gen()
             sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
@@ -824,7 +824,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: AR.gens()
             (1*x,)
         """
@@ -854,7 +854,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('monomial', ZZ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: R.gen()
             1*x
         """
@@ -874,7 +874,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: AR.<x> = AsymptoticRing('monomial', ZZ)
+            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: AR.ngens()
             1
         """

@@ -4852,19 +4852,41 @@ cdef class Matroid(SageObject):
                 if (len(Q2)==r and min(Q1)!=min(Q)):
                     continue
                 # Given Q1, Q2 partition of Q, find all extensions
-                for A in map(set,combinations(E, m - len(Q1))):
-                    T = Q1|A
-                    for B in map(set,combinations(E-A, m - len(Q2))):
-                        S = Q2|B
-                        _, X = self._link(S, T)
-                        if self._connectivity(X, self.groundset()-X)<m:
-                            if certificate:
-                                return False, X
-                            return False
+                # F is the set of elements cannot be in the extension of Q1
+                # so it is in extension of Q2
+                F = set([])
+                # pick an element and assume it's an extension of Q1
+                for e in E:
+                    U = E-F
+                    # not enough elements
+                    if len(U-set([e]))<m-len(Q1)-1:
+                        break
+                    # extension of Q2 is full
+                    if len(F)==m-len(Q2):
+                        S = Q2|F
+                        for A in map(set,combinations(U,m-len(Q1))):
+                            T = Q1|A
+                            _, X = self._link(S, T)
+                            if self._connectivity(X, self.groundset()-X)<m:
+                                if certificate:
+                                    return False, X
+                                return False
+                        break
+                    for A in map(set,combinations(U-set([e]),m-len(Q1)-1)):
+                        A = A.add(e)
+                        T = Q1|A
+                        for B in map(set,combinations(U-A, m-len(Q2)-len(F))):
+                            B |= F
+                            S = Q2|B
+                            _, X = self._link(S, T)
+                            if self._connectivity(X, self.groundset()-X)<m:
+                                if certificate:
+                                    return False, X
+                                return False
+                    F.add(e)
         if certificate:
             return True, None
         return True
-
 
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""

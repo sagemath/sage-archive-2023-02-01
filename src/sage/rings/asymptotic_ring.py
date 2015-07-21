@@ -72,7 +72,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         sage: R_x.<x> = AsymptoticRing('monomial', QQ)
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'y')
+        sage: G = agg.GrowthGroup('y^ZZ')
         sage: R_y = AsymptoticRing(G, ZZ); y = R_y.gen()
 
     At this point, `x` and `y` are already asymptotic expressions::
@@ -217,7 +217,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G = agg.GrowthGroup('x^ZZ')
             sage: OT = atm.TermMonoid('O', G); ET = atm.TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
@@ -413,7 +413,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: y^(1/7)
             Traceback (most recent call last):
             ...
-            ValueError: Exponent 1/7 not in base of growth group Monomial Growth Group in y over Integer Ring
+            ValueError: Exponent 1/7 not in base of growth group y^ZZ
             sage: (x^(1/2) + O(x^0))^15
             O(x^7) + 1*x^(15/2)
         """
@@ -451,7 +451,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(MG, ZZ)
             sage: x = AR.create_term('exact', x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
@@ -505,16 +505,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
     i.e. by explicitly specifying the underlying growth group::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
+        sage: G_QQ = agg.GrowthGroup('x^QQ')
         sage: R_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R_x
-        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+        Asymptotic Ring over x^QQ with coefficients from Rational Field
 
     Note that the coefficient ring of the asymptotic ring and the
     base ring of the underlying growth group do not need to
     coincide::
 
         sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
-        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Integer Ring
+        Asymptotic Ring over x^QQ with coefficients from Integer Ring
 
     As mentioned above, the ring can also be constructed without
     explicitly specifying the growth group. For example, passing the
@@ -523,12 +523,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
     also the variable name needs to be specified explicitly::
 
         sage: R2_x = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ, names=('x',)); R2_x
-        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+        Asymptotic Ring over x^QQ with coefficients from Rational Field
 
     Alternatively, the preparser allows us to write::
 
         sage: R3_x.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=QQ); R3_x
-        Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+        Asymptotic Ring over x^QQ with coefficients from Rational Field
 
     According to the conventions for parents, uniqueness is ensured::
 
@@ -570,7 +570,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         framework::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR1 = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR2.<x> = AsymptoticRing(growth_group='monomial', coefficient_ring=ZZ)
             sage: AR1 is AR2
@@ -605,11 +605,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G = agg.GrowthGroup('x^ZZ')
             sage: R1 = AsymptoticRing(G, ZZ); R1
-            Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
+            Asymptotic Ring over x^ZZ with coefficients from Integer Ring
             sage: R2.<x> = AsymptoticRing('monomial', QQ); R2
-            Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+            Asymptotic Ring over x^QQ with coefficients from Rational Field
             sage: R1 is R2
             False
 
@@ -651,10 +651,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR.growth_group
-            Monomial Growth Group in x over Integer Ring
+            x^ZZ
         """
         return self._growth_group_
 
@@ -667,7 +667,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR.coefficient_ring
             Integer Ring
@@ -767,10 +767,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         TESTS::
 
             sage: AR_ZZ = AsymptoticRing('monomial', coefficient_ring=ZZ, names='x'); AR_ZZ
-            Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring
+            Asymptotic Ring over x^ZZ with coefficients from Integer Ring
             sage: x_ZZ = AR_ZZ.gen()
             sage: AR_QQ = AsymptoticRing('monomial', coefficient_ring=QQ, names='x'); AR_QQ
-            Asymptotic Ring over Monomial Growth Group in x over Rational Field with coefficients from Rational Field
+            Asymptotic Ring over x^QQ with coefficients from Rational Field
             sage: x_QQ = AR_QQ.gen()
             sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
             True
@@ -807,10 +807,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: repr(AR)  # indirect doctest
-            'Asymptotic Ring over Monomial Growth Group in x over Integer Ring with coefficients from Integer Ring'
+            'Asymptotic Ring over x^ZZ with coefficients from Integer Ring'
         """
         return 'Asymptotic Ring over %s with coefficients ' \
                'from %s' % (self.growth_group, self.coefficient_ring)
@@ -923,7 +923,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: G = agg.GrowthGroup('x^ZZ')
             sage: R = AsymptoticRing(G, ZZ)
             sage: R.create_term('O', x^2)
             O(x^2)

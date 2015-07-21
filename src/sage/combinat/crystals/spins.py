@@ -197,8 +197,12 @@ class GenericCrystalOfSpins(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: C = crystals.Spins(['B',3])
-            sage: C((1,1,1))
+            sage: x = C((1,1,1)); x
             +++
+            sage: y = C([1,1,1]); y
+            +++
+            sage: x == y
+            True
         """
         return self.element_class(self, tuple(value))
 

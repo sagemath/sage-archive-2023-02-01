@@ -14,6 +14,7 @@ asymptotic expressions. It provides the following two classes:
 AUTHORS:
 
 - Benjamin Hackl (2015-06): initial version
+- Benjamin Hackl (2015-07): improvement user interface (short notation)
 
 
 .. WARNING::
@@ -158,6 +159,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         +-- oo
         |   +-- predecessors:   4*x^6
         |   +-- no successors
+
+    In addition to the monomial growth elements from above, we can
+    also compute with logarithmic terms (simply by constructing the
+    appropriate growth group)::
+
+        sage: R_log.<xl> = AsymptoticRing('log(x)^QQ', QQ)
+        sage: (O(xl) + xl^3)^4
+        O(log(x)^10) + 1*log(x)^12
     """
     def __init__(self, parent, poset, simplify=True):
         r"""
@@ -476,8 +485,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     - ``growth_group`` -- a partially ordered group (e.g. an instance
       of :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`),
-      or a string that describes the type of the growth group (e.g.
-      "monomial").
+      or a short representation string of a growth group.
 
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
@@ -486,9 +494,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
       in order to broaden the base structure. It has to be a
       subcategory of ``Category of rings``. This is also the default
       category if ``None`` is specified.
-
-    - ``names`` -- a tuple consisting of strings representing the
-      associated variables.
 
     OUTPUT:
 
@@ -516,11 +521,14 @@ class AsymptoticRing(sage.rings.ring.Ring,
         sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
         Asymptotic Ring over x^QQ with coefficients from Integer Ring
 
-    As mentioned above, the ring can also be constructed without
-    explicitly specifying the growth group. For example, passing the
-    string "monomial" as an argument for ``growth_group`` constructs
-    a ring over an appropriate growth group. Note that in this case,
-    also the variable name needs to be specified explicitly::
+    As mentioned above, the short notation for growth groups can also
+    be used to specify the underlying growth group. For now,
+    representation strings of the form ``"variable^base"`` are
+    allowed, where ``variable`` is some string, and ``base`` is
+    either ``ZZ`` (for `\mathbb{Z}`), ``QQ`` (for `\mathbb{Q}`),
+    or ``SR`` (for the symbolic ring). These strings correspond to
+    monomial growth groups (see
+    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)::
 
         sage: R2_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R2_x
         Asymptotic Ring over x^QQ with coefficients from Rational Field
@@ -529,6 +537,14 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         sage: R3_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
         Asymptotic Ring over x^QQ with coefficients from Rational Field
+
+    Note that this allows us to create logarithmic and polynomial
+    growth groups::
+
+        sage: R.<x> = AsymptoticRing('x^ZZ', QQ); R
+        Asymptotic Ring over x^ZZ with coefficients from Rational Field
+        sage: R_log.<lx> = AsymptoticRing('log(x)^ZZ', QQ); R_log
+        Asymptotic Ring over log(x)^ZZ with coefficients from Rational Field
 
     According to the conventions for parents, uniqueness is ensured::
 

@@ -76,14 +76,18 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
     Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
 
     The Boost graph ``*g`` must represent an empty weighted graph. The edge
-    weights are chosen as follows:
+    weights are chosen as follows.
 
-    - if ``weight_function`` is not ``None``, this function is used;
+    - If ``weight_function`` is not ``None``, this function is used.
 
-    - if ``weight_function`` is ``None`` and ``g`` is weighted, the weights of
-      ``g`` are used;
+    - If ``weight_function`` is ``None`` and ``g`` is weighted, the weights of
+      ``g`` are used, that is, we assume that labels are numbers, and these
+      numbers are used. If a label is not a number, it is set to 1 as default.
 
-    - otherwise, all weights are set to 1.
+    - Otherwise, all weights are set to 1.
+
+    In particular, the ``weight_function`` must be a function which inputs an
+    edge ``e`` and outputs a number.
     """
 
     from sage.graphs.generic_graph import GenericGraph
@@ -101,8 +105,10 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
         g.add_vertex()
 
     if weight_function is not None:
-        for u,v in g_sage.edge_iterator(labels=False):
-            g.add_edge(vertex_to_int[u],vertex_to_int[v],weight_function((u,v)))
+        for e in g_sage.edge_iterator():
+            g.add_edge(vertex_to_int[e[0]],
+                       vertex_to_int[e[1]],
+                       weight_function(e))
 
     elif g_sage.weighted():
         for u,v,w in g_sage.edge_iterator():
@@ -527,9 +533,21 @@ cpdef min_spanning_tree(g,
 
     - ``g`` (``Graph``) - the input graph.
 
-    - ``weight_function`` (function) - a function that associates a weight to
-      each edge. If ``None`` (default), the weights of ``g`` are used, if
-      available, otherwise all edges have weight 1.
+    - ``weight_function`` (function) - a function that inputs an edge ``e`` and
+      outputs its weight. An edge has the form ``(u,v,l)``, where ``u`` and
+      ``v`` are vertices, ``l`` is a label (that can be of any kind). The
+      ``weight_function`` can be used to transform the label into a weight (see
+      the example below). In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e`` is
+        ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted (that
+        is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we set weight
+        ``l`` if ``l`` is a number, 1 otherwise;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set all
+        weights to 1 (hence, the output can be any spanning tree).
 
     - ``algorithm`` (``'Kruskal'`` or ``'Prim'``) - the algorithm used.
 
@@ -547,6 +565,10 @@ cpdef min_spanning_tree(g,
         sage: from sage.graphs.base.boost_graph import min_spanning_tree
         sage: min_spanning_tree(graphs.PathGraph(4))
         [(0, 1, None), (1, 2, None), (2, 3, None)]
+
+        sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
+        sage: min_spanning_tree(G, weight_function=lambda e: e[2]['weight'])
+        [(0, 1, {'name': 'a', 'weight': 1}), (1, 2, {'name': 'b', 'weight': 1})]
 
     TESTS:
 

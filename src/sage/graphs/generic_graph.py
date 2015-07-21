@@ -3356,10 +3356,21 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``weight_function`` -- A function that takes an edge and returns a
-          numeric weight. If ``None`` (default), the algorithm uses the edge
-          weights, if available, otherwise it assigns weight 1 to each edge (in
-          the latter case, the output can be any spanning tree).
+        - ``weight_function`` (function) - a function that inputs an edge ``e``
+          and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+          and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+          The ``weight_function`` can be used to transform the label into a
+          weight. In particular:
+
+          - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+            is ``weight_function(e)``;
+
+          - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+            (that is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we
+            set weight ``l`` if ``l`` is a number, 1 otherwise;
+
+          - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+            all weights to 1 (hence, the output can be any spanning tree).
 
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The following algorithms are supported:
@@ -3433,6 +3444,12 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.min_spanning_tree(algorithm='NetworkX')
             [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None)]
+
+        More complicated weights::
+
+            sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
+            sage: G.min_spanning_tree(weight_function=lambda e: e[2]['weight'])
+            [(0, 1, {'name': 'a', 'weight': 1}), (1, 2, {'name': 'b', 'weight': 1})]
 
         If the graph is not weighted, edge labels are not considered, even if
         they are numbers::

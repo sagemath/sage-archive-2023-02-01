@@ -4327,6 +4327,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F1 = NumberField(f.monic(), 'a', embedding=r[0])
             sage: F2 = NumberField(f.monic(), 'a', embedding=r[1])
             sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.degree()
+            20
             sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
 
@@ -4334,6 +4336,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: F1 = NumberField(f, 'z', embedding=-1.18126721294295 + 3.02858651117832j)
             sage: F2 = NumberField(f, 'z', embedding=-1.18126721294295 - 3.02858651117832j)
             sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.degree()
+            32
             sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
         """

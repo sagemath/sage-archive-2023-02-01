@@ -1,10 +1,10 @@
 --- src/src/init-cl.lisp	2010-12-05 03:06:03.000000000 +0100
 +++ src/src/init-cl.lisp	2011-05-18 19:16:05.226488803 +0200
-@@ -131,7 +131,7 @@
+@@ -136,7 +136,7 @@
  	  (setq libdir     (combine-path maxima-prefix-env "lib"))
  	  (setq libexecdir (combine-path maxima-prefix-env "libexec"))
  	  (setq datadir    (combine-path maxima-prefix-env "share"))
--	  (setq infodir    (combine-path maxima-prefix-env "info")))
+-	  (setq infodir    (combine-path maxima-prefix-env #+(or windows win32) "share" "info")))
 +	  (setq infodir    (combine-path maxima-prefix-env "share" "info")))
  	(progn
  	  (setq libdir     (maxima-parse-dirstring *autoconf-libdir*))

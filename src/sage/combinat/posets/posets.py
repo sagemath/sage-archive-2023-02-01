@@ -1638,6 +1638,16 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
 
+        The following checks that :trac:`18936` has been fixed and labels still work::
+
+            sage: P = Poset({0: [1,2], 1:[3]})
+            sage: heights = {1 : [0], 2 : [1], 3 : [2,3]}
+            sage: P.plot(heights=heights)
+            Graphics object consisting of 8 graphics primitives
+            sage: elem_labels = {0 : 'a', 1 : 'b', 2 : 'c', 3 : 'd'}
+            sage: P.plot(element_labels=elem_labels, heights=heights)
+            Graphics object consisting of 8 graphics primitives
+
         Plot of the empy poset::
 
             sage: P = Poset({})
@@ -1647,23 +1657,21 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from collections import defaultdict
         graph = self.hasse_diagram()
-        rank_function = self.rank_function()
-        if rank_function:
-            heights = defaultdict(list)
-        else:
-            heights = None
+        heights = kwds.pop('heights', None)
+        if heights is None:
+            rank_function = self.rank_function()
+            if rank_function: # use the rank function to set the heights
+                heights = defaultdict(list)
+                for i in self:
+                    heights[rank_function(i)].append(i)
         # if relabeling is needed
         if label_elements and element_labels is not None:
             relabeling = dict((self(element), label)
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
-            if rank_function: # use the rank function to set the heights
-                for i in self:
-                    heights[rank_function(i)].append(relabeling[i])
-        else: # otherwise
-            if rank_function: # use the rank function to set the heights
-                for i in self:
-                    heights[rank_function(i)].append(i)
+            if heights is not None:
+                for key in heights.keys():
+                    heights[key] = [relabeling[i] for i in heights[key]]
 
         if cover_labels is not None:
             if callable(cover_labels):

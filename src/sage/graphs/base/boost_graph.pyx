@@ -76,13 +76,14 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
     Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
 
     The Boost graph ``*g`` must represent an empty weighted graph. The edge
-    weights are chosen as follows.
+    weights are chosen as follows, and they must be convertible to floats,
+    otherwise an error is raised.
 
     - If ``weight_function`` is not ``None``, this function is used.
 
-    - If ``weight_function`` is ``None`` and ``g`` is weighted, the weights of
-      ``g`` are used, that is, we assume that labels are numbers, and these
-      numbers are used. If a label is not a number, it is set to 1 as default.
+    - If ``weight_function`` is ``None`` and ``g`` is weighted, the edge labels
+      of ``g`` are used; in other words, the weight of an edge ``e=(u,v,l)`` is
+      ``l``.
 
     - Otherwise, all weights are set to 1.
 
@@ -108,14 +109,11 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
         for e in g_sage.edge_iterator():
             g.add_edge(vertex_to_int[e[0]],
                        vertex_to_int[e[1]],
-                       weight_function(e))
+                       float(weight_function(e)))
 
     elif g_sage.weighted():
         for u,v,w in g_sage.edge_iterator():
-            try:
-                g.add_edge(vertex_to_int[u], vertex_to_int[v], w)
-            except Exception:
-                g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
+            g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
 
     else:
         for u,v in g_sage.edge_iterator(labels=False):
@@ -544,10 +542,13 @@ cpdef min_spanning_tree(g,
 
       - if ``weight_function`` is ``None`` (default) and ``g`` is weighted (that
         is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we set weight
-        ``l`` if ``l`` is a number, 1 otherwise;
+        ``l``;
 
       - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set all
         weights to 1 (hence, the output can be any spanning tree).
+
+      Note that, if the weight is not convertible to a number with function
+      ``float()``, an error is raised (see tests below).
 
     - ``algorithm`` (``'Kruskal'`` or ``'Prim'``) - the algorithm used.
 
@@ -581,11 +582,24 @@ cpdef min_spanning_tree(g,
 
     Given a wrong algorithm::
 
-        from sage.graphs.base.boost_graph import bandwidth_heuristics
         sage: min_spanning_tree(graphs.PathGraph(3), algorithm='tip top')
         Traceback (most recent call last):
         ...
         ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+    If the weight is not a number::
+
+        sage: g = Graph([(0,1,1), (1,2,'a')], weighted=True)
+        sage: min_spanning_tree(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: could not convert string to float: a
+
+        sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
+        sage: min_spanning_tree(g)
+        Traceback (most recent call last):
+        ...
+        TypeError: float() argument must be a string or a number
     """
     from sage.graphs.graph import Graph
 
@@ -604,7 +618,11 @@ cpdef min_spanning_tree(g,
     cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
     cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
 
-    boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
+    try:
+        boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
+    except Exception, e:
+        sig_off()
+        raise e
 
     if algorithm=='Kruskal':
         result = <vector[v_index]> g_boost.kruskal_min_spanning_tree()

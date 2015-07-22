@@ -13664,9 +13664,26 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
 
-        - ``weigh
+        - ``weight_function`` (function) - used only if ``by_weight==True``;
+          a function that inputs an edge ``e`` and outputs its weight. An edge
+          has the form ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is
+          a label (that can be of any kind). The ``weight_function`` can be used
+          to transform the label into a weight. In particular:
+    
+          - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+            is ``weight_function(e)`` (an exception is raised if it cannot be
+            converted to a float);
+    
+          - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+            (that is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we
+            set weight ``l`` (an exception is raised if ``l`` cannot be
+            converted to a float);
+    
+          - if ``weight_function`` is ``None`` and ``g`` is not weighted, an
+            exception is raised.
 
-        - ``cutoff`` - integer depth to stop search (ignored if ``algorithm!='BFS'``)
+        - ``cutoff`` - integer depth to stop search (used only if
+          ``algorithm=='BFS'``)
 
         EXAMPLES::
 
@@ -13683,7 +13700,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D.shortest_paths(0, cutoff=2)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True, weighted=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
@@ -13702,7 +13719,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("The 'BFS' algorithm does not work on " +
                                  "weighted graphs.")
                 
-            wfunction_f = lambda e:float(weight_function(e))
+            wfunction_float = lambda e:float(weight_function(e))
         
         if algorithm=='BFS':
             try:
@@ -13711,7 +13728,7 @@ class GenericGraph(GenericGraph_pyx):
                 return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
         elif algorithm=='Dijkstra_NetworkX':
             import networkx
-            G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            G = networkx.Graph([(e[0], e[1], dict(weight=wfunction_float(e))) for e in self.edge_iterator()])
             return networkx.single_source_dijkstra_path(G, u)
         else:
             raise ValueError("Algorithm " + algorithm + " not yet " +
@@ -13734,7 +13751,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path_lengths(0)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True, weighted=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}

@@ -7,15 +7,15 @@ list of a class.
 {INDEX_OF_FUNCTIONS}
 
 """
-
 def gen_rest_table_index(list_of_entries,sort=True):
     r"""
     Return a ReST table describing a list of functions.
 
     INPUT:
 
-    - ``list_of_entries`` -- a list of functions, or a class. In the latter
-       case, all its methods are listed.
+    - ``list_of_entries`` -- a list of functions. Alternatively, it can be a
+      module or a class, in which case all the methods/functions it contains are
+      listed.
 
     - ``sort`` (boolean; ``True``) -- whether to sort the list of methods
       lexicographically.
@@ -23,14 +23,47 @@ def gen_rest_table_index(list_of_entries,sort=True):
     EXAMPLE::
 
         sage: from sage.misc.rest_index_of_methods import gen_rest_table_index
-        sage: gen_rest_table_index([graphs.PetersenGraph])
+        sage: print gen_rest_table_index([graphs.PetersenGraph])
+        .. csv-table::
+           :class: contentstable
+           :widths: 30, 70
+           :delim: |
+        <BLANKLINE>
+           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` | The Petersen Graph is a named graph that consists of 10 vertices...
+
+    The table of a module::
+
+        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods)
+        .. csv-table::
+           :class: contentstable
+           :widths: 30, 70
+           :delim: |
+        <BLANKLINE>
+           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` | Return a ReST table describing a list of functions...
+
+    The table of a class::
+
+        sage: print gen_rest_table_index(Graph)
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
            :delim: |
         ...
-           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` | The Petersen Graph is a named graph that consists of 10 vertices
+           :meth:`~sage.graphs.graph.Graph.sparse6_string` | Returns the sparse6 representation of the graph as an ASCII string.
         ...
+
+    TESTS:
+
+    The inherited methods do not show up::
+
+        sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 50
+        True
+        sage: from sage.graphs.generic_graph import GenericGraph
+        sage: A = gen_rest_table_index(Graph).count('\n')
+        sage: B = gen_rest_table_index(GenericGraph).count('\n')
+        sage: A < B
+        True
+
     """
     import inspect
 

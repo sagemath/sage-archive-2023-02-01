@@ -13646,7 +13646,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return length
 
-    def shortest_paths(self, u, by_weight=False, algorithm=None, cutoff=None):
+    def shortest_paths(self, u, by_weight=False, algorithm=None, weight_function=None, cutoff=None):
         """
         Returns a dictionary associating to each vertex v a shortest path from u
         to v, if it exists.
@@ -13660,12 +13660,11 @@ class GenericGraph(GenericGraph_pyx):
         - ``algorithm`` - one of the following algorithms:
           
           - ``'BFS'``: performs a BFS from ``u``. Edge weights are ignored;
-          
-          - ``'Dijkstra'``: the Dijkstra algorithm, that works with weighted
-            graphs, assuming all weights are positive.
             
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
+
+        - ``weigh
 
         - ``cutoff`` - integer depth to stop search (ignored if ``algorithm!='BFS'``)
 
@@ -13690,7 +13689,7 @@ class GenericGraph(GenericGraph_pyx):
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
         """
         if algorithm is None:
-            algorithm = 'Dijkstra' if by_weight else 'BFS'
+            algorithm = 'Dijkstra_NetworkX' if by_weight else 'BFS'
             
         if by_weight:
             if weight_function is None:
@@ -13710,14 +13709,13 @@ class GenericGraph(GenericGraph_pyx):
                 return self._backend.shortest_path_all_vertices(u, cutoff)
             except AttributeError:
                 return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
-        elif algorithm=='Dijkstra_NetworkX'
+        elif algorithm=='Dijkstra_NetworkX':
             import networkx
-            return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
+            G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            return networkx.single_source_dijkstra_path(G, u)
         else:
-            try:
-                return self._backend.shortest_path_all_vertices(u, cutoff)
-            except AttributeError:
-                return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
+            raise ValueError("Algorithm " + algorithm + " not yet " +
+                             "implemented. Please, contribute!")
 
     def shortest_path_lengths(self, u, by_weight=False, weight_sums=None):
         """

@@ -4859,6 +4859,17 @@ cdef class Matroid(SageObject):
                         # F is the set of elements cannot be in the extension of Q1
                         F = set([])
                         U = E-R
+                        # if Q1|R1 is full
+                        if m-len(Q1)-len(R1) == 0:
+                            T=Q1|R1
+                            for B in map(set,combinations(U, m-len(Q2)-len(R2))):
+                                S = Q2|R2|B
+                                _, X = self._link(S, T)
+                                if self.connectivity(X)<m:
+                                    if certificate:
+                                        return False, X
+                                    return False
+                            continue
                         # pick an element and assume it's an extension of Q1
                         for e in U:
                             U = U-F
@@ -4871,7 +4882,7 @@ cdef class Matroid(SageObject):
                                 for A in map(set,combinations(U,m-len(Q1)-len(R1))):
                                     T = Q1|R1|A
                                     _, X = self._link(S, T)
-                                    if self._connectivity(X, self.groundset()-X)<m:
+                                    if self.connectivity(X)<m:
                                         if certificate:
                                             return False, X
                                         return False
@@ -4883,7 +4894,7 @@ cdef class Matroid(SageObject):
                                     B |= F
                                     S = Q2|R2|B
                                     _, X = self._link(S, T)
-                                    if self._connectivity(X, self.groundset()-X)<m:
+                                    if self.connectivity(X)<m:
                                         if certificate:
                                             return False, X
                                         return False

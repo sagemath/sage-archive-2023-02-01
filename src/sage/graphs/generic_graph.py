@@ -13646,20 +13646,28 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return length
 
-    def shortest_paths(self, u, by_weight=False, cutoff=None):
+    def shortest_paths(self, u, by_weight=False, algorithm=None, cutoff=None):
         """
         Returns a dictionary associating to each vertex v a shortest path from u
         to v, if it exists.
 
         INPUT:
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, uses Dijkstra's algorithm to find the shortest
-           paths by weight.
+        - ``u`` - the starting vertex
+        
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
 
-        -  ``cutoff`` - integer depth to stop search.
+        - ``algorithm`` - one of the following algorithms:
+          
+          - ``'BFS'``: performs a BFS from ``u``. Edge weights are ignored;
+          
+          - ``'Dijkstra'``: the Dijkstra algorithm, that works with weighted
+            graphs, assuming all weights are positive.
+            
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
 
-           (ignored if ``by_weight == True``)
+        - ``cutoff`` - integer depth to stop search (ignored if ``algorithm!='BFS'``)
 
         EXAMPLES::
 
@@ -13681,8 +13689,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
         """
-
+        if algorithm is None:
+            algorithm = 'Dijkstra' if by_weight else 'BFS'
+            
         if by_weight:
+            if weight_function is None:
+                if self.weighted():
+                    weight_function=lambda e:e[2]
+                else:
+                    raise ValueError("The graph is not weighted, and you are " +
+                                     "asking weighted paths.")
+            if algorithm=='BFS':
+                raise ValueError("The 'BFS' algorithm does not work on " +
+                                 "weighted graphs.")
+                
+            wfunction_f = lambda e:float(weight_function(e))
+        
+        if algorithm=='BFS':
+            try:
+                return self._backend.shortest_path_all_vertices(u, cutoff)
+            except AttributeError:
+                return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
+        elif algorithm=='Dijkstra_NetworkX'
             import networkx
             return networkx.single_source_dijkstra_path(self.networkx_graph(copy=False), u)
         else:

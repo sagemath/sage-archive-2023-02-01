@@ -4845,45 +4845,49 @@ cdef class Matroid(SageObject):
         E = set(self.groundset())
         Q = set(list(E)[:m])
         E = E-Q
-        for r in range(len(Q)/2):
+        for r in range(len(Q)/2+1):
+            R = set(list(E)[:r])
             for Q1 in map(set,combinations(Q, r)):
                 Q2 = Q-Q1
                 # optimization, ignore half of the {Q1,Q2}
                 if (len(Q2)==r and min(Q1)!=min(Q)):
                     continue
                 # Given Q1, Q2 partition of Q, find all extensions
-                # F is the set of elements cannot be in the extension of Q1
-                # so it is in extension of Q2
-                F = set([])
-                # pick an element and assume it's an extension of Q1
-                for e in E:
-                    U = E-F
-                    # not enough elements
-                    if len(U-set([e]))<m-len(Q1)-1:
-                        break
-                    # extension of Q2 is full
-                    if len(F)==m-len(Q2):
-                        S = Q2|F
-                        for A in map(set,combinations(U,m-len(Q1))):
-                            T = Q1|A
-                            _, X = self._link(S, T)
-                            if self._connectivity(X, self.groundset()-X)<m:
-                                if certificate:
-                                    return False, X
-                                return False
-                        break
-                    for A in map(set,combinations(U-set([e]),m-len(Q1)-1)):
-                        A = A.add(e)
-                        T = Q1|A
-                        for B in map(set,combinations(U-A, m-len(Q2)-len(F))):
-                            B |= F
-                            S = Q2|B
-                            _, X = self._link(S, T)
-                            if self._connectivity(X, self.groundset()-X)<m:
-                                if certificate:
-                                    return False, X
-                                return False
-                    F.add(e)
+                for r2 in range(r+1):
+                    for R1 in map(set,combinations(R, r2)):
+                        R2 = R-R1
+                        # F is the set of elements cannot be in the extension of Q1
+                        F = set([])
+                        U = E-R
+                        # pick an element and assume it's an extension of Q1
+                        for e in U:
+                            U = U-F
+                            # not enough elements
+                            if len(U-set([e]))<m-len(Q1)-len(R1)-1:
+                                break
+                            # extension of Q2 is full
+                            if len(F)==m-len(Q2)-len(R2):
+                                S = Q2|R2|F
+                                for A in map(set,combinations(U,m-len(Q1)-len(R1))):
+                                    T = Q1|R1|A
+                                    _, X = self._link(S, T)
+                                    if self._connectivity(X, self.groundset()-X)<m:
+                                        if certificate:
+                                            return False, X
+                                        return False
+                                break
+                            for A in map(set,combinations(U-set([e]),m-len(Q1)-len(R1)-1)):
+                                A.add(e)
+                                T = Q1|R1|A
+                                for B in map(set,combinations(U-A, m-len(Q2)-len(R2)-len(F))):
+                                    B |= F
+                                    S = Q2|R2|B
+                                    _, X = self._link(S, T)
+                                    if self._connectivity(X, self.groundset()-X)<m:
+                                        if certificate:
+                                            return False, X
+                                        return False
+                            F.add(e)
         if certificate:
             return True, None
         return True

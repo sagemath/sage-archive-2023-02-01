@@ -1754,6 +1754,9 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             else:
                 hom_var_groups[k] = hom_var_groups[k][0]
 
+        if len(hom_var_groups) == 1:
+            return hom_var_groups[0]
+
         return cartesian_product(hom_var_groups, order='components')
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")

@@ -1170,11 +1170,12 @@ def diameter(G, method='iFUB', source=None):
 
     EXAMPLES::
 
+        sage: from sage.graphs.distances_all_pairs import diameter
         sage: G = graphs.PetersenGraph()
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         2
         sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         +Infinity
 
 
@@ -1182,21 +1183,21 @@ def diameter(G, method='iFUB', source=None):
     never be negative, we define it to be zero::
 
         sage: G = graphs.EmptyGraph()
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         0
 
     Comparison of exact methods::
 
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
-        sage: d1 = G.diameter(method='standard')
-        sage: d2 = G.diameter(method='iFUB')
-        sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
+        sage: d1 = diameter(G, method='standard')
+        sage: d2 = diameter(G, method='iFUB')
+        sage: d3 = diameter(G, method='iFUB', source=G.random_vertex())
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
     Comparison of lower bound methods::
 
-        sage: lb2 = G.diameter(method='2sweep')
-        sage: lbm = G.diameter(method='multi-sweep')
+        sage: lb2 = diameter(G, method='2sweep')
+        sage: lbm = diameter(G, method='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
 
     TEST:
@@ -1204,7 +1205,7 @@ def diameter(G, method='iFUB', source=None):
     This was causing a segfault. Fixed in :trac:`17873` ::
 
         sage: G = graphs.PathGraph(1)
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         0
     """
     cdef int n = G.order()

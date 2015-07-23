@@ -91,6 +91,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_to_cell` | Return the number of edges from vertex to an edge in cell.
     :meth:`~GenericGraph.subgraph` | Return the subgraph containing the given vertices and edges.
     :meth:`~GenericGraph.is_subgraph` | Test whether self is a subgraph of other.
+    :meth:`~GenericGraph.check_weight_function` | Checks if an edge weight function always returns integers.
 
 **Graph products:**
 
@@ -213,6 +214,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.shortest_path_all_pairs` | Compute a shortest path between each pair of vertices.
     :meth:`~GenericGraph.wiener_index` | Return the Wiener index of the graph.
     :meth:`~GenericGraph.average_distance` | Return the average distance between vertices of the graph.
+    :meth:`~GenericGraph.path_length` | Return the length of a given path.
 
 **Flows, connectivity, trees:**
 
@@ -12562,11 +12564,15 @@ class GenericGraph(GenericGraph_pyx):
         Returns the (directed) distance from u to v in the (di)graph, i.e.
         the length of the shortest path from u to v.
 
+        This method simply calls :meth:shortest_path_length, with default
+        arguments. For more information, and for more option, we refer to that
+        method.
+
         INPUT:
 
-        -  ``by_weight`` - if ``False``, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if ``False``, the graph is considered unweighted, and
+          the distance is the number of edges in a shortest path. If ``True``,
+          the distance is the sum of edge weights.
 
         EXAMPLES::
 
@@ -12590,25 +12596,36 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self.shortest_path_length(u, v, by_weight = by_weight)
 
-    def distance_all_pairs(self, algorithm = "auto"):
-        r"""
+    def distance_all_pairs(self, by_weight=False, weight_function=None,
+                           check=True, algorithm = None):
+        """
         Returns the distances between all pairs of vertices.
 
         INPUT:
 
-            - ``"algorithm"`` (string) -- two algorithms are available
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
 
-                * ``algorithm = "BFS"`` in which case the distances are computed
-                  through `n` different breadth-first-search.
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
 
-                * ``algorithm = "Floyd-Warshall"``, in which case the
-                  Floyd-Warshall algorithm is used.
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
-                * ``algorithm = "auto"``, in which case the Floyd-Warshall
-                  algorithm is used for graphs on less than 20 vertices, and BFS
-                  otherwise.
+        - ``algorithm`` - one of the following algorithms:
 
-                The default is ``algorithm = "BFS"``.
+          - ``'BFS'``: performs a BFS from ech vertex in ``v``. Works only if
+            ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'Floyd-Warshall'``: a Cython implementation of the Floyd-Warshall
+            algorithm. Works only if ``by_weight==False``.
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
+            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted graphs.
 
         OUTPUT:
 
@@ -12616,11 +12633,16 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-           There is a Cython version of this method that is usually
-           much faster for large graphs, as most of the time is
-           actually spent building the final double
-           dictionary. Everything on the subject is to be found in the
-           :mod:`~sage.graphs.distances_all_pairs` module.
+            There is a Cython version of this method that is usually
+            much faster for large graphs, as most of the time is
+            actually spent building the final double
+            dictionary. Everything on the subject is to be found in the
+            :mod:`~sage.graphs.distances_all_pairs` module.
+
+        .. NOTE::
+
+            This algorithm simply calls
+            :meth:GenericGraph.shortest_path_all_pairs
 
         EXAMPLE:
 
@@ -12641,25 +12663,14 @@ class GenericGraph(GenericGraph_pyx):
 
             * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_matrix`
         """
-        if algorithm == "auto":
-            if self.order() <= 20:
-                algorithm = "Floyd-Warshall"
-            else:
-                algorithm = "BFS"
+        return self.shortest_path_all_pairs(by_weight=by_weight,
+                                            algorithm=algorithm,
+                                            weight_function=weight_function,
+                                            check=check)[0]
 
-        if algorithm == "BFS":
-            from sage.graphs.distances_all_pairs import distances_all_pairs
-            return distances_all_pairs(self)
-
-        elif algorithm == "Floyd-Warshall":
-            from sage.graphs.distances_all_pairs import floyd_warshall
-            return floyd_warshall(self,paths = False, distances = True)
-
-        else:
-            raise ValueError("The algorithm keyword can be equal to either \"BFS\" or \"Floyd-Warshall\" or \"auto\"")
-
-
-    def eccentricity(self, v=None, dist_dict=None, with_labels=False):
+    def eccentricity(self, v=None, by_weight=False, weight_function=None,
+                     check=True, algorithm = None, dist_dict=None,
+                     with_labels=False):
         """
         Return the eccentricity of vertex (or vertices) v.
 
@@ -12668,17 +12679,38 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``v`` - either a single vertex or a list of vertices. If it is not
+          specified, then it is taken to be all vertices.
 
-        -  ``v`` - either a single vertex or a list of
-           vertices. If it is not specified, then it is taken to be all
-           vertices.
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
 
-        -  ``dist_dict`` - optional, a dict of dicts of
-           distance.
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
 
-        -  ``with_labels`` - Whether to return a list or a
-           dict.
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ech vertex in ``v``. Works only if
+            ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'From_Dictionary'``: uses the (already computed) distances, that
+            are provided by input variable ``dist_dict``.
+
+          - ``None`` (default): Sage chooses the best algorithm:
+            ``'From_Dictionary'`` if ``dist_dict`` is not None, ``'BFS'`` for
+            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted graphs.
+
+        - ``dist_dict`` - used only if ``algorithm=='From_Dictionary'``: a dict
+          of dicts of distances.
+
+        - ``with_labels`` - Whether to return a list or a dict.
 
         EXAMPLES::
 
@@ -12703,8 +12735,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.eccentricity(with_labels=True)
             {0: +Infinity, 1: +Infinity}
         """
+        if algorithm==None and dist_dict is not None:
+            algorithm='From_Dictionary'
+
         if v is None:
-            if dist_dict is None:
+            # If we want to use BFS, we use the Cython routine
+            if algorithm=='BFS' or (algorithm is None and not by_weight):
                 from sage.graphs.distances_all_pairs import eccentricity
 
                 if with_labels:
@@ -12718,10 +12754,15 @@ class GenericGraph(GenericGraph_pyx):
         e = {}
         infinite = False
         for u in v:
-            if dist_dict is None:
-                length = self.shortest_path_lengths(u)
-            else:
+            if algorithm=='From_Dictionary':
                 length = dist_dict[u]
+            else:
+                # If algorithm is wrong, the error is raised by the
+                # shortest_path_lengths function
+                length = self.shortest_path_lengths(u, by_weight=by_weight,
+                         algorithm=algorithm, weight_function=weight_function,
+                         check=check)
+
             if len(length) != self.num_verts():
                 infinite = True
                 break
@@ -12736,13 +12777,37 @@ class GenericGraph(GenericGraph_pyx):
             if len(e)==1: return e.values()[0] # return single value
             return e.values()
 
-    def radius(self):
+    def radius(self, by_weight=False, weight_function=None, check=True,
+               algorithm=None):
         """
         Returns the radius of the (di)graph.
 
         The radius is defined to be the minimum eccentricity of any vertex,
         where the eccentricity is the maximum distance to any other
         vertex.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Works only if
+            ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'None'``: Sage chooses the best option: 'Dijkstra_NetworkX' if the
+            graph is weighted, 'BFS' otherwise.
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
         EXAMPLES: The more symmetric a graph is, the smaller (diameter -
         radius) is.
@@ -12774,15 +12839,127 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             raise ValueError("This method has no meaning on empty graphs.")
 
-        return min(self.eccentricity())
+        return min(self.eccentricity(by_weight=by_weight,
+                                     weight_function=weight_function,
+                                     check=check,
+                                     algorithm=algorithm))
 
-    def center(self):
+    def diameter(self, by_weight=False, weight_function=None,
+                 check=True, algorithm=None):
+        """
+        Returns the diameter of the (di)graph.
+
+        The diameter is defined to be the maximum distance between two vertices.
+        It is infinite if the (di)graph is not (strongly) connected.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from each vertex (this value is only added
+            for consistency with other methods, and it is converted to
+            'standard' at the beginning). Works only on unweighted graphs.
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``: these
+            algorithms are implemented in
+            :func:sage.graphs.distances_all_pairs.diameter.
+            They work only if ``by_weight==False``. See the function
+            documentation for more information.
+
+          - ``'None'``: Sage chooses the best option: 'Dijkstra_NetworkX' if the
+            graph is weighted, 'iFUB' otherwise.
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
+
+        EXAMPLES: The more symmetric a graph is, the smaller (diameter -
+        radius) is.
+
+        ::
+
+            sage: G = graphs.BarbellGraph(9, 3)
+            sage: G.radius()
+            3
+            sage: G.diameter()
+            6
+
+        ::
+
+            sage: G = graphs.OctahedralGraph()
+            sage: G.radius()
+            2
+            sage: G.diameter()
+            2
+
+        TEST::
+
+            sage: g = Graph()
+            sage: g.radius()
+            Traceback (most recent call last):
+            ...
+            ValueError: This method has no meaning on empty graphs.
+        """
+        if self.order() == 0:
+            raise ValueError("This method has no meaning on empty graphs.")
+
+        if algorithm==None and not by_weight:
+            algorithm = 'iFUB'
+        elif algorithm=='BFS':
+            algorithm = 'standard'
+
+        if algorithm in ['standard', '2sweep', 'multi-sweep', 'iFUB']:
+            if by_weight:
+                raise ValueError("Algorithm " + algorithm + "does not work " +
+                                 "on weighted graphs.")
+            from distances_all_pairs import diameter
+            return diameter(self, method=algorithm)
+
+        return max(self.eccentricity(by_weight=by_weight,
+                                     weight_function=weight_function,
+                                     check=check,
+                                     algorithm=algorithm))
+
+    def center(self, by_weight=False, weight_function=None, check=True,
+               algorithm=None):
         """
         Returns the set of vertices in the center, i.e. whose eccentricity
         is equal to the radius of the (di)graph.
 
         In other words, the center is the set of vertices achieving the
         minimum eccentricity.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Works only if
+            ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``None``: Sage chooses the best option: 'Dijkstra_NetworkX' if the
+            graph is weighted, 'BFS' otherwise.
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
         EXAMPLES::
 
@@ -12803,13 +12980,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.center()
             [0]
         """
-        e = self.eccentricity(with_labels=True)
+        e = self.eccentricity(by_weight=by_weight,
+                              weight_function=weight_function,
+                              algorithm=algorithm,
+                              check=check,
+                              with_labels=True)
         try:
             r = min(e.values())
         except Exception:
             return []
         return [v for v in e if e[v]==r]
-
 
 
     def distance_graph(self, dist):
@@ -13088,14 +13268,37 @@ class GenericGraph(GenericGraph_pyx):
         return best
 
 
-
-    def periphery(self):
+    def periphery(self, by_weight=False, weight_function=None, check=True,
+                  algorithm=None):
         """
         Returns the set of vertices in the periphery, i.e. whose
         eccentricity is equal to the diameter of the (di)graph.
 
         In other words, the periphery is the set of vertices achieving the
         maximum eccentricity.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Works only if
+            ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``None``: Sage chooses the best option: 'Dijkstra_NetworkX' if the
+            graph is weighted, 'BFS' otherwise.
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
         EXAMPLES::
 
@@ -13116,7 +13319,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.periphery()
             [0]
         """
-        e = self.eccentricity(with_labels=True)
+        e = self.eccentricity(by_weight=by_weight,
+                              weight_function=weight_function,
+                              algorithm=algorithm,
+                              check=check,
+                              with_labels=True)
         try:
             r = max(e.values())
         except Exception:
@@ -13524,23 +13731,47 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
-    def shortest_path(self, u, v, by_weight=False, bidirectional=True):
+    def shortest_path(self, u, v, by_weight=False, weight_function=None,
+                      check_weight=True, algorithm=None, bidirectional=None):
         """
         Returns a list of vertices representing some shortest path from u
         to v: if there is no path from u to v, the list is empty.
 
         INPUT:
 
+        - ``u``, ``v`` - the start and the end vertices of the paths.
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
 
-        -  ``bidirectional`` - if True, the algorithm will
-           expand vertices from u and v at the same time, making two spheres
-           of half the usual radius. This generally doubles the speed
-           (consider the total volume in each case).
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
 
+        - ``check_weight`` - if True, we check that the weight_function outputs
+          a number for each edge.
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Works only if
+            ``by_weight==False``;
+
+          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``.
+            Works only if ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'Dijkstra_Bid_NetworkX'``: performs a Dijkstra visit from ``u``
+            and from ``v`` (NetworkX implementation).
+
+          - ``'Dijkstra_Bid'``: a Cython implementation that performs
+            a Dijkstra visit from ``u`` and from ``v``.
+
+        - ``bidirectional`` - if True, the algorithm will expand vertices from
+          ``u`` and ``v`` at the same time, making two spheres of half the usual
+          radius. Deprecated: it is now replaced by Algorithm; if used, a
+          deprecation warning is raised, and it is ignored.
 
         EXAMPLES::
 
@@ -13560,40 +13791,45 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path(0, 3, by_weight=True)
             [0, 1, 2, 3]
         """ #         TODO- multiple edges??
+
+        if bidirectional is not None:
+            deprecation(18938, "Variable 'bidirectional' is deprecated and " +
+                        "replaced by 'algorithm'.")
+
         if u == v: # to avoid a NetworkX bug
             return [u]
-        import networkx
-        if by_weight:
-            if bidirectional:
-                try:
-                    L = self._backend.bidirectional_dijkstra(u,v)
-                except AttributeError:
-                    try:
-                        L = networkx.bidirectional_dijkstra(self.networkx_graph(copy=False), u, v)[1]
-                    except Exception:
-                        L = False
-            else:
-                L = networkx.dijkstra_path(self.networkx_graph(copy=False), u, v)
-        else:
-            if bidirectional:
-                # If the graph is a C_graph, use shortest_path from its backend !
-                try:
-                    L = self._backend.shortest_path(u,v)
-                except AttributeError:
-                    L = networkx.shortest_path(self.networkx_graph(copy=False), u, v)
-            else:
-                try:
-                    L = networkx.single_source_shortest_path(self.networkx_graph(copy=False), u)[v]
-                except Exception:
-                    L = False
-        if L:
-            return L
-        else:
-            return []
 
-    def shortest_path_length(self, u, v, by_weight=False,
-                                         bidirectional=True,
-                                         weight_sum=None):
+        if algorithm is None:
+            algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+        elif algorithm in ['BFS', 'Dijkstra_NetworkX']:
+            return self.shortest_paths(u, by_weight, algorithm, weight_function)[v]
+
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            weight_function=lambda e:e[2]
+
+        if by_weight:
+            if algorithm in ['BFS', 'BFS_Bid']:
+                raise ValueError("The 'BFS' and 'BFS_Bid algorithms do not " +
+                                 "work on weighted graphs.")
+            if check_weight:
+                self.check_weight_function(weight_function)
+
+        if algorithm=="Dijkstra_Bid":
+            return self._backend.bidirectional_dijkstra(u,v)
+        elif algorithm=="Dijkstra_Bid_NetworkX":
+            import networkx
+            G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            return networkx.bidirectional_dijkstra(G)[1]
+        elif algorithm=="BFS_Bid":
+            return self._backend.shortest_path(u,v)
+        else:
+            raise ValueError("Algorithm " + algorithm + " not yet implemented.")
+
+    def shortest_path_length(self, u, v, by_weight=False, weight_function=None,
+                             check_weight=True, algorithm=None,
+                             bidirectional=None, weight_sum=None):
         """
         Returns the minimal length of paths from u to v.
 
@@ -13601,18 +13837,42 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``u``, ``v`` - the start and the end vertices of the paths.
 
-        -  ``bidirectional`` - if True, the algorithm will
-           expand vertices from u and v at the same time, making two spheres
-           of half the usual radius. This generally doubles the speed
-           (consider the total volume in each case).
+        - ``by_weight`` - if ``True``, edge weights are taken into account; if
+          False, all edges have weight 1.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:GenericGraph.shortest_paths
+
+        - ``check_weight`` - if True, we check that the weight_function outputs
+          a number for each edge.
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Works only if
+            ``by_weight==False``;
+
+          - ``'BFS_Bidirectional``: performs a BFS from ``u`` and from ``v``.
+            Works only if ``by_weight==False``;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``'Dijkstra_Bidirectional'``: a Cython implementation that performs
+            a Dijkstra visit from ``u`` and from ``v``.
+
+        - ``bidirectional`` - if True, the algorithm will expand vertices from
+          ``u`` and ``v`` at the same time, making two spheres of half the usual
+          radius. Deprecated: it is now replaced by Algorithm; if used, it is
+          ignored.
 
         -  ``weight_sum`` - if False, returns the number of
            edges in the path. If True, returns the sum of the weights of these
            edges. Default behavior is to have the same value as by_weight.
+           Deprecated: now variable ``by_weight`` is used (in case, we suggest
+           to compute the length of the path).
 
         EXAMPLES::
 
@@ -13631,59 +13891,105 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.shortest_path_length(0, 3, by_weight=True)
             3
         """
-        if weight_sum is None:
-            weight_sum = by_weight
-        path = self.shortest_path(u, v, by_weight, bidirectional)
+        if weight_sum is not None:
+            deprecation(18938, "Now weight_sum is replaced by by_weight.")
+
+        path = self.shortest_path(u, v, by_weight=by_weight,
+                                  weight_function=weight_function,
+                                  algorithm=algorithm,
+                                  check_weight=check_weight,
+                                  bidirectional=bidirectional)
         length = len(path) - 1
         if length == -1:
             from sage.rings.infinity import Infinity
             return Infinity
-        if weight_sum:
-            wt = 0
-            for j in range(length):
-                wt += self.edge_label(path[j], path[j+1])
-            return wt
-        else:
-            return length
+        return self.path_length(path, by_weight, weight_function,
+                                check_weight=False)
 
-    def shortest_paths(self, u, by_weight=False, algorithm=None, weight_function=None, cutoff=None):
+
+    def check_weight_function(self, weight_function=None):
+        """
+        Checks that an edge weight function outputs only numbers.
+
+        The weight function inputs a labelled edge `(u,v,l)` and
+        outputs its weight. Here, we check that the output is always a number
+        (otherwise, several functions might have unexpected behavior). If the
+        function fails the test, an exception is raised.
+
+        INPUT:
+
+        - ``weight_function`` - the weight function to be tested
+
+        EXAMPLES:
+
+        The standard weight function outputs labels::
+
+            sage: G = Graph([(0,1,1), (1,2,3), (2,3,2)])
+            sage: weight_function=lambda e:e[2]
+            sage: G.check_weight_function(weight_function)
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        However, it might be more complicated::
+
+            sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
+            sage: weight_function=lambda e:e[2]['weight']
+            sage: G.check_weight_function(weight_function)
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        A wrong weight function::
+
+            sage: G.add_edge((0,3,{'name':'d', 'weight':'d'}))
+            sage: G.check_weight_function(weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: The weight function cannot find the weight of (0, 3, {'name': 'd', 'weight': 'd'})
+        """
+        for e in self.edges():
+            try:
+                float(weight_function(e))
+            except Exception:
+                raise ValueError("The weight function cannot find the " +
+                                 "weight of " + str(e))
+
+
+    def shortest_paths(self, u, by_weight=False, algorithm=None,
+                       weight_function=None, check_weight=True, cutoff=None):
         """
         Returns a dictionary associating to each vertex v a shortest path from u
         to v, if it exists.
 
+        If u and v are not connected, vertex v is not present in the dictionary.
+
         INPUT:
 
-        - ``u`` - the starting vertex
-        
-        - ``by_weight`` - if ``True``, the graph is considered weighted.
+        - ``u`` (vertex) - the starting vertex
 
-        - ``algorithm`` - one of the following algorithms:
-          
-          - ``'BFS'``: performs a BFS from ``u``. Edge weights are ignored;
-            
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
+
+        - ``algorithm`` (string) - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
+            weights.
+
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
 
-        - ``weight_function`` (function) - used only if ``by_weight==True``;
-          a function that inputs an edge ``e`` and outputs its weight. An edge
-          has the form ``(u,v,l)``, where ``u`` and ``v`` are vertices, ``l`` is
-          a label (that can be of any kind). The ``weight_function`` can be used
-          to transform the label into a weight. In particular:
-    
-          - if ``weight_function`` is not ``None``, the weight of an edge ``e``
-            is ``weight_function(e)`` (an exception is raised if it cannot be
-            converted to a float);
-    
-          - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
-            (that is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we
-            set weight ``l`` (an exception is raised if ``l`` cannot be
-            converted to a float);
-    
-          - if ``weight_function`` is ``None`` and ``g`` is not weighted, an
-            exception is raised.
+          - ``None`` (default): if the graph is weighted, then we use Dijkstra,
+            otherwise we use BFS.
 
-        - ``cutoff`` - integer depth to stop search (used only if
-          ``algorithm=='BFS'``)
+        - ``weight_function`` (function) - a function that inputs an edge
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight`` is
+          automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``True``, we output ``l`` by default.
+
+        - ``check_weight`` (boolean) - if ``True``, we check that the
+          weight_function outputs a number for each edge.
+
+        - ``cutoff`` (integer) - integer depth to stop search (used only if
+          ``algorithm=='BFS'``).
 
         EXAMPLES::
 
@@ -13700,118 +14006,232 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: D.shortest_paths(0, cutoff=2)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 19, 3], 8: [0, 1, 8], 9: [0, 10, 9], 10: [0, 10], 11: [0, 10, 11], 18: [0, 19, 18], 19: [0, 19]}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True, weighted=True)
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2], 3: [0, 1, 2, 3], 4: [0, 4]}
+
+        Weighted shortest paths::
+
+            sage: D = DiGraph([(0,1,1),(1,2,3),(0,2,5)])
+            sage: D.shortest_paths(0)
+            {0: [0], 1: [0, 1], 2: [0, 2]}
+            sage: D.shortest_paths(0, by_weight=True)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2]}
+
+        Using a weight function (this way, ``by_weight`` is set to ``True``)::
+
+            sage: D = DiGraph([(0,1,{'weight':1}),(1,2,{'weight':3}),(0,2,{'weight':5})])
+            sage: weight_function = lambda e:e[2]['weight']
+            sage: D.shortest_paths(0, weight_function=weight_function)
+            {0: [0], 1: [0, 1], 2: [0, 1, 2]}
+
+        If the weight function is wrong::
+
+            sage: weight_function = lambda e:e[2]
+            sage: D.shortest_paths(0, weight_function=weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: The weight function cannot find the weight of (0, 1, {'weight': 1})
+
+        However, if ``check_weight`` is set to False, unexpected behavior may
+        occur::
+
+            sage: D.shortest_paths(0, weight_function=weight_function, check_weight=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for +: 'int' and 'dict'
+
+        TESTS:
+
+        If we ask for an unknown algorithm::
+
+            sage: D.shortest_paths(0, algorithm='tip top')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm tip top not yet implemented. Please, contribute!
+
+        If we ask for BFS in a weighted graph::
+
+            sage: weight_function = lambda e:e[2]['weight']
+            sage: D.shortest_paths(0, algorithm='BFS', weight_function=weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: The 'BFS' algorithm does not work on weighted graphs.
         """
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+
         if algorithm is None:
             algorithm = 'Dijkstra_NetworkX' if by_weight else 'BFS'
-            
-        if by_weight:
-            if weight_function is None:
-                if self.weighted():
-                    weight_function=lambda e:e[2]
-                else:
-                    raise ValueError("The graph is not weighted, and you are " +
-                                     "asking weighted paths.")
-            if algorithm=='BFS':
+
+        if by_weight and check_weight:
+            self.check_weight_function(weight_function)
+
+        if algorithm=='BFS':
+            if by_weight:
                 raise ValueError("The 'BFS' algorithm does not work on " +
                                  "weighted graphs.")
-                
-            wfunction_float = lambda e:float(weight_function(e))
-        
-        if algorithm=='BFS':
-            try:
-                return self._backend.shortest_path_all_vertices(u, cutoff)
-            except AttributeError:
-                return networkx.single_source_shortest_path(self.networkx_graph(copy=False), u, cutoff)
+            return self._backend.shortest_path_all_vertices(u, cutoff)
+
         elif algorithm=='Dijkstra_NetworkX':
             import networkx
-            G = networkx.Graph([(e[0], e[1], dict(weight=wfunction_float(e))) for e in self.edge_iterator()])
+            # If this is not present, an error might be raised by NetworkX
+            if self.num_verts()==1 and self.vertices()[0]==u:
+                return {u:[u]}
+            if by_weight:
+                G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                # Needed to remove labels.
+                G = networkx.Graph(self.edges(labels=False))
             return networkx.single_source_dijkstra_path(G, u)
         else:
             raise ValueError("Algorithm " + algorithm + " not yet " +
                              "implemented. Please, contribute!")
 
-    def shortest_path_lengths(self, u, by_weight=False, weight_sums=None):
+    def path_length(self, path, by_weight=False, weight_function=None, check_weight=True):
+        """
+        Computes the (weighted) length of the path provided.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
+
+        - ``weight_function`` (function) - used only if ``by_weight==True``. A
+          function that inputs an edge and outputs its weight (if ``None``, a
+          standard weight function is used).
+
+        - ``check_weight`` - if True, we check that the weight_function outputs
+          a number for each edge.
+
+        EXAMPLE::
+
+            sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
+            sage: G.path_length([0,1,2,3])
+            3
+            sage: G.path_length([0,1,2,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
+            6
+
+        """
+        if by_weight:
+            if weight_function is None:
+                weight_function = lambda e:e[2]
+            if check_weight:
+                self.check_weight_function(weight_function)
+            wt = 0
+
+            for j in range(len(path) - 1):
+                wt += weight_function((path[j], path[j+1],
+                                       self.edge_label(path[j], path[j+1])))
+            return wt
+        else:
+            return len(path) - 1
+
+    def shortest_path_lengths(self, u, by_weight=False, algorithm=None,
+                              weight_function=None, check=True,
+                              weight_sums=None):
         """
         Returns a dictionary of shortest path lengths keyed by targets that
         are connected by a path from u.
 
+        Only vertices that are connected with u are present in the dictionary.
+
         INPUT:
 
+        - ``u`` - the starting vertex
 
-        -  ``by_weight`` - if False, uses a breadth first
-           search. If True, takes edge weightings into account, using
-           Dijkstra's algorithm.
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from ``u``. Edge weights are ignored;
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX.
+
+          - ``None``: Sage chooses the best algorithm: ``'BFS'`` if the graph
+            is unweighted and ``'Dijkstra_NetworkX'`` if the graph is weighted.
+
+        - ``weight_function`` (function) - used only if ``by_weight==True``. A
+          function that inputs an edge and outputs its weight (if ``None``, a
+          standard weight function is used).
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
+
+        -  ``weight_sum`` - if False, returns the number of
+           edges in the path. If True, returns the sum of the weights of these
+           edges. Default behavior is to have the same value as by_weight.
+           Deprecated: now variable ``by_weight`` is used (in case, we suggest
+           to compute the length of the path).
 
         EXAMPLES::
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path_lengths(0)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True, weighted=True)
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
         """
-        paths = self.shortest_paths(u, by_weight)
-        if by_weight:
-            weights = {}
-            for v in paths:
-                wt = 0
-                path = paths[v]
-                for j in range(len(path) - 1):
-                    wt += self.edge_label(path[j], path[j+1])
-                weights[v] = wt
-            return weights
-        else:
-            lengths = {}
-            for v in paths:
-                lengths[v] = len(paths[v]) - 1
-            return lengths
+        if weight_sums is not None:
+            deprecation(18938, "Now weight_sums is replaced by by_weight.")
 
-    def shortest_path_all_pairs(self, by_weight=False, default_weight=1, algorithm = "auto"):
+        paths = self.shortest_paths(u, by_weight, algorithm, weight_function)
+        return {v:self.path_length(paths[v], by_weight, weight_function)
+                for v in paths}
+
+
+    def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
+                                weight_function=None, check=True,
+                                default_weight=None):
         """
         Computes a shortest path between each pair of vertices.
 
         INPUT:
 
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
 
-        - ``by_weight`` - Whether to use the labels defined over the edges as
-           weights. If ``False`` (default), the distance between `u` and `v` is
-           the minimum number of edges of a path from `u` to `v`.
+        - ``algorithm`` - one of the following algorithms:
 
-        - ``default_weight`` - (defaults to 1) The default weight to assign
-           edges that don't have a weight (i.e., a label).
+          - ``'BFS'`` - the computation is done through a BFS centered on each
+            vertex successively. Works only if ``by_weight==False``.
 
-           Implies ``by_weight == True``.
+          - ``'Floyd-Warshall-Cython'`` - through the Cython implementation of
+             the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
 
-        - ``algorithm`` -- four options :
+          - ``'Floyd-Warshall-Python'`` - through the Python implementation of
+            the Floyd-Warshall algorithm. Works also with weighted graphs, even
+            with negative weights (but no negative cycle is allowed).
 
-           * ``"BFS"`` -- the computation is done through a BFS
-             centered on each vertex successively. Only implemented
-             when ``default_weight = 1`` and ``by_weight = False``.
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX. It works with weighted graphs, but no negative weight is
+            allowed.
 
-           * ``"Floyd-Warshall-Cython"`` -- through the Cython implementation of
-             the Floyd-Warshall algorithm.
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            the graph is unweighted, else ``'Floyd-Warshall-Python'``.
 
-           * ``"Floyd-Warshall-Python"`` -- through the Python implementation of
-             the Floyd-Warshall algorithm.
+        - ``weight_function`` (function) - used only if ``by_weight==True``. A
+          function that inputs an edge and outputs its weight (if ``None``, a
+          standard weight function is used).
 
-           * ``"auto"`` -- use the fastest algorithm depending on the input
-             (``"BFS"`` if possible, and ``"Floyd-Warshall-Python"`` otherwise)
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
 
-             This is the default value.
+        - ``default_weight`` - The default weight to assign edges that don't
+          have a weight (i.e., a label). Deprecated: use ``weight_function``,
+          instead.
 
         OUTPUT:
 
-            A tuple ``(dist, pred)``. They are both dicts of dicts. The first
-            indicates the length ``dist[u][v]`` of the shortest weighted path
-            from `u` to `v`. The second is a compact representation of all the
-            paths- it indicates the predecessor ``pred[u][v]`` of `v` in the
-            shortest path from `u` to `v`.
+        A tuple ``(dist, pred)``. They are both dicts of dicts. The first
+        indicates the length ``dist[u][v]`` of the shortest weighted path
+        from `u` to `v`. The second is a compact representation of all the
+        paths- it indicates the predecessor ``pred[u][v]`` of `v` in the
+        shortest path from `u` to `v`.
 
         .. NOTE::
 
@@ -13839,7 +14259,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True )
+            sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: dist, pred = G.shortest_path_all_pairs(by_weight = True)
             sage: dist
@@ -13868,18 +14288,28 @@ class GenericGraph(GenericGraph_pyx):
             2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
             3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
-            sage: G.shortest_path_all_pairs(by_weight = True)
+            sage: G.shortest_path_all_pairs(by_weight = True, weight_function=lambda e:(e[2] if e[2] is not None else 1))
             ({0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
-            1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
-            2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
-            3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
-            4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}},
-            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
-            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
-            2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
-            3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
-            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
-            sage: G.shortest_path_all_pairs(default_weight=200)
+              1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
+              2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
+              3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
+              4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}},
+             {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
+              1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+              2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+              3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
+              4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+
+        Now, default_weight does not work anymore::
+
+            sage: G.shortest_path_all_pairs(by_weight = True, default_weight=200)
+            Traceback (most recent call last):
+            ...
+            ValueError: The weight function cannot find the weight of (0, 1, None)
+
+        It can be replaced by choosing an appropriate weight_function::
+
+            sage: G.shortest_path_all_pairs(by_weight = True, weight_function=lambda e:(e[2] if e[2] is not None else 200))
             ({0: {0: 0, 1: 200, 2: 5, 3: 4, 4: 2},
             1: {0: 200, 1: 0, 2: 200, 3: 201, 4: 202},
             2: {0: 5, 1: 200, 2: 0, 3: 1, 4: 3},
@@ -13897,7 +14327,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1, _ = g.shortest_path_all_pairs(algorithm="BFS")
             sage: d2, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Cython")
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Python")
-            sage: d1 == d2 == d3
+            sage: d4, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
+            sage: d1 == d2 == d3 == d4
             True
 
         Checking a random path is valid ::
@@ -13917,16 +14348,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.shortest_path_all_pairs(algorithm="Bob")
             Traceback (most recent call last):
             ...
-            ValueError: The algorithm keyword can only be set to "auto", "BFS", "Floyd-Warshall-Python" or "Floyd-Warshall-Cython"
+            ValueError: Algorithm Bob is not implemented.
         """
-        if default_weight != 1:
-            by_weight = True
+        if default_weight != None:
+            deprecation(18938, "Variable default_weight is deprecated: hence," +
+                        " it is ignored. Please, use weight_function, instead.")
 
-        if algorithm == "auto":
-            if by_weight is False:
-                algorithm = "BFS"
-            else:
+        if algorithm == None:
+            if by_weight:
                 algorithm = "Floyd-Warshall-Python"
+            else:
+                algorithm = "BFS"
+
+        if by_weight and algorithm in ['BFS', "Floyd-Warshall-Cython"]:
+            raise ValueError(algorithm + " algorithm does not work with " +
+                             "weights.")
 
         if algorithm == "BFS":
             from sage.graphs.distances_all_pairs import distances_and_predecessors_all_pairs
@@ -13936,14 +14372,31 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.distances_all_pairs import floyd_warshall
             return floyd_warshall(self, distances = True)
 
+        elif algorithm == "Dijkstra_NetworkX":
+            dist = dict()
+            pred = dict()
+            for u in self:
+                paths=self.shortest_paths(u, by_weight=by_weight,
+                                          algorithm=algorithm,
+                                          weight_function=weight_function)
+                dist[u] = {v:self.path_length(p, by_weight=by_weight,
+                                              weight_function=weight_function,
+                                              check_weight=False)
+                           for v,p in paths.iteritems()}
+                pred[u] = {v:None if len(p)<=1 else p[1]
+                           for v,p in paths.iteritems()}
+            return dist, pred
+
         elif algorithm != "Floyd-Warshall-Python":
-            raise ValueError("The algorithm keyword can only be set to "+
-                             "\"auto\","+
-                             " \"BFS\", "+
-                             "\"Floyd-Warshall-Python\" or "+
-                             "\"Floyd-Warshall-Cython\"")
+            raise ValueError("Algorithm " + algorithm + " is not implemented.")
 
         from sage.rings.infinity import Infinity
+        if by_weight:
+            if weight_function is None:
+                weight_function = lambda e:e[2]
+            if check:
+                self.check_weight_function(weight_function)
+
         dist = {}
         pred = {}
         verts = self.vertices()
@@ -13955,11 +14408,7 @@ class GenericGraph(GenericGraph_pyx):
                     if by_weight is False:
                         du[v] = 1
                     else:
-                        edge_label = self.edge_label(u, v)
-                        if edge_label is None or edge_label == {}:
-                            du[v] = default_weight
-                        else:
-                            du[v] = edge_label
+                        du[v] = weight_function((u, v, self.edge_label(u, v)))
                     pu[v] = u
                 else:
                     du[v] = Infinity
@@ -13979,7 +14428,92 @@ class GenericGraph(GenericGraph_pyx):
 
         return dist, pred
 
-    def average_distance(self):
+    def wiener_index(self, by_weight=False, algorithm=None,
+                     weight_function=None, check=True):
+        r"""
+        Returns the Wiener index of the graph.
+
+        The Wiener index of a graph `G` is
+        `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
+        where `d(u,v)` denotes the distance between vertices `u` and `v` (see
+         [KRG96b]_).
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'`` - the computation is done through a BFS centered on each
+            vertex successively. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Cython'`` - through the Cython implementation of
+             the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Python'`` - through the Python implementation of
+            the Floyd-Warshall algorithm. Works also with weighted graphs, even
+            with negative weights (but no negative cycle is allowed).
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX. It works with weighted graphs, but no negative weight is
+            allowed.
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            the graph is unweighted, else ``'Floyd-Warshall-Python'``.
+
+        - ``weight_function`` (function) - used only if ``by_weight==True``. A
+          function that inputs an edge and outputs its weight (if ``None``, a
+          standard weight function is used).
+
+        - ``check`` - if True, we check that the weight_function outputs a
+          number for each edge.
+
+        EXAMPLES::
+
+            sage: G = Graph( { 0: {1: None}, 1: {2: None}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
+            sage: G.wiener_index()
+            15
+            sage: G.wiener_index(by_weight = True, weight_function=lambda e:(e[2] if e[2] is not None else 1))
+            20
+            sage: G.wiener_index(by_weight = True, weight_function=lambda e:(e[2] if e[2] is not None else 200))
+            820
+            sage: G.wiener_index(algorithm='BFS')
+            15
+            sage: G.wiener_index(algorithm='Floyd-Warshall-Cython')
+            15
+            sage: G.wiener_index(algorithm='Floyd-Warshall-Python')
+            15
+            sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
+            15
+
+        REFERENCE:
+
+        .. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
+        Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49,
+        1996.
+        """
+        if self.order() < 2:
+            raise ValueError("The graph must have at least two vertices for this value to be defined")
+
+        if algorithm=='BFS' or (algorithm is None and not by_weight):
+            from distances_all_pairs import wiener_index
+            return wiener_index(self)
+
+        if not self.is_connected():
+            from sage.rings.infinity import Infinity
+            return Infinity
+
+        distances = self.shortest_path_all_pairs(by_weight=by_weight,
+                    algorithm=algorithm, weight_function=weight_function,
+                    check=check)[0]
+        total = 0
+        for u in distances.values():
+            total = total + sum(u.values())
+
+        return total / 2
+
+    def average_distance(self, by_weight=False, algorithm=None,
+                         weight_function=None):
         r"""
         Returns the average distance between vertices of the graph.
 
@@ -13987,6 +14521,33 @@ class GenericGraph(GenericGraph_pyx):
         `\frac 1 {n(n-1)} \sum_{u,v\in G} d(u,v)` where `d(u,v)`
         denotes the distance between vertices `u` and `v` and `n`
         is the number of vertices in `G`.
+
+        INPUT:
+
+        - ``by_weight`` - if ``True``, the graph is considered weighted.
+
+        - ``algorithm`` - one of the following algorithms:
+
+          - ``'BFS'`` - the computation is done through a BFS centered on each
+            vertex successively. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Cython'`` - through the Cython implementation of
+             the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+
+          - ``'Floyd-Warshall-Python'`` - through the Python implementation of
+            the Floyd-Warshall algorithm. Works also with weighted graphs, even
+            with negative weights (but no negative cycle is allowed).
+
+          - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
+            NetworkX. It works with weighted graphs, but no negative weight is
+            allowed.
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            the graph is unweighted, else ``'Floyd-Warshall-Python'``.
+
+        - ``weight_function`` (function) - used only if ``by_weight==True``. A
+          function that inputs an edge and outputs its weight (if ``None``, a
+          standard weight function is used).
 
         EXAMPLE:
 
@@ -14014,7 +14575,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() < 2:
             raise ValueError("The graph must have at least two vertices for this value to be defined")
 
-        return Integer(self.wiener_index())/Integer((self.order()*(self.order()-1))/2)
+        return 2 * self.wiener_index() / (self.order()*(self.order()-1))
 
     def szeged_index(self):
         r"""
@@ -18935,8 +19496,6 @@ import types
 
 import sage.graphs.distances_all_pairs
 GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
-GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
-GenericGraph.diameter = types.MethodType(sage.graphs.distances_all_pairs.diameter, None, GenericGraph)
 
 from sage.graphs.base.boost_graph import dominator_tree
 GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)

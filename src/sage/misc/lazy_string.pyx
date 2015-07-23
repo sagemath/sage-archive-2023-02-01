@@ -193,7 +193,7 @@ cdef class _LazyString(object):
 
     """
 
-    def __init__(self, f, tuple args, dict kwargs):
+    def __init__(self, f, args, kwargs):
         """
         INPUT:
 
@@ -213,8 +213,8 @@ cdef class _LazyString(object):
             l'This is Integer Ring'
         """
         self.func = f
-        self.args = args
-        self.kwargs = kwargs
+        self.args = <tuple?>args
+        self.kwargs = <dict?>kwargs
 
     property value:
         def __get__(self):
@@ -489,7 +489,7 @@ cdef class _LazyString(object):
         except Exception:
             return '<%s broken>' % self.__class__.__name__
 
-    cpdef update_lazy_string(self, tuple args, dict kwds):
+    cpdef update_lazy_string(self, args, kwds):
         """
         Change this lazy string in-place.
 
@@ -520,5 +520,5 @@ cdef class _LazyString(object):
             l"unsupported operand parent(s) for '+': 'Finite Field of size 3' and 'Finite Field of size 5'"
 
         """
-        self.args = args
-        self.kwargs = kwds
+        self.args = <tuple?>args
+        self.kwargs = <dict?>kwds

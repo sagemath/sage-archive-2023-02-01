@@ -1504,6 +1504,17 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert w^7.
+
+        ::
+
+            sage: P('x^7')
+            x^7
+            sage: P('1/x')
+            1/x
+            sage: P('x^(-2)')
+            x^(-2)
+            sage: P('x^-2')
+            x^(-2)
         """
         if data == 1:
             return self.base().zero()
@@ -1513,7 +1524,17 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         try:
             P = data.parent()
         except AttributeError:
-            return  # this has to end here
+            if self._var_ not in str(data):
+                return  # this has to end here
+
+            elif str(data) == '1/' + self._var_:
+                return self.base()(-1)
+            elif str(data).startswith(self._var_ + '^'):
+                return self.base()(str(data).replace(self._var_ + '^', '')
+                                   .replace('(', '').replace(')', ''))
+            else:
+                return  # end of parsing
+
 
         from sage.symbolic.ring import SR
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general

@@ -53,6 +53,33 @@ AUTHORS:
 
     This notation will also be extended to *Exponential growth
     groups*.
+
+EXAMPLES::
+
+    sage: import sage.groups.asymptotic_growth_group as agg
+    sage: G_x = agg.GrowthGroup('x^ZZ'); G_x._repr_long_()
+    'Monomial Growth Group in x over Integer Ring'
+    sage: G_xy = agg.GrowthGroup('x^ZZ * y^ZZ'); G_xy
+    Growth Group x^ZZ * y^ZZ
+    sage: G_xy.an_element()
+    x * y
+    sage: x = G_xy('x'); y = G_xy('y')
+    sage: elem = x^21 * y^21; elem^2
+    x^42 * y^42
+
+A monomial growth group itself is totally ordered, all elements
+are comparable. However, this does **not** hold for cartesian
+products::
+
+    sage: e1 = x^2 * y; e2 = x * y^2
+    sage: e1 <= e2 or e2 <= e1
+    False
+
+In terms of uniqueness, the order of factors in the cartesian
+product matters::
+
+    sage: agg.GrowthGroup('x^ZZ * y^ZZ') is agg.GrowthGroup('y^ZZ * x^ZZ')
+    False
 """
 
 #*****************************************************************************

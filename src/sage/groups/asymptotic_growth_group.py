@@ -1647,6 +1647,16 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         'Monomial Growth Group in x over Integer Ring'
         sage: agg.GrowthGroup('log(x)^QQ')._repr_long_()
         'Monomial Growth Group in log(x) over Rational Field'
+
+    This factory can also be used to construct Cartesian products
+    of growth groups::
+
+        sage: agg.GrowthGroup('x^ZZ * y^ZZ')
+        Growth Group x^ZZ * y^ZZ
+        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ')
+        Growth Group x^ZZ * log(x)^ZZ
+        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
+        Growth Group x^ZZ * log(x)^ZZ * y^QQ
     """
     def create_key_and_extra_args(self, rep, **kwds):
         r"""
@@ -1689,12 +1699,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
         rep, = key
         factors_rep = rep.split(' * ')
-
-        if len(factors_rep) > 1:
-            raise NotImplementedError('Cartesian product of growth groups not '
-                                      'yet implemented')
-        # note: implementation already for cartesian products!
         factors = []
+
         for factor in factors_rep:
             sp = factor.split('^')
             if len(sp) != 2:
@@ -1717,10 +1723,37 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                                      "representation" % factor)
             factors.append(G)
 
-        # todo: factors --> lists with factors over same variable.
-        return factors[0]
+        if len(factors) == 1:
+            return factors[0]
 
+        # otherwise, a cartesian product is created. the growth elements
+        # in this products are
+        # - ordered lexicographically (over the same variable (or a
+        #   function thereof)
+        # - ordered component-wise (for different variables)
 
+        if len(set(factors)) != len(factors):
+            raise ValueError('The cartesian product of equal growth '
+                             'groups is not supported')
+
+        hom_var_groups = []
+        mon_vars = []
+        for factor in factors:
+            var = factor._var_
+            if not mon_vars or mon_vars[-1] not in var or '(' + mon_vars[-1] + ')' not in var:
+                mon_vars.append(var)
+                hom_var_groups.append([factor])
+            else:
+                hom_var_groups[-1].append(factor)
+
+        from sage.categories.cartesian_product import cartesian_product
+        for k in range(len(hom_var_groups)):
+            if len(hom_var_groups[k]) > 1:
+                hom_var_groups[k] = cartesian_product(hom_var_groups[k],
+                                                      order='lex')
+            else:
+                hom_var_groups[k] = hom_var_groups[k][0]
+
+        return cartesian_product(hom_var_groups, order='components')
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")
-

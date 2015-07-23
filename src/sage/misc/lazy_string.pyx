@@ -212,16 +212,16 @@ cdef class _LazyString(object):
             sage: lazy_string("This is %s", ZZ)
             l'This is Integer Ring'
         """
-        self._func = f
-        self._args = args
-        self._kwargs = kwargs
+        self.func = f
+        self.args = args
+        self.kwargs = kwargs
 
     property value:
         def __get__(self):
-            cdef object f=self._func
+            cdef object f=self.func
             if PyString_Check(f):
-                return f%self._args
-            return PyObject_Call(self._func, self._args, self._kwargs)
+                return f%self.args
+            return PyObject_Call(f, self.args, self.kwargs)
 
     def __contains__(self, key):
         """
@@ -451,14 +451,14 @@ cdef class _LazyString(object):
             sage: s = lazy_string(f)
             sage: TestSuite(s).run() # indirect doctest
         """
-        if isinstance(self._func, types.FunctionType):
+        if isinstance(self.func, types.FunctionType):
             from sage.misc.fpickle import pickle_function
-            f = pickle_function(self._func)
+            f = pickle_function(self.func)
             ftype = 'func'
         else:
-            f = self._func
+            f = self.func
             ftype = None
-        return _make_lazy_string, (ftype, f, self._args, self._kwargs)
+        return _make_lazy_string, (ftype, f, self.args, self.kwargs)
 
     def __getitem__(self, key):
         """
@@ -530,5 +530,5 @@ cdef class _LazyString(object):
             l"unsupported operand parent(s) for '+': 'Finite Field of size 3' and 'Finite Field of size 5'"
 
         """
-        self._args = args
-        self._kwargs = kwds
+        self.args = args
+        self.kwargs = kwds

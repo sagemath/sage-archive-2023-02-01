@@ -577,11 +577,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
         self.diagram_func = diagram_func
-<<<<<<< HEAD
-        self.order = order, 
-=======
         self.order = order
->>>>>>> t/18762/create_coercion_between_diagram_algebras_and_the_symmetric_group_algebra
 
     def __iter__(self):
         r"""

@@ -231,7 +231,10 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
                 'x^(1/2) * log(x)'
             """
-            return ' * '.join(repr(v) for v in self.value)
+            s = ' * '.join(repr(v) for v in self.value if not v.is_one())
+            if s == '':
+                return '1'
+            return s
 
 
 CartesianProductGrowthGroups.CartesianProduct = CartesianProductGrowthGroups

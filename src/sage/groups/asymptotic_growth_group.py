@@ -7,8 +7,7 @@ Beside an abstract base class :class:`GenericGrowthGroup`, this module contains 
 
 - :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
 
-More complex growth groups can be constructed via cartesian products
-(to be implemented).
+More complex growth groups can be constructed via cartesian products.
 
 These growth groups are used behind the scenes when performing
 calculations in an asymptotic ring (to be implemented).
@@ -37,6 +36,23 @@ AUTHORS:
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17600 for details.
         x^ZZ
+
+
+.. NOTE::
+
+    By using the following short notation for growth groups, their
+    creation is very simple: *Monomial growth groups* (i.e. the
+    group for powers of a fixed symbol;
+    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)
+    are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
+    the group of integer powers of `x`, and the group of rational
+    powers of `y`, respectively.
+
+    This also enables us to construct *logarithmic growth groups*,
+    e.g. ``log(x)^ZZ``.
+
+    This notation will also be extended to *Exponential growth
+    groups*.
 """
 
 #*****************************************************************************

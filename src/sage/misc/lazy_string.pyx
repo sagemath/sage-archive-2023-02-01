@@ -103,9 +103,9 @@ def lazy_string(f, *args, **kwargs):
     needed, and that the result is not cached::
 
         sage: class C:
-        ...     def __repr__(self):
-        ...         print "determining string representation"
-        ...         return "a test"
+        ....:     def __repr__(self):
+        ....:         print "determining string representation"
+        ....:         return "a test"
         sage: c = C()
         sage: s = lazy_string("this is %s", c)
         sage: s
@@ -176,9 +176,9 @@ cdef class _LazyString(object):
     without calling :func:`lazy_string`::
 
         sage: class C:
-        ...     def __repr__(self):
-        ...         print "determining string representation"
-        ...         return "a test"
+        ....:     def __repr__(self):
+        ....:         print "determining string representation"
+        ....:         return "a test"
         sage: c = C()
         sage: s = _LazyString("this is %s", (c,), {})
         sage: s

@@ -29,8 +29,8 @@ class LazyFormat(str):
     ``__repr__`` method::
 
         sage: class IDontLikeBeingPrinted(object):
-        ...    def __repr__(self):
-        ...        raise ValueError("Don't ever try to print me !")
+        ....:     def __repr__(self):
+        ....:         raise ValueError("Don't ever try to print me !")
 
     There is no error when binding a lazy format with the broken object::
 
@@ -52,14 +52,14 @@ class LazyFormat(str):
     messages in :mod:`unittest` or :class:`TestSuite` executions::
 
         sage: QQ._tester().assertTrue(0 in QQ,
-        ...                "%s doesn't contain 0"%QQ)
+        ....:                "%s doesn't contain 0"%QQ)
 
     In the above ``QQ.__repr__()`` has been called, and the result
     immediately discarded. To demonstrate this we replace ``QQ`` in
     the format string argument with our broken object::
 
         sage: QQ._tester().assertTrue(True,
-        ...                "%s doesn't contain 0"%IDontLikeBeingPrinted())
+        ....:                "%s doesn't contain 0"%IDontLikeBeingPrinted())
         Traceback (most recent call last):
         ...
         ValueError: Don't ever try to print me !
@@ -72,9 +72,9 @@ class LazyFormat(str):
     We now check that :class:`LazyFormat` indeed solves the assertion problem::
 
         sage: QQ._tester().assertTrue(True,
-        ...               LazyFormat("%s is wrong")%IDontLikeBeingPrinted())
+        ....:               LazyFormat("%s is wrong")%IDontLikeBeingPrinted())
         sage: QQ._tester().assertTrue(False,
-        ...               LazyFormat("%s is wrong")%IDontLikeBeingPrinted())
+        ....:               LazyFormat("%s is wrong")%IDontLikeBeingPrinted())
         Traceback (most recent call last):
         ...
         AssertionError: <unprintable AssertionError object>

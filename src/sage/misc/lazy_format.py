@@ -7,6 +7,10 @@ class LazyFormat(str):
     """
     Lazy format strings
 
+    .. NOTE::
+
+        We recommend to use :func:`sage.misc.lazy_string.lazy_string` instead,
+        which is both faster and more flexible.
 
     An instance of :class:`LazyFormat` behaves like a usual format
     string, except that the evaluation of the ``__repr__`` method of

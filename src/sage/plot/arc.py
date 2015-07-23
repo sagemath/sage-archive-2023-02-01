@@ -235,6 +235,48 @@ class Arc(GraphicPrimitive):
                 "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
                 "respectively."}
 
+    def _matplotlib_arc(self):
+        """
+        Return ``self`` as a matplotlib arc object.
+
+        EXAMPLES::
+
+            sage: from sage.plot.arc import Arc
+            sage: Arc(2,3,2.2,2.2,0,2,3,{})._matplotlib_arc()
+            <matplotlib.patches.Arc object at ...>
+        """
+        import matplotlib.patches as patches
+        p = patches.Arc(
+                (self.x, self.y),
+                2. * self.r1,
+                2. * self.r2,
+                fmod(self.angle, 2 * pi) * (180. / pi),
+                self.s1 * (180. / pi),
+                self.s2 * (180. / pi))
+        return p
+
+    def bezier_path(self):
+        """
+        Return ``self`` as a Bezier path.
+
+        This is useful to concatenate arcs, in particular to
+        create hyperbolic polygons.
+        
+        EXAMPLES::
+
+            sage: from sage.plot.arc import Arc
+            sage: Arc(2,3,2.2,2.2,0,2,3,{}).bezier_path()
+            Graphics object consisting of 1 graphics primitive
+        """
+        from sage.plot.bezier_path import bezier_path
+        points = [list(u) for u in self._matplotlib_arc()._path.vertices]
+        cutlist = [points[0: 4]]
+        N = 4
+        while N < len(points):
+            cutlist += [points[N: N + 3]]
+            N += 3
+        return bezier_path(cutlist)
+
     def _repr_(self):
         """
         String representation of ``Arc`` primitive.
@@ -254,26 +296,19 @@ class Arc(GraphicPrimitive):
             sage: A = arc((1,1),3,4,pi/4,(pi,4*pi/3)); A
             Graphics object consisting of 1 graphics primitive
         """
-        import matplotlib.patches as patches
         from sage.plot.misc import get_matplotlib_linestyle
-
 
         options = self.options()
 
-        p = patches.Arc(
-                (self.x,self.y),
-                2.*self.r1,
-                2.*self.r2,
-                fmod(self.angle,2*pi)*(180./pi),
-                self.s1*(180./pi),
-                self.s2*(180./pi))
+        p = self._matplotlib_arc()
         p.set_linewidth(float(options['thickness']))
         a = float(options['alpha'])
         p.set_alpha(a)
-        z = int(options.pop('zorder',1))
+        z = int(options.pop('zorder', 1))
         p.set_zorder(z)
         c = to_mpl_color(options['rgbcolor'])
-        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],
+                                                 return_type='long'))
         p.set_edgecolor(c)
         subplot.add_patch(p)
 

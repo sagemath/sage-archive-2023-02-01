@@ -18,7 +18,7 @@ AUTHORS:
 - Benjamin Hackl (2015-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
 - Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07): short representation strings
+- Benjamin Hackl (2015-07): growth group factory
 
 .. WARNING::
 

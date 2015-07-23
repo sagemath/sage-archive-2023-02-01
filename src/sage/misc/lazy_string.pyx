@@ -221,7 +221,7 @@ cdef class _LazyString(object):
             cdef object f=self._func
             if PyString_Check(f):
                 return f%self._args
-            return self._func(*self._args, **self._kwargs)
+            return PyObject_Call(self._func, self._args, self._kwargs)
 
     def __contains__(self, key):
         """

@@ -62,7 +62,7 @@ Note that the function is recomputed each time::
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-include "sage/ext/python.pxi"
+from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
 import types
 
@@ -211,17 +211,38 @@ cdef class _LazyString(object):
             l'laziness5'
             sage: lazy_string("This is %s", ZZ)
             l'This is Integer Ring'
+            sage: lazy_string(u"This is %s", ZZ)
+            lu'This is Integer Ring'
         """
         self.func = f
         self.args = <tuple?>args
         self.kwargs = <dict?>kwargs
 
+    cdef value(self):
+        cdef f = self.func
+        if isinstance(f, basestring):
+            return f % self.args
+        return PyObject_Call(f, self.args, self.kwargs)
+
     property value:
         def __get__(self):
-            cdef object f=self.func
-            if PyString_Check(f):
-                return f%self.args
-            return PyObject_Call(f, self.args, self.kwargs)
+            """
+            Return the value of this lazy string, as an ordinary string.
+
+            EXAMPLES::
+
+                sage: from sage.misc.lazy_string import lazy_string
+                sage: f = lambda: "laziness"
+                sage: lazy_string(f).value
+                'laziness'
+
+            ::
+
+                sage: from sage.misc.lazy_string import lazy_string
+                sage: lazy_string("%s", "laziness").value
+                'laziness'
+            """
+            return self.value()
 
     def __contains__(self, key):
         """
@@ -235,7 +256,7 @@ cdef class _LazyString(object):
             sage: 'ni' in s
             False
         """
-        return key in self.value
+        return key in self.value()
 
     def __nonzero__(self):
         """
@@ -249,7 +270,7 @@ cdef class _LazyString(object):
             sage: bool(lazy_string(f))
             False
         """
-        return bool(self.value)
+        return bool(self.value())
 
     def __dir__(self):
         """
@@ -276,7 +297,7 @@ cdef class _LazyString(object):
             sage: "".join(list(s)) # indirect doctest
             'laziness'
         """
-        return iter(self.value)
+        return iter(self.value())
 
     def __len__(self):
         """
@@ -288,7 +309,7 @@ cdef class _LazyString(object):
             sage: len(s)
             8
         """
-        return len(self.value)
+        return len(self.value())
 
     def __str__(self):
         """
@@ -300,7 +321,7 @@ cdef class _LazyString(object):
             sage: str(s) # indirect doctest
             'laziness'
         """
-        return str(self.value)
+        return str(self.value())
 
     def __unicode__(self):
         """
@@ -312,7 +333,7 @@ cdef class _LazyString(object):
             sage: unicode(s) # indirect doctest
             u'laziness'
         """
-        return unicode(self.value)
+        return unicode(self.value())
 
     def __add__(self, other):
         """
@@ -324,9 +345,10 @@ cdef class _LazyString(object):
             sage: s + " supreme"
             'laziness supreme'
         """
-        if isinstance(self,_LazyString):
-            return self.value + other
-        return self + (<_LazyString>other).value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() + other
+        else:
+            return self + (<_LazyString>other).value()
 
     def __mod__(self, other):
         """
@@ -337,20 +359,16 @@ cdef class _LazyString(object):
             sage: s = lazy_string(f)
             sage: s % "ine"
             'laziness'
-        """
-        return self.value % other
-
-    def __rmod__(self, other):
-        """
-        EXAMPLES::
-
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda: "ine"
             sage: s = lazy_string(f)
             sage: "laz%sss" % s
             'laziness'
         """
-        return other % self.value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() % other
+        else:
+            return self % (<_LazyString>other).value()
 
     def __mul__(self, other):
         """
@@ -361,12 +379,15 @@ cdef class _LazyString(object):
             sage: s = lazy_string(f)
             sage: s * 2
             'lazinesslaziness'
+            sage: 2 * s
+            'lazinesslaziness'
         """
-        if isinstance(self,_LazyString):
-            return self.value * other
-        return self * (<_LazyString>other).value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() * other
+        else:
+            return self * (<_LazyString>other).value()
 
-    def __richcmp__(self, other, int v):
+    def __richcmp__(self, other, int op):
         """
         EXAMPLES::
 
@@ -410,7 +431,8 @@ cdef class _LazyString(object):
             sage: s >= s
             True
         """
-        return PyObject_RichCompare(self.value, other, v)
+        self = (<_LazyString?>self).value()
+        return PyObject_RichCompare(self, other, op)
 
     def __getattr__(self, name):
         """
@@ -428,7 +450,7 @@ cdef class _LazyString(object):
         """
         if name == '__members__':
             return self.__dir__()
-        return getattr(self.value, name)
+        return getattr(self.value(), name)
 
     def __reduce__(self):
         """
@@ -460,7 +482,7 @@ cdef class _LazyString(object):
             sage: s[4]
             'n'
         """
-        return self.value[key]
+        return self.value()[key]
 
     def __copy__(self):
         """
@@ -485,7 +507,7 @@ cdef class _LazyString(object):
             l'laziness'
         """
         try:
-            return 'l' + repr(self.value)
+            return 'l' + repr(self.value())
         except Exception:
             return '<%s broken>' % self.__class__.__name__
 
@@ -519,6 +541,12 @@ cdef class _LazyString(object):
             sage: D
             l"unsupported operand parent(s) for '+': 'Finite Field of size 3' and 'Finite Field of size 5'"
 
+        TESTS::
+
+            sage: D.update_lazy_string(None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Expected tuple, got NoneType
         """
         self.args = <tuple?>args
         self.kwargs = <dict?>kwds

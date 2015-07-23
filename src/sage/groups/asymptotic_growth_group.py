@@ -179,6 +179,74 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
     """
 
+    def _element_constructor_(self, data):
+        r"""
+        Converts the given object to an element of this cartesian
+        product.
+
+        TESTS::
+
+            sage: from sage.groups.asymptotic_growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * y^ZZ')
+            sage: G_log = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
+
+        Conversion from the symbolic ring works::
+
+            sage: x,y = var('x y')
+            sage: G(x^-3 * y^2)
+            x^(-3) * y^2
+            sage: G(x^4), G(y^2)
+            (x^4, y^2)
+            sage: G(1)
+            1
+
+        Even more complex expressions can be parsed::
+
+            sage: G_log(x^42 * log(x)^-42 * y^42)
+            x^42 * log(x)^(-42) * y^42
+        """
+        if data == 1:
+            return self.one()
+
+        if isinstance(data, list):
+            try:
+                obj = super(CartesianProductGrowthGroups,
+                            self)._element_constructor_(data)
+                return obj
+            except ValueError:
+                factors = self.cartesian_factors()
+                one = self.one().value
+                for k in range(len(data)):
+                    for l in range(len(factors)):
+                        try:
+                            conv_data = factors[l](data[k])
+                            data[k] = self([one[j] if j != l else conv_data
+                                            for j in range(len(one))])
+                            break
+                        except (ValueError, TypeError):
+                            continue
+                return self.prod(data)
+
+
+        if hasattr(data, 'parent'):
+            if data.parent() is self:
+                return data
+
+            elif data.parent() is sage.symbolic.ring.SR:
+                import operator
+                from sage.symbolic.operators import mul_vararg
+                if data.operator() == operator.pow or data.is_symbol():
+                    return self([data])
+                elif data.operator() == mul_vararg:
+                    return self(data.operands())
+            # room for other parents (e.g. polynomial ring et al.)
+
+        # final attempt: try to parse the representation string
+        else:
+            str_lst = repr(data).replace(' ', '').split('*')
+            return self(str_lst)
+
+
     def _repr_(self):
         r"""
         A representation string for this cartesian product of growth groups.

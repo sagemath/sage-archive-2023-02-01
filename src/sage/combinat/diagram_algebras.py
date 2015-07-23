@@ -577,7 +577,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
         self.diagram_func = diagram_func
-        self.order = orderda.partition_diagrams, 
+        self.order = order, 
 
     def __iter__(self):
         r"""

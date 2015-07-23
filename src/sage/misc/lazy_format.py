@@ -1,7 +1,6 @@
 """
 Lazy format strings
 """
-from copy import copy
 
 class LazyFormat(str):
     """
@@ -88,14 +87,14 @@ class LazyFormat(str):
         EXAMPLES::
 
             sage: from sage.misc.lazy_format import LazyFormat
-            sage: form = LazyFormat("<%s>");
+            sage: form = LazyFormat("<%s>")
             sage: form
             unbound LazyFormat("<%s>")
             sage: form%"params"
             <params>
         """
         if hasattr(self, "_args"): # self is already bound...
-            self = copy(self)
+            self = LazyFormat(""+self)
         self._args = args
         return self
 

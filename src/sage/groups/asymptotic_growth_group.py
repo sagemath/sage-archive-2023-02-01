@@ -184,7 +184,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         Converts the given object to an element of this cartesian
         product.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.groups.asymptotic_growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ * y^ZZ')
@@ -204,6 +204,12 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
             sage: G_log(x^42 * log(x)^-42 * y^42)
             x^42 * log(x)^(-42) * y^42
+
+        TESTS::
+
+            sage: G = GrowthGroup('x^ZZ * y^ZZ')
+            sage: G('x'), G('y')
+            (x, y)
         """
         if data == 1:
             return self.one()
@@ -243,7 +249,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         # final attempt: try to parse the representation string
         else:
-            str_lst = repr(data).replace(' ', '').split('*')
+            str_lst = str(data).replace(' ', '').split('*')
             return self(str_lst)
 
 

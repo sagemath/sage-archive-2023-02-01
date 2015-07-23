@@ -1445,15 +1445,17 @@ end_scene""" % (render_params.antialiasing,
         """
         Save the graphic in a file.
 
-        The file type is depending on the file extension you give the
+        The file type depends on the file extension you give in the
         filename. This can be either:
 
         - an image file (of type: PNG, BMP, GIF, PPM, or TIFF) rendered
           using Tachyon,
 
-        - a Sage object file (of type ``.sobj``) that you can load back later,
+        - a Sage object file (of type ``.sobj``) that you can load back later
+          (a pickle),
 
-        - a data file (of type: X3D, STL, AMF, PLY) for use in other software.
+        - a data file (of type: X3D, STL, AMF, PLY) for export and use in
+          other software.
 
         For data files, the support is only partial. For instance STL and
         AMF only works for triangulated surfaces. The prefered format is X3D.
@@ -1471,7 +1473,7 @@ end_scene""" % (render_params.antialiasing,
 
         EXAMPLES::
 
-            sage: f = tmp_filename() + '.png'
+            sage: f = tmp_filename(ext='.png')
             sage: G = sphere()
             sage: G.save(f)
 
@@ -1489,6 +1491,14 @@ end_scene""" % (render_params.antialiasing,
         alternate formats::
 
             sage: cube().save(tmp_filename(ext='.gif'))
+
+        Here is how to save in one of the data formats::
+
+            sage: f = tmp_filename(ext='.x3d')
+            sage: cube().save(f)
+
+            sage: open(f).read().splitlines()[7]
+            "<Shape><Box size='0.5 0.5 0.5'/><Appearance><Material diffuseColor='0.4 0.4 1.0' shininess='1.0' specularColor='0.0 0.0 0.0'/></Appearance></Shape>"
         """
         ext = os.path.splitext(filename)[1].lower()
         if ext == '' or ext == '.sobj':
@@ -1523,11 +1533,13 @@ end_scene""" % (render_params.antialiasing,
         """
         Return an STL (STereoLithography) representation of the surface.
 
-        This only works for triangulated surfaces!
+        .. WARNING::
+
+            This only works for triangulated surfaces!
 
         INPUT:
 
-        - name (string, default: "surface") -- name of the surface.
+        - ``name`` (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1599,7 +1611,7 @@ end_scene""" % (render_params.antialiasing,
 
         INPUT:
 
-        - name (string, default: "surface") -- name of the surface.
+        - ``name`` (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 
@@ -1663,11 +1675,13 @@ end_scene""" % (render_params.antialiasing,
         Return an AMF (Additive Manufacturing File Format) representation of
         the surface.
 
-        This only works for triangulated surfaces!
+        .. WARNING::
+
+            This only works for triangulated surfaces!
 
         INPUT:
 
-        - name (string, default: "surface") -- name of the surface.
+        - ``name`` (string, default: "surface") -- name of the surface.
 
         OUTPUT:
 

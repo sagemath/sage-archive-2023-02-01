@@ -410,17 +410,7 @@ cdef class _LazyString(object):
             sage: s >= s
             True
         """
-        if v==2:
-            return self.value == other
-        if v==3:
-            return self.value != other
-        if v==0:
-            return self.value < other
-        if v==4:
-            return self.value > other
-        if v==1:
-            return self.value <= other
-        return self.value >= other
+        return PyObject_RichCompare(self.value, other, v)
 
     def __getattr__(self, name):
         """

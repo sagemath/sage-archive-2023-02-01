@@ -7,14 +7,14 @@ for use in doc-strings.
 {INDEX_OF_FUNCTIONS}
 
 """
-def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
+def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
     r"""
     Return a ReST table describing a list of functions.
 
     The list of functions can either be given explicitly, or implicitly as the
     functions/methods of a module or class.
 
-    In the case of a class, only static non-inherited methods are listed.
+    In the case of a class, only non-inherited methods are listed.
 
     INPUT:
 
@@ -22,16 +22,16 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
       a list of functions, the generated table will consist of these. If given a
       module, all functions implemented in that module will be listed, except
       deprecated ones or those starting with an underscore. If a class is given,
-      all non-inherited static methods of that class will be listed, except
-      deprecated ones or those starting with an underscore.
+      all non-inherited methods of that class will be listed, except deprecated
+      ones or those starting with an underscore.
 
     - ``sort`` (boolean; ``True``) -- whether to sort the list of methods
       lexicographically.
 
-    - ``only_local`` (boolean; ``True``) -- if ``list_of_entries`` is a module,
-      ``only_local = True`` means that imported functions will be filtered out.
-      This can be useful to disable for making indexes of e.g. catalog modules
-      such as ``sage.coding.codes_catalog``.
+    - ``only_local_functions`` (boolean; ``True``) -- if ``list_of_entries`` is
+      a module, ``only_local_functions = True`` means that imported functions
+      will be filtered out. This can be useful to disable for making indexes of
+      e.g. catalog modules such as ``sage.coding.codes_catalog``.
 
     EXAMPLE::
 
@@ -77,16 +77,16 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
         sage: A < B
         True
 
-    When only_local is False, don't include gen_rest_table_index itself::
+    When only_local_functions is False, don't include gen_rest_table_index itself::
 
-        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local=True)
+        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=True)
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
            :delim: |
         <BLANKLINE>
            :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` | Return a ReST table describing a list of functions...
-        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local=False)
+        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=False)
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
@@ -98,17 +98,16 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
     import inspect
 
         
-        
     # If input is a class/module, we list all its non-private and methods/functions
     if (inspect.isclass(list_of_entries) or
         inspect.ismodule(list_of_entries)):
         root = list_of_entries
         def local_filter(f,name):
             module = inspect.getmodule(f)
-            if only_local:
+            if only_local_functions:
                 return inspect.getmodule(root) == module
             else:
-                return inspect.isclass(list_of_entries) or module.__name__ != "sage.misc.rest_index_of_methods"
+                return inspect.isclass(list_of_entries) or not (f is gen_rest_table_index)
         list_of_entries = [getattr(root,name) for name,f in root.__dict__.items() if
                            (not name.startswith('_')     and # private functions
                             not hasattr(f,'trac_number') and # deprecated functions

@@ -9,8 +9,10 @@ for use in doc-strings.
 """
 def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
     r"""
-    Return a ReST table describing a list of functions, either given explicitly
-    or implicitly as the functions/methods of a module or class.
+    Return a ReST table describing a list of functions.
+
+    The list of functions can either be given explicitly, or implicitly as the
+    functions/methods of a module or class.
 
     In the case of a class, only static non-inherited methods are listed.
 
@@ -29,7 +31,7 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
     - ``only_local`` (boolean; ``True``) -- if ``list_of_entries`` is a module,
        ``only_local = True`` means that imported functions will be filtered out.
        This can be useful to disable for making indexes of e.g. catalog modules
-       such as `sage.coding.codes_catalog`.
+       such as ``sage.coding.codes_catalog``.
 
     EXAMPLE::
 
@@ -106,7 +108,7 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
             if only_local:
                 return inspect.getmodule(root) == module
             else:
-                return module.__name__ != "sage.misc.rest_index_of_methods"
+                return inspect.isclass(list_of_entries) or module.__name__ != "sage.misc.rest_index_of_methods"
         list_of_entries = [getattr(root,name) for name,f in root.__dict__.items() if
                            (not name.startswith('_')     and # private functions
                             not hasattr(f,'trac_number') and # deprecated functions

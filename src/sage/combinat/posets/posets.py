@@ -3435,51 +3435,47 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def chains(self, element_constructor=__builtin__.list, exclude=None):
         """
-        Return all the chains of ``self``.
+        Return the chains of the poset.
+
+        A *chain* of a poset is a set of elements of the poset
+        that are pairwise comparable.
 
         INPUT:
 
         - ``element_constructor`` -- a function taking an iterable as
-           argument (default: ``list``)
+          argument (default: ``list``)
 
         - ``exclude`` -- elements of the poset to be excluded
           (default: ``None``)
 
         OUTPUT:
 
-        The enumerated set of all chains of ``self``, each of which
-        is given as an ``element_constructor``.
-
-        A *chain* of a poset is a set of elements of the poset
-        that are pairwise comparable.
+        The enumerated set (of type
+        :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`)
+        of all chains of the poset, each of which is given as an
+        ``element_constructor``.
 
         EXAMPLES::
 
-            sage: A = Posets.PentagonPoset().chains(); A
+            sage: C = Posets.PentagonPoset().chains(); C
             Set of chains of Finite lattice containing 5 elements
-            sage: list(A)
+            sage: list(C)
             [[], [0], [0, 1], [0, 1, 4], [0, 2], [0, 2, 3], [0, 2, 3, 4], [0, 2, 4], [0, 3], [0, 3, 4], [0, 4], [1], [1, 4], [2], [2, 3], [2, 3, 4], [2, 4], [3], [3, 4], [4]]
 
-        To get the chains of a given size one can currently use::
-
-            sage: list(A.elements_of_depth_iterator(2))
-            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
-
-        For bounded posets, one can exclude the bounds as follows::
-
-            sage: P = Posets.DiamondPoset(5)
-            sage: list(P.chains(exclude=[0, 4]))
-            [[], [1], [2], [3]]
-
-        Another example of exclusion of vertices::
+        Exclusion of vertices, tuple (instead of list) as constructor::
 
             sage: P = Poset({1: [2, 3], 2: [4], 3: [4, 5]})
             sage: list(P.chains(element_constructor=tuple, exclude=[3]))
             [(), (1,), (1, 2), (1, 2, 4), (1, 4), (1, 5), (2,), (2, 4), (4,), (5,)]
 
+        To get the chains of a given size one can currently use::
+
+            sage: list(C.elements_of_depth_iterator(2))
+            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
+
         Eventually the following syntax will be accepted::
 
-            sage: A.subset(size = 2) # todo: not implemented
+            sage: C.subset(size = 2) # todo: not implemented
 
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`antichains`
         """

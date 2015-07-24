@@ -2668,7 +2668,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             return self.dual()._is_3connected_shifting(certificate)
         
         # the partial matrix
-        (M,X,Y) = self.representation(reduced=True)
+        M2 = self._reduced_representation()
+        M = M2._matrix_()
+        X, Y = self._current_rows_cols()
+
         # create mapping between elements and columns
         dX = dict(zip(range(len(X)),X))
         dY = dict(zip(range(len(Y)),Y))
@@ -2678,7 +2681,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             P_cols=[y]
             Q_rows=[]
             Q_cols=[]
-            sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 2)
+            sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 2)
             if sol:
                 if certificate:
                     cert = set([])
@@ -2733,7 +2736,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             return self._is_3connected_shifting(certificate)
 
         # the partial matrix
-        (M,X,Y) = self.representation(reduced=True)
+        M2 = self._reduced_representation()
+        M = M2._matrix_()
+        X, Y = self._current_rows_cols()
+
         dX = dict(zip(range(len(X)),X))
         dY = dict(zip(range(len(Y)),Y))
         n = len(X)
@@ -2771,15 +2777,18 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 P_cols = [y,y1]
                 Q_rows = []
                 Q_cols = []
-                sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 3)
-                if sol:
-                    break
+                # make sure the matrix has rank 2
+                if(M.matrix_from_rows_and_columns(P_rows,P_cols).rank()==2):
+                    sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 3)
+                    if sol:
+                        break
                 # rank 1 matrix and rank 1 matrix
                 P_rows = [x1]
                 P_cols = [y1]
                 Q_rows = [x]
                 Q_cols = [y]
-                sol,cert_pair = self.__shifting_all(M, P_rows, P_cols, Q_rows, Q_cols, 3)
+                # both matrix have rank 1
+                sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 3)
                 if sol:
                     break
             if sol:
@@ -2795,190 +2804,6 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         if certificate:
             return True, None
         return True
-
-    cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, m):
-        r"""
-        Given a partial matrix `M`. If the submatrix `M` using rows
-        `P_rows` columns `P_cols` and submatrix using rows `Q_rows` columns
-        `Q_cols` can be extended to a ``m``-separator, then it returns
-        `True, E`, where `E` is a ``m``-separator. Otherwise it returns
-        `False, None`
-
-        `P_rows` and `Q_rows` must be disjoint subsets of row indices.
-        `P_cols` and `Q_cols` must be disjoint subsets of column indices.
-
-        Internal version does not verify the above properties hold. 
-
-        INPUT:
-
-        - ``M`` -- A partial matrix
-        - ``P_rows`` -- list of row indices of the first submatrix
-        - ``P_cols`` -- list of column indices of the first submatrix
-        - ``Q_rows`` -- list of row indices of the second submatrix
-        - ``Q_cols`` -- list of column indices of the second submatrix
-        - ``m`` -- separation size
-
-        OUTPUT:
-
-        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
-        - `True, E` -- if there exist a ``m``-separator ``E``.
-
-        EXAMPLES::
-
-            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
-            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
-            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
-            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
-            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
-            sage: M.__shifting_all(M.representation(reduced=True)[0],[0,1],[0,1],[],[],3)
-            (False, None)
-            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
-            ....:                                          [1,1,1,1,0],
-            ....:                                          [0,1,1,1,0],
-            ....:                                          [0,0,0,1,1]])
-            sage: M.__shifting_all(M.representation(reduced=True)[0], [1], [1], [0], [0], 3)[0]
-            True
-
-        """
-        Z = range(M.ncols())
-        for y in P_cols+Q_cols:
-            Z.remove(y)
-        for z in Z:
-            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols,z,None,m)
-            if sol:
-                return True, cert
-            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols,None,z,m)
-            if sol:
-                return True, cert
-            sol,cert = self.__shifting(M,P_rows,P_cols,Q_rows,Q_cols,None,z,m)
-            if sol:
-                return True, cert
-            sol,cert = self.__shifting(M,Q_rows,Q_cols,P_rows,P_cols,z,None,m)
-            if sol:
-                return True, cert
-        return False, None
-
-    cpdef __shifting(self, M, U_1, V_2, U_2, V_1, z2, z1, m):
-        r"""
-        Given a partial matrix `M`. 
-        Let `E_1` be the submatrix of `M` using rows `U_1` and columns `V_2` with
-        optional column `z2` attached.
-        Let `E_2` be the submatrix of `M` using rows `U_2` and columns `V_1` with
-        optional column `z1` attached.
-        If `E_1` and `E_2` can be extended to a ``m``-separator, then it 
-        returns `True, E`, where `E` is a ``m``-separator. Otherwise it 
-        returns `False, None`
-
-        `U_1` and `U_2` must be disjoint subsets of row indices.
-        `V_1` and `V_2` must be disjoint subsets of column indices.
-
-        Internal version does not verify the above properties hold. 
-
-        INPUT:
-
-        - ``M`` -- A partial matrix
-        - ``U_1`` -- list of row indices of the first submatrix
-        - ``V_2`` -- list of column indices of the first submatrix
-        - ``U_2`` -- list of row indices of the second submatrix
-        - ``V_1`` -- list of column indices of the second submatrix
-        - ``z2``  -- start by add an additional column with index `z2` to `V_2`
-        - ``z1``  -- start by add an additional column with index `z1` to `V_1`
-        - ``m`` -- separation size
-
-        OUTPUT:
-
-        - `False, None`  -- if the input submatrices does not induce a `m``-separator.
-        - `True, (X,Y)` -- row indices `X` and column indices `Y` defines a ``m``-separator.
-
-        EXAMPLES::
-            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
-            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
-            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
-            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
-            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
-            sage: M.__shifting(M.representation(reduced=True)[0],[0,1],[0,1],[],[],2,None,3)
-            (False, None)
-            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
-            ....:                                          [1,1,1,1,0],
-            ....:                                          [0,1,1,1,0],
-            ....:                                          [0,0,0,1,1]])
-            sage: M.__shifting(M.representation(reduced=True)[0],[1], [1], [0], [0], None, 2, 3)[0]
-            True
-        """
-        # make copy because of destructive updates
-        X_1 = list(U_1)
-        X_2 = list(U_2)
-        if z1 == None:
-            Y_1 = list(V_1)
-            Y_2 = list(V_2) + [z2]
-        else:
-            Y_1 = list(V_1) + [z1]
-            Y_2 = list(V_2)
-
-        lX_2 = len(X_2)
-        lY_2 = len(Y_2)
-
-        # both matrices should be non-singular
-        if (M.matrix_from_rows_and_columns(list(U_1),list(V_2)).rank() +
-            M.matrix_from_rows_and_columns(list(U_2),list(V_1)).rank() != m-1):
-            return False, None
-        if len(X_1) + len(Y_1) < m:
-            return False, None
-
-        X=set(range(M.nrows()))
-        Y=set(range(M.ncols()))
-
-        X_3 = X-set(X_1+X_2)
-        Y_3 = Y-set(Y_1+Y_2)
-
-        lU_2 = sorted(list(U_2))
-        lV_2 = sorted(list(V_2))
-        rU = dict(zip(lU_2,range(len(U_2))))
-        rV = dict(zip(lV_2,range(len(V_2))))
-
-        M2 = GenericMatrix(len(X),len(Y),M)
-        # find a unique representation of every column in U_1xY_3 using columns in U_1xV_2
-        B = M2.matrix_from_rows_and_columns(list(U_1), range(len(Y)))
-        gauss_jordan_reduce(B, lV_2)
-        # find a unique representation of every rows in X_3xV_1 using rows in U_2xV_1
-        BT = M2.transpose().matrix_from_rows_and_columns(list(V_1),range(len(X)))
-        gauss_jordan_reduce(BT, lU_2)
-
-        X_p = set(X_1)
-        Y_p = set(Y_1)
-
-        while True:
-            #rowshifts
-            X_p_new = set([])
-            for x in set(X_3):
-                for y in Y_p:
-                    if sum([BT.get_unsafe(rU[u],x)*M[u,y] for u in U_2]) != M[x,y]:
-                        X_1.append(x)
-                        X_3.remove(x)
-                        X_p_new.add(x)
-                        break
-            #colshifts
-            Y_p_new = set([])
-            for y in set(Y_3):
-                for x in X_p:
-                    if sum([B.get_unsafe(rV[v],y)*M[x,v] for v in V_2]) != M[x,y]:
-                        Y_1.append(y)
-                        Y_3.remove(y)
-                        Y_p_new.add(y)
-                        break
-            X_p = X_p_new
-            Y_p = Y_p_new
-            if (not X_p_new and not Y_p_new):
-                break
-
-        # size of S_2
-        X_2 = list(X-set(X_1))
-        Y_2 = list(Y-set(Y_1))
-        if len(X_2)+len(Y_2) < m:
-            return False, None
-        if (lX_2==len(X_2) and lY_2==len(Y_2)):
-            return False, None
-        return True, (X_1, Y_1)
 
     # Copying, loading, saving
 

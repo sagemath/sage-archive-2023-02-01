@@ -63,8 +63,6 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     cpdef _is_3connected_shifting(self, certificate=*)
     cpdef _is_4connected_shifting(self, certificate=*)
-    cpdef __shifting_all(self, M, P_rows, P_cols, Q_rows, Q_cols, m)
-    cpdef __shifting(self, M, U_1, V_2, U_2, V_1, z2, z1, m)
 
     cpdef is_valid(self)
 

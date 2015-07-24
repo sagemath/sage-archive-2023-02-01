@@ -903,7 +903,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         TESTS::
 
-            sage: from gambit import Game
+            sage: from gambit import Game # optional - gambit
             sage: A = matrix([[2, 1], [1, 2.5]])
             sage: g = NormalFormGame([A])
             sage: gg = g._gambit_() # optional - gambit

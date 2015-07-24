@@ -12,13 +12,13 @@ class ClusterAlgebraElement(ElementWrapper):
         return self.parent().retract(self.lift() + other.lift())
 
     # HACK: LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-    def _lift_to_field(self):
-        return self.parent().ambient_field()(1)*self.value
+    def lift_to_field(self):
+        return self.parent().lift_to_field(self)
 
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
     def d_vector(self):
-        factors = self._lift_to_field().factor()
+        factors = self.lift_to_field().factor()
         initial = []
         non_initial = []
         [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors] 
@@ -284,6 +284,9 @@ class ClusterAlgebra(Parent):
     def ambient_field(self):
         return self._ambient_field
  
+    def lift_to_field(self, x):
+        return self.ambient_field()(1)*x.value
+    
     def lift(self, x):
         return x.value
     

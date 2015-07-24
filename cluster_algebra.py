@@ -18,7 +18,7 @@ class ClusterAlgebraElement(ElementWrapper):
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
     def d_vector(self):
-        factors = self._lift_to_field().factors()
+        factors = self._lift_to_field().factor()
         initial = []
         non_initial = []
         [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors] 

@@ -1,7 +1,7 @@
+import time
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
-from sage.structure.parent_gens import normalize_names
 from sage.rings.integer_ring import ZZ
  
 class ClusterAlgebraElement(ElementWrapper):
@@ -10,6 +10,26 @@ class ClusterAlgebraElement(ElementWrapper):
     # implements _add_
     def _add_(self, other):
         return self.parent().retract(self.lift() + other.lift())
+
+    # HACK: LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
+    def _lift_to_field(self):
+        return self.parent().ambient_field()(1)*self.value
+
+    # this function is quite disgusting but at least it works for any element of
+    # the algebra, can we do better?
+    def d_vector(self):
+        factors = self._lift_to_field().factors()
+        initial = []
+        non_initial = []
+        [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors] 
+        initial = prod(initial+[self.parent().ambient_field()(1)]).numerator()
+        non_initial = prod(non_initial+[self.parent().ambient_field()(1)]).denominator() 
+        v1 = vector(non_initial.exponents()[0][:self.parent().rk()])
+        v2 = vector(initial.exponents()[0][:self.parent().rk()])
+        return tuple(v1-v2)
+
+    def g_vector(self):
+        raise NotImplementederror("This should be computed by substitution")
 
 class ClusterAlgebraSeed(SageObject):
     
@@ -119,7 +139,7 @@ class ClusterAlgebraSeed(SageObject):
         
         if inplace:  
             seed = self
-        else:                                                                                                                                                                                                                                                             
+        else:
             seed = self.mutate(seq.next(), inplace=False, mutating_F=mutating_F)
        
         for k in seq:
@@ -127,37 +147,99 @@ class ClusterAlgebraSeed(SageObject):
 
         if not inplace:
             return seed
-        
+
+    def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, only_sink_source=False):
+        depth_counter = 0
+        n = self.parent().rk()
+        timer = time.time()
+        if return_paths:
+            yield (self,[])
+        else:    
+            yield self
+        cl = Set(self._G.columns())
+        clusters = {}
+        clusters[ cl ] = [ self, range(n), [] ]
+        gets_bigger = True
+        if show_depth:
+            timer2 = time.time()
+            dc = str(depth_counter)
+            dc += ' ' * (5-len(dc))
+            nr = str(len(clusters))
+            nr += ' ' * (10-len(nr))
+            print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
+        while gets_bigger and depth_counter < depth:
+            gets_bigger = False
+            keys = clusters.keys()
+            for key in keys:
+                sd = clusters[key]
+                while sd[1]:
+                    i = sd[1].pop()
+                    if not only_sink_source or all( entry >= 0 for entry in sd[0]._B.row( i ) ) or all( entry <= 0 for entry in sd[0]._B.row( i ) ):
+                        sd2  = sd[0].mutate( i, inplace=False )
+                        cl2 = Set(sd2._G.columns())
+                        if cl2 in clusters:
+                            if i in clusters[cl2][1]:
+                                clusters[cl2][1].remove(i)
+                        else:
+                            gets_bigger = True
+                            if only_sink_source:
+                                orbits = range(n)
+                            else:
+                                orbits = [ index for index in xrange(n) if index > i or sd2._B[index,i] != 0 ]
+                 
+                            clusters[ cl2 ] = [ sd2, orbits, clusters[key][2]+[i] ]
+                            if return_paths:
+                                yield (sd2,clusters[cl2][2])
+                            else:
+                                yield sd2
+            depth_counter += 1
+            if show_depth and gets_bigger:
+                timer2 = time.time()
+                dc = str(depth_counter)
+                dc += ' ' * (5-len(dc))
+                nr = str(len(clusters))
+                nr += ' ' * (10-len(nr))
+                print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
+
 
 class ClusterAlgebra(Parent):
  
     Element = ClusterAlgebraElement
  
     def __init__(self, B0, scalars=ZZ):
-        self._B0 = copy(B0)
-        self._n = self._B0.ncols()
-        self._m = self._B0.nrows()-self._n
+        # Temporary variables
+        n = B0.ncols()
+        m = B0.nrows()
+        I = identity_matrix(n)
         
         # maybe here scalars can be replaced with just ZZ
-        self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(self._n)])
-        self._F_dict = dict([ (tuple(v) ,self._U(1)) for v in identity_matrix(self._n).columns() ])
+        self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
+        self._F_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
         
-        self.Seed = ClusterAlgebraSeed(self._B0[:self._n,:self._n], identity_matrix(self._n), identity_matrix(self._n), self)
+        self.Seed = ClusterAlgebraSeed(B0[:n,:n], I, I, self)
 
-        names = normalize_names(self._n, 'x')
-        base = LaurentPolynomialRing(scalars,names)
-        names += normalize_names(self._m, 'y')
-        self._ambient = LaurentPolynomialRing(scalars,names)
-        Parent.__init__(self, base=base, category=CommutativeAlgebras(scalars).Subobjects())
+        base = LaurentPolynomialRing(scalars, 'x', n)
+        # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
+        Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
+
+        self._ambient = LaurentPolynomialRing(scalars, 'x', m)
+        self._ambient_field = self._ambient.fraction_field()
+
+        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)]) 
+        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(m)])) for j in xrange(n)])
+
+        self._B0 = copy(B0)
+        self._n = n
+        self._m = m
  
     def _repr_(self):
         return "Cluster Algebra of rank %s"%self.rk()
 
     def rk(self):
         return self._n
-
+                            
+    @make_hashable          
     def F_polynomial(self, gvect):
-        gvect = tuple(gvect)
         try:
             return self._F_dict[gvect]
         except:
@@ -167,245 +249,62 @@ class ClusterAlgebra(Parent):
     # maybe this alias could be removed
     F = F_polynomial
 
+    @make_hashable
+    @cached_method
     def cluster_variable(self, gvect):
-        raise NotImplementedError("I will do this, I swear it on the Beatles.")
+        if not gvect in self._F_dict.keys():
+            raise ValueError("This Cluster Variable has not been computed yet.")
+        g_mon = prod([self.ambient().gen(i)**gvect[i] for i in xrange(self.rk())])
+        F_std = self.F_polynomial(gvect).subs(self._yhat)
+        # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
+        F_trop = self.ambient_field()(self.F_polynomial(gvect).subs(self._y)).denominator()
+        return self.retract(g_mon*F_std*F_trop)
+
+    @make_hashable
+    def find_cluster_variable(self, gvect, num_mutations=infinity):
+        MCI = self.Seed.mutation_class_iter()
+        mutation_counter = -1
+        ## the last check should be done more efficiently
+        while mutation_counter < num_mutations and gvect not in self._F_dict.keys():
+            try: 
+                MCI.next()
+            except:
+                raise ValueError("Could not find a cluster variable with g-vector %s"%str(gvect))
+            mutation_counter += 1
+        print "Found after "+str(mutation_counter)+" mutations."
 
     def ambient(self):
         return self._ambient
  
+    def ambient_field(self):
+        return self._ambient_field
+ 
     def lift(self, x):
         return x.value
- 
+    
     def retract(self, x):
         return self(x)
- 
 
-#from sage.structure.sage_object import SageObject
-#from sage.matrix.constructor import identity_matrix
-#
-#class ClusterAlgebra(SageObject):
-#
-#    def __init__(self, data):
-#        if isinstance(data, Matrix):
-#            self._B0 = copy(data) 
-#            self._m = self._B0.nrows() 
-#            self._n = self._B0.ncols()
-#            B = copy(self._B0[:self._n,:self._n])
-#            if not B.is_skew_symmetrizable(positive=True):
-#                raise ValueError('data must have skew-symmetrizable principal part.')
-#            self.current_seed = Seed(B)
-#            self._U = PolynomialRing(QQ,['u%s'%i for i in xrange(self._n)])
-#            self._F = dict([ (self.current_seed.g_vector(i),self._U(1)) for i in xrange(self._n) ])
-#            self._R = LaurentPolynomialRing(QQ,['x%s'%i for i in xrange(self._m)])
-#
-#            def col_to_y(j):
-#                return  prod([self._R.gen(i)**self._B0[i,j] for i in xrange(self._n,self._m)])
-#            self._y = dict([ (self._U.gen(j),col_to_y(j)) for j in xrange(self._n)]) 
-#
-#            def col_to_yhat(j):
-#                return prod([self._R.gen(i)**self._B0[i,j] for i  in xrange(self._m)])
-#            self._yhat = dict([ (self._U.gen(j),col_to_yhat(j)) for j in xrange(self._n)])
-#            
-#            # should keep track of the seed too ?
-#
-#        # at the moment we only deal with b_matrices
-#        else:
-#            raise NotImplementedError('At the moment we only deal with matrices.')
-#
-#    def __copy__(self):
-#        other = ClusterAlgebra(self._B0)
-#        other.current_seed = copy(self.current_seed)
-#        other._F = copy(self._F)
-#
-#    def mutate(self, sequence, inplace=True, mutate_F=True):
-#        if not isinstance(mutate_F, bool):
-#            raise ValueError('mutate_F must be boolean.')
-#
-#        if not isinstance(inplace, bool):
-#            raise ValueError('inplace must be boolean.')
-#        if inplace:
-#            seed = self.current_seed
-#        else:
-#            seed = copy(self.current_seed)
-#            
-#        if sequence in xrange(seed._n):
-#            seq = iter([sequence])
-#        else:
-#            seq = iter(sequence)
-#            
-#        for k in seq:
-#            if k not in xrange(seed._n):
-#                raise ValueError('Cannot mutate in direction' + str(k) + '.')
-#
-#            # G-matrix
-#            J = identity_matrix(seed._n)
-#            if any(x > 0 for x in seed._C.column(k)):
-#                eps = +1
-#            else:
-#                eps = -1
-#            for j in xrange(seed._n):
-#                J[j,k] += max(0, -eps*seed._B[j,k])
-#            J[k,k] = -1
-#            seed._G = seed._G*J
-#
-#            # F-polynomials
-#            if mutating_F:
-#                gvect = tuple(seed._G.column(k))
-#                if not self._F_dict.has_key(gvect):
-#                    self._F_dict.setdefault(gvect,self._mutated_F(k))
-#                seed._F[k] = self._F_dict[gvect]
-#            
-#            # C-matrix
-#            J = identity_matrix(seed._n)
-#            if any(x > 0 for x in seed._C.column(k)):
-#                eps = +1
-#            else:
-#                eps = -1
-#            for j in xrange(seed._n):
-#                J[k,j] += max(0, eps*seed._B[k,j])
-#            J[k,k] = -1
-#            seed._C = seed._C*J
-#            
-#            # B-matrix
-#            seed._B.mutate(k)
-#            
-#        if not inplace:
-#            return seed
-#
-#class Seed(SageObject):
-#
-#    def __init__(self, B):
-#        n = B.ncols()
-#        self._B = copy(B)
-#        self._C = identity_matrix(n)
-#        self._G = identity_matrix(n)
-#        self._path = []
-#
-#    def __copy__(self):
-#        other = Seed(self._B)
-#        other._C = copy(self._C)
-#        other._G = copy(self._G)
-#        other._path = copy(self._path)
-#        return other
-#
-#    def g_vectors(self):
-#        return tuple(self._G.columns())
-#
-#    def g_vector(self, i):
-#        return self._G.columns()[i]
-#
-#
-#
-#
-######################## OLD ###################
-#
-#import time
-#from sage.matrix.matrix import Matrix
-#
-#
-#
-#    def _mutated_F(self, k):
-#        pos = self._U(1)
-#        neg = self._U(1)
-#        for j in xrange(self._n):
-#            if self._C[j,k] > 0:
-#                pos *= self._U.gen(j)**self._C[j,k]
-#            else:
-#                neg *= self._U.gen(j)**(-self._C[j,k])
-#            if self._B[j,k] > 0:
-#                pos *= self._F[j]**self._B[j,k]
-#            else:
-#                neg *= self._F[j]**(-self._B[j,k])
-#        return (pos+neg)//self._F[k]
-#
-#
-#    def find_cluster_variables(self, glist_tofind=[], num_mutations=infinity):
-#        MCI = self.mutation_class_iter()
-#        mutation_counter = 0
-#        ## the last check should be done more efficiently
-#        while mutation_counter < num_mutations and (glist_tofind == [] or not Set(glist_tofind).issubset(Set(self._F_dict.keys()))):
-#            try:
-#                MCI.next()
-#            except:
-#                break
-#            mutation_counter += 1
-#        print "Found after "+str(mutation_counter)+" mutations."
-#
-#
-#    def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, up_to_equivalence=True, only_sink_source=False):
-#        depth_counter = 0
-#        n = self._n
-#        timer = time.time()
-#        if return_paths:
-#            yield (self,[])
-#        else:
-#            yield self
-#        if up_to_equivalence:
-#            cl = Set(self._G.columns())
-#        else:
-#            cl = tuple(self._G.columns())
-#        clusters = {}
-#        clusters[ cl ] = [ self, range(n), [] ]
-#        gets_bigger = True
-#        if show_depth:
-#            timer2 = time.time()
-#            dc = str(depth_counter)
-#            dc += ' ' * (5-len(dc))
-#            nr = str(len(clusters))
-#            nr += ' ' * (10-len(nr))
-#            print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
-#        while gets_bigger and depth_counter < depth:
-#            gets_bigger = False
-#            keys = clusters.keys()
-#            for key in keys:
-#                sd = clusters[key]
-#                while sd[1]:
-#                    i = sd[1].pop()
-#                    if not only_sink_source or all( entry >= 0 for entry in sd[0]._B.row( i ) ) or all( entry <= 0 for entry in sd[0]._B.row( i ) ):
-#                        sd2  = sd[0].mutate( i, inplace=False )
-#                        if up_to_equivalence:
-#                            cl2 = Set(sd2._G.columns())
-#                        else:
-#                            cl2 = tuple(sd2._G.columns())
-#                        if cl2 in clusters:
-#                            if not up_to_equivalence and i in clusters[cl2][1]:
-#                                clusters[cl2][1].remove(i)
-#                        else:
-#                            gets_bigger = True
-#                            if only_sink_source:
-#                                orbits = range(n)
-#                            else:
-#                                orbits = [ index for index in xrange(n) if index > i or sd2._B[index,i] != 0 ]
-#
-#                            clusters[ cl2 ] = [ sd2, orbits, clusters[key][2]+[i] ]
-#                            if return_paths:
-#                                yield (sd2,clusters[cl2][2])
-#                            else:
-#                                yield sd2
-#            depth_counter += 1
-#            if show_depth and gets_bigger:
-#                timer2 = time.time()
-#                dc = str(depth_counter)
-#                dc += ' ' * (5-len(dc))
-#                nr = str(len(clusters))
-#                nr += ' ' * (10-len(nr))
-#                print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
-#
-#
-#    def cluster_variable(self, k):
-#        if k in range(self._n):
-#            g_mon = prod([self._R.gen(i)**self._G[i,k] for i in xrange(self._n)])
-#            F_std = self._F[k].subs(self._yhat)
-#            F_trop = self._F[k].subs(self._y).denominator()
-#            return g_mon*F_std*F_trop
-#        if isinstance(k,tuple):
-#            if not k in self._F_dict.keys():
-#                self.find_cluster_variables([k])
-#            g_mon = prod([self._R.gen(i)**k[i] for i in xrange(self._n)])
-#            F_std = self._F_dict[k].subs(self._yhat)
-#            F_trop = self._F_dict[k].subs(self._y).denominator()
-#            return g_mon*F_std*F_trop
-#
-#        
-#
-#         
+
+
+# Define decorator to automatically transform vectors and lists to tuples
+from functools import wraps
+def make_hashable(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        hashable_args = []
+        for x in args:
+            try: 
+                hashable_args.append(tuple(x))
+            except:
+                hashable_args.append(x)
+        
+        hashable_kwargs = {}
+        for x in kwargs:
+            try:
+                hashable_kwargs[x] = tuple(kwargs[x])
+            except:
+                hashable_kwargs[x] = kwargs[x]
+
+        return func(*hashable_args, **hashable_kwargs)
+    return wrapper

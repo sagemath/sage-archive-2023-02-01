@@ -982,6 +982,56 @@ class NormalFormGame(SageObject, MutableMapping):
             1 2 3 4
             <BLANKLINE>
            
+
+            sage: threegame = NormalFormGame() # option - gambit
+            sage: threegame.add_player(2) # option - gambit
+            sage: threegame.add_player(2) # option - gambit
+            sage: threegame.add_player(2) # option - gambit
+            sage: threegame[0, 0, 0][0] = 3 # option - gambit
+            sage: threegame[0, 0, 0][1] = 1 # option - gambit
+            sage: threegame[0, 0, 0][2] = 4 # option - gambit
+            sage: threegame[0, 0, 1][0] = 1 # option - gambit
+            sage: threegame[0, 0, 1][1] = 5 # option - gambit
+            sage: threegame[0, 0, 1][2] = 9 # option - gambit
+            sage: threegame[0, 1, 0][0] = 2 # option - gambit
+            sage: threegame[0, 1, 0][1] = 6 # option - gambit
+            sage: threegame[0, 1, 0][2] = 5 # option - gambit
+            sage: threegame[0, 1, 1][0] = 3 # option - gambit
+            sage: threegame[0, 1, 1][1] = 5 # option - gambit
+            sage: threegame[0, 1, 1][2] = 8 # option - gambit
+            sage: threegame[1, 0, 0][0] = 9 # option - gambit
+            sage: threegame[1, 0, 0][1] = 7 # option - gambit
+            sage: threegame[1, 0, 0][2] = 9 # option - gambit
+            sage: threegame[1, 0, 1][0] = 3 # option - gambit
+            sage: threegame[1, 0, 1][1] = 2 # option - gambit
+            sage: threegame[1, 0, 1][2] = 3 # option - gambit
+            sage: threegame[1, 1, 0][0] = 8 # option - gambit
+            sage: threegame[1, 1, 0][1] = 4 # option - gambit
+            sage: threegame[1, 1, 0][2] = 6 # option - gambit
+            sage: threegame[1, 1, 1][0] = 2 # option - gambit
+            sage: threegame[1, 1, 1][1] = 6 # option - gambit
+            sage: threegame[1, 1, 1][2] = 4 # option - gambit
+            sage: threegame._gambit_(as_integer = True) # optional - gambit
+            NFG 1 R "" { "1" "2" "3" }
+            <BLANKLINE>
+            { { "1" "2" }
+            { "1" "2" }
+            { "1" "2" }
+            }
+            ""
+            <BLANKLINE>
+            {
+            { "" 3, 1, 4 }
+            { "" 9, 7, 9 }
+            { "" 2, 6, 5 }
+            { "" 8, 4, 6 }
+            { "" 1, 5, 9 }
+            { "" 3, 2, 3 }
+            { "" 3, 5, 8 }
+            { "" 2, 6, 4 }
+            }
+            1 2 3 4 5 6 7 8 
+            <BLANKLINE>
         """
         from decimal import Decimal
         strategy_sizes = [p.num_strategies for p in self.players]
@@ -991,13 +1041,14 @@ class NormalFormGame(SageObject, MutableMapping):
         if not maximization:
             sgn = -1
 
+        players = len(strategy_sizes)
+
         for strategy_profile in self.utilities:
-            if as_integer:
-                g[strategy_profile][0] = sgn * int(self.utilities[strategy_profile][0])
-                g[strategy_profile][1] = sgn * int(self.utilities[strategy_profile][1])
-            else:
-                g[strategy_profile][0] = sgn * Decimal(float(self.utilities[strategy_profile][0]))
-                g[strategy_profile][1] = sgn * Decimal(float(self.utilities[strategy_profile][1]))
+            for i in range(players):
+                if as_integer:
+                    g[strategy_profile][i] = sgn * int(self.utilities[strategy_profile][i])
+                else:
+                    g[strategy_profile][i] = sgn * Decimal(float(self.utilities[strategy_profile][i]))
         return g
 
     def is_constant_sum(self):

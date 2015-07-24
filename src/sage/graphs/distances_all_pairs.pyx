@@ -154,6 +154,7 @@ from libc.string cimport memset
 from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 from sage.graphs.base.c_graph cimport CGraphBackend
 from sage.graphs.base.c_graph cimport CGraph
+from sage.ext.memory_allocator cimport MemoryAllocator
 
 from sage.graphs.base.static_sparse_graph cimport short_digraph, init_short_digraph, free_short_digraph, out_degree
 
@@ -170,6 +171,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
 
     cdef list int_to_vertex = gg.vertices()
     cdef int i
+    cdef MemoryAllocator mem = MemoryAllocator()
 
     cdef int n = len(int_to_vertex)
 
@@ -187,9 +189,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     bitset_init(seen, n)
 
     # The list of waiting vertices, the beginning and the end of the list
-    cdef int * waiting_list = <int *> sage_malloc(n*sizeof(int))
-    if waiting_list == NULL:
-        raise MemoryError()
+    cdef int * waiting_list = <int *> mem.allocarray(n, sizeof(int))
     cdef int waiting_beginning = 0
     cdef int waiting_end = 0
 
@@ -199,10 +199,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     cdef uint32_t * end
 
     cdef unsigned short * c_predecessors = predecessors
-    cdef int * c_distances = <int *> sage_malloc( n * sizeof(int))
-    if c_distances == NULL:
-        sage_free(waiting_list)
-        raise MemoryError()
+    cdef int * c_distances = <int *> mem.allocarray(n, sizeof(int))
 
     # Copying the whole graph to obtain the list of neighbors quicker than by
     # calling out_neighbors
@@ -296,9 +293,7 @@ cdef inline all_pairs_shortest_path_BFS(gg,
             distances += n
 
     bitset_free(seen)
-    sage_free(waiting_list)
     free_short_digraph(sd)
-    sage_free(c_distances)
 
 ################
 # Predecessors #
@@ -1658,6 +1653,7 @@ def floyd_warshall(gg, paths = True, distances = False):
         raise ValueError("The graph backend contains more than "+str(<unsigned short> -1)+" nodes")
 
     # All this just creates two tables prec[n][n] and dist[n][n]
+    cdef MemoryAllocator mem = MemoryAllocator()
     cdef unsigned short * t_prec
     cdef unsigned short * t_dist
     cdef unsigned short ** prec
@@ -1669,13 +1665,8 @@ def floyd_warshall(gg, paths = True, distances = False):
     cdef int w_int
 
     # init dist
-    t_dist = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-    if t_dist == NULL:
-        raise MemoryError()
-    dist = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-    if dist == NULL:
-        sage_free(t_dist)
-        raise MemoryError()
+    t_dist = <unsigned short *>   mem.allocarray(n*n, sizeof(unsigned short))
+    dist   = <unsigned short **>  mem.allocarray(n, sizeof(unsigned short *))
     dist[0] = t_dist
     for 1 <= i< n:
         dist[i] = dist[i-1] + n
@@ -1688,17 +1679,8 @@ def floyd_warshall(gg, paths = True, distances = False):
 
     if paths:
         # init prec
-        t_prec = <unsigned short *> sage_malloc(n*n*sizeof(unsigned short))
-        if t_prec == NULL:
-            sage_free(t_dist)
-            sage_free(dist)
-            raise MemoryError()
-        prec = <unsigned short **> sage_malloc(n*sizeof(unsigned short *))
-        if prec == NULL:
-            sage_free(t_dist)
-            sage_free(dist)
-            sage_free(t_prec)
-            raise MemoryError()
+        t_prec = <unsigned short *>  mem.allocarray(n*n, sizeof(unsigned short))
+        prec   = <unsigned short **> mem.allocarray(n, sizeof(unsigned short *))
         prec[0] = t_prec
         for 1 <= i< n:
             prec[i] = prec[i-1] + n
@@ -1753,13 +1735,6 @@ def floyd_warshall(gg, paths = True, distances = False):
                                else Infinity)
         if paths: d_prec[v] = tmp_prec
         if distances: d_dist[v] = tmp_dist
-
-    if paths:
-        sage_free(t_prec)
-        sage_free(prec)
-
-    sage_free(t_dist)
-    sage_free(dist)
 
     if distances and paths:
         return d_dist, d_prec

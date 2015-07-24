@@ -21,6 +21,7 @@ Dancing Links internal pyx code
 import sys
 
 from cpython.list cimport *
+include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.ref cimport *
@@ -60,7 +61,8 @@ cdef class dancing_linksWrapper:
         for resetting the list of rows, so this class acts as a one-time
         executor of the C++ code.
 
-        TESTS:
+        TESTS::
+
             sage: rows = [[0,1,2], [1, 2]]
             sage: x = make_dlxwrapper(dumps(rows))
             sage: loads(x.__reduce__()[1][0])
@@ -86,7 +88,8 @@ cdef class dancing_linksWrapper:
         The string representation of this wrapper is just the list of
         rows as supplied at startup.
 
-        TESTS:
+        TESTS::
+
             sage: rows = [[0,1,2]]
             sage: print make_dlxwrapper(dumps(rows)).__str__()
             [[0, 1, 2]]
@@ -98,7 +101,8 @@ cdef class dancing_linksWrapper:
         """
         This is used when pickling.
 
-        TESTS:
+        TESTS::
+
             sage: rows = [[0,1,2]]
             sage: x = make_dlxwrapper(dumps(rows))
             sage: loads(x.__reduce__()[1][0])
@@ -124,7 +128,8 @@ cdef class dancing_linksWrapper:
         Two dancing_linksWrapper objects are equal if they were
         initialised using the same row list.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
@@ -149,7 +154,8 @@ cdef class dancing_linksWrapper:
 
     def dumps(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: X = dlx_solver(rows)
@@ -169,7 +175,8 @@ cdef class dancing_linksWrapper:
 
         This doctest tests add_rows vicariously!
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
@@ -216,7 +223,8 @@ cdef class dancing_linksWrapper:
         from the instance variable self.x.solution, a C++ vector<int>
         listing the rows that make up the current solution.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
@@ -237,7 +245,8 @@ cdef class dancing_linksWrapper:
 
     def search(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
             sage: rows+= [[0,2]]
@@ -248,17 +257,41 @@ cdef class dancing_linksWrapper:
             1
             sage: print x.get_solution()
             [3, 0]
+
+        TESTS:
+
+        If rows is empty, search causes a segmentation fault (see :trac:`11814`)::
+
+            sage: x = dlx_solver([])
+            sage: x.search()
+            Traceback (most recent call last):
+            ...
+            SignalError: Segmentation fault
+
+        If search is called once too often, it causes a segmentation
+        fault::
+
+            sage: x = dlx_solver([[0]])
+            sage: x.search()
+            1
+            sage: x.search()
+            0
+            sage: x.search()
+            Traceback (most recent call last):
+            ...
+            SignalError: Segmentation fault
         """
-
+        sig_on()
         x = self.x.search()
-
+        sig_off()
         return x
 
 def dlx_solver(rows):
     """
     Internal-use wrapper for the dancing links C++ code.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.matrices.dancing_links import dlx_solver
         sage: rows = [[0,1,2]]
         sage: rows+= [[0,2]]
@@ -291,7 +324,8 @@ def make_dlxwrapper(s):
     This is used in unpickling. We expect s to be dumps(rows) where
     rows is the list of rows used to instantiate the object.
 
-    TESTS:
+    TESTS::
+
         sage: rows = [[0,1,2]]
         sage: x = make_dlxwrapper(dumps(rows))
         sage: print x.__str__()

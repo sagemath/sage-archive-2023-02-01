@@ -3255,17 +3255,22 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def antichains(self, element_constructor = __builtin__.list):
         """
-        Returns the antichains of the poset.
+        Return the antichains of the poset.
+
+        An *antichain* of a poset is a set of elements of the
+        poset that are pairwise incomparable.
 
         INPUT:
 
          - ``element_constructor`` -- a function taking an iterable as
-           argument (default: list)
+           argument (default: ``list``)
 
-        OUTPUT: an enumerated set
+        OUTPUT:
 
-        An *antichain* of a poset is a collection of elements of the
-        poset that are pairwise incomparable.
+        The enumerated set (of type
+        :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`)
+        of all antichains of the poset, each of which is given as an
+        ``element_constructor.``
 
         EXAMPLES::
 
@@ -3277,10 +3282,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             8
             sage: A[3]
             [1, 2]
-            sage: list(Posets.AntichainPoset(3).antichains())
-            [[], [2], [2, 1], [2, 1, 0], [2, 0], [1], [1, 0], [0]]
-            sage: list(Posets.ChainPoset(3).antichains())
-            [[], [0], [1], [2]]
+
+        To get the antichains as, say, sets, one may use the
+        ``element_constructor`` option::
+
+            sage: list(Posets.ChainPoset(3).antichains(element_constructor=set))
+            [set(), {0}, {1}, {2}]
 
         To get the antichains of a given size one can currently use::
 
@@ -3290,12 +3297,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         Eventually the following syntax will be accepted::
 
             sage: A.subset(size = 2) # todo: not implemented
-
-        To get the antichains as, say, sets, one may use the
-        ``element_constructor`` option::
-
-            sage: list(Posets.ChainPoset(3).antichains(element_constructor = set))
-            [set(), {0}, {1}, {2}]
 
         .. NOTE::
 
@@ -3312,7 +3313,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
-        .. seealso:: :meth:`maximal_antichains`
+        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
         """
         vertex_to_element = self._vertex_to_element
 

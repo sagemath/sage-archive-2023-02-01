@@ -97,8 +97,11 @@ def gen_rest_table_index(list_of_entries,sort=True):
             continue
 
         # Descriptions of the method/function
-        desc = e.__doc__.splitlines()
-        desc = desc[0] if desc[0] else desc[1]
+        if e.__doc__:
+            desc = e.__doc__.splitlines()
+            desc = desc[0] if desc[0] else desc[1]
+        else:
+            desc = "NO DOCSTRING"
 
         s += "   {} | {}\n".format(link,desc.lstrip())
 

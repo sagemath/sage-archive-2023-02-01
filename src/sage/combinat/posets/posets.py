@@ -4395,7 +4395,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def maximal_antichains(self):
         """
-        Return all maximal antichains of the poset.
+        Return the maximal antichains of the poset.
+
+        An antichain `a` of poset `P` is *maximal* if there is
+        no element `e \in P \setminus a` such that `a \cup \{e\}`
+        is an antichain.
 
         EXAMPLES::
 
@@ -4406,7 +4410,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
 
-        .. seealso:: :meth:`maximal_chains`, :meth:`antichains`
+        .. seealso:: :meth:`antichains`, :meth:`maximal_chains`
         """
         # Maximal antichains are maximum cliques on incomparability graph.
         return self.incomparability_graph().cliques_maximal()

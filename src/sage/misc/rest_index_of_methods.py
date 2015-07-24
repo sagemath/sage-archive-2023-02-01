@@ -29,9 +29,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
       lexicographically.
 
     - ``only_local`` (boolean; ``True``) -- if ``list_of_entries`` is a module,
-       ``only_local = True`` means that imported functions will be filtered out.
-       This can be useful to disable for making indexes of e.g. catalog modules
-       such as ``sage.coding.codes_catalog``.
+      ``only_local = True`` means that imported functions will be filtered out.
+      This can be useful to disable for making indexes of e.g. catalog modules
+      such as ``sage.coding.codes_catalog``.
 
     EXAMPLE::
 

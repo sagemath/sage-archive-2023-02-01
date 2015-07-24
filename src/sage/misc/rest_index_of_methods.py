@@ -1,21 +1,27 @@
 r"""
 ReST index of functions
 
-This module implemens a function that generates a ReST index of functions from a
-list of a class.
+This module contains a function that generates a ReST index table of functions
+for use in doc-strings.
 
 {INDEX_OF_FUNCTIONS}
 
 """
-def gen_rest_table_index(list_of_entries,sort=True):
+def gen_rest_table_index(list_of_entries, sort=True):
     r"""
-    Return a ReST table describing a list of functions.
+    Return a ReST table describing a list of functions, either given explicitly
+    or implicitly as the functions/methods of a module or class.
+
+    In the case of a class, only static non-inherited methods are listed.
 
     INPUT:
 
-    - ``list_of_entries`` -- a list of functions. Alternatively, it can be a
-      module or a class, in which case all the methods/functions it contains are
-      listed.
+    - ``list_of_entries`` -- a list of functions, a module or a class. If given
+      a list of functions, the generated table will consist of these. If given a
+      module, all functions implemented in that module will be listed, except
+      deprecated ones or those starting with an underscore. If a class is given,
+      all non-inherited static methods of that class will be listed, except
+      deprecated ones or those starting with an underscore.
 
     - ``sort`` (boolean; ``True``) -- whether to sort the list of methods
       lexicographically.

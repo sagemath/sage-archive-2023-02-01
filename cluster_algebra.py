@@ -266,7 +266,6 @@ class ClusterAlgebra(Parent):
         # the variable from self.Seed
         MCI = self.Seed.mutation_class_iter()
         mutation_counter = 0
-        ## the last check should be done more efficiently
         while mutation_counter < num_mutations and gvect not in self._F_dict.keys():
             try: 
                 MCI.next()

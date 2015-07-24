@@ -263,15 +263,18 @@ class ClusterAlgebra(Parent):
     @make_hashable
     def find_cluster_variable(self, gvect, num_mutations=infinity):
         MCI = self.Seed.mutation_class_iter()
-        mutation_counter = -1
+        mutation_counter = 0
         ## the last check should be done more efficiently
         while mutation_counter < num_mutations and gvect not in self._F_dict.keys():
             try: 
                 MCI.next()
             except:
-                raise ValueError("Could not find a cluster variable with g-vector %s"%str(gvect))
+                break
             mutation_counter += 1
-        print "Found after "+str(mutation_counter)+" mutations."
+        if gvect in self._F_dict.keys():
+            print "Found after "+str(mutation_counter)+" mutations."
+        else: 
+            raise ValueError("Could not find a cluster variable with g-vector %s"%str(gvect))
 
     def ambient(self):
         return self._ambient

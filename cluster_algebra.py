@@ -262,6 +262,8 @@ class ClusterAlgebra(Parent):
 
     @make_hashable
     def find_cluster_variable(self, gvect, num_mutations=infinity):
+        # TODO: refactor this to output also the mutation sequence that produces
+        # the variable from self.Seed
         MCI = self.Seed.mutation_class_iter()
         mutation_counter = 0
         ## the last check should be done more efficiently

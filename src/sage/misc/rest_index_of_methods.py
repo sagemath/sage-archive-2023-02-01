@@ -75,6 +75,23 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
         sage: A < B
         True
 
+    When only_local is False, don't include gen_rest_table_index itself::
+
+        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local=True)
+        .. csv-table::
+           :class: contentstable
+           :widths: 30, 70
+           :delim: |
+        <BLANKLINE>
+           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` | Return a ReST table describing a list of functions...
+        sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local=False)
+        .. csv-table::
+           :class: contentstable
+           :widths: 30, 70
+           :delim: |
+        <BLANKLINE>
+        <BLANKLINE>
+        
     """
     import inspect
 

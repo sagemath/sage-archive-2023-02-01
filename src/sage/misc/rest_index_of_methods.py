@@ -20,10 +20,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
 
     - ``list_of_entries`` -- a list of functions, a module or a class. If given
       a list of functions, the generated table will consist of these. If given a
-      module, all functions implemented in that module will be listed, except
-      deprecated ones or those starting with an underscore. If a class is given,
-      all non-inherited methods of that class will be listed, except deprecated
-      ones or those starting with an underscore.
+      module or a class, all functions/methods it defines will be listed, except
+      deprecated or those starting with an underscore. In the case of a class,
+      note that inherited methods are not displayed.
 
     - ``sort`` (boolean; ``True``) -- whether to sort the list of methods
       lexicographically.
@@ -31,7 +30,7 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
     - ``only_local_functions`` (boolean; ``True``) -- if ``list_of_entries`` is
       a module, ``only_local_functions = True`` means that imported functions
       will be filtered out. This can be useful to disable for making indexes of
-      e.g. catalog modules such as ``sage.coding.codes_catalog``.
+      e.g. catalog modules such as :mod:`sage.coding.codes_catalog`.
 
     EXAMPLE::
 
@@ -77,7 +76,8 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         sage: A < B
         True
 
-    When only_local_functions is False, don't include gen_rest_table_index itself::
+    When ``only_local_functions`` is ``False``, we do not include
+    ``gen_rest_table_index`` itself::
 
         sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=True)
         .. csv-table::
@@ -93,19 +93,17 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
            :delim: |
         <BLANKLINE>
         <BLANKLINE>
-        
+
     """
     import inspect
 
-        
     # If input is a class/module, we list all its non-private and methods/functions
     if (inspect.isclass(list_of_entries) or
         inspect.ismodule(list_of_entries)):
         root = list_of_entries
         def local_filter(f,name):
-            module = inspect.getmodule(f)
             if only_local_functions:
-                return inspect.getmodule(root) == module
+                return inspect.getmodule(root) == inspect.getmodule(f)
             else:
                 return inspect.isclass(list_of_entries) or not (f is gen_rest_table_index)
         list_of_entries = [getattr(root,name) for name,f in root.__dict__.items() if

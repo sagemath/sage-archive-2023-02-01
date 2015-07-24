@@ -7,7 +7,7 @@ for use in doc-strings.
 {INDEX_OF_FUNCTIONS}
 
 """
-def gen_rest_table_index(list_of_entries, sort=True):
+def gen_rest_table_index(list_of_entries, sort=True, only_local=True):
     r"""
     Return a ReST table describing a list of functions, either given explicitly
     or implicitly as the functions/methods of a module or class.
@@ -25,6 +25,11 @@ def gen_rest_table_index(list_of_entries, sort=True):
 
     - ``sort`` (boolean; ``True``) -- whether to sort the list of methods
       lexicographically.
+
+    - ``only_local`` (boolean; ``True``) -- if ``list_of_entries`` is a module,
+       ``only_local = True`` means that imported functions will be filtered out.
+       This can be useful to disable for making indexes of e.g. catalog modules
+       such as `sage.coding.codes_catalog`.
 
     EXAMPLE::
 
@@ -73,15 +78,24 @@ def gen_rest_table_index(list_of_entries, sort=True):
     """
     import inspect
 
+        
+        
     # If input is a class/module, we list all its non-private and methods/functions
     if (inspect.isclass(list_of_entries) or
         inspect.ismodule(list_of_entries)):
         root = list_of_entries
+        def local_filter(f,name):
+            module = inspect.getmodule(f)
+            if only_local:
+                return inspect.getmodule(root) == module
+            else:
+                return module.__name__ != "sage.misc.rest_index_of_methods"
         list_of_entries = [getattr(root,name) for name,f in root.__dict__.items() if
                            (not name.startswith('_')     and # private functions
                             not hasattr(f,'trac_number') and # deprecated functions
                             not inspect.isclass(f)       and # classes
-                            inspect.getmodule(root) == inspect.getmodule(f))] # not imported from elsewhere
+                            local_filter(f,name)             # possibly filter imported functions
+                            )]
 
     assert isinstance(list_of_entries,list)
 

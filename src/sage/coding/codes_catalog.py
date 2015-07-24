@@ -3,6 +3,8 @@ Index of Codes
 
 The ``codes`` object may be used to access the codes that Sage can build.
 
+{INDEX_OF_FUNCTIONS}
+
 - :func:`codes.BCHCode <sage.coding.code_constructions.BCHCode>`
 - :func:`codes.BinaryGolayCode <sage.coding.code_constructions.BinaryGolayCode>`
 - :func:`codes.BinaryReedMullerCode <sage.coding.guava.BinaryReedMullerCode>`
@@ -52,3 +54,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 ToricCode, TrivialCode, WalshCode)
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+import sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__], only_local=False))

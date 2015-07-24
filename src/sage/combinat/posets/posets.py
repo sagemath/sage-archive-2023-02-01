@@ -3325,12 +3325,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def antichains_iterator(self):
         """
-        Returns an iterator over the antichains of the poset.
+        Return an iterator over the antichains of the poset.
 
         EXAMPLES::
 
-            sage: Posets.PentagonPoset().antichains_iterator()
+            sage: it = Posets.PentagonPoset().antichains_iterator(); it
             <generator object antichains_iterator at ...>
+            sage: it.next(), it.next()
+            ([], [4])
 
         .. SEEALSO:: :meth:`antichains`
         """

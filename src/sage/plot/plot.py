@@ -1484,11 +1484,15 @@ def _plot(funcs, xrange, parametric=False,
     #check to see if funcs is a list of functions that will
     #be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        if len(funcs)<8:
-            rainbow_colors = ['blue','red','limegreen','cyan','magenta','yellow','indigo']
-        else:
-            from sage.plot.colors import rainbow
-            rainbow_colors = rainbow(len(funcs)+1)
+        from sage.plot.colors import rainbow, Color
+        rainbow_colors = rainbow(len(funcs)+1)
+        # :TODO:
+        # decide if and/or how to replace `rainbow_colors` in the code below.
+        # for demonstration purposes, `golden_rainbow` is used for `color`
+        def golden_rainbow(i):
+            # note: 'blue' has hue-saturation-lightness values (2/3, 1, 1/2).
+            h = golden_ratio_conjugate = 0.618033988749895
+            return Color((0.666666666666+i*h) % 1, 1, 0.4, space='hsl')
 
         default_line_styles = ("-","--","-.",":")*len(funcs)
 
@@ -1550,14 +1554,14 @@ def _plot(funcs, xrange, parametric=False,
                 if i in color_temp:
                     color_entry = color_temp[i]
                 else:
-                    color_entry = rainbow_colors[i]
+                    color_entry = golden_rainbow(i)
             elif isinstance(color_temp, (list,tuple)) and isinstance(color_temp[0], (str,list,tuple)):
                 if i < len(color_temp):
                     color_entry = color_temp[i]
                 else:
-                    color_entry = rainbow_colors[i]
+                    color_entry = golden_rainbow(i)
             elif color_temp == 'automatic':
-                color_entry = rainbow_colors[i]
+                color_entry = golden_rainbow(i)
             else:
                 color_entry = color_temp
 

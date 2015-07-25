@@ -69,8 +69,7 @@ cdef class dancing_linksWrapper:
     def __cinit__(self, rows):
         self.rows = PyList_New(len(rows))
         dancing_links_construct(&self.x)
-        if rows:
-            self.add_rows(rows)
+        self._add_rows(rows)
 
     def __dealloc__(self):
         self.x.freemem()
@@ -100,6 +99,18 @@ cdef class dancing_linksWrapper:
             sage: x = make_dlxwrapper(dumps(rows))
             sage: loads(x.__reduce__()[1][0])
             [[0, 1, 2]]
+
+        ::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2]]
+            sage: X = dlx_solver(rows)
+            sage: X == loads(dumps(X))
+            1
+            sage: rows += [[2]]
+            sage: Y = dlx_solver(rows)
+            sage: Y == loads(dumps(X))
+            0
         """
         # A comment from sage/rings/integer.pyx:
 
@@ -145,30 +156,16 @@ cdef class dancing_linksWrapper:
         else:
             return NotImplemented
 
-    def dumps(self):
-        """
-        TESTS::
-
-            sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2]]
-            sage: X = dlx_solver(rows)
-            sage: X == loads(dumps(X))
-            1
-            sage: rows += [[2]]
-            sage: Y = dlx_solver(rows)
-            sage: Y == loads(dumps(X))
-            0
-        """
-        return self.rows.dumps()
-
-    def add_rows(self, rows):
+    def _add_rows(self, rows):
         """
         Initialize our instance of dancing_links with the given rows.
-        This is for internal use by dlx_solver.
 
-        This doctest tests add_rows vicariously!
+        This is for internal use by dlx_solver only. It can not be called
+        more than once.
 
-        TESTS::
+        TESTS:
+
+        This doctest tests _add_rows vicariously! ::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
@@ -180,7 +177,7 @@ cdef class dancing_linksWrapper:
             1
 
         The following example would crash in Sage's debug version
-        from :trac:`13864` prior to the fix from :trac:`13822`::
+        from :trac:`13864` prior to the fix from :trac:`13882`::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: x = dlx_solver([])          # indirect doctest
@@ -253,26 +250,22 @@ cdef class dancing_linksWrapper:
 
         TESTS:
 
-        If rows is empty, search causes a segmentation fault (see :trac:`11814`)::
+        Test that :trac:`11814` is fixed::
 
-            sage: x = dlx_solver([])
-            sage: x.search()                # not tested (for safety)
-            Traceback (most recent call last):
-            ...
-            SignalError: Segmentation fault
+            sage: dlx_solver([]).search()
+            0
+            sage: dlx_solver([[]]).search()
+            0
 
-        If search is called once too often, it causes a segmentation
-        fault::
+        If search is called once too often, it keeps returning 0::
 
             sage: x = dlx_solver([[0]])
             sage: x.search()
             1
             sage: x.search()
             0
-            sage: x.search()                # not tested (for safety)
-            Traceback (most recent call last):
-            ...
-            SignalError: Segmentation fault
+            sage: x.search()
+            0
         """
         sig_on()
         x = self.x.search()

@@ -15,23 +15,13 @@ Dancing Links internal pyx code
 
 
 include 'sage/ext/interrupt.pxi'
-from cpython.list cimport *
-from cpython.int cimport *
-from cpython.ref cimport *
+
+from libcpp.vector cimport vector
 
 cdef extern from "dancing_links_c.h":
-    ctypedef struct vector_int "std::vector<int>":
-        void (* push_back)(int elem)
-        void clear()
-        int at(size_t loc)
-        int size()
-
-    ctypedef struct vector_vector_int "std::vector<vector<int> >":
-        void (* push_back)(vector_int elem)
-
     ctypedef struct dancing_links:
-        vector_int solution
-        void add_rows(vector_vector_int rows)
+        vector[int] solution
+        void add_rows(vector[vector[int]] rows)
         int search()
         void freemem()
 
@@ -44,7 +34,7 @@ from sage.rings.integer cimport Integer
 
 cdef class dancing_linksWrapper:
     cdef dancing_links x
-    cdef object rows
+    cdef rows
 
     def __init__(self, rows):
         """
@@ -57,50 +47,41 @@ cdef class dancing_linksWrapper:
         TESTS::
 
             sage: rows = [[0,1,2], [1, 2]]
-            sage: x = make_dlxwrapper(dumps(rows))
-            sage: loads(x.__reduce__()[1][0])
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: x = dlx_solver(rows)
+            sage: x
             [[0, 1, 2], [1, 2]]
-
+            sage: type(x)
+            <type 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
         """
-        pass
+        self._init_rows(rows)
 
-    # Note that the parameters to __cinit__, if any, must be identical to __init__
-    # This is due to the way Python constructs class instance.
-    def __cinit__(self, rows):
-        self.rows = PyList_New(len(rows))
+    def __cinit__(self):
         dancing_links_construct(&self.x)
-        self._add_rows(rows)
 
     def __dealloc__(self):
         self.x.freemem()
         dancing_links_destruct(&self.x)
 
-    def __str__(self):
+    def __repr__(self):
         """
         The string representation of this wrapper is just the list of
         rows as supplied at startup.
 
         TESTS::
 
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
-            sage: print make_dlxwrapper(dumps(rows)).__str__()
+            sage: print dlx_solver(rows).__str__()
             [[0, 1, 2]]
         """
-
-        return self.rows.__str__()
+        return repr(self.rows)
 
     def __reduce__(self):
         """
         This is used when pickling.
 
         TESTS::
-
-            sage: rows = [[0,1,2]]
-            sage: x = make_dlxwrapper(dumps(rows))
-            sage: loads(x.__reduce__()[1][0])
-            [[0, 1, 2]]
-
-        ::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
@@ -112,20 +93,7 @@ cdef class dancing_linksWrapper:
             sage: Y == loads(dumps(X))
             0
         """
-        # A comment from sage/rings/integer.pyx:
-
-        # This single line below took me HOURS to figure out.
-        # It is the *trick* needed to pickle Cython extension types.
-        # The trick is that you must put a pure Python function
-        # as the first argument, and that function must return
-        # the result of unpickling with the argument in the second
-        # tuple as input. All kinds of problems happen
-        # if we don't do this.
-        #return sage.rings.integer.make_integer, (self.str(32),)
-
-        import sage.combinat.matrices.dancing_links
-        from sage.all import dumps
-        return sage.combinat.matrices.dancing_links.make_dlxwrapper, (dumps(self.rows),)
+        return type(self), (self.rows,)
 
     def __richcmp__(dancing_linksWrapper left, dancing_linksWrapper right, int op):
         """
@@ -156,16 +124,15 @@ cdef class dancing_linksWrapper:
         else:
             return NotImplemented
 
-    def _add_rows(self, rows):
+    def _init_rows(self, rows):
         """
         Initialize our instance of dancing_links with the given rows.
 
-        This is for internal use by dlx_solver only. It can not be called
-        more than once.
+        This is for internal use by dlx_solver only.
 
         TESTS:
 
-        This doctest tests _add_rows vicariously! ::
+        This doctest tests ``_init_rows`` vicariously! ::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]
@@ -185,20 +152,13 @@ cdef class dancing_linksWrapper:
             []
 
         """
-        if not rows:
-            return
+        cdef vector[int] v
+        cdef vector[vector[int]] vv
 
-        cdef vector_int v
-        cdef vector_vector_int vv
+        self.rows = [row for row in rows]
 
-        cdef int i = 0
-
-        for row in rows:
+        for row in self.rows:
             v.clear()
-
-            Py_INCREF(row);
-            PyList_SET_ITEM(self.rows, i, row)
-            i += 1
 
             for x in row:
                 v.push_back(x)
@@ -226,6 +186,7 @@ cdef class dancing_linksWrapper:
             sage: print x.get_solution()
             [3, 0]
         """
+        cdef size_t i
 
         s = []
         for i in range(self.x.solution.size()):
@@ -272,6 +233,7 @@ cdef class dancing_linksWrapper:
         sig_off()
         return x
 
+
 def dlx_solver(rows):
     """
     Internal-use wrapper for the dancing links C++ code.
@@ -295,20 +257,16 @@ def dlx_solver(rows):
         sage: print x.search()
         0
     """
-
-    cdef dancing_linksWrapper dlw
-
-    dlw = dancing_linksWrapper(rows)
-    #dlw.add_rows(rows)
-
-    return dlw
+    return dancing_linksWrapper(rows)
 
 
 def make_dlxwrapper(s):
     """
     Create a dlx wrapper from a Python *string* s.
-    This is used in unpickling. We expect s to be dumps(rows) where
-    rows is the list of rows used to instantiate the object.
+
+    This was historically used in unpickling and is kept for backwards
+    compatibility. We expect s to be ``dumps(rows)`` where rows is the
+    list of rows used to instantiate the object.
 
     TESTS::
 
@@ -317,10 +275,5 @@ def make_dlxwrapper(s):
         sage: print x.__str__()
         [[0, 1, 2]]
     """
-
     from sage.all import loads
-
-    cdef dancing_linksWrapper dlw
-    dlw = dancing_linksWrapper(loads(s))
-    return dlw
-
+    return dancing_linksWrapper(loads(s))

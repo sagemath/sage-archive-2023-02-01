@@ -29,9 +29,6 @@ cdef extern from "ccobject.h":
     dancing_links* dancing_links_construct "Construct<dancing_links>"(void *mem)
     void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
 
-
-from sage.rings.integer cimport Integer
-
 cdef class dancing_linksWrapper:
     cdef dancing_links x
     cdef rows
@@ -196,7 +193,7 @@ cdef class dancing_linksWrapper:
 
     def search(self):
         """
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2]]

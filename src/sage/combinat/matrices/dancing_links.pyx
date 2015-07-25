@@ -256,7 +256,7 @@ cdef class dancing_linksWrapper:
         If rows is empty, search causes a segmentation fault (see :trac:`11814`)::
 
             sage: x = dlx_solver([])
-            sage: x.search()
+            sage: x.search()                # not tested (for safety)
             Traceback (most recent call last):
             ...
             SignalError: Segmentation fault
@@ -269,7 +269,7 @@ cdef class dancing_linksWrapper:
             1
             sage: x.search()
             0
-            sage: x.search()
+            sage: x.search()                # not tested (for safety)
             Traceback (most recent call last):
             ...
             SignalError: Segmentation fault

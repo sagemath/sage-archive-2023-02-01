@@ -4930,7 +4930,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the characteristic polynomial of the poset.
 
-        The poset is expected to to be graded and have a bottom
+        The poset is expected to be graded and have a bottom
         element.
 
         If `P` is a graded poset with rank `n` and a unique minimal

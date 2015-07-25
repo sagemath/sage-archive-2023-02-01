@@ -284,6 +284,7 @@ def make_dlxwrapper(s):
 
     TESTS::
 
+        sage: from sage.combinat.matrices.dancing_links import make_dlxwrapper
         sage: rows = [[0,1,2]]
         sage: x = make_dlxwrapper(dumps(rows))
         sage: print x.__str__()

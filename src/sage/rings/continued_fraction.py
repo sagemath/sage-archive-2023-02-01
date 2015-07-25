@@ -2376,7 +2376,7 @@ def continued_fraction(x, value=None):
         ....:     cfe = QQ(x).continued_fraction()
         ....:     assert cff == cfe, "%s %s %s"%(x,cff,cfe)
 
-    TESTS::
+    TESTS:
 
     Fixed :trac:`18901`. For RealLiteral, continued_fraction calls
     continued_fraction_list::

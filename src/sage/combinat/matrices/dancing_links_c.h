@@ -253,6 +253,10 @@ public:
         best_col = NULL;
     }
 
+    int number_of_columns() {
+        return nr_columns;
+    }
+
     void add_rows(vector<vector<int> > rows) {
         assert(nr_columns == -1);
 

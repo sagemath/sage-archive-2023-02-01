@@ -1309,7 +1309,7 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: x = T.dlx_solver()
             sage: x
-            <sage.combinat.matrices.dancing_links.dancing_linksWrapper object at ...>
+            Dancing links solver for 9 columns and 15 rows
         """
         from sage.combinat.matrices.dancing_links import dlx_solver
         rows = self.rows()

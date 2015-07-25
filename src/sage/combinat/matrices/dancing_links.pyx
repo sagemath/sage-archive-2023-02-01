@@ -21,6 +21,7 @@ from libcpp.vector cimport vector
 cdef extern from "dancing_links_c.h":
     ctypedef struct dancing_links:
         vector[int] solution
+        int number_of_columns()
         void add_rows(vector[vector[int]] rows)
         int search()
         void freemem()
@@ -30,12 +31,12 @@ cdef extern from "ccobject.h":
     void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
 
 cdef class dancing_linksWrapper:
-    cdef dancing_links x
-    cdef rows
+    cdef dancing_links _x
+    cdef _rows
 
     def __init__(self, rows):
         """
-        Initialize our wrapper (self.x) as an actual C++ object.
+        Initialize our wrapper (self._x) as an actual C++ object.
 
         We must pass a list of rows at start up. There are no methods
         for resetting the list of rows, so this class acts as a one-time
@@ -47,18 +48,18 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: x = dlx_solver(rows)
             sage: x
-            [[0, 1, 2], [1, 2]]
+            Dancing links solver for 3 columns and 2 rows
             sage: type(x)
             <type 'sage.combinat.matrices.dancing_links.dancing_linksWrapper'>
         """
         self._init_rows(rows)
 
     def __cinit__(self):
-        dancing_links_construct(&self.x)
+        dancing_links_construct(&self._x)
 
     def __dealloc__(self):
-        self.x.freemem()
-        dancing_links_destruct(&self.x)
+        self._x.freemem()
+        dancing_links_destruct(&self._x)
 
     def __repr__(self):
         """
@@ -68,11 +69,27 @@ cdef class dancing_linksWrapper:
         TESTS::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
-            sage: rows = [[0,1,2]]
-            sage: print dlx_solver(rows).__str__()
-            [[0, 1, 2]]
+            sage: rows = [[0,1,2], [1,2], [0]]
+            sage: dlx_solver(rows)
+            Dancing links solver for 3 columns and 3 rows
         """
-        return repr(self.rows)
+        return "Dancing links solver for {} columns and {} rows".format(
+                self._x.number_of_columns(),
+                len(self._rows))
+
+    def rows(self):
+        r"""
+        Return the list of rows.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [1,2], [0]]
+            sage: x = dlx_solver(rows)
+            sage: x.rows()
+            [[0, 1, 2], [1, 2], [0]]
+        """
+        return self._rows
 
     def __reduce__(self):
         """
@@ -90,7 +107,7 @@ cdef class dancing_linksWrapper:
             sage: Y == loads(dumps(X))
             0
         """
-        return type(self), (self.rows,)
+        return type(self), (self._rows,)
 
     def __richcmp__(dancing_linksWrapper left, dancing_linksWrapper right, int op):
         """
@@ -112,7 +129,7 @@ cdef class dancing_linksWrapper:
         """
 
         cdef int equal
-        equal = left.rows == right.rows
+        equal = left._rows == right._rows
 
         if op == 2: # ==
             return equal
@@ -152,9 +169,9 @@ cdef class dancing_linksWrapper:
         cdef vector[int] v
         cdef vector[vector[int]] vv
 
-        self.rows = [row for row in rows]
+        self._rows = [row for row in rows]
 
-        for row in self.rows:
+        for row in self._rows:
             v.clear()
 
             for x in row:
@@ -162,12 +179,12 @@ cdef class dancing_linksWrapper:
 
             vv.push_back(v)
 
-        self.x.add_rows(vv)
+        self._x.add_rows(vv)
 
     def get_solution(self):
         """
         After calling search(), we can extract a solution
-        from the instance variable self.x.solution, a C++ vector<int>
+        from the instance variable self._x.solution, a C++ vector<int>
         listing the rows that make up the current solution.
 
         TESTS::
@@ -186,8 +203,8 @@ cdef class dancing_linksWrapper:
         cdef size_t i
 
         s = []
-        for i in range(self.x.solution.size()):
-            s.append(self.x.solution.at(i))
+        for i in range(self._x.solution.size()):
+            s.append(self._x.solution.at(i))
 
         return s
 
@@ -226,7 +243,7 @@ cdef class dancing_linksWrapper:
             0
         """
         sig_on()
-        x = self.x.search()
+        x = self._x.search()
         sig_off()
         return x
 
@@ -270,7 +287,7 @@ def make_dlxwrapper(s):
         sage: rows = [[0,1,2]]
         sage: x = make_dlxwrapper(dumps(rows))
         sage: print x.__str__()
-        [[0, 1, 2]]
+        Dancing links solver for 3 columns and 1 rows
     """
     from sage.all import loads
     return dancing_linksWrapper(loads(s))

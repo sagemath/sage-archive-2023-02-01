@@ -847,7 +847,7 @@ def test_graceful_exit():
         sage: while "GO" not in P.stdout.readline(): pass  # long time
         sage: os.kill(P.pid, SIGHUP)  # long time
         sage: print 'stdout =', P.stdout.read()  # long time
-        stdout = ...Exiting spawned PARI/GP interpreter process...
+        stdout = ...Exiting PARI/GP interpreter...
         sage: P.wait()  # long time
         0
     """

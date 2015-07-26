@@ -62,9 +62,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.functional import is_odd, is_even
 from sage.misc.misc_c import prod
 from sage.categories.algebras import Algebras
@@ -106,6 +108,8 @@ class Differential(UniqueRepresentation, Morphism):
         sage: B.differential()(x)
         x*y
     """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
     @staticmethod
     def __classcall__(cls, A, im_gens):
         r"""
@@ -832,7 +836,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             else:
                 n = len(degrees)
             names = tuple('x{}'.format(i) for i in range(n))
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             names = tuple(names.split(','))
             n = len(names)
         else:

@@ -772,9 +772,8 @@ install() {
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
 
-        "$SAGE_ROOT"/build/make/pipestatus \
-            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG' 2>&1" \
-            "(trap '' SIGINT; tee -a '$SAGE_ROOT/logs/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
+        sage-logger \
+            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG'" "$SAGE_LOGS/$PKG_NAME.log"
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
             exit 1

@@ -4928,7 +4928,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def characteristic_polynomial(self):
         r"""
-        Return the characteristic polynomial of a graded poset ``self``.
+        Return the characteristic polynomial of the poset.
+
+        The poset is expected to be graded and have a bottom
+        element.
 
         If `P` is a graded poset with rank `n` and a unique minimal
         element `\hat{0}`, then the characteristic polynomial of
@@ -4957,8 +4960,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         hasse = self._hasse_diagram
         rk = hasse.rank_function()
-        if rk is None:
-            raise TypeError('the poset should be ranked')
+        if not self.is_graded():
+            raise TypeError('the poset should be graded')
+        if not self.has_bottom():
+            raise TypeError('the poset should have a bottom element')
         n = rk(hasse.maximal_elements()[0])
         x0 = hasse.minimal_elements()[0]
         q = polygen(ZZ, 'q')

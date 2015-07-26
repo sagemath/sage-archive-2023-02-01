@@ -2792,7 +2792,7 @@ DF = {
 ( 91, 6, 1):
   {(91,): [[0,1,3,7,25,38], [0,16,21,36,48,62], [0,30,40,63,74,82]]},
 
-( 91, 7, 1): # from the La Jolla covering repository, attributed to Colin Barker
+( 91, 7, 1): # from the La Jolla covering repository, attributed to Jan de Heer and Steve Muir
   {(91,): [[8, 9, 14, 25, 58, 81, 85], [5, 33, 35, 42, 45, 67, 88], [4, 17, 30, 43, 56, 69, 82]]},
 
 (121, 5, 1):

@@ -139,8 +139,6 @@ usage_advanced() {
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -pip [...]          -- invoke pip, the Python package manager"
-    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
-    echo "                         the packages located in upstream/"
 
     echo
     ####  1.......................26..................................................78
@@ -208,9 +206,11 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
+    echo "  -sdist              -- build a source distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
-    echo "  -sdist              -- build a source distribution of Sage"
+    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
+    echo "                         the packages located in upstream/"
 
     echo
     ####  1.......................26..................................................78

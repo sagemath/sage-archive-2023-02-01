@@ -99,7 +99,13 @@ static ex real_part_evalf(const ex & arg, PyObject* parent)
 
 static ex real_part_eval(const ex & arg)
 {
-	return arg.real_part();
+        ex pat = pow(wild(1), wild(2));
+        lst l;
+        if (arg.find(pat, l))
+                // real parts of powers can be expensive
+                return arg.expand().real_part();
+        else
+                return arg.real_part();
 }
 
 static void real_part_print_latex(const ex & arg, const print_context & c)
@@ -144,7 +150,13 @@ static ex imag_part_evalf(const ex & arg, PyObject* parent)
 
 static ex imag_part_eval(const ex & arg)
 {
-	return arg.imag_part();
+        ex pat = pow(wild(1), wild(2));
+        lst l;
+        if (arg.find(pat, l))
+                // imag parts of powers can be expensive
+                return arg.expand().imag_part();
+        else
+                return arg.imag_part();
 }
 
 static void imag_part_print_latex(const ex & arg, const print_context & c)

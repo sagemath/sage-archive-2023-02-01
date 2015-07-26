@@ -33,6 +33,8 @@ from sage.graphs.generators.smallgraphs import M22Graph
 from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
 from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
 from sage.graphs.generators.smallgraphs import SchlaefliGraph
+from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt
 
@@ -442,6 +444,8 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
           '?iCiHEKBO_hOiOWpOSGSTBQCUAW_DDIWOqHBO?gghw_?`kOAXH?\\Ds@@@CpIDKOpc@'+
           'OCoeIS_YOgGATGaqAhKGA?cqDOwQKGc?')],
         ( 77,  16,  0,  4): [M22Graph],
+        (100,  22,  0,  6): [HigmanSimsGraph],
+        (162,  56, 10, 24): [LocalMcLaughlinGraph],
         (231,  30,  9,  3): [CameronGraph],
         (275, 112, 30, 56): [McLaughlinGraph],
         (280, 135, 70, 60): [SRG_280_135_70_60],

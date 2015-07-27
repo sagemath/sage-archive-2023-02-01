@@ -91,7 +91,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.degree_to_cell` | Return the number of edges from vertex to an edge in cell.
     :meth:`~GenericGraph.subgraph` | Return the subgraph containing the given vertices and edges.
     :meth:`~GenericGraph.is_subgraph` | Test whether self is a subgraph of other.
-    :meth:`~GenericGraph.check_weight_function` | Checks if an edge weight function always returns integers.
 
 **Graph products:**
 
@@ -13814,7 +13813,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("The 'BFS' and 'BFS_Bid algorithms do not " +
                                  "work on weighted graphs.")
             if check_weight:
-                self.check_weight_function(weight_function)
+                self._check_weight_function(weight_function)
 
         if algorithm=="Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u,v)
@@ -13907,9 +13906,9 @@ class GenericGraph(GenericGraph_pyx):
                                 check_weight=False)
 
 
-    def check_weight_function(self, weight_function=None):
+    def _check_weight_function(self, weight_function=None):
         """
-        Checks that an edge weight function outputs only numbers.
+        Check that an edge weight function outputs only numbers.
 
         The weight function inputs a labelled edge `(u,v,l)` and
         outputs its weight. Here, we check that the output is always a number
@@ -13926,7 +13925,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = Graph([(0,1,1), (1,2,3), (2,3,2)])
             sage: weight_function=lambda e:e[2]
-            sage: G.check_weight_function(weight_function)
+            sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
             [1, 3, 2]
 
@@ -13934,19 +13933,19 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
             sage: weight_function=lambda e:e[2]['weight']
-            sage: G.check_weight_function(weight_function)
+            sage: G._check_weight_function(weight_function)
             sage: [weight_function(e) for e in G.edges()]
             [1, 3, 2]
 
-        A wrong weight function::
+        A weight function that does not match labels::
 
             sage: G.add_edge((0,3,{'name':'d', 'weight':'d'}))
-            sage: G.check_weight_function(weight_function)
+            sage: G._check_weight_function(weight_function)
             Traceback (most recent call last):
             ...
             ValueError: The weight function cannot find the weight of (0, 3, {'name': 'd', 'weight': 'd'})
         """
-        for e in self.edges():
+        for e in self.edge_iterator():
             try:
                 float(weight_function(e))
             except Exception:
@@ -13983,7 +13982,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight`` is
           automatically set to ``True``. If ``None`` and ``by_weight`` is
-          ``True``, we output ``l`` by default.
+          ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
@@ -14026,7 +14025,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_paths(0, weight_function=weight_function)
             {0: [0], 1: [0, 1], 2: [0, 1, 2]}
 
-        If the weight function is wrong::
+        If the weight function does not match the label::
 
             sage: weight_function = lambda e:e[2]
             sage: D.shortest_paths(0, weight_function=weight_function)
@@ -14068,7 +14067,7 @@ class GenericGraph(GenericGraph_pyx):
             algorithm = 'Dijkstra_NetworkX' if by_weight else 'BFS'
 
         if by_weight and check_weight:
-            self.check_weight_function(weight_function)
+            self._check_weight_function(weight_function)
 
         if algorithm=='BFS':
             if by_weight:
@@ -14119,7 +14118,7 @@ class GenericGraph(GenericGraph_pyx):
             if weight_function is None:
                 weight_function = lambda e:e[2]
             if check_weight:
-                self.check_weight_function(weight_function)
+                self._check_weight_function(weight_function)
             wt = 0
 
             for j in range(len(path) - 1):
@@ -14395,7 +14394,7 @@ class GenericGraph(GenericGraph_pyx):
             if weight_function is None:
                 weight_function = lambda e:e[2]
             if check:
-                self.check_weight_function(weight_function)
+                self._check_weight_function(weight_function)
 
         dist = {}
         pred = {}

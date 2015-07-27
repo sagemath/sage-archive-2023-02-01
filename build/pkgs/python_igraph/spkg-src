@@ -4,24 +4,43 @@
 # python-igraph-0.7.0.tar.gz into python_igraph-0.7.0.tar.gz, and it modifies
 # the name of the top folder accordingly.
 
-if [ -e upstream/python_igraph-0.7.0.tar.gz ]
+
+if [ -z "$SAGE_ROOT" -o -z "$SAGE_DISTFILES" ]; then
+   echo >&2 "\$SAGE_ROOT or \$SAGE_DISTFILES undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+PKG_DIR="$SAGE_ROOT/build/pkgs/python_igraph/"
+VERSION=$(cat "$PKG_DIR/package-version.txt")
+PYTHONIGRAPH=python-igraph-$VERSION
+PYTHONIGRAPHMOD=python_igraph-$VERSION
+
+set -e
+shopt -s extglob
+
+if [ -e $SAGE_ROOT/upstream/$PYTHONIGRAPHMOD-$VERSION.tar.gz ]
 then
     echo "The modified .tar file already exists."
     exit
 fi
 
-if [ -e upstream/python-igraph-0.7.0.tar.gz ]
+# work in a temporary directory
+cd $(mktemp -d)
+
+mkdir src
+cd src
+
+tar xzf <( curl -L "igraph.org/nightly/get/python/$PYTHONIGRAPH.tar.gz" )
+
+if [ -e $PYTHONIGRAPH ]
 then
-    tar -zxf upstream/python-igraph-0.7.0.tar.gz -C local/var/tmp/sage/build/
-    cd local/var/tmp/sage/build
-    mv python-igraph-0.7.0 python_igraph-0.7.0
-    tar -zcf python_igraph-0.7.0.tar.gz python_igraph-0.7.0
-    rm -rf python_igraph-0.7.0
-    cd ../../../../..
-    mv local/var/tmp/sage/build/python_igraph-0.7.0.tar.gz upstream/python_igraph-0.7.0.tar.gz
-    rm upstream/python-igraph-0.7.0.tar.gz
-    ./sage -sh sage-fix-pkg-checksums
-    echo "Correctly modified .tar file."
+    mv $PYTHONIGRAPH $PYTHONIGRAPHMOD
+    tar -zcf $PYTHONIGRAPHMOD.tar.gz $PYTHONIGRAPHMOD
+    mv $PYTHONIGRAPHMOD.tar.gz $SAGE_ROOT/upstream/python_igraph-$VERSION.tar.gz
+    echo "Correctly downloaded/modified file .tar file."
 else
-    echo "File python-igraph-0.7.0.tar.gz not found in folder upstream."
+    echo "Cannot find file $PYTHONIGRAPH.tar.gz."
 fi
+cd ..
+rm -rf src

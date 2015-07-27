@@ -60,7 +60,7 @@ AUTHORS:
 
 import sage
 
-def parent_to_string(P):
+def parent_to_repr_short(P):
     r"""
     Helper method for short representations, which converts a parent
     to a short representation string.
@@ -76,13 +76,13 @@ def parent_to_string(P):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.parent_to_string(ZZ)
+        sage: agg.parent_to_repr_short(ZZ)
         'ZZ'
-        sage: agg.parent_to_string(QQ)
+        sage: agg.parent_to_repr_short(QQ)
         'QQ'
-        sage: agg.parent_to_string(SR)
+        sage: agg.parent_to_repr_short(SR)
         'SR'
-        sage: agg.parent_to_string(ZZ[x])
+        sage: agg.parent_to_repr_short(ZZ[x])
         '(Univariate Polynomial Ring in x over Integer Ring)'
     """
     if P is sage.rings.integer_ring.ZZ:
@@ -594,7 +594,7 @@ class GenericGrowthGroup(
             sage: agg.GenericGrowthGroup(QQ)
             Growth Group Generic(QQ)
         """
-        return 'Generic(%s)' % (parent_to_string(self.base()),)
+        return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
 
 
     def _repr_(self):
@@ -1222,7 +1222,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^(Univariate Polynomial Ring in x over Rational Field)'
         """
-        return '%s^%s' % (self._var_, parent_to_string(self.base()))
+        return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
 
 
     def __hash__(self):

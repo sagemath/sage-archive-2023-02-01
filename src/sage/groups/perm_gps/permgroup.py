@@ -1321,8 +1321,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             if action == "OnPoints":
                 point = self._domain_to_gap[point]
             else:
-                point = [self._domain_to_gap[x] for x in point]
-                point.sort()
+                point = sorted([self._domain_to_gap[x] for x in point])
         except KeyError as x:
             raise ValueError("{} does not belong to the domain".format(x))
 
@@ -3153,8 +3152,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             raise ValueError("%s is not a subgroup of %s" % (S, self))
 
         group = sorted(copy(self.list()))
-        subgroup = [self(s) for s in S.list()]
-        subgroup.sort()
+        subgroup = sorted([self(s) for s in S.list()])
         decomposition = []
         while group:
             rep = group[0]

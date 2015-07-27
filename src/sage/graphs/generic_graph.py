@@ -1320,22 +1320,26 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: G = graphs.TetrahedralGraph()
-            sage: H = G.igraph_graph()
-            sage: H.summary()
+            sage: G = graphs.TetrahedralGraph() # optional - python_igraph
+            sage: H = G.igraph_graph()          # optional - python_igraph
+            sage: H.summary()                   # optional - python_igraph
             'IGRAPH U--- 4 6 -- '
-            sage: G = digraphs.Path(3)
-            sage: H = G.igraph_graph()
-            sage: H.summary()
+            sage: G = digraphs.Path(3)          # optional - python_igraph
+            sage: H = G.igraph_graph()          # optional - python_igraph
+            sage: H.summary()                   # optional - python_igraph
             'IGRAPH D--- 3 2 -- '
         """
-        import igraph
-        v_to_int = {v:i for i,v in enumerate(self.vertices())}
-        edgelist = [(v_to_int[v],v_to_int[w])
+        try:
+            import igraph
+            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            edgelist = [(v_to_int[v],v_to_int[w])
                     for v,w in self.edges(labels=False)]
 
-        g = igraph.Graph(edgelist, directed=self.is_directed())
-        return g
+            return igraph.Graph(edgelist, directed=self.is_directed())
+        except ImportError:
+            raise ImportError("The package igraph is not available. To " +
+                              "install it, run Sage with option -i " + 
+                              "python_igraph.")    
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""

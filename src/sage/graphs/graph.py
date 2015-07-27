@@ -1177,9 +1177,12 @@ class Graph(GenericGraph):
                 data = data.to_undirected()
             elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
-        import igraph
-        if format is None and isinstance(data, igraph.Graph):
-            format = 'igraph'
+        try:
+            import igraph
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
+        except ImportError:
+            pass
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:

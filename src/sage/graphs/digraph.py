@@ -632,9 +632,12 @@ class DiGraph(GenericGraph):
                 format = 'NX'
             elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 format = 'NX'
-        import igraph
-        if format is None and isinstance(data, igraph.Graph):
-            format = 'igraph'
+        try:
+            import igraph
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
+        except ImportError:
+            pass
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:

@@ -1,9 +1,14 @@
 r"""
 (Asymptotic) Growth Groups
 
-This module adds support for (asymptotic) growth groups. Such groups is equipped with a partial order: the elements can be seen as functions and their behavior as the argument(s) get large (tend to `\infty`) is compared.
+This module adds support for (asymptotic) growth groups. Such groups
+is equipped with a partial order: the elements can be seen as
+functions and their behavior as the argument(s) get large (tend to
+`\infty`) is compared.
 
-Beside an abstract base class :class:`GenericGrowthGroup`, this module contains concrete realizations of growth groups. At the moment there is
+Beside an abstract base class :class:`GenericGrowthGroup`, this module
+contains concrete realizations of growth groups. At the moment there
+is
 
 - :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
 
@@ -29,11 +34,15 @@ AUTHORS:
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GenericGrowthGroup(ZZ); G
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
         See http://trac.sagemath.org/17600 for details.
         GenericGrowthGroup(Integer Ring)
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
         See http://trac.sagemath.org/17600 for details.
         x^ZZ
 """

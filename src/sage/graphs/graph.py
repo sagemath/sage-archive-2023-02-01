@@ -1394,6 +1394,7 @@ class Graph(GenericGraph):
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'igraph':
+            self.add_vertices(range(data.vcount()))
             self.add_edges(data.get_edgelist())
         elif format == 'rule':
             f = data[1]

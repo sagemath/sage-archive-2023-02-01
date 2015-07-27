@@ -876,6 +876,7 @@ class DiGraph(GenericGraph):
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'igraph':
+            self.add_vertices(range(data.vcount()))
             self.add_edges(data.get_edgelist())
             if not data.is_directed():
                 self.add_edges(((w,v) for (v,w) in data.get_edgelist()))

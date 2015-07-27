@@ -62,7 +62,8 @@ import sage
 
 def string_to_parent(s):
     r"""
-    Helper method for the growth group factory.
+    Helper method for the growth group factory, which converts a short
+    representation string to a parent.
 
     INPUT:
 

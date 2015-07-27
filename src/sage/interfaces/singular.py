@@ -24,6 +24,8 @@ AUTHORS:
 
 - Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
 
+- Simon King (2015): Extend pickling capabilities.
+
 Introduction
 ------------
 
@@ -304,37 +306,22 @@ see :trac:`11645`::
     ''
 """
 
-
-
-#We could also do these calculations without using the singular
-#interface (behind the scenes the interface is used by Sage):
-#    sage: x, y = PolynomialRing(RationalField(), 2, names=['x','y']).gens()
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9)
-#    sage: C.genus()
-#    0
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9 + x)
-#    sage: C.genus()
-#    40
-
 #*****************************************************************************
 #       Copyright (C) 2005 David Joyner and William Stein
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import os
 import re
 import sys
 import pexpect
+from time import sleep
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -345,6 +332,7 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
+from sage.misc.superseded import deprecation
 
 class SingularError(RuntimeError):
     """
@@ -387,7 +375,9 @@ class Singular(Expect):
                         terminal_echo=False,
                         name = 'singular',
                         prompt = prompt,
-                        command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
+                        # no tty, fine grained cputime()
+                        # and do not display CTRL-C prompt
+                        command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -495,6 +485,43 @@ class Singular(Expect):
             'quit'
         """
         return 'quit'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to Singular. If needed, additional
+        semi-colons are sent until we get back at the prompt.
+
+        TESTS:
+
+        The following works without restarting Singular::
+
+            sage: a = singular(1)
+            sage: _ = singular._expect.sendline('1+')  # unfinished input
+            sage: try:
+            ....:     alarm(0.5)
+            ....:     singular._expect_expr('>')  # interrupt this
+            ....: except KeyboardInterrupt:
+            ....:     pass
+            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
+
+        We can still access a::
+
+            sage: 2*a
+            2
+        """
+        # Work around for Singular bug
+        # http://www.singular.uni-kl.de:8002/trac/ticket/727
+        sleep(0.1)
+
+        E = self._expect
+        E.sendline(chr(3))
+        for i in range(5):
+            try:
+                E.expect_upto(self._prompt, timeout=1.0)
+                return
+            except Exception:
+                pass
+            E.sendline(";")
 
     def _read_in_file_command(self, filename):
         r"""
@@ -1210,7 +1237,7 @@ class SingularElement(ExpectElement):
 
             sage: a = singular(2)
             sage: loads(dumps(a))
-            (invalid object -- defined in terms of closed session)
+            2
         """
         RingElement.__init__(self, parent)
         if parent is None: return
@@ -1339,18 +1366,6 @@ class SingularElement(ExpectElement):
             4
         """
         return int(self.size())
-
-    def __reduce__(self):
-        """
-        Note that the result of the returned reduce_load is an invalid
-        Singular object.
-
-        EXAMPLES::
-
-            sage: singular(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-        """
-        return reduce_load, ()  # default is an invalid object
 
     def __setitem__(self, n, value):
         """
@@ -1795,13 +1810,13 @@ class SingularElement(ExpectElement):
 
     def _sage_(self, R=None):
         r"""
-        Coerces self to Sage.
+        Convert self to Sage.
 
         EXAMPLES::
 
             sage: R = singular.ring(0, '(x,y,z)', 'dp')
             sage: A = singular.matrix(2,2)
-            sage: A._sage_(ZZ)
+            sage: A.sage(ZZ)   # indirect doctest
             [0 0]
             [0 0]
             sage: A = random_matrix(ZZ,3,3); A
@@ -1812,7 +1827,7 @@ class SingularElement(ExpectElement):
             -8     2     0
             0     1    -1
             2     1   -95
-            sage: As._sage_()
+            sage: As.sage()
             [ -8   2   0]
             [  0   1  -1]
             [  2   1 -95]
@@ -1822,7 +1837,7 @@ class SingularElement(ExpectElement):
             sage: singular.eval('ring R = integer, (x,y,z),lp')
             '// ** redefining R **'
             sage: I = singular.ideal(['x^2','y*z','z+x'])
-            sage: I.sage()  # indirect doctest
+            sage: I.sage()
             Ideal (x^2, y*z, x + z) of Multivariate Polynomial Ring in x, y, z over Integer Ring
 
         ::
@@ -1860,10 +1875,19 @@ class SingularElement(ExpectElement):
             sage: singular('x^2+y').sage().parent()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 
+        Test that :trac:`18848` is fixed::
+
+            sage: singular(5).sage()
+            5
+            sage: type(singular(int(5)).sage())
+            <type 'sage.rings.integer.Integer'>
+
         """
         typ = self.type()
         if typ=='poly':
             return self.sage_poly(R)
+        elif typ=='int':
+            return sage.rings.integer.Integer(repr(self))
         elif typ == 'module':
             return self.sage_matrix(R,sparse=True)
         elif typ == 'matrix':
@@ -1893,6 +1917,20 @@ class SingularElement(ExpectElement):
             br.set_ring()
             return R
         raise NotImplementedError("Coercion of this datatype not implemented yet")
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: singular('"abc"').is_string()
+            True
+            sage: singular('1').is_string()
+            False
+
+        """
+        return self.type() == 'string'
 
     def set_ring(self):
         """
@@ -2145,19 +2183,35 @@ def is_SingularElement(x):
     """
     return isinstance(x, SingularElement)
 
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
 def reduce_load():
     """
-    Note that this returns an invalid Singular object!
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    singular elements that are stored in the pickle jar.
 
     EXAMPLES::
 
         sage: from sage.interfaces.singular import reduce_load
         sage: reduce_load()
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
         (invalid object -- defined in terms of closed session)
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(singular.ring()))
+        //   characteristic : 0
+        //   number of vars : 1
+        //        block   1 : ordering lp
+        //                  : names    x
+        //        block   2 : ordering C
+
     """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
     return SingularElement(None, None, None)
-
-
 
 nodes = {}
 node_names = {}

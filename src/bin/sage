@@ -138,6 +138,7 @@ usage_advanced() {
     echo "                         'version' is a git branch or tag name. Useful values"
     echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
+    echo "  -pip [...]          -- invoke pip, the Python package manager"
 
     echo
     ####  1.......................26..................................................78
@@ -771,7 +772,7 @@ install() {
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
 
-        "$SAGE_ROOT"/build/pipestatus \
+        "$SAGE_ROOT"/build/make/pipestatus \
             "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG' 2>&1" \
             "(trap '' SIGINT; tee -a '$SAGE_ROOT/logs/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
         # Do not try to install further packages if one failed

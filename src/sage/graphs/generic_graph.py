@@ -14,6 +14,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
+    :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
     :meth:`~GenericGraph.adjacency_matrix` | Return the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Return an incidence matrix of the (di)graph
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
@@ -241,6 +242,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.transitive_reduction` | Return a transitive reduction of a graph.
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
+    :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
 
 **Plot/embedding-related methods:**
 
@@ -1084,6 +1086,97 @@ class GenericGraph(GenericGraph_pyx):
             5
         """
         return self.copy(immutable=False)
+
+    def export_to_file(self, filename, format=None, **kwds):
+        r"""
+        Export the graph to a file.
+
+        INPUT:
+
+        - ``filename`` (string) -- a file name.
+
+        - ``format`` (string) -- select the output format explicitly. If set to
+          ``None`` (default), the format is set to be the file extension of
+          ``filename``. Admissible formats are: ``adjlist``, ``dot``,
+          ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
+          ``pajek``, ``yaml``.
+
+        - All other arguments are forwarded to the subfunction. For more
+          information, see their respective documentation:
+
+          .. csv-table::
+              :class: contentstable
+              :widths: 30, 70
+              :delim: |
+
+              ``adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.adjlist.write_adjlist.html
+              ``dot`` | https://networkx.github.io/documentation/latest/reference/generated/networkx.drawing.nx_pydot.write_dot.html
+              ``edgelist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.edgelist.write_edgelist.html
+              ``gexf`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gexf.write_gexf.html
+              ``gml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gml.write_gml.html
+              ``graphml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.graphml.write_graphml.html
+              ``multiline_adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.multiline_adjlist.write_multiline_adjlist.html
+              ``pajek`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.pajek.write_pajek.html
+              ``yaml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.nx_yaml.write_yaml.html
+
+        .. SEEALSO::
+
+            * :meth:`~sage.structure.sage_object.SageObject.save` -- save a Sage
+              object to a 'sobj' file (preserves all its attributes).
+
+        .. NOTE::
+
+            This functions uses the ``write_*`` functions defined in NetworkX
+            (see http://networkx.lanl.gov/reference/readwrite.html).
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: filename = tmp_filename(ext=".pajek")
+            sage: g.export_to_file(filename)
+            sage: import networkx
+            sage: G_networkx = networkx.read_pajek(filename)
+            sage: Graph(G_networkx).is_isomorphic(g)
+            True
+            sage: filename = tmp_filename(ext=".edgelist")
+            sage: g.export_to_file(filename, data=False)
+            sage: h = Graph(networkx.read_edgelist(filename))
+            sage: g.is_isomorphic(h)
+            True
+
+        TESTS::
+
+            sage: g.export_to_file("hey",format="When I feel heavy metaaaaaallll...")
+            Traceback (most recent call last):
+            ...
+            ValueError: Format 'When I feel heavy metaaaaaallll...' unknown.
+            sage: g.export_to_file("my_file.Yeeeeppeeeeee")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
+        """
+        import networkx
+
+        formats = {"adjlist"           : networkx.write_adjlist,
+                   "dot"               : networkx.write_dot,
+                   "edgelist"          : networkx.write_edgelist,
+                   "gexf"              : networkx.write_gexf,
+                   "gml"               : networkx.write_gml,
+                   "graphml"           : networkx.write_graphml,
+                   "multiline_adjlist" : networkx.write_multiline_adjlist,
+                   "pajek"             : networkx.write_pajek,
+                   "yaml"              : networkx.write_yaml}
+
+        if format is None:
+            ext = filename[1+filename.rfind("."):]
+            if ext not in formats:
+                raise RuntimeError("The file format could not be guessed from '{}'".format(filename))
+            format = ext
+
+        if format not in formats:
+            raise ValueError("Format '{}' unknown.".format(format))
+
+        formats[format](self.networkx_graph(),filename,**kwds)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""
@@ -4576,7 +4669,7 @@ class GenericGraph(GenericGraph_pyx):
           original version is recursive. We emulate the recursion using a stack.
 
         .. SEEALSO::
-            
+
             :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
@@ -4730,7 +4823,7 @@ class GenericGraph(GenericGraph_pyx):
         type `B`.
 
         .. SEEALSO::
-        
+
             :meth:`blocks_and_cut_vertices`
 
         EXAMPLES:
@@ -12223,7 +12316,7 @@ class GenericGraph(GenericGraph_pyx):
         import networkx
         return networkx.triangles(self.networkx_graph(copy=False), nbunch)
 
-    def clustering_average(self):
+    def clustering_average(self, implementation=None):
         r"""
         Returns the average clustering coefficient.
 
@@ -12237,15 +12330,69 @@ class GenericGraph(GenericGraph_pyx):
 
         See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
+        INPUT:
+
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed graphs.
+
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_average()
+            1/4
+            sage: (graphs.FruchtGraph()).clustering_average(implementation='networkx')
             0.25
-        """
-        import networkx
-        return networkx.average_clustering(self.networkx_graph(copy=False))
 
-    def clustering_coeff(self, nodes=None, weight=False, return_vertex_weights=None):
+        TESTS:
+
+        Boost does not work with DiGraph::
+
+            sage: digraphs.Circuit(10).clustering_average(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: This value of 'implementation' is invalid for directed graphs
+
+        The result is the same with all implementations::
+
+            sage: G = graphs.RandomGNM(10,20)
+            sage: coeffs = [G.clustering_average(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
+            sage: max(coeffs)-min(coeffs) # tol abs 1e-12
+            0
+
+        """
+        if implementation == None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if self.is_directed():
+                implementation = 'networkx'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if self.is_directed() and implementation != 'networkx':
+            raise ValueError("This value of 'implementation' is invalid for directed graphs")
+
+        if implementation == 'boost':
+            from sage.graphs.base.boost_graph import clustering_coeff
+            return clustering_coeff(self)[0]
+        elif implementation == 'networkx':
+            import networkx
+            return networkx.average_clustering(self.networkx_graph(copy=False))
+        else:
+            from sage.stats.basic_stats import mean
+            return mean(self.clustering_coeff(implementation=implementation).values())
+
+    def clustering_coeff(self,
+                         nodes=None,
+                         weight=False,
+                         implementation=None,
+                         return_vertex_weights=None):
         r"""
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
@@ -12273,19 +12420,18 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed or weighted graphs, and that
+          ``'sparse_copy'`` and ``'dense_copy'`` do not support ``node``
+          different from ``None``
+
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff().values()
-            [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333,
-             0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
-             0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
-             0.0]
-            sage: (graphs.FruchtGraph()).clustering_coeff()
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
-             3: 0.3333333333333333, 4: 0.3333333333333333,
-             5: 0.3333333333333333, 6: 0.3333333333333333,
-             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-             10: 0.3333333333333333, 11: 0.0}
+            sage: graphs.FruchtGraph().clustering_coeff()
+            {0: 1/3, 1: 1/3, 2: 0, 3: 1/3, 4: 1/3, 5: 1/3,
+             6: 1/3, 7: 1/3, 8: 0, 9: 1/3, 10: 1/3, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
@@ -12293,6 +12439,7 @@ class GenericGraph(GenericGraph_pyx):
             5: 0.3333333333333333, 6: 0.3333333333333333,
             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
             10: 0.3333333333333333, 11: 0.0}
+
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
@@ -12300,7 +12447,12 @@ class GenericGraph(GenericGraph_pyx):
             ...     weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
-        TESTS::
+            sage: (graphs.GridGraph([5,5])).clustering_coeff(nodes=[(0,0),(0,1),(2,2)])
+            {(0, 0): 0.0, (0, 1): 0.0, (2, 2): 0.0}
+
+        TESTS:
+
+        Check that the option 'return_vertex_weights' is deprecated::
 
             sage: graphs.FruchtGraph().clustering_coeff(nodes=[0,1,2],
             ...     weight=True, return_vertex_weights=False)
@@ -12308,13 +12460,81 @@ class GenericGraph(GenericGraph_pyx):
             has been deprecated and is ignored.
             See http://trac.sagemath.org/17134 for details.
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+
+        Boost does not work with weights::
+
+            sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
+
+        Boost does not work with DiGraph::
+
+            sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
+
+        Check that the result is the same with all implementations::
+
+            sage: G = graphs.RandomGNM(10,20)
+            sage: G.relabel(list("abcdefghik"))
+            sage: coeffs = [G.clustering_coeff(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
+            sage: for v in G:
+            ....:     coeffs_v = [c[v] for c in coeffs]
+            ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
+            ....:         print "Error for v=",v
+            ....:         print "min=",min(coeffs_v),"max=",max(coeffs_v)
         """
+        from sage.rings.integer import Integer
         if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
-        import networkx
-        return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+
+        if implementation == None:
+            from sage.graphs.base.dense_graph import DenseGraphBackend
+            if self.is_directed() or weight:
+                implementation = 'networkx'
+            elif nodes is not None:
+                implementation = 'boost'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if ((self.is_directed() or weight) and
+            implementation != 'networkx'):
+            raise ValueError("This value of 'implementation' is invalid for directed/weighted graphs")
+
+        if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
+            raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
+
+        def coeff_from_triangle_count(v,count):
+            dv = self.degree(v)
+            if dv < 2:
+                return 0
+            return 2*count/Integer(dv*(dv-1))
+
+        if implementation == 'boost':
+            from sage.graphs.base.boost_graph import clustering_coeff
+            return clustering_coeff(self, nodes)[1]
+        elif implementation == 'networkx':
+            import networkx
+            return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+        elif implementation == 'sparse_copy':
+            from sage.graphs.base.static_sparse_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
+        elif implementation =="dense_copy":
+            from sage.graphs.base.static_dense_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
 
     def cluster_transitivity(self):
         r"""
@@ -13295,10 +13515,10 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr//6)
             elif algorithm=="sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=="dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:
@@ -13835,10 +14055,10 @@ class GenericGraph(GenericGraph_pyx):
 
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search` -- depth-first search for generic graphs.
 
         EXAMPLES::
@@ -13983,10 +14203,10 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`breadth_first_search`
-    
+
             - :meth:`breadth_first_search <sage.graphs.base.c_graph.CGraphBackend.breadth_first_search>`
               -- breadth-first search for fast compiled graphs.
-    
+
             - :meth:`depth_first_search <sage.graphs.base.c_graph.CGraphBackend.depth_first_search>`
               -- depth-first search for fast compiled graphs.
 
@@ -15188,7 +15408,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [0.833..., 0.543...],
              ('1', 0): [1.12..., -0.830...],
              ('1', 1): [2.50..., -0.545...]}
-        
+
             sage: g.layout(layout="acyclic_dummy", save_pos=True)
             {('0', 0): [0.3..., 0],
              ('0', 1): [0.3..., 1],
@@ -15200,7 +15420,7 @@ class GenericGraph(GenericGraph_pyx):
              ('0', 1): [1.61..., 0.260..., -0.927...],
              ('1', 0): [0.674..., -0.528..., -0.343...],
              ('1', 1): [1.07..., -0.260..., 0.927...]}
-             
+
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
@@ -18674,6 +18894,9 @@ import sage.graphs.distances_all_pairs
 GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
 GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
 GenericGraph.diameter = types.MethodType(sage.graphs.distances_all_pairs.diameter, None, GenericGraph)
+
+from sage.graphs.base.boost_graph import dominator_tree
+GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
 # From Python modules
 import sage.graphs.line_graph

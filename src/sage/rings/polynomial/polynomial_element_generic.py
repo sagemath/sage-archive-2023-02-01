@@ -144,7 +144,7 @@ class Polynomial_generic_sparse(Polynomial):
         if sparse:
           return [c[1] for c in sorted(self.__coeffs.iteritems())]
         else:
-          return [self.__coeffs[i] if self.__coeffs.has_key(i) else 0 for i in xrange(self.degree() + 1)]
+          return [self.__coeffs[i] if i in self.__coeffs else 0 for i in xrange(self.degree() + 1)]
 
     def exponents(self):
         """

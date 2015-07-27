@@ -975,6 +975,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             as a solver, but keep an eye on the number of variables in the
             polyhedron, or on the output of :meth:`show`. Just in case.
 
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.to_linear_program`
+            -- return the :class:`MixedIntegerLinearProgram` object associated
+            with a :func:`Polyhedron` object.
+
         EXAMPLES:
 
         A LP on two variables::

@@ -38,7 +38,7 @@ then
     mv $PYTHONIGRAPH $PYTHONIGRAPHMOD
     tar -zcf $PYTHONIGRAPHMOD.tar.gz $PYTHONIGRAPHMOD
     mv $PYTHONIGRAPHMOD.tar.gz $SAGE_ROOT/upstream/python_igraph-$VERSION.tar.gz
-    echo "Correctly downloaded/modified file .tar file."
+    echo "Correctly downloaded/modified input file."
 else
     echo "Cannot find file $PYTHONIGRAPH.tar.gz."
 fi

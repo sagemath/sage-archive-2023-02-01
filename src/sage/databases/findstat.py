@@ -485,9 +485,6 @@ class FindStat(SageObject):
                     len(query[1]) != 0 and
                     isinstance(query[1][0], (int, Integer))):
                     # just a pair
-                    if len(query[0]) != len(query[1]):
-                           raise ValueError("FindStat expects the same number of objects as values!")
-
                     data = [(query[0], list(query[1]))]
                     collection = FindStatCollection(data[0][0][0])
                     return FindStatStatistic(id=0, data=data,
@@ -499,8 +496,6 @@ class FindStat(SageObject):
                     for (key, value) in query:
                         if isinstance(value, (list, tuple)):
                             data += [(key, list(value))]
-                            if len(key) != len(value):
-                                raise ValueError("FindStat expects the same number of objects as values!")
                             is_statistic = False
                         else:
                             data += [([key], [value])]
@@ -904,6 +899,13 @@ class FindStatStatistic(SageObject):
         data = []
         total = min(max_values, FINDSTAT_MAX_VALUES)
         for (elements, values) in self._data:
+            if len(elements) != len(values):
+                raise ValueError("FindStat expects the same number of objects as values!")
+            try:
+                values = [int(v) for v in values]
+            except ValueError:
+                raise ValueError("FindStat expects integer values as statistics!")
+
             if total >= len(elements):
                 if all(self._collection.in_range(e) for e in elements):
                     data += [(elements, values)]
@@ -939,8 +941,8 @@ class FindStatStatistic(SageObject):
                                        len(match[FINDSTAT_QUERY_MATCHING_DATA]))
                                       for match in result[FINDSTAT_QUERY_MATCHES])
             return self
-        except:
-            raise IOError("FindStat did not answer with a json response.")
+        except Exception as e:
+            raise IOError("FindStat did not answer with a json response: %s" %e)
 
     def _raise_error_modifying_statistic_with_perfect_match(self):
         r"""

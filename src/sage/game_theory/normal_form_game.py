@@ -1888,6 +1888,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: game.is_degenerate()
             True
 
+            sage: M = matrix([[2, 1], [1, 1]])
+            sage: N = matrix([[1, 1], [1, 2]])
+            sage: game  = NormalFormGame([M, N])
+            sage: game.is_degenerate(certificate=True)
+            (True, (1, 0))
+
         Sometimes, the different algorithms for obtaining nash_equilibria don't
         agree with each other. This happens when games are degenerate::
 
@@ -1932,7 +1938,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
             sage: g.is_degenerate(certificate=True)
-            True
+            (True, (1/2, 1/2))
 
             sage: A = matrix([[1, -1], [-1, 1]])
             sage: B = matrix([[-1, 1], [1, -1]])
@@ -1976,8 +1982,9 @@ class NormalFormGame(SageObject, MutableMapping):
                                       "implemented for games with more than "
                                       "two players.")
 
-        if self._is_degenerate_pure():
-            return True
+        d = self._is_degenerate_pure(certificate)
+        if d:
+            return d
 
         M1, M2 = self.payoff_matrices()
         potential_supports = [[tuple(support) for support in
@@ -1999,11 +2006,17 @@ class NormalFormGame(SageObject, MutableMapping):
             if len(pair[0]) < len(pair[1]):
                 strat = self._solve_indifference(pair[0], pair[1], M2)
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[0]):
-                    return True
+                    if certificate:
+                        return True, strat
+                    else:
+                        return True
             elif len(pair[1]) < len(pair[0]):
                 strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[1]):
-                    return True
+                    if certificate:
+                        return True, strat
+                    else:
+                        return True
 
         if certificate:
             return False, ()
@@ -2140,7 +2153,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         return indices
 
-    def _is_degenerate_pure(self):
+    def _is_degenerate_pure(self, certificate=False):
         """
         Checks whether a game is degenerate in pure strategies.
 
@@ -2183,13 +2196,23 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         M1, M2 = self.payoff_matrices()
-        for row in M2.rows():
+        for i, row in enumerate(M2.rows()):
             if list(row).count(max(row)) > 1:
-                return True
+                if certificate:
+                    strat = [0 for k in range(M1.nrows())]
+                    strat[i] = 1
+                    return True, tuple(strat)
+                else:
+                    return True
 
-        for col in M1.columns():
+        for j, col in enumerate(M1.columns()):
             if list(col).count(max(col)) > 1:
-                return True
+                if certificate:
+                    strat = [0 for k in range(M1.ncols())]
+                    strat[j] = 1
+                    return True, tuple(strat)
+                else:
+                    return True
         return False
 
 

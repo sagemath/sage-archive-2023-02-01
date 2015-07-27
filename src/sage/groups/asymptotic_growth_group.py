@@ -37,13 +37,13 @@ AUTHORS:
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
+        See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
+        See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ
 """
 
@@ -523,7 +523,7 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
-    @sage.misc.superseded.experimental(trac_number=17600)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, category=None):
         r"""
         See :class:`GenericGrowthElement` for more information.
@@ -1157,7 +1157,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             cls, base, var, category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17600)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
         For more information see :class:`MonomialGrowthGroup`.

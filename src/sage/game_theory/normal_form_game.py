@@ -1834,7 +1834,7 @@ class NormalFormGame(SageObject, MutableMapping):
         t += 'end\n'
         return s, t
 
-    def is_degenerate(self):
+    def is_degenerate(self, certificate=False):
         """
         A function to check whether the game is degenerate or not.
         Will return a boolean.
@@ -1928,6 +1928,12 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.is_degenerate()
             True
 
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.is_degenerate(certificate=True)
+            True
+
             sage: A = matrix([[1, -1], [-1, 1]])
             sage: B = matrix([[-1, 1], [1, -1]])
             sage: matching_pennies = NormalFormGame([A, B])
@@ -1999,7 +2005,10 @@ class NormalFormGame(SageObject, MutableMapping):
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[1]):
                     return True
 
-        return False
+        if certificate:
+            return False, ()
+        else:
+            return False
 
     def best_responses(self, strategy, player):
         """

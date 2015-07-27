@@ -12596,7 +12596,7 @@ class GenericGraph(GenericGraph_pyx):
         return self.shortest_path_length(u, v, by_weight = by_weight)
 
     def distance_all_pairs(self, by_weight=False, weight_function=None,
-                           check=True, algorithm = None):
+                           check_weight=True, algorithm = None):
         """
         Returns the distances between all pairs of vertices.
 
@@ -12665,10 +12665,10 @@ class GenericGraph(GenericGraph_pyx):
         return self.shortest_path_all_pairs(by_weight=by_weight,
                                             algorithm=algorithm,
                                             weight_function=weight_function,
-                                            check=check)[0]
+                                            check_weight=check_weight)[0]
 
     def eccentricity(self, v=None, by_weight=False, weight_function=None,
-                     check=True, algorithm = None, dist_dict=None,
+                     check_weight=True, algorithm = None, dist_dict=None,
                      with_labels=False):
         """
         Return the eccentricity of vertex (or vertices) v.
@@ -12760,7 +12760,7 @@ class GenericGraph(GenericGraph_pyx):
                 # shortest_path_lengths function
                 length = self.shortest_path_lengths(u, by_weight=by_weight,
                          algorithm=algorithm, weight_function=weight_function,
-                         check=check)
+                         check_weight=check_weight)
 
             if len(length) != self.num_verts():
                 infinite = True
@@ -12776,7 +12776,7 @@ class GenericGraph(GenericGraph_pyx):
             if len(e)==1: return e.values()[0] # return single value
             return e.values()
 
-    def radius(self, by_weight=False, weight_function=None, check=True,
+    def radius(self, by_weight=False, weight_function=None, check_weight=True,
                algorithm=None):
         """
         Returns the radius of the (di)graph.
@@ -12840,11 +12840,11 @@ class GenericGraph(GenericGraph_pyx):
 
         return min(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
-                                     check=check,
+                                     check_weight=check_weight,
                                      algorithm=algorithm))
 
     def diameter(self, by_weight=False, weight_function=None,
-                 check=True, algorithm=None):
+                 check_weight=True, algorithm=None):
         """
         Returns the diameter of the (di)graph.
 
@@ -12925,10 +12925,10 @@ class GenericGraph(GenericGraph_pyx):
 
         return max(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,
-                                     check=check,
+                                     check_weight=check_weight,
                                      algorithm=algorithm))
 
-    def center(self, by_weight=False, weight_function=None, check=True,
+    def center(self, by_weight=False, weight_function=None, check_weight=True,
                algorithm=None):
         """
         Returns the set of vertices in the center, i.e. whose eccentricity
@@ -12982,7 +12982,7 @@ class GenericGraph(GenericGraph_pyx):
         e = self.eccentricity(by_weight=by_weight,
                               weight_function=weight_function,
                               algorithm=algorithm,
-                              check=check,
+                              check_weight=check_weight,
                               with_labels=True)
         try:
             r = min(e.values())
@@ -13267,8 +13267,8 @@ class GenericGraph(GenericGraph_pyx):
         return best
 
 
-    def periphery(self, by_weight=False, weight_function=None, check=True,
-                  algorithm=None):
+    def periphery(self, by_weight=False, weight_function=None,
+                  check_weight=True, algorithm=None):
         """
         Returns the set of vertices in the periphery, i.e. whose
         eccentricity is equal to the diameter of the (di)graph.
@@ -13321,7 +13321,7 @@ class GenericGraph(GenericGraph_pyx):
         e = self.eccentricity(by_weight=by_weight,
                               weight_function=weight_function,
                               algorithm=algorithm,
-                              check=check,
+                              check_weight=check_weight,
                               with_labels=True)
         try:
             r = max(e.values())
@@ -13819,7 +13819,10 @@ class GenericGraph(GenericGraph_pyx):
             return self._backend.bidirectional_dijkstra(u,v)
         elif algorithm=="Dijkstra_Bid_NetworkX":
             import networkx
-            G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            if self.is_directed():
+                G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
             return networkx.bidirectional_dijkstra(G)[1]
         elif algorithm=="BFS_Bid":
             return self._backend.shortest_path(u,v)
@@ -13976,12 +13979,12 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
 
-          - ``None`` (default): if the graph is weighted, then we use Dijkstra,
-            otherwise we use BFS.
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            ``by_weight`` is ``False``, ``'Dijkstra_NetworkX'`` otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
-          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight`` is
-          automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+          is automatically set to ``True``. If ``None`` and ``by_weight`` is
           ``True``, we use the edge label ``l`` as a weight.
 
         - ``check_weight`` (boolean) - if ``True``, we check that the
@@ -14081,31 +14084,48 @@ class GenericGraph(GenericGraph_pyx):
             if self.num_verts()==1 and self.vertices()[0]==u:
                 return {u:[u]}
             if by_weight:
-                G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                else:
+                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
             else:
                 # Needed to remove labels.
-                G = networkx.Graph(self.edges(labels=False))
+                if self.is_directed():
+                    G = networkx.DiGraph(self.edges(labels=False))
+                else:
+                    G = networkx.Graph(self.edges(labels=False))
             return networkx.single_source_dijkstra_path(G, u)
         else:
             raise ValueError("Algorithm " + algorithm + " not yet " +
                              "implemented. Please, contribute!")
 
-    def path_length(self, path, by_weight=False, weight_function=None, check_weight=True):
-        """
+    def path_length(self, path, by_weight=False, weight_function=None):
+        r"""
         Computes the (weighted) length of the path provided.
+
+        WARNING: if the graph is unweighted, the algorithm does not check that
+        the path exists. Moreover, also if the weight_function does not return a
+        number, an error is raised.
 
         INPUT:
 
-        - ``by_weight`` - if ``True``, the graph is considered weighted.
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
 
-        - ``weight_function`` (function) - used only if ``by_weight==True``. A
-          function that inputs an edge and outputs its weight (if ``None``, a
-          standard weight function is used).
+        - ``weight_function`` (function) - a function that inputs an edge
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+          is automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``True``, we use the edge label ``l`` as a weight.
 
-        - ``check_weight`` - if True, we check that the weight_function outputs
-          a number for each edge.
+        EXAMPLES:
 
-        EXAMPLE::
+        The unweighted case::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: G.path_length([0,1,2,0,1,2])
+            5
+
+        The weighted case::
 
             sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
             sage: G.path_length([0,1,2,3])
@@ -14113,12 +14133,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.path_length([0,1,2,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
             6
 
+        If we ask for a path that does not exist::
+
+            sage: G.path_length([0,3], by_weight=False)
+            sage: G.path_length([0,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
+            Traceback (most recent call last):
+            ...
+            LookupError: (0, 3) is not an edge of the graph.
         """
-        if by_weight:
+        if by_weight or weight_function is not None:
             if weight_function is None:
                 weight_function = lambda e:e[2]
-            if check_weight:
-                self._check_weight_function(weight_function)
             wt = 0
 
             for j in range(len(path) - 1):
@@ -14129,7 +14154,7 @@ class GenericGraph(GenericGraph_pyx):
             return len(path) - 1
 
     def shortest_path_lengths(self, u, by_weight=False, algorithm=None,
-                              weight_function=None, check=True,
+                              weight_function=None, check_weight=True,
                               weight_sums=None):
         """
         Returns a dictionary of shortest path lengths keyed by targets that
@@ -14139,32 +14164,36 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``u`` - the starting vertex
+        - ``u`` (vertex) - the starting vertex
 
-        - ``by_weight`` - if ``True``, the graph is considered weighted.
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
 
-        - ``algorithm`` - one of the following algorithms:
+        - ``algorithm`` (string) - one of the following algorithms:
 
-          - ``'BFS'``: performs a BFS from ``u``. Edge weights are ignored;
+          - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
+            weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
 
-          - ``None``: Sage chooses the best algorithm: ``'BFS'`` if the graph
-            is unweighted and ``'Dijkstra_NetworkX'`` if the graph is weighted.
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            ``by_weight`` is ``False``, ``'Dijkstra_NetworkX'`` otherwise.
 
-        - ``weight_function`` (function) - used only if ``by_weight==True``. A
-          function that inputs an edge and outputs its weight (if ``None``, a
-          standard weight function is used).
+        - ``weight_function`` (function) - a function that inputs an edge
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+          is automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``True``, we use the edge label ``l`` as a weight.
 
-        - ``check`` - if True, we check that the weight_function outputs a
-          number for each edge.
+        - ``check_weight`` (boolean) - if ``True``, we check that the
+          weight_function outputs a number for each edge.
 
-        -  ``weight_sum`` - if False, returns the number of
-           edges in the path. If True, returns the sum of the weights of these
-           edges. Default behavior is to have the same value as by_weight.
-           Deprecated: now variable ``by_weight`` is used (in case, we suggest
-           to compute the length of the path).
+        - ``cutoff`` (integer) - integer depth to stop search (used only if
+          ``algorithm=='BFS'``).
+
+        - ``weight_sum`` - Deprecated: now this variable has no effect. Before,
+          it was used to decide whether the number of edges or the sum of their
+          lengths was outputted. Now we use variable ``by_weight`` to decide.
 
         EXAMPLES::
 
@@ -14175,17 +14204,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
+            sage: D = DiGraph([(0,1,{'weight':1}),(1,2,{'weight':3}),(0,2,{'weight':5})])
+            sage: weight_function = lambda e:e[2]['weight']
+            sage: D.shortest_path_lengths(1, algorithm='Dijkstra_NetworkX', by_weight=False)
+            {1: 0, 2: 1}
+            sage: D.shortest_path_lengths(0, weight_function=weight_function)
+            {0: 0, 1: 1, 2: 4}
+            sage: D.shortest_path_lengths(1, weight_function=weight_function)
+            {1: 0, 2: 3}
         """
         if weight_sums is not None:
             deprecation(18938, "Now weight_sums is replaced by by_weight.")
 
-        paths = self.shortest_paths(u, by_weight, algorithm, weight_function)
+        paths = self.shortest_paths(u, by_weight=by_weight, algorithm=algorithm,
+                                    weight_function=weight_function)
         return {v:self.path_length(paths[v], by_weight, weight_function)
                 for v in paths}
 
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
-                                weight_function=None, check=True,
+                                weight_function=None, check_weight=True,
                                 default_weight=None):
         """
         Computes a shortest path between each pair of vertices.
@@ -14393,7 +14431,7 @@ class GenericGraph(GenericGraph_pyx):
         if by_weight:
             if weight_function is None:
                 weight_function = lambda e:e[2]
-            if check:
+            if check_weight:
                 self._check_weight_function(weight_function)
 
         dist = {}
@@ -14428,7 +14466,7 @@ class GenericGraph(GenericGraph_pyx):
         return dist, pred
 
     def wiener_index(self, by_weight=False, algorithm=None,
-                     weight_function=None, check=True):
+                     weight_function=None, check_weight=True):
         r"""
         Returns the Wiener index of the graph.
 
@@ -14504,7 +14542,7 @@ class GenericGraph(GenericGraph_pyx):
 
         distances = self.shortest_path_all_pairs(by_weight=by_weight,
                     algorithm=algorithm, weight_function=weight_function,
-                    check=check)[0]
+                    check_weight=check_weight)[0]
         total = 0
         for u in distances.values():
             total = total + sum(u.values())

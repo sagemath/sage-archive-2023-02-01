@@ -779,7 +779,8 @@ REFERENCES:
 
 .. [HKP2015] Clemens Heuberger, Sara Kropf, and Helmut Prodinger,
    *Output sum of transducers: Limiting distribution and periodic
-   fluctuation*, :arxiv:`1502.01412`.
+   fluctuation*,
+   `Electron. J. Combin. 22 (2015), #P2.19 <http://www.combinatorics.org/ojs/index.php/eljc/article/view/v22i2p19>`_.
 
 .. [HKW2015] Clemens Heuberger, Sara Kropf and Stephan Wagner,
    *Variances and Covariances in the Central Limit Theorem for the Output
@@ -7307,7 +7308,8 @@ class FiniteStateMachine(SageObject):
             sage: B.determinisation()
             Automaton with 1 state
         """
-        def composition_transition((state1, state2), input):
+        def composition_transition(states, input):
+            (state1, state2) = states
             return [((new_state1, new_state2), output_second)
                     for _, new_state1, output_first in
                     first.process([input],

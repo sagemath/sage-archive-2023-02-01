@@ -2100,7 +2100,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             q_exp = self.q_expansion_fixed_d(prec=prec, d_num_prec=num_prec)
             (A, w) = self.group().get_FD(tau)
             aut_factor = self.reduce(force=True).parent().aut_factor(A, w)
-            if (type(q_exp) == LaurentSeries):
+            if (type(q_exp) is LaurentSeries):
                 return q_exp.laurent_polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor
             else:
                 return q_exp.polynomial()(exp((2 * pi * i).n(num_prec) / self.group().lam() * w)) * aut_factor

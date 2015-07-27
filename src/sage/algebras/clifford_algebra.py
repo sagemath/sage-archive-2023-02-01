@@ -172,7 +172,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.list()
             [((0,), 5), ((1,), 1)]
         """
-        return sorted(self._monomial_coefficients.items(), key=lambda (m,c) : (-len(m), m))
+        return sorted(self._monomial_coefficients.items(), key=lambda m_c : (-len(m_c[0]), m_c[0]))
 
     def support(self):
         """

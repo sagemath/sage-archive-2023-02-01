@@ -99,12 +99,14 @@ __append_to_doc(
      "ClebschGraph",
      "CoxeterGraph",
      "DesarguesGraph",
+     "DejterGraph",
      "DoubleStarSnark",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
      "EllinghamHorton78Graph",
      "ErreraGraph",
+     "F26AGraph",
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
@@ -115,6 +117,7 @@ __append_to_doc(
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
+     "HarborthGraph",
      "HarriesGraph",
      "HarriesWongGraph",
      "HeawoodGraph",
@@ -126,6 +129,9 @@ __append_to_doc(
      "HortonGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
+     "Klein3RegularGraph",
+     "Klein7RegularGraph",
+     "LocalMcLaughlinGraph",
      "LjubljanaGraph",
      "LivingstoneGraph",
      "M22Graph",
@@ -1850,6 +1856,7 @@ class GraphGenerators():
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
+    DejterGraph              = staticmethod(sage.graphs.generators.smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(sage.graphs.generators.smallgraphs.DesarguesGraph)
     DoubleStarSnark          = staticmethod(sage.graphs.generators.smallgraphs.DoubleStarSnark)
     DurerGraph               = staticmethod(sage.graphs.generators.smallgraphs.DurerGraph)
@@ -1857,6 +1864,7 @@ class GraphGenerators():
     EllinghamHorton54Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton54Graph)
     EllinghamHorton78Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton78Graph)
     ErreraGraph              = staticmethod(sage.graphs.generators.smallgraphs.ErreraGraph)
+    F26AGraph                = staticmethod(sage.graphs.generators.smallgraphs.F26AGraph)
     FlowerSnark              = staticmethod(sage.graphs.generators.smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(sage.graphs.generators.smallgraphs.FosterGraph)
@@ -1868,6 +1876,7 @@ class GraphGenerators():
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)
     WellsGraph               = staticmethod(sage.graphs.generators.smallgraphs.WellsGraph)
+    HarborthGraph            = staticmethod(sage.graphs.generators.smallgraphs.HarborthGraph)
     HarriesGraph             = staticmethod(sage.graphs.generators.smallgraphs.HarriesGraph)
     HarriesWongGraph         = staticmethod(sage.graphs.generators.smallgraphs.HarriesWongGraph)
     HeawoodGraph             = staticmethod(sage.graphs.generators.smallgraphs.HeawoodGraph)
@@ -1879,6 +1888,9 @@ class GraphGenerators():
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
+    Klein3RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein3RegularGraph)
+    Klein7RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein7RegularGraph)
+    LocalMcLaughlinGraph     = staticmethod(sage.graphs.generators.smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     LivingstoneGraph         = staticmethod(sage.graphs.generators.smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)

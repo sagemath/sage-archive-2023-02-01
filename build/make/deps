@@ -1,11 +1,11 @@
 ###############################################################################
-# This file ($SAGE_ROOT/build/deps) will be copied into
-# $SAGE_ROOT/build/Makefile by $SAGE_ROOT/build/install
+# This file ($SAGE_ROOT/build/make/deps) will be copied into
+# $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
 ###############################################################################
 
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
 SAGE_SPKG = sage-spkg -f
-PIPE = $(SAGE_ROOT)/build/pipestatus
+PIPE = $(SAGE_ROOT)/build/make/pipestatus
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
@@ -46,7 +46,7 @@ all-sage: \
 		$(EXTCODE) \
 		$(SCRIPTS)
 
-# TOOLCHAIN consists of dependencies determined by build/install,
+# TOOLCHAIN consists of dependencies determined by build/make/install,
 # including for example the GCC package.
 toolchain: $(TOOLCHAIN)
 
@@ -76,7 +76,7 @@ start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKES)
+$(STARTED): $(STANDARD_PACKAGES)
 	"$(SAGE_LOCAL)/bin/sage-starts"
 
 
@@ -87,8 +87,8 @@ $(STARTED): $(STANDARD_PACKES)
 ###############################################################################
 base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 
-$(INST)/prereq: ../configure
-	@cd ..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
+$(INST)/prereq: ../../configure
+	@cd ../..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
 	./configure $$PREREQ_OPTIONS || ( \
 		if [ "x$$SAGE_PORT" = x ]; then \
 			echo "If you would like to try to build Sage anyway (to help porting),"; \
@@ -198,23 +198,23 @@ DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 doc: doc-html
 
 doc-html: $(DOC_DEPENDENCIES)
-	cd .. && $(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
-	cd .. && $(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: $(DOC_DEPENDENCIES)
-	cd .. && $(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
+	cd ../.. && $(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: $(DOC_DEPENDENCIES)
-	cd .. && $(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/docpdf.log"
+	cd ../.. && $(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/docpdf.log"
 
 doc-clean:
 	cd "$(SAGE_SRC)/doc" && $(MAKE) clean

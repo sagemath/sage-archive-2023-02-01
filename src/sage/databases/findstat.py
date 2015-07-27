@@ -90,7 +90,7 @@ submitted statistic is the composition of a sequence of combinatorial
 maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
-    sage: r = findstat(lambda pi: pi.saliances()[0], Permutations(4)); r        # optional -- internet,random
+    sage: r = findstat(Permutations(4), lambda pi: pi.saliances()[0]); r        # optional -- internet,random
     0: (St000051: The size of the left subtree. , [Mp00069: complement, Mp00061: to increasing tree], 24)
     ...
     sage: (s, list_f, quality) = r[0]                                           # optional -- internet
@@ -329,7 +329,7 @@ class FindStat(SageObject):
       optional arguments ``depth`` and ``max_values`` are passed to
       the finder.
 
-    - a callable and a collection.  The callable is used to generate
+    - a collection and a callable.  The callable is used to generate
       ``max_values`` (object, value) pairs.  The number of terms
       generated may also be controlled by passing an iterable
       collection, such as Permutations(3).  The optional arguments
@@ -388,7 +388,7 @@ class FindStat(SageObject):
     this case, the function is applied to the first few objects of
     the collection::
 
-        sage: findstat(lambda pi: pi.length(), "Permutations")                  # optional -- internet,random
+        sage: findstat("Permutations", lambda pi: pi.length())                  # optional -- internet,random
         0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
         ...
 
@@ -432,7 +432,7 @@ class FindStat(SageObject):
         self._user_name  = ""
         self._user_email = ""
 
-    def __call__(self, query, collection=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
+    def __call__(self, query, statistic=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
         r"""
         Return an instance of a :class:`FindStatStatistic`.
 
@@ -443,7 +443,7 @@ class FindStat(SageObject):
 
         TESTS::
 
-            sage: findstat(lambda x: 1, "Permutations", depth=100)
+            sage: findstat("Permutations", lambda x: 1, depth=100)
             Traceback (most recent call last):
             ...
             ValueError: The depth must be a non-negative integer less than or equal to 5.
@@ -454,7 +454,7 @@ class FindStat(SageObject):
         except:
             raise ValueError("The depth must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
 
-        if collection is None:
+        if statistic is None:
             if isinstance(query, str):
                 if re.match('^St[0-9]{6}$', query):
                     return self._statistic_find_by_id_cached(Integer(query[2:].lstrip("0")))
@@ -514,22 +514,22 @@ class FindStat(SageObject):
                 raise ValueError("The given query, %s, cannot be used for a FindStat search." %query)
 
         else:
-            if callable(query):
-                if not isinstance(collection, FindStatCollection):
-                    collection = FindStatCollection(collection)
-                first_terms = collection.first_terms(query, max_values=max_values)
+            if callable(statistic):
+                if not isinstance(query, FindStatCollection):
+                    collection = FindStatCollection(query)
+                first_terms = collection.first_terms(statistic, max_values=max_values)
                 data = [([key], [value]) for (key, value) in first_terms]
                 try:
-                    code = inspect.getsource(query)
+                    code = inspect.getsource(statistic)
                 except IOError:
                     _ = verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
                     code = ""
                 return FindStatStatistic(id=0, first_terms=first_terms,
-                                         data=data, function=query, code=code,
+                                         data=data, function=statistic, code=code,
                                          collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
             else:
-                raise ValueError("The given query, %s, cannot be used for a FindStat search." %query)
+                raise ValueError("The given arguments, %s and %s, cannot be used for a FindStat search." %(query, statistic))
 
     def __repr__(self):
         r"""
@@ -765,8 +765,8 @@ class FindStatStatistic(SageObject):
             sage: findstat(1) == findstat(41)                                   # optional -- internet
             False
 
-            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
-            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
+            sage: r1 = findstat(Permutations(3), lambda pi: pi.saliances()[0])  # optional -- internet
+            sage: r2 = findstat(Permutations(4), lambda pi: pi.saliances()[0])  # optional -- internet
             sage: r1 == r2                                                      # optional -- internet
             False
         """
@@ -803,8 +803,8 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: r1 = findstat(lambda pi: pi.saliances()[0], Permutations(3))  # optional -- internet
-            sage: r2 = findstat(lambda pi: pi.saliances()[0], Permutations(4))  # optional -- internet
+            sage: r1 = findstat(Permutations(3), lambda pi: pi.saliances()[0])  # optional -- internet
+            sage: r2 = findstat(Permutations(4), lambda pi: pi.saliances()[0])  # optional -- internet
             sage: r1 != r2                                                      # optional -- internet
             True
 
@@ -1095,7 +1095,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: findstat(lambda pi: pi.length(), "Permutations").function()   # optional -- internet
+            sage: findstat("Permutations", lambda pi: pi.length()).function()   # optional -- internet
             ...
             <function <lambda> at ...>
         """
@@ -1391,7 +1391,7 @@ class FindStatStatistic(SageObject):
 
         EXAMPLES::
 
-            sage: s = findstat(lambda x: randint(1,1000), DyckWords(4)); s      # optional -- internet
+            sage: s = findstat(DyckWords(4), lambda x: randint(1,1000)); s      # optional -- internet
             a new statistic on Cc0005: Dyck paths
 
         The following uses ``lambda x: randint(1,1000)`` to produce
@@ -2064,7 +2064,7 @@ class FindStatMap(Element):
 
         EXAMPLES::
 
-            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m = findstat("Permutations", lambda pi: pi.length())[1][1][0] # optional -- internet
             sage: m.id()                                                        # optional -- internet
             62
         """
@@ -2080,7 +2080,7 @@ class FindStatMap(Element):
 
         EXAMPLES::
 
-            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m = findstat("Permutations", lambda pi: pi.length())[1][1][0] # optional -- internet
             sage: m.id_str()                                                    # optional -- internet
             'Mp00062'
         """
@@ -2138,7 +2138,7 @@ class FindStatMap(Element):
 
         EXAMPLES::
 
-            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m = findstat("Permutations", lambda pi: pi.length())[1][1][0] # optional -- internet
             sage: m.name()                                                      # optional -- internet
             u'inversion-number to major-index bijection'
         """
@@ -2154,7 +2154,7 @@ class FindStatMap(Element):
 
         EXAMPLES::
 
-            sage: m = findstat(lambda pi: pi.length(), "Permutations")[1][1][0] # optional -- internet
+            sage: m = findstat("Permutations", lambda pi: pi.length())[1][1][0] # optional -- internet
             sage: print m.description()                                         # optional -- internet,random
             Let $\sigma \in \mathcal{S}_n$ be a permutation.
             <BLANKLINE>

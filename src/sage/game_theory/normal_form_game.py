@@ -1846,7 +1846,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         The implementation here transforms the search over mixed strategies to a
         search over supports which is a discrete search. A full explanation of
-        this is given in [CK2015]_.
+        this is given in [CK2015]_. This problem is known to be NP-Hard [D2009].
 
         The game Rock-Paper-Scissors is an example of a non-degenerate game,::
 
@@ -1968,6 +1968,11 @@ class NormalFormGame(SageObject, MutableMapping):
 
         REFERENCES:
 
+        ..[D2009] Du Ye.
+            *On the Complexity of Deciding Degeneracy in Games*
+            http://arxiv.org/pdf/0905.3012v1.pdf
+            (2009)
+
         .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard von Stengel.
            *Enumeration of Nash equilibria for two-player games.*
            http://www.maths.lse.ac.uk/personal/stengel/ETissue/ARSvS.pdf (2010)
@@ -2032,14 +2037,14 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         For a given strategy for a player and the index of the opponent,
         computes the payoff for the opponent and returns a list of the indices
-        of the best responses.
+        of the best responses. Only implemented for two player games
 
         INPUT:
 
         - ``strategy`` -- a probability distribution vector
 
-        - ``player`` -- the index of the opponent, ``0`` for Player 1, ``1`` for
-          Player 2
+        - ``player`` -- the index of the opponent, ``0`` for the row player,
+          ``1`` for the column player.
 
         EXAMPLES::
 

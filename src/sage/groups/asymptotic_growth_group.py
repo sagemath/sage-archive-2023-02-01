@@ -62,8 +62,8 @@ import sage
 
 def parent_to_repr_short(P):
     r"""
-    Helper method for short representations, which converts a parent
-    to a short representation string.
+    Helper method, which generates a short(er) representation string
+    out of a parent.
 
     INPUT:
 

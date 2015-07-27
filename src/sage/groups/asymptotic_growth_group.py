@@ -93,7 +93,7 @@ def string_to_parent(s):
     if s == 'ZZ':
         return sage.rings.integer_ring.ZZ
     elif s == 'QQ':
-        return Qsage.rings.rational_field.QQ
+        return sage.rings.rational_field.QQ
     elif s == 'SR':
         return sage.symbolic.ring.SR
     else:

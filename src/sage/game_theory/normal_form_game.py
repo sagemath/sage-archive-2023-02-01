@@ -1888,11 +1888,16 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: game.is_degenerate()
             True
 
+        For debugging purposes, it may be useful to use ``certificate=True``.
+        This will return a boolean of whether the game is degenerate or not, and
+        if True; the strategy where degeneracy was found and the player it
+        belongs to. ``0`` is the row player and ``1`` is the column player.
+
             sage: M = matrix([[2, 1], [1, 1]])
             sage: N = matrix([[1, 1], [1, 2]])
             sage: game  = NormalFormGame([M, N])
             sage: game.is_degenerate(certificate=True)
-            (True, (1, 0))
+            (True, (1, 0), 0)
 
         Sometimes, the different algorithms for obtaining nash_equilibria don't
         agree with each other. This happens when games are degenerate::
@@ -1938,7 +1943,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
             sage: g.is_degenerate(certificate=True)
-            (True, (1/2, 1/2))
+            (True, (1/2, 1/2), 1)
 
             sage: A = matrix([[1, -1], [-1, 1]])
             sage: B = matrix([[-1, 1], [1, -1]])
@@ -2007,14 +2012,14 @@ class NormalFormGame(SageObject, MutableMapping):
                 strat = self._solve_indifference(pair[0], pair[1], M2)
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[0]):
                     if certificate:
-                        return True, strat
+                        return True, strat, 0
                     else:
                         return True
             elif len(pair[1]) < len(pair[0]):
                 strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[1]):
                     if certificate:
-                        return True, strat
+                        return True, strat, 1
                     else:
                         return True
 
@@ -2201,7 +2206,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 if certificate:
                     strat = [0 for k in range(M1.nrows())]
                     strat[i] = 1
-                    return True, tuple(strat)
+                    return True, tuple(strat), 0
                 else:
                     return True
 
@@ -2210,7 +2215,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 if certificate:
                     strat = [0 for k in range(M1.ncols())]
                     strat[j] = 1
-                    return True, tuple(strat)
+                    return True, tuple(strat), 1
                 else:
                     return True
         return False

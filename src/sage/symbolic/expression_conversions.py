@@ -574,6 +574,13 @@ class InterfaceInit(Converter):
             sage: bool(b.sage() == a)
             True
 
+        Test a special case (:trac:`16697`)::
+
+            sage: x,y = var('x,y')
+            sage: (gamma_inc(x,y).diff(x))
+            D[0](gamma)(x, y)
+            sage: (gamma_inc(x,x+1).diff(x)).simplify()
+            -(x + 1)^(x - 1)*e^(-x - 1) + D[0](gamma)(x, x + 1)
         """
         #This code should probably be moved into the interface
         #object in a nice way.
@@ -668,7 +675,7 @@ class SympyConverter(Converter):
 
     TESTS:
 
-    Make sure we can convert I (trac #6424)::
+    Make sure we can convert I (:trac:`6424`)::
 
         sage: bool(I._sympy_() == I)
         True
@@ -1209,7 +1216,7 @@ class FastFloatConverter(Converter):
             1.2
 
         Using _fast_float_ on a function which is the identity is
-        now supported (see Trac 10246)::
+        now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
             sage: f._fast_float_(x)

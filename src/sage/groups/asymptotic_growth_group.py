@@ -73,7 +73,7 @@ def string_to_parent(s):
 
     A parent.
 
-    TESTS::
+    EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: agg.string_to_parent('ZZ')
@@ -83,24 +83,21 @@ def string_to_parent(s):
         sage: agg.string_to_parent('SR')
         Symbolic Ring
 
-    ::
+    TESTS::
 
         sage: agg.string_to_parent('abcdef')
         Traceback (most recent call last):
         ...
-        ValueError: 'abcdef' cannot be parsed
+        ValueError: Cannot create a parent out of 'abcdef'.
     """
     if s == 'ZZ':
-        from sage.rings.integer_ring import ZZ
-        return ZZ
+        return sage.rings.integer_ring.ZZ
     elif s == 'QQ':
-        from sage.rings.rational_field import QQ
-        return QQ
+        return Qsage.rings.rational_field.QQ
     elif s == 'SR':
-        from sage.symbolic.ring import SR
-        return SR
+        return sage.symbolic.ring.SR
     else:
-        raise ValueError("'%s' cannot be parsed" % s)
+        raise ValueError("Cannot create a parent out of '%s'." % s)
 
 
 def parent_to_string(P):

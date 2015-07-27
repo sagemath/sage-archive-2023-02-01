@@ -1333,12 +1333,12 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
             v_to_int = {v:i for i,v in enumerate(self.vertices())}
             edgelist = [(v_to_int[v],v_to_int[w])
-                    for v,w in self.edges(labels=False)]            
+                    for v,w in self.edges(labels=False)]
             return igraph.Graph(self.num_verts(), edgelist, directed=self.is_directed())
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run Sage with option -i " + 
-                              "python_igraph.")    
+                              "install it, run Sage with option -i " +
+                              "python_igraph.")
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""

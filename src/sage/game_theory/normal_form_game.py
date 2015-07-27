@@ -1848,13 +1848,13 @@ class NormalFormGame(SageObject, MutableMapping):
         search over supports which is a discrete search. A full explanation of
         this is given in [CK2015]_.
 
-        The game Rock-Paper-Scissors is an example of a non-degenerate game.::
+        The game Rock-Paper-Scissors is an example of a non-degenerate game,::
 
             sage: g = game_theory.normal_form_games.RPS()
             sage: g.is_degenerate()
             False
 
-        Whereas `Rock-Paper-Scissors-Lizard-Spock
+        whereas `Rock-Paper-Scissors-Lizard-Spock
         <http://www.samkass.com/theories/RPSSL.html>`_ is degenerate because
         for every pure strategy there are two best responses.::
 
@@ -2003,7 +2003,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
     def best_responses(self, strategy, player):
         """
-        For a given strategy for a player and the index of the oponent,
+        For a given strategy for a player and the index of the opponent,
         computes the payoff for the opponent and returns a list of the indices
         of the best responses.
 
@@ -2011,7 +2011,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
         - ``strategy`` -- a probability distribution vector
 
-        - ``player`` -- the index of the oponent, ``0`` for Player 1, ``1`` for
+        - ``player`` -- the index of the opponent, ``0`` for Player 1, ``1`` for
           Player 2
 
         EXAMPLES::

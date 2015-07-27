@@ -72,7 +72,7 @@ def parent_to_string(P):
 
     A string.
 
-    TESTS::
+    EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: agg.parent_to_string(ZZ)

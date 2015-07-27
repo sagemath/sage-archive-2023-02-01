@@ -404,9 +404,9 @@ class DiGraph(GenericGraph):
 
     #. An igraph Graph::
 
-            sage: import igraph
-            sage: g = igraph.Graph([(0,1),(1,2),(0,2)], directed = True)
-            sage: DiGraph(g)
+            sage: import igraph                                          # optional - python_igraph
+            sage: g = igraph.Graph([(0,1),(1,2),(0,2)], directed = True) # optional - python_igraph
+            sage: DiGraph(g)                                             # optional - python_igraph
             Digraph on 3 vertices
 
     TESTS::
@@ -457,10 +457,10 @@ class DiGraph(GenericGraph):
     If the input is an undirected igraph graph, the output is transformed into
     a directed graph::
 
-        sage: import igraph
-        sage: G = igraph.Graph([(0,1),(1,2),(0,2)], directed = False)
-        sage: H = DiGraph(G)
-        sage: H.edges(labels=False)
+        sage: import igraph                                           # optional - python_igraph
+        sage: G = igraph.Graph([(0,1),(1,2),(0,2)], directed = False) # optional - python_igraph
+        sage: H = DiGraph(G)                                          # optional - python_igraph
+        sage: H.edges(labels=False)                                   # optional - python_igraph
         [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
     """
     _directed = True
@@ -873,11 +873,9 @@ class DiGraph(GenericGraph):
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'igraph':
-            if data.is_directed():
-                self.add_edges(data.get_edgelist())
-            else:
-                self.add_edges(data.get_edgelist())
-                self.add_edges([(w,v) for (v,w) in data.get_edgelist()])
+            self.add_edges(data.get_edgelist())
+            if not data.is_directed():
+                self.add_edges(((w,v) for (v,w) in data.get_edgelist()))
         elif format == 'int':
             if weighted   is None: weighted   = False
             self.allow_loops(True if loops else False,check=False)

@@ -1329,15 +1329,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.summary()
             'IGRAPH D--- 3 2 -- '
         """
-
         import igraph
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edgelist = [(v_to_int[v],v_to_int[w])
                     for v,w in self.edges(labels=False)]
-        if self.is_directed():
-            g = igraph.Graph(edgelist, directed=True)
-        else:
-            g = igraph.Graph(edgelist, directed=False)
+
+        g = igraph.Graph(edgelist, directed=self.is_directed())
         return g
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):

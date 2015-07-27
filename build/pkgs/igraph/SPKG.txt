@@ -2,9 +2,9 @@
 
 == Description ==
 
-igraph is a library for creating and manipulating graphs. 
+igraph is a library for creating and manipulating graphs.
 It is intended to be as powerful (ie. fast) as possible to enable the
-analysis of large graphs. 
+analysis of large graphs.
 
 == License ==
 
@@ -19,8 +19,6 @@ GPL version 2
 http://igraph.org/c/
 
 == Dependencies ==
-
-Put a bulleted list of dependencies here:
 
 * python
 * readline

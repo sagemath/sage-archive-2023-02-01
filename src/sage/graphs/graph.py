@@ -959,9 +959,9 @@ class Graph(GenericGraph):
 
     #. An igraph graph::
 
-           sage: import igraph
-           sage: g = igraph.Graph([(0,1),(0,2)])
-           sage: Graph(g)
+           sage: import igraph                   # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)]) # optional - python_igraph
+           sage: Graph(g)                        # optional - python_igraph
            Graph on 3 vertices
 
     By default, graphs are mutable and can thus not be used as a dictionary

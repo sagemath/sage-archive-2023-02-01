@@ -60,7 +60,7 @@ AUTHORS:
 
 import sage
 
-def string_to_parent(s):
+def repr_short_to_parent(s):
     r"""
     Helper method for the growth group factory, which converts a short
     representation string to a parent.
@@ -76,16 +76,16 @@ def string_to_parent(s):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.string_to_parent('ZZ')
+        sage: agg.repr_short_to_parent('ZZ')
         Integer Ring
-        sage: agg.string_to_parent('QQ')
+        sage: agg.repr_short_to_parent('QQ')
         Rational Field
-        sage: agg.string_to_parent('SR')
+        sage: agg.repr_short_to_parent('SR')
         Symbolic Ring
 
     TESTS::
 
-        sage: agg.string_to_parent('abcdef')
+        sage: agg.repr_short_to_parent('abcdef')
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
@@ -1502,6 +1502,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         """
         return 1
 
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
     Factory for asymptotic growth groups.
@@ -1517,10 +1518,10 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.GrowthGroup('x^ZZ')._repr_long_()
-        'Monomial Growth Group in x over Integer Ring'
-        sage: agg.GrowthGroup('log(x)^QQ')._repr_long_()
-        'Monomial Growth Group in log(x) over Rational Field'
+        sage: agg.GrowthGroup('x^ZZ')
+        Growth Group x^ZZ
+        sage: agg.GrowthGroup('log(x)^QQ')
+        Growth Group log(x)^QQ
     """
     def create_key_and_extra_args(self, rep, **kwds):
         r"""
@@ -1576,13 +1577,13 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             (var, base) = sp
             try:
                 # monomial growth group: 'var^base'
-                base = string_to_parent(base)
+                base = repr_short_to_parent(base)
                 G = MonomialGrowthGroup(base, var, **kwds)
             except:
                 # exponential growth group: 'base^var'
                 (base, var) = sp
                 try:
-                    base = string_to_parent(base)
+                    base = repr_short_to_parent(base)
                     # G = ExponentialGrowthGroup(base, var, **kwds)
                     raise NotImplementedError('Exponential growth groups not '
                                               'yet implemented')

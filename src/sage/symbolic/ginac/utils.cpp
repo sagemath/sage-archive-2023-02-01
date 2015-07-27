@@ -223,9 +223,17 @@ const ex _ex11 = _ex11;
 const numeric *_num12_p;
 const ex _ex12 = _ex12;
 
+// static numeric 14
+const numeric *_num14_p;
+const ex _ex14 = _ex14;
+
 // static numeric 15
 const numeric *_num15_p;
 const ex _ex15 = _ex15;
+
+// static numeric 16
+const numeric *_num16_p;
+const ex _ex16 = _ex16;
 
 // static numeric 18
 const numeric *_num18_p;
@@ -235,6 +243,14 @@ const ex _ex18 = _ex18;
 const numeric *_num20_p;
 const ex _ex20 = _ex20;
 
+// static numeric 21
+const numeric *_num21_p;
+const ex _ex21 = _ex21;
+
+// static numeric 22
+const numeric *_num22_p;
+const ex _ex22 = _ex22;
+
 // static numeric 24
 const numeric *_num24_p;
 const ex _ex24 = _ex24;
@@ -243,9 +259,25 @@ const ex _ex24 = _ex24;
 const numeric *_num25_p;
 const ex _ex25 = _ex25;
 
+// static numeric 26
+const numeric *_num26_p;
+const ex _ex26 = _ex26;
+
+// static numeric 27
+const numeric *_num27_p;
+const ex _ex27 = _ex27;
+
+// static numeric 28
+const numeric *_num28_p;
+const ex _ex28 = _ex28;
+
 // static numeric 30
 const numeric *_num30_p;
 const ex _ex30 = _ex30;
+
+// static numeric 36
+const numeric *_num36_p;
+const ex _ex36 = _ex36;
 
 // static numeric 48
 const numeric *_num48_p;
@@ -255,9 +287,17 @@ const ex _ex48 = _ex48;
 const numeric *_num60_p;
 const ex _ex60 = _ex60;
 
+// static numeric 72
+const numeric *_num72_p;
+const ex _ex72 = _ex72;
+
 // static numeric 120
 const numeric *_num120_p;
 const ex _ex120 = _ex120;
+
+// static numeric 144
+const numeric *_num144_p;
+const ex _ex144 = _ex144;
 
 /** Ctor of static initialization helpers.  The fist call to this is going
  *  to initialize the library, the others do nothing. */
@@ -305,15 +345,25 @@ library_init::library_init()
 		(_num10_p = new numeric(10))->setflag(status_flags::dynallocated);
 		(_num11_p = new numeric(11))->setflag(status_flags::dynallocated);
 		(_num12_p = new numeric(12))->setflag(status_flags::dynallocated);
+		(_num14_p = new numeric(14))->setflag(status_flags::dynallocated);
 		(_num15_p = new numeric(15))->setflag(status_flags::dynallocated);
+		(_num16_p = new numeric(16))->setflag(status_flags::dynallocated);
 		(_num18_p = new numeric(18))->setflag(status_flags::dynallocated);
 		(_num20_p = new numeric(20))->setflag(status_flags::dynallocated);
+		(_num21_p = new numeric(21))->setflag(status_flags::dynallocated);
+		(_num22_p = new numeric(22))->setflag(status_flags::dynallocated);
 		(_num24_p = new numeric(24))->setflag(status_flags::dynallocated);
 		(_num25_p = new numeric(25))->setflag(status_flags::dynallocated);
+		(_num26_p = new numeric(26))->setflag(status_flags::dynallocated);
+		(_num27_p = new numeric(27))->setflag(status_flags::dynallocated);
+		(_num28_p = new numeric(28))->setflag(status_flags::dynallocated);
 		(_num30_p = new numeric(30))->setflag(status_flags::dynallocated);
+		(_num36_p = new numeric(36))->setflag(status_flags::dynallocated);
 		(_num48_p = new numeric(48))->setflag(status_flags::dynallocated);
 		(_num60_p = new numeric(60))->setflag(status_flags::dynallocated);
+		(_num72_p = new numeric(72))->setflag(status_flags::dynallocated);
 		(_num120_p = new numeric(120))->setflag(status_flags::dynallocated);
+		(_num144_p = new numeric(144))->setflag(status_flags::dynallocated);
 
 		new((void*)&_ex_120) ex(*_num_120_p);
 		new((void*)&_ex_60) ex(*_num_60_p);
@@ -355,15 +405,25 @@ library_init::library_init()
 		new((void*)&_ex10) ex(*_num10_p);
 		new((void*)&_ex11) ex(*_num11_p);
 		new((void*)&_ex12) ex(*_num12_p);
+		new((void*)&_ex14) ex(*_num14_p);
 		new((void*)&_ex15) ex(*_num15_p);
+		new((void*)&_ex16) ex(*_num16_p);
 		new((void*)&_ex18) ex(*_num18_p);
 		new((void*)&_ex20) ex(*_num20_p);
+		new((void*)&_ex21) ex(*_num21_p);
+		new((void*)&_ex22) ex(*_num22_p);
 		new((void*)&_ex24) ex(*_num24_p);
 		new((void*)&_ex25) ex(*_num25_p);
+		new((void*)&_ex26) ex(*_num26_p);
+		new((void*)&_ex27) ex(*_num27_p);
+		new((void*)&_ex28) ex(*_num28_p);
 		new((void*)&_ex30) ex(*_num30_p);
+		new((void*)&_ex36) ex(*_num36_p);
 		new((void*)&_ex48) ex(*_num48_p);
 		new((void*)&_ex60) ex(*_num60_p);
+		new((void*)&_ex72) ex(*_num72_p);
 		new((void*)&_ex120) ex(*_num120_p);
+		new((void*)&_ex144) ex(*_num144_p);
 
 		// Initialize print context class info (this is not strictly necessary
 		// but we do it anyway to make print_context_class_info::dump_hierarchy()

@@ -91,7 +91,7 @@ def parent_to_string(P):
     elif P is sage.symbolic.ring.SR:
         return 'SR'
     else:
-        rep = P._repr_()
+        rep = repr(P)
         if ' ' in rep:
             rep = '(' + rep + ')'
         return rep

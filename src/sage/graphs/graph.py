@@ -1177,12 +1177,18 @@ class Graph(GenericGraph):
                 data = data.to_undirected()
             elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
-        try:
-            import igraph
+
+        if (format is None          and
+            hasattr(data, 'vcount') and
+            hasattr(data, 'get_edgelist')):
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The data seems to be a igraph object, but "+
+                                  "igraph is not installed in Sage. To install "+
+                                  "it, run 'sage -i python_igraph'")
             if format is None and isinstance(data, igraph.Graph):
                 format = 'igraph'
-        except ImportError:
-            pass
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:

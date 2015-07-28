@@ -662,11 +662,10 @@ class GenericGrowthGroup(
         TESTS::
 
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(condense=True)
-            '<log(x)^QQ>'
+            'log(x)^QQ'
         """
-        preG = '<' if condense else 'Growth Group '
-        postG = '>' if condense else ''
-        return '%s%s%s' % (preG, self._repr_short_(), postG)
+        pre = 'Growth Group ' if not condense else ''
+        return '%s%s' % (pre, self._repr_short_())
 
 
     def __hash__(self):

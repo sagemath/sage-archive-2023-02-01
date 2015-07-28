@@ -827,7 +827,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             'Asymptotic Ring <x^ZZ> over Integer Ring'
         """
         try:
-            G = self.growth_group._repr_(condense=True)
+            G = '<' + self.growth_group._repr_(condense=True) + '>'
         except TypeError:
             G = repr(self.growth_group)
         return 'Asymptotic Ring %s over %s' % (G, self.coefficient_ring)

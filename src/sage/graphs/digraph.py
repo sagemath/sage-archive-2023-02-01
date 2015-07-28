@@ -254,7 +254,9 @@ class DiGraph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-       -  ``igraph`` - data must be an igraph Graph.
+       -  ``igraph`` - data must be an igraph directed Graph. In this case,
+          vertex and edge labels are also converted, and the graph name is
+          deduced, if available, as shown by the following examples.
 
     -  ``boundary`` - a list of boundary vertices, if
        empty, digraph is considered as a 'graph without boundary'
@@ -402,12 +404,34 @@ class DiGraph(GenericGraph):
             sage: DiGraph(g)
             Digraph on 5 vertices
 
-    #. An igraph Graph::
+    #. An igraph directed Graph (see also 
+       :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
 
-            sage: import igraph                                          # optional - python_igraph
-            sage: g = igraph.Graph([(0,1),(1,2),(0,2)], directed = True) # optional - python_igraph
-            sage: DiGraph(g)                                             # optional - python_igraph
-            Digraph on 3 vertices
+           sage: import igraph                                  # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True) # optional - python_igraph
+           sage: DiGraph(g)                                     # optional - python_igraph
+           Digraph on 3 vertices
+       
+       If the igraph Graph has a vertex attribute ``'name'``, this attribute is
+       used as vertex name::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'name':['a','b','c']}) # optional - python_igraph
+           sage: DiGraph(g).vertices() # optional - python_igraph
+           ['a', 'b', 'c']
+       
+       If the igraph Graph has edge attributes, they are used for edge labels::
+       
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, edge_attrs={'weight':[1,3]}) # optional - python_igraph
+           sage: DiGraph(g).edges()                                                          # optional - python_igraph
+           [(0, 1, {'weight': 1}), (0, 2, {'weight': 3})]
+           
+       However, if there is only one attribute named ``'label'``, that attribute
+       is used as the label (so that, if we make a back and forth conversion,
+       labels do not change)::
+       
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, edge_attrs={'label':[1,3]}) # optional - python_igraph
+           sage: DiGraph(g).edges()                                                         # optional - python_igraph
+           [(0, 1, 1), (0, 2, 3)]
 
     TESTS::
 
@@ -453,15 +477,6 @@ class DiGraph(GenericGraph):
         True
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
-
-    If the input is an undirected igraph graph, the output is transformed into
-    a directed graph::
-
-        sage: import igraph                                           # optional - python_igraph
-        sage: G = igraph.Graph([(0,1),(1,2),(0,2)], directed = False) # optional - python_igraph
-        sage: H = DiGraph(G)                                          # optional - python_igraph
-        sage: H.edges(labels=False)                                   # optional - python_igraph
-        [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
     """
     _directed = True
 
@@ -553,12 +568,20 @@ class DiGraph(GenericGraph):
             sage: copy(g) is g    # copy is mutable again
             False
 
-        TESTS::
+        Unknown input format::
 
             sage: DiGraph(4,format="HeyHeyHey")
             Traceback (most recent call last):
             ...
             ValueError: Unknown input format 'HeyHeyHey'
+        
+        Sage DiGraph from igraph undirected graph::
+        
+            sage: import igraph
+            sage: DiGraph(igraph.Graph()) # optional - python_igraph
+            Traceback (most recent call last):
+            ...
+            ValueError: The input is an undirected igraph network, and you are creating a directed Sage network
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -881,10 +904,34 @@ class DiGraph(GenericGraph):
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'igraph':
-            self.add_vertices(range(data.vcount()))
-            self.add_edges(data.get_edgelist())
             if not data.is_directed():
-                self.add_edges(((w,v) for (v,w) in data.get_edgelist()))
+                raise ValueError("The input is an undirected igraph network, " +
+                                 "and you are creating a directed Sage network")     
+            try:
+                self.name(data['name'])
+            except Exception:
+                pass
+            
+            if 'name' in data.vertex_attributes():
+                vs = data.vs()
+                self.add_vertices(vs['name'])
+    
+                if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
+                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name'], e['label']) for e in data.es()])
+                elif len(data.edge_attributes()) > 0:
+                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name'], e.attributes()) for e in data.es])
+                else:
+                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name']) for e in data.es])
+            else:
+                self.add_vertices(range(data.vcount()))
+                
+                if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
+                    self.add_edges([(e.source, e.target, e['label']) for e in data.es()])
+                elif len(data.edge_attributes()) > 0:
+                    self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+                else:
+                    self.add_edges(data.get_edgelist())
+                
         elif format == 'int':
             if weighted   is None: weighted   = False
             self.allow_loops(True if loops else False,check=False)

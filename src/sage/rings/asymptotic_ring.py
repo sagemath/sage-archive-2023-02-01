@@ -505,16 +505,24 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(MG, ZZ)
             sage: x = AR.create_summand('exact', x)
+            sage: O(x)
+            O(x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
             O(x^2) + x^10 + 42*x^42
             sage: expr.O()
             O(x^42)
+
+        TESTS::
+
+            sage: O(AR(0))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot build O(0).
         """
-        if self.summands.null in self.summands.oo.predecessors():
-            raise ValueError('O(%s) not defined' % self)
-        else:
-            return sum(self.parent().create_summand('O', shell.element) for shell
-                       in self.summands.oo.predecessors())
+        if not self:
+            raise ValueError('Cannot build O(%s).' % (self,))
+        return sum(self.parent().create_summand('O', element)
+                   for element in self.summands.maximal_elements())
 
 
 

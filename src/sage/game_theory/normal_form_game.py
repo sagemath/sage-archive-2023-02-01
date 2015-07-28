@@ -1846,7 +1846,9 @@ class NormalFormGame(SageObject, MutableMapping):
 
         The implementation here transforms the search over mixed strategies to a
         search over supports which is a discrete search. A full explanation of
-        this is given in [CK2015]_. This problem is known to be NP-Hard [D2009].
+        this is given in [CK2015]_. This problem is known to be NP-Hard
+        [D2009]_.  Another possible implementation is via best response
+        polytopes, see :trac:`18958`.
 
         The game Rock-Paper-Scissors is an example of a non-degenerate game,::
 
@@ -1890,23 +1892,23 @@ class NormalFormGame(SageObject, MutableMapping):
 
         If more information is required, it may be useful to use
         ``certificate=True``. This will return a boolean of whether the game is
-        degenerate or not, and if True; the strategy where degeneracy was found
-        and the player it belongs to. ``0`` is the row player and ``1`` is the
-        column player.::
+        degenerate or not, and if True; a tuple containing the strategy where
+        degeneracy was found and the player it belongs to. ``0`` is the row
+        player and ``1`` is the column player.::
 
             sage: M = matrix([[2, 1], [1, 1]])
             sage: N = matrix([[1, 1], [1, 2]])
-            sage: game  = NormalFormGame([M, N])
-            sage: game.is_degenerate(certificate=True)
-            (True, (1, 0), 0)
+            sage: g  = NormalFormGame([M, N])
+            sage: test, certificate = g.is_degenerate(certificate=True)
+            sage: test, certificate
+            (True, ((1, 0), 0))
 
         Using the output, we see that the opponent has more best responses than
         the size of the support of the strategy in question ``(1, 0)``. (We
         specify the player as ``(player + 1) % 2`` to ensure that we have the
         opponent's index.)::
 
-            sage: test, cert, player = game.is_degenerate(certificate=True)
-            sage: game.best_responses(cert, (player + 1) % 2)
+            sage: g.best_responses(certificate[0], (certificate[1] + 1) % 2)
             [0, 1]
 
         Another example with a mixed strategy causing degeneracy.::
@@ -1914,14 +1916,14 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
             sage: B = matrix([[4, 3], [2, 6], [3, 1]])
             sage: g = NormalFormGame([A, B])
-            sage: g.is_degenerate(certificate=True)
-            (True, (1/2, 1/2), 1)
+            sage: test, certificate = g.is_degenerate(certificate=True)
+            sage: test, certificate
+            (True, ((1/2, 1/2), 1))
 
         Again, we see that the opponent has more best responses than the size of
         the support of the strategy in question ``(1/2, 1/2)``.::
 
-            sage: test, cert, player = g.is_degenerate(certificate=True)
-            sage: g.best_responses(cert, (player + 1) % 2)
+            sage: g.best_responses(certificate[0], (certificate[1] + 1) % 2)
             [0, 1, 2]
 
         Sometimes, the different algorithms for obtaining nash_equilibria don't
@@ -2036,14 +2038,14 @@ class NormalFormGame(SageObject, MutableMapping):
                 strat = self._solve_indifference(pair[0], pair[1], M2)
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[0]):
                     if certificate:
-                        return True, strat, 0
+                        return True, (strat, 0)
                     else:
                         return True
             elif len(pair[1]) < len(pair[0]):
                 strat = self._solve_indifference(pair[1], pair[0], M1.transpose())
                 if strat and len(self.best_responses(strat, player=0)) > len(pair[1]):
                     if certificate:
-                        return True, strat, 1
+                        return True, (strat, 1)
                     else:
                         return True
 
@@ -2230,7 +2232,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 if certificate:
                     strat = [0 for k in range(M1.nrows())]
                     strat[i] = 1
-                    return True, tuple(strat), 0
+                    return True, (tuple(strat), 0)
                 else:
                     return True
 
@@ -2239,7 +2241,7 @@ class NormalFormGame(SageObject, MutableMapping):
                 if certificate:
                     strat = [0 for k in range(M1.ncols())]
                     strat[j] = 1
-                    return True, tuple(strat), 1
+                    return True, (tuple(strat), 1)
                 else:
                     return True
         return False

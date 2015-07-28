@@ -213,7 +213,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.shortest_path_all_pairs` | Compute a shortest path between each pair of vertices.
     :meth:`~GenericGraph.wiener_index` | Return the Wiener index of the graph.
     :meth:`~GenericGraph.average_distance` | Return the average distance between vertices of the graph.
-    :meth:`~GenericGraph.path_length` | Return the length of a given path.
 
 **Flows, connectivity, trees:**
 
@@ -12597,7 +12596,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance_all_pairs(self, by_weight=False, weight_function=None,
                            check_weight=True, algorithm = None):
-        """
+        r"""
         Returns the distances between all pairs of vertices.
 
         INPUT:
@@ -12778,7 +12777,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def radius(self, by_weight=False, weight_function=None, check_weight=True,
                algorithm=None):
-        """
+        r"""
         Returns the radius of the (di)graph.
 
         The radius is defined to be the minimum eccentricity of any vertex,
@@ -12845,7 +12844,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def diameter(self, by_weight=False, weight_function=None,
                  check_weight=True, algorithm=None):
-        """
+        r"""
         Returns the diameter of the (di)graph.
 
         The diameter is defined to be the maximum distance between two vertices.
@@ -12930,7 +12929,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def center(self, by_weight=False, weight_function=None, check_weight=True,
                algorithm=None):
-        """
+        r"""
         Returns the set of vertices in the center, i.e. whose eccentricity
         is equal to the radius of the (di)graph.
 
@@ -13269,7 +13268,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def periphery(self, by_weight=False, weight_function=None,
                   check_weight=True, algorithm=None):
-        """
+        r"""
         Returns the set of vertices in the periphery, i.e. whose
         eccentricity is equal to the diameter of the (di)graph.
 
@@ -13732,7 +13731,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def shortest_path(self, u, v, by_weight=False, weight_function=None,
                       check_weight=True, algorithm=None, bidirectional=None):
-        """
+        r"""
         Returns a list of vertices representing some shortest path from u
         to v: if there is no path from u to v, the list is empty.
 
@@ -13832,7 +13831,7 @@ class GenericGraph(GenericGraph_pyx):
     def shortest_path_length(self, u, v, by_weight=False, weight_function=None,
                              check_weight=True, algorithm=None,
                              bidirectional=None, weight_sum=None):
-        """
+        r"""
         Returns the minimal length of paths from u to v.
 
         If there is no path from u to v, returns Infinity.
@@ -13870,11 +13869,10 @@ class GenericGraph(GenericGraph_pyx):
           radius. Deprecated: it is now replaced by Algorithm; if used, it is
           ignored.
 
-        -  ``weight_sum`` - if False, returns the number of
-           edges in the path. If True, returns the sum of the weights of these
-           edges. Default behavior is to have the same value as by_weight.
-           Deprecated: now variable ``by_weight`` is used (in case, we suggest
-           to compute the length of the path).
+        - ``weight_sum`` - Deprecated: now it has no effect. Before, it was used
+          to decide if the algorithm should return the number of edges in the
+          shortest path or the length of the (weighted) path. Now it has the
+          same value as ``by_weight``.
 
         EXAMPLES::
 
@@ -13905,12 +13903,11 @@ class GenericGraph(GenericGraph_pyx):
         if length == -1:
             from sage.rings.infinity import Infinity
             return Infinity
-        return self.path_length(path, by_weight, weight_function,
-                                check_weight=False)
+        return self._path_length(path, by_weight, weight_function)
 
 
     def _check_weight_function(self, weight_function=None):
-        """
+        r"""
         Check that an edge weight function outputs only numbers.
 
         The weight function inputs a labelled edge `(u,v,l)` and
@@ -13958,7 +13955,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):
-        """
+        r"""
         Returns a dictionary associating to each vertex v a shortest path from u
         to v, if it exists.
 
@@ -14099,7 +14096,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("Algorithm " + algorithm + " not yet " +
                              "implemented. Please, contribute!")
 
-    def path_length(self, path, by_weight=False, weight_function=None):
+    def _path_length(self, path, by_weight=False, weight_function=None):
         r"""
         Computes the (weighted) length of the path provided.
 
@@ -14122,21 +14119,22 @@ class GenericGraph(GenericGraph_pyx):
         The unweighted case::
 
             sage: G = graphs.CycleGraph(3)
-            sage: G.path_length([0,1,2,0,1,2])
+            sage: G._path_length([0,1,2,0,1,2])
             5
 
         The weighted case::
 
             sage: G = Graph([(0,1,{'name':'a', 'weight':1}), (1,2,{'name':'b', 'weight':3}), (2,3,{'name':'c', 'weight':2})])
-            sage: G.path_length([0,1,2,3])
+            sage: G._path_length([0,1,2,3])
             3
-            sage: G.path_length([0,1,2,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
+            sage: G._path_length([0,1,2,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
             6
 
         If we ask for a path that does not exist::
 
-            sage: G.path_length([0,3], by_weight=False)
-            sage: G.path_length([0,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
+            sage: G._path_length([0,3], by_weight=False)
+            1
+            sage: G._path_length([0,3], by_weight=True, weight_function=lambda e:e[2]['weight'])
             Traceback (most recent call last):
             ...
             LookupError: (0, 3) is not an edge of the graph.
@@ -14156,11 +14154,15 @@ class GenericGraph(GenericGraph_pyx):
     def shortest_path_lengths(self, u, by_weight=False, algorithm=None,
                               weight_function=None, check_weight=True,
                               weight_sums=None):
-        """
-        Returns a dictionary of shortest path lengths keyed by targets that
-        are connected by a path from u.
+        r"""
+        Computes the length of a shortest path from u to any other vertex.
+        
+        Returns a dictionary of shortest path lengths keyed by targets,
+        escluding all vertices that are not reachable from u.
 
-        Only vertices that are connected with u are present in the dictionary.
+        For more information on the input variables and more examples, we refer
+        to :meth:GenericGraph.shortest_paths
+        which has the same input variables.
 
         INPUT:
 
@@ -14218,14 +14220,14 @@ class GenericGraph(GenericGraph_pyx):
 
         paths = self.shortest_paths(u, by_weight=by_weight, algorithm=algorithm,
                                     weight_function=weight_function)
-        return {v:self.path_length(paths[v], by_weight, weight_function)
-                for v in paths}
+        return {v:self._path_length(p, by_weight, weight_function)
+                for v,p in paths.iteritems()}
 
 
     def shortest_path_all_pairs(self, by_weight=False, algorithm=None,
                                 weight_function=None, check_weight=True,
                                 default_weight=None):
-        """
+        r"""
         Computes a shortest path between each pair of vertices.
 
         INPUT:
@@ -14327,15 +14329,15 @@ class GenericGraph(GenericGraph_pyx):
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
             sage: G.shortest_path_all_pairs(by_weight = True, weight_function=lambda e:(e[2] if e[2] is not None else 1))
             ({0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
-              1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
-              2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
-              3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
-              4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}},
-             {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
-              1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
-              2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
-              3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
-              4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
+            1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
+            2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
+            3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
+            4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}},
+            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
+            1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+            2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+            3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
+            4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
 
         Now, default_weight does not work anymore::
 
@@ -14416,9 +14418,8 @@ class GenericGraph(GenericGraph_pyx):
                 paths=self.shortest_paths(u, by_weight=by_weight,
                                           algorithm=algorithm,
                                           weight_function=weight_function)
-                dist[u] = {v:self.path_length(p, by_weight=by_weight,
-                                              weight_function=weight_function,
-                                              check_weight=False)
+                dist[u] = {v:self._path_length(p, by_weight=by_weight,
+                                              weight_function=weight_function)
                            for v,p in paths.iteritems()}
                 pred[u] = {v:None if len(p)<=1 else p[1]
                            for v,p in paths.iteritems()}

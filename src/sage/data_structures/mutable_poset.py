@@ -1198,35 +1198,6 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         sage: C = MP([5, 3, 11]); C
         poset(3, 5, 11)
-
-    .. TODO::
-
-        Implement the following methods of
-        :class:`~sage.combinat.posets.posets.FinitePoset`:
-
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.bottom`: Returns the bottom element of the poset, if it exists.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.cardinality`: Returns the number of elements in the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.compare_elements`: Compares x and y in the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.covers`: Returns True if y covers x and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.has_bottom`: Returns True if the poset has a unique minimal element.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.has_top`: Returns True if the poset contains a unique maximal element, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_bounded`: Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_chain`: Returns True if the poset is totally ordered, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_gequal`: Returns True if x is greater than or equal to y in the poset, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_greater_than`: Returns True if x is greater than but not equal to y in the poset, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_lequal`: Returns True if x is less than or equal to y in the poset, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.is_less_than`: Returns True if x is less than but not equal to y in the poset, and False otherwise.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.linear_extension`: Returns a linear extension of this poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.list`: List the elements of the poset. This just returns the result of linear_extension().
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.lower_covers_iterator`: Returns an iterator for the lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.lower_covers`: Returns a list of lower covers of the element y. An lower cover of y is an element x such that y x is a cover relation.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.maximal_elements`: Returns a list of the maximal elements of the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.minimal_elements`: Returns a list of the minimal elements of the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.relations_iterator`: Returns an iterator for all the relations of the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.relations`: Returns a list of all relations of the poset.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.top`: Returns the top element of the poset, if it exists.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers_iterator`: Returns an iterator for the upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
-        - :meth:`~sage.combinat.posets.posets.FinitePoset.upper_covers`: Returns a list of upper covers of the element y. An upper cover of y is an element x such that y x is a cover relation.
     """
     def __init__(self, data=None, key=None, merge=None, can_merge=None):
         r"""
@@ -1315,6 +1286,35 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._null_.successors().add(self._oo_)
         self._oo_.predecessors().add(self._null_)
         self._shells_ = {}
+
+
+    def __len__(self):
+        r"""
+        Return the number of elements contained in this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: len(P)  # indirect doctest
+            0
+            sage: bool(P)
+            False
+            sage: P.add(42)
+            sage: len(P)
+            1
+            sage: bool(P)
+            True
+        """
+        return len(self._shells_)
 
 
     @property
@@ -2790,6 +2790,70 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 if m.is_special():
                     continue
                 shell.merge(m.element, delete=True)
+
+
+    def maximal_elements(self):
+        r"""
+        Return an iterator over the maximal elements of this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: list(P.maximal_elements())
+            [(1, 3), (2, 2)]
+        """
+        return iter(shell.element
+                    for shell in self.oo.predecessors()
+                    if not shell.is_special())
+
+
+    def minimal_elements(self):
+        r"""
+        Return an iterator over the minimal elements of this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: list(P.minimal_elements())
+            [(1, 2), (2, 1)]
+        """
+        return iter(shell.element
+                    for shell in self.null.successors()
+                    if not shell.is_special())
 
 
 # *****************************************************************************

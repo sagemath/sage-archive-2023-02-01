@@ -434,27 +434,29 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: y^(1/7)
             Traceback (most recent call last):
             ...
-            ValueError: Exponent 1/7 not in base of growth group Growth Group y^ZZ
+            ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
             sage: (x^(1/2) + O(x^0))^15
             O(x^7) + x^(15/2)
         """
-        P = self.parent()
-        if len(self.poset._shells_) == 1:
-            expr = self.poset.elements().next()
-            if power in P.growth_group.base():
-                from sage.monoids.asymptotic_term_monoid import TermWithCoefficient
-                if isinstance(expr, TermWithCoefficient):
-                    new_growth = expr.growth ** power
-                    new_coef = expr.coefficient ** power
-                    return P(expr.parent()(new_growth, new_coef))
-                else:
-                    new_growth = expr.growth ** power
-                    return P(expr.parent()(new_growth))
-            else:
-                raise ValueError('Exponent %s not in base of growth group %s' %
-                                 (power, P.growth_group))
+        if len(self.poset._shells_) > 1:
+            return super(AsymptoticExpression, self).__pow__(power)
 
-        return super(AsymptoticExpression, self).__pow__(power)
+        P = self.parent()
+        if power not in P.growth_group.base():
+            raise ValueError('%s disallows taking %s '
+                             'to the power of %s.' %
+                             (P.growth_group, self, power))
+
+        from sage.monoids.asymptotic_term_monoid import TermWithCoefficient
+        expr = self.poset.elements().next()
+        if isinstance(expr, TermWithCoefficient):
+            new_growth = expr.growth**power
+            new_coeff = expr.coefficient**power
+            return P(expr.parent()(new_growth, new_coeff))
+        else:
+            new_growth = expr.growth**power
+            return P(expr.parent()(new_growth))
+
 
 
     def O(self):

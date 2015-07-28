@@ -512,14 +512,14 @@ class AsymptoticRing(sage.rings.ring.Ring,
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G_QQ = agg.GrowthGroup('x^QQ')
         sage: R_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R_x
-        Asymptotic Ring over x^QQ with coefficients from Rational Field
+        Asymptotic Ring <x^QQ> over Rational Field
 
     Note that the coefficient ring of the asymptotic ring and the
     base ring of the underlying growth group do not need to
     coincide::
 
         sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
-        Asymptotic Ring over x^QQ with coefficients from Integer Ring
+        Asymptotic Ring <x^QQ> over Integer Ring
 
     As mentioned above, the short notation for growth groups can also
     be used to specify the underlying growth group. For now,
@@ -531,20 +531,20 @@ class AsymptoticRing(sage.rings.ring.Ring,
     :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)::
 
         sage: R2_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R2_x
-        Asymptotic Ring over x^QQ with coefficients from Rational Field
+        Asymptotic Ring <x^QQ> over Rational Field
 
     Alternatively, the preparser allows us to write::
 
         sage: R3_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
-        Asymptotic Ring over x^QQ with coefficients from Rational Field
+        Asymptotic Ring <x^QQ> over Rational Field
 
     Note that this allows us to create logarithmic and polynomial
     growth groups::
 
         sage: R.<x> = AsymptoticRing('x^ZZ', QQ); R
-        Asymptotic Ring over x^ZZ with coefficients from Rational Field
+        Asymptotic Ring <x^ZZ> over Rational Field
         sage: R_log.<lx> = AsymptoticRing('log(x)^ZZ', QQ); R_log
-        Asymptotic Ring over log(x)^ZZ with coefficients from Rational Field
+        Asymptotic Ring <log(x)^ZZ> over Rational Field
 
     According to the conventions for parents, uniqueness is ensured::
 
@@ -610,9 +610,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: R1 = AsymptoticRing(G, ZZ); R1
-            Asymptotic Ring over x^ZZ with coefficients from Integer Ring
+            Asymptotic Ring <x^ZZ> over Integer Ring
             sage: R2.<x> = AsymptoticRing('x^QQ', QQ); R2
-            Asymptotic Ring over x^QQ with coefficients from Rational Field
+            Asymptotic Ring <x^QQ> over Rational Field
             sage: R1 is R2
             False
 
@@ -770,10 +770,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         TESTS::
 
             sage: AR_ZZ = AsymptoticRing('x^ZZ', coefficient_ring=ZZ); AR_ZZ
-            Asymptotic Ring over x^ZZ with coefficients from Integer Ring
+            Asymptotic Ring <x^ZZ> over Integer Ring
             sage: x_ZZ = AR_ZZ.gen()
             sage: AR_QQ = AsymptoticRing('x^QQ', coefficient_ring=QQ); AR_QQ
-            Asymptotic Ring over x^QQ with coefficients from Rational Field
+            Asymptotic Ring <x^QQ> over Rational Field
             sage: x_QQ = AR_QQ.gen()
             sage: AR_QQ.has_coerce_map_from(AR_ZZ)  # indirect doctest
             True
@@ -813,10 +813,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: repr(AR)  # indirect doctest
-            'Asymptotic Ring over x^ZZ with coefficients from Integer Ring'
+            'Asymptotic Ring <x^ZZ> over Integer Ring'
         """
-        return 'Asymptotic Ring over %s with coefficients ' \
-               'from %s' % (self.growth_group, self.coefficient_ring)
+        try:
+            G = '<' + self.growth_group._repr_(display_GrowthGroup=False) + '>'
+        except TypeError:
+            G = repr(self.growth_group)
+        return 'Asymptotic Ring %s over %s' % (G, self.coefficient_ring)
 
 
     def gens(self):

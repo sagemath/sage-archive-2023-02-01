@@ -541,7 +541,6 @@ right. This requires storing the previously read digit in a state.
      Transition from 0 to 1: 1|0,
      Transition from 1 to 0: 0|1,
      Transition from 1 to 1: 1|1]
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
     sage: shift_right_transducer([0, 1, 1, 0])
     [0, 1, 1]
     sage: shift_right_transducer([1, 0, 0])
@@ -9934,7 +9933,7 @@ class Automaton(FiniteStateMachine):
             ....:                            always_include_output=True)
             (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput or kwargs['always_include_output']:
+        if kwargs['always_include_output']:
             return super(Automaton, self)._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data
@@ -10836,14 +10835,6 @@ class Transducer(FiniteStateMachine):
             ...
             TypeError: No input tape given.
         """
-        if FSMOldProcessOutput:
-            from sage.misc.superseded import deprecation
-            deprecation(16132, "The output of Transducer.process "
-                               "(and thus of Transducer.__call__) "
-                               "will change. Please use the corresponding "
-                               "functions from FiniteStateMachine "
-                               "for the original output.")
-
         # set default values
         options = copy(self._process_default_options_)
         options.update(kwargs)
@@ -10895,9 +10886,6 @@ class Transducer(FiniteStateMachine):
             ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput:
-            return super(Transducer, self)._process_convert_output_(
-                output_data, **kwargs)
         accept_input, current_state, output = output_data
         if kwargs['full_output']:
             if current_state.label() is None:

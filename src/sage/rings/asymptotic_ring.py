@@ -474,7 +474,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(MG, ZZ)
-            sage: x = AR.create_term('exact', x)
+            sage: x = AR.create_summand('exact', x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
             O(x^2) + x^10 + 42*x^42
             sage: expr.O()
@@ -483,7 +483,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         if self.summands.null in self.summands.oo.predecessors():
             raise ValueError('O(%s) not defined' % self)
         else:
-            return sum(self.parent().create_term('O', shell.element) for shell
+            return sum(self.parent().create_summand('O', shell.element) for shell
                        in self.summands.oo.predecessors())
 
 
@@ -757,7 +757,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         except (TypeError, ValueError):
             pass
         else:
-            return self.create_term('exact', 1, coefficient)
+            return self.create_summand('exact', 1, coefficient)
 
         raise TypeError('Cannot convert %s to an asymptotic '
                         'expression.' % (data,))
@@ -868,7 +868,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         """
         from sage.groups.asymptotic_growth_group import MonomialGrowthGroup
         if isinstance(self.growth_group, MonomialGrowthGroup):
-            return self.create_term('exact', self.growth_group.gen(), 1),
+            return self.create_summand('exact', self.growth_group.gen(), 1),
 
 
     def gen(self, n=0):
@@ -917,10 +917,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
             return 0
 
 
-    def create_term(self, type, growth=None, coefficient=None):
+    def create_summand(self, type, growth=None, coefficient=None):
         r"""
         Create a simple asymptotic expression consisting of a single
-        term.
+        summand.
 
         INPUT:
 
@@ -945,9 +945,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: R = AsymptoticRing(G, ZZ)
-            sage: R.create_term('O', x^2)
+            sage: R.create_summand('O', x^2)
             O(x^2)
-            sage: R.create_term('exact', x^456, 123)
+            sage: R.create_summand('exact', x^456, 123)
             123*x^456
         """
         from sage.monoids.asymptotic_term_monoid import TermMonoid

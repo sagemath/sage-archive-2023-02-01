@@ -1888,16 +1888,41 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: game.is_degenerate()
             True
 
-        For debugging purposes, it may be useful to use ``certificate=True``.
-        This will return a boolean of whether the game is degenerate or not, and
-        if True; the strategy where degeneracy was found and the player it
-        belongs to. ``0`` is the row player and ``1`` is the column player.
+        If more information is required, it may be useful to use
+        ``certificate=True``. This will return a boolean of whether the game is
+        degenerate or not, and if True; the strategy where degeneracy was found
+        and the player it belongs to. ``0`` is the row player and ``1`` is the
+        column player.::
 
             sage: M = matrix([[2, 1], [1, 1]])
             sage: N = matrix([[1, 1], [1, 2]])
             sage: game  = NormalFormGame([M, N])
             sage: game.is_degenerate(certificate=True)
             (True, (1, 0), 0)
+
+        Using the output, we see that the opponent has more best responses than
+        the size of the support of the strategy in question ``(1, 0)``. (We
+        specify the player as ``(player + 1) % 2`` to ensure that we have the
+        opponent's index.)::
+
+            sage: test, cert, player = game.is_degenerate(certificate=True)
+            sage: game.best_responses(cert, (player + 1) % 2)
+            [0, 1]
+
+        Another example with a mixed strategy causing degeneracy.::
+
+            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
+            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
+            sage: g = NormalFormGame([A, B])
+            sage: g.is_degenerate(certificate=True)
+            (True, (1/2, 1/2), 1)
+
+        Again, we see that the opponent has more best responses than the size of
+        the support of the strategy in question ``(1/2, 1/2)``.::
+
+            sage: test, cert, player = g.is_degenerate(certificate=True)
+            sage: g.best_responses(cert, (player + 1) % 2)
+            [0, 1, 2]
 
         Sometimes, the different algorithms for obtaining nash_equilibria don't
         agree with each other. This happens when games are degenerate::
@@ -1939,12 +1964,6 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: g.is_degenerate()
             True
 
-            sage: A = matrix([[3, 0], [0, 3], [1.5, 1.5]])
-            sage: B = matrix([[4, 3], [2, 6], [3, 1]])
-            sage: g = NormalFormGame([A, B])
-            sage: g.is_degenerate(certificate=True)
-            (True, (1/2, 1/2), 1)
-
             sage: A = matrix([[1, -1], [-1, 1]])
             sage: B = matrix([[-1, 1], [1, -1]])
             sage: matching_pennies = NormalFormGame([A, B])
@@ -1968,10 +1987,10 @@ class NormalFormGame(SageObject, MutableMapping):
 
         REFERENCES:
 
-        ..[D2009] Du Ye.
-            *On the Complexity of Deciding Degeneracy in Games*
-            http://arxiv.org/pdf/0905.3012v1.pdf
-            (2009)
+        .. [D2009] Du Ye.
+           *On the Complexity of Deciding Degeneracy in Games*
+           http://arxiv.org/pdf/0905.3012v1.pdf
+           (2009)
 
         .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard von Stengel.
            *Enumeration of Nash equilibria for two-player games.*

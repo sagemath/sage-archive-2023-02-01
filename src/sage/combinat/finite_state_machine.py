@@ -193,6 +193,7 @@ LaTeX output
     :attr:`~FSMState.final_word_out` | Final output of a state
     :attr:`~FSMState.is_final` | Describes whether a state is final or not
     :attr:`~FSMState.is_initial` | Describes whether a state is initial or not
+    :attr:`~FSMState.initial_probability` | Probability of starting in this state as part of a Markov chain
     :meth:`~FSMState.label` | Label of a state
     :meth:`~FSMState.relabeled` | Returns a relabeled deep copy of a state
     :meth:`~FSMState.fully_equal` | Checks whether two states are fully equal (including all attributes)
@@ -1106,6 +1107,9 @@ class FSMState(SageObject):
       the state is reached as the last state of some input; only for final
       states.
 
+    - ``initial_probability`` -- (default: ``None``) The probability of
+      starting in this state if it is a state of a Markov chain.
+
     - ``hook`` -- (default: ``None``) A function which is called when
       the state is reached during processing input. It takes two input
       parameters: the first is the current state (to allow using the same
@@ -1248,9 +1252,22 @@ class FSMState(SageObject):
         [0]
     """
 
+    initial_probability = None
+    """
+    The probability of starting in this state if it is part of a Markov chain.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.finite_state_machine import FSMState
+        sage: S = FSMState('state', initial_probability=1/3)
+        sage: S.initial_probability
+        1/3
+    """
+
 
     def __init__(self, label, word_out=None,
                  is_initial=False, is_final=False, final_word_out=None,
+                 initial_probability=None,
                  hook=None, color=None, allow_label_None=False):
         """
         See :class:`FSMState` for more information.
@@ -1320,6 +1337,7 @@ class FSMState(SageObject):
         self._final_word_out_ = None
         self.is_final = is_final
         self.final_word_out = final_word_out
+        self.initial_probability = initial_probability
 
         if hook is not None:
             if hasattr(hook, '__call__'):
@@ -1545,13 +1563,32 @@ class FSMState(SageObject):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState('A')
-            sage: copy(A)
-            'A'
+            sage: A.is_initial = True
+            sage: A.is_final = True
+            sage: A.final_word_out = [1]
+            sage: A.color = 'green'
+            sage: A.initial_probability = 1/2
+            sage: B = copy(A)
+            sage: B.fully_equal(A)
+            True
+            sage: A.label() is B.label()
+            True
+            sage: A.is_initial is B.is_initial
+            True
+            sage: A.is_final is B.is_final
+            True
+            sage: A.final_word_out is B.final_word_out
+            True
+            sage: A.color is B.color
+            True
+            sage: A.initial_probability is B.initial_probability
+            True
         """
         new = FSMState(self.label(), self.word_out,
                        self.is_initial, self.is_final,
                        color=self.color,
-                       final_word_out=self.final_word_out)
+                       final_word_out=self.final_word_out,
+                       initial_probability=self.initial_probability)
         if hasattr(self, 'hook'):
             new.hook = self.hook
         return new
@@ -1589,6 +1626,7 @@ class FSMState(SageObject):
             new.hook = deepcopy(self.hook, memo)
         new.color = deepcopy(self.color, memo)
         new.final_word_out = deepcopy(self.final_word_out, memo)
+        new.initial_probability = deepcopy(self.initial_probability, memo)
         return new
 
 
@@ -1609,7 +1647,8 @@ class FSMState(SageObject):
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: A = FSMState((1, 3), color=[1, 2],
-            ....:              is_final=True, final_word_out=3)
+            ....:              is_final=True, final_word_out=3,
+            ....:              initial_probability=1/3)
             sage: B = deepcopy(A)
             sage: B
             (1, 3)
@@ -1628,6 +1667,10 @@ class FSMState(SageObject):
             sage: B.final_word_out == A.final_word_out
             True
             sage: B.final_word_out is A.final_word_out
+            False
+            sage: B.initial_probability == A.initial_probability
+            True
+            sage: B.initial_probability is A.initial_probability
             False
         """
         return deepcopy(self, memo)
@@ -1809,7 +1852,8 @@ class FSMState(SageObject):
                 left.is_final == right.is_final and
                 left.final_word_out == right.final_word_out and
                 left.word_out == right.word_out and
-                color)
+                color and
+                left.initial_probability == right.initial_probability)
 
 
     def __nonzero__(self):
@@ -3847,8 +3891,9 @@ class FiniteStateMachine(SageObject):
         ``True`` or ``False``.
 
         :attr:`on_duplicate_transition` must be
-        :func:`duplicate_transition_add_input` and the sum of the input
-        weights of the transitions leaving a state must add up to 1.
+        :func:`duplicate_transition_add_input`, the sum of the input weights
+        of the transitions leaving a state must add up to 1 and the sum of
+        initial probabilities must add up to 1 (or all be ``None``).
 
         EXAMPLES::
 
@@ -3875,6 +3920,24 @@ class FiniteStateMachine(SageObject):
             sage: F.is_Markov_chain()
             False
 
+        The initial probabilities of all states must be ``None`` or they must
+        sum up to 1. The initial probabilities of all states have to be set in the latter case::
+
+            sage: F = Transducer([[0, 0, 1/4, 0], [0, 1, 3/4, 1],
+            ....:                 [1, 0, 1, 0]],
+            ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.is_Markov_chain()
+            True
+            sage: F.state(0).initial_probability = 1/4
+            sage: F.is_Markov_chain()
+            False
+            sage: F.state(1).initial_probability = 7
+            sage: F.is_Markov_chain()
+            False
+            sage: F.state(1).initial_probability = 3/4
+            sage: F.is_Markov_chain()
+            True
+
         If the probabilities are variables in the symbolic ring,
         :func:`~sage.symbolic.assumptions.assume` will do the trick::
 
@@ -3898,6 +3961,7 @@ class FiniteStateMachine(SageObject):
             ....:     return polynomial in (p + q - 1)*R
             sage: F = Transducer([(0, 0, p, 1), (0, 0, q, 0)],
             ....:                on_duplicate_transition=duplicate_transition_add_input)
+            sage: F.state(0).initial_probability = p + q
             sage: F.is_Markov_chain()
             False
             sage: F.is_Markov_chain(is_zero_polynomial)
@@ -3913,8 +3977,17 @@ class FiniteStateMachine(SageObject):
         if self.on_duplicate_transition != duplicate_transition_add_input:
             return False
 
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               any(s.initial_probability is None for s in self.iter_states()):
+            return False
+
+        if any(s.initial_probability is not None for s in self.iter_states()) and \
+               not is_zero_function(sum(s.initial_probability for s
+                                        in self.iter_states()) - 1):
+            return False
+
         return all(is_zero_function(sum(t.word_in[0] for t in state.transitions) - 1)
-                   for state in self.states())
+                   for state in self.iter_states())
 
 
     #*************************************************************************

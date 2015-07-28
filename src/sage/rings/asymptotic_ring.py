@@ -58,8 +58,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     - ``parent`` -- the parent of the asymptotic expression.
 
-    - ``poset`` -- a mutable poset representing the underlying
-      structure.
+    - ``summands`` -- the summands as a
+      :class:`~sage.data_structures.mutable_poset.MutablePoset`, which
+      represents the underlying structure.
 
     - ``simplify`` -- a boolean (default: ``True``). It controls
       automatic simplification (absorption) of the asymptotic expression.
@@ -105,11 +106,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     In particular, :meth:`~sage.rings.big_oh.O` can be used to
     construct the asymptotic expressions. With the help of the
-    ``poset``, we can also have a look at the inner structure
+    :meth:`summands`, we can also have a look at the inner structure
     of an asymptotic expression::
 
         sage: expr1 = x + 2*x^2 + 3*x^3 + 4*x^4; expr2 = O(x) + x^2
-        sage: print(expr1.poset.repr_full())
+        sage: print(expr1.summands.repr_full())
         poset(x, 2*x^2, 3*x^3, 4*x^4)
         +-- null
         |   +-- no predecessors
@@ -129,7 +130,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         +-- oo
         |   +-- predecessors:   4*x^4
         |   +-- no successors
-        sage: print(expr2.poset.repr_full())
+        sage: print(expr2.summands.repr_full())
         poset(O(x), x^2)
         +-- null
         |   +-- no predecessors
@@ -143,7 +144,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         +-- oo
         |   +-- predecessors:   x^2
         |   +-- no successors
-        sage: print((expr1 * expr2).poset.repr_full())
+        sage: print((expr1 * expr2).summands.repr_full())
         poset(O(x^5), 4*x^6)
         +-- null
         |   +-- no predecessors
@@ -166,7 +167,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         sage: (O(xl) + xl^3)^4
         O(log(x)^10) + log(x)^12
     """
-    def __init__(self, parent, poset, simplify=True):
+    def __init__(self, parent, summands, simplify=True):
         r"""
         See :class:`AsymptoticExpression` for more information.
 
@@ -183,26 +184,26 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
-        self._poset_ = poset
+        self._summands_ = summands
         if simplify:
             self._simplify_()
 
 
     @property
-    def poset(self):
+    def summands(self):
         r"""
-        The underlying data structure (a
-        :class:`~sage.data_structures.mutable_poset.MutablePoset`) of
-        this asymptotic expression.
+        The summands of this asymptotic expression stored in the
+        underlying data structure (a
+        :class:`~sage.data_structures.mutable_poset.MutablePoset`).
 
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr = 7 * x^12 + x^5 + O(x^3)
-            sage: expr.poset
+            sage: expr.summands
             poset(O(x^3), x^5, 7*x^12)
         """
-        return self._poset_
+        return self._summands_
 
 
     def _simplify_(self):
@@ -244,10 +245,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             O(x^3) + 4*x^4
         """
         from sage.monoids.asymptotic_term_monoid import OTerm
-        for shell in self.poset.shells_topological(reverse=True):
-            if shell.element.growth in self.poset and isinstance(shell.element,
+        for shell in self.summands.shells_topological(reverse=True):
+            if shell.element.growth in self.summands and isinstance(shell.element,
                                                                  OTerm):
-                self.poset.merge(shell.key)
+                self.summands.merge(shell.key)
 
 
     def _repr_(self, reverse=False):
@@ -278,7 +279,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             '5*x^5 + 12*x^4 + O(x^3)'
         """
         s = ' + '.join(repr(elem) for elem in
-                       self.poset.elements_topological(reverse=reverse))
+                       self.summands.elements_topological(reverse=reverse))
         if not s:
             return '0'
         return s
@@ -318,8 +319,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x) + x
             O(x)
         """
-        pst = self.poset.copy().union(other.poset)
-        return self.parent()(poset=pst)
+        smds = self.summands.copy().union(other.summands)
+        return self.parent()(summands=smds)
 
 
     def _sub_(self, other):
@@ -375,7 +376,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        return self.parent()([term * elem for elem in self.poset.elements()])
+        return self.parent()([term * elem for elem in self.summands.elements()])
 
 
     def _mul_(self, other):
@@ -407,7 +408,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             point.
         """
         return self.parent()(sum(self._mul_term_(term_other) for
-                                 term_other in other.poset.elements()))
+                                 term_other in other.summands.elements()))
 
 
     def __pow__(self, power):
@@ -435,7 +436,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: (x^(1/2) + O(x^0))^15
             O(x^7) + x^(15/2)
         """
-        if len(self.poset._shells_) > 1:
+        if len(self.summands._shells_) > 1:
             return super(AsymptoticExpression, self).__pow__(power)
 
         P = self.parent()
@@ -445,7 +446,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                              (P.growth_group, self, power))
 
         from sage.monoids.asymptotic_term_monoid import TermWithCoefficient
-        expr = self.poset.elements().next()
+        expr = self.summands.elements().next()
         if isinstance(expr, TermWithCoefficient):
             new_growth = expr.growth**power
             new_coeff = expr.coefficient**power
@@ -479,11 +480,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr.O()
             O(x^42)
         """
-        if self.poset.null in self.poset.oo.predecessors():
+        if self.summands.null in self.summands.oo.predecessors():
             raise ValueError('O(%s) not defined' % self)
         else:
             return sum(self.parent().create_term('O', shell.element) for shell
-                       in self.poset.oo.predecessors())
+                       in self.summands.oo.predecessors())
 
 
 
@@ -683,7 +684,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return self._coefficient_ring_
 
 
-    def _element_constructor_(self, data, poset=None, simplify=True):
+    def _element_constructor_(self, data, summands=None, simplify=True):
         r"""
         Convert a given object to this asymptotic ring.
 
@@ -692,7 +693,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         - ``data`` -- an object representing the element to be
           initialized.
 
-        - ``poset`` -- (default: ``None``) if given, then this is
+        - ``summands`` -- (default: ``None``) if given, then this is
           directly passed to the element constructor (i.e., no
           conversion is performed).
 
@@ -715,18 +716,18 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: 3 * x^3 + O(x^5)
             O(x^5)
         """
-        if poset is not None:
+        if summands is not None:
             if type(data) != int or data != 0:
                 raise ValueError('Input is ambigous: '
-                                 '%s as well as poset=%s '
-                                 'are specified.' % (data, poset))
-            return self.element_class(self, poset, simplify=simplify)
+                                 '%s as well as summands=%s '
+                                 'are specified.' % (data, summands))
+            return self.element_class(self, summands, simplify=simplify)
 
         if type(data) == self.element_class and data.parent() == self:
             return data
 
         if isinstance(data, AsymptoticExpression):
-            return self.element_class(self, data.poset, simplify=simplify)
+            return self.element_class(self, data.summands, simplify=simplify)
 
         from sage.monoids.asymptotic_term_monoid import GenericTerm
         if isinstance(data, GenericTerm):
@@ -739,17 +740,17 @@ class AsymptoticRing(sage.rings.ring.Ring,
             if not all(isinstance(elem, GenericTerm) for elem in data):
                 raise TypeError('Not all list entries of %s '
                                 'are asymptotic terms.' % (data,))
-            poset = MutablePoset(key=lambda elem: elem.growth,
-                                 can_merge=can_absorb,
-                                 merge=absorption)
-            poset.union_update(data)
-            return self.element_class(self, poset, simplify=simplify)
+            summands = MutablePoset(key=lambda elem: elem.growth,
+                                    can_merge=can_absorb,
+                                    merge=absorption)
+            summands.union_update(data)
+            return self.element_class(self, summands, simplify=simplify)
 
         if data == 0:
-            poset = MutablePoset(key=lambda elem: elem.growth,
-                                 can_merge=can_absorb,
-                                 merge=absorption)
-            return self.element_class(self, poset, simplify=simplify)
+            summands = MutablePoset(key=lambda elem: elem.growth,
+                                    can_merge=can_absorb,
+                                    merge=absorption)
+            return self.element_class(self, summands, simplify=simplify)
 
         try:
             coefficient = self.coefficient_ring(data)

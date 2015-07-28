@@ -1317,6 +1317,35 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._shells_ = {}
 
 
+    def __len__(self):
+        r"""
+        Return the number of elements contained in this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: P = MP()
+            sage: len(P)  # indirect doctest
+            0
+            sage: bool(P)
+            False
+            sage: P.add(42)
+            sage: len(P)
+            1
+            sage: bool(P)
+            True
+        """
+        return len(self._shells_)
+
+
     @property
     def null(self):
         r"""

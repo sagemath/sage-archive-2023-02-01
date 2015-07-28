@@ -269,6 +269,10 @@ public:
 
         nr_columns++;
 
+        if (nr_columns == 0) {
+            return;
+        }
+
         setup_columns();
 
         // Add each row

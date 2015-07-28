@@ -179,7 +179,9 @@ cdef class dancing_linksWrapper:
 
             vv.push_back(v)
 
+        sig_on()
         self._x.add_rows(vv)
+        sig_off()
 
     def get_solution(self):
         """

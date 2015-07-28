@@ -35,9 +35,6 @@ AUTHORS:
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17715 for details.
         sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17716 for details.
-
 """
 
 # *****************************************************************************
@@ -614,7 +611,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                                                         coefficient_ring, category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17716)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, growth_group=None, coefficient_ring=None, category=None):
         r"""
         See :class:`AsymptoticRing` for more information.

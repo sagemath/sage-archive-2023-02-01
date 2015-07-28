@@ -637,13 +637,14 @@ class GenericGrowthGroup(
         return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
 
 
-    def _repr_(self):
+    def _repr_(self, display_GrowthGroup=True):
         r"""
         A representations string of this growth group.
 
         INPUT:
 
-        Nothing.
+        - ``display_GrowthGroupNothing`` -- (default: ``True``) if set, then
+          the prefix-string ``Growth Group`` is show, otherwise not.
 
         OUTPUT:
 
@@ -656,8 +657,14 @@ class GenericGrowthGroup(
             Growth Group x^ZZ
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')  # indirect doctest
             Growth Group log(x)^QQ
+
+        TESTS::
+
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(display_GrowthGroup=False)
+            'log(x)^QQ'
         """
-        return 'Growth Group %s' % (self._repr_short_(),)
+        GG = 'Growth Group ' if display_GrowthGroup else ''
+        return '%s%s' % (GG, self._repr_short_(),)
 
 
     def __hash__(self):

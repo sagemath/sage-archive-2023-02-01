@@ -601,16 +601,9 @@ respectively). This cartesian product is then fed into the
 ``xor_transducer`` as a :meth:`composition
 <FiniteStateMachine.composition>` of transducers.
 
-As described in :meth:`Transducer.cartesian_product`, we have to
-temporarily set
-``finite_state_machine.FSMOldCodeTransducerCartesianProduct`` to
-``False`` in order to disable backwards compatible code.
-
 ::
 
-    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
     sage: product_transducer = shift_right_transducer.cartesian_product(transducers.Identity([0, 1]))
-    sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
     sage: Gray_transducer = xor_transducer(product_transducer)
 
 We use :meth:`~FiniteStateMachine.construct_final_word_out` to make sure that all output
@@ -8895,11 +8888,9 @@ class FiniteStateMachine(SageObject):
                 sage: block01 = transducers.CountSubblockOccurrences(
                 ....:     [0, 1],
                 ....:     input_alphabet=[0, 1])
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
                 sage: product_01x10 = block01.cartesian_product(block10)
                 sage: block_difference = transducers.sub([0, 1])(product_01x10)
                 sage: T = block_difference.simplification().relabeled()
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
                 sage: T.transitions()
                 [Transition from 0 to 1: 0|-1,
                  Transition from 0 to 0: 1|0,
@@ -10498,16 +10489,6 @@ class Transducer(FiniteStateMachine):
              (0, 0, 0),
              (0, 0, 1)]
         """
-        if FSMOldCodeTransducerCartesianProduct:
-            from sage.misc.superseded import deprecation
-            deprecation(16061, "The output of Transducer.cartesian_product "
-                               "will change. Please use "
-                               "Transducer.intersection for the original "
-                               "output.")
-            return self.intersection(
-                other,
-                only_accessible_components=only_accessible_components)
-
         def function(*transitions):
             if equal(t.word_in for t in transitions):
                 return (transitions[0].word_in,

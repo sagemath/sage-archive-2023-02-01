@@ -2,7 +2,6 @@ r"""
 Base class for elements of multivariate polynomial rings
 """
 
-include "sage/ext/stdsage.pxi"
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 

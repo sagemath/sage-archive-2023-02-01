@@ -71,7 +71,7 @@ import sage.misc.prandom as random
 
 from sage.rings.arith import factor, primitive_root
 import sage.rings.commutative_ring as commutative_ring
-import sage.rings.field as field
+import sage.rings.ring as ring
 import integer_mod
 import sage.rings.integer as integer
 import sage.rings.integer_ring as integer_ring
@@ -148,6 +148,7 @@ class IntegerModFactory(UniqueFactory):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: R in Fields()
         True
         sage: R.category()
@@ -321,6 +322,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: FF.is_field()
         True
         sage: FF.characteristic()
@@ -380,6 +382,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         Join of Category of finite commutative rings
             and Category of subquotients of monoids
             and Category of quotients of semigroups
+            and Category of finite enumerated sets
         sage: Z16.is_field()
         False
         sage: Z16.order()
@@ -716,6 +719,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Join of Category of finite commutative rings
                 and Category of subquotients of monoids
                 and Category of quotients of semigroups
+                and Category of finite enumerated sets
             sage: R.is_field()
             True
             sage: R.category()
@@ -1250,7 +1254,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         elif S is integer_ring.ZZ:
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
-            if isinstance(S, field.Field):
+            if isinstance(S, ring.Field):
                 return None
             try:
                 return integer_mod.IntegerMod_to_IntegerMod(S, self)
@@ -1495,14 +1499,22 @@ In the latter case, please inform the developers.""".format(self.order()))
         """
         Return a random element of this ring.
 
-        If ``bound`` is not ``None``, return the coercion of an integer in the
-        interval ``[-bound, bound]`` into this ring.
+        INPUT:
+
+        - ``bound``, a positive integer or ``None`` (the default). Is given,
+          return  the coercion of an integer in the interval
+          ``[-bound, bound]`` into this ring.
 
         EXAMPLES::
 
             sage: R = IntegerModRing(18)
             sage: R.random_element()
             2
+
+        We test ``bound``-option::
+
+            sage: R.random_element(2) in [R(16), R(17), R(0), R(1), R(2)]
+            True
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)

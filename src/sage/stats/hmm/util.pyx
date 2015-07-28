@@ -13,7 +13,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "sage/ext/stdsage.pxi"
 
 from sage.matrix.matrix import is_Matrix
 from sage.misc.flatten  import flatten

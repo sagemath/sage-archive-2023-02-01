@@ -1,4 +1,6 @@
 """
+Finite field morphisms using Givaro
+
 Special implementation for givaro finite fields of:
 
 - embeddings between finite fields
@@ -22,7 +24,6 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-include "../../ext/stdsage.pxi"
 
 from sage.rings.finite_rings.constructor import FiniteField
 

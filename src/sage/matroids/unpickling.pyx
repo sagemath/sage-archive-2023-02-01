@@ -24,7 +24,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include 'sage/ext/stdsage.pxi'
 include 'sage/data_structures/bitset.pxi'
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid

@@ -130,6 +130,7 @@ class Sets(Category_singleton):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -908,15 +909,19 @@ class Sets(Category_singleton):
                 sage: S(17) # indirect doctest
                 17
 
-            Caveat: For some parents, ``element_class`` is a method, and
-            not an attribute. We do not provide a default
-            implementation of ``_element_constructor`` for those.
+                sage: A = FreeModule(QQ, 3)
+                sage: A.element_class
+                <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+                sage: A._element_constructor
+                <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
-                sage: FreeModule(QQ,3).element_class
-                <bound method FreeModule_ambient_field_with_category.element_class of Vector space of dimension 3 over Rational Field>
-                sage: FreeModule(QQ,3)._element_constructor
+                sage: B = GroupAlgebra(SymmetricGroup(3), ZZ)
+                sage: B.element_class
+                <class 'sage.combinat.free_module.GroupAlgebra_with_category.element_class'>
+                sage: B._element_constructor
+                <bound method GroupAlgebra_with_category._element_constructor_ of Group algebra of group "Symmetric group of order 3! as a permutation group" over base ring Integer Ring>
             """
-            if hasattr(self, "element_class") and issubclass(self.element_class, object):
+            if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
             else:
                 return NotImplemented
@@ -1348,28 +1353,49 @@ class Sets(Category_singleton):
                 tester.assertTrue(x in self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
-        def cardinality(self):
-            """
-            The cardinality of ``self``.
+        #Note: the four methods 'cardinality', 'is_finite_, 'is_empty' and
+        # 'random_element' might or might not be implemented in the parent
+        # objects. Most of the time a default implementation will be provided by
+        # a subcategory of Sets. We do not declare them as optional abstract
+        # methods to not pollute the namespace.
 
-            ``self.cardinality()`` should return the cardinality of the set
-            ``self`` as a sage :class:`Integer` or as ``infinity``.
+        # def cardinality(self)
+        # def is_finite(self)
+        # def is_empty(self)
+        # def random_element(self):
 
-            This if the default implementation from the category
-            ``Sets()``; it raises a ``NotImplementedError`` since one
-            does not know whether the set is finite or not.
+        def _test_cardinality(self, **options):
+            r"""
+            Run generic test on the method :meth:`.cardinality`.
 
             EXAMPLES::
 
-                sage: class broken(UniqueRepresentation, Parent):
-                ....:     def __init__(self):
-                ....:         Parent.__init__(self, category = Sets())
-                sage: broken().cardinality()
+                sage: C = Sets().example()
+                sage: C._test_cardinality()
+
+            Let us now write a broken :meth:`cardinality` method::
+
+                sage: from sage.categories.examples.sets_cat import *
+                sage: class CCls(PrimeNumbers):
+                ....:     def cardinality(self):
+                ....:         return int(5)
+                sage: CC = CCls()
+                sage: CC._test_cardinality()
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: unknown cardinality
+                AssertionError: the output of the method cardinality must either
+                be a Sage integer or infinity. Not <type 'int'>.
             """
-            raise NotImplementedError("unknown cardinality")
+            try:
+                cardinality = self.cardinality()
+            except (AttributeError,NotImplementedError):
+                return
+            from sage.structure.element import parent
+            from sage.rings.infinity import Infinity
+            from sage.rings.integer_ring import ZZ
+            tester = self._tester(**options)
+            tester.assertTrue(cardinality is Infinity or parent(cardinality) is ZZ,
+                    "the output of the method cardinality must either be a Sage integer or infinity. Not {}.".format(type(cardinality)))
 
         # Functorial constructions
 
@@ -1402,7 +1428,7 @@ class Sets(Category_singleton):
                 parents,
                 category = cartesian_product.category_from_parents(parents))
 
-        def algebra(self, base_ring, category = None):
+        def algebra(self, base_ring, category=None):
             """
             Return the algebra of ``self`` over ``base_ring``.
 
@@ -1445,9 +1471,21 @@ class Sets(Category_singleton):
                 sage: A in HopfAlgebras(QQ)
                 True
 
+            By Maschke's theorem, for a finite group whose cardinality
+            does not divide the characteristic of the base field, the
+            algebra is semisimple::
+
+                sage: SymmetricGroup(5).algebra(QQ) in Algebras(QQ).Semisimple()
+                True
+                sage: CyclicPermutationGroup(10).algebra(FiniteField(5)) in Algebras.Semisimple
+                False
+                sage: CyclicPermutationGroup(10).algebra(FiniteField(7)) in Algebras.Semisimple
+                True
+
+
             One may specify for which category one takes the algebra::
 
-                sage: A = S.algebra(QQ, category = Sets()); A
+                sage: A = S.algebra(QQ, category=Sets()); A
                 Free module generated by General Linear Group of degree 4 over Rational Field over Rational Field
                 sage: A.category()
                 Category of set algebras over Rational Field
@@ -1478,19 +1516,19 @@ class Sets(Category_singleton):
                 ...
                 TypeError:  `S = Ring of integers modulo 3` is both an additive and a multiplicative semigroup.
                 Constructing its algebra is ambiguous.
-                Please use, e.g., S.algebra(QQ, category = Semigroups())
+                Please use, e.g., S.algebra(QQ, category=Semigroups())
 
             The ambiguity can be resolved using the ``category`` argument::
 
-                sage: A = Z3.algebra(QQ, category = Monoids()); A
+                sage: A = Z3.algebra(QQ, category=Monoids()); A
                 Free module generated by Ring of integers modulo 3 over Rational Field
                 sage: A.category()
-                Category of monoid algebras over Rational Field
+                Category of finite dimensional monoid algebras over Rational Field
 
-                sage: A = Z3.algebra(QQ, category = CommutativeAdditiveGroups()); A
+                sage: A = Z3.algebra(QQ, category=CommutativeAdditiveGroups()); A
                 Free module generated by Ring of integers modulo 3 over Rational Field
                 sage: A.category()
-                Category of commutative additive group algebras over Rational Field
+                Category of finite dimensional commutative additive group algebras over Rational Field
 
             Similarly, on , we obtain for additive magmas, monoids, groups.
 
@@ -1519,9 +1557,20 @@ class Sets(Category_singleton):
                 raise TypeError(
 """ `S = {}` is both an additive and a multiplicative semigroup.
 Constructing its algebra is ambiguous.
-Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
+Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             from sage.combinat.free_module import CombinatorialFreeModule
-            return CombinatorialFreeModule(base_ring, self, category = category.Algebras(base_ring))
+            from sage.categories.groups import Groups
+            from sage.categories.fields import Fields
+            algebra_category = category.Algebras(base_ring)
+            # Maschke's theorem: under some conditions, the algebra is semisimple
+            # If base_ring is of characteristic 0, this is handled in the FiniteGroups.Algebras category
+            if category.is_subcategory(Groups().Finite()) and base_ring in Fields \
+                and base_ring.characteristic() > 0               \
+                and hasattr(self, "cardinality")                 \
+                and self.cardinality() % base_ring.characteristic() != 0:
+                algebra_category = algebra_category.Semisimple()
+            return CombinatorialFreeModule(base_ring, self,
+                                           category=algebra_category)
 
 
     class ElementMethods:
@@ -1553,6 +1602,57 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
             parents = [parent(element) for element in elements]
             return cartesian_product(parents)._cartesian_product_of_elements(elements) # good name???
 
+    class MorphismMethods:
+        @abstract_method(optional=True)
+        def __invert__(self):
+            r"""
+            Return the inverse morphism, or raise an error.
+
+            The error may either state that the morphism is not
+            invertible, or that Sage cannot invert it.
+
+            EXAMPLES::
+
+                sage: i = End(QQ).identity(); i
+                Identity endomorphism of Rational Field
+                sage: i.__invert__()
+                Identity endomorphism of Rational Field
+
+            This method is meant to be used with the Python inversion
+            operator `~`::
+
+                sage: ~i
+                Identity endomorphism of Rational Field
+
+            We now try to inverse a couple of morphisms defined by a matrix::
+
+                sage: H = End(QQ^2)
+                sage: phi = H(matrix([[1,1],[0,1]])); phi
+                Vector space morphism represented by the matrix:
+                [1 1]
+                [0 1]
+                Domain: Vector space of dimension 2 over Rational Field
+                Codomain: Vector space of dimension 2 over Rational Field
+                sage: ~phi
+                Vector space morphism represented by the matrix:
+                [ 1 -1]
+                [ 0  1]
+                Domain: Vector space of dimension 2 over Rational Field
+                Codomain: Vector space of dimension 2 over Rational Field
+
+                sage: phi = H(matrix([[1,1],[1,1]]))
+                sage: ~phi
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: matrix morphism not invertible
+
+            .. NOTE::
+
+                This is an optional method. A default implementation
+                raising ``NotImplementedError`` could be provided instead.
+            """
+
+
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
 
@@ -1562,7 +1662,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
             def is_finite(self):
                 """
-                Return ``False`` since ``self`` is not finite.
+                Return whether this set is finite.
+
+                Since this set is infinite this always returns ``False``.
 
                 EXAMPLES::
 
@@ -1574,6 +1676,20 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
 
                     sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
                     True
+                """
+                return False
+
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
+
+                Since this set is infinite this always returns ``False``.
+
+                EXAMPLES::
+
+                    sage: C = InfiniteEnumeratedSets().example()
+                    sage: C.is_empty()
+                    False
                 """
                 return False
 
@@ -1885,19 +2001,114 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                 """
                 return self._cartesian_product_of_elements(s.an_element() for s in self._sets)
 
-            # Here or in Sets.Finite.CartesianProducts.ParentMethods?
-            def cardinality(self):
-                """
-                Return the cardinality of ``self``
+            def is_empty(self):
+                r"""
+                Return whether this set is empty.
 
                 EXAMPLES::
 
-                    sage: C = cartesian_product([GF(3), FiniteEnumeratedSet(['a','b']), GF(5)])
-                    sage: C.cardinality()
-                    30
+
+                    sage: S1 = FiniteEnumeratedSet([1,2,3])
+                    sage: S2 = Set([])
+                    sage: cartesian_product([S1,ZZ]).is_empty()
+                    False
+                    sage: cartesian_product([S1,S2,S1]).is_empty()
+                    True
                 """
+                return any(c.is_empty() for c in self.cartesian_factors())
+
+            def is_finite(self):
+                r"""
+                Return whether this set is finite.
+
+                EXAMPLES::
+
+                    sage: E = FiniteEnumeratedSet([1,2,3])
+                    sage: C = cartesian_product([E, SymmetricGroup(4)])
+                    sage: C.is_finite()
+                    True
+
+                    sage: cartesian_product([ZZ,ZZ]).is_finite()
+                    False
+                    sage: cartesian_product([ZZ, Set(), ZZ]).is_finite()
+                    True
+                """
+                f = self.cartesian_factors()
+                return any(c.is_empty() for c in f) or all(c.is_finite() for c in f)
+
+            def cardinality(self):
+                r"""
+                Return the cardinality of self.
+
+                EXAMPLES::
+
+                    sage: E = FiniteEnumeratedSet([1,2,3])
+                    sage: C = cartesian_product([E,SymmetricGroup(4)])
+                    sage: C.cardinality()
+                    72
+
+                    sage: E = FiniteEnumeratedSet([])
+                    sage: C = cartesian_product([E, ZZ, QQ])
+                    sage: C.cardinality()
+                    0
+
+                    sage: C = cartesian_product([ZZ, QQ])
+                    sage: C.cardinality()
+                    +Infinity
+
+                    sage: cartesian_product([GF(5), Permutations(10)]).cardinality()
+                    18144000
+                    sage: cartesian_product([GF(71)]*20).cardinality() == 71**20
+                    True
+                """
+                f = self.cartesian_factors()
+
+                try:
+                    # Note: some parent might not implement "is_empty". So we
+                    # carefully isolate this test.
+                    is_empty = any(c.is_empty() for c in f)
+                except Exception:
+                    pass
+                else:
+                    if is_empty:
+                        from sage.rings.integer_ring import ZZ
+                        return ZZ.zero()
+                    elif any(c in Sets().Infinite() for c in f):
+                        from sage.rings.infinity import Infinity
+                        return Infinity
+
                 from sage.misc.misc_c import prod
-                return prod(x.cardinality() for x in self._sets)
+                return prod(c.cardinality() for c in f)
+
+            def random_element(self, *args):
+                r"""
+                Return a random element of this cartesian product.
+
+                The extra arguments are passed down to each of the
+                factors of the cartesian product.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([Permutations(10)]*5)
+                    sage: C.random_element()           # random
+                    ([2, 9, 4, 7, 1, 8, 6, 10, 5, 3],
+                     [8, 6, 5, 7, 1, 4, 9, 3, 10, 2],
+                     [5, 10, 3, 8, 2, 9, 1, 4, 7, 6],
+                     [9, 6, 10, 3, 2, 1, 5, 8, 7, 4],
+                     [8, 5, 2, 9, 10, 3, 7, 1, 4, 6])
+
+                    sage: C = cartesian_product([ZZ]*10)
+                    sage: c1 = C.random_element()
+                    sage: c1                   # random
+                    (3, 1, 4, 1, 1, -3, 0, -4, -17, 2)
+                    sage: c2 = C.random_element(4,7)
+                    sage: c2                   # random
+                    (6, 5, 6, 4, 5, 6, 6, 4, 5, 5)
+                    sage: all(4 <= i < 7 for i in c2)
+                    True
+                """
+                return self._cartesian_product_of_elements(
+                        c.random_element(*args) for c in self.cartesian_factors())
 
             @abstract_method
             def _sets_keys(self):
@@ -1907,7 +2118,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                 EXAMPLES::
 
                     sage: cartesian_product([QQ, ZZ, ZZ])._sets_keys()
-                    [0, 1, 2]
+                    {0, 1, 2}
                 """
 
             @abstract_method
@@ -1949,17 +2160,22 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                 """
                 Return the cartesian product of the given ``elements``.
 
+                This method should accept any iterable.
+
                 INPUT:
 
-                - ``elements`` -- a tuple with one element of each
-                  cartesian factor of ``self``
+                - ``elements`` -- an iterable (e.g. a tuple or a list) of
+                  elements of each cartesian factor of ``self``
 
                 EXAMPLES::
 
                     sage: S1 = Sets().example()
                     sage: S2 = InfiniteEnumeratedSets().example()
-                    sage: C = cartesian_product([S2, S1, S2])
-                    sage: C._cartesian_product_of_elements([S2.an_element(), S1.an_element(), S2.an_element()])
+                    sage: X = [S2, S1, S2]
+                    sage: C = cartesian_product(X)
+                    sage: C._cartesian_product_of_elements([S.an_element() for S in X])
+                    (42, 47, 42)
+                    sage: C._cartesian_product_of_elements(S.an_element() for S in X)
                     (42, 47, 42)
                 """
 
@@ -2083,7 +2299,7 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                 Test that this parent with realizations is
                 properly implemented.
 
-                INPUT::
+                INPUT:
 
                 - ``options`` -- any keyword arguments accepted
                   by :meth:`_tester`
@@ -2124,8 +2340,9 @@ Please use, e.g., S.algebra(QQ, category = Semigroups())""".format(self))
                     sage: A = Sets().WithRealizations().example(QQ['x']); A
                     The subset algebra of {1, 2, 3} over Univariate Polynomial Ring in x over Rational Field
                     sage: class ANewRealizationOfA(CombinatorialFreeModule):
-                    ...       pass
-                    sage: R = ANewRealizationOfA(A.base_ring(), A.F().basis().keys(), category = A.Realizations())
+                    ....:     pass
+                    sage: category = A.Realizations() & Algebras(QQ[x]).WithBasis()
+                    sage: R = ANewRealizationOfA(A.base_ring(), A.F().basis().keys(), category = category)
                     sage: R in A.realizations()  # indirect doctest
                     True
 

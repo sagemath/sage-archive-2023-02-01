@@ -1,7 +1,7 @@
 """
 Plotting of Hyperplane Arrangements
 
-PLOT OPTIONS::
+PLOT OPTIONS:
 
 Beside the usual plot options (enter ``plot?``), the plot command for
 hyperplane arrangements includes the following:
@@ -10,7 +10,7 @@ hyperplane arrangements includes the following:
   hyperplane (default: equally spread range of hues).
 
 - ``hyperplane_labels`` -- Boolean, ``'short'``, ``'long'`` (default:
-  ``False``).  If False, no labels are shown; if 'short' or 'long',
+  ``False``).  If ``False``, no labels are shown; if 'short' or 'long',
   the hyperplanes are given short or long labels, respectively.  If
   ``True``, the hyperplanes are given long labels.
 
@@ -165,7 +165,7 @@ def plot(hyperplane_arrangement, **kwds):
             hyp_colors = [hyp_colors] * N
     else:
         HSV_tuples = [(i*1.0/N, 0.8, 0.9) for i in range(N)]
-        hyp_colors = map(lambda x: hsv_to_rgb(*x), HSV_tuples)
+        hyp_colors = [hsv_to_rgb(*x) for x in HSV_tuples]
     if 'hyperplane_labels' in kwds:
         hyp_labels = kwds.pop('hyperplane_labels')
         has_hyp_label = True

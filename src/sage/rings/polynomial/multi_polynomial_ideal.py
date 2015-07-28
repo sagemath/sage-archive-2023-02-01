@@ -380,7 +380,7 @@ class MPolynomialIdeal_magma_repr:
             45
 
          We may also pass a degree bound to Magma::
-        
+
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: I = sage.rings.ideal.Cyclic(R,6)
             sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
@@ -530,13 +530,13 @@ class MPolynomialIdeal_singular_base_repr:
 
         if algorithm == "std":
             if self.base_ring() == ZZ:
-                stopgap("Singular's std() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676) 
+                stopgap("Singular's std() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = std_libsingular(self)
         elif algorithm == "slimgb":
             S = slimgb_libsingular(self)
         elif algorithm == "groebner":
             if self.base_ring() == ZZ:
-                stopgap("Singular's groebner() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676) 
+                stopgap("Singular's groebner() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = groebner(self)
         else:
             try:
@@ -1090,6 +1090,8 @@ class MPolynomialIdeal_singular_repr(
             sage: I.dimension()
             1
 
+        If the ideal is the total ring, the dimension is `-1` by convention.
+
         For polynomials over a finite field of order too large for Singular,
         this falls back on a toy implementation of Buchberger to compute
         the Groebner basis, then uses the algorithm described in Chapter 9,
@@ -1101,7 +1103,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal([x*y,x*y+1])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
-            0
+            -1
             sage: I=ideal([x*(x*y+1),y*(x*y+1)])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -1124,6 +1126,7 @@ class MPolynomialIdeal_singular_repr(
 
             Requires computation of a Groebner basis, which can be a
             very expensive operation.
+
         """
         try:
             return self.__dimension
@@ -1146,6 +1149,8 @@ class MPolynomialIdeal_singular_repr(
                         # and Algorithms".
                         from sage.sets.set import Set
                         gb = toy_buchberger.buchberger_improved(self)
+                        if self.ring().one() in gb:
+                            return Integer(-1)
                         ring_vars = self.ring().gens()
                         n = len(ring_vars)
                         lms = [each.lm() for each in gb]
@@ -1176,7 +1181,7 @@ class MPolynomialIdeal_singular_repr(
                                 i += 1
                             if J_intersects_all:
                                 min_dimension = len(J)
-                        return n - min_dimension
+                        return Integer(n - min_dimension)
                     else:
                         raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
         return self.__dimension
@@ -1454,7 +1459,7 @@ class MPolynomialIdeal_singular_repr(
         Consider the hyperelliptic curve `y^2 = 4x^5 - 30x^3 + 45x -
         22` over `\QQ`, it has genus 2::
 
-            sage: P, x = PolynomialRing(QQ,"x").objgen()
+            sage: P.<x> = QQ[]
             sage: f = 4*x^5 - 30*x^3 + 45*x - 22
             sage: C = HyperellipticCurve(f); C
             Hyperelliptic Curve over Rational Field defined by y^2 = 4*x^5 - 30*x^3 + 45*x - 22
@@ -3177,7 +3182,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         R = self.ring()
         S = other.ring()
         if R is not S: # rings are unique
-            if isinstance(R, type(S)) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
+            if type(R) is type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
                 other = other.change_ring(R)
             else:
                 return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
@@ -3234,7 +3239,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: J = (x^3 + y, y, y*x^3 + y^2)*R
             sage: I == J
@@ -3857,7 +3862,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         EXAMPLES::
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R.<x,y> = QQ[]
             sage: I = (x^3 + y, y)*R
             sage: x in I # indirect doctest
             False
@@ -4057,7 +4062,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
-        R,z = PowerSeriesRing(QQ,'z', default_prec=sum(degs)).objgen()
+        R = PowerSeriesRing(QQ,'z', default_prec=sum(degs))
+        z = R.gen()
         dreg = 0
         s = prod([1-z**d for d in degs]) / (1-z)**n
         for dreg in xrange(0,sum(degs)):
@@ -4242,7 +4248,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P = PolynomialRing(GF(127), 10, 'x')
             sage: I = sage.rings.ideal.Katsura(P)
             sage: I.random_element(degree=3)
-            7*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 - 32*x1^2*x2 - ... + 49*x4 + 48*x5 - 40*x7 - 6*x8
+            -25*x0^2*x1 + 14*x1^3 + 57*x0*x1*x2 + ... + 19*x7*x9 + 40*x8*x9 + 49*x1
 
         We show that the default method does not sample uniformly at random from the ideal::
 
@@ -4258,7 +4264,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: P.<x,y> = QQ[]
             sage: I = P.ideal([x^2,y^2])
             sage: I.random_element(degree=2)
-            52*x^2 - 8/3*y^2
+            -x^2
 
         """
         if compute_gb:

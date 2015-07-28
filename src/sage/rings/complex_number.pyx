@@ -41,7 +41,6 @@ import infinity
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
 
-include "sage/ext/stdsage.pxi"
 
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}
@@ -1139,7 +1138,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int a, b
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)

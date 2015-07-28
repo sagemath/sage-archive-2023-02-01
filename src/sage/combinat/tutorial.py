@@ -900,8 +900,7 @@ structures like the dihedral groups::
     sage: G.cardinality()
     8
     sage: G.list()
-    [(), (2,4), (1,2)(3,4), (1,2,3,4), (1,3), (1,3)(2,4),
-     (1,4,3,2), (1,4)(2,3)]
+    [(), (1,4)(2,3), (1,2,3,4), (1,3)(2,4), (1,3), (2,4), (1,4,3,2), (1,2)(3,4)]
 
 or the algebra of `2\times 2` matrices over the finite field
 `\ZZ/2\ZZ`::
@@ -921,7 +920,7 @@ The command below should return 16, but it is not yet implemented::
     sage: C.cardinality()
     Traceback (most recent call last):
     ...
-    NotImplementedError: unknown cardinality
+    AttributeError: 'MatrixSpace_with_category' object has no attribute 'cardinality'
 
 .. topic:: Exercise
 

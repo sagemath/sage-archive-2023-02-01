@@ -343,16 +343,16 @@ def process_extlinks(s, embedded=False):
 
         sage: from sage.misc.sagedoc import process_extlinks
         sage: process_extlinks('See :trac:`1234`, :wikipedia:`Wikipedia <Sage_(mathematics_software)>`, and :trac:`4321` ...')
-        'See http://trac.sagemath.org/1234, http://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
+        'See http://trac.sagemath.org/1234, https://en.wikipedia.org/wiki/Sage_(mathematics_software), and http://trac.sagemath.org/4321 ...'
         sage: process_extlinks('See :trac:`1234` for more information.', embedded=True)
         'See :trac:`1234` for more information.'
         sage: process_extlinks('see :python:`Implementing Descriptors <reference/datamodel.html#implementing-descriptors>` ...')
-        'see http://docs.python.org/release/.../reference/datamodel.html#implementing-descriptors ...'
+        'see https://docs.python.org/release/.../reference/datamodel.html#implementing-descriptors ...'
     """
     if embedded:
         return s
     oldpath = sys.path
-    sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
+    sys.path = [os.path.join(SAGE_DOC, 'common')] + oldpath
     from conf import pythonversion, extlinks
     sys.path = oldpath
     for key in extlinks:
@@ -409,12 +409,6 @@ def format(s, embedded=False):
 
     Directives must be separated by a comma.
 
-    NOTE:
-
-    If the first line of the string provides embedding information,
-    which is the case for doc strings from extension modules, then
-    the first line will not be changed.
-
     INPUT:
 
     - ``s`` - string
@@ -425,13 +419,18 @@ def format(s, embedded=False):
     Set ``embedded`` equal to True if formatting for use in the
     notebook; this just gets passed as an argument to ``detex``.
 
+    .. SEEALSO::
+
+        :func:`sage.misc.sageinspect.sage_getdoc` to get the formatted
+        documentation of a given object.
+
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[110:182]
+        sage: identity_matrix(2).rook_vector.__doc__[201:273]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[110:182])
+        sage: format(identity_matrix(2).rook_vector.__doc__[201:273])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -456,18 +455,6 @@ def format(s, embedded=False):
         sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
-    We check that the embedding information of a doc string from an extension
-    module is preserved, even if it is longer than a usual line. Moreover,
-    a ``nodetex`` directive in the first "essential" line of the doc string
-    is recognised. That has been implemented in trac ticket #11815::
-
-        sage: r = 'File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)\nnodetex\nsome doc for a cython method\n`x \geq y`'
-        sage: print format(r)
-        File: _local_user_with_a_very_long_name_that_would_normally_be_wrapped_sage_temp_machine_name_1234_tmp_1_spyx_0.pyx (starting at line 6)
-        <BLANKLINE>
-        some doc for a cython method
-        `x \geq y`
-
     In the following use case, the ``nodetex`` directive would have been ignored prior
     to #11815::
 
@@ -488,11 +475,10 @@ def format(s, embedded=False):
             `x \geq y`
         <BLANKLINE>
 
-    We check that the ``noreplace`` directive works, even combined with ``nodetex`` and
-    an embedding information (see trac ticket #11817)::
+    We check that the ``noreplace`` directive works, even combined with
+    ``nodetex`` (see :trac:`11817`)::
 
-        sage: print format('File: bla.py (starting at line 1)\nnodetex, noreplace\n<<<identity_matrix>>>`\\not= 0`')
-        File: bla.py (starting at line 1)
+        sage: print format('''nodetex, noreplace\n<<<identity_matrix>>>`\\not= 0`''')
         <<<identity_matrix>>>`\not= 0`
 
     If replacement is impossible, then no error is raised::
@@ -511,24 +497,6 @@ def format(s, embedded=False):
     """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
-
-    # Doc strings may contain embedding information, which should not
-    # be subject to formatting (line breaks must not be inserted).
-    # Hence, we first try to find out whether there is an embedding
-    # information.
-    first_newline = s.find(os.linesep)
-    embedding_info = ''
-    if first_newline > -1:
-        first_line = s[:first_newline]
-        from sage.misc.sageinspect import _extract_embedded_position
-        if _extract_embedded_position(first_line) is not None:
-            embedding_info = first_line + os.linesep
-            s = s[first_newline+len(os.linesep):]
-            # Hence, by now, s starts with the second line.
-    else:
-        from sage.misc.sageinspect import _extract_embedded_position
-        if _extract_embedded_position(s) is not None:
-            return s
 
     # Leading empty lines must be removed, since we search for directives
     # in the first line.
@@ -587,7 +555,7 @@ def format(s, embedded=False):
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)
         s = detex(s, embedded=embedded)
-    return embedding_info+s
+    return s
 
 def format_src(s):
     """
@@ -829,7 +797,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
                                       if re.search(string, line, flags)]
                         for extra in [extra1, extra2, extra3, extra4, extra5]:
                             if extra:
-                                match_list = [s for s in match_list 
+                                match_list = [s for s in match_list
                                                 if re.search(extra, s[1], re.MULTILINE | flags)]
                         for num, line in match_list:
                             results += ':'.join([filename[strip:].lstrip("/"), str(num+1), line])
@@ -975,9 +943,9 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     ``search_src(string, interact=False).splitlines()`` gives the
     number of matches. ::
 
-        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 10
+        sage: len(search_src('log', 'derivative', interact=False).splitlines()) < 40
         True
-        sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+        sage: len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
         True
 
     A little recursive narcissism: let's do a doctest that searches for
@@ -997,8 +965,8 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False); s.find('x') > 0
         misc/sagedoc.py:... s = search_src('MatRiX', path_re='matrix', interact=False, ignore_case=True); s.find('x') > 0
-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 10
-        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 30
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False).splitlines()) < 40
+        misc/sagedoc.py:... len(search_src('log', 'derivative', interact=False, multiline=True).splitlines()) > 70
         misc/sagedoc.py:... print search_src('^ *sage[:] .*search_src\(', interact=False) # long time
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) > 9000 # long time
         misc/sagedoc.py:... print search_src('matrix', 'column', 'row', 'sub', 'start', 'index', interact=False) # random # long time
@@ -1478,7 +1446,7 @@ def help(module=None):
         if hasattr(module, '_sage_doc_'):
             from sage.misc.sageinspect import sage_getdef, _sage_getdoc_unformatted
             docstr = 'Help on ' + str(module) + '\n'
-            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n' 
+            docstr += 'Definition: ' + module.__name__ + sage_getdef(module) + '\n'
             pydoc.pager(docstr + _sage_getdoc_unformatted(module))
         else:
             python_help(module)

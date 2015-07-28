@@ -43,9 +43,17 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
                                          AbstractLabelledClonableTree)
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
+from sage.sets.family import Family
+from sage.misc.cachefunc import cached_method
+
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
@@ -106,7 +114,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 == t1c
         False
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -1266,11 +1274,17 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             Finite poset containing 1 elements
             sage: bt.to_poset(with_leaves=True)
             Finite poset containing 3 elements
-            sage: bt.to_poset(with_leaves=True).cover_relations()
-            [[1, 2], [0, 2]]
+            sage: P1 = bt.to_poset(with_leaves=True)
+            sage: len(P1.maximal_elements())
+            1
+            sage: len(P1.minimal_elements())
+            2
             sage: bt = BinaryTree([])
-            sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
-            [[0, 1], [0, 2]]
+            sage: P2 = bt.to_poset(with_leaves=True,root_to_leaf=True)
+            sage: len(P2.maximal_elements())
+            2
+            sage: len(P2.minimal_elements())
+            1
 
         If the tree is labelled, we use its labelling to label the poset.
         Otherwise, we use the poset canonical labelling::
@@ -2921,15 +2935,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         # R + 1
         return self[0].is_complete() and self[1].is_perfect() and dL == dR + 1
 
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
-from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
-from sage.sets.family import Family
-from sage.misc.cachefunc import cached_method
-
 
 # Abstract class to serve as a Factory no instance are created.
 class BinaryTrees(UniqueRepresentation, Parent):
@@ -3390,8 +3395,6 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         sage: t2.__class__, t2[0].__class__
         (<class '__main__.Foo'>, <class '__main__.Foo'>)
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """

@@ -796,8 +796,8 @@ class MaximaAbstract(Interface):
 
         Here is a torus::
 
-            sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
-            sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])   # not tested
+            sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")
+            sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])  # not tested
 
         Here is a Mobius strip::
 
@@ -1214,7 +1214,7 @@ class MaximaAbstractElement(InterfaceElement):
             [  1   y y^2]
             [  1 1/2 1/4]
 
-        Check if #7661 is fixed::
+        Check if :trac:`7661` is fixed::
 
             sage: var('delta')
             delta

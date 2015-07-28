@@ -288,18 +288,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         A string.
 
-        .. NOTE::
-
-            By default, the elements with the weakest growth are
-            printed first. If ``reverse`` is ``True``, then the
-            printing order is reversed.
-
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
-            sage: expr = (5*x^2 + 12*x) * (x^3 + O(x))
-            sage: repr(expr)  # indirect doctest
-            '5*x^5 + 12*x^4 + O(x^3)'
+            sage: (5*x^2 + 12*x) * (x^3 + O(x))  # indirect doctest
+            5*x^5 + 12*x^4 + O(x^3)
         """
         s = ' + '.join(repr(elem) for elem in
                        self.summands.elements_topological(reverse=True))

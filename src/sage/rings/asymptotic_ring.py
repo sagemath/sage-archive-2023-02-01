@@ -496,7 +496,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     - ``growth_group`` -- a partially ordered group (e.g. an instance
       of :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`),
-      or a short representation string of a growth group.
+      or a string describing such a growth group.
 
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
@@ -505,15 +505,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
       in order to broaden the base structure. It has to be a
       subcategory of ``Category of rings``. This is also the default
       category if ``None`` is specified.
-
-    OUTPUT:
-
-    An asymptotic ring.
-
-    .. NOTE::
-
-        See the following examples for more information on how to
-        create an asymptotic ring.
 
     EXAMPLES:
 
@@ -580,6 +571,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
     # enable the category framework for elements
     Element = AsymptoticExpression
 
+
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, names=None,
                       category=None):
@@ -591,7 +583,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES:
 
-        __classcall__ unifies the input to the constructor of
+        ``__classcall__`` unifies the input to the constructor of
         :class:`AsymptoticRing` such that the instances generated
         are unique. Also, this enables the use of the generation
         framework::
@@ -608,11 +600,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
             growth_group = GrowthGroup(growth_group)
 
         return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
-                                                        coefficient_ring, category)
+                                                        coefficient_ring,
+                                                        category)
 
 
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, growth_group=None, coefficient_ring=None, category=None):
+    def __init__(self, growth_group, coefficient_ring, category=None):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -634,15 +627,15 @@ class AsymptoticRing(sage.rings.ring.Ring,
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
         """
+        from sage.categories.rings import Rings
+
         if growth_group is None:
             raise ValueError('Growth group not specified. Cannot continue.')
         elif coefficient_ring is None:
             raise ValueError('Coefficient ring not specified. Cannot continue.')
-        elif not hasattr(coefficient_ring, 'is_ring') or\
-                not coefficient_ring.is_ring():
-            raise ValueError('%s has to be a ring.' % (coefficient_ring,))
+        elif coefficient_ring not in Rings():
+            raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
-        from sage.categories.rings import Rings
         if category is None:
             category = Rings()
         else:
@@ -656,6 +649,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         self._growth_group_ = growth_group
         super(AsymptoticRing, self).__init__(base=coefficient_ring,
                                              category=category)
+
 
     @property
     def growth_group(self):
@@ -698,13 +692,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
         - ``data`` -- an object representing the element to be
           initialized.
 
-        - ``poset`` -- (default: None) if given, then this is
+        - ``poset`` -- (default: ``None``) if given, then this is
           directly passed to the element constructor (i.e., no
           conversion is performed).
 
+        - ``simplify`` -- (default: ``True``) if set, then the constructed
+          element is simplified (terms are absorbed) automatically.
+
         OUTPUT:
 
-        An element of this growth group.
+        An element of this asymptotic ring.
 
         TESTS::
 
@@ -754,7 +751,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                 raise TypeError('Input is ambiguous: cannot convert '
                                 '%s to an asymptotic expression' % (data,))
 
-        return self.element_class(self, poset, simplify)
+        return self.element_class(self, poset, simplify=simplify)
 
 
     def _coerce_map_from_(self, R):
@@ -771,12 +768,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         .. NOTE::
 
-            There are two possible cases: either ``R`` is the
-            ``coefficient_ring`` of this asymptotic ring, or ``R``
-            itself is an asymptotic ring (where both the
-            ``growth_group`` and the ``coefficient_ring`` coerce into
-            the ``growth_group`` and the ``coefficient_ring`` of this
-            asymptotic ring, respectively).
+            There are two possible cases: either ``R`` coerces in the
+            :meth:`coefficient_ring` of this asymptotic ring, or ``R``
+            itself is an asymptotic ring, where both the
+            meth:`growth_group` and the :meth:`coefficient_ring` coerce into
+            the :meth:`growth_group` and the :meth:`coefficient_ring` of this
+            asymptotic ring, respectively.
 
         TESTS::
 
@@ -795,6 +792,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             sage: AR_QQ.has_coerce_map_from(QQ)
             True
+            sage: AR_QQ.has_coerce_map_from(ZZ)
+            True
             sage: 1/2 * x_QQ^2 + 7/8 * x_QQ^3
             1/2*x^2 + 7/8*x^3
         """
@@ -808,7 +807,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def _repr_(self):
         r"""
-        A representation string for this asymptotic ring.
+        A representation string of this asymptotic ring.
 
         INPUT:
 
@@ -843,7 +842,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         OUTPUT:
 
-        A tuple.
+        A tuple of asymptotic expressions.
 
         .. NOTE::
 
@@ -869,18 +868,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         INPUT:
 
-        - ``n`` -- a positive integer or `0`. Default: `0`.
+        - ``n`` -- (default: `0`) a non-negative integer.
 
         OUTPUT:
 
         An asymptotic expression.
-
-        .. NOTE::
-
-            Generators do not necessarily exist. This depends on the
-            underlying growth group. For example, monomial growth
-            groups have a generator, and exponential growth groups
-            don't.
 
         EXAMPLES::
 
@@ -889,6 +881,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             x
         """
         return self.gens()[n]
+
 
     def ngens(self):
         r"""
@@ -914,6 +907,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         else:
             return 0
 
+
     def create_term(self, type, growth=None, coefficient=None):
         r"""
         Create a simple asymptotic expression consisting of a single
@@ -921,11 +915,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         INPUT:
 
-        - ``type`` -- 'O' or 'exact',
+        - ``type`` -- 'O' or 'exact'.
 
-        - ``growth`` -- a growth element,
+        - ``growth`` -- an element of the :meth:`growth_group`.
 
-        - ``coefficient`` -- a ring element.
+        - ``coefficient`` -- an element of the :meth:`coefficient_ring`.
 
         OUTPUT:
 

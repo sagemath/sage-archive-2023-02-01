@@ -21,6 +21,8 @@ AUTHORS:
 
 - Andrey Novoseltsev (2013-03-16): initial version.
 
+- Matthias Koeppe, Peijun Xiao (2015-07-05): allow different output styles.
+
 EXAMPLES:
 
 Most of the module functionality is demonstrated on the following problem.
@@ -415,20 +417,33 @@ def variable(R, v):
             pass
         raise ValueError("cannot interpret given data as a variable")
 
+
 known_styles = {'UAlberta', 'Vanderbei'}
 _default_style = 'UAlberta'
 
-def _style_argument(style):
+
+def _validate_style(style):
     r"""
     Provide defaulting and input sanitizing for a style argument.
+    
+    INPUT:
+    
+    - ``style`` -- a string or ``None``
+    
+    OUTPUT:
+    
+    - a string, the same as the input or the default one if it was ``None``.
+    
+    If the input is not recognized as a valid style, a ``ValueError`` exception
+    is raised.
 
     EXAMPLE::
 
-        sage: sage.numerical.interactive_simplex_method._style_argument('UAlberta')
+        sage: sage.numerical.interactive_simplex_method._validate_style('UAlberta')
         'UAlberta'
-        sage: sage.numerical.interactive_simplex_method._style_argument(None)
+        sage: sage.numerical.interactive_simplex_method._validate_style(None)
         'UAlberta'
-        sage: sage.numerical.interactive_simplex_method._style_argument('Doesntexist')
+        sage: sage.numerical.interactive_simplex_method._validate_style('Doesntexist')
         Traceback (most recent call last):
         ...
         ValueError: Style must be one of...
@@ -437,53 +452,74 @@ def _style_argument(style):
     if style is None:
         return _default_style
     elif style not in known_styles:
-        raise ValueError, "Style must be one of: {}".format(known_styles)
+        raise ValueError("Style must be one of: {}".format(known_styles))
     else:
         return style
 
+
 def default_style(style=None):
     r"""
-    Set or get the default style of :class:`InteractiveLPProblem`.
+    Set or get the default style of problems and dictionaries.
 
+    INPUT:
+    
+    - ``style`` -- a string or ``None`` (default)
+    
+    OUTPUT:
+    
+    - if ``style`` was ``None``, return the default style (a string)
+    
     Currently supported styles are:
 
-    - 'UAlberta' (default):  Follows the style used in the Math 373 course 
-      on Mathematical Programming and Optimization at the University of 
+    - 'UAlberta' (default):  Follows the style used in the Math 373 course
+      on Mathematical Programming and Optimization at the University of
       Alberta, Edmonton, Canada; based on Chvatal's book.
 
       - Objective functions of dictionaries are printed at the bottom.
+      
+      Variable names default to
 
-      - The default objective variable is 'z'.
+      - `z` for primal objective
+      
+      - `z` for dual objective
+      
+      - `w` for auxiliary objective
 
-      - Primal variables default to 'x1', 'x2', ...
+      - `x_1, x_2, \dots, x_n` for primal decision variables
+      
+      - `x_{n+1}, x_{n+2}, \dots, x_{n+m}` for primal slack variables
 
-      - Dual variables default to 'y1', 'y2', ...
+      - `y_1, y_2, \dots, y_m` for dual decision variables
+      
+      - `y_{m+1}, y_{m+2}, \dots, y_{m+n}` for dual slack variables
 
-      - Slack variables use the same prefix as problem variables.
-
-    - 'Vanderbei':  Follow the style of Robert Vanderbei's textbook, 
+    - 'Vanderbei':  Follows the style of Robert Vanderbei's textbook,
       Linear Programming -- Foundations and Extensions.
 
       - Objective functions of dictionaries are printed at the top.
 
-      - The default objective variable of primal is 'zeta',
-        of auxiliary and dual is 'xi'.
+      Variable names default to
 
-      - A negative sign may appear in front of the objective variable.
+      - `zeta` for primal objective
+      
+      - `xi` for dual objective
+      
+      - `xi` for auxiliary objective
 
-      - Primal variables default to 'x1', 'x2', ...
+      - `x_1, x_2, \dots, x_n` for primal decision variables
+      
+      - `w_1, w_2, \dots, w_m` for primal slack variables
 
-      - Dual variables default to 'y1', 'y2', ...
-
-      - Primal slack variables default to 'w1', 'w2', ...
-
-      - Dual slack variables default to 'z1', 'z2', ...
+      - `y_1, y_2, \dots, y_m` for dual decision variables
+      
+      - `z_1, z_2, \dots, z_n` for dual slack variables
     """
     global _default_style
     if style is None:
         return _default_style
     else:
-        _default_style = _style_argument(style)
+        _default_style = _validate_style(style)
+
 
 class InteractiveLPProblem(SageObject):
     r"""
@@ -519,19 +555,16 @@ class InteractiveLPProblem(SageObject):
     - ``problem_type`` -- (default: ``"max"``) a string specifying the
       problem type: ``"max"``, ``"min"``, ``"-max"``, or ``"-min"``
 
-    - ``prefix`` -- (default: parameter ``x`` if it was given as a string,
-      string ``"x"`` otherwise) a string giving the base name of automatically
-      created variables in :meth:`standard_form`
-
     - ``base_ring`` -- (default: the fraction field of a common ring for all
       input coefficients) a field to which all input coefficients will be
       converted
 
-    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
-      a string specifying the problem style.
-
-    - ``objective_variable`` -- (default: depends on ``style``) 
-      a string giving the objective variable name. 
+    - ``style`` -- (default: see :func:`default_style`)
+      a string specifying the problem style
+      
+    - ``is_primal`` -- (default: ``True``) whether this problem is primal or
+      dual: each problem is of course dual to its own dual, this flag is mostly
+      for internal use and affects default variable names only
 
     EXAMPLES:
 
@@ -571,9 +604,8 @@ class InteractiveLPProblem(SageObject):
     """
 
     def __init__(self, A, b, c, x="x",
-                 constraint_type="<=", variable_type="",
-                 problem_type="max", prefix="x", base_ring=None,
-                 style=None, objective_variable=None):
+                 constraint_type="<=", variable_type="", problem_type="max",
+                 base_ring=None, style=None, is_primal=True):
         r"""
         See :class:`InteractiveLPProblem` for documentation.
 
@@ -589,20 +621,6 @@ class InteractiveLPProblem(SageObject):
         A = matrix(A)
         b = vector(b)
         c = vector(c)
-
-        self._style = _style_argument(style)
-
-        if objective_variable == None:
-            if self._style == "Vanderbei":
-                variable = "zeta"
-                if problem_type == 'max':
-                    self._objective_variable = variable
-                else:
-                    self._objective_variable = "-"+variable
-            else:
-                self._objective_variable = "z"
-        else:
-            self._objective_variable = objective_variable
         if base_ring is None:
             base_ring = vector(A.list() + list(b) + list(c)).base_ring()
         base_ring = base_ring.fraction_field()
@@ -618,7 +636,6 @@ class InteractiveLPProblem(SageObject):
         if c.degree() != n:
             raise ValueError("A and c have incompatible dimensions")
         if isinstance(x, str):
-            prefix = x
             x = ["{}{:d}".format(x, i) for i in range(1, n+1)]
         else:
             x = [str(_) for _ in x]
@@ -657,7 +674,8 @@ class InteractiveLPProblem(SageObject):
             raise ValueError("unknown problem type")
         self._problem_type = problem_type
 
-        self._prefix = prefix
+        self._style = _validate_style(style)
+        self._is_primal = is_primal
 
     def __eq__(self, other):
         r"""
@@ -684,19 +702,13 @@ class InteractiveLPProblem(SageObject):
             sage: P3 = InteractiveLPProblem(A, c, b, ["C", "B"], variable_type=">=")
             sage: P == P3
             False
-            sage: P = InteractiveLPProblem(A, c, b, ["C", "B"], objective_variable="a")
-            sage: P4 = InteractiveLPProblem(A, c, b, ["C", "B"], style="Vanderbei", objective_variable="a")
-            sage: P == P4
-            True
         """
         return (isinstance(other, InteractiveLPProblem) and
                 self.Abcx() == other.Abcx() and
                 self._problem_type == other._problem_type and
                 self._is_negative == other._is_negative and
                 self._constraint_types == other._constraint_types and
-                self._variable_types == other._variable_types and
-                self._prefix == other._prefix and
-                self._objective_variable == other._objective_variable)
+                self._variable_types == other._variable_types)
 
     def _latex_(self):
         r"""
@@ -930,17 +942,14 @@ class InteractiveLPProblem(SageObject):
         """
         return self._Abcx[3]
 
-    def dual(self, y=None, objective_variable=None):
+    def dual(self, y=None):
         r"""
         Construct the dual LP problem for ``self``.
 
         INPUT:
 
-        - ``y`` -- (default: ``"x"`` if the prefix of ``self`` is ``"y"``,
-          ``"y"`` otherwise) a vector of dual decision variables or a string
-          giving the base name
-        - ``objective_variable`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``)
-          a string giving a name for the objective function.
+        - ``y`` -- (default: depends on :meth:`style`)
+          a vector of dual decision variables or a string giving the base name
 
         OUTPUT:
 
@@ -957,40 +966,19 @@ class InteractiveLPProblem(SageObject):
             True
             sage: DP.dual(["C", "B"]) == P
             True
-            sage: DP = DP.standard_form()
-            sage: DPSF_initial = DP.initial_dictionary()
-            sage: DPSF_initial.objective_variable()
-            'z'
+            
+        TESTS::
+        
+            sage: DP.standard_form().objective_name()
+            -z
             sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], style="Vanderbei")
-            sage: DP = P.dual()
-            sage: DP = DP.standard_form()
-            sage: DPSF_initial = DP.initial_dictionary()
-            sage: DPSF_initial.objective_variable()
-            'xi'
-            sage: DP = P.dual(objective_variable="dual")
-            sage: DP = DP.standard_form()
-            sage: DPSF_initial = DP.initial_dictionary()
-            sage: DPSF_initial.objective_variable()
-            'dual'
-
+            sage: P.dual().standard_form().objective_name()
+            -xi
         """
         A, c, b, x = self.Abcx()
-        style = self.style()
-        if not isinstance(objective_variable, str):
-            if objective_variable != None:
-                dual_objective_variable = map(str, objective_variable)
-            else:
-                if style == "Vanderbei":
-                    dual_objective_variable = "xi"
-                elif style == "UAlberta":
-                    dual_objective_variable = self._objective_variable
-                else:
-                    raise ValueError("unknown style")
-        else:
-            dual_objective_variable = objective_variable
         A = A.transpose()
         if y is None:
-            y = "x" if self._prefix == "y" else "y"
+            y = "y" if self.is_primal() else "x"
         problem_type = "min" if self._problem_type == "max" else "max"
         constraint_type = []
         for vt in self._variable_types:
@@ -1014,9 +1002,9 @@ class InteractiveLPProblem(SageObject):
                 variable_type.append("")
         if self._is_negative:
             problem_type = "-" + problem_type
-        return InteractiveLPProblem(A, b, c, y,constraint_type,
-            variable_type, problem_type, style=style,
-            objective_variable=dual_objective_variable)
+        return InteractiveLPProblem(A, b, c, y,
+            constraint_type, variable_type, problem_type,
+            style=self.style(), is_primal=not self.is_primal())
 
     @cached_method
     def feasible_set(self):
@@ -1097,6 +1085,29 @@ class InteractiveLPProblem(SageObject):
         """
         return self._solve()[1] is not None
 
+    def is_primal(self):
+        r"""
+        Check if we consider this problem to be primal or dual.
+        
+        This distinction affects only some automatically chosen variable names.
+
+        OUTPUT:
+
+        - boolean
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.is_primal()
+            True
+            sage: P.dual().is_primal()
+            False
+        """
+        return self._is_primal
+
     def n_constraints(self):
         r"""
         Return the number of constraints of ``self``, i.e. `m`.
@@ -1159,25 +1170,6 @@ class InteractiveLPProblem(SageObject):
             (10, 5)
         """
         return self._Abcx[2]
-
-    def objective_variable(self):
-        r"""
-        Return the objective variable of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1], [-1, -1])
-            sage: b = (1000, 1500, -400)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblem(A, b, c)
-            sage: P.objective_variable()
-            'z'
-            sage: P = InteractiveLPProblem(A, b, c, style='Vanderbei')
-            sage: P.objective_variable()
-            'zeta'
-
-        """
-        return self._objective_variable
 
     def optimal_solution(self):
         r"""
@@ -1402,9 +1394,14 @@ class InteractiveLPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
-    def standard_form(self):
+    def standard_form(self, objective_name=None):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
+        
+        INPUT:
+        
+        - ``objective_name`` -- a string or a symbolic expression for the
+          objective used in dictionaries, default depends on :meth:`style`
 
         OUTPUT:
 
@@ -1422,8 +1419,6 @@ class InteractiveLPProblem(SageObject):
             (-10, -5)
         """
         A, b, c, x = self.Abcx()
-        style = self.style()
-        objective_variable = self._objective_variable
         if not all(ct == "<=" for ct in self._constraint_types):
             newA = []
             newb = []
@@ -1456,20 +1451,33 @@ class InteractiveLPProblem(SageObject):
             A = column_matrix(newA)
             c = vector(newc)
             x = newx
+            
+        style = self.style()
+        is_primal = self.is_primal()
+        if objective_name is None:
+            if style == "UAlberta":
+                objective_name = "z"
+            if style == "Vanderbei":
+                objective_name = "zeta" if is_primal else "xi"
+        objective_name = SR(objective_name)
         is_negative = self._is_negative
         if self._problem_type == "min":
             is_negative = not is_negative
             c = - c
+            objective_name = - objective_name
         problem_type = "-max" if is_negative else "max"
-        prefix = self._prefix
-        if style == "Vanderbei":
-            prefix = "z"
-        return InteractiveLPProblemStandardForm(A, b, c, x, problem_type, prefix,
-            prefix+ "0", style=style, objective_variable=objective_variable)
+        return InteractiveLPProblemStandardForm(A, b, c, x, problem_type,
+            style=style, is_primal=is_primal, objective_name=objective_name)
 
     def style(self):
         r"""
         Return the style used by this problem.
+        
+        See :func:`default_style` for details.
+        
+        OUTPUT:
+        
+        - a string
 
         EXAMPLE::
 
@@ -1492,6 +1500,7 @@ class InteractiveLPProblem(SageObject):
     x = decision_variables
     m = n_constraints
     n = n_variables
+
 
 class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     r"""
@@ -1527,9 +1536,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     - ``problem_type`` -- (default: ``"max"``) a string specifying the
       problem type: either ``"max"`` or ``"-max"``
 
-    - ``slack_variables`` -- (default: same as ``x`` parameter, if it was given
-      as a string, otherwise string ``"x"``) a vector of slack variables or
-      a sting giving the base name
+    - ``slack_variables`` -- (default: depends on :meth:`style`)
+      a vector of slack variables or a sting giving the base name
 
     - ``auxiliary_variable`` -- (default: same as ``x`` parameter with adjoined
       ``"0"`` if it was given as a string, otherwise ``"x0"``) the auxiliary
@@ -1540,11 +1548,15 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
       input coefficients) a field to which all input coefficients will be
       converted
 
-    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
-      a string specifying the problem style.
-
-    - ``objective_variable`` -- (default: depends on ``style``) 
-      a string giving the objective variable name. 
+    - ``style`` -- (default: see :func:`default_style`)
+      a string specifying the problem style
+      
+    - ``is_primal`` -- (default: ``True``) whether this problem is primal or
+      dual: each problem is of course dual to its own dual, this flag is mostly
+      for internal use and affects default variable names only
+      
+    - ``objective_name`` -- a string or a symbolic expression for the
+      objective used in dictionaries, default depends on :meth:`style`
 
     EXAMPLES::
 
@@ -1567,9 +1579,10 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
 
     def __init__(self, A, b, c, x="x", problem_type="max",
                  slack_variables=None, auxiliary_variable=None,
-                 base_ring=None, style=None, objective_variable=None):
+                 base_ring=None, style=None, is_primal=True,
+                 objective_name=None):
         r"""
-        See :class:`StandardFormLPP` for documentation.
+        See :class:`InteractiveLPProblemStandardForm` for documentation.
 
         TESTS::
 
@@ -1582,35 +1595,40 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         if problem_type not in ("max", "-max"):
             raise ValueError("problems in standard form must be of (negative) "
                              "maximization type")
-        super(InteractiveLPProblemStandardForm, self).__init__(A, b, c, x,
-                                                               problem_type=problem_type,
-                                                               constraint_type="<=",
-                                                               variable_type=">=",
-                                                               base_ring=base_ring,
-                                                               style=style,
-                                                               objective_variable=objective_variable)
+        super(InteractiveLPProblemStandardForm, self).__init__(
+            A, b, c, x,
+            problem_type=problem_type,
+            constraint_type="<=",
+            variable_type=">=",
+            base_ring=base_ring,
+            style=style,
+            is_primal=is_primal)
         n, m = self.n(), self.m()
+        style = self.style()
         if slack_variables is None:
-            if self.style() == "UAlberta":
-                slack_variables = self._prefix
-            elif self.style() == 'Vanderbei':
-                slack_variables = "w"
-            else:
-                raise ValueError("unknown style")
+            if style == "UAlberta":
+                if isinstance(x, str):
+                    slack_variables = x
+                else:
+                    slack_variables = "x" if is_primal else "y"
+            elif style == 'Vanderbei':
+                slack_variables = "w" if is_primal else "z"
         if isinstance(slack_variables, str):
-            if self.style() == 'Vanderbei':
-                slack_variables = ["{}{:d}".format(slack_variables, i)
-                               for i in range(1, m + 1)]
-            else:
-                slack_variables = ["{}{:d}".format(slack_variables, i)
-                               for i in range(n + 1, n + m + 1)]
+            if style == "UAlberta":
+                indices = range(n + 1, n + m + 1)
+            if style == 'Vanderbei':
+                indices = range(1, m + 1)
+            slack_variables = ["{}{:d}".format(slack_variables, i)
+                               for i in indices]
         else:
-            slack_variables = map(str, slack_variables)
+            slack_variables = list(map(str, slack_variables))
             if len(slack_variables) != m:
                 raise ValueError("wrong number of slack variables")
         if auxiliary_variable is None:
-           auxiliary_variable = self._prefix + "0"
-        names = [str(auxiliary_variable)] +[str(_) for _ in self.x()] + slack_variables
+           auxiliary_variable = x + "0" if isinstance(x, str) else "x0"
+        names = [str(auxiliary_variable)]
+        names.extend(map(str, self.x()))
+        names.extend(slack_variables)
         if names[0] == names[1]:
             names.pop(0)
         R = PolynomialRing(self.base_ring(), names, order="neglex")
@@ -1618,16 +1636,21 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         x = vector(R.gens()[-n-m:-m])
         x.set_immutable()
         self._Abcx = self._Abcx[:-1] + (x, )
+        if objective_name is None:
+            if style == "UAlberta":
+                objective_name = "z"
+            if style == "Vanderbei":
+                objective_name = "zeta"
+        self._objective_name = SR(objective_name)
 
-    def auxiliary_problem(self, objective_variable=None):
+    def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
-
+        
         INPUT:
 
-        - ``objective_variable`` -- 
-          (default: see ``sage.numerical.interactive_simplex_method.default_style``)
-          a string giving a name for the objective function.
+        - ``objective_name`` -- a string or a symbolic expression for the
+          objective used in dictionaries, default depends on :meth:`style`
 
         OUTPUT:
 
@@ -1653,47 +1676,25 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: AP = P.auxiliary_problem()
-            sage: P.objective_variable()
-            'z'
-            sage: AP.objective_variable()
-            'w'
-            sage: P = InteractiveLPProblemStandardForm(A, b, c, style="Vanderbei")
-            sage: AP = P.auxiliary_problem()
-            sage: AP.objective_variable()
-            'xi'
-            sage: P = InteractiveLPProblemStandardForm(A, b, c, style="Vanderbei")
-            sage: AP = P.auxiliary_problem(objective_variable="aux")
-            sage: AP.objective_variable()
-            'aux'
-
         """
         X = self.coordinate_ring().gens()
         m, n = self.m(), self.n()
-        style = self.style()
-        if not isinstance(objective_variable, str):
-            if objective_variable != None:
-                aux_objective_variable = map(str, objective_variable)
-            else:
-                if style == "Vanderbei":
-                    aux_objective_variable = "xi"
-                elif style == "UAlberta":
-                    aux_objective_variable = "w"
-                else:
-                    raise ValueError("unknown style")
-        else:
-            aux_objective_variable = objective_variable
         if len(X) == m + n:
             raise ValueError("auxiliary variable is already among decision "
                              "ones")
         F = self.base_ring()
         A = column_matrix(F, [-1] * m).augment(self.A())
         c = vector(F, [-1] + [0] * n)
-        return InteractiveLPProblemStandardForm(A, self.b(), c, X[:-m],
-                                         slack_variables=X[-m:],
-                                         auxiliary_variable=X[0],
-                                         style=style,
-                                         objective_variable=aux_objective_variable)
-
+        style = self.style()
+        if objective_name is None:
+            if style == "UAlberta":
+                objective_name = "w"
+            if style == "Vanderbei":
+                objective_name = "xi"
+        return InteractiveLPProblemStandardForm(
+            A, self.b(), c,
+            X[:-m], slack_variables=X[-m:], auxiliary_variable=X[0],
+            style=style, objective_name=objective_name)
 
     def auxiliary_variable(self):
         r"""
@@ -1836,8 +1837,6 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             raise ValueError("the auxiliary variable must be non-basic")
         if not auxiliary_dictionary.is_feasible():
             raise ValueError("the auxiliary dictionary must be feasible")
-        style = self.style()
-        objective_variable = self._objective_variable
         A, b, c, v, B, N, z = auxiliary_dictionary._AbcvBNz
         B = tuple(B)
         N = tuple(N)
@@ -1857,8 +1856,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         B = [self._R(_) for _ in B]
         N = [self._R(_) for _ in N]
         return LPDictionary(A, b, c, v, B, N,
-                            objective_variable=objective_variable,
-                            style=style)
+                            style=self.style(),
+                            objective_name=self.objective_name())
 
     def final_dictionary(self):
         r"""
@@ -1951,12 +1950,11 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: D = P.initial_dictionary()
         """
         A, b, c, x = self.Abcx()
-        style = self.style()
-        objective_variable = self._objective_variable
         x = self._R.gens()
         m, n = self.m(), self.n()
         return LPDictionary(A, b, c, 0, x[-m:], x[-m-n:-m],
-            objective_variable=objective_variable, style=style)
+                            style=self.style(),
+                            objective_name=self.objective_name())
 
     def inject_variables(self, scope=None, verbose=True):
         r"""
@@ -1990,6 +1988,28 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             self._R.inject_variables(scope, verbose)
         except AttributeError:
             pass
+
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        
+        OUTPUT:
+        
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.objective_name()
+            z
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='Vanderbei')
+            sage: P.objective_name()
+            zeta
+        """
+        return self._objective_name
 
     def revised_dictionary(self, *x_B):
         r"""
@@ -2034,15 +2054,12 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             sage: P.revised_dictionary().basic_variables()
             (x3, x4, x0)
         """
-        style = self.style()
-        objective_variable = self._objective_variable
         if not x_B:
             x_B = list(self.slack_variables())
             bm = min(self.b())
             if bm < 0:
                 x_B[self.b().list().index(bm)] = self.auxiliary_variable()
-        return LPRevisedDictionary(self, x_B, style=style,
-                objective_variable=objective_variable)
+        return LPRevisedDictionary(self, x_B)
 
     def run_revised_simplex_method(self):
         r"""
@@ -2269,14 +2286,9 @@ class LPAbstractDictionary(SageObject):
 
     Instantiating this class directly is meaningless, see :class:`LPDictionary`
     and :class:`LPRevisedDictionary` for useful extensions.
-
-    INPUT:
-
-    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
-      a string specifying the problem style.
     """
 
-    def __init__(self, style=None):
+    def __init__(self):
         r"""
         Initialize internal fields for entering and leaving variables.
 
@@ -2291,7 +2303,6 @@ class LPAbstractDictionary(SageObject):
         super(LPAbstractDictionary, self).__init__()
         self._entering = None
         self._leaving = None
-        self._style = _style_argument(style)
 
     def _repr_(self):
         r"""
@@ -2805,25 +2816,6 @@ class LPAbstractDictionary(SageObject):
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
 
-    def style(self):
-        r"""
-        Return the style used by this dictionary.
-
-        EXAMPLE::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.initial_dictionary()
-            sage: D.style()
-            'UAlberta'
-            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='Vanderbei')
-            sage: D = P.initial_dictionary()
-            sage: D.style()
-            'Vanderbei'
-        """
-        return self._style
 
 class LPDictionary(LPAbstractDictionary):
     r"""
@@ -2854,12 +2846,11 @@ class LPDictionary(LPAbstractDictionary):
     - ``basic_variables`` -- a list of basic variables `x_B`
 
     - ``nonbasic_variables`` -- a list of non-basic variables `x_N`
+    
+    - ``objective_name`` -- a "name" for the objective `z`
 
-    - ``style`` -- (default: see ``sage.numerical.interactive_simplex_method.default_style``) 
-      a string specifying the problem style.
-
-    - ``objective_variable`` -- (default: depends on ``style``) 
-      a string giving the objective variable name. 
+    - ``style`` -- (default: see :func:`default_style`)
+      a string specifying the dictionary style
 
     OUTPUT:
 
@@ -2898,7 +2889,7 @@ class LPDictionary(LPAbstractDictionary):
 
     def __init__(self, A, b, c, objective_value,
                  basic_variables, nonbasic_variables,
-                 objective_variable=None,
+                 objective_name,
                  style=None):
         r"""
         See :class:`LPDictionary` for documentation.
@@ -2914,15 +2905,15 @@ class LPDictionary(LPAbstractDictionary):
             sage: D = LPDictionary(A, b, c, 0, R.gens()[2:], R.gens()[:2], "z")
             sage: TestSuite(D).run()
         """
-        super(LPDictionary, self).__init__(style=style)
+        super(LPDictionary, self).__init__()
         # We are going to change stuff while InteractiveLPProblem has immutable data.
         A = copy(A)
         b = copy(b)
         c = copy(c)
         B = vector(basic_variables)
         N = vector(nonbasic_variables)
-        self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_variable)]
-        self._objective_variable = objective_variable
+        self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_name)]
+        self._style = _validate_style(style)
 
     def __eq__(self, other):
         r"""
@@ -2994,28 +2985,24 @@ class LPDictionary(LPAbstractDictionary):
         lines.append(r"\renewcommand{\arraystretch}{1.5}")
         if generate_real_LaTeX:
             lines[-1] += r" \setlength{\arraycolsep}{0.125em}"
-#        else:
-#            lines[-1] += r"\require{color}"
-        if style == "Vanderbei":
-            lines.append(r"\begin{array}{rcr%s}" % ("cr"*len(N)))
-            lines.append(_latex_product(c, N, head=[z, "=", v],
-                                        drop_plus=False, allow_empty=True) + r"\\")
-            lines.append(r"\hline")
-            for xi, bi, Ai in zip(B, b, A.rows()):
-                lines.append(_latex_product(-Ai,N, head=[xi, "=", bi],
-                                        drop_plus=False, allow_empty=True) + r"\\")
-            lines.append(r"\end{array}")
-        else:
+        relations = [_latex_product(-Ai,N, head=[xi, "=", bi],
+                                    drop_plus=False, allow_empty=True) + r"\\"
+                     for xi, bi, Ai in zip(B, b, A.rows())]
+        objective = _latex_product(c, N, head=[z, "=", v],
+                                   drop_plus=False, allow_empty=True) + r"\\"
+        if style == "UAlberta":
             lines.append(r"\begin{array}{|rcr%s|}" % ("cr"*len(N)))
             lines.append(r"\hline")
-            for xi, bi, Ai in zip(B, b, A.rows()):
-                lines.append(_latex_product(-Ai,N, head=[xi, "=", bi],
-                                        drop_plus=False, allow_empty=True) + r"\\")
+            lines.extend(relations)
             lines.append(r"\hline")
-            lines.append(_latex_product(c, N, head=[z, "=", v],
-                                        drop_plus=False, allow_empty=True) + r"\\")
+            lines.append(objective)
             lines.append(r"\hline")
-            lines.append(r"\end{array}")
+        if style == "Vanderbei":
+            lines.append(r"\begin{array}{rcr%s}" % ("cr"*len(N)))
+            lines.append(objective)
+            lines.append(r"\hline")
+            lines.extend(relations)
+        lines.append(r"\end{array}")
         latex.add_package_to_preamble_if_available("color")
         if self._entering is not None:
             # Highlight the entering variable column
@@ -3027,7 +3014,11 @@ class LPDictionary(LPAbstractDictionary):
                     lines[i] = "&".join(line)
         if self._leaving is not None:
             # Highlight the leaving variable row
-            l = tuple(B).index(self._leaving) + 3
+            l = tuple(B).index(self._leaving)
+            if style == "UAlberta":
+               l += 3
+            if style == "Vanderbei":
+                l += 4
             line = lines[l].split("&")
             for i, term in enumerate(line):
                 line[i] = r"\color{red}" + term
@@ -3262,26 +3253,32 @@ class LPDictionary(LPAbstractDictionary):
             0
         """
         return self._AbcvBNz[3]
-
-    def objective_variable(self):
+        
+    def style(self):
         r"""
-        Return the objective variable of ``self``.
+        Return the style used by this dictionary.
+        
+        See :func:`default_style` for details.
+        
+        OUTPUT:
+        
+        - a string
 
-        EXAMPLES::
+        EXAMPLE::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
-            sage: D.objective_variable()
-            'z'
+            sage: D.style()
+            'UAlberta'
             sage: P = InteractiveLPProblemStandardForm(A, b, c, style='Vanderbei')
             sage: D = P.initial_dictionary()
-            sage: D.objective_variable()
-            'zeta'
+            sage: D.style()
+            'Vanderbei'
         """
-        return self._objective_variable
+        return self._style
 
     def update(self):
         r"""
@@ -3499,8 +3496,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
     dictionary entries.
     """
 
-    def __init__(self, problem, basic_variables, style=None,
-                    objective_variable=None):
+    def __init__(self, problem, basic_variables):
         r"""
         See :class:`LPRevisedDictionary` for documentation.
 
@@ -3515,11 +3511,10 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D = LPRevisedDictionary(P, [1, 2])
             sage: TestSuite(D).run()
         """
-        self._objective_variable = objective_variable
         if problem.auxiliary_variable() == problem.decision_variables()[0]:
             raise ValueError("revised dictionaries should not be constructed "
                              "for auxiliary problems")
-        super(LPRevisedDictionary, self).__init__(style=style)
+        super(LPRevisedDictionary, self).__init__()
         self._problem = problem
         R =  problem.coordinate_ring()
         self._x_B = vector(R, [variable(R, v) for v in basic_variables])
@@ -4011,14 +4006,15 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D.dictionary()
             LP problem dictionary (use typeset mode to see details)
         """
+        P = self.problem()
         D = LPDictionary(self.B_inverse() * self.A_N(),
                          self.constant_terms(),
                          self.objective_coefficients(),
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         self.objective_variable(),
-                         style=self.style())
+                         P.objective_name(),
+                         P.style())
         D._entering = self._entering
         D._leaving = self._leaving
         return D
@@ -4165,26 +4161,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
             0
         """
         return self.y() * self.problem().b()
-
-    def objective_variable(self):
-        r"""
-        Return the objective variable of ``self``.
-
-        EXAMPLES::
-
-            sage: A = ([1, 1], [3, 1])
-            sage: b = (1000, 1500)
-            sage: c = (10, 5)
-            sage: P = InteractiveLPProblemStandardForm(A, b, c)
-            sage: D = P.revised_dictionary()
-            sage: D.objective_variable()
-            'z'
-            sage: P = InteractiveLPProblemStandardForm(A, b, c, style='Vanderbei')
-            sage: D = P.revised_dictionary()
-            sage: D.objective_variable()
-            'zeta'
-        """
-        return self._objective_variable
 
     def problem(self):
         r"""

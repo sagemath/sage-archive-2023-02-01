@@ -206,6 +206,31 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         return self._summands_
 
 
+    def __nonzero__(self):
+        r"""
+        Return if this asymptotic expression is not identially zero.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
+            sage: bool(R(0))  # indirect doctest
+            False
+            sage: bool(x)  # indirect doctest
+            True
+            sage: bool(7 * x^12 + x^5 + O(x^3))  # indirect doctest
+            True
+        """
+        return bool(self._summands_)
+
+
     def _simplify_(self):
         r"""
         Simplify this asymptotic expression.

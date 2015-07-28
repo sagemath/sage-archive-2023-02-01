@@ -715,43 +715,51 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: 3 * x^3 + O(x^5)
             O(x^5)
         """
-        if poset is None:
-            if type(data) == self.element_class and data.parent() == self:
-                return data
-            elif isinstance(data, AsymptoticExpression):
-                return self.element_class(self, data.poset, simplify)
+        if poset is not None:
+            if type(data) != int or data != 0:
+                raise ValueError('Input is ambigous: '
+                                 '%s as well as poset=%s '
+                                 'are specified.' % (data, poset))
+            return self.element_class(self, poset, simplify=simplify)
 
-            if data in self.coefficient_ring:
-                if data != 0:
-                    return self.create_term('exact', 1, data)
-                else:
-                    from sage.data_structures.mutable_poset import MutablePoset
-                    from sage.monoids.asymptotic_term_monoid import \
-                        can_absorb, absorption
-                    poset = MutablePoset(key=lambda elem: elem.growth,
-                                     can_merge=can_absorb,
-                                     merge=absorption)
-                    return self.element_class(self, poset, simplify)
+        if type(data) == self.element_class and data.parent() == self:
+            return data
 
-            from sage.monoids.asymptotic_term_monoid import OTerm, ExactTerm
-            from sage.data_structures.mutable_poset import MutablePoset
-            from sage.monoids.asymptotic_term_monoid import can_absorb, \
-                absorption
-            if isinstance(data, (OTerm, ExactTerm)):
-                data = (data,)
+        if isinstance(data, AsymptoticExpression):
+            return self.element_class(self, data.poset, simplify=simplify)
 
-            try:
-                data_iter = iter(data)
-                if all(isinstance(elem, (OTerm, ExactTerm)) for elem in data_iter):
-                    poset = MutablePoset(key=lambda elem: elem.growth,
-                                         can_merge=can_absorb,
-                                         merge=absorption)
-                    poset = poset.union(data)
-            except:
-                raise TypeError('Input is ambiguous: cannot convert '
-                                '%s to an asymptotic expression' % (data,))
+        from sage.monoids.asymptotic_term_monoid import GenericTerm
+        if isinstance(data, GenericTerm):
+            data = (data,)
 
-        return self.element_class(self, poset, simplify=simplify)
+        from sage.data_structures.mutable_poset import MutablePoset
+        from sage.monoids.asymptotic_term_monoid import \
+            can_absorb, absorption
+        if isinstance(data, (list, tuple)):
+            if not all(isinstance(elem, GenericTerm) for elem in data):
+                raise TypeError('Not all list entries of %s '
+                                'are asymptotic terms.' % (data,))
+            poset = MutablePoset(key=lambda elem: elem.growth,
+                                 can_merge=can_absorb,
+                                 merge=absorption)
+            poset.union_update(data)
+            return self.element_class(self, poset, simplify=simplify)
+
+        if data == 0:
+            poset = MutablePoset(key=lambda elem: elem.growth,
+                                 can_merge=can_absorb,
+                                 merge=absorption)
+            return self.element_class(self, poset, simplify=simplify)
+
+        try:
+            coefficient = self.coefficient_ring(data)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return self.create_term('exact', 1, coefficient)
+
+        raise TypeError('Cannot convert %s to an asymptotic '
+                        'expression.' % (data,))
 
 
     def _coerce_map_from_(self, R):
@@ -945,6 +953,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if type == 'O':
             TM = TermMonoid(type, self.growth_group)
             return self(TM(growth))
-        else:
+        elif type == 'exact':
+            if coefficient == 0:
+                return self(coefficient)
             TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
             return self(TM(growth, coefficient))

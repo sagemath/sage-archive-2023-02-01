@@ -293,9 +293,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: (5*x^2 + 12*x) * (x^3 + O(x))  # indirect doctest
             5*x^5 + 12*x^4 + O(x^3)
+            sage: (5*x^2 - 12*x) * (x^3 + O(x))  # indirect doctest
+            5*x^5 - 12*x^4 + O(x^3)
         """
         s = ' + '.join(repr(elem) for elem in
                        self.summands.elements_topological(reverse=True))
+        s = s.replace('+ -', '- ')
         if not s:
             return '0'
         return s

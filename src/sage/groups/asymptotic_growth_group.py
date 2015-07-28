@@ -637,14 +637,15 @@ class GenericGrowthGroup(
         return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
 
 
-    def _repr_(self, display_GrowthGroup=True):
+    def _repr_(self, condense=False):
         r"""
         A representations string of this growth group.
 
         INPUT:
 
-        - ``display_GrowthGroupNothing`` -- (default: ``True``) if set, then
-          the prefix-string ``Growth Group`` is show, otherwise not.
+        - ``condense`` -- (default: ``False``) if set, then a shorter
+          output is returned, e.g. the prefix-string ``Growth Group``
+          is not show in this case.
 
         OUTPUT:
 
@@ -660,11 +661,12 @@ class GenericGrowthGroup(
 
         TESTS::
 
-            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(display_GrowthGroup=False)
-            'log(x)^QQ'
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(condense=True)
+            '<log(x)^QQ>'
         """
-        GG = 'Growth Group ' if display_GrowthGroup else ''
-        return '%s%s' % (GG, self._repr_short_(),)
+        preG = '<' if condense else 'Growth Group '
+        postG = '>' if condense else ''
+        return '%s%s%s' % (preG, self._repr_short_(), postG)
 
 
     def __hash__(self):

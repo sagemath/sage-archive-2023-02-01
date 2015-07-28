@@ -1927,7 +1927,7 @@ class NormalFormGame(SageObject, MutableMapping):
             [0, 1, 2]
 
         Sometimes, the different algorithms for obtaining nash_equilibria don't
-        agree with each other. This happens when games are degenerate::
+        agree with each other. This can happen when games are degenerate::
 
             sage: a = matrix([[-75, 18, 45, 33],
             ....:            [42, -8, -77, -18],

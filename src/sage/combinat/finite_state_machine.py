@@ -3434,7 +3434,7 @@ class FiniteStateMachine(SageObject):
 
     def __call__(self, *args, **kwargs):
         """
-        Calls either method :meth:`.composition` or :meth:`.process` (with
+        Call either method :meth:`.composition` or :meth:`.process` (with
         ``full_output=False``). See the documentation of these functions for
         possible parameters.
 
@@ -9666,7 +9666,7 @@ class Automaton(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
-        Returns whether the automaton accepts the input and the state
+        Return whether the automaton accepts the input and the state
         where the computation stops.
 
         INPUT:
@@ -10577,7 +10577,7 @@ class Transducer(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
-        Returns whether the transducer accepts the input, the state
+        Return whether the transducer accepts the input, the state
         where the computation stops and which output is generated.
 
         INPUT:

@@ -54,22 +54,23 @@ import sage
 
 class AsymptoticExpression(sage.rings.ring_element.RingElement):
     r"""
-    Class for asymptotic expressions. ...
+    Class for asymptotic expressions, i.e., the elements of an
+    :class:`AsymptoticRing`.
 
     INPUT:
 
     - ``parent`` -- the parent of the asymptotic expression.
 
     - ``poset`` -- a mutable poset representing the underlying
-      growth structure.
+      structure.
 
-    - ``simplify`` -- a boolean, controls automatic simplification
-      (absorption) of asymptotic expressions. Default: ``True``.
+    - ``simplify`` -- a boolean (default: ``True``). It controls
+      automatic simplification (absorption) of the asymptotic expression.
 
     EXAMPLES:
 
-    There are ways to create an asymptotic expression. First,
-    we construct the corresponding parents::
+    There are several ways to create an asymptotic expression. First,
+    we construct the corresponding rings/parents::
 
         sage: R_x.<x> = AsymptoticRing('x^QQ', QQ)
         sage: import sage.groups.asymptotic_growth_group as agg
@@ -183,16 +184,19 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: ex1 * ex2
             O(x^5) + 5*x^6
         """
+        super(AsymptoticExpression, self).__init__(parent=parent)
+
         self._poset_ = poset
         if simplify:
             self._simplify_()
-        super(AsymptoticExpression, self).__init__(parent=parent)
 
 
     @property
     def poset(self):
         r"""
-        The poset of this asymptotic expression.
+        The underlying data structure (a
+        :class:`~sage.data_structures.mutable_poset.MutablePoset`) of
+        this asymptotic expression.
 
         EXAMPLES::
 
@@ -214,13 +218,18 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        Nothing, but modifies this asymptotic expression.
+
+        .. NOTE::
+
+            This method is usually called during initialization of
+            this asymptotic expression.
 
         .. NOTE::
 
             This asymptotic expression is simplified by letting
             `O`-terms that are included in this expression absorb all
-            terms of lesser growth.
+            terms with smaller growth.
 
         TESTS::
 
@@ -272,12 +281,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             '5*x^5 + 12*x^4 + O(x^3)'
         """
         s = ' + '.join(repr(elem) for elem in
-                       self.poset.elements_topological(include_special=False,
-                                                       reverse=reverse))
-        if s == '':
+                       self.poset.elements_topological(reverse=reverse))
+        if not s:
             return '0'
-        else:
-            return s
+        return s
 
 
     def _add_(self, other):
@@ -290,9 +297,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        The sum as an :class:`AsymptoticExpression`.
 
         EXAMPLES::
+
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1._add_(expr2)
@@ -327,7 +335,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        The difference as an :class:`AsymptoticExpression`.
 
         .. NOTE::
 
@@ -340,21 +348,25 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1 - expr2  # indirect doctest
             x^123 + -x^321
+            sage: O(x) - O(x)
+            O(x)
         """
         return self + (-1) * other
 
-    def _mul_term_(self, other):
+
+    def _mul_term_(self, term):
         r"""
         Helper method: multiply this asymptotic expression with the
         asymptotic term ``other``.
 
         INPUT:
 
-        - ``other`` -- an asymptotic term.
+        - ``term`` -- an asymptotic term (see
+          :mod:`~sage.monoids.asymptotic_term_monoid`).
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        The product as an :class:`AsymptoticExpression`.
 
         TESTS::
 
@@ -366,7 +378,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        return self.parent()([other * elem for elem in self.poset.elements()])
+        return self.parent()([term * elem for elem in self.poset.elements()])
 
 
     def _mul_(self, other):
@@ -379,15 +391,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
-
-        .. TODO::
-
-            The current implementation is the simple school book
-            multiplication. More efficient variants like Karatsuba
-            multiplication, or methods that exploit the structure
-            of the underlying poset shall be implemented at a later
-            point.
+        The product as an :class:`AsymptoticExpression`.
 
         EXAMPLES::
 
@@ -396,6 +400,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: ex2 = x^3 + O(x)
             sage: ex1 * ex2  # indirect doctest
             O(x^13) + 5*x^15
+
+        .. TODO::
+
+            The current implementation is the school book
+            multiplication. More efficient variants like Karatsuba
+            multiplication, or methods that exploit the structure
+            of the underlying poset shall be implemented at a later
+            point.
         """
         return self.parent()(sum(self._mul_term_(term_other) for
                                  term_other in other.poset.elements()))
@@ -403,7 +415,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def __pow__(self, power):
         r"""
-        Return this element to the power of ``power``.
+        Takes this element to the given ``power``.
 
         INPUT:
 

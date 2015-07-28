@@ -118,7 +118,7 @@ class Benchmark:
                     S, timeout)
             except AttributeError:
                 pass
-            except Exception, msg:
+            except Exception as msg:
                 print msg
 
     bench = run
@@ -184,7 +184,7 @@ class Divpoly(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import Divpoly
             sage: B = Divpoly(3)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -224,7 +224,7 @@ class PolySquare(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import PolySquare
             sage: B = PolySquare(3, QQ)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -241,7 +241,7 @@ class PolySquare(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import PolySquare
             sage: B = PolySquare(3, QQ)
-            sage: isinstance(B.maple()[1], float) # optional
+            sage: isinstance(B.maple()[1], float) # optional - maple
             True
 
         """
@@ -295,7 +295,7 @@ class MPolynomialPower(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
-            sage: isinstance(B.macaulay2()[1], float) # optional
+            sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
             True
 
         """
@@ -329,7 +329,7 @@ class MPolynomialPower(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
-            sage: isinstance(B.maple()[1], float)  # optional - Maple
+            sage: isinstance(B.maple()[1], float)  # optional - maple
             True
 
         """
@@ -346,7 +346,7 @@ class MPolynomialPower(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
-            sage: isinstance(B.mathematica()[1], float) # optional
+            sage: isinstance(B.mathematica()[1], float) # optional - mathematica
             True
 
         """
@@ -373,7 +373,7 @@ class MPolynomialPower(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialPower
             sage: B = MPolynomialPower()
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -412,7 +412,7 @@ class MPolynomialMult(Benchmark):
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = maxima(str(sum(R.gens()[:k])))
         z1 = maxima(str(sum(R.gens()[k:])))
         w = walltime()
@@ -426,12 +426,12 @@ class MPolynomialMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
-            sage: isinstance(B.maple()[1], float)  # optional - Maple
+            sage: isinstance(B.maple()[1], float)  # optional - maple
             True
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = maple(str(sum(R.gens()[:k])))
         z1 = maple(str(sum(R.gens()[k:])))
         w = walltime()
@@ -445,12 +445,12 @@ class MPolynomialMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
-            sage: isinstance(B.mathematica()[1], float) # optional
+            sage: isinstance(B.mathematica()[1], float) # optional - mathematica
             True
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = mathematica(str(sum(R.gens()[:k])))
         z1 = mathematica(str(sum(R.gens()[k:])))
         w = walltime()
@@ -459,7 +459,7 @@ class MPolynomialMult(Benchmark):
 
 ##     def gp(self):
 ##         R = PolynomialRing(self.base, self.nvars)
-##         k = int(self.nvars/2)
+##         k = self.nvars // 2
 ##         z0 = gp(str(sum(R.gens()[:k])))
 ##         z1 = gp(str(sum(R.gens()[k:])))
 ##         gp.eval('gettime')
@@ -478,7 +478,7 @@ class MPolynomialMult(Benchmark):
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = sum(R.gens()[:k])
         z1 = sum(R.gens()[k:])
         if self.allow_singular:
@@ -499,12 +499,12 @@ class MPolynomialMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
-            sage: isinstance(B.macaulay2()[1], float) # optional
+            sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
             True
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = macaulay2(sum(R.gens()[:k]))
         z1 = macaulay2(sum(R.gens()[k:]))
         t = walltime()
@@ -518,13 +518,13 @@ class MPolynomialMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult
             sage: B = MPolynomialMult()
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
         R = magma.PolynomialRing(self.base, self.nvars)
         z0 = R.gen(1)
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         for i in range(2,k+1):
             z0 += R.gen(i)
         z1 = R.gen(k + 1)
@@ -550,7 +550,7 @@ class MPolynomialMult2(Benchmark):
 
 ##     def gp(self):
 ##         R = PolynomialRing(self.base, self.nvars)
-##         k = int(self.nvars/2)
+##         k = self.nvars // 2
 ##         z0 = R(0)
 ##         z1 = R(0)
 ##         for i in range(k):
@@ -576,7 +576,7 @@ class MPolynomialMult2(Benchmark):
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = R(0)
         z1 = R(0)
         for i in range(k):
@@ -596,12 +596,12 @@ class MPolynomialMult2(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
-            sage: isinstance(B.macaulay2()[1], float) # optional
+            sage: isinstance(B.macaulay2()[1], float) # optional - macaulay2
             True
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = R(0)
         z1 = R(0)
         for i in range(k):
@@ -626,7 +626,7 @@ class MPolynomialMult2(Benchmark):
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = R(0)
         z1 = R(0)
         for i in range(k):
@@ -646,12 +646,12 @@ class MPolynomialMult2(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
-            sage: isinstance(B.mathematica()[1], float) # optional
+            sage: isinstance(B.mathematica()[1], float) # optional - mathematica
             True
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = R(0)
         z1 = R(0)
         for i in range(k):
@@ -676,7 +676,7 @@ class MPolynomialMult2(Benchmark):
 
         """
         R = PolynomialRing(self.base, self.nvars, 'x')
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         z0 = R(0)
         z1 = R(0)
         for i in range(k):
@@ -701,13 +701,13 @@ class MPolynomialMult2(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MPolynomialMult2
             sage: B = MPolynomialMult2()
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
         R = magma.PolynomialRing(self.base, self.nvars)
         z0 = R.gen(1)
-        k = int(self.nvars/2)
+        k = self.nvars // 2
         for i in range(2,k+1):
             z0 += magma(i)*R.gen(i)
         z1 = R.gen(k + 1)
@@ -789,7 +789,7 @@ class CharPolyTp(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import CharPolyTp
             sage: B = CharPolyTp()
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -833,7 +833,7 @@ class PolyFactor(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import PolyFactor
             sage: B = PolyFactor(3, QQ)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -929,7 +929,7 @@ class SquareInts(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -993,7 +993,7 @@ class SquareInts(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import SquareInts
             sage: B = SquareInts()
-            sage: isinstance(B.mathematica()[1], float) # optional
+            sage: isinstance(B.mathematica()[1], float) # optional - mathematica
             True
 
         """
@@ -1034,7 +1034,7 @@ class MatrixSquare(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MatrixSquare
             sage: B = MatrixSquare(3, QQ)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1107,7 +1107,7 @@ class Factorial(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import Factorial
             sage: B = Factorial(10)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1173,7 +1173,7 @@ class Fibonacci(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1204,7 +1204,7 @@ class Fibonacci(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import Fibonacci
             sage: B = Fibonacci(10)
-            sage: isinstance(B.mathematica()[1], float) # optional
+            sage: isinstance(B.mathematica()[1], float) # optional - mathematica
             True
 
         """
@@ -1262,7 +1262,7 @@ class SEA(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import SEA
             sage: B = SEA(5)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1302,7 +1302,7 @@ class MatrixKernel(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import MatrixKernel
             sage: B = MatrixKernel(3, QQ)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1360,7 +1360,7 @@ class ComplexMultiply(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import ComplexMultiply
             sage: B = ComplexMultiply(28, 2)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         NOTES:
@@ -1421,7 +1421,7 @@ class ModularSymbols1(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import ModularSymbols1
             sage: B = ModularSymbols1(11)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1461,7 +1461,7 @@ class ModularSymbolsDecomp1(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import ModularSymbolsDecomp1
             sage: B = ModularSymbolsDecomp1(11)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1501,7 +1501,7 @@ class EllipticCurveTraces(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import EllipticCurveTraces
             sage: B = EllipticCurveTraces(11)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1539,7 +1539,7 @@ class EllipticCurvePointMul(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import EllipticCurvePointMul
             sage: B = EllipticCurvePointMul(11)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1563,7 +1563,7 @@ class EllipticCurvePointMul(Benchmark):
         E = gp.ellinit('[0, 0, 1, -1, 0]')
         gp.eval('gettime')
         P = gp([0,0])
-        Q = E.ellpow(P, self.n)
+        Q = E.ellmul(P, self.n)
         return float(gp.eval('gettime/1000.0'))
 
     def pari(self):
@@ -1580,7 +1580,7 @@ class EllipticCurvePointMul(Benchmark):
         E = pari('ellinit([0, 0, 1, -1, 0])')
         pari('gettime')
         P = pari([0,0])
-        Q = E.ellpow(P, self.n)
+        Q = E.ellmul(P, self.n)
         return float(pari('gettime/1000.0'))
 
 class EllipticCurveMW(Benchmark):
@@ -1611,7 +1611,7 @@ class EllipticCurveMW(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import EllipticCurveMW
             sage: B = EllipticCurveMW([1,2,3,4,5])
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1733,7 +1733,7 @@ class FiniteExtFieldMult(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import FiniteExtFieldMult
             sage: B = FiniteExtFieldMult(GF(9, 'x'), 2)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1857,7 +1857,7 @@ class FiniteExtFieldAdd(Benchmark):
         EXAMPLE:
             sage: from sage.tests.benchmark import FiniteExtFieldAdd
             sage: B = FiniteExtFieldAdd(GF(9,'x'), 2)
-            sage: isinstance(B.magma(), float) # optional
+            sage: isinstance(B.magma(), float) # optional - magma
             True
 
         """
@@ -1956,6 +1956,17 @@ def mpoly_all(include_maple=False):
        * Singular (i.e., Sage) does shockingly well.
        * mathematica is sometimes amazing.
        * macaulay2 is also quite bad (though not as bad as maple).
+
+    EXAMPLE::
+
+        sage: from sage.tests.benchmark import mpoly_all
+        sage: mpoly_all() # not tested
+        <BLANKLINE>
+        ...
+        ...System      min         avg         max         trials          cpu or wall
+        ...
+        * sage...
+
     """
     systems = ['sage', 'magma', 'mathematica', 'macaulay2']
     if include_maple:

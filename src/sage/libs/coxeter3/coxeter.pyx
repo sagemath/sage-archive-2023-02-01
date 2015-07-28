@@ -14,8 +14,6 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include "decl.pxi"
 
 initConstants()
@@ -284,9 +282,9 @@ cdef class CoxGroup(SageObject):
         self.out_ordering = dict(zip(range(1, rank+1), ordering))
         self.in_ordering = dict([(b,a) for a,b in self.out_ordering.items()])
 
-        # Check that the coxeter matrices match up.
+        # Check that the Coxeter matrices match up.
         if self.coxeter_matrix() != coxeter_matrix(self.cartan_type):
-            print "Warning, differing coxeter matrices"
+            print "Warning, differing Coxeter matrices"
 
     @classmethod
     def _ordering_from_cartan_type(cls, cartan_type):
@@ -1179,7 +1177,7 @@ class CoxGroupIterator(object):
             sage: from sage.libs.coxeter3.coxeter import get_CoxGroup as CoxGroup, CoxGroupIterator # optional - coxeter3
             sage: W = CoxGroup(['A', 2])                                                            # optional - coxeter3
             sage: it = CoxGroupIterator(W)                                                          # optional - coxeter3
-            sage: [it.next() for i in range(W.order())]                                             # optional - coxeter3
+            sage: [next(it) for i in range(W.order())]                                              # optional - coxeter3
             [[], [1], [2], [1, 2], [2, 1], [1, 2, 1]]
         """
         self.group = group
@@ -1210,7 +1208,7 @@ class CoxGroupIterator(object):
             sage: from sage.libs.coxeter3.coxeter import get_CoxGroup as CoxGroup, CoxGroupIterator # optional - coxeter3
             sage: W = CoxGroup(['A', 2])                                                            # optional - coxeter3
             sage: it = CoxGroupIterator(W)                                                          # optional - coxeter3
-            sage: it.next()                                                                         # optional - coxeter3
+            sage: next(it)                                                                          # optional - coxeter3
             []
         """
         if self.n >= self.order:

@@ -346,6 +346,83 @@ class DiagramAlgebra(CombinatorialFreeModule):
         """
         return identity_set_partition(self._k)
 
+    def _latex_term(self, diagram):
+        r"""
+        Return `\LaTeX` representation of ``diagram`` to draw
+        diagram algebra element in latex using tikz.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: P = PartitionAlgebra(2, x, R)
+            sage: latex(P([[1,2],[-2,-1]])) # indirect doctest               
+            \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
+            \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \end{tikzpicture}
+        """
+        # these allow the view command to work (maybe move them somewhere more appropriate?)
+        from sage.misc.latex import latex
+        latex.add_to_mathjax_avoid_list('tikzpicture')
+        latex.add_package_to_preamble_if_available('tikz')
+        # Define the sign function
+        def sgn(x):
+            if x > 0:
+                return 1
+            if x < 0:
+                return -1
+            return 0
+        l1 = [] #list of blocks
+        l2 = [] #lsit of nodes
+        for i in list(diagram):
+            l1.append(list(i))
+            for j in list(i):
+                l2.append(j)
+        output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
+        for i in l2: #add nodes
+            output = output + "\\node[vertex] (G-%s) at (%s, %s) [shape = circle, draw] {}; \n" % (i, (abs(i)-1)*1.5, sgn(i))
+        for i in l1: #add edges
+            if len(i) > 1:
+                l4 = list(i)
+                posList = []
+                negList = []
+                for i in l4: #sort list so rows are grouped together
+                    if i > 0:
+                        posList.append(i)
+                    elif i < 0:
+                        negList.append(i)
+                posList.sort()
+                negList.sort()
+                l4 = posList + negList
+                l5 = l4[:] #deep copy
+                for j in range(len(l5)):
+                    l5[j-1] = l4[j] #create a permuted list
+                if len(l4) == 2:
+                    l4.pop()
+                    l5.pop() #pops to prevent duplicating edges
+                for j in zip(l4, l5):
+                    xdiff = abs(j[1])-abs(j[0])
+                    y1 = sgn(j[0])
+                    y2 = sgn(j[1])
+                    if y2-y1 == 0 and abs(xdiff) < 5: #if nodes are close to each other on same row
+                        diffCo = (0.5+0.1*(abs(xdiff)-1)) #gets bigger as nodes are farther apart; max value of 1; min value of 0.5.
+                        outVec = (sgn(xdiff)*diffCo, -1*diffCo*y1)
+                        inVec = (-1*diffCo*sgn(xdiff), -1*diffCo*y2)
+                    elif y2-y1 != 0 and abs(xdiff) == 1: #if nodes are close enough curviness looks bad.
+                        outVec = (sgn(xdiff)*0.75, -1*y1)
+                        inVec = (-1*sgn(xdiff)*0.75, -1*y2)
+                    else:
+                        outVec = (sgn(xdiff)*1, -1*y1)
+                        inVec = (-1*sgn(xdiff), -1*y2)
+                    output = output + "\\draw (G-%s) .. controls +%s and +%s .. (G-%s); \n" % (j[0], outVec, inVec,j[1])
+        output = output + "\\end{tikzpicture} \n" #end picture
+        return output
+    
     # The following subclass provides a few additional methods for
     # partition algebra elements.
     class Element(CombinatorialFreeModuleElement):
@@ -389,135 +466,74 @@ class DiagramAlgebra(CombinatorialFreeModule):
             """
             return self.support()
 
-        def _latex_(self):
-            r"""
-            Return `\LaTeX` representation of ``self`` to draw single
-            diagrams in latex using tikz.
-
-            EXAMPLES::
-
-                sage: R.<x> = ZZ[]
-                sage: P = PartitionAlgebra(2, x, R)
-                sage: latex(P([[1,2],[-2,-1]]))
-                \begin{tikzpicture}[scale = 0.9,thick]
-                \tikzstyle{vertex} = [shape = circle, minimum size = 9pt, inner sep = 1pt]
-                \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
-                \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
-                \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
-                \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
-                \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
-                \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
-                \end{tikzpicture}
-            """
-            # these allow the view command to work (maybe move them somewhere more appropriate?)
-            from sage.misc.latex import latex
-            latex.add_to_mathjax_avoid_list('tikzpicture')
-            latex.add_package_to_preamble_if_available('tikz')
-
-            # Define the sign function
-            def sgn(x):
-                if x > 0:
-                    return 1
-                if x < 0:
-                    return -1
-                return 0
-            diagram = self.diagram()
-            l1 = [] #list of blocks
-            l2 = [] #lsit of nodes
-            for i in list(diagram):
-                l1.append(list(i))
-                for j in list(i):
-                    l2.append(j)
-            #setup beginning of picture
-            output = "\\begin{tikzpicture}[scale = 0.9,thick] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 9pt, inner sep = 1pt] \n"
-            for i in l2: #add nodes
-                output = output + "\\node[vertex] (G-%s) at (%s, %s) [shape = circle, draw] {}; \n" % (i, (abs(i)-1)*1.5, sgn(i))
-            for i in l1: #add edges
-                if (len(i) > 1):
-                    l4 = list(i)
-                    posList = []
-                    negList = []
-                    for i in l4: #sort list so rows are grouped together
-                        if i > 0:
-                            posList.append(i)
-                        elif i < 0:
-                            negList.append(i)
-                    posList.sort()
-                    negList.sort()
-                    l4 = posList + negList
-                    l5 = l4[:] #deep copy
-                    for j in range(len(l5)):
-                        l5[j-1] = l4[j] #create a permuted list
-                    if (len(l4) == 2):
-                        l4.pop()
-                        l5.pop() #pops to prevent duplicating edges
-                    for j in zip(l4, l5):
-                        xdiff = abs(j[1])-abs(j[0])
-                        y1 = sgn(j[0])
-                        y2 = sgn(j[1])
-                        if ((y2-y1) == 0 and abs(xdiff) < 5): #if nodes are close to each other on same row
-                            diffCo = (0.5+0.1*(abs(xdiff)-1)) #gets bigger as nodes are farther apart; max value of 1; min value of 0.5.
-                            outVec = (sgn(xdiff)*diffCo, -1*diffCo*y1)
-                            inVec = (-1*diffCo*sgn(xdiff), -1*diffCo*y2)
-                        elif ((y2-y1) != 0 and abs(xdiff) == 1): #if nodes are close enough curviness looks bad.
-                            outVec = (sgn(xdiff)*0.75, -1*y1)
-                            inVec = (-1*sgn(xdiff)*0.75, -1*y2)
-                        else:
-                            outVec = (sgn(xdiff)*1, -1*y1)
-                            inVec = (-1*sgn(xdiff), -1*y2)
-                        output = output + "\\draw (G-%s) .. controls +%s and +%s .. (G-%s); \n" % (j[0], outVec, inVec,j[1])
-            output = output + "\\end{tikzpicture}" #end picture
-            return output
-
 class PartitionAlgebra(DiagramAlgebra):
     r"""
     A partition algebra.
 
-    The partition algebra of rank `k` is an algebra with basis indexed by the
-    collection of set partitions of `\{1, \dots, k, -1, \ldots, -k\}`. Each
-    such set partition is regarded as a graph on nodes `\{1, \ldots, k, -1,
-    \ldots, -k\}` arranged in two rows, with nodes `1, \dots, k` in the top
-    row from left to right and with nodes `-1, \ldots, -k` in the bottom row
-    from left to right, and an edge connecting two nodes if and only if the
-    nodes lie in the same subset of the set partition.
+    A partition algebra of rank `k` over a given ground ring `R` is an
+    algebra with (`R`-module) basis indexed by the collection of set
+    partitions of `\{1, \ldots, k, -1, \ldots, -k\}`. Each such set
+    partition can be represented by a graph on nodes `\{1, \ldots, k, -1,
+    \ldots, -k\}` arranged in two rows, with nodes `1, \dots, k` in the
+    top row from left to right and with nodes `-1, \ldots, -k` in the
+    bottom row from left to right, and edges drawn such that the connected
+    components of the graph are precisely the parts of the set partition.
+    (This choice of edges is often not unique, and so there are often many
+    graphs representing one and the same set partition; the representation
+    nevertheless is useful and vivid. We often speak of "diagrams" to mean
+    graphs up to such equivalence of choices of edges; of course, we could
+    just as well speak of set partitions.)
 
-    The partition algebra is regarded as an example of a "diagram algebra" due
-    to the fact that its natural basis is given by certain graphs often called
-    diagrams.
+    There is not just one partition algebra of given rank over a given
+    ground ring, but rather a whole family of them, indexed by the
+    elements of `R`. More precisely, for every `q \in R`, the partition
+    algebra of rank `k` over `R` with parameter `q` is defined to be the
+    `R`-algebra with basis the collection of all set partitions of
+    `\{1, \ldots, k, -1, \ldots, -k\}`, where the product of two basis
+    elements is given by the rule
 
-    The product of two basis elements is given by the rule
-    `a \cdot b = q^N (a \circ b)`, where `a \circ b` is the composite set
-    partition obtained by placing diagram `a` above diagram `b`, identifying
-    the bottom row nodes of `a` with the top row nodes of `b`, and omitting
-    any closed "loops" in the middle. The number `N` is the number of
-    connected components of the omitted loops.
+    .. MATH::
 
-    The parameter `q` is a deformation parameter. Taking `q = 1` produces the
-    semigroup algebra (over the base ring) of the partition monoid, in which
-    the product of two set partitions is simply given by their composition.
+        a \cdot b = q^N (a \circ b),
+
+    where `a \circ b` is the composite set partition obtained by placing
+    the diagram (i.e., graph) of `a` above the diagram of `b`, identifying
+    the bottom row nodes of `a` with the top row nodes of `b`, and
+    omitting any closed "loops" in the middle. The number `N` is the
+    number of connected components formed by the omitted loops.
+
+    The parameter `q` is a deformation parameter. Taking `q = 1` produces
+    the semigroup algebra (over the base ring) of the partition monoid,
+    in which the product of two set partitions is simply given by their
+    composition.
 
     The Iwahori--Hecke algebra of type `A` (with a single parameter) is
     naturally a subalgebra of the partition algebra.
 
-    An excellent reference for partition algebras and its various subalgebras
-    (Brauer algebra, Temperley--Lieb algebra, etc) is the paper [HR2005]_.
+    The partition algebra is regarded as an example of a "diagram algebra"
+    due to the fact that its natural basis is given by certain graphs
+    often called diagrams.
+
+    An excellent reference for partition algebras and their various
+    subalgebras (Brauer algebra, Temperley--Lieb algebra, etc) is the
+    paper [HR2005]_.
 
     INPUT:
 
-    - ``k``-- rank of the algebra
+    - ``k`` -- rank of the algebra
 
-    - ``q``-- the deformation parameter `q`
+    - ``q`` -- the deformation parameter `q`
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring``-- (default ``None``) a ring containing ``q``; if ``None``
-      then just takes the parent of ``q``
+    - ``base_ring`` -- (default ``None``) a ring containing ``q``; if
+      ``None``, then Sage automatically chooses the parent of ``q``
 
-    - ``prefix``-- (default ``"P"``) a label for the basis elements
+    - ``prefix`` -- (default ``"P"``) a label for the basis elements
 
     EXAMPLES:
 
-    The following shorthand simultaneously define the univariate polynomial
+    The following shorthand simultaneously defines the univariate polynomial
     ring over the rationals as well as the variable ``x``::
 
         sage: R.<x> = PolynomialRing(QQ)
@@ -569,8 +585,8 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: (PA([[2, -2], [1, -1]]) - 2*PA([[-2, -1], [1, 2]]))^2 == (4*q-4)*PA([[1, 2], [-2, -1]]) + PA([[2, -2], [1, -1]])
         True
 
-    The identity element of the partition algebra is the diagram whose set
-    partition is `\{\{1,-1\}, \{2,-2\}, \ldots, \{k,-k\}\}`::
+    The identity element of the partition algebra is the set
+    partition `\{\{1,-1\}, \{2,-2\}, \ldots, \{k,-k\}\}`::
 
         sage: P = PA.basis().list()
         sage: PA.one()
@@ -596,6 +612,18 @@ class PartitionAlgebra(DiagramAlgebra):
         Partition Algebra of rank 2 with parameter 5 over Integer Ring
         sage: (PA([[2, -2], [1, -1]]) - 2*PA([[-2, -1], [1, 2]]))^2 == 16*PA([[-2, -1], [1, 2]]) + PA([[2, -2], [1, -1]])
         True
+
+    TESTS:
+
+    A computation that returned an incorrect result until :trac:`15958`::
+
+        sage: A = PartitionAlgebra(1,17)
+        sage: g = SetPartitionsAk(1).list()
+        sage: a = A[g[1]]
+        sage: a
+        P[{{-1}, {1}}]
+        sage: a*a
+        17*P[{{-1}, {1}}]
 
     REFERENCES:
 
@@ -747,16 +775,16 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     INPUT:
 
-    - ``k``-- rank of the algebra
+    - ``k`` -- rank of the algebra
 
-    - ``q``-- the deformation parameter `q`
+    - ``q`` -- the deformation parameter `q`
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring``-- (default ``None``) a ring containing ``q``; if ``None``
+    - ``base_ring`` -- (default ``None``) a ring containing ``q``; if ``None``
       then just takes the parent of ``q``
 
-    - ``prefix``-- (default ``"B"``) a label for the basis elements
+    - ``prefix`` -- (default ``"B"``) a label for the basis elements
 
     EXAMPLES:
 
@@ -846,25 +874,25 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""
     A Temperley--Lieb algebra.
 
-    The Temperley--Lieb algebra of rank `k` is an algebra with basis indexed
-    by the collection of planar set partitions of `\{1, \ldots, k, -1,
-    \ldots, -k\}` with block size 2.
+    The Temperley--Lieb algebra of rank `k` is an algebra with basis
+    indexed by the collection of planar set partitions of
+    `\{1, \ldots, k, -1, \ldots, -k\}` with block size 2.
 
     This algebra is thus a subalgebra of the partition algebra.
     For more information, see :class:`PartitionAlgebra`.
 
     INPUT:
 
-    - ``k``-- rank of the algebra
+    - ``k`` -- rank of the algebra
 
-    - ``q``-- the deformation parameter `q`
+    - ``q`` -- the deformation parameter `q`
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring``-- (default ``None``) a ring containing ``q``; if ``None``
+    - ``base_ring`` -- (default ``None``) a ring containing ``q``; if ``None``
       then just takes the parent of ``q``
 
-    - ``prefix``-- (default ``"T"``) a label for the basis elements
+    - ``prefix`` -- (default ``"T"``) a label for the basis elements
 
     EXAMPLES:
 
@@ -955,28 +983,28 @@ class PlanarAlgebra(SubPartitionAlgebra):
     A planar algebra.
 
     The planar algebra of rank `k` is an algebra with basis indexed by the
-    collection of set partitions of `\{1, \ldots, k, -1, \ldots, -k\}`
-    where each set partition is planar.
+    collection of all planar set partitions of
+    `\{1, \ldots, k, -1, \ldots, -k\}`.
 
     This algebra is thus a subalgebra of the partition algebra. For more
     information, see :class:`PartitionAlgebra`.
 
     INPUT:
 
-    - ``k``-- rank of the algebra
+    - ``k`` -- rank of the algebra
 
-    - ``q``-- the deformation parameter `q`
+    - ``q`` -- the deformation parameter `q`
 
     OPTIONAL ARGUMENTS:
 
-    - ``base_ring``-- (default ``None``) a ring containing ``q``; if ``None``
+    - ``base_ring`` -- (default ``None``) a ring containing ``q``; if ``None``
       then just takes the parent of ``q``
 
-    - ``prefix``-- (default ``"Pl"``) a label for the basis elements
+    - ``prefix`` -- (default ``"Pl"``) a label for the basis elements
 
     EXAMPLES:
 
-    We now define the planar algebra of rank `2` with parameter
+    We define the planar algebra of rank `2` with parameter
     `x` over `\ZZ`::
 
         sage: R.<x> = ZZ[]
@@ -1149,7 +1177,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
             """
             Return ``self`` to the `n`-th power.
 
-            INPUT::
+            INPUT:
 
             - ``n`` -- a positive integer
 
@@ -1180,7 +1208,7 @@ class PropagatingIdeal(SubPartitionAlgebra):
 def is_planar(sp):
     r"""
     Return ``True`` if the diagram corresponding to the set partition ``sp``
-    is planar; otherwise, it return ``False``.
+    is planar; otherwise, return ``False``.
 
     EXAMPLES::
 
@@ -1190,17 +1218,14 @@ def is_planar(sp):
         sage: da.is_planar( da.to_set_partition([[1,-1],[2,-2]]))
         True
     """
-    to_consider = map(list, sp)
-
     #Singletons don't affect planarity
-    to_consider = filter(lambda x: len(x) > 1, to_consider)
+    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
         #Get the positive and negative entries of this part
-        ap = filter(lambda x: x>0, to_consider[i])
-        an = filter(lambda x: x<0, to_consider[i])
-        an = map(abs, an)
+        ap = [x for x in to_consider[i] if x>0]
+        an = [abs(x) for x in to_consider[i] if x<0]
 
         #Check if a includes numbers in both the top and bottom rows
         if len(ap) > 0 and len(an) > 0:
@@ -1208,9 +1233,8 @@ def is_planar(sp):
                 if i == j:
                     continue
                 #Get the positive and negative entries of this part
-                bp = filter(lambda x: x>0, to_consider[j])
-                bn = filter(lambda x: x<0, to_consider[j])
-                bn = map(abs, bn)
+                bp = [x for x in to_consider[j] if x>0]
+                bn = [abs(x) for x in to_consider[j] if x<0]
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows
@@ -1246,7 +1270,7 @@ def is_planar(sp):
                         if row is ap:
                             sr = Set(rng)
                         else:
-                            sr = Set(map(lambda x: -1*x, rng))
+                            sr = Set((-1*x for x in rng))
 
                         sj = Set(to_consider[j])
                         intersection = sr.intersection(sj)
@@ -1284,9 +1308,14 @@ def to_graph(sp):
 
 def pair_to_graph(sp1, sp2):
     r"""
-    Return a graph consisting of the graphs of set partitions ``sp1`` and
-    ``sp2`` along with edges joining the bottom row (negative numbers) of
-    ``sp1`` to the top row (positive numbers) of ``sp2``.
+    Return a graph consisting of the disjoint union of the graphs of set
+    partitions ``sp1`` and ``sp2`` along with edges joining the bottom
+    row (negative numbers) of ``sp1`` to the top row (positive numbers)
+    of ``sp2``.
+
+    The vertices of the graph ``sp1`` appear in the result as pairs
+    ``(k, 1)``, whereas the vertices of the graph ``sp2`` appear as
+    pairs ``(k, 2)``.
 
     EXAMPLES::
 
@@ -1302,6 +1331,19 @@ def pair_to_graph(sp1, sp2):
         [((-2, 1), (1, 1), None), ((-2, 1), (2, 2), None),
          ((-2, 2), (1, 2), None), ((-1, 1), (1, 2), None),
          ((-1, 1), (2, 1), None), ((-1, 2), (2, 2), None)]
+
+    Another example which used to be wrong until :trac:`15958`::
+
+        sage: sp3 = da.to_set_partition([[1, -1], [2], [-2]])
+        sage: sp4 = da.to_set_partition([[1], [-1], [2], [-2]])
+        sage: g = da.pair_to_graph( sp3, sp4 ); g
+        Graph on 8 vertices
+
+        sage: g.vertices()
+        [(-2, 1), (-2, 2), (-1, 1), (-1, 2), (1, 1), (1, 2), (2, 1), (2, 2)]
+        sage: g.edges()
+        [((-2, 1), (2, 2), None), ((-1, 1), (1, 1), None),
+         ((-1, 1), (1, 2), None)]
     """
     g = Graph()
 
@@ -1312,27 +1354,27 @@ def pair_to_graph(sp1, sp2):
             g.add_vertex( (part_list[0],1) )
 
             #Add the edge to the second part of the graph
-            if part_list[0] < 0 and len(part_list) > 1:
+            if part_list[0] < 0:
                 g.add_edge( (part_list[0], 1), (abs(part_list[0]), 2)  )
 
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i],1) )
+            g.add_vertex( (part_list[i], 1) )
 
             #Add the edge to the second part of the graph
             if part_list[i] < 0:
-                g.add_edge( (part_list[i], 1), (abs(part_list[i]),2) )
+                g.add_edge( (part_list[i], 1), (abs(part_list[i]), 2) )
 
-            #Add the edge between parts
-            g.add_edge( (part_list[i-1],1), (part_list[i],1) )
+            #Add the edge between adjacent elements of a part
+            g.add_edge( (part_list[i-1], 1), (part_list[i], 1) )
 
     #Add the second set partition to the graph
     for part in sp2:
         part_list = list(part)
         if len(part_list) > 0:
-            g.add_vertex( (part_list[0],2) )
+            g.add_vertex( (part_list[0], 2) )
         for i in range(1, len(part_list)):
-            g.add_vertex( (part_list[i],2) )
-            g.add_edge( (part_list[i-1],2), (part_list[i],2) )
+            g.add_vertex( (part_list[i], 2) )
+            g.add_edge( (part_list[i-1], 2), (part_list[i], 2) )
 
     return g
 
@@ -1375,13 +1417,13 @@ def to_set_partition(l, k=None):
         sage: da.to_set_partition([[1,-1],[2,-2]]) == da.identity_set_partition(2)
         True
     """
-    if k == None:
+    if k is None:
         if l == []:
             return SetPartition([])
         else:
-            k = max( map( lambda x: max( map(abs, x) ), l) )
+            k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = Set( range(1, k+1) + map(lambda x: -1*x, range(1, k+1) ) )
+    to_be_added = Set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
 
     sp = []
     for part in l:
@@ -1468,13 +1510,13 @@ def set_partition_composition(sp1, sp2):
     total_removed = 0
     for cc in connected_components:
         #Remove the vertices that live in the middle two rows
-        new_cc = filter(lambda x: not ( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2)), cc)
+        new_cc = [x for x in cc if not ( (x[0]<0 and x[1] == 1) or (x[0]>0 and x[1]==2))]
 
         if new_cc == []:
             if len(cc) > 1:
                 total_removed += 1
         else:
-            res.append( Set(map(lambda x: x[0], new_cc)) )
+            res.append( Set((x[0] for x in new_cc)) )
 
     return (SetPartition(Set(res)), total_removed)
 

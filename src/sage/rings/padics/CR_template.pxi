@@ -9,7 +9,6 @@ See the documentation of mpz_linkage.pxi for the functions needed.
 
 The gluing file does the following:
 
-- includes "sage/ext/cdefs.pxi"
 - ctypedef's celement to be the appropriate type (e.g. mpz_t)
 - includes the linkage file
 - includes this template
@@ -181,7 +180,8 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
         """
-        cdef CRElement ans = PY_NEW(self.__class__)
+        cdef type t = type(self)
+        cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
         cconstruct(ans.unit, ans.prime_pow)
@@ -636,7 +636,7 @@ cdef class CRElement(pAdicTemplateElement):
         cdef Integer right
         cdef CRElement base, pright, ans
         cdef bint exact_exp
-        if (PY_TYPE_CHECK(_right, Integer) or isinstance(_right, (int, long)) or PY_TYPE_CHECK(_right, Rational)):
+        if (isinstance(_right, Integer) or isinstance(_right, (int, long)) or isinstance(_right, Rational)):
             if _right < 0:
                 base = ~self
                 return base.__pow__(-_right, dummy)
@@ -668,7 +668,7 @@ cdef class CRElement(pAdicTemplateElement):
             # If a positive integer exponent, return an inexact zero of valuation right * self.ordp.  Otherwise raise an error.
             if isinstance(_right, (int, long)):
                 _right = Integer(_right)
-            if PY_TYPE_CHECK(_right, Integer):
+            if isinstance(_right, Integer):
                 right = <Integer>_right
                 mpz_init(tmp)
                 mpz_mul_si(tmp, (<Integer>_right).value, self.ordp)
@@ -870,10 +870,10 @@ cdef class CRElement(pAdicTemplateElement):
         cdef long aprec, newprec
         if absprec is infinity:
             return self
-        elif PY_TYPE_CHECK(absprec, int):
+        elif isinstance(absprec, int):
             aprec = absprec
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             aprec = mpz_get_si((<Integer>absprec).value)
         if aprec < self.ordp:
@@ -957,7 +957,7 @@ cdef class CRElement(pAdicTemplateElement):
             if self.relprec == 0 and absprec > self.ordp:
                 raise PrecisionError("Not enough precision to determine if element is zero")
             return self.ordp >= absprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if self.relprec == 0:
             if mpz_cmp_si((<Integer>absprec).value, self.ordp) > 0:
@@ -1084,7 +1084,7 @@ cdef class CRElement(pAdicTemplateElement):
         if absprec is None:
             aprec = min(self.ordp + self.relprec, right.ordp + right.relprec)
         else:
-            if not PY_TYPE_CHECK(absprec, Integer):
+            if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
             if mpz_fits_slong_p((<Integer>absprec).value) == 0:
                 if mpz_sgn((<Integer>absprec).value) < 0 or \
@@ -1102,7 +1102,7 @@ cdef class CRElement(pAdicTemplateElement):
         rprec = aprec - self.ordp
         return ccmp(self.unit, right.unit, rprec, rprec < self.relprec, rprec < right.relprec, self.prime_pow) == 0
 
-    cdef int _cmp_units(self, pAdicGenericElement _right):
+    cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
         """
         Comparison of units, used in equality testing.
 
@@ -1572,6 +1572,58 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
         self._zero = <CRElement?>R._element_constructor(R, 0)
         self._section = pAdicConvert_CR_ZZ(R)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -1674,9 +1726,9 @@ cdef class pAdicConvert_CR_ZZ(RingMap):
             sage: f = Qp(5).coerce_map_from(ZZ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_ZZ'>
             sage: f.category()
-            Category of hom sets in Category of sets with partial maps
+            Category of homsets of sets with partial maps
             sage: Zp(5).coerce_map_from(ZZ).section().category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.is_field() or R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
@@ -1728,6 +1780,58 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, QQ.Hom(R), check=False)
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_CR_QQ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Qp(5).coerce_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Rational Field
+              To:   5-adic Field with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Qp(5).coerce_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Rational Field
+              To:   5-adic Field with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1833,7 +1937,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f = Qp(5).coerce_map_from(QQ).section(); type(f)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicConvert_CR_QQ'>
             sage: f.category()
-            Category of hom sets in Category of sets
+            Category of homsets of sets
         """
         if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, QQ, SetsWithPartialMaps()))
@@ -1854,7 +1958,7 @@ cdef class pAdicConvert_CR_QQ(RingMap):
             sage: f(Qp(5)(1/5))
             1/5
         """
-        cdef Rational ans = PY_NEW(Rational)
+        cdef Rational ans = Rational.__new__(Rational)
         cdef CRElement x =  _x
         if x.relprec == 0:
             mpq_set_ui(ans.value, 0, 1)
@@ -1886,6 +1990,44 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self._zero = R._element_constructor(R, 0)
         self._section = pAdicConvert_CR_QQ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        _slots['_zero'] = self._zero
+        _slots['_section'] = self._section
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20) 
+            sage: g(1/6) == f(1/6)
+            True
+        """
+        self._zero = _slots['_zero']
+        self._section = _slots['_section']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -1987,7 +2129,7 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
         sage: a.precision_relative() == b.precision_relative()
         True
     """
-    cdef CRElement ans = PY_NEW(cls)
+    cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_class?>parent.prime_pow
     cconstruct(ans.unit, ans.prime_pow)

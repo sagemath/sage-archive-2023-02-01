@@ -27,6 +27,8 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
+from sage.ext.stdsage cimport PY_NEW
+from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -39,7 +41,6 @@ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 cdef Integer tmp = PY_NEW(Integer)
 
 include "sage/libs/pari/decl.pxi"
-include "sage/ext/stdsage.pxi"
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     """
@@ -90,19 +91,19 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             while n % p == 0:
                 k += 1
                 n = n / p
-    if PY_TYPE_CHECK(x, Integer):
+    if isinstance(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
-    elif PY_TYPE_CHECK(x, Rational):
+    elif isinstance(x, Rational):
         if mpq_sgn((<Rational>x).value) == 0:
             return maxordp
         k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
         if k == 0:
             k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         k = (<pAdicGenericElement>x).valuation_c()
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
             k = valp(pari_tmp)
@@ -151,14 +152,14 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     cdef long k
     cdef Integer prec
     cdef GEN pari_tmp
-    if PyInt_Check(x) or PY_TYPE_CHECK(x, Integer) or PY_TYPE_CHECK(x, Rational):
+    if PyInt_Check(x) or isinstance(x, Integer) or isinstance(x, Rational):
         return maxordp
-    elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
+    elif isinstance(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         if (<pAdicGenericElement>x)._is_exact_zero():
             return maxordp
         prec = <Integer>x.precision_absolute()
         k = mpz_get_si(prec.value)
-    elif PY_TYPE_CHECK(x, pari_gen):
+    elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC
         k = valp(pari_tmp) + precp(pari_tmp)
@@ -183,7 +184,7 @@ cdef long comb_prec(iprec, long prec) except? -10000:
     """
     if iprec is infinity: return prec
     cdef Integer intprec
-    if PY_TYPE_CHECK(iprec, Integer):
+    if isinstance(iprec, Integer):
         intprec = <Integer>iprec
         if mpz_cmp_si(intprec.value, prec) >= 0:
             return prec
@@ -229,7 +230,7 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
 
     - error status
     """
-    if kwds.has_key("empty"):
+    if "empty" in kwds:
         # For backward compatibility
         aprec[0] = 0
         rprec[0] = 0
@@ -237,13 +238,13 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
     if len(args) > 2:
         raise TypeError("too many positional arguments")
     if len(args) == 2:
-        if kwds.has_key("relprec"):
+        if "relprec" in kwds:
             raise TypeError("_call_with_args() got multiple values for keyword argument 'relprec'")
         relprec = args[1]
     else:
         relprec = kwds.get("relprec",infinity)
     if len(args) >= 1:
-        if kwds.has_key("absprec"):
+        if "absprec" in kwds:
             raise TypeError("_call_with_args() got multiple values for keyword argument 'absprec'")
         absprec = args[0]
     else:

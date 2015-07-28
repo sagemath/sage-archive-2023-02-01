@@ -475,7 +475,7 @@ class Permutation(SageObject):
             sage: p.letters()
             [0, 1]
         """
-        return map(self._alphabet.unrank, range(len(self)))
+        return [self._alphabet.unrank(_) for _ in range(len(self))]
 
     def left_right_inverse(self):
         r"""
@@ -953,7 +953,7 @@ class PermutationIET(Permutation):
         left_corner = ((self[1][0], self[0][0]), 'L')
         for s in self.separatrix_diagram(side=True):
             if left_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def attached_in_degree(self):
         r"""
@@ -977,7 +977,7 @@ class PermutationIET(Permutation):
 
         for s in self.separatrix_diagram(side=True):
             if right_corner in s:
-                return len(s)/2 - 1
+                return len(s)//2 - 1
 
     def attached_type(self):
         r"""
@@ -1026,11 +1026,11 @@ class PermutationIET(Permutation):
             if left_corner in s and right_corner in s:
                 i1 = s.index(left_corner)
                 i2 = s.index(right_corner)
-                return ([len(s)/2-1], ((i2-i1+1)/2) % 2)
+                return ([len(s)//2 - 1], ((i2-i1+1)//2) % 2)
             elif left_corner in s:
-                left_degree = len(s)/2-1
+                left_degree = len(s)//2 - 1
             elif right_corner in s:
-                right_degree = len(s)/2-1
+                right_degree = len(s)//2 - 1
 
         return ([left_degree,right_degree], 0)
 
@@ -1177,12 +1177,12 @@ class PermutationIET(Permutation):
         from sage.dynamics.flat_surfaces.strata import AbelianStratum
 
         if not self.is_irreducible():
-            return map(lambda x: x.stratum(marked_separatrix), self.decompose())
+            return [x.stratum(marked_separatrix) for x in self.decompose()]
 
         if len(self) == 1:
             return AbelianStratum([])
 
-        singularities = [len(x)/2 - 1 for x in self.separatrix_diagram()]
+        singularities = [len(x)//2 - 1 for x in self.separatrix_diagram()]
 
         return AbelianStratum(singularities,marked_separatrix=marked_separatrix)
 
@@ -1361,8 +1361,7 @@ class PermutationIET(Permutation):
                                                         OddCCA, EvenCCA)
 
         if not self.is_irreducible():
-            return map(lambda x: x.connected_component(marked_separatrix),
-                       self.decompose())
+            return [x.connected_component(marked_separatrix) for x in self.decompose()]
 
         stratum = self.stratum(marked_separatrix=marked_separatrix)
         cc = stratum._cc
@@ -1438,7 +1437,7 @@ class PermutationIET(Permutation):
         right_corner = ((l[0][-1], l[1][-1]), 'R')
 
         s = res.separatrix_diagram(side=True)
-        lengths = map(len, s)
+        lengths = [len(_) for _ in s]
 
         while 2 in lengths:
             if lengths == [2]:
@@ -1456,7 +1455,7 @@ class PermutationIET(Permutation):
             l = res.list()
 
             s = res.separatrix_diagram(side=True)
-            lengths = map(len, s)
+            lengths = [len(_) for _ in s]
 
         return res
 
@@ -1577,7 +1576,7 @@ class PermutationIET(Permutation):
             True
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(map(lambda x: x+1,self._twin[1]))
+        return Permutation([x+1 for x in self._twin[1]])
 
 class PermutationLI(Permutation):
     r"""
@@ -2129,7 +2128,7 @@ class RauzyDiagram(SageObject):
                 False
             """
             return (
-                type(self) == type(other) and
+                type(self) is type(other) and
                 self._parent == other._parent and
                 self._start == other._start and
                 self._edge_types == other._edge_types)
@@ -2152,7 +2151,7 @@ class RauzyDiagram(SageObject):
                 True
             """
             return (
-                type(self) != type(other) or
+                type(self) is not type(other) or
                 self._parent != other._parent or
                 self._start != other._start or
                 self._edge_types != other._edge_types)
@@ -2729,7 +2728,7 @@ class RauzyDiagram(SageObject):
             True
         """
         return (
-            type(self) == type(other) and
+            type(self) is type(other) and
             self._edge_types == other._edge_types and
             self._succ.keys()[0] in other._succ)
 
@@ -2753,7 +2752,7 @@ class RauzyDiagram(SageObject):
             False
         """
         return (
-            type(self) != type(other) or
+            type(self) is not type(other) or
             self._edge_types != other._edge_types or
             self._succ.keys()[0] not in other._succ)
 
@@ -2768,9 +2767,7 @@ class RauzyDiagram(SageObject):
             a b
             b a
         """
-        return map(
-            lambda x: self._vertex_to_permutation(x),
-            self._succ.keys())
+        return [self._vertex_to_permutation(x) for x in self._succ.keys()]
 
     def vertex_iterator(self):
         r"""
@@ -3385,8 +3382,7 @@ class RauzyDiagram(SageObject):
             raise ValueError("Your element does not have the good type")
 
         perm = self._permutation_to_vertex(p)
-        return map(lambda x: self._vertex_to_permutation(x),
-                   self._succ[perm])
+        return [self._vertex_to_permutation(x) for x in self._succ[perm]]
 
     def __len__(self):
         r"""

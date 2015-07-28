@@ -109,17 +109,12 @@ def check_processor_flags():
 
 def update_library_files():
     """
-    Run ``ranlib`` on all static libraries (``*.a``) in the library
-    directory, and manually change the paths in all ``.la`` libtool
-    archives.
+    Manually change the paths in all ``.la`` libtool archives.
     """
     for libdir in ["lib", "lib32", "lib64"]:
         LIB = os.path.join(SAGE_LOCAL, libdir)
         if not os.path.isdir(LIB):
             continue
-
-        # The .a files should be re-ranlib'd:
-        os.system('cd "%s"; ranlib *.a 1>/dev/null 2>/dev/null' % LIB)
 
         # The .la files hardcode path info, so we manually fix the path info:
         for F in os.listdir(LIB):

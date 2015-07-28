@@ -78,7 +78,7 @@ class CoordinatePatch(Parent):
         An open subset of Euclidian space with a specific set of
         coordinates. See ``CoordinatePatch`` for details.
 
-        INPUT::
+        INPUT:
 
         - ``coordinates`` -- a set of symbolic variables that serve
         as coordinates on this space.
@@ -86,7 +86,6 @@ class CoordinatePatch(Parent):
         - ``metric`` (default: None) -- a metric tensor on this
         coordinate patch.  Providing anything other than ``None``
         is currently not defined.
-
 
         EXAMPLES::
 
@@ -99,14 +98,14 @@ class CoordinatePatch(Parent):
         from sage.symbolic.ring import is_SymbolicVariable
 
         if not all(is_SymbolicVariable(c) for c in coordinates):
-            raise TypeError, "%s is not a valid vector of coordinates." % \
-                coordinates
+            raise TypeError("%s is not a valid vector of coordinates." % \
+                coordinates)
 
         self._coordinates = tuple(coordinates)
         dim = len(self._coordinates)
 
         if metric is not None:
-            raise NotImplementedError, "Metric geometry not supported yet."
+            raise NotImplementedError("Metric geometry not supported yet.")
 
 
 

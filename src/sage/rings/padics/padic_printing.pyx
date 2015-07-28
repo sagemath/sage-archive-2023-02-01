@@ -22,9 +22,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/gmp.pxi"
 from cpython.list cimport *
+from sage.libs.gmp.mpz cimport *
 
 
 import sys
@@ -60,7 +59,7 @@ def pAdicPrinter(ring, options={}):
         series printer for 5-adic Ring with capped relative precision 20
     """
     for option in ['mode', 'pos', 'ram_name', 'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms', 'max_terse_terms', 'sep', 'alphabet']:
-        if not options.has_key(option):
+        if option not in options:
             options[option] = None
     return pAdicPrinter_class(ring, **options)
 
@@ -86,13 +85,13 @@ class pAdicPrinterDefaults(SageObject):
         """
         self._mode = mode
         self._pos = bool(pos)
-        if not -1 <= max_ram_terms <= sys.maxint:
+        if not -1 <= max_ram_terms <= sys.maxsize:
             raise ValueError, "max_ram_terms must be positive and fit in a long"
         self._max_ram_terms = int(max_ram_terms)
-        if not -1 <= max_unram_terms <= sys.maxint:
+        if not -1 <= max_unram_terms <= sys.maxsize:
             raise ValueError, "max_unram_terms must be positive and fit in a long"
         self._max_unram_terms = int(max_unram_terms)
-        if not -1 <= max_terse_terms <= sys.maxint:
+        if not -1 <= max_terse_terms <= sys.maxsize:
             raise ValueError, "max_terse_terms must be positive and fit in a long"
         self._max_terse_terms = int(max_terse_terms)
         self._sep = sep
@@ -471,7 +470,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: R = Zp(5); S = Zp(5,print_mode='bars'); R._printer == S._printer
             False
         """
-        if not PY_TYPE_CHECK(other, pAdicPrinter_class):
+        if not isinstance(other, pAdicPrinter_class):
             return 1
         return self.cmp_modes(other)
 
@@ -767,7 +766,7 @@ cdef class pAdicPrinter_class(SageObject):
             sage: P._base_p_list(1298734,False)
             [2, -2, 6, -8, -1, 1]
         """
-        if PY_TYPE_CHECK(value, Integer):
+        if isinstance(value, Integer):
             from sage.rings.padics.padic_capped_relative_element import base_p_list
             return base_p_list(value, pos, self.prime_pow)
         elif pos:

@@ -1,9 +1,5 @@
 r"""
-This module implements the two following categories :
-
- -  Discrete Valuation Rings (DVR)
-
- -  Discrete Valuation Fields (DVF)
+Discrete Valuation Rings (DVR) and Fields (DVF)
 """
 #**************************************************************************
 #  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
@@ -14,12 +10,9 @@ This module implements the two following categories :
 
 
 from sage.misc.abstract_method import abstract_method
-
-from sage.categories.category import Category
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
-#from sage.misc.cachefunc import cached_method
 
 class DiscreteValuationRings(Category_singleton):
     """

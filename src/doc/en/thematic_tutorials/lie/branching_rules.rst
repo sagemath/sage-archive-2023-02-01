@@ -1,5 +1,7 @@
 .. linkall
 
+.. _branch_rules:
+
 -------------------------------------
 Maximal Subgroups and Branching Rules
 -------------------------------------
@@ -54,7 +56,7 @@ the branching rule that we may create as follows::
 The name "symmetric" of this branching rule will be
 explained further later, but it means that `Sp(4)` is
 the fixed subgroup of an involution of `Sl(4)`.
-Here ``A3`` and ``C2`` are the Cartan Types of the groups
+Here ``A3`` and ``C2`` are the Cartan types of the groups
 `G=SL(4)` and `H=Sp(4)`.
 
 Now we may see how representations of `SL(4)` decompose
@@ -89,7 +91,7 @@ factors through `Sp(4)\times Sp(4)`, while the
 other factors through `SL(4)`. To check that the embeddings
 are not conjugate, we branch a (randomly chosen) representation.
 Observe that we do not have to build the intermediate
-WeylCharacterRings.
+:class:`Weyl character rings <WeylCharacterRing>`.
 
 ::
 
@@ -182,7 +184,7 @@ Maximal subgroups
 
 Sage has a database of maximal subgroups for every simple Cartan
 type of rank `\le 8`. You may access this with the
-``maximal_subgroups`` method of the WeylCharacter Ring::
+``maximal_subgroups`` method of the Weyl character ring::
 
     sage: E7=WeylCharacterRing("E7",style="coroots")
     sage: E7.maximal_subgroups()
@@ -250,6 +252,8 @@ rule, we compose the given one with this automorphism::
     sage: b1=branching_rule("E6","E6","automorphic")*b; b1
     composite branching rule E6 => (automorphic) E6 => (miscellaneous) A2xG2
 
+.. _levi_branch_rules:
+
 Levi subgroups
 --------------
 
@@ -268,9 +272,9 @@ For example, here is the A3 Dynkin diagram:
     1   2   3
     A3
 
-We see that we may remove the node 3 and obtain A2, or the node 2 and
-obtain A1xA1. These correspond to the Levi subgroups `GL(3)` and
-`GL(2) \times GL(2)` of `GL(4)`.
+We see that we may remove the node 3 and obtain `A_2`, or the node 2
+and obtain `A_1 \times A_1`. These correspond to the Levi subgroups
+`GL(3)` and `GL(2) \times GL(2)` of `GL(4)`.
 
 Let us construct the irreducible
 representations of `GL(4)` and branch them down to these down to
@@ -315,11 +319,12 @@ versus
 
     SL(4) \to SL(2) \times SL(2).
 
-Consider the representation `A3(0,1,0)`, which is the six dimensional exterior
-square. In the coroot notation, the restriction contained two copies of the
-trivial representation, ``2*A1xA1(0,0)``. The other way, we had instead three
-distinct representations in the restriction, namely ``A1xA1(1,1,0,0)`` and
-``A1xA1(0,0,1,1)``, that is, `\det \otimes 1` and `1 \otimes \det`.
+Consider the representation ``A3(0,1,0)``, which is the six dimensional
+exterior square. In the coroot notation, the restriction contained two
+copies of the trivial representation, ``2*A1xA1(0,0)``. The other way,
+we had instead three distinct representations in the restriction, namely
+``A1xA1(1,1,0,0)`` and ``A1xA1(0,0,1,1)``, that is,
+`\det \otimes 1` and `1 \otimes \det`.
 
 The Levi subgroup ``A1xA1`` is actually not maximal. Indeed, we may
 factor the embedding:
@@ -342,8 +347,8 @@ we could accomplish the branching in two steps, thus::
     [A1xA1(1,0) + A1xA1(0,1), 2*A1xA1(0,0) + A1xA1(1,1), A1xA1(1,0) + A1xA1(0,1)]
 
 As you can see, we've redone the branching rather circuitously this
-way, making use of the branching rules ``A3->C2`` and ``B2->D2``, and
-two accidental isomorphisms ``C2=B2`` and ``D2=A1xA1``. It is much
+way, making use of the branching rules ``A3 -> C2`` and ``B2 -> D2``, and
+two accidental isomorphisms ``C2 = B2`` and ``D2 = A1xA1``. It is much
 easier to go in one step using ``rule="levi"``, but reassuring that we
 get the same answer!
 
@@ -360,10 +365,10 @@ diagram that we obtain the Dynkin diagram of a subgroup. For example::
     1   2   0
     G2~
 
-Observe that by removing the 1 node that we obtain an A2 Dynkin
-diagram. Therefore the exceptional group G2 contains a copy of
-`SL(3)`. We branch the two representations of G2 corresponding to the
-fundamental weights to this copy of A2::
+Observe that by removing the 1 node that we obtain an `A_2` Dynkin
+diagram. Therefore the exceptional group `G_2` contains a copy of
+`SL(3)`. We branch the two representations of `G_2` corresponding to the
+fundamental weights to this copy of `A_2`::
 
     sage: G2 = WeylCharacterRing("G2", style="coroots")
     sage: A2 = WeylCharacterRing("A2", style="coroots")
@@ -372,7 +377,7 @@ fundamental weights to this copy of A2::
     sage: [G2(f).branch(A2, rule="extended") for f in G2.fundamental_weights()]
     [A2(0,0) + A2(0,1) + A2(1,0), A2(0,1) + A2(1,0) + A2(1,1)]
 
-The two representations of G2, of degrees 7 and 14 respectively, are
+The two representations of `G_2`, of degrees 7 and 14 respectively, are
 the action on the octonions of trace zero and the adjoint
 representation.
 
@@ -410,7 +415,8 @@ handled as follows::
      sage: branching_rule("D4","B3",rule="symmetric")
      symmetric branching rule D4 => B3
 
-If `G = \hbox{SO}(r+s)` then `G` has a subgroup `\hbox{SO}(r) \times \hbox{SO}(s)`. This
+If `G = \hbox{SO}(r+s)` then `G` has a subgroup
+`\hbox{SO}(r) \times \hbox{SO}(s)`. This
 lifts to an embedding of the universal covering groups
 
 .. MATH::
@@ -468,7 +474,7 @@ Similarly we have embeddings::
     ['D',k] x ['B',l] --> ['B',k+l]
 
 These are also of extended type. For example consider the embedding of
-``D3xB2->B5``. Here is the ``B5`` extended Dynkin diagram::
+``D3xB2 -> B5``. Here is the ``B5`` extended Dynkin diagram::
 
         O 0
         |
@@ -517,7 +523,7 @@ may or may not be implemented in Sage. However if it is
 not implemented, it may be constructed as a composition
 of two branching rules.
 
-For example, prior to Sage-6.1 ``branching_rule("E6","A5","levi")
+For example, prior to Sage-6.1 ``branching_rule("E6","A5","levi")``
 returned a not-implemented error and the advice to branch to
 ``A5xA1``. And we can see from the extended Dynkin diagram of `E_6`
 that indeed `A_5` is not a maximal subgroup, since removing node 2
@@ -556,7 +562,7 @@ construct the branching rule to `A_5` we may proceed as follows::
     <BLANKLINE>
     For more detailed information use verbose=True
 
-Note that it is not necessary to construct the WeylCharacterRing
+Note that it is not necessary to construct the Weyl character ring
 for the intermediate group ``A5xA1``.
 
 This last example illustrates another common problem:
@@ -655,7 +661,7 @@ fall between the cracks. Mostly these involve maximal subgroups of
 fairly small rank.
 
 The rule ``rule="plethysm"`` is a powerful rule that includes any
-branching rule from types A, B, C or D as a special case. Thus it
+branching rule from types `A`, `B`, `C` or `D` as a special case. Thus it
 could be used in place of the above rules and would give the same
 results. However, it is most useful when branching from `G` to a
 maximal subgroup `H` such that `rank(H) < rank(G)-1`.
@@ -681,7 +687,7 @@ homomorphism by invoking its character, to be called ``chi``::
 
 This confirms that the character has degree 6 and is symplectic, so it
 corresponds to a homomorphism `SL(2) \to Sp(6)`, and there is a
-corresponding branching rule ``C3 => A1``::
+corresponding branching rule ``C3 -> A1``::
 
     sage: A1 = WeylCharacterRing("A1", style="coroots")
     sage: C3 = WeylCharacterRing("C3", style="coroots")
@@ -768,10 +774,10 @@ the other hand, the assumption of characteristic `p`
 is not important for Theorems G.1 and A.1, which
 describe the torus embeddings, hence contain enough
 information to compute the branching rule. There
-are other ways of embedding ``G_2`` or ``A_2`` into
-``E_6``.  These may embeddings be characterized by the
+are other ways of embedding `G_2` or `A_2` into
+`E_6`.  These may embeddings be characterized by the
 condition that the two 27-dimensional representations of
-``E_6`` restrict irreducibly to ``G_2`` or ``A_2``.
+`E_6` restrict irreducibly to `G_2` or `A_2`.
 Their images are maximal subgroups.
 
 The remaining rules come about as follows. Let `G` be
@@ -786,7 +792,7 @@ of subgroups
 
 Then the centralizer of `H` is `A_1`, `A_2`, `C_3`, `F_4` (if `H=G_2`) or
 `A_1` (if `G=E_7` and `H=F_4`). This gives us five of the cases.
-Regarding the branching rule ``E_6\to G_2\times A_2``, Rubenthaler
+Regarding the branching rule `E_6 \to G_2 \times A_2`, Rubenthaler
 [Rubenthaler2008]_ describes the embedding and applies it in an interesting
 way.
 
@@ -902,13 +908,13 @@ you can write your own branching rules.
 
 As an example, let us consider how to implement the branching rule
 ``A3 -> C2``.  Here ``H = C2 = Sp(4)`` embedded as a subgroup in
-``A3 = GL(4).`` The Cartan subalgebra `\hbox{Lie}(U)` consists of
+``A3 = GL(4)``. The Cartan subalgebra `\hbox{Lie}(U)` consists of
 diagonal matrices with eigenvalues ``u1, u2, -u2, -u1``. Then
 ``C2.space()`` is the two dimensional vector spaces consisting of the
 linear functionals ``u1`` and ``u2`` on ``U``. On the other hand
 `Lie(T) = \mathbf{R}^4`. A convenient way to see the restriction is to
 think of it as the adjoint of the map ``[u1,u2] -> [u1,u2,-u2,-u1]``,
-that is, ``[x0,x1,x2,x3] -> [x0-x3,x1-x2].`` Hence we may encode the
+that is, ``[x0,x1,x2,x3] -> [x0-x3,x1-x2]``. Hence we may encode the
 rule::
 
     def brule(x):
@@ -929,7 +935,7 @@ Let us check that this agrees with the built-in rule::
     C2(0,0) + C2(1,1)
 
 Although this works, it is better to make the rule
-into an element of the BranchingRule class, as follows.
+into an element of the :class:`BranchingRule` class, as follows.
 
 ::
 
@@ -956,7 +962,7 @@ effect may be computed using the branching rule code::
     sage: A4(1,0,1,0).branch(A4,rule="automorphic")
     A4(0,1,0,1)
 
-In the special case where `G=D4`, the Dynkin diagram has
+In the special case where ``G=D4``, the Dynkin diagram has
 extra symmetries, and these correspond to outer automorphisms
 of the group. These are implemented as the ``"triality"``
 branching rule::
@@ -1003,9 +1009,10 @@ permuted by triality::
     D4(0,0,0,1)
 
 By contrast, ``rule="automorphic"`` simply interchanges the two
-spin representations, as it always does in Type D::
+spin representations, as it always does in type `D`::
 
     sage: D4(0,0,0,1).branch(D4,rule="automorphic")
     D4(0,0,1,0)
     sage: D4(0,0,1,0).branch(D4,rule="automorphic")
     D4(0,0,0,1)
+

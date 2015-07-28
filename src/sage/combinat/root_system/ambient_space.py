@@ -13,13 +13,15 @@ from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFree
 from weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.misc.cachefunc import ClearCacheOnPickle
+from sage.modules.free_module_element import vector
+from sage.categories.homset import End
 
 class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 
     All subclasses should implement a class method
-    ``smallest_base_ring`` taking a cartan type as input, and a method
+    ``smallest_base_ring`` taking a Cartan type as input, and a method
     ``dimension`` working on a partially initialized instance with
     just ``root_system`` as attribute. There is no safe default
     implementation for the later, so none is provided.
@@ -129,7 +131,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         """
         Returns the smallest ground ring over which the ambient space can be realized.
 
-        This class method will get called with the cartan type as
+        This class method will get called with the Cartan type as
         input. This default implementation returns `\QQ`; subclasses
         should override it as appropriate.
 
@@ -335,18 +337,28 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
                 x = x.coerce_to_sl()
         return x
 
-class AmbientSpaceElement(CombinatorialFreeModuleElement):
-    def __hash__(self):
-        """
+    def to_ambient_space_morphism(self):
+        r"""
+        Return the identity map on ``self``.
+
+        This is present for uniformity of use; the corresponding method
+        for abstract root and weight lattices/spaces, is not trivial.
+
         EXAMPLES::
 
-            sage: e = RootSystem(['A',2]).ambient_space()
-            sage: hash(e.simple_root(0))
-            -4601450286177489034          # 64-bit
-            549810038                     # 32-bit
+            sage: P = RootSystem(['A',2]).ambient_space()
+            sage: f = P.to_ambient_space_morphism()
+            sage: p = P.an_element()
+            sage: p
+            (2, 2, 3)
+            sage: f(p)
+            (2, 2, 3)
+            sage: f(p)==p
+            True
         """
-        return hash(tuple(sorted([(m,c) for m,c in self._monomial_coefficients.iteritems()])))
+        return End(self).identity()
 
+class AmbientSpaceElement(CombinatorialFreeModuleElement):
     # For backward compatibility
     def _repr_(self):
         """
@@ -482,3 +494,19 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
         x = x - (x.inner_product(v0)/2)*v0
         return  x - (x.inner_product(v1)/6)*v1
 
+    def to_ambient(self):
+        r"""
+        Map ``self`` to the ambient space.
+
+        This exists for uniformity. Its analogue for root and weight lattice realizations,
+        is not trivial.
+
+        EXAMPLES::
+
+            sage: v = CartanType(['C',3]).root_system().ambient_space().an_element(); v
+            (2, 2, 3)
+            sage: v.to_ambient()
+            (2, 2, 3)
+
+        """
+        return self

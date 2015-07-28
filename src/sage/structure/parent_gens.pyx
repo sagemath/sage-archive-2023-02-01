@@ -87,13 +87,17 @@ def is_ParentWithGens(x):
 
         sage: from sage.structure.parent_gens import is_ParentWithGens
         sage: is_ParentWithGens(QQ['x'])
+        doctest:...: DeprecationWarning: the function is_ParentWithGens() is deprecated
+        See http://trac.sagemath.org/18759 for details.
         True
         sage: is_ParentWithGens(CC)
         True
         sage: is_ParentWithGens(Primes())
         False
     """
-    return PY_TYPE_CHECK(x, ParentWithGens)
+    from sage.misc.superseded import deprecation
+    deprecation(18759, "the function is_ParentWithGens() is deprecated")
+    return isinstance(x, ParentWithGens)
 
 def is_ParentWithAdditiveAbelianGens(x):
     """
@@ -106,11 +110,13 @@ def is_ParentWithAdditiveAbelianGens(x):
 
         sage: from sage.structure.parent_gens import is_ParentWithAdditiveAbelianGens
         sage: is_ParentWithAdditiveAbelianGens(QQ)
+        doctest:...: DeprecationWarning: the class ParentWithAdditiveAbelianGens is deprecated
+        See http://trac.sagemath.org/18759 for details.
         False
-        sage: is_ParentWithAdditiveAbelianGens(QQ^3)
-        True
     """
-    return PY_TYPE_CHECK(x, ParentWithAdditiveAbelianGens)
+    from sage.misc.superseded import deprecation
+    deprecation(18759, "the class ParentWithAdditiveAbelianGens is deprecated")
+    return isinstance(x, ParentWithAdditiveAbelianGens)
 
 def is_ParentWithMultiplicativeAbelianGens(x):
     """
@@ -123,11 +129,13 @@ def is_ParentWithMultiplicativeAbelianGens(x):
 
         sage: from sage.structure.parent_gens import is_ParentWithMultiplicativeAbelianGens
         sage: is_ParentWithMultiplicativeAbelianGens(QQ)
+        doctest:...: DeprecationWarning: the class ParentWithMultiplicativeAbelianGens is deprecated
+        See http://trac.sagemath.org/18759 for details.
         False
-        sage: is_ParentWithMultiplicativeAbelianGens(DirichletGroup(11))
-        True
     """
-    return PY_TYPE_CHECK(x, ParentWithMultiplicativeAbelianGens)
+    from sage.misc.superseded import deprecation
+    deprecation(18759, "the class ParentWithMultiplicativeAbelianGens is deprecated")
+    return isinstance(x, ParentWithMultiplicativeAbelianGens)
 
 def _certify_names(names):
     v = []
@@ -289,7 +297,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
        object, in order.
        """
        cdef int i, n
-       if self._gens != None:
+       if self._gens is not None:
            return self._gens
        else:
            v = []
@@ -334,7 +342,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             raise ValueError, 'variable names cannot be changed after object creation.'
         if isinstance(names, str):
             names = (names, )  # make it a tuple
-        elif not PY_TYPE_CHECK(names, tuple):
+        elif not isinstance(names, tuple):
             raise TypeError, "names must be a tuple of strings"
         self._names = names
 
@@ -354,7 +362,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         d = dict(d)
         d['_base'] = self._base
         d['_gens'] = self._gens
-        d['_gens_dict'] = self._gens_dict
         d['_list'] = self._list
         d['_names'] = self._names
         d['_latex_names'] = self._latex_names
@@ -366,7 +373,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         return d
 
     def __setstate__(self, d):
-        if d.has_key('_element_constructor'):
+        if '_element_constructor' in d:
             return parent.Parent.__setstate__(self, d)
         try:
             self.__dict__.update(d)
@@ -375,7 +382,6 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             pass
         self._base = d['_base']
         self._gens = d['_gens']
-        self._gens_dict = d['_gens_dict']
         self._list = d['_list']
         self._names = d['_names']
         self._latex_names = d['_latex_names']
@@ -473,9 +479,13 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
 
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
+    def __cinit__(self, *args, **kwds):
+        from sage.misc.superseded import deprecation
+        deprecation(18759, "the class ParentWithMultiplicativeAbelianGens is deprecated, use Parent instead")
+
     def generator_orders(self):
         check_old_coerce(self)
-        if self._generator_orders != None:
+        if self._generator_orders is not None:
             return self._generator_orders
         else:
             g = []
@@ -491,11 +501,14 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
         return gens_py.multiplicative_iterator(self)
 
 
-
 cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
+    def __cinit__(self, *args, **kwds):
+        from sage.misc.superseded import deprecation
+        deprecation(18759, "the class ParentWithAdditiveAbelianGens is deprecated, use Parent instead")
+
     def generator_orders(self):
         check_old_coerce(self)
-        if self._generator_orders != None:
+        if self._generator_orders is not None:
             return self._generator_orders
         else:
             g = []

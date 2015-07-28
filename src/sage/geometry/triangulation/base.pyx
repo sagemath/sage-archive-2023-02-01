@@ -876,15 +876,15 @@ cdef class ConnectedTriangulationsIterator(SageObject):
         sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
         sage: from sage.geometry.triangulation.base import ConnectedTriangulationsIterator
         sage: ci = ConnectedTriangulationsIterator(p)
-        sage: ci.next()
+        sage: next(ci)
         (9, 10)
-        sage: ci.next()
+        sage: next(ci)
         (2, 3, 4, 5)
-        sage: ci.next()
+        sage: next(ci)
         (7, 8)
-        sage: ci.next()
+        sage: next(ci)
         (1, 3, 5, 7)
-        sage: ci.next()
+        sage: next(ci)
         Traceback (most recent call last):
         ...
         StopIteration
@@ -943,9 +943,9 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             sage: len(list(ci))  # long time (26s on sage.math, 2012)
             1
         """
-        if star==None:
+        if star is None:
             star = -1
-        if seed==None:
+        if seed is None:
             seed = point_configuration.lexicographic_triangulation().enumerate_simplices()
         try:
             enumerated_simplices_seed = seed.enumerated_simplices()

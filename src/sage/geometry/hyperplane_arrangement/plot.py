@@ -1,7 +1,7 @@
 """
 Plotting of Hyperplane Arrangements
 
-PLOT OPTIONS::
+PLOT OPTIONS:
 
 Beside the usual plot options (enter ``plot?``), the plot command for
 hyperplane arrangements includes the following:
@@ -10,7 +10,7 @@ hyperplane arrangements includes the following:
   hyperplane (default: equally spread range of hues).
 
 - ``hyperplane_labels`` -- Boolean, ``'short'``, ``'long'`` (default:
-  ``False``).  If False, no labels are shown; if 'short' or 'long',
+  ``False``).  If ``False``, no labels are shown; if 'short' or 'long',
   the hyperplanes are given short or long labels, respectively.  If
   ``True``, the hyperplanes are given long labels.
 
@@ -57,18 +57,25 @@ EXAMPLES::
     sage: H3.<x,y,z> = HyperplaneArrangements(QQ)
     sage: A = H3([(1,0,0), 0], [(0,0,1), 5])
     sage: A.plot(hyperplane_opacities=0.5, hyperplane_labels=True, hyperplane_legend=False)
+    Graphics3d Object
 
     sage: c = H3([(1,0,0),0], [(0,0,1),5])
     sage: c.plot(ranges=10)
+    Graphics3d Object
     sage: c.plot(ranges=[[9.5,10], [-3,3]])
+    Graphics3d Object
     sage: c.plot(ranges=[[[9.5,10], [-3,3]], [[-6,6], [-5,5]]])
+    Graphics3d Object
 
 
     sage: H2.<s,t> = HyperplaneArrangements(QQ)
     sage: h = H2([(1,1),0], [(1,-1),0], [(0,1),2])
     sage: h.plot(ranges=20)
+    Graphics object consisting of 3 graphics primitives
     sage: h.plot(ranges=[-1, 10])
+    Graphics object consisting of 3 graphics primitives
     sage: h.plot(ranges=[[-1, 1], [-5, 5], [-1, 10]])
+    Graphics object consisting of 3 graphics primitives
 
     sage: a = hyperplane_arrangements.coordinate(3)
     sage: opts = {'hyperplane_colors':['yellow', 'green', 'blue']}
@@ -77,18 +84,24 @@ EXAMPLES::
     sage: opts['hyperplane_legend'] = False
     sage: opts['hyperplane_opacities'] = 0.7
     sage: a.plot(**opts)
+    Graphics3d Object
     sage: opts['hyperplane_labels'] = 'short'
     sage: a.plot(**opts)
+    Graphics3d Object
 
     sage: H.<u> = HyperplaneArrangements(QQ)
     sage: pts = H(3*u+4, 2*u+5, 7*u+1)
     sage: pts.plot(hyperplane_colors=['yellow','black','blue'])
+    Graphics object consisting of 3 graphics primitives
     sage: pts.plot(point_sizes=[50,100,200], hyperplane_colors='blue')
+    Graphics object consisting of 3 graphics primitives
 
     sage: H.<x,y,z> = HyperplaneArrangements(QQ)
     sage: a = H(x, y+1, y+2)
     sage: a.plot(hyperplane_labels=True,label_colors='blue',label_fontsize=18)
+    Graphics3d Object
     sage: a.plot(hyperplane_labels=True,label_colors=['red','green','black'])
+    Graphics3d Object
 """
 
 from copy import copy
@@ -133,6 +146,7 @@ def plot(hyperplane_arrangement, **kwds):
         sage: B = hyperplane_arrangements.semiorder(4)
         sage: B.plot()
         Displaying the essentialization.
+        Graphics3d Object
     """
     N = len(hyperplane_arrangement)
     dim = hyperplane_arrangement.dimension()
@@ -145,17 +159,17 @@ def plot(hyperplane_arrangement, **kwds):
     elif dim not in [1,2,3]: # revise to handle 4d
         return # silently
     # handle extra keywords
-    if kwds.has_key('hyperplane_colors'):
+    if 'hyperplane_colors' in kwds:
         hyp_colors = kwds.pop('hyperplane_colors')
-        if not type(hyp_colors) == list: # we assume its a single color then
+        if not isinstance(hyp_colors, list): # we assume its a single color then
             hyp_colors = [hyp_colors] * N
     else:
         HSV_tuples = [(i*1.0/N, 0.8, 0.9) for i in range(N)]
-        hyp_colors = map(lambda x: hsv_to_rgb(*x), HSV_tuples)
-    if kwds.has_key('hyperplane_labels'):
+        hyp_colors = [hsv_to_rgb(*x) for x in HSV_tuples]
+    if 'hyperplane_labels' in kwds:
         hyp_labels = kwds.pop('hyperplane_labels')
         has_hyp_label = True
-        if not type(hyp_labels) == list: # we assume its a boolean then
+        if not isinstance(hyp_labels, list): # we assume its a boolean then
             hyp_labels = [hyp_labels] * N
         relabeled = []
         for i in range(N):
@@ -166,37 +180,37 @@ def plot(hyperplane_arrangement, **kwds):
         hyp_labels = relabeled
     else:
         has_hyp_label = False
-    if kwds.has_key('label_colors'):
+    if 'label_colors' in kwds:
         label_colors = kwds.pop('label_colors')
         has_label_color = True
-        if not type(label_colors) == list: # we assume its a single color then
+        if not isinstance(label_colors, list): # we assume its a single color then
             label_colors = [label_colors] * N
     else:
         has_label_color = False
-    if kwds.has_key('label_fontsize'):
+    if 'label_fontsize' in kwds:
         label_fontsize = kwds.pop('label_fontsize')
         has_label_fontsize = True
-        if not type(label_fontsize) == list: # we assume its a single size then
+        if not isinstance(label_fontsize, list): # we assume its a single size then
             label_fontsize = [label_fontsize] * N
     else:
         has_label_fontsize = False
-    if kwds.has_key('label_offsets'):
+    if 'label_offsets' in kwds:
         has_offsets = True
         offsets = kwds.pop('label_offsets')
     else:
         has_offsets = False # give default values below
     hyperplane_legend = kwds.pop('hyperplane_legend', 'long' if dim < 3 else False)
-    if kwds.has_key('hyperplane_opacities'):
+    if 'hyperplane_opacities' in kwds:
         hyperplane_opacities = kwds.pop('hyperplane_opacities')
         has_opacity = True
-        if not type(hyperplane_opacities) == list: # we assume a single number then
+        if not isinstance(hyperplane_opacities, list): # we assume a single number then
             hyperplane_opacities = [hyperplane_opacities] * N
     else:
         has_opacity = False
     point_sizes = kwds.pop('point_sizes', 50)
-    if not type(point_sizes) == list:
+    if not isinstance(point_sizes, list):
         point_sizes = [point_sizes] * N
-    if kwds.has_key('ranges'):
+    if 'ranges' in kwds:
         ranges_set = True
         ranges = kwds.pop('ranges')
         if not type(ranges) in [list,tuple]: # ranges is a single number
@@ -235,7 +249,7 @@ def plot(hyperplane_arrangement, **kwds):
         if has_hyp_label:
             newk['hyperplane_label'] = hyp_labels[i]
             if has_offsets:
-                if type(offsets) != list:
+                if not isinstance(offsets, list):
                     newk['label_offset'] = offsets
                 else:
                     newk['label_offset'] = offsets[i]
@@ -319,32 +333,41 @@ def plot_hyperplane(hyperplane, **kwds):
         sage: H1.<x> = HyperplaneArrangements(QQ)
         sage: a = 3*x + 4
         sage: a.plot()    # indirect doctest
+        Graphics object consisting of 3 graphics primitives
         sage: a.plot(point_size=100,hyperplane_label='hello')
+        Graphics object consisting of 3 graphics primitives
 
     
         sage: H2.<x,y> = HyperplaneArrangements(QQ)
         sage: b = 3*x + 4*y + 5
         sage: b.plot()
+        Graphics object consisting of 2 graphics primitives
         sage: b.plot(ranges=(1,5),label_offset=(2,-1))
+        Graphics object consisting of 2 graphics primitives
         sage: opts = {'hyperplane_label':True, 'label_color':'green',
         ....:         'label_fontsize':24, 'label_offset':(0,1.5)}
         sage: b.plot(**opts)
+        Graphics object consisting of 2 graphics primitives
 
         sage: H3.<x,y,z> = HyperplaneArrangements(QQ)
         sage: c = 2*x + 3*y + 4*z + 5
         sage: c.plot()
+        Graphics3d Object
         sage: c.plot(label_offset=(1,0,1), color='green', label_color='red', frame=False)
+        Graphics3d Object
         sage: d = -3*x + 2*y + 2*z + 3
         sage: d.plot(opacity=0.8)
+        Graphics3d Object
         sage: e = 4*x + 2*z + 3
         sage: e.plot(ranges=[[-1,1],[0,8]], label_offset=(2,2,1), aspect_ratio=1)
+        Graphics3d Object
     """
     if hyperplane.base_ring().characteristic() != 0:
         raise NotImplementedError('base field must have characteristic zero')
     elif hyperplane.dimension() not in [0, 1, 2]: # dimension of hyperplane, not ambient space
         raise ValueError('can only plot hyperplanes in dimensions 1, 2, 3')
     # handle extra keywords
-    if kwds.has_key('hyperplane_label'):
+    if 'hyperplane_label' in kwds:
         hyp_label = kwds.pop('hyperplane_label')
         if hyp_label == False:
             has_hyp_label = False
@@ -361,24 +384,24 @@ def plot_hyperplane(hyperplane, **kwds):
                 label = hyperplane._latex_()
         else:
             label = hyp_label # a string
-    if kwds.has_key('label_color'):
+    if 'label_color' in kwds:
         label_color = kwds.pop('label_color')
     else:
         label_color = 'black'
-    if kwds.has_key('label_fontsize'):
+    if 'label_fontsize' in kwds:
         label_fontsize = kwds.pop('label_fontsize')
     else:
         label_fontsize = 14
-    if kwds.has_key('label_offset'):
+    if 'label_offset' in kwds:
         has_offset = True
         label_offset = kwds.pop('label_offset')
     else:
         has_offset = False # give default values below
-    if kwds.has_key('point_size'):
+    if 'point_size' in kwds:
         pt_size = kwds.pop('point_size')
     else:
         pt_size = 50
-    if kwds.has_key('ranges'):
+    if 'ranges' in kwds:
         ranges_set = True
         ranges = kwds.pop('ranges')
     else:
@@ -395,7 +418,7 @@ def plot_hyperplane(hyperplane, **kwds):
             p += text(label, (d/x,label_offset),
                     color=label_color,fontsize=label_fontsize)
             p += text('',(d/x,label_offset+0.4)) # add space at top
-        if not kwds.has_key('ymax'):
+        if 'ymax' not in kwds:
             kwds['ymax'] = 0.5
     elif hyperplane.dimension() == 1: # a line in the plane
         pnt = hyperplane.point()
@@ -473,12 +496,15 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
         sage: a = hyperplane_arrangements.semiorder(3)
         sage: from sage.geometry.hyperplane_arrangement.plot import legend_3d
         sage: legend_3d(a, colors.values()[:6],length='long')
+        Graphics object consisting of 6 graphics primitives
 
         sage: b = hyperplane_arrangements.semiorder(4)
         sage: c = b.essentialization()
         sage: legend_3d(c, colors.values()[:12], length='long')
+        Graphics object consisting of 12 graphics primitives
 
         sage: legend_3d(c, colors.values()[:12], length='short')
+        Graphics object consisting of 12 graphics primitives
 
         sage: p = legend_3d(c, colors.values()[:12], length='short')
         sage: p.set_legend_options(ncol=4)

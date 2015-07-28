@@ -25,6 +25,48 @@ from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 #   Named Graphs
 #######################################################################
 
+def HarborthGraph():
+    r"""
+    Return the Harborth Graph
+
+    The Harborth graph has 104 edges and 52 vertices, and is the smallest known
+    example of a 4-regular matchstick graph. For more information, see the
+    :wikipedia:`Harborth_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HarborthGraph(); g
+        Harborth Graph: Graph on 52 vertices
+        sage: g.is_regular(4)
+        True
+
+    """
+    g = Graph(':s_OGKI?@_?g[QABAo__YEFCp@?iIEbqHWuWLbbh?}[OfcXpGhNHdYPY_SgdYX]'+
+              'pZkfJPuo[lfZHys^mFcDs}`pG{UNNgoHC}DIgrI[qjMhTyDQrQlVydrBYmWkn',
+              loops=False, multiedges=False)
+
+    g.set_pos({ 0: ( 51.5, 400.0),  1: ( 90.6, 308.0),  2: ( 90.6, 492.0),
+                3: (129.8, 216.0),  4: (129.8, 584.0),  5: (150.7, 387.9),
+                6: (150.7, 412.1),  7: (169.0, 124.0),  8: (169.0, 676.0),
+                9: (189.9, 295.9), 10: (189.9, 504.1), 11: (229.1, 203.9),
+               12: (229.1, 596.1), 13: (250.0, 400.0), 14: (251.4, 180.6),
+               15: (251.4, 619.4), 16: (256.1, 300.2), 17: (256.1, 499.8),
+               18: (259.3, 080.9), 19: (259.3, 719.1), 20: (333.8, 237.2),
+               21: (333.8, 562.8), 22: (341.7, 137.5), 23: (341.7, 662.5),
+               24: (350.0, 037.9), 25: (350.0, 336.0), 26: (350.0, 464.0),
+               27: (350.0, 762.1), 28: (358.3, 137.5), 29: (358.3, 662.5),
+               30: (366.2, 237.2), 31: (366.2, 562.8), 32: (440.7, 080.9),
+               33: (440.7, 719.1), 34: (443.9, 300.2), 35: (443.9, 499.8),
+               36: (448.6, 180.6), 37: (448.6, 619.4), 38: (450.0, 400.0),
+               39: (470.9, 203.9), 40: (470.9, 596.1), 41: (510.1, 295.9),
+               42: (510.1, 504.1), 43: (531.0, 124.0), 44: (531.0, 676.0),
+               45: (549.3, 387.9), 46: (549.3, 412.1), 47: (570.2, 216.0),
+               48: (570.2, 584.0), 49: (609.4, 308.0), 50: (609.4, 492.0),
+               51: (648.5, 400.0)})
+    g.name("Harborth Graph")
+    return g
+
+
 def HarriesGraph(embedding=1):
     r"""
     Returns the Harries Graph.
@@ -375,6 +417,194 @@ def WellsGraph():
     _circle_embedding(g, p[1], radius = .9)
     _circle_embedding(g, p[2], radius = .8)
     _circle_embedding(g, p[3], radius = .7)
+
+    return g
+
+def Cell600(embedding=1):
+    r"""
+    Returns the 600-Cell graph
+
+    This is the adjacency graph of the 600-cell. It has 120 vertices and 720
+    edges. For more information, see the :wikipedia:`600-cell`.
+
+    INPUT:
+
+    - ``embedding`` (1 (default) or 2) -- two different embeddings for a plot.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell600()      # long time
+        sage: g.size()                  # long time
+        720
+        sage: g.is_regular(12)          # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 96 vertices
+    step = [[a * f / 2, b * K(1) / 2, c * (f - 1) / 2, 0]
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    vert96 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # 16 more vertices
+    vert16 = [K4([K(a) / 2, K(b) / 2, K(c) / 2, K(d) / 2])
+              for a in [-1, 1] for b in [-1, 1]
+              for c in [-1, 1] for d in [-1, 1]]
+
+    # 8 last vertices
+    vert8 = [K4([1, 0, 0, 0]), K4([-1, 0, 0, 0]),
+             K4([0, 1, 0, 0]), K4([0, -1, 0, 0]),
+             K4([0, 0, 1, 0]), K4([0, 0, -1, 0]),
+             K4([0, 0, 0, 1]), K4([0, 0, 0, -1])]
+
+    # all vertices together
+    U = vert96 + vert16 + vert8
+
+    g = Graph([range(120), lambda i, j: U[i].inner_product(U[j]) == f / 2])
+
+    # Embedding
+    from sage.graphs.graph_plot import _circle_embedding
+    if embedding == 1:
+        pos = [0, 1, 3, 13, 78, 90, 93, 110, 29, 104, 11, 48, 107, 83, 92, 55,
+               32, 16, 117, 24, 26, 56, 52, 47, 75, 72, 66, 112, 27, 115, 21,
+               33, 118, 79, 91, 37, 2, 5, 96, 31, 82, 88, 94, 74, 50, 28, 20,
+               105, 45, 99, 70, 25, 101, 54, 46, 51, 17, 35, 98, 41, 84, 85,
+               87, 73, 18, 6, 9, 97, 65, 103, 95, 36, 100, 23, 8, 43, 68, 76,
+               116, 60, 62, 44, 40, 59, 15, 12, 30, 113, 63, 114, 81, 69, 119,
+               19, 7, 49, 86, 89, 111, 67, 22, 4, 10, 14, 38, 64, 80, 102, 57,
+               108, 34, 61, 106, 42, 58, 39, 77, 71, 109, 53]
+    else:
+        pos = [0, 1, 2, 3, 4, 6, 7, 8, 10, 13, 14, 21, 37, 103, 36, 65, 113,
+               25, 80, 26, 12, 78, 24, 83, 54, 66, 114, 46, 63, 101, 109, 93,
+               79, 75, 51, 44, 31, 119, 43, 5, 57, 100, 11, 108, 34, 41, 69,
+               96, 82, 116, 68, 64, 47, 102, 52, 35, 17, 76, 110, 38, 84, 85,
+               86, 87, 88, 90, 91, 92, 94, 73, 74, 81, 49, 104, 48, 29, 112,
+               61, 20, 62, 72, 18, 60, 23, 42, 30, 115, 58, 27, 106, 98, 9, 19,
+               15, 39, 56, 67, 118, 55, 89, 45, 107, 95, 99, 70, 53, 33, 111,
+               22, 117, 32, 28, 59, 105, 40, 71, 77, 16, 97, 50]
+
+    _circle_embedding(g, pos)
+
+    return g
+
+def Cell120():
+    r"""
+    Returns the 120-Cell graph
+
+    This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
+    edges. For more information, see the :wikipedia:`120-cell`.
+
+    EXAMPLES::
+
+        sage: g = graphs.Cell120()      # long time
+        sage: g.size()                  # long time
+        1200
+        sage: g.is_regular(4)           # long time
+        True
+        sage: g.is_vertex_transitive()  # long time
+        True
+    """
+    from sage.rings.rational_field import QQ
+    from sage.rings.polynomial.polynomial_ring import polygen
+    from sage.rings.number_field.number_field import NumberField
+    from sage.modules.free_module import VectorSpace
+    from sage.groups.perm_gps.permgroup_named import AlternatingGroup
+    from sage.combinat.permutation import Permutations
+
+    x = polygen(QQ, 'x')
+    K = NumberField(x ** 2 - x - 1, 'f')
+    f = K.gen()
+    K4 = VectorSpace(K, 4)
+
+    # first 216 vertices
+    step = [(0, 0, K(a) * 2, K(b) * 2)
+            for a in [-1, 1] for b in [-1, 1]]
+    step += [(a * K(1), b * K(1), c * K(1), d * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1]
+            for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (2 - f), b * f, c * f, d * f)
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    step += [(a * (f - 1), b * (f - 1), c * (f - 1), d * (f + 1))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    ens1 = frozenset([(v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1])
+                      for v in step for s in Permutations(4)])
+    vert1 = [K4(w) for w in ens1]
+
+    # 384 more vertices
+    step = [(0, a * (2 - f), b * K(1), c * (f + 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(0, a * (f - 1), b * f, c * (2 * f - 1))
+            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+    step += [(a * (f - 1), b * K(1), c * f, d * K(2))
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
+    vert2 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
+              for v in step for s in AlternatingGroup(4)]
+
+    # all vertices together
+    U = vert1 + vert2
+
+    g = Graph([range(600), lambda i, j: U[i].inner_product(U[j]) == 6*f-2])
+
+    from sage.graphs.graph_plot import _circle_embedding
+    pos = [0, 1, 3, 5, 6, 7, 8, 9, 11, 12, 14, 15, 16, 17, 20, 21, 23, 24, 25,
+           27, 33, 40, 47, 49, 76, 77, 216, 217, 218, 219, 220, 222, 224, 225,
+           226, 230, 231, 232, 233, 235, 238, 241, 242, 245, 247, 249, 251, 253,
+           260, 261, 211, 66, 26, 307, 598, 305, 187, 374, 311, 205, 296, 108,
+           366, 172, 255, 89, 229, 81, 529, 548, 439, 382, 166, 496, 313, 484,
+           402, 234, 530, 256, 358, 406, 553, 577, 583, 401, 334, 417, 257, 438,
+           373, 544, 509, 365, 378, 487, 377, 390, 349, 325, 65, 78, 184, 13,
+           185, 18, 210, 84, 145, 83, 180, 158, 118, 109, 103, 130, 105, 51,
+           178, 155, 110, 85, 206, 95, 204, 190, 514, 513, 515, 466, 467, 441,
+           442, 587, 585, 576, 565, 564, 566, 540, 506, 436, 435, 424, 507, 543,
+           545, 547, 582, 440, 169, 63, 29, 575, 237, 549, 37, 375, 430, 159,
+           457, 61, 331, 208, 498, 39, 578, 48, 244, 486, 411, 364, 73, 455,
+           321, 240, 381, 542, 243, 500, 343, 333, 271, 518, 552, 357, 314, 299,
+           499, 412, 376, 596, 561, 319, 400, 264, 388, 362, 355, 386, 87, 186,
+           52, 99, 125, 113, 36, 121, 41, 127, 149, 100, 31, 137, 177, 43, 32,
+           45, 62, 191, 188, 106, 195, 141, 142, 96, 489, 491, 490, 475, 474,
+           447, 448, 589, 588, 517, 472, 473, 471, 450, 419, 519, 521, 468, 562,
+           594, 595, 488, 554, 413, 167, 116, 4, 557, 504, 536, 170, 389, 410,
+           128, 559, 203, 348, 147, 477, 22, 516, 162, 423, 266, 274, 320, 144,
+           246, 395, 437, 363, 452, 425, 478, 315, 312, 428, 288, 270, 344, 323,
+           493, 479, 275, 387, 286, 284, 347, 359, 462, 336, 368, 392, 324, 44,
+           75, 69, 46, 57, 138, 35, 80, 88, 199, 70, 152, 161, 181, 34, 207,
+           164, 71, 115, 55, 163, 72, 171, 93, 165, 124, 300, 301, 302, 303,
+           304, 306, 308, 309, 310, 290, 291, 292, 293, 295, 298, 277, 278, 281,
+           283, 285, 287, 265, 272, 273, 19, 10, 107, 223, 418, 221, 67, 338,
+           227, 196, 236, 91, 354, 154, 267, 30, 289, 215, 469, 464, 571, 346,
+           151, 508, 397, 520, 318, 294, 470, 268, 370, 322, 445, 421, 427, 317,
+           394, 597, 269, 570, 337, 460, 497, 353, 342, 523, 341, 330, 361, 385,
+           126, 92, 94, 176, 135, 117, 114, 197, 214, 179, 60, 42, 198, 202,
+           102, 101, 174, 104, 146, 90, 38, 111, 122, 157, 153, 133, 502, 501,
+           503, 550, 551, 573, 574, 431, 429, 420, 433, 432, 434, 456, 494, 568,
+           567, 580, 495, 459, 461, 463, 426, 572, 182, 58, 82, 443, 297, 465,
+           86, 339, 586, 209, 541, 140, 391, 143, 510, 28, 422, 213, 280, 522,
+           591, 352, 120, 563, 405, 276, 345, 458, 279, 512, 379, 393, 259, 482,
+           444, 369, 398, 239, 511, 592, 340, 416, 453, 403, 316, 252, 328, 350,
+           367, 326, 2, 175, 97, 139, 74, 131, 173, 134, 193, 192, 132, 79, 50,
+           200, 64, 150, 201, 194, 212, 183, 54, 56, 98, 123, 112, 156, 525,
+           527, 526, 535, 534, 555, 556, 409, 408, 481, 532, 533, 531, 558, 599,
+           483, 485, 528, 454, 414, 415, 524, 446, 593, 160, 59, 68, 449, 492,
+           476, 148, 329, 590, 119, 451, 189, 360, 53, 537, 129, 480, 136, 579,
+           254, 262, 404, 168, 282, 335, 569, 351, 560, 581, 538, 399, 396, 584,
+           228, 258, 380, 407, 505, 539, 263, 327, 250, 248, 383, 371, 546, 372,
+           356, 332, 384]
+    _circle_embedding(g, pos)
 
     return g
 
@@ -1169,7 +1399,7 @@ def BrouwerHaemersGraph():
     V = VectorSpace(F,d)
     M = Matrix(F,identity_matrix(d))
     M[1,1]=-1
-    G = Graph([map(tuple,V), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G = Graph([[tuple(_) for _ in V], lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
@@ -1299,6 +1529,45 @@ def BuckyBall():
     g.set_pos(pos)
 
     return g
+
+def GossetGraph():
+    r"""
+    Return the Gosset graph.
+
+    The Gosset graph is the skeleton of the
+    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    has with 56 vertices and degree 27. For more information, see the
+    :wikipedia:`Gosset_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.GossetGraph(); g
+        Gosset Graph: Graph on 56 vertices
+
+        sage: g.order(), g.size()
+        (56, 756)
+
+    TESTS::
+
+        sage: g.is_isomorphic(polytopes.Gosset_3_21().graph()) # not tested (~16s)
+        True
+    """
+    string = ('w~~~~rt{~Z\\ZxnvYZYmlfrb}|hDuhLlcmmMNf_^zzQGNYcP\\kcRZbaJjoNBx{'+
+              '?N~o^}?A`}F_Kbbm_[QZ\\_]Cj\\oN_dm{BzB{?]WIMM@tPQRYBYRPIuAyJgQv?'+
+              '|Bxb_M[kWIR@jTQcciDjShXCkFMgpwqBKxeKoS`TYqdTCcKtkdKwWQXrbEZ@OdU'+
+              'mITZ@_e[{KXn?YPABzvY?IcO`zvYg@caC\\zlf?BaGR]zb{?@wOjv`~w??N_n_~'+
+              '~w???^_^~~{')
+
+    G = Graph(string,name="Gosset Graph")
+
+    ordering = [0, 2, 4, 6, 43, 23, 50, 18, 28, 9, 8, 7, 44, 3, 26, 35, 16, 14,
+                33, 15, 54, 30, 17, 21, 10, 13, 36, 31, 55, 53, 51, 49, 12, 32,
+                5, 37, 27, 46, 47, 48, 11, 52, 29, 20, 39, 41, 22, 40, 1, 25, 38,
+                34, 45, 42, 19, 24]
+
+    _circle_embedding(G,ordering)
+
+    return G
 
 def DoubleStarSnark():
     r"""
@@ -1540,8 +1809,16 @@ def ChvatalGraph():
         2
         2
         4
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.ChvatalGraph()
+        sage: G.is_isomorphic(Graph(networkx.chvatal_graph()))
+        True
     """
-    import networkx
+    edges = {0:[1, 4, 6, 9], 1:[2, 5, 7], 2:[3, 6, 8], 3:[4, 7, 9], 4:[5, 8],
+             5:[10, 11], 6:[10, 11], 7:[8, 11], 8:[10], 9:[10, 11]}
     pos_dict = {}
     for i in range(5, 10):
         x = float(cos((pi / 2) + ((2 * pi) / 5) * i))
@@ -1554,7 +1831,7 @@ def ChvatalGraph():
     pos_dict[10] = (0.5, 0)
     pos_dict[11] = (-0.5, 0)
 
-    return Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+    return Graph(edges, pos=pos_dict, name="Chvatal graph")
 
 def ClebschGraph():
     r"""
@@ -1626,6 +1903,34 @@ def CoxeterGraph():
 
     g.name("Coxeter Graph")
 
+    return g
+
+def DejterGraph():
+    r"""
+    Return the Dejter graph.
+
+    The Dejter graph is obtained from the binary 7-cube by deleting a copy of
+    the Hamming code of length 7. It is 6-regular, with 112 vertices and 336
+    edges. For more information, see the :wikipedia:`Dejter_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.DejterGraph(); g
+        Dejter Graph: Graph on 112 vertices
+        sage: g.is_regular(k=6)
+        True
+        sage: g.girth()
+        4
+    """
+    from sage.graphs.generators.families import CubeGraph
+    from sage.coding.code_constructions import HammingCode
+    from sage.rings.finite_rings.constructor import FiniteField
+
+    from string import join
+    g = CubeGraph(7)
+    g.delete_vertices([join(map(str,x),"")
+                       for x in HammingCode(3, FiniteField(2))])
+    g.name("Dejter Graph")
     return g
 
 def DesarguesGraph():
@@ -2106,6 +2411,33 @@ def ErreraGraph():
         14: [16]}
     return Graph(edge_dict, name="Errera graph")
 
+def F26AGraph():
+    r"""
+    Return the F26A graph.
+
+    The F26A graph is a symmetric bipartite cubic graph with 26 vertices and 39
+    edges. For more information, see the :wikipedia:`F26A_graph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.F26AGraph(); g
+        F26A Graph: Graph on 26 vertices
+        sage: g.order(),g.size()
+        (26, 39)
+        sage: g.automorphism_group().cardinality()
+        78
+        sage: g.girth()
+        6
+        sage: g.is_bipartite()
+        True
+        sage: g.characteristic_polynomial().factor()
+        (x - 3) * (x + 3) * (x^4 - 5*x^2 + 3)^6
+    """
+    from sage.graphs.generators.families import LCFGraph
+    g= LCFGraph(26, [7,-7],13)
+    g.name("F26A Graph")
+    return g
+
 def FlowerSnark():
     """
     Returns a Flower Snark.
@@ -2295,8 +2627,6 @@ def FruchtGraph():
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic
     identity graph. It is planar and it is Hamiltonian.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the first
     seven nodes are on the outer circle, with the next four on an inner
@@ -2316,7 +2646,16 @@ def FruchtGraph():
         sage: FRUCHT.graph6_string()
         'KhCKM?_EGK?L'
         sage: (graphs.FruchtGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.FruchtGraph()
+        sage: G.is_isomorphic(Graph(networkx.frucht_graph()))
+        True
     """
+    edges = {0:[1, 6, 7], 1:[2, 7], 2:[3, 8], 3:[4, 9], 4:[5, 9],
+             5:[6, 10], 6:[10], 7:[11], 8:[9, 11], 10:[11]}
     pos_dict = {}
     for i in range(7):
         x = float(2*(cos((pi/2) + ((2*pi)/7)*i)))
@@ -2327,9 +2666,7 @@ def FruchtGraph():
     pos_dict[9] = (0,-1)
     pos_dict[10] = (1,0)
     pos_dict[11] = (0,0)
-    import networkx
-    G = networkx.frucht_graph()
-    return Graph(G, pos=pos_dict, name="Frucht graph")
+    return Graph(edges, pos=pos_dict, name="Frucht graph")
 
 def GoldnerHararyGraph():
     r"""
@@ -2539,8 +2876,6 @@ def HeawoodGraph():
     nonplanar and Hamiltonian. It has diameter = 3, radius = 3, girth =
     6, chromatic number = 2. It is 4-transitive but not 5-transitive.
 
-    This constructor is dependent on NetworkX's numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the nodes are
     positioned in a circular layout with the first node appearing at
@@ -2560,15 +2895,22 @@ def HeawoodGraph():
         sage: H.graph6_string()
         'MhEGHC@AI?_PC@_G_'
         sage: (graphs.HeawoodGraph()).show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.HeawoodGraph()
+        sage: G.is_isomorphic(Graph(networkx.heawood_graph()))
+        True
     """
+    edges = {0:[1, 5, 13], 1:[2, 10], 2:[3, 7], 3:[4, 12], 4:[5, 9], 5:[6],
+             6:[7, 11], 7:[8], 8:[9, 13], 9:[10], 10:[11], 11:[12], 12:[13]}
     pos_dict = {}
     for i in range(14):
         x = float(cos((pi/2) + (pi/7)*i))
         y = float(sin((pi/2) + (pi/7)*i))
         pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.heawood_graph()
-    return Graph(G, pos=pos_dict, name="Heawood graph")
+    return Graph(edges, pos=pos_dict, name="Heawood graph")
 
 def HerschelGraph():
     r"""
@@ -3000,8 +3342,6 @@ def KrackhardtKiteGraph():
     - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
       http://www.orgnet.com/sna.html
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the graph is
     drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
@@ -3022,11 +3362,106 @@ def KrackhardtKiteGraph():
 
         sage: g = graphs.KrackhardtKiteGraph()
         sage: g.show() # long time
+
+    TEST:
+
+        sage: import networkx
+        sage: G = graphs.KrackhardtKiteGraph()
+        sage: G.is_isomorphic(Graph(networkx.krackhardt_kite_graph()))
+        True
     """
+    edges = {0:[1, 2, 3, 5], 1:[3, 4, 6], 2:[3, 5], 3:[4, 5, 6],
+             4:[6], 5:[6, 7], 6:[7], 7:[8], 8:[9]}
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
-    import networkx
-    G = networkx.krackhardt_kite_graph()
-    return Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
+    return Graph(edges, pos=pos_dict, name="Krackhardt Kite Graph")
+
+def Klein3RegularGraph():
+    r"""
+    Return the Klein 3-regular graph.
+
+    The cubic Klein graph has 56 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein7RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein3RegularGraph(); g
+        Klein 3-regular Graph: Graph on 56 vertices
+        sage: g.order(), g.size()
+        (56, 84)
+        sage: g.girth()
+        7
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        3
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g3 = Graph(':w`_GKWDBap`CMWFCpWsQUNdBwwuXPHrg`U`RIqypehVLqgHupYcFJyAv^Prk]'+
+               'EcarHwIVHAKh|\\tLVUxT]`ZDTJ{Af[o_AuKs{r_?ef',
+               loops=False, multiedges=False)
+    _circle_embedding(g3,[0, 2, 3, 4, 6, 8, 14, 1, 37, 30, 34, 48, 55, 43, 40,
+                          45, 18, 20, 47, 42, 23, 17, 16, 10, 41, 11, 49, 25,
+                          51, 26, 54, 9, 22, 15, 21, 12, 24, 7, 52, 31, 32, 36,
+                          46, 35, 29, 50, 27, 19, 28, 5, 33, 13, 53, 39, 38, 44])
+    g3.name("Klein 3-regular Graph")
+    return g3
+
+def Klein7RegularGraph():
+    r"""
+    Return the Klein 7-regular graph.
+
+    The 7-valent Klein graph has 24 vertices and can be embedded on a surface of
+    genus 3. It is the dual of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.Klein3RegularGraph`. For
+    more information, see the :wikipedia:`Klein_graphs`.
+
+    EXAMPLE::
+
+        sage: g = graphs.Klein7RegularGraph(); g
+        Klein 7-regular Graph: Graph on 24 vertices
+        sage: g.order(), g.size()
+        (24, 84)
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        336
+        sage: g.chromatic_number()
+        4
+    """
+    from sage.graphs.graph_plot import _circle_embedding
+    g7 = Graph(':W__@`AaBbC_CDbDcE`F_AG_@DEH_IgHIJbFGIKaFHILeFGHMdFKN_EKOPaCNP'+
+               'Q`HOQRcGLRS`BKMSTdJKLPTU',loops=False,multiedges=False)
+    _circle_embedding(g7,[0, 2, 3, 1, 9, 16, 20, 21, 4, 19, 17, 7, 15,
+                          10, 8, 13, 11, 5, 23, 22, 14, 12, 18, 6])
+    g7.name("Klein 7-regular Graph")
+    return g7
+
+def LocalMcLaughlinGraph():
+    r"""
+    Return the local McLaughlin graph
+
+    The local McLaughlin graph is a strongly regular graph with parameters
+    `(162,56,10,24)`. It can be obtained from
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph` by
+    considering the stabilizer of a point: one of its orbits has cardinality
+    162.
+
+    EXAMPLES::
+
+        sage: g = graphs.LocalMcLaughlinGraph(); g   # long time # optional - gap_packages
+        Local McLaughlin Graph: Graph on 162 vertices
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        (162, 56, 10, 24)
+    """
+    g = McLaughlinGraph()
+    orbits = g.automorphism_group().stabilizer(1).orbits()
+    orbit = [x for x in orbits if len(x) == 162][0]
+    g = g.subgraph(vertices=orbit)
+    g.relabel()
+    g.name("Local McLaughlin Graph")
+    return g
 
 def LjubljanaGraph(embedding=1):
     r"""
@@ -3114,6 +3549,35 @@ def LjubljanaGraph(embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def LivingstoneGraph():
+    r"""
+    Returns the Livingstone Graph.
+
+    The Livingstone graph is a distance-transitive graph on 266 vertices whose
+    automorphism group is the :class:`J1 group
+    <sage.groups.perm_gps.permgroup_named.JankoGroup>`. For more information,
+    see the :wikipedia:`Livingstone_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.LivingstoneGraph() # optional - gap_packages internet
+        sage: g.order()                     # optional - gap_packages internet
+        266
+        sage: g.size()                      # optional - gap_packages internet
+        1463
+        sage: g.girth()                     # optional - gap_packages internet
+        5
+        sage: g.is_vertex_transitive()      # optional - gap_packages internet
+        True
+        sage: g.is_distance_regular()       # optional - gap_packages internet
+        True
+    """
+    from sage.groups.perm_gps.permgroup_named import JankoGroup
+    from sage.graphs.graph import Graph
+    G = JankoGroup(1)
+    edges = map(tuple,G.orbit((1,24),action="OnSets"))
+    return Graph(edges,name="Livingstone Graph")
+
 def M22Graph():
     r"""
     Returns the M22 graph.
@@ -3135,7 +3599,7 @@ def M22Graph():
         (77, 16, 0, 4)
     """
     from sage.groups.perm_gps.permgroup_named import MathieuGroup
-    sets = map(tuple,MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets"))
+    sets = [tuple(_) for _ in MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets")]
     g = Graph([sets, lambda x,y : not any(xx in y for xx in x)], name="M22 Graph")
     g.relabel()
     ordering = [0, 1, 3, 4, 5, 6, 7, 10, 12, 19, 20, 31, 2, 24, 35, 34, 22, 32,
@@ -3282,11 +3746,11 @@ def McLaughlinGraph():
     from itertools import combinations
     from sage.sets.set import Set
 
-    blocks = WittDesign(23).blocks()
-    blocks = map(Set, blocks)
+    blocks = [Set(_) for _ in WittDesign(23).blocks()]
+
     B = [b for b in blocks if 0 in b]
-    C = [b for b in blocks if not 0 in b]
-    g = graph.Graph()
+    C = [b for b in blocks if 0 not in b]
+    g = Graph()
     for b in B:
         for x in range(23):
             if not x in b:
@@ -3533,6 +3997,33 @@ def PetersenGraph():
     P.name("Petersen graph")
     return P
 
+def PerkelGraph():
+    r"""
+    Return the Perkel Graph.
+
+    The Perkel Graph is a 6-regular graph with `57` vertices and `171` edges. It
+    is the unique distance-regular graph with intersection array
+    `(6,5,2;1,1,3)`. For more information, see the :wikipedia:`Perkel_graph` or
+    http://www.win.tue.nl/~aeb/graphs/Perkel.html.
+
+    EXAMPLE::
+
+        sage: g = graphs.PerkelGraph(); g
+        Perkel Graph: Graph on 57 vertices
+        sage: g.is_distance_regular(parameters=True)
+        ([6, 5, 2, None], [None, 1, 1, 3])
+    """
+    g = Graph(name="Perkel Graph")
+    for i in range(19):
+        g.add_edges(((0, i), (1, (i + j) % 19)) for j in [2, 5, 7])
+        g.add_edges(((0, i), (2, (i + j) % 19)) for j in [5, -4, -8])
+        g.add_edges(((1, i), (2, (i + j) % 19)) for j in [7, -4, -5])
+    g.relabel()
+    _circle_embedding(g,[0, 2, 3, 35, 8, 33, 45, 5, 53, 51, 18, 50, 29, 46, 30,
+                         48, 40, 17, 20, 27, 43, 16, 7, 14, 6, 4, 15, 41, 24, 37,
+                         28, 9, 55, 38, 19, 34, 39, 36, 54, 52, 44, 23, 12, 22,
+                         32, 10, 13, 26, 1, 21, 42, 56, 49, 31, 47, 11, 25])
+    return g
 
 def RobertsonGraph():
     """
@@ -3644,7 +4135,7 @@ def ShrikhandeGraph():
         sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
         ....:     for i in range(G.order())
         ....:     for j in range(i) ])
-        set([2])
+        {2}
 
     It is non-planar, and both Hamiltonian and Eulerian::
 
@@ -3735,7 +4226,7 @@ def SylvesterGraph():
         True
     """
     g = HoffmanSingletonGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
@@ -3775,7 +4266,7 @@ def SimsGewirtzGraph():
 
     """
     g = HigmanSimsGraph()
-    e = g.edge_iterator(labels = False).next()
+    e = next(g.edge_iterator(labels = False))
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
     ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,
@@ -3885,10 +4376,9 @@ def ThomsenGraph():
         'EFz_'
         sage: (graphs.ThomsenGraph()).show() # long time
     """
+    edges = {0:[3, 4, 5], 1:[3, 4, 5], 2:[3, 4, 5]}
     pos_dict = {0:(-1,1),1:(0,1),2:(1,1),3:(-1,0),4:(0,0),5:(1,0)}
-    import networkx
-    G = networkx.complete_bipartite_graph(3,3)
-    return Graph(G, pos=pos_dict, name="Thomsen graph")
+    return Graph(edges, pos=pos_dict, name="Thomsen graph")
 
 def TietzeGraph():
     r"""
@@ -3913,7 +4403,7 @@ def TietzeGraph():
         sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
         True
     """
-    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8)], name="Tietze Graph")
     g.add_cycle(range(9))
     g.add_cycle([9,10,11])
     _circle_embedding(g,range(9))

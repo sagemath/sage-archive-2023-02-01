@@ -1,11 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-
-
-include "sage/ext/stdsage.pxi"
 
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
@@ -14,6 +12,7 @@ import arith
 from sage.libs.all import PariError
 from power_series_ring_element import is_PowerSeries
 import rational_field
+from sage.misc.superseded import deprecated_function_alias
 
 cdef class PowerSeries_poly(PowerSeries):
 
@@ -21,7 +20,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         EXAMPLES::
 
-            sage: R, q = PowerSeriesRing(CC, 'q').objgen()
+            sage: R.<q> = PowerSeriesRing(CC)
             sage: R
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q
@@ -37,12 +36,12 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + O(t^5)
         """
         R = parent._poly_ring()
-        if PY_TYPE_CHECK(f, Element):
+        if isinstance(f, Element):
             if (<Element>f)._parent is R:
                 pass
             elif (<Element>f)._parent == R.base_ring():
                 f = R([f])
-            elif PY_TYPE_CHECK(f, PowerSeries_poly):
+            elif isinstance(f, PowerSeries_poly):
                 prec = (<PowerSeries_poly>f)._prec
                 f = R((<PowerSeries_poly>f).__f)
             else:
@@ -294,7 +293,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         if len(kwds) >= 1:
             name = P.variable_name()
-            if kwds.has_key(name): # a keyword specifies the power series generator
+            if name in kwds: # a keyword specifies the power series generator
                 if len(x) > 0:
                     raise ValueError, "must not specify %s keyword and positional argument" % name
                 a = self(kwds[name])
@@ -554,34 +553,6 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = PowerSeriesRing(ZZ)
-            sage: f = x^4
-            sage: f += x; f
-            x + x^4
-            sage: g = x^2 + O(x^3); g
-            x^2 + O(x^3)
-            sage: f += g; f
-            x + x^2 + O(x^3)
-            sage: f._iadd_(g)
-            x + 2*x^2 + O(x^3)
-        """
-        cdef PowerSeries_poly right = <PowerSeries_poly>right_m
-        self.__f += right.__f
-        if self._prec is not infinity:
-            if self._prec < right._prec:
-                self.__f = self.__f._inplace_truncate(self._prec)
-            else:
-                self.__f = self.__f._inplace_truncate(right._prec)
-                self._prec = right._prec
-        elif right._prec is not infinity:
-            self.__f = self.__f._inplace_truncate(right._prec)
-            self._prec = right._prec
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Return the difference of two power series.
@@ -613,29 +584,6 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cpdef RingElement _imul_(self, RingElement right_r):
-        """
-        Set self to self * right_r, and return this result.
-
-        EXAMPLES::
-
-            sage: k.<w> = ZZ[[]]
-            sage: f = (1+17*w+15*w^3+O(w^5))
-            sage: f *= (19*w^10+O(w^12))
-            sage: f
-            19*w^10 + 323*w^11 + O(w^12)
-
-            sage: f = 1 + w^2 + O(w^5)
-            sage: f._imul_(w^3)
-            w^3 + w^5 + O(w^8)
-        """
-        prec = self._mul_prec(right_r)
-        self.__f *= (<PowerSeries_poly>right_r).__f
-        if prec is not infinity:
-            self.__f = self.__f._inplace_truncate(prec)
-            self._prec = prec
-        return self
-
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
         Multiply self on the right by a scalar.
@@ -662,22 +610,6 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
 
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        """
-        Set self to self left-multiplied by a scalar.
-
-        EXAMPLES::
-
-            sage: R.<t> = GF(13)[[]]
-            sage: f = 3 + 7*t^3 + O(t^4)
-            sage: f._ilmul_(2)
-            6 + t^3 + O(t^4)
-            sage: f *= 7 ; f
-            3 + 7*t^3 + O(t^4)
-        """
-        self.__f *= c
-        return self
-
     def __floordiv__(self, denom):
         """
         EXAMPLES::
@@ -698,7 +630,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         try:
             return PowerSeries.__div__(self, denom)
-        except (PariError, ZeroDivisionError), e: # PariError to general?
+        except (PariError, ZeroDivisionError) as e: # PariError to general?
             if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
                 denom = denom[0]
             elif not denom in self._parent.base_ring():
@@ -905,14 +837,14 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f.integral(var),
                                 self.prec()+1, check=False)
 
-    def reversion(self, precision=None):
+    def reverse(self, precision=None):
         """
-        Return the reversion of f, i.e., the series g such that g(f(x)) =
-        x.  Given an optional argument ``precision``, return the reversion
-        with given precision (note that the reversion can have precision at
-        most ``f.prec()``).  If ``f`` has infinite precision, and the argument
-        ``precision`` is not given, then the precision of the reversion
-        defaults to the default precision of ``f.parent()``.
+        Return the reverse of f, i.e., the series g such that g(f(x)) = x.
+        Given an optional argument ``precision``, return the reverse with given
+        precision (note that the reverse can have precision at most
+        ``f.prec()``).  If ``f`` has infinite precision, and the argument
+        ``precision`` is not given, then the precision of the reverse defaults
+        to the default precision of ``f.parent()``.
 
         Note that this is only possible if the valuation of self is exactly
         1.
@@ -924,14 +856,14 @@ cdef class PowerSeries_poly(PowerSeries):
         a message if passing to pari fails.
 
         If the base ring has positive characteristic, then we attempt to
-        lift to a characteristic zero ring and perform the reversion there.
+        lift to a characteristic zero ring and perform the reverse there.
         If this fails, an error is raised.
 
         EXAMPLES::
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 2*x + 3*x^2 - x^4 + O(x^5)
-            sage: g = f.reversion()
+            sage: g = f.reverse()
             sage: g
             1/2*x - 3/8*x^2 + 9/16*x^3 - 131/128*x^4 + O(x^5)
             sage: f(g)
@@ -941,7 +873,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: a = t - t^2 - 2*t^4 + t^5 + O(t^6)
-            sage: b = a.reversion(); b
+            sage: b = a.reverse(); b
             t + t^2 + 2*t^3 + 7*t^4 + 25*t^5 + O(t^6)
             sage: a(b)
             t + O(t^6)
@@ -951,7 +883,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: B.<b,c> = PolynomialRing(ZZ)
             sage: A.<t> = PowerSeriesRing(B)
             sage: f = t + b*t^2 + c*t^3 + O(t^4)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             t - b*t^2 + (2*b^2 - c)*t^3 + O(t^4)
             sage: f(g)
             t + O(t^4)
@@ -962,7 +894,7 @@ cdef class PowerSeries_poly(PowerSeries):
             sage: B.<s> = A[[]]
             sage: f = (1 - 3*t + 4*t^3 + O(t^4))*s + (2 + t + t^2 + O(t^3))*s^2 + O(s^3)
             sage: set_verbose(1)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             verbose 1 (<module>) passing to pari failed; trying Lagrange inversion
             (1 + 3*t + 9*t^2 + 23*t^3 + O(t^4))*s + (-2 - 19*t - 118*t^2 + O(t^3))*s^2 + O(s^3)
             sage: set_verbose(0)
@@ -974,13 +906,13 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: a = 2*t - 4*t^2 + t^4 - t^5 + O(t^6)
-            sage: a.reversion()
+            sage: a.reverse()
             1/2*t + 1/2*t^2 + t^3 + 79/32*t^4 + 437/64*t^5 + O(t^6)
 
             sage: B.<b> = PolynomialRing(ZZ)
             sage: A.<t> = PowerSeriesRing(B)
             sage: f = 2*b*t + b*t^2 + 3*b^2*t^3 + O(t^4)
-            sage: g = f.reversion(); g
+            sage: g = f.reverse(); g
             1/(2*b)*t - 1/(8*b^2)*t^2 + ((-3*b + 1)/(16*b^3))*t^3 + O(t^4)
             sage: f(g)
             t + O(t^4)
@@ -991,7 +923,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: A8.<t> = PowerSeriesRing(Zmod(8))
             sage: a = t - 15*t^2 - 2*t^4 + t^5 + O(t^6)
-            sage: b = a.reversion(); b
+            sage: b = a.reverse(); b
             t + 7*t^2 + 2*t^3 + 5*t^4 + t^5 + O(t^6)
             sage: a(b)
             t + O(t^6)
@@ -1002,7 +934,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 2*x + 3*x^2 - 7*x^3 + x^4 + O(x^5)
-            sage: g = f.reversion(precision=3); g
+            sage: g = f.reverse(precision=3); g
             1/2*x - 3/8*x^2 + O(x^3)
             sage: f(g)
             x + O(x^3)
@@ -1014,9 +946,9 @@ cdef class PowerSeries_poly(PowerSeries):
         ring::
 
             sage: R.<x> = PowerSeriesRing(QQ, default_prec=20)
-            sage: (x - x^2).reversion() # get some Catalan numbers
+            sage: (x - x^2).reverse() # get some Catalan numbers
             x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + 42*x^6 + 132*x^7 + 429*x^8 + 1430*x^9 + 4862*x^10 + 16796*x^11 + 58786*x^12 + 208012*x^13 + 742900*x^14 + 2674440*x^15 + 9694845*x^16 + 35357670*x^17 + 129644790*x^18 + 477638700*x^19 + O(x^20)
-            sage: (x - x^2).reversion(precision=3)
+            sage: (x - x^2).reverse(precision=3)
             x + x^2 + O(x^3)
 
 
@@ -1024,7 +956,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
             sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 1 + 2*x + 3*x^2 - x^4 + O(x^5)
-            sage: f.reversion()
+            sage: f.reverse()
             Traceback (most recent call last):
             ...
             ValueError: Series must have valuation one for reversion.
@@ -1075,7 +1007,7 @@ cdef class PowerSeries_poly(PowerSeries):
             verbose("characteristic zero base is "+str(base_lift))
             f_lift = f.change_ring(base_lift)
             verbose("f_lift is "+str(f_lift))
-            rev_lift = f_lift.reversion()
+            rev_lift = f_lift.reverse()
             return rev_lift.change_ring(f.base_ring())
 
         t = f.parent().gen()
@@ -1089,6 +1021,138 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
+
+    reversion = deprecated_function_alias(17724, reverse)
+
+    def pade(self, m, n):
+        r"""
+        Returns the Padé approximant of ``self`` of index `(m, n)`.
+
+        The Padé approximant of index `(m, n)` of a formal power
+        series `f` is the quotient `Q/P` of two polynomials `Q` and `P`
+        such that `\deg(Q)\leq m`, `\deg(P)\leq n` and
+
+        .. MATH::
+
+            f(z) - Q(z)/P(z) = O(z^{m+n+1}).
+
+        The formal power series `f` must be known up to order `n + m + 1`.
+
+        See :wikipedia:`Padé\_approximant`
+
+        INPUT:
+
+        - ``m``, ``n`` -- integers, describing the degrees of the polynomials
+
+        OUTPUT:
+
+        a ratio of two polynomials
+
+        .. WARNING::
+
+            The current implementation uses a very slow algorithm and is not
+            suitable for high orders.
+
+        ALGORITHM:
+
+        This method uses the formula as a quotient of two determinants.
+
+        .. SEEALSO::
+
+            * :mod:`sage.matrix.berlekamp_massey`,
+            * :meth:`sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint.rational_reconstruct`
+
+        EXAMPLES::
+
+            sage: z = PowerSeriesRing(QQ, 'z').gen()
+            sage: exp(z).pade(4, 0)
+            1/24*z^4 + 1/6*z^3 + 1/2*z^2 + z + 1
+            sage: exp(z).pade(1, 1)
+            (-z - 2)/(z - 2)
+            sage: exp(z).pade(3, 3)
+            (-z^3 - 12*z^2 - 60*z - 120)/(z^3 - 12*z^2 + 60*z - 120)
+            sage: log(1-z).pade(4, 4)
+            (25/6*z^4 - 130/3*z^3 + 105*z^2 - 70*z)/(z^4 - 20*z^3 + 90*z^2
+            - 140*z + 70)
+            sage: sqrt(1+z).pade(3, 2)
+            (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
+            sage: exp(2*z).pade(3, 3)
+            (-z^3 - 6*z^2 - 15*z - 15)/(z^3 - 6*z^2 + 15*z - 15)
+
+        TESTS:
+
+        With real coefficients::
+
+            sage: R.<z> = RR[[]]
+            sage: f = exp(2*z)
+            sage: f.pade(3, 3) # abs tol 1e-10
+            (-1.0*z^3 - 6.0*z^2 - 15.0*z - 15.0)/(z^3 - 6.0*z^2 + 15.0*z - 15.0)
+
+        When precision is too low::
+
+            sage: f = z + O(z**6)
+            sage: f.pade(4, 4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision of the series is not large enough
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.matrix.constructor import Matrix
+        if self.precision_absolute() < n + m + 2:
+            raise ValueError("the precision of the series is not large enough")
+        polyring = self.parent()._poly_ring()
+        z = polyring.gen()
+        c = self.list()
+        mat = Matrix(polyring, n + 1, n + 1)
+        for i in range(1, n + 1):
+            for j in range(n + 1):
+                mat[i, j] = c[m + i - j]
+        for j in range(n + 1):
+            mat[0, j] = z ** j
+        resu_v = mat.determinant().truncate(n + 1)
+        lead_v = resu_v.leading_coefficient()
+        resu_v = resu_v / lead_v
+        for j in range(n + 1):
+            mat[0, j] = z ** j * (self.truncate(max(m - j + 1, 0)))
+        resu_u = mat.determinant().truncate(m + 1)
+        lead_u = resu_u.leading_coefficient()
+        resu_u = resu_u / lead_u
+        return lead_u / lead_v * resu_u / resu_v
+
+    def _symbolic_(self, ring):
+        """
+        Conversion to symbolic series.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: s = R([1,2,3,4,5],prec=10); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^10)
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + Order(x^10)
+            sage: SR(s).is_terminating_series()
+            False
+            sage: SR(s).variables()
+            (x,)
+            sage: s = R([1,2,3,4,5]); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: _.is_terminating_series()
+            True
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.infinity import PlusInfinity
+        poly = self.polynomial()
+        pex = SR(poly)
+        var = pex.variables()[0]
+        if not isinstance(self.prec(), PlusInfinity):
+            # GiNaC does not allow manual addition of bigoh,
+            # so we use a trick.
+            pex += var**(self.prec()+1)
+            return pex.series(var, self.prec())
+        else:
+            return pex.series(var, max(poly.exponents())+1)
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

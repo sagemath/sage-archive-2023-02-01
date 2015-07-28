@@ -174,10 +174,12 @@ Python floats.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import os, re
+import os
+import re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import verbose, DOT_SAGE
+from sage.misc.all import verbose
+from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 
@@ -236,9 +238,9 @@ class PanAxiom(Expect):
             sage: a.quit()       #optional - axiom
         """
         Expect._start(self)
-        out = self._eval_line(')set functions compile on', reformat=False)
-        out = self._eval_line(')set output length 245', reformat=False)
-        out = self._eval_line(')set message autoload off', reformat=False)
+        self._eval_line(')set functions compile on', reformat=False)
+        self._eval_line(')set output length 245', reformat=False)
+        self._eval_line(')set message autoload off', reformat=False)
 
     def _read_in_file_command(self, filename):
         r"""
@@ -258,11 +260,11 @@ class PanAxiom(Expect):
             sage: f.write('xx := 22;\n')
             sage: f.close()
             sage: axiom.read(filename)    # optional - axiom
-            sage: axiom.get('xx')         #optional
+            sage: axiom.get('xx')         # optional - axiom
             '22'
         """
         if not filename.endswith('.input'):
-            raise ValueError, "the filename must end with .input"
+            raise ValueError("the filename must end with .input")
 
         # For some reason this trivial comp
         # keeps certain random freezes from occurring.  Do not remove this.
@@ -353,7 +355,6 @@ class PanAxiom(Expect):
 
             #Process we now need process the commands to strip out things which
             #are not valid Python identifiers.
-            import re
             valid = re.compile('[^a-zA-Z0-9_]+')
             names = [x for x in v if valid.search(x) is None]
 
@@ -387,7 +388,7 @@ class PanAxiom(Expect):
         out = self._eval_line(cmd, reformat=False)
 
         if out.find("error") != -1:
-            raise TypeError, "Error executing code in Axiom\nCODE:\n\t%s\nAxiom ERROR:\n\t%s"%(cmd, out)
+            raise TypeError("Error executing code in Axiom\nCODE:\n\t%s\nAxiom ERROR:\n\t%s"%(cmd, out))
 
 
     def get(self, var):
@@ -425,7 +426,7 @@ class PanAxiom(Expect):
         if line == '':
             return ''
         if len(line) > 3000:
-            raise NotImplementedError, "evaluation of long input lines (>3000 characters) in Axiom not yet implemented."
+            raise NotImplementedError("evaluation of long input lines (>3000 characters) in Axiom not yet implemented.")
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -449,7 +450,7 @@ class PanAxiom(Expect):
 
         if '>> Error detected within library code:' in out or \
            'Cannot find a definition or applicable library operation named' in out:
-            raise RuntimeError, out
+            raise RuntimeError(out)
 
         if not reformat:
             return out
@@ -460,7 +461,6 @@ class PanAxiom(Expect):
         out = out[i+1:]
         outs = out.split("\n")
         i = 0
-        outline = ''
         for line in outs:
             line = line.rstrip()
             # print "'%s'"%line
@@ -671,7 +671,7 @@ class PanAxiomElement(ExpectElement):
         """
         n = int(n)
         if n <= 0 or n > len(self):
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         P = self._check_valid()
         if not isinstance(n, tuple):
             return P.new('%s(%s)'%(self._name, n))
@@ -725,7 +725,7 @@ class PanAxiomElement(ExpectElement):
         P = self.parent()
         s = P._eval_line('outputAsTex(%s)'%self.name(), reformat=False)
         if not '$$' in s:
-            raise RuntimeError, "Error texing axiom object."
+            raise RuntimeError("Error texing axiom object.")
         i = s.find('$$')
         j = s.rfind('$$')
         s = s[i+2:j]
@@ -886,7 +886,7 @@ class PanAxiomElement(ExpectElement):
         try:
             import sage.misc.sage_eval
             return sage.misc.sage_eval.sage_eval(self.unparsed_input_form())
-        except StandardError:
+        except Exception:
             raise NotImplementedError
 
 
@@ -1002,7 +1002,6 @@ def reduce_load_Axiom():
     """
     return axiom
 
-import os
 def axiom_console():
     """
     Spawn a new Axiom command-line session.

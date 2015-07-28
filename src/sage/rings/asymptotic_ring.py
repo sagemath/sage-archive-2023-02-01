@@ -87,22 +87,22 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     The usual ring operations can be performed::
 
         sage: x^2 + 3*(x - x^2)
-        3*x + -2*x^2
+        -2*x^2 + 3*x
         sage: (3*x + 2)^3
-        8 + 36*x + 54*x^2 + 27*x^3
+        27*x^3 + 54*x^2 + 36*x + 8
 
     In addition to that, special powers (determined by the base ring
     of the growth group) can also be computed::
 
         sage: (x^(5/2) + x^(1/7)) * x^(-1/5)
-        x^(-2/35) + x^(23/10)
+        x^(23/10) + x^(-2/35)
 
     One of the central ideas behind computing with asymptotic
     expressions is that the `O`-notation (see
     :wikipedia:`Big_O_notation`) can be used. For example, we have::
 
         sage: (x + 2*x^2 + 3*x^3 + 4*x^4) * (O(x) + x^2)
-        O(x^5) + 4*x^6
+        4*x^6 + O(x^5)
 
     In particular, :meth:`~sage.rings.big_oh.O` can be used to
     construct the asymptotic expressions. With the help of the
@@ -165,7 +165,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         sage: R_log.<xl> = AsymptoticRing('log(x)^QQ', QQ)
         sage: (O(xl) + xl^3)^4
-        O(log(x)^10) + log(x)^12
+        log(x)^12 + O(log(x)^10)
     """
     def __init__(self, parent, summands, simplify=True):
         r"""
@@ -180,7 +180,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: ex1 = x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
             sage: ex2 = x + O(R_x(1))
             sage: ex1 * ex2
-            O(x^5) + 5*x^6
+            5*x^6 + O(x^5)
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
@@ -263,11 +263,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
-            x + 2*x^2 + O(x^3) + 4*x^4
+            4*x^4 + O(x^3) + 2*x^2 + x
             sage: expr._simplify_(); expr
-            O(x^3) + 4*x^4
+            4*x^4 + O(x^3)
             sage: R(lst)  # indirect doctest
-            O(x^3) + 4*x^4
+            4*x^4 + O(x^3)
         """
         from sage.monoids.asymptotic_term_monoid import OTerm
         for shell in self.summands.shells_topological(reverse=True):
@@ -299,7 +299,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr = (5*x^2 + 12*x) * (x^3 + O(x))
             sage: repr(expr)  # indirect doctest
-            'O(x^3) + 12*x^4 + 5*x^5'
+            '5*x^5 + 12*x^4 + O(x^3)'
         """
         s = ' + '.join(repr(elem) for elem in
                        self.summands.elements_topological(reverse=True))
@@ -325,9 +325,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1._add_(expr2)
-            x^123 + x^321
+            x^321 + x^123
             sage: expr1 + expr2  # indirect doctest
-            x^123 + x^321
+            x^321 + x^123
 
         If an `O`-term is added to an asymptotic expression, then
         the `O`-term absorbs everything it can::
@@ -368,7 +368,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: expr1 = x^123; expr2 = x^321
             sage: expr1 - expr2  # indirect doctest
-            x^123 + -x^321
+            -x^321 + x^123
             sage: O(x) - O(x)
             O(x)
         """
@@ -420,7 +420,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: ex1 = 5*x^12
             sage: ex2 = x^3 + O(x)
             sage: ex1 * ex2  # indirect doctest
-            O(x^13) + 5*x^15
+            5*x^15 + O(x^13)
 
         .. TODO::
 
@@ -457,7 +457,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             ...
             ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
             sage: (x^(1/2) + O(x^0))^15
-            O(x^7) + x^(15/2)
+            x^(15/2) + O(x^7)
         """
         if len(self.summands._shells_) > 1:
             from sage.rings.integer_ring import ZZ
@@ -506,7 +506,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x)
             O(x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
-            O(x^2) + x^10 + 42*x^42
+            42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
 
@@ -746,7 +746,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: 3 * x^3
             3*x^3
             sage: 3 * x^3 + x
-            x + 3*x^3
+            3*x^3 + x
             sage: (3 * x^3) * (5 * x)
             15*x^4
             sage: 3 * x^3 + O(x^5)
@@ -840,7 +840,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR_QQ.has_coerce_map_from(ZZ)
             True
             sage: 1/2 * x_QQ^2 + 7/8 * x_QQ^3
-            1/2*x^2 + 7/8*x^3
+            7/8*x^3 + 1/2*x^2
         """
         if self.coefficient_ring.has_coerce_map_from(R):
             return True

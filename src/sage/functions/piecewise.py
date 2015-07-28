@@ -76,7 +76,6 @@ from sage.symbolic.expression import is_Expression
 from sage.symbolic.assumptions import assume, forget
 
 from sage.calculus.calculus import SR, maxima
-from sage.calculus.all import var
 
 def piecewise(list_of_pairs, var=None):
     """
@@ -732,7 +731,7 @@ class PiecewisePolynomial:
                 # pass if fun is lambda function
                 pass
         # default to x
-        v = var('x')
+        v = SR.var('x')
         self.__default_value = v
         return v
 
@@ -1114,7 +1113,7 @@ class PiecewisePolynomial:
             -3/5/pi
         """
         from sage.all import cos, pi
-        x = var('x')
+        x = SR.var('x')
         result = sum([(f(x)*cos(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
         if is_Expression(result):
@@ -1147,7 +1146,7 @@ class PiecewisePolynomial:
             0
         """
         from sage.all import sin, pi
-        x = var('x')
+        x = SR.var('x')
         result = sum([(f(x)*sin(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
         if is_Expression(result):
@@ -1515,7 +1514,7 @@ class PiecewisePolynomial:
 
         """
         from sage.all import cos, pi
-        x = var('x')
+        x = SR.var('x')
         result = sum([(2*f(x)*cos(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
         if is_Expression(result):
@@ -1556,7 +1555,7 @@ class PiecewisePolynomial:
             4/3/pi
         """
         from sage.all import sin, pi
-        x = var('x')
+        x = SR.var('x')
         result = sum([(2*f(x)*sin(pi*x*n/L)/L).integrate(x, a, b)
                       for (a,b), f in self.list()])
         if is_Expression(result):
@@ -1606,8 +1605,8 @@ class PiecewisePolynomial:
             (s + 1)*e^(-s)/s^2 + 2*e^(-s)/s - 1/s^2
         """
         from sage.all import assume, exp, forget
-        x = var(x)
-        s = var(s)
+        x = SR.var(x)
+        s = SR.var(s)
         assume(s>0)
         result =  sum([(SR(f)*exp(-s*x)).integral(x,a,b)
                        for (a,b),f in self.list()])

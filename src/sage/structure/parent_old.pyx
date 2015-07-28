@@ -405,97 +405,18 @@ cdef class Parent(parent.Parent):
 
     cpdef _an_element_c(self):     # do not override this (call from Cython)
         check_old_coerce(self)
-        if not self.__an_element is None:
-            return self.__an_element
+        if not self._cache_an_element is None:
+            return self._cache_an_element
         if HAS_DICTIONARY(self):
-            self.__an_element = self._an_element_impl()
+            self._cache_an_element = self._an_element_impl()
         else:
-            self.__an_element = self._an_element_c_impl()
-        return self.__an_element
+            self._cache_an_element = self._an_element_c_impl()
+        return self._cache_an_element
 
     # This should eventually be inherited from the EnumeratedSets() category
     # This is just a convenient spot to cover the relevant cython parents,
     # without bothering the new parents
     list = parent.Parent._list_from_iterator_cached
-
-
-    ################################################
-    # Comparison of parent objects
-    ################################################
-    cdef _richcmp(left, right, int op):
-        """
-        Compare left and right.
-        """
-        check_old_coerce(left)
-        cdef int r
-
-        if not isinstance(right, parent.Parent) or not isinstance(left, parent.Parent):
-            # One is not a parent -- use arbitrary ordering
-            if (<PyObject*>left) < (<PyObject*>right):
-                r = -1
-            elif (<PyObject*>left) > (<PyObject*>right):
-                r = 1
-            else:
-                r = 0
-
-        else:
-            # Both are parents -- but need *not* have the same type.
-            if HAS_DICTIONARY(left):
-                r = left.__cmp__(right)
-            else:
-                r = left._cmp_c_impl(right)
-
-        if op == 0:  #<
-            return PyBool_FromLong(r  < 0)
-        elif op == 2: #==
-            return PyBool_FromLong(r == 0)
-        elif op == 4: #>
-            return PyBool_FromLong(r  > 0)
-        elif op == 1: #<=
-            return PyBool_FromLong(r <= 0)
-        elif op == 3: #!=
-            return PyBool_FromLong(r != 0)
-        elif op == 5: #>=
-            return PyBool_FromLong(r >= 0)
-
-##     ####################################################################
-##     # For a derived Cython class, you **must** put the following in
-##     # your subclasses, in order for it to take advantage of the
-##     # above generic comparison code.  You must also define
-##     # _cmp_c_impl for a Cython class.
-##     #
-##     # For a derived Python class, simply define __cmp__.
-##     ####################################################################
-##     def __richcmp__(left, right, int op):
-##         return (<Parent>left)._richcmp(right, op)
-
-##         # NOT NEEDED, since all attributes are public!
-##     def __reduce__(self):
-##         if HAS_DICTIONARY(self):
-##             _dict = self.__dict__
-##         else:
-##             _dict = None
-##         return (make_parent_v0, (self.__class__, _dict, self._has_coerce_map_from))
-
-    cdef int _cmp_c_impl(left, parent.Parent right) except -2:
-        check_old_coerce(left)
-        pass
-        # this would be nice to do, but we can't since
-        # it leads to infinite recursions -- and is slow -- and this
-        # stuff must be fast!
-        #if right.has_coerce_map_from(left):
-        #    if left.has_coerce_map_from(right):
-        #        return 0
-        #    else:
-        #        return -1
-        if (<PyObject*>left) < (<PyObject*>right):
-            return -1
-        elif (<PyObject*>left) > (<PyObject*>right):
-            return 1
-        return 0
-
-##     def __cmp__(left, right):
-##         return left._cmp_c_impl(right)   # default
 
 
     ############################################################################

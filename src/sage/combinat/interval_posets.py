@@ -63,7 +63,7 @@ from sage.combinat.binary_tree import BinaryTrees
 from sage.combinat.binary_tree import LabelledBinaryTrees
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.permutation import Permutation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
@@ -248,7 +248,7 @@ class TamariIntervalPoset(Element):
         sage: TIP(Poset({}))
         The tamari interval of size 0 induced by relations []
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
@@ -1926,7 +1926,7 @@ class TamariIntervalPoset(Element):
     def tamari_inversions(self):
         r"""
         Return the Tamari inversions of ``self``. A Tamari inversion is 
-        a pair of vertices `(a,b)' with `a < b` such that:
+        a pair of vertices `(a,b)` with `a < b` such that:
 
         - the decreasing parent of `b` is strictly smaller than `a` (or
           does not exist), and
@@ -2040,6 +2040,29 @@ class TamariIntervalPoset(Element):
             3
         """
         return len(self.tamari_inversions())
+
+    def is_new(self):
+        """
+        Return ``True`` if ``self`` is a new Tamari interval.
+
+        Here 'new' means that the interval is not contained in any
+        facet of the associahedron.
+
+        They have been considered in section 9 of [ChapTamari08]_.
+
+        EXAMPLES::
+
+            sage: TIP4 = TamariIntervalPosets(4)
+            sage: len([u for u in TIP4 if u.is_new()])
+            12
+
+            sage: TIP3 = TamariIntervalPosets(3)
+            sage: len([u for u in TIP3 if u.is_new()])
+            3
+        """
+        c_up = self.upper_binary_tree().single_edge_cut_shapes()
+        c_down = self.lower_binary_tree().single_edge_cut_shapes()
+        return not any(x in c_up for x in c_down)
 
 
 # Abstract class to serve as a Factory ; no instances are created.

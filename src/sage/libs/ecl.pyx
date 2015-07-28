@@ -319,10 +319,10 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.tests.interrupt import *
+        sage: from sage.ext.interrupt.tests import *
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
-        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
         sage: interrupt_after_delay(1000)
         sage: inf_loop()
         Traceback (most recent call last):
@@ -828,20 +828,7 @@ cdef class EclObject:
         #and does not have generic routines for doing that.
         #we could dispatch based on type here, but that seems
         #inappropriate for an *interface*.
-        raise NotImplementedError,"EclObjects can only be compared for equality"
-
-        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-        #    raise TypeError,"Can only compare EclObjects"
-        #if op == 0: # "<"
-        #    pass
-        #elif op == 1: # "<="
-        #    pass
-        #elif op == 4: # ">"
-        #    pass
-        #elif op == 5: # ">="
-        #    pass
-        #else:
-        #    raise ValueError,"richcmp received operation code %d"%op
+        raise NotImplementedError("EclObjects can only be compared for equality")
 
     def __iter__(self):
         r"""
@@ -1291,13 +1278,13 @@ cdef class EclListIterator:
 
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
-            sage: I.next()
+            sage: next(I)
             <ECL: 1>
-            sage: I.next()
+            sage: next(I)
             <ECL: 2>
-            sage: I.next()
+            sage: next(I)
             <ECL: 3>
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             StopIteration

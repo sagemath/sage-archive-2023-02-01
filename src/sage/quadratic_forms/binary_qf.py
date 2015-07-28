@@ -599,8 +599,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
-        cx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -622,8 +622,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
-        bx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -669,8 +669,7 @@ class BinaryQF(SageObject):
         B = 10
         while True:
             llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
-            llist = [l for l in llist if l.is_prime()]
-            llist.sort()
+            llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
             if B >= Bmax:

@@ -67,7 +67,7 @@ class SageKernel(IPythonKernel):
             sage: from sage.repl.ipython_kernel.kernel import SageKernel
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.banner
-            '\xe2\x94\x8c\xe2...Sage Version...\x9b\x1b[0m'
+            '\xe2\x94\x8c\xe2...SageMath Version...'
         """
         from sage.misc.banner import banner_text
         return banner_text()

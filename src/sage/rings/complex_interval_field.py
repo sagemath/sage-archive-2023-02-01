@@ -34,7 +34,7 @@ heavily modified:
 #*****************************************************************************
 
 import complex_double
-import field
+import ring
 import integer
 import weakref
 import real_mpfi
@@ -103,7 +103,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(field.Field):
+class ComplexIntervalField_class(ring.Field):
     """
     The field of complex (interval) numbers.
 
@@ -172,6 +172,23 @@ class ComplexIntervalField_class(field.Field):
         sage: CIF.category()
         Category of fields
         sage: TestSuite(CIF).run()
+
+    TESTS:
+
+    This checks that :trac:`15355` is fixed::
+
+        sage: x + CIF(RIF(-2,2), 0)
+        x + 0.?e1
+        sage: x + CIF(RIF(-2,2), RIF(-2,2))
+        x + 0.?e1 + 0.?e1*I
+        sage: x + RIF(-2,2)
+        x + 0.?e1
+        sage: x + CIF(RIF(3.14,3.15), RIF(3.14, 3.15))
+        x + 3.15? + 3.15?*I
+        sage: CIF(RIF(-2,2), RIF(-2,2))
+        0.?e1 + 0.?e1*I
+        sage: x + CIF(RIF(3.14,3.15), 0)
+        x + 3.15?
     """
     def __init__(self, prec=53):
         """

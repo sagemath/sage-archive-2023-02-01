@@ -276,13 +276,13 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                 self.summands.merge(shell.key)
 
 
-    def _repr_(self, reverse=False):
+    def _repr_(self):
         r"""
         A representation string for this asymptotic expression.
 
         INPUT:
 
-        - ``reverse`` -- a boolean (default: ``False``).
+        Nothing.
 
         OUTPUT:
 
@@ -300,11 +300,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr = (5*x^2 + 12*x) * (x^3 + O(x))
             sage: repr(expr)  # indirect doctest
             'O(x^3) + 12*x^4 + 5*x^5'
-            sage: expr._repr_(reverse=True)
-            '5*x^5 + 12*x^4 + O(x^3)'
         """
         s = ' + '.join(repr(elem) for elem in
-                       self.summands.elements_topological(reverse=reverse))
+                       self.summands.elements_topological(reverse=True))
         if not s:
             return '0'
         return s

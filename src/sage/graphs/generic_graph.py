@@ -12562,9 +12562,10 @@ class GenericGraph(GenericGraph_pyx):
         Returns the (directed) distance from u to v in the (di)graph, i.e.
         the length of the shortest path from u to v.
 
-        This method simply calls :meth:shortest_path_length, with default
-        arguments. For more information, and for more option, we refer to that
-        method.
+        This method simply calls
+        :meth:`shortest_path_length`, 
+        with default arguments. For more information, and for more option, we
+        refer to that method.
 
         INPUT:
 
@@ -12606,7 +12607,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``check`` - if True, we check that the weight_function outputs a
           number for each edge.
@@ -12631,16 +12632,16 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            There is a Cython version of this method that is usually
-            much faster for large graphs, as most of the time is
-            actually spent building the final double
-            dictionary. Everything on the subject is to be found in the
-            :mod:`~sage.graphs.distances_all_pairs` module.
+           There is a Cython version of this method that is usually
+           much faster for large graphs, as most of the time is
+           actually spent building the final double
+           dictionary. Everything on the subject is to be found in the
+           :mod:`~sage.graphs.distances_all_pairs` module.
 
         .. NOTE::
 
-            This algorithm simply calls
-            :meth:GenericGraph.shortest_path_all_pairs
+           This algorithm simply calls
+           :meth:`GenericGraph.shortest_path_all_pairs`
 
         EXAMPLE:
 
@@ -12685,7 +12686,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``check`` - if True, we check that the weight_function outputs a
           number for each edge.
@@ -12791,7 +12792,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``algorithm`` - one of the following algorithms:
 
@@ -12857,7 +12858,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``algorithm`` - one of the following algorithms:
 
@@ -12870,7 +12871,7 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``'standard'``, ``'2sweep'``, ``'multi-sweep'``, ``'iFUB'``: these
             algorithms are implemented in
-            :func:sage.graphs.distances_all_pairs.diameter.
+            :func:`sage.graphs.distances_all_pairs.diameter`
             They work only if ``by_weight==False``. See the function
             documentation for more information.
 
@@ -12943,7 +12944,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``algorithm`` - one of the following algorithms:
 
@@ -13282,7 +13283,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``algorithm`` - one of the following algorithms:
 
@@ -13744,7 +13745,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``check_weight`` - if True, we check that the weight_function outputs
           a number for each edge.
@@ -13845,7 +13846,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``weight_function`` - a function that inputs an edge and outputs its
           weight. The conventions are the same as in
-          :meth:GenericGraph.shortest_paths
+          :meth:`GenericGraph.shortest_paths`
 
         - ``check_weight`` - if True, we check that the weight_function outputs
           a number for each edge.
@@ -14161,7 +14162,7 @@ class GenericGraph(GenericGraph_pyx):
         escluding all vertices that are not reachable from u.
 
         For more information on the input variables and more examples, we refer
-        to :meth:GenericGraph.shortest_paths
+        to :meth:`GenericGraph.shortest_paths`
         which has the same input variables.
 
         INPUT:
@@ -14240,7 +14241,7 @@ class GenericGraph(GenericGraph_pyx):
             vertex successively. Works only if ``by_weight==False``.
 
           - ``'Floyd-Warshall-Cython'`` - through the Cython implementation of
-             the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
+            the Floyd-Warshall algorithm. Works only if ``by_weight==False``.
 
           - ``'Floyd-Warshall-Python'`` - through the Python implementation of
             the Floyd-Warshall algorithm. Works also with weighted graphs, even
@@ -14474,7 +14475,7 @@ class GenericGraph(GenericGraph_pyx):
         The Wiener index of a graph `G` is
         `W(G) = \frac 1 2 \sum_{u,v\in G} d(u,v)`
         where `d(u,v)` denotes the distance between vertices `u` and `v` (see
-         [KRG96b]_).
+        [KRG96b]_).
 
         INPUT:
 

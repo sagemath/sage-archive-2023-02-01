@@ -2792,6 +2792,70 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 shell.merge(m.element, delete=True)
 
 
+    def maximal_elements(self):
+        r"""
+        Return an iterator over the maximal elements of this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 1)))
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: list(P.maximal_elements())
+            [(1, 3), (2, 2)]
+        """
+        return iter(shell.element
+                    for shell in self.oo.predecessors()
+                    if not shell.is_special())
+
+
+    def minimal_elements(self):
+        r"""
+        Return an iterator over the minimal elements of this poset.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: list(P.minimal_elements())
+            [(1, 2), (2, 1)]
+        """
+        return iter(shell.element
+                    for shell in self.null.successors()
+                    if not shell.is_special())
+
+
 # *****************************************************************************
 
 

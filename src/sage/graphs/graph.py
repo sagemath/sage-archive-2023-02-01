@@ -339,7 +339,7 @@ examples are covered here.
        Graph on 5 vertices
 
 -  an igraph Graph::
-       
+
        sage: import igraph                                # optional - python_igraph
        sage: g = Graph(igraph.Graph([(1,3),(3,2),(0,2)])) # optional - python_igraph
        sage: g                                            # optional - python_igraph
@@ -966,31 +966,31 @@ class Graph(GenericGraph):
            sage: DiGraph(g)
            Digraph on 5 vertices
 
-    #. An igraph Graph (see also 
+    #. An igraph Graph (see also
        :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
 
            sage: import igraph                   # optional - python_igraph
            sage: g = igraph.Graph([(0,1),(0,2)]) # optional - python_igraph
            sage: Graph(g)                        # optional - python_igraph
            Graph on 3 vertices
-       
+
        If the igraph Graph has a vertex attribute ``'name'``, this attribute is
        used as vertex name::
 
            sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']}) # optional - python_igraph
            sage: Graph(g).vertices()                                                  # optional - python_igraph
            ['a', 'b', 'c']
-       
+
        If the igraph Graph has edge attributes, they are used for edge labels::
-       
+
            sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'weight':[1,3]}) # optional - python_igraph
            sage: Graph(g).edges()                                             # optional - python_igraph
            [(0, 1, {'weight': 1}), (0, 2, {'weight': 3})]
-           
+
        However, if there is only one attribute named ``'label'``, that attribute
        is used as the label (so that, if we make a back and forth conversion,
        labels do not change)::
-       
+
            sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'label':[1,3]}) # optional - python_igraph
            sage: Graph(g).edges()                                            # optional - python_igraph
            [(0, 1, 1), (0, 2, 3)]
@@ -1021,7 +1021,7 @@ class Graph(GenericGraph):
         Traceback (most recent call last):
         ...
         ValueError: Unknown input format 'HeyHeyHey'
-        
+
         sage: Graph(igraph.Graph(directed=True)) # optional - python_igraph
         Traceback (most recent call last):
         ...
@@ -1438,16 +1438,16 @@ class Graph(GenericGraph):
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("The input is a directed igraph network, and" +
-                                 " you are creating an undirected Sage network")     
+                                 " you are creating an undirected Sage network")
             try:
                 self.name(data['name'])
             except Exception:
                 pass
-            
+
             if 'name' in data.vertex_attributes():
                 vs = data.vs()
                 self.add_vertices(vs['name'])
-    
+
                 if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
                     self.add_edges([(vs[e.source]['name'], vs[e.target]['name'], e['label']) for e in data.es()])
                 elif len(data.edge_attributes()) > 0:
@@ -1456,14 +1456,14 @@ class Graph(GenericGraph):
                     self.add_edges([(vs[e.source]['name'], vs[e.target]['name']) for e in data.es])
             else:
                 self.add_vertices(range(data.vcount()))
-                
+
                 if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
                     self.add_edges([(e.source, e.target, e['label']) for e in data.es()])
                 elif len(data.edge_attributes()) > 0:
                     self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
                 else:
                     self.add_edges(data.get_edgelist())
-                
+
         elif format == 'rule':
             f = data[1]
             verts = data[0]

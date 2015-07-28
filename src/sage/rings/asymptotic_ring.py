@@ -30,7 +30,7 @@ AUTHORS:
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
+        See http://trac.sagemath.org/17601 for details.
         sage: T = atm.ExactTermMonoid(G, ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See http://trac.sagemath.org/17715 for details.
@@ -422,7 +422,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: y^(1/7)
             Traceback (most recent call last):
             ...
-            ValueError: Exponent 1/7 not in base of growth group y^ZZ
+            ValueError: Exponent 1/7 not in base of growth group Growth Group y^ZZ
             sage: (x^(1/2) + O(x^0))^15
             O(x^7) + x^(15/2)
         """
@@ -657,7 +657,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: MG = agg.GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR.growth_group
-            x^ZZ
+            Growth Group x^ZZ
         """
         return self._growth_group_
 

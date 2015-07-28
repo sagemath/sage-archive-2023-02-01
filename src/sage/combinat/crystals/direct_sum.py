@@ -20,6 +20,7 @@ from sage.structure.parent import Parent
 from sage.categories.category import Category
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.element import get_coercion_model
 
 class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
     r"""
@@ -43,9 +44,9 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     EXAMPLES::
 
-        sage: C = CrystalOfLetters(['A',2])
-        sage: C1 = CrystalOfTableaux(['A',2],shape=[1,1])
-        sage: B = DirectSumOfCrystals([C,C1])
+        sage: C = crystals.Letters(['A',2])
+        sage: C1 = crystals.Tableaux(['A',2],shape=[1,1])
+        sage: B = crystals.DirectSum([C,C1])
         sage: B.list()
         [1, 2, 3, [[1], [2]], [[1], [3]], [[2], [3]]]
         sage: [b.f(1) for b in B]
@@ -55,7 +56,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
     ::
 
-        sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+        sage: B = crystals.DirectSum([C,C], keepkey=True)
         sage: B.list()
         [(0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3)]
         sage: B.module_generators
@@ -66,14 +67,15 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         sage: b.weight()
         (1, 0, 0)
 
-    The following is required, because :class:`DirectSumOfCrystals`
+    The following is required, because
+    :class:`~sage.combinat.crystals.direct_sum.DirectSumOfCrystals`
     takes the same arguments as :class:`DisjointUnionEnumeratedSets`
     (which see for details).
 
     TESTS::
 
-        sage: C = CrystalOfLetters(['A',2])
-        sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+        sage: C = crystals.Letters(['A',2])
+        sage: B = crystals.DirectSum([C,C], keepkey=True)
         sage: B
         Direct sum of the crystals Family (The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2])
 
@@ -86,17 +88,18 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         """
         TESTS::
 
-            sage: C = CrystalOfLetters(['A',2])
-            sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+            sage: C = crystals.Letters(['A',2])
+            sage: B = crystals.DirectSum([C,C], keepkey=True)
             sage: B
             Direct sum of the crystals Family (The crystal of letters for type ['A', 2], The crystal of letters for type ['A', 2])
             sage: B.cartan_type()
             ['A', 2]
 
+            sage: from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
             sage: isinstance(B, DirectSumOfCrystals)
             True
         """
-        if options.has_key('keepkey'):
+        if 'keepkey' in options:
             keepkey = options['keepkey']
         else:
             keepkey = False
@@ -112,7 +115,7 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         self._keepkey = keepkey
         self.crystals = crystals
         if len(crystals) == 0:
-            raise ValueError, "The direct sum is empty"
+            raise ValueError("The direct sum is empty")
         else:
             assert(crystal.cartan_type() == crystals[0].cartan_type() for crystal in crystals)
             self._cartan_type = crystals[0].cartan_type()
@@ -122,6 +125,31 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
         else:
             self.module_generators = sum( (list(B.module_generators) for B in crystals), [])
 
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: LaZ = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
+            sage: LaQ = RootSystem(['A',2,1]).weight_space(extended=True).fundamental_weights()
+            sage: B = crystals.LSPaths(LaQ[1])
+            sage: B.weight_lattice_realization()
+            Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
+            sage: C = crystals.AlcovePaths(LaZ[1])
+            sage: C.weight_lattice_realization()
+            Extended weight lattice of the Root system of type ['A', 2, 1]
+            sage: D = crystals.DirectSum([B,C])
+            sage: D.weight_lattice_realization()
+            Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
 
     class Element(ElementWrapper):
         r"""
@@ -134,8 +162,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: [[b, b.e(2)] for b in B]
                 [[(0, 1), None], [(0, 2), None], [(0, 3), (0, 2)], [(1, 1), None], [(1, 2), None], [(1, 3), (1, 2)]]
             """
@@ -152,8 +180,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: [[b,b.f(1)] for b in B]
                 [[(0, 1), (0, 2)], [(0, 2), None], [(0, 3), None], [(1, 1), (1, 2)], [(1, 2), None], [(1, 3), None]]
             """
@@ -170,8 +198,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
 
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b
                 (0, 2)
@@ -184,8 +212,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b.phi(2)
                 1
@@ -196,8 +224,8 @@ class DirectSumOfCrystals(DisjointUnionEnumeratedSets):
             r"""
             EXAMPLES::
 
-                sage: C = CrystalOfLetters(['A',2])
-                sage: B = DirectSumOfCrystals([C,C], keepkey=True)
+                sage: C = crystals.Letters(['A',2])
+                sage: B = crystals.DirectSum([C,C], keepkey=True)
                 sage: b = B( tuple([0,C(2)]) )
                 sage: b.epsilon(2)
                 0

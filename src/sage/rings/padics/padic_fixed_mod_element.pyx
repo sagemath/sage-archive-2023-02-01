@@ -200,7 +200,7 @@ cdef class pAdicFixedModElement(FMElement):
             val = mpz_remove(holder.value, self.value, self.prime_pow.prime.value)
         return P.new_gen_from_padic(val, self.prime_pow.prec_cap - val,
                                     self.prime_pow.prime.value,
-                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val)[0],
+                                    self.prime_pow.pow_mpz_t_tmp(self.prime_pow.prec_cap - val),
                                     holder.value)
 
     def _integer_(self, Z=None):
@@ -223,29 +223,52 @@ cdef class pAdicFixedModElement(FMElement):
 
     def residue(self, absprec=1):
         r"""
-        Reduce ``self`` mod `p^{\mathrm{absprec}}`.
+        Reduce ``self`` modulo `p^\mathrm{absprec}`.
 
         INPUT:
 
-        - ``absprec`` -- an integer (default: 1)
+        - ``absprec`` -- an integer (default: ``1``)
 
         OUTPUT:
 
-        element of ``Z/(p^prec Z)`` -- ``self`` reduced mod ``p^prec``
+        This element reduced modulo `p^\mathrm{absprec}` as an element of
+        `\ZZ/p^\mathrm{absprec}\ZZ`.
 
         EXAMPLES::
 
-            sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
+            sage: R = Zp(7,4,'fixed-mod')
+            sage: a = R(8)
+            sage: a.residue(1)
             1
+            sage: a.residue(2)
+            8
+
+        TESTS::
+
+            sage: R = Zp(7,4,'fixed-mod')
+            sage: a = R(8)
+            sage: a.residue(0)
+            0
+            sage: a.residue(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot reduce modulo a negative power of p.
+            sage: a.residue(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: Not enough precision known in order to compute residue.
+
         """
         cdef Integer selfvalue, modulus
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_sgn((<Integer>absprec).value) < 0:
-            raise ValueError, "cannot reduce modulo a negative power of p"
+        if absprec > self.precision_absolute():
+            raise PrecisionError, "Not enough precision known in order to compute residue."
+        elif absprec < 0:
+            raise ValueError, "Cannot reduce modulo a negative power of p."
         cdef long aprec = mpz_get_ui((<Integer>absprec).value)
         modulus = PY_NEW(Integer)
-        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec)[0])
+        mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
         return Mod(selfvalue, modulus)
@@ -285,13 +308,13 @@ cdef class pAdicFixedModElement(FMElement):
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(tmp)
-        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_t_top()[0], 1)
+        mpz_sub_ui(tmp, self.prime_pow.pow_mpz_t_top(), 1)
         if mpz_cmp(self.value, tmp) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_top()[0])
+        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.pow_mpz_t_top())
         if mpz_cmp(tmp, self.value) == 0:
             mpz_clear(tmp)
             return self.residue(1).multiplicative_order()

@@ -65,7 +65,7 @@ AUTHOR:
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include "sage/misc/bitset.pxi"
+include "sage/data_structures/bitset.pxi"
 
 def debruijn_sequence(int k, int n):
     """
@@ -182,10 +182,14 @@ def is_debruijn_sequence(seq, k, n):
 
     return answer
 
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.rings.integer import Integer
+from sage.categories.finite_sets import FiniteSets
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
 
-class DeBruijnSequences(FiniteEnumeratedSets):
+from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
+
+class DeBruijnSequences(UniqueRepresentation, Parent):
     """
     Represents the De Bruijn sequences of given parameters `k` and `n`.
 
@@ -278,6 +282,7 @@ class DeBruijnSequences(FiniteEnumeratedSets):
             ...
             TypeError: k and n must be integers.
         """
+        Parent.__init__(self, category=FiniteSets())
         if n < 1 or k < 1:
             raise ValueError('k and n cannot be under 1.')
         if (not isinstance(n, (Integer, int)) or
@@ -287,7 +292,7 @@ class DeBruijnSequences(FiniteEnumeratedSets):
         self.k = k
         self.n = n
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Provides a string representation of the object's parameter.
 
@@ -353,5 +358,6 @@ class DeBruijnSequences(FiniteEnumeratedSets):
         .. [1] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
           Sequences. *Communications in Math. and in Computer Chem.*
         """
-        from sage.functions.other import factorial
-        return (factorial(self.k) ** (self.k ** (self.n - 1)))/ (self.k**self.n)
+        k = ZZ(self.k)
+        n = ZZ(self.n)
+        return (k.factorial() ** (k ** (n - 1))) // (k**n)

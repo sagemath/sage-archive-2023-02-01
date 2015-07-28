@@ -1,8 +1,3 @@
-include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
-include 'sage/ext/stdsage.pxi'
-
-
 from sage.structure.element import Element, CommutativeAlgebraElement
 from sage.structure.element cimport Element, CommutativeAlgebraElement, ModuleElement
 from sage.structure.parent cimport Parent
@@ -14,9 +9,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)
-    cdef long _hash_c(self)
+    cdef long _hash_c(self) except -1
     cpdef constant_coefficient(self)
     cpdef Polynomial _new_constant_poly(self, a, Parent P)
+
+    cpdef bint is_zero(self)
+    cpdef bint is_one(self)
+
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace
@@ -25,11 +25,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 cdef class Polynomial_generic_dense(Polynomial):
     cdef Polynomial_generic_dense _new_c(self, list coeffs, Parent P)
     cdef list __coeffs
-    cdef void __normalize(self)
-#    cdef _dict_to_list(self, x, zero)
+    cdef int __normalize(self) except -1
 
 cpdef is_Polynomial(f)
-cpdef Polynomial_generic_dense _new_constant_dense_poly(list coeffs, Parent P, sample)
-
-#cdef class Polynomial_generic_sparse(Polynomial):
-#    cdef object __coeffs # a python dict (for now)

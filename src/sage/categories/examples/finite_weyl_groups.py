@@ -11,7 +11,7 @@ Examples of finite Weyl groups
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
-from sage.categories.all import CoxeterGroups, FiniteWeylGroups
+from sage.categories.all import FiniteWeylGroups
 from sage.structure.unique_representation import UniqueRepresentation
 
 class SymmetricGroup(UniqueRepresentation, Parent):
@@ -50,6 +50,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -90,6 +91,7 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         sage: S.long_element()
         (3, 2, 1, 0)
         sage: S.cayley_graph(side = "left").plot()
+        Graphics object consisting of 120 graphics primitives
 
     Alternatively, one could have implemented
     :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.apply_simple_reflection`

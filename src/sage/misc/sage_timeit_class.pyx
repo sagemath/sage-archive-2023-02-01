@@ -10,7 +10,7 @@ import sage_timeit
 
 
 class SageTimeit:
-    r"""
+    r"""nodetex
     Time execution of a command or block of commands.
 
     Displays the best WALL TIME for execution of the given code. This
@@ -114,7 +114,7 @@ class SageTimeit:
         """
         if 'seconds' in kwds:
             return self.eval(code, globals, preparse=preparse, **kwds)
-        print self.eval(code, globals, preparse=preparse, **kwds)
+        print(self.eval(code, globals, preparse=preparse, **kwds))
 
 
 timeit = SageTimeit()

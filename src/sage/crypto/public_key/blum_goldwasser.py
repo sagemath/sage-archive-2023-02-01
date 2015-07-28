@@ -354,8 +354,8 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         if (not is_blum_prime(p)) or (not is_blum_prime(q)):
             raise ValueError("p and q must be distinct Blum primes.")
         # prepare to decrypt
-        d1 = power_mod((p + 1) / 4, t + 1, p - 1)
-        d2 = power_mod((q + 1) / 4, t + 1, q - 1)
+        d1 = power_mod((p + 1) // 4, t + 1, p - 1)
+        d2 = power_mod((q + 1) // 4, t + 1, q - 1)
         u = power_mod(xt1, d1, p)
         v = power_mod(xt1, d2, q)
         x0 = mod(v*a*p + u*b*q, n).lift()
@@ -364,7 +364,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
         for i in xrange(t):
             x1 = power_mod(x0, 2, n)
             p = least_significant_bits(x1, h)
-            M.append(map(xor, p, c[i]))
+            M.append(list(map(xor, p, c[i])))
             x0 = x1
         return M
 
@@ -512,23 +512,23 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             # sub-blocks of length h = 16
             if mod(len(M), 16) == 0:
                 h = 16
-                t = len(M) / h
+                t = len(M) // h
             # sub-blocks of length h = 8
             elif mod(len(M), 8) == 0:
                 h = 8
-                t = len(M) / h
+                t = len(M) // h
             # sub-blocks of length h = 4
             elif mod(len(M), 4) == 0:
                 h = 4
-                t = len(M) / h
+                t = len(M) // h
             # sub-blocks of length h = 2
             elif mod(len(M), 2) == 0:
                 h = 2
-                t = len(M) / h
+                t = len(M) // h
             # sub-blocks of length h = 1
             else:
                 h = 1
-                t = len(M) / h
+                t = len(M) // h
         # If no seed is provided, select a random seed.
         x0 = seed
         if seed is None:
@@ -545,7 +545,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             p = least_significant_bits(x1, h)
             # xor p with a sub-block of length h. There are t sub-blocks of
             # length h each.
-            C.append(map(xor, p, map(to_int, M[i*h : (i+1)*h])))
+            C.append(list(map(xor, p, [to_int(_) for _ in M[i*h : (i+1)*h]])))
             x0 = x1
         x1 = power_mod(x0, 2, n)
         return (C, x1)
@@ -580,7 +580,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.private_key(19, 23)
             (19, 23, -6, 5)
@@ -655,7 +655,7 @@ class BlumGoldwasser(PublicKeyCryptosystem):
             sage: bg = BlumGoldwasser()
             sage: P = primes_first_n(10); P
             [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
-            sage: map(is_blum_prime, P)
+            sage: [is_blum_prime(_) for _ in P]
             [False, True, False, True, True, False, False, True, True, False]
             sage: bg.public_key(3, 7)
             21

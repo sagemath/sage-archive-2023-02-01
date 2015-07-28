@@ -127,7 +127,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 import sage.rings.arith as arith
-import sage.misc.misc as misc
+import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -240,7 +240,7 @@ class GaloisRepresentation(SageObject):
         # isomorphism between rho and rho' unless E
         # is isomorphic to E'
         # Note that rho can not depend on the Weierstrass model
-        if not type(self) == type(other):
+        if type(self) is not type(other):
             return False
         return self._E.is_isomorphic(other._E)
 
@@ -311,7 +311,7 @@ class GaloisRepresentation(SageObject):
         if t:
             self.__is_reducible[p] = False
             return False  # definitely not reducible
-        isogeny_matrix = self._E.isogeny_class(use_tuple=False).matrix(fill=True)
+        isogeny_matrix = self._E.isogeny_class().matrix(fill=True)
         v = isogeny_matrix.row(0) # first row
         for a in v:
             if a != 0 and a % p == 0:
@@ -362,9 +362,14 @@ class GaloisRepresentation(SageObject):
             return self.__reducible_primes
         except AttributeError:
             pass
-        isocls = self._E.isogeny_class(algorithm='sage', use_tuple=False)
-        X = set(isocls.matrix().list())
-        R = [p for p in X if arith.is_prime(p)]
+
+        E = self._E
+        j = E.j_invariant()
+        from isogeny_small_degree import sporadic_j
+        if j in sporadic_j: # includes all CM j-invariants
+            R = [sporadic_j[j]]
+        else:
+            R = [l for l in [2,3,5,7,13] if len(E.isogenies_prime_degree(l))>0]
         self.__reducible_primes = R
         return R
 
@@ -918,7 +923,7 @@ class GaloisRepresentation(SageObject):
         # if we find both an element of order 3 and one of order 4, we know that we have a S_4 in PGL_2
 
         if p == 5:
-            # we filter here a few cases and leave the rest to the computation of the galois group later
+            # we filter here a few cases and leave the rest to the computation of the Galois group later
             ell = 1
             k = GF(p)
             Np = self._E.conductor()*p
@@ -1078,10 +1083,10 @@ class GaloisRepresentation(SageObject):
             K = self._E.division_field(p, 'z')
             d = K.absolute_degree()
 
-            misc.verbose("field of degree %s.  try to compute galois group"%(d),2)
+            misc.verbose("field of degree %s.  try to compute Galois group"%(d),2)
             try:
                 G = K.galois_group()
-            except StandardError:
+            except Exception:
                 self.__image_type[p] = "The image is a group of order %s."%d
                 return self.__image_type[p]
 

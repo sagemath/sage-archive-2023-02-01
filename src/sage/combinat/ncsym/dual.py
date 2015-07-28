@@ -367,7 +367,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                  + 2*w{{1, 2}, {3}, {4}} + 2*w{{1, 3}, {2}, {4}} + 2*w{{1, 4}, {2}, {3}}
             """
             la = Partition(la)
-            c = prod(map(factorial, la.to_exp()))
+            c = prod([factorial(_) for _ in la.to_exp()])
             P = SetPartitions()
             return self.sum_of_terms([(P(m), c) for m in SetPartitions(sum(la), la)], distinct=True)
 
@@ -407,9 +407,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 sage: h(w[[1,3],[2]])
                 Traceback (most recent call last):
                 ...
-                ValueError: w{{1, 3}, {2}} is not in the image of Generic morphism:
-                  From: Symmetric Functions over Rational Field in the homogeneous basis
-                  To:   Dual symmetric functions in non-commuting variables over the Rational Field in the w basis
+                ValueError: w{{1, 3}, {2}} is not in the image
                 sage: h(w(h[2,1])) == w(h[2,1]).to_symmetric_function()
                 True
             """
@@ -537,7 +535,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 R = self.base_ring()
                 for A, coeff in self:
                     la = A.shape()
-                    exp = prod(map(factorial, la.to_exp()))
+                    exp = prod([factorial(_) for _ in la.to_exp()])
                     if la not in d:
                         if coeff / exp not in R:
                             return False
@@ -585,5 +583,5 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                     raise ValueError("not a symmetric function")
                 h = SymmetricFunctions(self.parent().base_ring()).homogeneous()
                 d = {A.shape(): c for A,c in self}
-                return h.sum_of_terms([( AA, cc / prod(map(factorial, AA.to_exp())) )
+                return h.sum_of_terms([( AA, cc / prod([factorial(_) for _ in AA.to_exp()]) )
                                         for AA,cc in d.items()], distinct=True)

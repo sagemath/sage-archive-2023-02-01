@@ -30,6 +30,8 @@ Python 2.2 license.
 === Patches ===
 
  * freebsd.patch: let pycrypto build on FreeBSD.
+ * config.patch: let pycrypto build when $SAGE_ROOT is in $PATH
+   (see #16049).
 
 == Changelog ==
 

@@ -12591,7 +12591,6 @@ class GenericGraph(GenericGraph_pyx):
             2
             sage: G.distance(0, 3, by_weight=True)
             3
-
         """
         return self.shortest_path_length(u, v, by_weight = by_weight)
 
@@ -12643,7 +12642,7 @@ class GenericGraph(GenericGraph_pyx):
            This algorithm simply calls
            :meth:`GenericGraph.shortest_path_all_pairs`
 
-        EXAMPLE:
+        EXAMPLES:
 
         The Petersen Graph::
 
@@ -13730,33 +13729,27 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
-    def shortest_path(self, u, v, by_weight=False, weight_function=None,
-                      check_weight=True, algorithm=None, bidirectional=None):
+    def shortest_path(self, u, v, by_weight=False, algorithm=None,
+                      weight_function=None, check_weight=True,
+                      bidirectional=None):
         r"""
         Returns a list of vertices representing some shortest path from u
         to v: if there is no path from u to v, the list is empty.
 
         INPUT:
 
-        - ``u``, ``v`` - the start and the end vertices of the paths.
+        - ``u``, ``v`` (vertices) - the start and the end vertices of the paths.
 
-        - ``by_weight`` - if ``True``, edge weights are taken into account; if
-          False, all edges have weight 1.
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
 
-        - ``weight_function`` - a function that inputs an edge and outputs its
-          weight. The conventions are the same as in
-          :meth:`GenericGraph.shortest_paths`
+        - ``algorithm`` (string) - one of the following algorithms:
 
-        - ``check_weight`` - if True, we check that the weight_function outputs
-          a number for each edge.
+          - ``'BFS'``: performs a BFS from ``u``. Does not work with edge
+            weights.
 
-        - ``algorithm`` - one of the following algorithms:
-
-          - ``'BFS'``: performs a BFS from ``u``. Works only if
-            ``by_weight==False``;
-
-          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``.
-            Works only if ``by_weight==False``;
+          - ``'BFS_Bid``: performs a BFS from ``u`` and from ``v``. Does not
+            work with edge weights.
 
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX.
@@ -13766,6 +13759,16 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``'Dijkstra_Bid'``: a Cython implementation that performs
             a Dijkstra visit from ``u`` and from ``v``.
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS_Bid'``
+            if ``by_weight`` is ``False``, ``'Dijkstra_Bid'`` otherwise.
+
+        - ``weight_function`` - a function that inputs an edge and outputs its
+          weight. The conventions are the same as in
+          :meth:`GenericGraph.shortest_paths`
+
+        - ``check_weight`` - if True, we check that the weight_function outputs
+          a number for each edge.
 
         - ``bidirectional`` - if True, the algorithm will expand vertices from
           ``u`` and ``v`` at the same time, making two spheres of half the usual
@@ -13777,6 +13780,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path(4, 9)
             [4, 17, 16, 12, 13, 9]
+            sage: D.shortest_path(4, 9, algorithm='BFS')
+            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 9, algorithm='Dijkstra_NetworkX')
+            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid_NetworkX')
+            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid')
+            [4, 3, 19, 0, 10, 9]
             sage: D.shortest_path(5, 5)
             [5]
             sage: D.delete_edges(D.edges_incident(13))
@@ -13789,7 +13800,42 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse = True)
             sage: G.shortest_path(0, 3, by_weight=True)
             [0, 1, 2, 3]
+            sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_NetworkX')
+            [0, 1, 2, 3]
+            sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
+            [0, 1, 2, 3]
+            
+        TESTS:
+        
+        If the algorithm is not implemented::
+        
+            sage: G.shortest_path(0, 3, by_weight=True, algorithm='tip top')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm 'tip top' not yet implemented.
+            
+        BFS on weighted graphs::
+        
+            sage: G.shortest_path(0, 3, by_weight=True, algorithm='BFS')
+            Traceback (most recent call last):
+            ...
+            ValueError: The 'BFS' algorithm does not work on weighted graphs.
+            sage: G.shortest_path(0, 3, by_weight=True, algorithm='BFS_Bid')
+            Traceback (most recent call last):
+            ...
+            ValueError: The 'BFS_Bid' algorithm does not work on weighted graphs.
         """ #         TODO- multiple edges??
+        if weight_function is not None:
+            by_weight = True
+            
+        if algorithm is None:
+            algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+        
+        if algorithm in ['BFS', 'Dijkstra_NetworkX']:
+            return self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)[v]
+        
+        if weight_function is None and by_weight:
+            weight_function = lambda e:e[2]
 
         if bidirectional is not None:
             deprecation(18938, "Variable 'bidirectional' is deprecated and " +
@@ -13798,36 +13844,29 @@ class GenericGraph(GenericGraph_pyx):
         if u == v: # to avoid a NetworkX bug
             return [u]
 
-        if algorithm is None:
-            algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
-        elif algorithm in ['BFS', 'Dijkstra_NetworkX']:
-            return self.shortest_paths(u, by_weight, algorithm, weight_function)[v]
-
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            weight_function=lambda e:e[2]
 
         if by_weight:
-            if algorithm in ['BFS', 'BFS_Bid']:
-                raise ValueError("The 'BFS' and 'BFS_Bid algorithms do not " +
+            if algorithm == 'BFS_Bid':
+                raise ValueError("The 'BFS_Bid' algorithm does not " +
                                  "work on weighted graphs.")
             if check_weight:
                 self._check_weight_function(weight_function)
+        else:
+            weight_function = lambda e:1
 
         if algorithm=="Dijkstra_Bid":
-            return self._backend.bidirectional_dijkstra(u,v)
+            return self._backend.bidirectional_dijkstra(u, v, weight_function)
         elif algorithm=="Dijkstra_Bid_NetworkX":
             import networkx
             if self.is_directed():
                 G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
             else:
                 G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
-            return networkx.bidirectional_dijkstra(G)[1]
+            return networkx.bidirectional_dijkstra(G, u, v)[1]
         elif algorithm=="BFS_Bid":
             return self._backend.shortest_path(u,v)
         else:
-            raise ValueError("Algorithm " + algorithm + " not yet implemented.")
+            raise ValueError("Algorithm '" + algorithm + "' not yet implemented.")
 
     def shortest_path_length(self, u, v, by_weight=False, weight_function=None,
                              check_weight=True, algorithm=None,
@@ -13911,7 +13950,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Check that an edge weight function outputs only numbers.
 
-        The weight function inputs a labelled edge `(u,v,l)` and
+        The weight function inputs a labelled edge ``(u, v, l)`` and
         outputs its weight. Here, we check that the output is always a number
         (otherwise, several functions might have unexpected behavior). If the
         function fails the test, an exception is raised.
@@ -13964,7 +14003,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``u`` (vertex) - the starting vertex
+        - ``u`` (vertex) - the starting vertex.
 
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
@@ -13991,7 +14030,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``cutoff`` (integer) - integer depth to stop search (used only if
           ``algorithm=='BFS'``).
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Standard example::
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_paths(0)
@@ -14028,8 +14069,7 @@ class GenericGraph(GenericGraph_pyx):
 
         If the weight function does not match the label::
 
-            sage: weight_function = lambda e:e[2]
-            sage: D.shortest_paths(0, weight_function=weight_function)
+            sage: D.shortest_paths(0, weight_function=lambda e:e[2])
             Traceback (most recent call last):
             ...
             ValueError: The weight function cannot find the weight of (0, 1, {'weight': 1})
@@ -14037,7 +14077,7 @@ class GenericGraph(GenericGraph_pyx):
         However, if ``check_weight`` is set to False, unexpected behavior may
         occur::
 
-            sage: D.shortest_paths(0, weight_function=weight_function, check_weight=False)
+            sage: D.shortest_paths(0, weight_function=lambda e:e[2], check_weight=False)
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand type(s) for +: 'int' and 'dict'
@@ -14053,7 +14093,6 @@ class GenericGraph(GenericGraph_pyx):
 
         If we ask for BFS in a weighted graph::
 
-            sage: weight_function = lambda e:e[2]['weight']
             sage: D.shortest_paths(0, algorithm='BFS', weight_function=weight_function)
             Traceback (most recent call last):
             ...
@@ -14063,6 +14102,8 @@ class GenericGraph(GenericGraph_pyx):
             by_weight = True
         elif by_weight:
             weight_function = lambda e:e[2]
+        else:
+            weight_function = lambda e:1
 
         if algorithm is None:
             algorithm = 'Dijkstra_NetworkX' if by_weight else 'BFS'
@@ -14162,12 +14203,12 @@ class GenericGraph(GenericGraph_pyx):
         escluding all vertices that are not reachable from u.
 
         For more information on the input variables and more examples, we refer
-        to :meth:`GenericGraph.shortest_paths`
+        to :meth:`~GenericGraph.shortest_paths`
         which has the same input variables.
 
         INPUT:
 
-        - ``u`` (vertex) - the starting vertex
+        - ``u`` (vertex) - the starting vertex.
 
         - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
           weighted; if ``False``, all edges have weight 1.
@@ -14191,10 +14232,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``check_weight`` (boolean) - if ``True``, we check that the
           weight_function outputs a number for each edge.
 
-        - ``cutoff`` (integer) - integer depth to stop search (used only if
-          ``algorithm=='BFS'``).
-
-        - ``weight_sum`` - Deprecated: now this variable has no effect. Before,
+        - ``weight_sums`` - Deprecated: now this variable has no effect. Before,
           it was used to decide whether the number of edges or the sum of their
           lengths was outputted. Now we use variable ``by_weight`` to decide.
 
@@ -14275,19 +14313,19 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            Three different implementations are actually available through this method :
+           Three different implementations are actually available through this method :
 
-                * BFS (Cython)
-                * Floyd-Warshall (Cython)
-                * Floyd-Warshall (Python)
+               * BFS (Cython)
+               * Floyd-Warshall (Cython)
+               * Floyd-Warshall (Python)
 
-            The BFS algorithm is the fastest of the three, then comes the Cython
-            implementation of Floyd-Warshall, and last the Python
-            implementation. The first two implementations, however, only compute
-            distances based on the topological distance (each edge is of weight
-            1, or equivalently the length of a path is its number of
-            edges). Besides, they do not deal with graphs larger than 65536
-            vertices (which already represents 16GB of ram).
+           The BFS algorithm is the fastest of the three, then comes the Cython
+           implementation of Floyd-Warshall, and last the Python
+           implementation. The first two implementations, however, only compute
+           distances based on the topological distance (each edge is of weight
+           1, or equivalently the length of a path is its number of
+           edges). Besides, they do not deal with graphs larger than 65536
+           vertices (which already represents 16GB of ram).
 
         .. NOTE::
 
@@ -14361,7 +14399,7 @@ class GenericGraph(GenericGraph_pyx):
             3: {0: 4, 1: 2, 2: 3, 3: None, 4: 3},
             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}})
 
-        Checking the distances are equal regardless of the algorithm used::
+        Checking that distances are equal regardless of the algorithm used::
 
             sage: g = graphs.Grid2dGraph(5,5)
             sage: d1, _ = g.shortest_path_all_pairs(algorithm="BFS")
@@ -14371,7 +14409,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1 == d2 == d3 == d4
             True
 
-        Checking a random path is valid ::
+        Checking a random path is valid::
 
             sage: dist, path = g.shortest_path_all_pairs(algorithm="BFS")
             sage: u,v = g.random_vertex(), g.random_vertex()
@@ -14600,8 +14638,8 @@ class GenericGraph(GenericGraph_pyx):
         REFERENCE:
 
         .. [GYLL93] I. Gutman, Y.-N. Yeh, S.-L. Lee, and Y.-L. Luo. Some recent
-          results in the theory of the Wiener number. *Indian Journal of
-          Chemistry*, 32A:651--661, 1993.
+           results in the theory of the Wiener number. *Indian Journal of
+           Chemistry*, 32A:651--661, 1993.
 
         TEST::
 

@@ -2211,6 +2211,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
             [0, 1, 2]
+
         TEST:
 
         Bugfix from #7673 ::
@@ -2269,7 +2270,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         # (of length shortest_path_length).
         cdef int meeting_vertex = -1
         cdef float shortest_path_length
-        
+
         if weight_function is None:
             weight_function = lambda e:e[2]
 

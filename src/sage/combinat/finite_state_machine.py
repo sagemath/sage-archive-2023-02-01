@@ -10072,7 +10072,7 @@ class Automaton(FiniteStateMachine):
 
         ALGORITHM:
 
-        See [HKP2015a]_, Theorem 1.
+        See [HKP2015a]_, Lemma 4.1.
 
         REFERENCES:
 

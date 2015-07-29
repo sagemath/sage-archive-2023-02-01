@@ -40,8 +40,6 @@ class symbol : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(symbol, basic)
 
-	friend class realsymbol;
-	friend class possymbol;
 	friend struct print_order;
 
 // types
@@ -104,7 +102,7 @@ protected:
 	unsigned serial;                 ///< unique serial number for comparison
 	std::string name;                ///< printname of this symbol
 	std::string TeX_name;            ///< LaTeX name of this symbol
-	unsigned domain;                 ///< domain of symbol, complex (default) or real
+	unsigned domain;                 ///< domain of symbol
 	unsigned ret_type;               ///< value returned by return_type()
 	tinfo_t ret_type_tinfo;         ///< value returned by return_type_tinfo()
 private:
@@ -112,51 +110,7 @@ private:
 };
 
 
-/** Specialization of symbol to real domain */
-class realsymbol : public symbol
-{
-	// constructors
-public:
-	realsymbol();
-	explicit realsymbol(const std::string & initname, unsigned domain = domain::real);
-	realsymbol(const std::string & initname, const std::string & texname, unsigned domain = domain::real);
-	realsymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain = domain::real);
-	realsymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain = domain::real);
-};
-
-
-/** Specialization of symbol to real domain */
-class possymbol : public symbol
-{
-	// constructors
-public:
-	possymbol();
-	explicit possymbol(const std::string & initname, unsigned domain = domain::positive);
-	possymbol(const std::string & initname, const std::string & texname, unsigned domain = domain::positive);
-	possymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned domain = domain::positive);
-	possymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned domain = domain::positive);
-};
-
-
 // utility functions
-
-/** Specialization of is_exactly_a<realsymbol>(obj) for realsymbol objects. */
-template<> inline bool is_exactly_a<realsymbol>(const basic & obj)
-{
-	if (obj.tinfo() != &symbol::tinfo_static)
-		return false;
-	unsigned domain = static_cast<const symbol &>(obj).get_domain();
-	return domain==domain::real || domain==domain::positive;
-}
-
-/** Specialization of is_exactly_a<possymbol>(obj) for possymbol objects. */
-template<> inline bool is_exactly_a<possymbol>(const basic & obj)
-{
-	if (obj.tinfo() != &symbol::tinfo_static)
-		return false;
-	unsigned domain = static_cast<const symbol &>(obj).get_domain();
-	return domain == domain::positive;
-}
 
 // keep symbols unique
 const symbol & get_symbol(const std::string & s);

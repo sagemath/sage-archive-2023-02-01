@@ -55,20 +55,6 @@ symbol::symbol()
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
 
-// realsymbol
-
-realsymbol::realsymbol()
-{
-	domain = domain::real;
-}
-
-// possymbol
-
-possymbol::possymbol()
-{
-	domain = domain::positive;
-}
-
 //////////
 // other constructors
 //////////
@@ -100,34 +86,6 @@ symbol::symbol(std::string  initname, std::string  texname, unsigned rt, tinfo_t
 {
 	setflag(status_flags::evaluated | status_flags::expanded);
 }
-
-// realsymbol
-	
-realsymbol::realsymbol(const std::string & initname, unsigned a_domain)
- : symbol(initname, a_domain) { }
-
-realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned a_domain)
- : symbol(initname, texname, a_domain) { }
-
-realsymbol::realsymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
- : symbol(initname, rt, rtt, a_domain) { }
-
-realsymbol::realsymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
- : symbol(initname, texname, rt, rtt, a_domain) { }
-
-// possymbol
-	
-possymbol::possymbol(const std::string & initname, unsigned a_domain)
- : symbol(initname, a_domain) { }
-
-possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned a_domain)
- : symbol(initname, texname, a_domain) { }
-
-possymbol::possymbol(const std::string & initname, unsigned rt, tinfo_t rtt, unsigned a_domain)
- : symbol(initname, rt, rtt, a_domain) { }
-
-possymbol::possymbol(const std::string & initname, const std::string & texname, unsigned rt, tinfo_t rtt, unsigned a_domain)
- : symbol(initname, texname, rt, rtt, a_domain) { }
 
 //////////
 // archiving

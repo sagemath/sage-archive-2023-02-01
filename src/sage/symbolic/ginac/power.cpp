@@ -846,7 +846,9 @@ ex power::real_part() const
 		ex basis_real = basis.real_part();
 		if (basis_real == basis)
 			return *this;
-		realsymbol a("a"),b("b");
+		symbol a("a"),b("b");
+                a.set_domain(domain::real);
+                b.set_domain(domain::real);
 		ex result;
 		if (exponent.info(info_flags::posint))
 			result = power(a+I*b,exponent);
@@ -871,7 +873,9 @@ ex power::imag_part() const
 		ex basis_real = basis.real_part();
 		if (basis_real == basis)
 			return 0;
-		realsymbol a("a"),b("b");
+		symbol a("a"),b("b");
+                a.set_domain(domain::real);
+                b.set_domain(domain::real);
 		ex result;
 		if (exponent.info(info_flags::posint))
 			result = power(a+I*b,exponent);

@@ -2703,13 +2703,19 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     """
 
 
-    def merge(self, key):
+    def merge(self, key=None, reverse=False):
         r"""
         Merge the given element with its successors/predecessors.
 
         INPUT:
 
-        ``key`` -- the key specifying an element.
+        - ``key`` -- the key specifying an element or ``None``
+          (default), in which case this method is called on each
+          element in this poset.
+
+        - ``reverse`` -- (default: ``False``) specifies which
+          direction to go first. When ``key=None``, then this also
+          specifies which elements are merged first.
 
         OUTPUT:
 
@@ -2778,13 +2784,27 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             merging (2, 2): poset((1, 3, 'b'), (2, 2, 'acef'), (4, 4, 'd'))
             merging (1, 1): poset((1, 1, 'a'), (1, 2, 'e'), (1, 3, 'b'),
                                   (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
+            sage: Q = copy(P)
+            sage: Q.merge(); Q
+            poset((4, 4, 'abcdef'))
+
+        TESTS::
+
+            sage: copy(P).merge(reverse=False) == copy(P).merge(reverse=True)
+            True
         """
+        if key is None:
+            for shell in tuple(self.shells_topological(reverse=reverse)):
+                if shell.key in self._shells_:
+                    self.merge(key=shell.key)
+            return
+
         shell = self.shell(key)
         def can_merge(other):
             return self._can_merge_(shell.element, other.element)
-        for reverse in (False, True):
+        for rev in (reverse, not reverse):
             to_merge = shell.iter_depth_first(
-                reverse=reverse, condition=can_merge)
+                reverse=rev, condition=can_merge)
             next(to_merge)
             for m in tuple(to_merge):
                 if m.is_special():

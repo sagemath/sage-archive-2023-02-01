@@ -269,11 +269,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: R(lst)  # indirect doctest
             4*x^4 + O(x^3)
         """
-        from sage.monoids.asymptotic_term_monoid import OTerm
-        for shell in self.summands.shells_topological(reverse=True):
-            if shell.element.growth in self.summands and isinstance(shell.element,
-                                                                 OTerm):
-                self.summands.merge(shell.key)
+        self.summands.merge(reverse=True)
 
 
     def _repr_(self):

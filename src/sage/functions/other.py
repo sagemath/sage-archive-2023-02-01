@@ -1104,18 +1104,16 @@ class Function_gamma_inc_lower(BuiltinFunction):
         else:
             return None
 
-    def _evalf_(self, x, y, parent=None, algorithm='pari'):
+    def _evalf_(self, x, y, parent=None, algorithm='mpmath'):
         """
         EXAMPLES::
 
             sage: gamma_inc_lower(3,2.)
             0.646647167633873
-            sage: gamma_inc_lower(3,2).n(algorithm='pari')
-            0.646647167633873
             sage: gamma_inc_lower(3,2).n(200)
             0.646647167633873081060005050275155...
             sage: gamma_inc_lower(0,2.)
-            +Infinity
+            +infinity
         """
         R = parent or s_parent(x)
         # C is the complex version of R
@@ -1269,6 +1267,13 @@ def gamma(a, *args, **kwds):
 def incomplete_gamma(*args, **kwds):
     """
         Deprecated name for :meth:`sage.functions.other.Function_gamma_inc`.
+
+    TESTS::
+
+        sage: incomplete_gamma(1,1)
+        doctest:...: DeprecationWarning: Please use gamma_inc().
+        See http://trac.sagemath.org/16697 for details.
+        e^(-1)
     """
     from sage.misc.superseded import deprecation
     deprecation(16697, 'Please use gamma_inc().')

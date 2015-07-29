@@ -6614,6 +6614,8 @@ class FiniteStateMachine(SageObject):
         ``s`` of the other finite state machine, there is a state ``(1,
         s)`` in the disjoint union.
 
+        The disjoint union can also be written as ``A + B`` or ``A | B``.
+
         EXAMPLES::
 
             sage: A = Automaton([(0, 1, 0, 0), (1, 0, 1, 0)],
@@ -6643,6 +6645,16 @@ class FiniteStateMachine(SageObject):
             False
             sage: C.initial_states()
             [(0, 0), (1, 0)]
+
+        Instead of ``.disjoint_union``, alternative notations are
+        available::
+
+            sage: C1 = A + B
+            sage: C1 == C
+            True
+            sage: C2 = A | B
+            sage: C2 == C
+            True
 
         In general, the disjoint union is not deterministic::
 

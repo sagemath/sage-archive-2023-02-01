@@ -6441,6 +6441,63 @@ cdef class Expression(CommutativeRingElement):
             sig_off()
         return new_Expression_from_GEx(self._parent, x)
 
+    def horner(self, x):
+        """
+        Rewrite this expression as a polynomial in Horner form in ``x``.
+
+        EXAMPLES::
+
+            sage: add((i+1)*x^i for i in range(5)).horner(x)
+            (((5*x + 4)*x + 3)*x + 2)*x + 1
+
+            sage: x, y, z = SR.var('x,y,z')
+            sage: (x^5 + y*cos(x) + z^3 + (x + y)^2 + y^x).horner(x)
+            z^3 + ((x^3 + 1)*x + 2*y)*x + y^2 + y*cos(x) + y^x
+
+            sage: expr = sin(5*x).expand_trig(); expr
+            5*cos(x)^4*sin(x) - 10*cos(x)^2*sin(x)^3 + sin(x)^5
+            sage: expr.horner(sin(x))
+            (5*cos(x)^4 - (10*cos(x)^2 - sin(x)^2)*sin(x)^2)*sin(x)
+            sage: expr.horner(cos(x))
+            sin(x)^5 + 5*(cos(x)^2*sin(x) - 2*sin(x)^3)*cos(x)^2
+
+        TESTS::
+
+            sage: SR(0).horner(x), SR(1).horner(x), x.horner(x)
+            (0, 1, x)
+            sage: (x^(1/3)).horner(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot return dense coefficient list with noninteger exponents.
+        """
+        coef = self.coefficients(x, sparse=False)
+        res = coef[-1]
+        for c in reversed(coef[:-1]):
+            res = res*x + c
+        return res
+
+    def _evaluate_polynomial(self, pol):
+        """
+        Evaluate a univariate polynomial on this expression.
+
+        EXAMPLES::
+
+            sage: pol = QQ['s'](range(5))
+            sage: pol(sin(x))
+            4*sin(x)^4 + 3*sin(x)^3 + 2*sin(x)^2 + sin(x)
+
+        TESTS::
+
+            sage: SR(0.1)._evaluate_polynomial(pol)
+            0.123400000000000
+        """
+        cdef Expression zero
+        try:
+            return new_Expression_from_pyobject(self._parent, pol(self.pyobject()))
+        except TypeError:
+            zero = self._parent.zero()
+            return zero.add(*(pol[i]*self**i
+                              for i in xrange(pol.degree() + 1)))
     def collect_common_factors(self):
         """
         This function does not perform a full factorization but only

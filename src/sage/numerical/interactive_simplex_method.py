@@ -418,9 +418,28 @@ def variable(R, v):
         raise ValueError("cannot interpret given data as a variable")
 
 
-known_styles = {'UAlberta', 'Vanderbei'}
-_default_style = 'UAlberta'
+default_variable_name = {
+    "UAlberta": {
+        "primal decision": "x",
+        "primal slack": "x",
+        "dual decision": "y",
+        "dual slack": "y",
+        "primal objective": "z",
+        "dual objective": "z",
+        "auxiliary objective": "w",
+        },
+    "Vanderbei": {
+        "primal decision": "x",
+        "primal slack": "w",
+        "dual decision": "y",
+        "dual slack": "z",
+        "primal objective": "zeta",
+        "dual objective": "xi",
+        "auxiliary objective": "xi",
+        },
+    }
 
+_default_style = 'UAlberta'
 
 def _validate_style(style):
     r"""
@@ -448,11 +467,11 @@ def _validate_style(style):
         ...
         ValueError: Style must be one of...
     """
-    global _default_style
     if style is None:
         return _default_style
-    elif style not in known_styles:
-        raise ValueError("Style must be one of: {}".format(known_styles))
+    elif style not in default_variable_name:
+        raise ValueError(
+            "Style must be one of: {}".format(default_variable_name.keys()))
     else:
         return style
 
@@ -978,7 +997,8 @@ class InteractiveLPProblem(SageObject):
         A, c, b, x = self.Abcx()
         A = A.transpose()
         if y is None:
-            y = "y" if self.is_primal() else "x"
+            y = default_variable_name[self.style()][
+                "dual decision" if self.is_primal() else "primal decision"]
         problem_type = "min" if self._problem_type == "max" else "max"
         constraint_type = []
         for vt in self._variable_types:
@@ -1455,10 +1475,8 @@ class InteractiveLPProblem(SageObject):
         style = self.style()
         is_primal = self.is_primal()
         if objective_name is None:
-            if style == "UAlberta":
-                objective_name = "z"
-            if style == "Vanderbei":
-                objective_name = "zeta" if is_primal else "xi"
+            objective_name = default_variable_name[style][
+                "primal objective" if is_primal else "dual objective"]
         objective_name = SR(objective_name)
         is_negative = self._is_negative
         if self._problem_type == "min":
@@ -1606,13 +1624,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         n, m = self.n(), self.m()
         style = self.style()
         if slack_variables is None:
-            if style == "UAlberta":
-                if isinstance(x, str):
-                    slack_variables = x
-                else:
-                    slack_variables = "x" if is_primal else "y"
-            elif style == 'Vanderbei':
-                slack_variables = "w" if is_primal else "z"
+            slack_variables = default_variable_name[style][
+                "primal slack" if is_primal else "dual slack"]
         if isinstance(slack_variables, str):
             if style == "UAlberta":
                 indices = range(n + 1, n + m + 1)
@@ -1637,10 +1650,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         x.set_immutable()
         self._Abcx = self._Abcx[:-1] + (x, )
         if objective_name is None:
-            if style == "UAlberta":
-                objective_name = "z"
-            if style == "Vanderbei":
-                objective_name = "zeta"
+            objective_name = default_variable_name[style][
+                "primal objective" if is_primal else "dual objective"]
         self._objective_name = SR(objective_name)
 
     def auxiliary_problem(self, objective_name=None):
@@ -1687,10 +1698,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
         c = vector(F, [-1] + [0] * n)
         style = self.style()
         if objective_name is None:
-            if style == "UAlberta":
-                objective_name = "w"
-            if style == "Vanderbei":
-                objective_name = "xi"
+            objective_name = default_variable_name[style]["auxiliary objective"]
         return InteractiveLPProblemStandardForm(
             A, self.b(), c,
             X[:-m], slack_variables=X[-m:], auxiliary_variable=X[0],

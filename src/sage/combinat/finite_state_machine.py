@@ -6603,7 +6603,7 @@ class FiniteStateMachine(SageObject):
         In general, the disjoint union of two finite state machines is
         non-deterministic. In the case of a automata, the language
         accepted by the disjoint union is the union of the languages
-        accepted by the constitutent automata. In the case of
+        accepted by the constituent automata. In the case of
         transducer, for each successful path in one of the constituent
         transducers, there will be one successful path with the same input
         and output labels in the disjoint union.

@@ -933,7 +933,7 @@ class AbstractLinearCode(module.Module):
             ValueError: There is already a registered encoder with this name
         """
         reg_enc = self._registered_encoders
-        if(name in reg_enc.keys()):
+        if name in reg_enc:
             raise ValueError("There is already a registered encoder with this name")
         reg_enc[name] = encoder
 
@@ -1732,17 +1732,19 @@ class AbstractLinearCode(module.Module):
                 return False
         return True
 
-    def encode(self, word, name=None, **kwargs):
+    def encode(self, word, encoder_name=None, **kwargs):
         r"""
-        Transforms an element of the message space into an element of the code.
+        Transforms an element of the message space into a codeword.
 
         INPUT:
 
         - ``word`` -- a vector of the message space of the code
 
-        - ``name`` -- (default: ``None``) Name of the encoder which will be used
+        - ``encoder_name`` -- (default: ``None``) Name of the encoder which will be used
           to encode ``word``. The default encoder of ``self`` will be used if
           default value is kept
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
 
         OUTPUT:
 
@@ -1764,11 +1766,11 @@ class AbstractLinearCode(module.Module):
             sage: C.encode(word, 'GeneratorMatrix')
             (1, 1, 0, 0, 1, 1, 0)
         """
-        E = self.encoder(name, **kwargs)
+        E = self.encoder(encoder_name, **kwargs)
         return E.encode(word)
 
     @cached_method
-    def encoder(self, name=None, **kwargs):
+    def encoder(self, encoder_name=None, **kwargs):
         r"""
         Returns an encoder of ``self``.
 
@@ -1778,9 +1780,12 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``name`` -- (default: ``None``) name of the encoder which will be
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
           returned. The default encoder of ``self`` will be used if
           default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+          this method will return
 
         OUTPUT:
 
@@ -1804,11 +1809,11 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: Passed Encoder name not known
         """
-        if name is None:
-            name = self._encoder_default_name
-            return self.encoder(name, **kwargs)
-        if name in self._registered_encoders:
-            encClass = self._registered_encoders[name]
+        if encoder_name is None:
+            encoder_name = self._encoder_default_name
+            return self.encoder(encoder_name, **kwargs)
+        if encoder_name in self._registered_encoders:
+            encClass = self._registered_encoders[encoder_name]
             E = encClass(self, **kwargs)
             return E
         else:
@@ -2010,15 +2015,17 @@ class AbstractLinearCode(module.Module):
         codeword.set_immutable()
         return codeword
 
-    def generator_matrix(self, name=None, **kwargs):
+    def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
         Returns a generator matrix of ``self``.
 
         INPUT:
 
-        - ``name`` -- (default: ``None``) name of the encoder which will be
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
           used to compute the generator matrix. The default encoder of ``self``
           will be used if default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
 
         EXAMPLES::
 
@@ -2028,7 +2035,7 @@ class AbstractLinearCode(module.Module):
             [1 2 1]
             [2 1 1]
         """
-        E = self.encoder(name, **kwargs)
+        E = self.encoder(encoder_name, **kwargs)
         return E.generator_matrix()
 
     gen_mat = deprecated_function_alias(17973, generator_matrix)
@@ -2616,7 +2623,7 @@ class AbstractLinearCode(module.Module):
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
                 gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
-                if gap("Length(matCwt)") > 0: 
+                if gap("Length(matCwt)") > 0:
                     A = gap("MatrixAutomorphisms(matCwt)")
                     G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
                     Gp = G2
@@ -3098,7 +3105,7 @@ class AbstractLinearCode(module.Module):
             input = code2leon(self) + "::code"
             import os, subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
-            import StringIO  # to use the already present output parser 
+            import StringIO  # to use the already present output parser
             wts = [0]*(n+1)
             s = 0
             for L in StringIO.StringIO(lines).readlines():
@@ -3235,7 +3242,7 @@ class AbstractLinearCode(module.Module):
         """
         return self.parity_check_matrix()*r
 
-    def unencode(self, c, name=None, nocheck=False, **kwargs):
+    def unencode(self, c, encoder_name=None, nocheck=False, **kwargs):
         r"""
         Returns the message corresponding to ``c``.
 
@@ -3244,12 +3251,14 @@ class AbstractLinearCode(module.Module):
         - ``c`` -- a vector of the same length as ``self`` over the
           base field of ``self``
 
-        - ``name`` -- (default: ``None``) name of the decoder which will be used
+        - ``encoder_name`` -- (default: ``None``) name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
         - ``nocheck`` -- (default: ``False``) checks if ``c`` is in self. If this is set
           to True, the return value of this method is not guaranteed to be correct.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
 
         OUTPUT:
 
@@ -3263,7 +3272,7 @@ class AbstractLinearCode(module.Module):
             sage: C.unencode(c)
             (0, 1, 1, 0)
         """
-        E = self.encoder(name, **kwargs)
+        E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
     def weight_enumerator(self, names="xy", name2=None):
@@ -3627,21 +3636,12 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
     r"""
     Encoder based on generator_matrix for Linear codes.
 
-    The only purpose of this encoder is to set generic linear codes
-    into the new Encoder structure by providing a valid ``generator_matrix``
-    method.
-
-    This encoder uses default implementations of ``encode`` and ``unencode``.
-    Its ``generator_matrix`` method returns private field ``_generator_matrix``
-    of its associated code if any, else it calls the ``generator_matrix`` method
-    of the default encoder of the associated code.
-
-    According to this behaviour, this encoder should never be used for other codes than
+    This is the default encoder of a generic linear code, and should never be used for other codes than
     :class:`LinearCode`.
 
     INPUT:
 
-    - ``code`` -- The associated code of this encoder.
+    - ``code`` -- The associated :class:`LinearCode` of this encoder.
     """
 
     def __init__(self, code):

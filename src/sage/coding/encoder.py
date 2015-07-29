@@ -25,23 +25,17 @@ class Encoder(SageObject):
 
     Every encoder class should inherit from this abstract class.
 
-    This class provides:
-
-    - ``code``, the associated code of the encoder
-
-    - some methods for encoder objects
-
     To implement an encoder, you need to:
 
     - inherit from :class:`Encoder`
 
-    - call :class:`Encoder`'s :meth:`__init__` in the subclass constructor.
+    - call ``Encoder.__init__`` in the subclass constructor.
       Example: ``super(SubclassName, self).__init__(code)``.
       By doing that, your subclass will have its ``code`` parameter initialized.
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
-    Then, if the message space is a vectorial space, default implementation of :meth:`encode` and
+    Then, if the message space is a vector space, default implementations of :meth:`encode` and
     :meth:`unencode_nocheck` methods are provided. These implementations rely on :meth:`generator_matrix`
     which you need to override to use the default implementations.
 
@@ -54,14 +48,12 @@ class Encoder(SageObject):
     these methods is not enough for your subclass, you are strongly encouraged to override
     them.
 
-    .. NOTE::
-
-        For consistency on encoders, please follow this convention on names for subclasses:
-        for a new encoder named ``EncName``, for code family ``CodeFam``, call it
-        ``CodeFamEncNameEncoder``.
-
-    As :class:`Encoder` is not designed to be implemented, it does not have any representation
+    As :class:`Encoder` is not designed to be instanciated, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+
+    REFERENCES:
+
+    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
     """
 
     def __init__(self, code):
@@ -99,12 +91,13 @@ class Encoder(SageObject):
 
     def encode(self, word):
         r"""
-        Transforms an element of the message space into an element of the code.
+        Transforms an element of the message space into a codeword.
 
         This is a default implementation which assumes that the message
-        space of the encoder is `F^k`, where `F` is ``self.code().base_field()``
-        and ``k`` is ``self.code().dimension()``. If this is not the case,
-        this method should be overwritten by the subclass.
+        space of the encoder is `F^k`, where `F` is
+        :meth:`sage.coding.linear_code.AbstractLinearCode.base_field`
+        and ``k`` is :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`.
+        If this is not the case, this method should be overwritten by the subclass.
 
         INPUT:
 
@@ -163,33 +156,28 @@ class Encoder(SageObject):
         """
         if nocheck == False:
             if c not in self.code():
-                raise EncodingFailure("Given word is not in the code")
+                raise EncodingError("Given word is not in the code")
             else:
                 return self.unencode_nocheck(c)
         else:
             return self.unencode_nocheck(c)
 
     @cached_method
-    def unencoder_matrix(self):
+    def _unencoder_matrix(self):
         r"""
         Finds an information set for the matrix ``G`` returned by :meth:`generator_matrix`,
         and returns the inverse of that submatrix of ``G``.
 
-        .. NOTE::
-
-            This is a helper function, for internal use only.
-
         AUTHORS:
 
-            This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-            and was written by Johan Nielsen.
+            This function is taken from codinglib [Nielsen]_
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = C.encoder()
-            sage: E.unencoder_matrix()
+            sage: E._unencoder_matrix()
             [0 0 1 1]
             [0 1 0 1]
             [1 1 1 0]
@@ -206,8 +194,7 @@ class Encoder(SageObject):
 
         AUTHORS:
 
-            This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-            and was written by Johan Nielsen.
+            This function is taken from codinglib [Nielsen]_
 
         INPUT:
 
@@ -242,14 +229,14 @@ class Encoder(SageObject):
             sage: c == c1
             False
         """
-        U = self.unencoder_matrix()
+        U = self._unencoder_matrix()
         info_set = self.code().information_set()
         cc = vector( c[i] for i in info_set )
         return cc * U
 
     def code(self):
         r"""
-        Returns the code in which ``self.encode()`` has its output.
+        Returns the code in which :meth:`encode` has its output.
 
         EXAMPLES::
 
@@ -263,8 +250,8 @@ class Encoder(SageObject):
 
     def message_space(self):
         r"""
-        Returns the ambient space of allowed input to ``self.encode()``.
-        Note that `self.encode()` is possibly a partial function over
+        Returns the ambient space of allowed input to :meth:`encode`.
+        Note that :meth:`encode` is possibly a partial function over
         the ambient space.
 
         EXAMPLES::
@@ -288,8 +275,8 @@ class Encoder(SageObject):
         where `F` is the base field of :meth:`code`.)
         """
 
-class EncodingFailure(Exception):
+class EncodingError(Exception):
     r"""
-    Special exception class to indicate a failure during encoding or unencoding.
+    Special exception class to indicate an error during encoding or unencoding.
     """
     pass

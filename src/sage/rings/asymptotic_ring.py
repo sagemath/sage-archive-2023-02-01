@@ -712,6 +712,33 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return self._coefficient_ring_
 
 
+    @staticmethod
+    def _create_empty_summands_():
+        r"""
+        Create an empty data structure suitable for storing and working
+        with summands.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A :class:`~sage.data_structures.mutable_poset.MutablePoset`.
+
+        TESTS::
+
+            sage: AsymptoticRing._create_empty_summands_()
+            poset()
+        """
+        from sage.data_structures.mutable_poset import MutablePoset
+        from sage.monoids.asymptotic_term_monoid import \
+            can_absorb, absorption
+        return MutablePoset(key=lambda element: element.growth,
+                            can_merge=can_absorb,
+                            merge=absorption)
+
+
     def _element_constructor_(self, data, summands=None, simplify=True):
         r"""
         Convert a given object to this asymptotic ring.
@@ -761,23 +788,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if isinstance(data, GenericTerm):
             data = (data,)
 
-        from sage.data_structures.mutable_poset import MutablePoset
-        from sage.monoids.asymptotic_term_monoid import \
-            can_absorb, absorption
         if isinstance(data, (list, tuple)):
             if not all(isinstance(elem, GenericTerm) for elem in data):
                 raise TypeError('Not all list entries of %s '
                                 'are asymptotic terms.' % (data,))
-            summands = MutablePoset(key=lambda elem: elem.growth,
-                                    can_merge=can_absorb,
-                                    merge=absorption)
+            summands = AsymptoticRing._create_empty_summands_()
             summands.union_update(data)
             return self.element_class(self, summands, simplify=simplify)
 
         if data == 0:
-            summands = MutablePoset(key=lambda elem: elem.growth,
-                                    can_merge=can_absorb,
-                                    merge=absorption)
+            summands = AsymptoticRing._create_empty_summands_()
             return self.element_class(self, summands, simplify=simplify)
 
         try:

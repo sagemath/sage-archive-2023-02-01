@@ -1278,13 +1278,13 @@ cdef class EclListIterator:
 
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
-            sage: I.next()
+            sage: next(I)
             <ECL: 1>
-            sage: I.next()
+            sage: next(I)
             <ECL: 2>
-            sage: I.next()
+            sage: next(I)
             <ECL: 3>
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             StopIteration

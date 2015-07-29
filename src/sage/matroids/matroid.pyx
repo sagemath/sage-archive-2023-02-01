@@ -109,6 +109,12 @@ additional functionality (e.g. linear extensions).
     - :meth:`is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
     - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
+- Representation
+    - :meth:`binary_matroid() <sage.matroids.matroid.Matroid.binary_matroid>`
+    - :meth:`is_binary() <sage.matroids.matroid.Matroid.is_binary>`
+    - :meth:`ternary_matroid() <sage.matroids.matroid.Matroid.ternary_matroid>`
+    - :meth:`is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
 - Optimization
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
@@ -286,7 +292,10 @@ REFERENCES
 ..  [Lyons] R. Lyons, Determinantal probability measures. Publications Mathematiques de l'Institut des Hautes Etudes Scientifiques 98(1)  (2003), pp. 167-212.
 ..  [Oxley1] James Oxley, "Matroid theory", Oxford University Press, 1992.
 ..  [Oxley] James Oxley, "Matroid Theory, Second Edition". Oxford University Press, 2011.
-..  [Pen12] R. Pendavingh, On the evaluation at (-i, i) of the Tutte polynomial of a binary matroid. Preprint: http://arxiv.org/abs/1203.0910
+..  [Pen12] R. Pendavingh, On the evaluation at `(-i, i)` of the Tutte polynomial of a binary matroid. Preprint: :arxiv:`1203.0910`
+..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid 
+    representations over partial fields, Journal of Combinatorial Theory, 
+    Series B, Volume 100, Issue 1, January 2010, Pages 36-67
 
 AUTHORS:
 
@@ -308,14 +317,18 @@ Methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations
 from set_system cimport SetSystem
+from sage.graphs.graph import Graph
+from sage.misc.superseded import deprecation
 
 from utilities import newlabel, sanitize_contractions_deletions
 from sage.rings.all import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
+
+from sage.matroids.lean_matrix cimport BinaryMatrix, TernaryMatrix
+from sage.misc.prandom import shuffle
 
 
 # On some systems, macros "minor()" and "major()" are defined in system header
@@ -4575,12 +4588,16 @@ cdef class Matroid(SageObject):
             2
         """
         S = set(S)
+        if not S.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if T is None:
-            return self.rank(S) + self.rank(self.groundset()-S) - self.full_rank()
+            return self._rank(S) + self._rank(self.groundset()-S) - self.full_rank()
         T = set(T)
+        if not T.issubset(self.groundset()):
+            raise ValueError("S is not a subset of the ground set")
         if S.intersection(T):
-            raise ValueError("no well-defined matroid connectivity between intersecting sets")
-        return self._connectivity(S, T)
+            raise ValueError("S and T are not disjoint")
+        return len(self._link(S, T)[0]) - self.full_rank() + self._rank(S) + self._rank(T)
 
     cpdef _connectivity(self, S, T):
         r"""
@@ -4616,17 +4633,147 @@ cdef class Matroid(SageObject):
         EXAMPLES::
 
             sage: M = matroids.named_matroids.BetsyRoss()
-            sage: M._connectivity('ab', 'cd')
+            sage: M._connectivity(set('ab'), set('cd'))
             2
         """
-        N1 = self.minor(T,S)
-        N2 = self.minor(S,T)
-        return len(N1.intersection(N2)) - self.full_rank() + self.rank(S) + self.rank(T)
+        return len(self._link(S,T)[0]) - self.full_rank() + self.rank(S) + self.rank(T)
 
-    cpdef is_3connected(self, separation=False):
+    cpdef link(self, S, T):
         r"""
-        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
 
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            E = X\cup Y, X\cap Y = \emptyset \}.
+
+        Here `M` denotes this matroid.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M.link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        if not self.groundset().issuperset(S):
+            raise ValueError("S is not a subset of the ground set")
+        if not self.groundset().issuperset(T):
+            raise ValueError("T is not a subset of the ground set")
+        if not S.isdisjoint(T):
+            raise ValueError("S and T are not disjoint")
+        return self._link(S, T)
+
+    cpdef _link(self, S, T):
+        r"""
+        Given disjoint subsets `S` and `T`, return a connector `I` and a separation `X`,
+        which are optimal dual solutions in Tutte's Linking Theorem:
+
+        .. MATH::
+
+            \max \{ r_N(S) + r_N(T) - r(N) \mid N = M/I\setminus J, E(N) = S\cup T\}=\\
+            \min \{ r_M(X) + r_M(Y) - r_M(E) \mid X \subseteq S, Y \subseteq T,
+            E = X\cup Y, X\cap Y = \emptyset \}.
+
+        Here `M` denotes this matroid.
+
+        Internal version that does not verify that ``S`` and ``T``
+        are sets, are disjoint, are subsets of the groundset.
+
+        INPUT:
+
+        - ``S`` -- a subset of the ground set
+        - ``T`` -- a subset of the ground set disjoint from ``S``
+
+        OUTPUT:
+
+        A tuple ``(I, X)`` containing a frozenset ``I`` and a frozenset ``X``.
+
+        ALGORITHM:
+
+        Compute a maximum-cardinality common independent set `I` of
+        of `M / S \setminus T` and `M \setminus S / T`.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.BetsyRoss()
+            sage: S = set('ab')
+            sage: T = set('cd')
+            sage: I, X = M._link(S, T)
+            sage: M.connectivity(X)
+            2
+            sage: J = M.groundset()-(S|T|I)
+            sage: N = M/I\J
+            sage: N.connectivity(S)
+            2
+        """
+        # compute maximal common independent set of self\S/T and self/T\S
+        F = set(self.groundset()) - (S | T)
+        I = self._augment(S|T, F)
+        found_path = True
+        while found_path:
+            X = F - I
+            X1 = X - self._closure(T|I)
+            X2 = X - self._closure(S|I)
+            Y = X1.intersection(X2)
+            if Y:
+                y = min(Y)
+                I = I.union([y])
+                continue
+            predecessor = {x: None for x in X1}
+            next_layer = set(X1)
+            found_path = False
+            while next_layer and not found_path:
+                todo = next_layer
+                next_layer = set()
+                while todo and not found_path:
+                    u = todo.pop()
+                    if u in X:
+                        out_neighbors = self._circuit(I|S.union([u])) - S.union([u])
+                    else:
+                        out_neighbors = X - self._closure((I|T) - set([u]))
+                    out_neighbors= out_neighbors-set(predecessor)
+                    for y in out_neighbors:
+                        predecessor[y] = u
+                        if y in X2:
+                            found_path = True
+                            break
+                        next_layer.add(y)
+            if found_path:
+                path = set([y])             # reconstruct path
+                while predecessor[y] is not None:
+                    y = predecessor[y]
+                    path.add(y)
+                I = I.symmetric_difference(path)
+        return frozenset(I), frozenset(predecessor)|S
+
+
+    cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
 
         A `k`-*separation* in a matroid is a partition `(X, Y)` of the
         groundset with `|X| \geq k, |Y| \geq k` and `r(X) + r(Y) - r(M) < k`.
@@ -4634,9 +4781,16 @@ cdef class Matroid(SageObject):
 
         INPUT:
 
-        - ``separation`` -- (default: ``False``) a boolean; if ``True``,
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
           then return ``True, None`` if the matroid is is 3-connected,
-          and ``False, X`` otherwise, where ``X`` is a `<3`-separation
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+        - ``algorithm`` -- (default: ``None``); specify which algorithm 
+          to compute 3-connectivity:
+
+          - ``None`` -- The most appropriate algorithm is chosen automatically.
+          - ``"bridges"`` -- Bixby and Cunningham's algorithm, based on bridges [BC79]_.
+            Note that this cannot return a separator.
+          - ``"intersection"`` An algorithm based on matroid intersection.
 
         OUTPUT:
 
@@ -4648,13 +4802,9 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
-        sets `S`,`T` with `|S| = |T| = 2`.
-
-        .. TODO::
-
-            Implement the more efficient 3-connectivity algorithm
-            from [BC79]_ which runs in `O(|E|^3)` time.
+        - Bridges based: The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+        - Matroid intersection based: Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+          sets `S`, `T` with `|S| = |T| = 2`.
 
         EXAMPLES::
 
@@ -4665,6 +4815,10 @@ cdef class Matroid(SageObject):
             ....:                              [0, 0, 1, 0, 0, 1]])
             sage: M.is_3connected()
             False
+            sage: M.is_3connected() == M.is_3connected(algorithm="bridges")
+            True
+            sage: M.is_3connected() == M.is_3connected(algorithm="intersection")
+            True
             sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
             ....:                               3: ['abcdef']},
             ....:             groundset='abcdef')
@@ -4679,60 +4833,624 @@ cdef class Matroid(SageObject):
             sage: M.connectivity(X)
             1
         """
-        if self.loops() or self.coloops():
-            return False
+        if separation:
+            deprecation(18539, "Use `certificate` in place of `separation`")
+        certificate = certificate or separation
+        if algorithm == None:
+            if certificate:
+                return self._is_3connected_CE(True)
+            else:
+                return self._is_3connected_BC()
+        if algorithm == "bridges":
+            return self._is_3connected_BC(separation)
+        if algorithm == "intersection":
+            return self._is_3connected_CE(separation)
+        raise ValueError("Not a valid algorithm.")
+
+    cpdef _is_3connected_CE(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
+        sets `S`, `T` with `|S| = |T| = 2`.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_CE()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_CE()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_CE()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_CE()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_CE()
+            False
+            sage: B, X = M._is_3connected_CE(True)
+            sage: M.connectivity(X)
+            1
+        """
+        cdef set E, G, H, S, T
+        cdef frozenset I, X
+        # test (2-)connectedness
+        C = self.components()
+        if len(C)>1:
+            if certificate:
+                for X in C:
+                    return False, X
+            else:
+                return False
+        # now 2-separations are exact
+        # test if groundset size is at least 4
         E = set(self.groundset())
-        e = E.pop()
-        f = E.pop()
-        S = {e, f}
-        w = {e:1 for e in E}
-        I = set()
-        for T in combinations(E, 2):
-            T = set(T)
-            N1 = self.minor(T,S)
-            N2 = self.minor(S,T)
-            # make previous I a common independent set of current N1, N2
-            I = I - T
-            I = N1.max_independent(I)
-            I = N2.max_independent(I)
-            J = N1._intersection_augmentation(N2, w, I)
-            while J[0]:
-                I = I.symmetric_difference(J[1])
-                J = N1._intersection_augmentation(N2, w, I)
-            # check if connectivity between S,T is <2
-            if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
-                if separation:
-                    return False, S.union(J[1])
+        if len(E)<4:
+            if certificate:
+                return True, None
+                # there is no partition A,B of the ground set such that |A|, |B| >= 2
+            else:
+                return True
+        # now there exist two disjoint pairs
+        # test if there are any parallel pairs
+        for e in E:
+            X = self._closure([e])
+            if len(X)>1:
+                if certificate:
+                    return False, self._circuit(X)
+                    # r(C) + r(E\C) - r(E) <= r(C) < 2, |C| = 2, |E\C| >= 2
                 else:
                     return False
-        for g in E:
-            S = {e, g}
-            I = I - S
-            for h in E:
-                if g is h:
-                    continue
-                T = {f, h}
-                T = set(T)
-                N1 = self.minor(T,S)
-                N2 = self.minor(S,T)
-                # make previous I a common independent set of current N1, N2
-                I = I - T
-                I = N1.max_independent(I)
-                I = N2.max_independent(I)
-                J = N1._intersection_augmentation(N2, w, I)
-                while J[0]:
-                    I = I.symmetric_difference(J[1])
-                    J = N1._intersection_augmentation(N2, w, I)
-                # check if connectivity between S,T is <2
-                if len(I) - self.full_rank() + self.rank(S) + self.rank(T) < 2:
-                    if separation:
-                        return False, S.union(J[1])
+        # now each pair has rank 2
+        e = E.pop()
+        f = E.pop()
+        # check 2-separations with e,f on the same side
+        S = {e, f}
+        G = set(E)
+        while G:
+            g = G.pop()
+            H = set(G)
+            while H:
+                h = H.pop()
+                T = {g, h}
+                I, X = self._link(S, T)
+                # check if connectivity between S,T is < 2
+                if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                    if certificate:
+                        return False, X
                     else:
                         return False
-        if separation:
+                # if h' is not spanned by I+g, then I is a connector for {e,f}, {g,h'}
+                H.intersection_update(self._closure(I.union([g])))
+        g = E.pop()
+        # check 2-separations with e,g on one side, f on the other
+        S = {e, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {f, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + f, then I is a connector for {e, g}, {f, h'}
+            H.intersection_update(self._closure(I.union([f])))
+        # check all 2-separations with f,g on one side, e on the other
+        S = {f, g}
+        H = set(E)
+        while H:
+            h = H.pop()
+            T = {e, h}
+            I, X = self._link(S, T)
+            # check if connectivity between S,T is < 2
+            if len(I) + 2 < self.full_rank(): # note: rank(S) = rank(T) = 2
+                if certificate:
+                    return False, X
+                else:
+                    return False
+            # if h' is not spanned by I + e, then I is a connector for {f, g}, {e, h'}
+            H.intersection_update(self._closure(I.union([e])))
+        if certificate:
             return True, None
         else:
             return True
+
+    cpdef _is_3connected_BC(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_BC()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_BC()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_BC()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_BC()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_BC()
+            False
+        """
+        # The 5 stages of the algorithm
+        if certificate:
+            raise NotImplementedError("The Bixby-Cunningham algorithm does not return a separation.")
+        # Stage 0, special cases
+        if self.size() <= 1:
+            return True
+        if self.size() <= 3 and self.full_rank()==1 and not self.loops():
+            return True
+        if self.size() <= 3 and self.full_corank()==1 and not self.coloops():
+            return True
+        # testing loop and coloop are fast operations, hence apply them first
+        if self.loops() or self.coloops():
+            return False
+        if not (self.is_connected() and self.is_simple() and self.is_cosimple()):
+            return False
+        basis = self.basis()
+        fund_cocircuits = set([self._fundamental_cocircuit(basis, e) for e in basis])
+        return self._is_3connected_BC_recursion(self.basis(), fund_cocircuits)
+
+    cpdef _is_3connected_BC_recursion(self, basis, fund_cocircuits):
+        r"""
+        A helper function for ``_is_3connected_BC``. This method assumes the 
+        matroid is both simple and cosimple. Under the assumption, it return 
+        ``True`` if the matroid is 3-connected, ``False`` otherwise. 
+
+        INPUT:
+        - ``basis`` -- a basis of the matroid.
+        - ``fund_cocircuits`` -- a iterable of some fundamental cocircuits with 
+        respect to ``basis``. It must contain all separating fundamental cocircuits. 
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2, 3)
+            sage: B = M.basis()
+            sage: M._is_3connected_BC_recursion(B, 
+            ....:   [M.fundamental_cocircuit(B, e) for e in B])
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: B = M.basis()
+            sage: M._is_3connected_BC_recursion(B, 
+            ....:   [M.fundamental_cocircuit(B, e) for e in B])
+            False
+
+        .. NOTE::
+
+        The function does not check its input at all. You may want to make
+        sure the matroid is both simple and cosimple.
+        """
+        # Step 1: base case
+        if self.rank() <= 2:
+            return True
+        # Step 2: Find a separating B-fundamental cocircuit Y
+        separating = False
+        while fund_cocircuits:
+            Y = fund_cocircuits.pop()
+            bridges = self.delete(Y).components()  # O(r(M)|E|) time.
+            if len(bridges)>1:
+                separating = True
+                break
+        if not separating:
+            return True
+
+        # Step 3: Check the avoidance graph of Y
+        Y_components = {}
+        B_segments   = []
+        for B in bridges:
+            # M/(E\(B union Y)) is called a Y-component
+            M = self.contract(self.groundset() - (B | Y))
+            Y_components[B] = M
+            s = set(Y)
+            parallel_classes = []
+            while len(s)>0:
+                e = s.pop()
+                parallel_class = M._closure(frozenset([e]))
+                s -= parallel_class
+                parallel_classes.append(parallel_class)
+            B_segments.append(frozenset(parallel_classes))
+        # build the avoidance graph
+        d = {}
+        for i in range(len(B_segments)):
+            d[i] = []
+            for j in range(len(B_segments)):
+                if i!= j:
+                    # avoidance check
+                    avoid = False
+                    for S in B_segments[i]:
+                        for T in B_segments[j]:
+                            if Y - S <= T:
+                                avoid = True
+                                break
+                        if avoid:
+                            break
+                    if not avoid:
+                        d[i].append(j)
+        G = Graph(d);
+        if not G.is_connected():
+            return False
+        # Step 4: Apply algorithm recursively
+        for B, M in Y_components.iteritems():
+            N = M.simplify()
+            new_basis = basis & (B | Y)
+            # the set of fundamental cocircuit that might be separating for N
+            cocirc = set([M._fundamental_cocircuit(new_basis, e) for e in new_basis])
+            cocirc &= fund_cocircuits
+            fund_cocircuits -= cocirc
+            cocirc = set([x & N.groundset() for x in cocirc])
+            if not N._is_3connected_BC_recursion(new_basis, cocirc):
+                return False
+        return True
+
+    # representability
+
+    cpdef _local_binary_matroid(self, basis=None):
+        r"""
+        Return a binary matroid `M` so that relative to a fixed basis `B`,
+        `X` is a basis of ``self`` if and only if `X` is a basis of `M`
+        for all subsets `X` of the ground set such that
+        `|X \setminus B| \leq 1`.
+
+        INPUT:
+
+        - ``basis`` -- (optional) a set; the basis `B` as above
+
+        OUTPUT:
+
+        A :class:`BinaryMatroid <sage.matroids.linear_matroid.BinaryMatroid>`.
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: M = N._local_binary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            True
+            sage: N = matroids.named_matroids.NonFano()
+            sage: M = N._local_binary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            False
+        """
+        if basis is None:
+            basis = self.basis()
+        basis = list(basis)
+        E = list(self.groundset())
+        idx = { E[i]:i for i in range(len(E)) }
+        A = BinaryMatrix(len(basis), len(E))
+        i = 0
+        for e in basis:
+            C = self._fundamental_cocircuit(basis, e)
+            for e in C:
+                A.set(i,idx[e])
+            i = i+1
+        from sage.matroids.linear_matroid import BinaryMatroid
+        return BinaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
+
+
+    cpdef binary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a binary matroid representing ``self``, if such a 
+        representation exists.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being binary is tested,
+          using randomization
+        - ``verify`` -- (default: ``True``), a Boolean; if ``True``,
+          any output will be a binary matroid representing ``self``; if
+          ``False``, any output will represent ``self`` if and only if the
+          matroid is binary
+
+        OUTPUT:
+
+        Either a BinaryMatroid, or ``None``
+
+        ALGORITHM:
+
+        First, compare the binary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``None``. This
+        test is performed ``randomized_tests`` times. Next, if ``verify``
+        is ``True``, test if a binary matroid local to some basis is
+        isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.local_binary_matroid()
+            <sage.matroids.matroid.Matroid._local_binary_matroid>`
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.binary_matroid()
+            Fano: Binary matroid of rank 3 on 7 elements, type (3, 0)
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.binary_matroid() is None
+            True
+
+        """
+        M = self._local_binary_matroid()
+        m = {e:e for e in self.groundset()}
+        if randomized_tests > 0:
+            E = list(self.groundset())
+            for r in range(randomized_tests):
+                shuffle(E)
+                B = self.max_weight_independent(E)
+                N = self._local_binary_matroid(B)
+                if not M.is_field_isomorphism(N, m):
+                    return None
+                M = N
+        if self.is_isomorphism(M, m):
+            return M
+        else:
+            return None    
+
+    cpdef is_binary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being binary is tested,
+          using randomization
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        First, compare the binary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``False``. This
+        test is performed ``randomized_tests`` times. Next, test if a
+        binary matroid local to some basis is isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.binary_matroid()
+            <sage.matroids.matroid.Matroid.binary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_binary()
+            True
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_binary()
+            False
+
+        """
+        return self.binary_matroid(randomized_tests=randomized_tests, verify=True) is not None
+
+    cpdef _local_ternary_matroid(self, basis=None):
+        r"""
+        Return a ternary matroid `M` so that if ``self`` is ternary, then `M` is field
+        isomorphic to ``self``.
+
+        INPUT:
+
+        - ``basis`` -- (optional) a set; the basis `B` as above
+
+        OUTPUT:
+
+        A :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`.
+
+        ALGORITHM:
+
+        Suppose `A` is a reduced `B\times E\setminus B` matrix representation of `M`
+        relative to the given basis `B`. Define the graph `G` with `V(G) = E(M)`, so
+        that `e, f` are adjacent if and only if `B\triangle \{e, f\}` is a basis
+        of `M`. Then `A_{ef}` is nonzero if and only `e,f` are adjacent in `G`.
+        Moreover, if `C` is an induced circuit of `G`, then with `S=E(M)\setminus V(C)\setminus B`
+        and `T=B\setminus V(C)` the minor `M\setminus S/T` is either
+        a wheel or a whirl, and over `\GF{3}` this determines `\prod_{ef\in E(C)} A_{ef}`.
+        Together these properties determine `A` up to scaling of rows and columns of `A`.
+
+        The reduced matrix representation `A` is now constructed by fixing a spanning
+        forest of `G` and setting the corresponding entries of `A` to one. Then one by
+        one the remaining entries of `A` are fixed using an induced circuit `C` consisting
+        of the next entry and entries which already have been fixed.
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: M = N._local_ternary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            False
+            sage: N = matroids.named_matroids.NonFano()
+            sage: M = N._local_ternary_matroid()
+            sage: N.is_isomorphism(M, {e:e for e in N.groundset()})
+            True
+        """
+        if basis is None:
+            basis = self.basis()
+        basis = sorted(basis)
+        bdx = {basis[i]:i for i in range(len(basis))}
+        E = sorted(self.groundset())
+        idx = { E[i]:i for i in range(len(E)) }
+        A = TernaryMatrix(len(basis), len(E))
+        for e in basis:
+            A.set(bdx[e], idx[e], 1)
+        entries = [(e, f, (e,f)) for e in basis for f in self._fundamental_cocircuit(basis, e).difference([e])]
+        G = Graph(entries)
+        T = set()
+        for C in G.connected_components():
+            T.update(G.subgraph(C).min_spanning_tree())
+        for edge in T:
+            e,f = edge[2]
+            A.set(bdx[e],idx[f], 1)
+        W = list(set(G.edges()) - set(T))
+        H = G.subgraph(edges = T)
+        while W:
+            edge = W.pop(-1)
+            e,f = edge[2]
+            path = H.shortest_path(e, f)
+            for i in range(len(W)):
+                edge2 = W[i]
+                if edge2[0] in path and edge2[1] in path:
+                    W[i] = edge
+                    edge = edge2
+                    e,f = edge[2]
+                    while path[0]!= e and path[0] != f:
+                        path.pop(0)
+                    while path[-1]!= e and path[-1] != f:
+                        path.pop(-1)
+                    if path[0] == f:
+                        path.reverse()
+            x = 1
+            for i in range(len(path)-1):
+                if i%2 == 0:
+                    x = x * A.get(bdx[path[i]], idx[path[i+1]])
+                else:
+                    x = x * A.get(bdx[path[i+1]], idx[path[i]])
+            if (len(path) % 4 == 0) == self.is_dependent(set(basis).symmetric_difference(path)):
+                A.set(bdx[e],idx[f],x)
+            else:
+                A.set(bdx[e],idx[f],-x)
+            H.add_edge(edge)
+        from sage.matroids.linear_matroid import TernaryMatroid
+        return TernaryMatroid(groundset=E, matrix=A, basis=basis, keep_initial_representation=False)
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``, if such a
+        representation exists.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being ternary is tested,
+          using randomization
+        - ``verify`` -- (default: ``True``), a Boolean; if ``True``,
+          any output will be a ternary matroid representing ``self``; if
+          ``False``, any output will represent ``self`` if and only if the
+          matroid is ternary
+
+        OUTPUT:
+
+        Either a :class:`TernaryMatroid <sage.matroids.linear_matroid.TernaryMatroid>`, or ``None``
+
+        ALGORITHM:
+
+        First, compare the ternary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``None``. This
+        test is performed ``randomized_tests`` times. Next, if ``verify``
+        is ``True``, test if a ternary matroid local to some basis is
+        isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M._local_ternary_matroid()
+            <sage.matroids.matroid.Matroid._local_ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.ternary_matroid() is None
+            True
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.ternary_matroid()
+            NonFano: Ternary matroid of rank 3 on 7 elements, type 0-
+
+        """
+        M = self._local_ternary_matroid()
+        m = {e:e for e in self.groundset()}
+        if randomized_tests > 0:
+            E = list(self.groundset())
+            for r in range(randomized_tests):
+                shuffle(E)
+                B = self.max_weight_independent(E)
+                N = self._local_ternary_matroid(B)
+                if not M.is_field_isomorphism(N, m):
+                    return None
+                M = N
+        if self.is_isomorphism(M, m):
+            return M
+        else:
+            return None
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a ternary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- (default: 1) an integer; the number of
+          times a certain necessary condition for being ternary is tested,
+          using randomization
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        First, compare the ternary matroids local to two random bases.
+        If these matroids are not  isomorphic, return ``False``. This
+        test is performed ``randomized_tests`` times. Next, test if a
+        ternary matroid local to some basis is isomorphic to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.Fano()
+            sage: N.is_ternary()
+            False
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_ternary()
+            True
+
+        """
+        return self.ternary_matroid(randomized_tests=randomized_tests, verify=True) is not None
 
     # matroid k-closed
 
@@ -4769,6 +5487,132 @@ cdef class Matroid(SageObject):
                     return False
         return True
 
+    # matroid chordality
+
+    cpdef _is_circuit_chordal(self, frozenset C):
+        """
+        Check if the circuit ``C`` has a chord.
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: [M._is_circuit_chordal(C) for C in M.circuits()]
+            [False, False, False, False]
+            sage: M = matroids.named_matroids.Fano()
+            sage: M._is_circuit_chordal(frozenset(['b','c','d']))
+            False
+            sage: M._is_circuit_chordal(frozenset(['a','b','d','e']))
+            True
+        """
+        cdef set X
+        cdef frozenset Ax, Bx
+
+        X = set(C)
+        e = X.pop()
+        # cl(X) = cl(C), and to be a chord x must be spanned by C
+        for x in self._closure(X)-C:
+            Ax = self._circuit(X.union([x]))
+            Bx = C.difference(Ax).union([x])
+            if not self._is_independent(Bx):
+                # If x is spanned by C, then A+x is the unique circuit in C-e+x;
+                #    so x is a chord iff the complementary B is a circuit.
+                return True
+        return False
+
+    cpdef is_circuit_chordal(self, C):
+        r"""
+        Check if the circuit ``C`` has a chord.
+
+        A circuit `C` in a matroid `M` has a *chord* `x \in E` if there
+        exists sets `A, B` such that `C = A \sqcup B` and `A + x` and
+        `B + x` are circuits.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.is_circuit_chordal(['b','c','d'])
+            False
+            sage: M.is_circuit_chordal(['a','b','d','e'])
+            True
+        """
+        if not self.is_circuit(C):
+            raise ValueError("input C is not a circuit")
+        return self._is_circuit_chordal(frozenset(C))
+
+    cpdef is_chordal(self, k1=4, k2=None):
+        r"""
+        Return if a matroid is ``[k1, k2]``-chordal.
+
+        A matroid `M` is `[k_1, k_2]`-chordal if every circuit of length
+        `\ell` with `k_1 \leq \ell \leq k_2` has a
+        :meth:`chord <sage.matroids.matroid.Matroid.is_circuit_chordal>`.
+        We say `M` is `k`-chordal if `k_1 = k` and `k_2 = \infty`.
+        We call `M` *chordal* if it is `4`-chordal.
+
+        INPUT:
+
+        - ``k1`` -- (optional) the integer `k_1`
+        - ``k2`` -- (optional) the integer `k_2`; if not specified,
+          then this method returns if ``self`` is `k_1`-chordal
+
+        .. SEEALSO::
+
+            :meth:`M.chordality() <sage.matroids.matroid.Matroid.chordality>`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: [M.is_chordal(i) for i in range(4, 8)]
+            [True, True, True, True]
+            sage: M = matroids.named_matroids.NonFano()
+            sage: [M.is_chordal(i) for i in range(4, 8)]
+            [False, True, True, True]
+            sage: M = matroids.named_matroids.N2()
+            sage: [M.is_chordal(i) for i in range(4, 10)]
+            [False, False, False, False, True, True]
+            sage: M.is_chordal(4, 5)
+            False
+        """
+        cdef frozenset C
+        if k2 is None:
+            k2 = len(self.groundset()) + 1 # This is always larger than the rank
+        for C in self.circuits():
+            if len(C) < k1 or len(C) > k2:
+                continue
+            if not self._is_circuit_chordal(C):
+                return False
+        return True
+
+    cpdef chordality(self):
+        r"""
+        Return the minimal `k` such that the matroid ``M`` is `k`-chordal.
+
+        .. SEEALSO::
+
+            :meth:`M.is_chordal() <sage.matroids.matroid.Matroid.is_chordal>`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,4)
+            sage: M.chordality()
+            4
+            sage: M = matroids.named_matroids.NonFano()
+            sage: M.chordality()
+            5
+            sage: M = matroids.named_matroids.Fano()
+            sage: M.chordality()
+            4
+        """
+        cdef frozenset C
+
+        # By sorting by length of the circuits (which should be relatively
+        #   fast) the first circuit we come across without a chord will
+        #   determine the chordality
+        for C in sorted(self.circuits(), key=len, reverse=True):
+            if not self._is_circuit_chordal(C):
+                return ZZ(len(C) + 1)
+        return ZZ.zero()
+
     # optimization
 
     cpdef max_weight_independent(self, X=None, weights=None):
@@ -4780,8 +5624,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  If ``X`` is ``None``, the method returns a
-          maximum-weight independent subset of the groundset.
+          ``self.groundset()``.
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4791,9 +5634,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-        The greedy algorithm. Sort the elements of ``X`` by decreasing
-        weight, then greedily select elements if they are independent of
-        all that was selected before.
+        The greedy algorithm. If a weight function is given, then sort the elements 
+        of ``X`` by decreasing weight, and otherwise use the ordering in which ``X`` 
+        lists its elements. Then greedily select elements if they are independent
+        of all that was selected before.
 
         EXAMPLES::
 
@@ -4862,8 +5706,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``X`` -- (default: ``None``) an iterable with a subset of
-          ``self.groundset()``.  If ``X`` is ``None``, the method returns a
-          maximum-weight coindependent subset of the groundset.
+          ``self.groundset()``.
         - ``weights`` -- a dictionary or function mapping the elements of
           ``X`` to nonnegative weights.
 
@@ -4873,9 +5716,10 @@ cdef class Matroid(SageObject):
 
         ALGORITHM:
 
-            The greedy algorithm. Sort the elements of ``X`` by decreasing
-            weight, then greedily select elements if they are coindependent of
-            all that was selected before.
+        The greedy algorithm. If a weight function is given, then sort
+        the elements of ``X`` by decreasing weight, and otherwise use the
+        ordering in which ``X``  lists its elements. Then greedily select
+        elements if they are coindependent of all that was selected before.
 
         EXAMPLES::
 

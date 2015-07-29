@@ -106,19 +106,20 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover of self
+    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover.
     :meth:`~Graph.independent_set` | Returns a maximum independent set.
-    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor from ``self`` if one exists.
-    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` objet corresponding to ``self``.
-    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial of the graph `G`.
+    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor of ``self`` if one exists.
+    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` object corresponding to ``self``.
+    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial.
     :meth:`~Graph.rank_decomposition` | Returns an rank-decomposition of ``self`` achieving optiml rank-width.
-    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H` in the current graph.
+    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H`.
     :meth:`~Graph.independent_set_of_representatives` | Returns an independent set of representatives.
     :meth:`~Graph.coloring` | Returns the first (optimal) proper vertex-coloring found.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
-    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
-    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
-    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
+    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices.
+    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial.
+    :meth:`~Graph.chromatic_symmetric_function` | Return the chromatic symmetric function.
+    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
     :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
 
@@ -132,12 +133,13 @@ graphs.
 
     :meth:`~Graph.cores` | Returns the core number for each vertex in an ordered list.
     :meth:`~Graph.matching` | Returns a maximum weighted matching of the graph
-    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index of ``self``
-    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial of the graph.
-    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
-    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
+    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index.
+    :meth:`~Graph.lovasz_theta` | Returns the Lovasz number (a.k.a theta).
+    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial.
+    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition.
+    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
 
 AUTHORS:
 
@@ -3782,6 +3784,79 @@ class Graph(GenericGraph):
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
 
+    def chromatic_symmetric_function(self, R=None):
+        r"""
+        Return the chromatic symmetric function of ``self``.
+
+        Let `G` be a graph. The chromatic symmetric function `X_G` was
+        described in [Stanley95]_, specifically Theorem 2.5 states that
+
+        .. MATH::
+
+            X_G = \sum_{F \subseteq E(G)} (-1)^{|F|} p_{\lambda(F)},
+
+        where `\lambda(F)` is the partition of the sizes of the connected
+        components of the subgraph induced by the edges `F` and `p_{\mu}`
+        is the powersum symmetric function.
+
+        INPUT:
+
+        - ``R`` -- (optional) the base ring for the symmetric functions;
+          this uses `\ZZ` by default
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: G = graphs.CycleGraph(5)
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1, 1] - 5*p[2, 1, 1, 1] + 5*p[2, 2, 1]
+             + 5*p[3, 1, 1] - 5*p[3, 2] - 5*p[4, 1] + 4*p[5]
+            sage: s(XG)
+            30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
+
+        Not all graphs have a postive Schur expansion::
+
+            sage: G = graphs.ClawGraph()
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1] - 3*p[2, 1, 1] + 3*p[3, 1] - p[4]
+            sage: s(XG)
+            8*s[1, 1, 1, 1] + 5*s[2, 1, 1] - s[2, 2] + s[3, 1]
+
+        We show that given a triangle `\{e_1, e_2, e_3\}`, we have
+        `X_G = X_{G - e_1} + X_{G - e_2} - X_{G - e_1 - e_2}`::
+
+            sage: G = Graph([[1,2],[1,3],[2,3]])
+            sage: XG = G.chromatic_symmetric_function()
+            sage: G1 = copy(G)
+            sage: G1.delete_edge([1,2])
+            sage: XG1 = G1.chromatic_symmetric_function()
+            sage: G2 = copy(G)
+            sage: G2.delete_edge([1,3])
+            sage: XG2 = G2.chromatic_symmetric_function()
+            sage: G3 = copy(G1)
+            sage: G3.delete_edge([1,3])
+            sage: XG3 = G3.chromatic_symmetric_function()
+            sage: XG == XG1 + XG2 - XG3
+            True
+
+        REFERENCES:
+
+        .. [Stanley95] R. P. Stanley, *A symmetric function generalization
+           of the chromatic polynomial of a graph*, Adv. Math., ***111***
+           no.1 (1995), 166-194.
+        """
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.combinat.partition import _Partitions
+        from sage.misc.misc import powerset
+        if R is None:
+            R = ZZ
+        p = SymmetricFunctions(R).p()
+        ret = p.zero()
+        for F in powerset(self.edges()):
+            la = _Partitions(self.subgraph(edges=F).connected_components_sizes())
+            ret += (-1)**len(F) * p[la]
+        return ret
+
     def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
         r"""
         Returns a maximum weighted matching of the graph
@@ -6375,7 +6450,7 @@ class Graph(GenericGraph):
 
         # Take any two vertices (u,v)
         it = vertices.__iter__()
-        u,v = it.next(),it.next()
+        u,v = next(it),next(it)
 
         # Compute a uv min-edge-cut.
         #
@@ -6799,4 +6874,6 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
+from sage.graphs.lovasz_theta import lovasz_theta
+Graph.lovasz_theta = lovasz_theta
 

@@ -340,7 +340,6 @@ directly in the definition of ``NAF`` by ``initial_states=['A']`` and
 
 So let's test the automaton with some input::
 
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
     sage: NAF([0])
     True
     sage: NAF([0, 1])
@@ -543,7 +542,6 @@ right. This requires storing the previously read digit in a state.
      Transition from 0 to 1: 1|0,
      Transition from 1 to 0: 0|1,
      Transition from 1 to 1: 1|1]
-    sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
     sage: shift_right_transducer([0, 1, 1, 0])
     [0, 1, 1]
     sage: shift_right_transducer([1, 0, 0])
@@ -1003,7 +1001,6 @@ def startswith(list, prefix):
 FSMEmptyWordSymbol = '-'
 EmptyWordLaTeX = r'\varepsilon'
 EndOfWordLaTeX = r'\$'
-FSMOldProcessOutput = True  # See trac #16132 (deprecation).
 tikz_automata_where = {"right": 0,
                        "above": 90,
                        "left": 180,
@@ -3480,23 +3477,12 @@ class FiniteStateMachine(SageObject):
 
     def __call__(self, *args, **kwargs):
         """
-        .. WARNING::
-
-            The default output of this method is scheduled to change.
-            This docstring describes the new default behaviour, which can
-            already be achieved by setting
-            ``FSMOldProcessOutput`` to ``False``.
-
-        Calls either method :meth:`.composition` or :meth:`.process` (with
+        Call either method :meth:`.composition` or :meth:`.process` (with
         ``full_output=False``). See the documentation of these functions for
         possible parameters.
 
-        By setting ``FSMOldProcessOutput`` to ``False``
-        the new desired output is produced.
-
         EXAMPLES::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
             sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
@@ -9752,14 +9738,7 @@ class Automaton(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
-        .. WARNING::
-
-            The default output of this method is scheduled to change.
-            This docstring describes the new default behaviour, which can
-            already be achieved by setting
-            ``FSMOldProcessOutput`` to ``False``.
-
-        Returns whether the automaton accepts the input and the state
+        Return whether the automaton accepts the input and the state
         where the computation stops.
 
         INPUT:
@@ -9843,9 +9822,6 @@ class Automaton(FiniteStateMachine):
         You can use :meth:`.determinisation` to get a deterministic
         automaton machine.
 
-        By setting ``FSMOldProcessOutput`` to ``False``
-        the new desired output is produced.
-
         This function uses an iterator which, in its simplest form, goes
         from one state to another in each step. To decide which way to
         go, it uses the input words of the outgoing transitions and
@@ -9893,7 +9869,6 @@ class Automaton(FiniteStateMachine):
 
         ::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
             sage: NAF = Automaton(
             ....:     {'_': [('_', 0), ('1', 1)], '1': [('_', 0)]},
             ....:     initial_states=['_'], final_states=['_', '1'])
@@ -9976,14 +9951,6 @@ class Automaton(FiniteStateMachine):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        if FSMOldProcessOutput:
-            from sage.misc.superseded import deprecation
-            deprecation(16132, "The output of Automaton.process "
-                               "(and thus of Automaton.__call__) "
-                               "will change. Please use the corresponding "
-                               "functions from FiniteStateMachine "
-                               "for the original output.")
-
         # set default values
         options = copy(self._process_default_options_)
         options.update(kwargs)
@@ -10039,7 +10006,7 @@ class Automaton(FiniteStateMachine):
             ....:                            always_include_output=True)
             (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput or kwargs['always_include_output']:
+        if kwargs['always_include_output']:
             return super(Automaton, self)._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data
@@ -10682,14 +10649,7 @@ class Transducer(FiniteStateMachine):
 
     def process(self, *args, **kwargs):
         """
-        .. WARNING::
-
-            The default output of this method is scheduled to change.
-            This docstring describes the new default behaviour, which can
-            already be achieved by setting
-            ``FSMOldProcessOutput`` to ``False``.
-
-        Returns whether the transducer accepts the input, the state
+        Return whether the transducer accepts the input, the state
         where the computation stops and which output is generated.
 
         INPUT:
@@ -10772,9 +10732,6 @@ class Transducer(FiniteStateMachine):
         Note that in the case the transducer is not
         deterministic, all possible paths are taken into account.
 
-        By setting ``FSMOldProcessOutput`` to ``False``
-        the new desired output is produced.
-
         This function uses an iterator which, in its simplest form, goes
         from one state to another in each step. To decide which way to
         go, it uses the input words of the outgoing transitions and
@@ -10814,7 +10771,6 @@ class Transducer(FiniteStateMachine):
 
         EXAMPLES::
 
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False  # activate new output behavior
             sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:                              initial_states=['A'], final_states=['A'])
             sage: binary_inverter.process([0, 1, 0, 0, 1, 1])
@@ -10952,14 +10908,6 @@ class Transducer(FiniteStateMachine):
             ...
             TypeError: No input tape given.
         """
-        if FSMOldProcessOutput:
-            from sage.misc.superseded import deprecation
-            deprecation(16132, "The output of Transducer.process "
-                               "(and thus of Transducer.__call__) "
-                               "will change. Please use the corresponding "
-                               "functions from FiniteStateMachine "
-                               "for the original output.")
-
         # set default values
         options = copy(self._process_default_options_)
         options.update(kwargs)
@@ -11011,9 +10959,6 @@ class Transducer(FiniteStateMachine):
             ....:                            full_output=True)
             (True, 'a', [1, 0, 1])
         """
-        if FSMOldProcessOutput:
-            return super(Transducer, self)._process_convert_output_(
-                output_data, **kwargs)
         accept_input, current_state, output = output_data
         if kwargs['full_output']:
             if current_state.label() is None:

@@ -379,7 +379,7 @@ Check that the problem with Taylor expansions of the gamma function
     + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
     1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
     9*log(3))*x*gamma(1/3) + gamma(1/3)
-    sage: map(lambda f:f[0].n(), _.coeffs())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
+    sage: map(lambda f:f[0].n(), _.coefficients())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
 Ensure that ticket #8582 is fixed::
@@ -472,41 +472,6 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
         sage: symbolic_sum(1/k^5, k, 1, oo)
         zeta(5)
 
-    .. WARNING::
-    
-        This function only works with symbolic expressions. To sum any
-        other objects like list elements or function return values,
-        please use python summation, see
-        http://docs.python.org/library/functions.html#sum
-
-        In particular, this does not work::
-        
-            sage: n = var('n')
-            sage: list=[1,2,3,4,5]
-            sage: sum(list[n],n,0,3)
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert x (=n) to an integer
-            
-        Use python ``sum()`` instead::
-        
-            sage: sum(list[n] for n in range(4))
-            10
-            
-        Also, only a limited number of functions are recognized in symbolic sums::
-        
-            sage: sum(valuation(n,2),n,1,5)
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.symbolic.expression.Expression' object has no attribute 'valuation'
-            
-        Again, use python ``sum()``::
-        
-            sage: sum(valuation(n+1,2) for n in range(5))
-            3
-            
-        (now back to the Sage ``sum`` examples)
-
     A well known binomial identity::
 
         sage: symbolic_sum(binomial(n,k), k, 0, n)
@@ -589,7 +554,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     An example of this summation with Giac::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
-        -(pi*e^(-2*pi) - pi*e^(2*pi))/(e^(-2*pi) + e^(2*pi) - 2)
+        (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
     Use Maple as a backend for summation::
 
@@ -771,11 +736,11 @@ def nintegral(ex, x, a, b,
     to high precision::
 
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.565728500561051482917356396 E-127'            # 32-bit
-        '2.5657285005610514829173563961304785900 E-127'  # 64-bit
+        '2.565728500561051474934096410 E-127'            # 32-bit
+        '2.5657285005610514829176211363206621657 E-127'  # 64-bit
         sage: old_prec = gp.set_real_precision(50)
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.5657285005610514829173563961304785900147709554020 E-127'
+        '2.5657285005610514829173563961304957417746108003917 E-127'
         sage: gp.set_real_precision(old_prec)
         57
 
@@ -928,19 +893,11 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: f(a).expand()
         0
 
-    Here we show use of the ``epsilon`` parameter. That
-    this result is actually exact can be shown using the addition
-    formula for sin, but maxima is unable to see that.
-
     ::
 
         sage: a = sin(pi/5)
-        sage: a.minpoly(algorithm='numerical')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
-        sage: f = a.minpoly(algorithm='numerical', epsilon=1e-100); f
-        x^4 - 5/4*x^2 + 5/16
+        sage: f(x) = a.minpoly(algorithm='numerical'); f
+        x |--> 1/4*(4*x^2 - 5)*x^2 + 5/16
         sage: f(a).numerical_approx(100)
         0.00000000000000000000000000000
 
@@ -956,15 +913,12 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: a.minpoly(algorithm='numerical', bits=100, degree=10)
         x^4 - 10*x^2 + 1
 
-    There is a difference between algorithm='algebraic' and
-    algorithm='numerical'::
+    ::
 
         sage: cos(pi/33).minpoly(algorithm='algebraic')
         x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
         sage: cos(pi/33).minpoly(algorithm='numerical')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Could not prove minimal polynomial x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024 (epsilon ...)
+        x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
 
     Sometimes it fails, as it must given that some numbers aren't algebraic::
 
@@ -1504,6 +1458,7 @@ def at(ex, *args, **kwds):
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)
+    kwds={ (k[10:] if k[:10] == "_SAGE_VAR_" else k):v for k,v in kwds.iteritems()}
     if len(args) == 1 and isinstance(args[0],list):
         for c in args[0]:
             kwds[str(c.lhs())]=c.rhs()
@@ -1737,7 +1692,7 @@ _inverse_laplace = function_factory('ilt',
 # Conversion dict for special maxima objects
 # c,k1,k2 are from ode2()
 symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
-            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2', 
+            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
             'e':'_e', 'i':'_i', 'I':'_I'}
 
 import re
@@ -1852,7 +1807,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
 
     s = maxima._eval_line('_tmp_;')
-    s = s.replace("_SAGE_VAR_","")
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
@@ -1878,7 +1832,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     cursor = 0
     l = []
     for m in maxima_var.finditer(s):
-        if symtable.has_key(m.group(0)):
+        if m.group(0) in symtable:
             l.append(s[cursor:m.start()])
             l.append(symtable.get(m.group(0)))
             cursor = m.end()
@@ -1928,7 +1882,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     syms['integrate'] = dummy_integrate
     syms['laplace'] = dummy_laplace
     syms['ilt'] = dummy_inverse_laplace
-
     syms['at'] = at
 
     global is_simplified
@@ -1936,12 +1889,18 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        return symbolic_expression_from_string(s, syms, accept_sequence=True)
+        global _syms
+        _syms = sage.symbolic.pynac.symbol_table['functions'].copy()
+        try:
+            global _augmented_syms
+            _augmented_syms = syms
+            return SRM_parser.parse_sequence(s)
+        finally:
+            _augmented_syms = {}
     except SyntaxError:
         raise TypeError("unable to make sense of Maxima expression '%s' in Sage"%s)
     finally:
         is_simplified = False
-
 
 # Comma format options for Maxima
 def mapped_opts(v):
@@ -2111,3 +2070,35 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
             return parse_func(s)
         finally:
             _augmented_syms = {}
+
+def _find_Mvar(name):
+    """
+    Function to pass to Parser for constructing
+    variables from strings.  For internal use.
+
+    EXAMPLES::
+
+        sage: y = var('y')
+        sage: sage.calculus.calculus._find_var('y')
+        y
+        sage: sage.calculus.calculus._find_var('I')
+        I
+    """
+    if name[:10] == "_SAGE_VAR_":
+        return var(name[10:])
+    res = _augmented_syms.get(name)
+    if res is not None and not isinstance(res, Function):
+        return res
+
+    # try to find the name in the global namespace
+    # needed for identifiers like 'e', etc.
+    try:
+        return SR(sage.all.__dict__[name])
+    except (KeyError, TypeError):
+        return var(name)
+
+SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
+                    make_float    = lambda x: SR(RealDoubleElement(x)),
+                    make_var      = _find_Mvar,
+                    make_function = _find_func)
+

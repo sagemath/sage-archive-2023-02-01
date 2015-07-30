@@ -9,10 +9,20 @@ AUTHORS:
 - William Stein (2007-08-24): first version
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-from sage.rings.all              import Integer, QQ, ZZ, PowerSeriesRing
-from sage.misc.misc              import prod, verbose
-from sage.misc.cachefunc         import cached_method
+
+from sage.rings.all import Integer, QQ, ZZ, PowerSeriesRing
+from sage.misc.all import prod, verbose
+from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from constructor                 import ModularForms
 from sage.structure.sage_object  import SageObject
@@ -578,7 +588,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                qcZZ = [ZZ(_) for _ in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = M(f)
                 G.append((k, f.change_ring(self.base_ring()), F))
@@ -721,7 +731,7 @@ class ModularFormsRing(SageObject):
                 except AttributeError:
                     # work around a silly free module bug
                     qc = V.coordinates(q.lift())
-                qcZZ = map(ZZ, qc) # lift to ZZ so we can define F
+                qcZZ = [ZZ(_) for _ in qc] # lift to ZZ so we can define F
                 f = sum([B[i] * qcZZ[i] for i in xrange(len(B))])
                 F = S(f)
                 G.append((k, f.change_ring(self.base_ring()), F))

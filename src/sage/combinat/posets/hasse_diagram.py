@@ -1,5 +1,8 @@
 r"""
 Hasse diagrams of posets
+
+{INDEX_OF_FUNCTIONS}
+
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -58,6 +61,8 @@ class HasseDiagram(DiGraph):
 
     def linear_extension(self):
         r"""
+        Return a linear extension
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -70,6 +75,8 @@ class HasseDiagram(DiGraph):
 
     def linear_extensions(self):
         r"""
+        Return all linear extensions
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -81,6 +88,8 @@ class HasseDiagram(DiGraph):
 
     def is_linear_extension(self,lin_ext=None):
         r"""
+        Test if an ordering is a linear extension.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -101,74 +110,10 @@ class HasseDiagram(DiGraph):
                     return False
             return True
 
-    # Could this be achieved by adding some options to
-    # GenericGraph.plot, and just overriding graphics_array_defaults?
-
-    def plot(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black', layout = "acyclic", **kwds):
-        """
-        Returns a Graphics object corresponding to the Hasse diagram.
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: type(H.plot(label_elements=True))
-            <class 'sage.plot.graphics.Graphics'>
-
-        ::
-
-            sage: P = Posets.SymmetricGroupBruhatIntervalPoset([1,2,3,4], [3,4,1,2])
-            sage: P._hasse_diagram.plot()
-            Graphics object consisting of 42 graphics primitives
-        """
-        # Set element_labels to default to the vertex set.
-        if element_labels is None:
-            element_labels = range(self.num_verts())
-
-        # Create the underlying graph.
-        graph = DiGraph(self)
-        graph.relabel(element_labels)
-
-        return graph.plot(layout = layout, **kwds)
-
-    def show(self, label_elements=True, element_labels=None,
-            label_font_size=12,label_font_color='black',
-            vertex_size=300, vertex_colors=None,**kwds):
-        """
-        Shows the Graphics object corresponding to the Hasse diagram.
-        Optionally, it is labelled.
-
-        INPUT:
-
-
-        -  ``label_elements`` - whether to display element
-           labels
-
-        -  ``element_labels`` - a dictionary of element
-           labels
-
-
-        EXAMPLES::
-
-            sage: uc = [[2,3], [], [1], [1], [1], [3,4]]
-            sage: elm_lbls = Permutations(3).list()
-            sage: P = Poset(uc,elm_lbls)
-            sage: H = P._hasse_diagram
-            sage: levels = H.level_sets()
-            sage: heights = dict([[i, levels[i]] for i in range(len(levels))])
-            sage: H.show(label_elements=True)
-        """
-        self.plot(label_elements=label_elements, element_labels=element_labels,
-            label_font_size=label_font_size,label_font_color=label_font_color,
-            vertex_size=vertex_size, vertex_colors=vertex_colors).show(**kwds)
-
     def cover_relations_iterator(self):
         r"""
+        Iterate over cover relations.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -181,6 +126,8 @@ class HasseDiagram(DiGraph):
 
     def cover_relations(self):
         r"""
+        Return the list of cover relations.
+
         TESTS::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -741,8 +688,8 @@ class HasseDiagram(DiGraph):
 
         For a time, this function was named ``size()``, which
         would override the same-named method of the underlying
-        digraph.  Trac #8735 renamed this method to ``cardinality()``
-        with a deprecation warning.  Trac #11214 removed the warning
+        digraph. :trac:`8735` renamed this method to ``cardinality()``
+        with a deprecation warning. :trac:`11214` removed the warning
         since code for graphs was raising the warning inadvertently.
         This tests that ``size()`` for a Hasse diagram returns the
         number of edges in the digraph. ::
@@ -1591,3 +1538,7 @@ class HasseDiagram(DiGraph):
         return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class = element_class)
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+import sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

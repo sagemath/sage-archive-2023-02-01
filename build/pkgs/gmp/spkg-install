@@ -317,7 +317,7 @@ if false; then
 else
     echo "Not removing old GMP/MPIR shared libraries, as other libraries"
     echo "and executables might still refer to them:"
-    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*.so.*
+    ls -l "$SAGE_LOCAL"/lib/lib{gmp,mpir}*
     echo "(Libraries with the same version number will get updated though.)"
 fi
 
@@ -330,7 +330,5 @@ echo "Now installing GMP..."
 $MAKE install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing GMP."
-    if [ "$UNAME" != "CYGWIN" ]; then  # On Cygwin an error is not fatal.
-        exit 1
-    fi
+    exit 1
 fi

@@ -215,8 +215,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: J.absolute_norm()
             22584817
             sage: J.absolute_ideal()
-            Fractional ideal (22584817, -4417/2438733*a^5 - 2867/1625822*a^4 - 1307249/4877466*a^3 - 112151/443406*a^2 - 22904674/2438733*a - 13720435234111/2438733)  # 32-bit
-            Fractional ideal (22584817, -1473/812911*a^5 + 8695/4877466*a^4 - 1308209/4877466*a^3 + 117415/443406*a^2 - 22963264/2438733*a - 13721081784272/2438733)   # 64-bit
+            Fractional ideal (22584817, -1473/812911*a^5 + 8695/4877466*a^4 - 1308209/4877466*a^3 + 117415/443406*a^2 - 22963264/2438733*a - 13721081784272/2438733)
             sage: J.absolute_ideal().norm()
             22584817
 
@@ -226,7 +225,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         L = self.number_field()
         K = L.absolute_field('a')
         to_L = K.structure()[0]
-        return L.ideal(map(to_L, id.gens()))
+        return L.ideal([to_L(_) for _ in id.gens()])
 
     def free_module(self):
         r"""
@@ -387,7 +386,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
+        return K.ideal([to_K(K_abs(_)) for _ in K.pari_zk() * hnf])
 
     def norm(self):
         """
@@ -494,7 +493,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         K_abs = K.absolute_field('a')
         to_K = K_abs.structure()[0]
         hnf = L.pari_rnf().rnfidealdown(self.pari_rhnf())
-        return K.ideal(map(to_K, map(K_abs, K.pari_zk() * hnf)))
+        return K.ideal([to_K(K_abs(_)) for _ in K.pari_zk() * hnf])
 
     def factor(self):
         """
@@ -505,12 +504,12 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
 
             sage: K.<a, b> = QQ.extension([x^2 + 11, x^2 - 5])
             sage: K.factor(5)
-            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
             sage: K.ideal(5).factor()
-            (Fractional ideal (5, 1/2*a - 1/2*b - 1))^2 * (Fractional ideal (5, 1/2*a - 1/2*b + 1))^2
+            (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4))^2 * (Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4))^2
             sage: K.ideal(5).prime_factors()
-            [Fractional ideal (5, 1/2*a - 1/2*b - 1),
-             Fractional ideal (5, 1/2*a - 1/2*b + 1)]
+            [Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 3/4),
+             Fractional ideal (5, (1/4*b - 1/4)*a - 1/4*b - 7/4)]
 
             sage: PQ.<X> = QQ[]
             sage: F.<a, b> = NumberFieldTower([X^2 - 2, X^2 - 3])
@@ -529,7 +528,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         F = self.number_field()
         abs_ideal = self.absolute_ideal()
         to_F = abs_ideal.number_field().structure()[0]
-        factor_list = [(F.ideal(map(to_F, p.gens())), e) for p, e in abs_ideal.factor()]
+        factor_list = [(F.ideal([to_F(_) for _ in p.gens()]), e) for p, e in abs_ideal.factor()]
         # sorting and simplification will already have been done
         return Factorization(factor_list, sort=False, simplify=False)
 

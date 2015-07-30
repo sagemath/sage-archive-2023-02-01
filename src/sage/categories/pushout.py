@@ -1,6 +1,7 @@
 """
 Coercion via Construction Functors
 """
+import six
 from functor import Functor
 from basic import *
 
@@ -91,12 +92,13 @@ class ConstructionFunctor(Functor):
     """
     def __mul__(self, other):
         """
-        Compose construction functors to a composit construction functor, unless one of them is the identity.
+        Compose ``self`` and ``other`` to a composite construction
+        functor, unless one of them is the identity.
 
         NOTE:
 
-        The product is in functorial notation, i.e., when applying the product to an object
-        then the second factor is applied first.
+        The product is in functorial notation, i.e., when applying the
+        product to an object, the second factor is applied first.
 
         TESTS::
 
@@ -285,6 +287,9 @@ class ConstructionFunctor(Functor):
 
         """
         return [self]
+
+    # See the pushout() function below for explanation.
+    coercion_reversed = False
 
 
 class CompositeConstructionFunctor(ConstructionFunctor):
@@ -982,7 +987,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
 
     # We do provide merging with polynomial rings. However, it seems that it is better
     # to have a greater rank, since we want to apply InfinitePolynomialFunctor *after*
-    # [Multi]PolynomialFunktor, which have rank 9. But there is the MatrixFunctor, which
+    # [Multi]PolynomialFunctor, which have rank 9. But there is the MatrixFunctor, which
     # has rank 10. So, do fine tuning...
     rank = 9.5
 
@@ -1427,10 +1432,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
+        if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -1719,6 +1724,10 @@ class SubspaceFunctor(ConstructionFunctor):
     """
     rank = 11 # ranking of functor, not rank of module
 
+    # The subspace construction returns an object admitting a coercion
+    # map into the original, not vice versa.
+    coercion_reversed = True
+
     def __init__(self, basis):
         """
         INPUT:
@@ -1878,7 +1887,7 @@ class SubspaceFunctor(ConstructionFunctor):
             sage: S1 = (ZZ^3).submodule([(1,2,3),(4,5,6)])
             sage: S2 = (Frac(P)^3).submodule([(t,t^2,t^3+1),(4*t,0,1)])
             sage: v = S1([0,3,6]) + S2([2,0,1/(2*t)]); v   # indirect doctest
-            (2, 3, (12*t + 1)/(2*t))
+            (2, 3, (-12*t - 1)/(-2*t))
             sage: v.parent()
             Vector space of degree 3 and dimension 3 over Fraction Field of Univariate Polynomial Ring in t over Integer Ring
             User basis matrix:
@@ -1900,7 +1909,9 @@ class SubspaceFunctor(ConstructionFunctor):
             except CoercionException:
                 return None
             try:
-                submodule = P.submodule
+                # Use span instead of submodule because we want to
+                # allow denominators.
+                submodule = P.span
             except AttributeError:
                 return None
             S = submodule(self.basis+other.basis).echelonized_basis()
@@ -2150,7 +2161,7 @@ class CompletionFunctor(ConstructionFunctor):
             c = cmp(self.p, other.p)
         return c
 
-    _real_types = ['Interval','MPFR','RDF','RLF']
+    _real_types = ['Interval','Ball','MPFR','RDF','RLF']
     _dvr_types = [None, 'fixed-mod','capped-abs','capped-rel','lazy']
 
     def merge(self, other):
@@ -2357,7 +2368,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2454,7 +2465,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -2620,6 +2631,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2628,8 +2648,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """
@@ -3061,48 +3081,53 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
 def pushout(R, S):
     r"""
-    Given a pair of Objects R and S, try and construct a
-    reasonable object Y and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This incorporates the idea of functors discussed Sage Days 4.
-    Every object R can be viewed as an initial object and
-    a series of functors (e.g. polynomial, quotient, extension,
-    completion, vector/matrix, etc.). Call the series of
-    increasingly-simple rings (with the associated functors)
-    the "tower" of R. The construction method is used to
-    create the tower.
+    This incorporates the idea of functors discussed at Sage Days 4.
+    Every object `R` can be viewed as an initial object and a series
+    of functors (e.g. polynomial, quotient, extension, completion,
+    vector/matrix, etc.). Call the series of increasingly simple
+    objects (with the associated functors) the "tower" of `R`. The
+    construction method is used to create the tower.
 
-    Given two objects R and S, try and find a common initial
-    object Z. If the towers of R and S meet, let Z be their
-    join. Otherwise, see if the top of one coerces naturally into
-    the other.
+    Given two objects `R` and `S`, try to find a common initial object
+    `Z`. If the towers of `R` and `S` meet, let `Z` be their join.
+    Otherwise, see if the top of one coerces naturally into the other.
 
-    Now we have an initial object and two ordered lists of
-    functors to apply. We wish to merge these in an unambiguous order,
-    popping elements off the top of one or the other tower as we
-    apply them to Z.
+    Now we have an initial object and two ordered lists of functors to
+    apply. We wish to merge these in an unambiguous order, popping
+    elements off the top of one or the other tower as we apply them to
+    `Z`.
 
-    - If the functors are distinct types, there is an absolute ordering
-      given by the rank attribute. Use this.
+    - If the functors are of distinct types, there is an absolute
+      ordering given by the rank attribute. Use this.
 
     - Otherwise:
 
       - If the tops are equal, we (try to) merge them.
 
-      - If exactly one occurs lower in the other tower
-        we may unambiguously apply the other (hoping for a later merge).
+      - If exactly one occurs lower in the other tower, we may
+        unambiguously apply the other (hoping for a later merge).
 
       - If the tops commute, we can apply either first.
 
       - Otherwise fail due to ambiguity.
 
+    The algorithm assumes by default that when a construction `F` is
+    applied to an object `X`, the object `F(X)` admits a coercion map
+    from `X`.  However, the algorithm can also handle the case where
+    `F(X)` has a coercion map *to* `X` instead.  In this case, the
+    attribute ``coercion_reversed`` of the class implementing `F`
+    should be set to ``True``.
+
     EXAMPLES:
 
-    Here our "towers" are $R = Complete_7(Frac(\ZZ))$ and $Frac(Poly_x(\ZZ))$,
-    which give us $Frac(Poly_x(Complete_7(Frac(\ZZ))))$::
+    Here our "towers" are `R = Complete_7(Frac(\ZZ))` and `Frac(Poly_x(\ZZ))`,
+    which give us `Frac(Poly_x(Complete_7(Frac(\ZZ))))`::
 
         sage: from sage.categories.pushout import pushout
         sage: pushout(Qp(7), Frac(ZZ['x']))
@@ -3141,6 +3166,75 @@ def pushout(R, S):
         sage: pushout(Frac(ZZ['x']), QQ[['x']])
         Laurent Series Ring in x over Rational Field
 
+    A construction with ``coercion_reversed = True`` (currently only
+    the :class:`SubspaceFunctor` construction) is only applied if it
+    leads to a valid coercion::
+
+        sage: A = ZZ^2
+        sage: V = span([[1, 2]], QQ)
+        sage: P = sage.categories.pushout.pushout(A, V)
+        sage: P
+        Vector space of dimension 2 over Rational Field
+        sage: P.has_coerce_map_from(A)
+        True
+
+        sage: V = (QQ^3).span([[1, 2, 3/4]])
+        sage: A = ZZ^3
+        sage: pushout(A, V)
+        Vector space of dimension 3 over Rational Field
+        sage: B = A.span([[0, 0, 2/3]])
+        sage: pushout(B, V)
+        Vector space of degree 3 and dimension 2 over Rational Field
+        User basis matrix:
+        [1 2 0]
+        [0 0 1]
+
+    Some more tests with ``coercion_reversed = True``::
+
+        sage: from sage.categories.pushout import ConstructionFunctor
+        sage: class EvenPolynomialRing(type(QQ['x'])):
+        ....:     def __init__(self, base, var):
+        ....:         super(EvenPolynomialRing, self).__init__(base, var)
+        ....:         self.register_embedding(base[var])
+        ....:     def __repr__(self):
+        ....:         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
+        ....:     def construction(self):
+        ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
+        ....:     def _coerce_map_from_(self, R):
+        ....:         return self.base().has_coerce_map_from(R)
+        ....:
+        sage: class EvenPolynomialFunctor(ConstructionFunctor):
+        ....:     rank = 10
+        ....:     coercion_reversed = True
+        ....:     def __init__(self):
+        ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ....:     def __call__(self, R):
+        ....:         return EvenPolynomialRing(R.base(), R.variable_name())
+        ....:
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ)
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR)
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), QQ['x'])
+        Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), RR['x'])
+        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(QQ, 'x'))
+        Even Power Univariate Polynomial Ring in x over Rational Field
+        sage: pushout(EvenPolynomialRing(QQ, 'x'), EvenPolynomialRing(RR, 'x'))
+        Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR^2)
+        Ambient free module of rank 2 over the principal ideal domain Even Power Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR['x']^2)
+        Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+
     AUTHORS:
 
     -- Robert Bradshaw
@@ -3160,9 +3254,11 @@ def pushout(R, S):
     Ss = [c[1] for c in S_tower]
 
     if R in Ss:
-        return S
+        if not any(c[0].coercion_reversed for c in S_tower[1:]):
+            return S
     elif S in Rs:
-        return R
+        if not any(c[0].coercion_reversed for c in R_tower[1:]):
+            return R
 
     if Rs[-1] in Ss:
         Rs, Ss = Ss, Rs
@@ -3197,13 +3293,22 @@ def pushout(R, S):
         raise CoercionException("No common base")
 
     # Rc is a list of functors from Z to R and Sc is a list of functors from Z to S
-    Rc = [c[0] for c in R_tower[1:len(Rs)+1]]
-    Sc = [c[0] for c in S_tower[1:len(Ss)+1]]
-
-    Rc = sum([c.expand() for c in Rc], [])
-    Sc = sum([c.expand() for c in Sc], [])
+    R_tower = expand_tower(R_tower[:len(Rs)+1])
+    S_tower = expand_tower(S_tower[:len(Ss)+1])
+    Rc = [c[0] for c in R_tower[1:]]
+    Sc = [c[0] for c in S_tower[1:]]
 
     all = IdentityConstructionFunctor()
+
+    def apply_from(Xc):
+        c = Xc.pop()
+        if c.coercion_reversed:
+            Yc = Sc if Xc is Rc else Rc
+            Y_tower = S_tower if Xc is Rc else R_tower
+            Y_partial = Y_tower[len(Yc)][1]
+            if not (c * all)(Z).has_coerce_map_from(Y_partial):
+                return all
+        return c * all
 
     try:
 
@@ -3211,14 +3316,14 @@ def pushout(R, S):
             # print Z
             # if we are out of functors in either tower, there is no ambiguity
             if len(Sc) == 0:
-                all = Rc.pop() * all
+                all = apply_from(Rc)
             elif len(Rc) == 0:
-                all = Sc.pop() * all
+                all = apply_from(Sc)
             # if one of the functors has lower rank, do it first
             elif Rc[-1].rank < Sc[-1].rank:
-                all = Rc.pop() * all
+                all = apply_from(Rc)
             elif Sc[-1].rank < Rc[-1].rank:
-                all = Sc.pop() * all
+                all = apply_from(Sc)
             else:
                 # the ranks are the same, so things are a bit subtler
                 if Rc[-1] == Sc[-1]:
@@ -3241,9 +3346,9 @@ def pushout(R, S):
                         if Sc[-1] in Rc:
                             raise CoercionException("Ambiguous Base Extension", R, S)
                         else:
-                            all = Sc.pop() * all
+                            all = apply_from(Sc)
                     elif Sc[-1] in Rc:
-                        all = Rc.pop() * all
+                        all = apply_from(Rc)
                     # If, perchance, the two functors commute, then we may do them in any order.
                     elif Rc[-1].commutes(Sc[-1]) or Sc[-1].commutes(Rc[-1]):
                         all = Sc.pop() * Rc.pop() * all
@@ -3272,18 +3377,18 @@ def pushout(R, S):
 
 def pushout_lattice(R, S):
     r"""
-    Given a pair of Objects $R$ and $S$, try and construct a
-    reasonable object $Y$ and return maps such that
-    canonically $R \leftarrow Y \rightarrow S$.
+    Given a pair of objects `R` and `S`, try to construct a
+    reasonable object `Y` and return maps such that
+    canonically `R \leftarrow Y \rightarrow S`.
 
     ALGORITHM:
 
-    This is based on the model that arose from much discussion at Sage Days 4.
-    Going up the tower of constructions of $R$ and $S$ (e.g. the reals
-    come from the rationals come from the integers) try and find a
-    common parent, and then try and fill in a lattice with these
-    two towers as sides with the top as the common ancestor and
-    the bottom will be the desired ring.
+    This is based on the model that arose from much discussion at
+    Sage Days 4.  Going up the tower of constructions of `R` and `S`
+    (e.g. the reals come from the rationals come from the integers),
+    try to find a common parent, and then try to fill in a lattice
+    with these two towers as sides with the top as the common ancestor
+    and the bottom will be the desired ring.
 
     See the code for a specific worked-out example.
 
@@ -3478,7 +3583,43 @@ def construction_tower(R):
         c = R.construction()
     return tower
 
+def expand_tower(tower):
+    """
+    An auxiliary function that is used in :func:`pushout`.
 
+    INPUT:
+
+    A construction tower as returned by :func:`construction_tower`.
+
+    OUTPUT:
+
+    A new construction tower with all the construction functors expanded.
+
+    EXAMPLE::
+
+        sage: from sage.categories.pushout import construction_tower, expand_tower
+        sage: construction_tower(QQ['x,y,z'])
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[x,y,z], Rational Field),
+         (FractionField, Integer Ring)]
+        sage: expand_tower(construction_tower(QQ['x,y,z']))
+        [(None, Multivariate Polynomial Ring in x, y, z over Rational Field),
+         (MPoly[z], Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[y], Univariate Polynomial Ring in x over Rational Field),
+         (MPoly[x], Rational Field),
+         (FractionField, Integer Ring)]
+    """
+    new_tower = []
+    for f, R in reversed(tower):
+        if f is None:
+            new_tower.append((f, R))
+        else:
+            fs = f.expand()
+            for ff in reversed(fs[1:]):
+                new_tower.append((ff, R))
+                R = ff(R)
+            new_tower.append((fs[0], R))
+    return list(reversed(new_tower))
 
 def type_to_parent(P):
     """

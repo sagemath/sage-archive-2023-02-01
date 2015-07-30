@@ -86,7 +86,7 @@ possède la classe CSS "math", laquelle indique de faire appel à MathJax. ::
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
     sage: mj(QQ)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
-    sage: mj(ZZ[x])
+    sage: mj(ZZ['x'])
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
     sage: mj(integrate(z^4, z))
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
@@ -125,7 +125,6 @@ La commande interne ``pretty_print()`` permet de convertir un objet Sage en code
 HTML utilisant MathJax. C'est le code qui sera ensuite utilisé dans le
 bloc-notes ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))

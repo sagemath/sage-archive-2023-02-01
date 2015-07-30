@@ -174,7 +174,7 @@ AUTHORS:
 from copy import copy
 
 from sage.categories.homset import HomsetWithBase, End
-from sage.misc.functional import parent
+from sage.structure.all import parent
 from sage.misc.lazy_attribute import lazy_attribute
 
 import abvar as abelian_variety

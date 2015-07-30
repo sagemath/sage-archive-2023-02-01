@@ -29,7 +29,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ext/stdsage.pxi"
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
@@ -71,10 +70,10 @@ cdef class FiniteFieldIterator:
         EXAMPLE::
 
             sage: k = iter(FiniteField(9, 'a', impl='pari_ffelt'))
-            sage: k.next() # indirect doctest
+            sage: next(k) # indirect doctest
             0
         """
-        return self.parent(self.iter.next())
+        return self.parent(next(self.iter))
 
     def __iter__(self):
         """
@@ -355,7 +354,7 @@ cdef class FiniteField(Field):
             sage: k = FiniteField(8, 'a', impl='pari_ffelt')
             sage: i = iter(k); i # indirect doctest
             <sage.rings.finite_rings.finite_field_base.FiniteFieldIterator object at ...>
-            sage: i.next()
+            sage: next(i)
             0
             sage: list(k) # indirect doctest
             [0, 1, a, a + 1, a^2, a^2 + 1, a^2 + a, a^2 + a + 1]
@@ -797,14 +796,14 @@ cdef class FiniteField(Field):
 
         Although `f` is irreducible over the base field, we can double-check
         whether or not `f` factors in `F` as follows. The command
-        ``F[x](f)`` coerces `f` as a polynomial with coefficients in `F`.
+        ``F['x'](f)`` coerces `f` as a polynomial with coefficients in `F`.
         (Instead of a polynomial with coefficients over the base field.)
 
         ::
 
             sage: f.factor()
             x^2 + 6*x + 3
-            sage: F[x](f).factor()
+            sage: F['x'](f).factor()
             (x + a + 6) * (x + 6*a)
 
         Here is an example with a degree 3 extension::
@@ -1062,7 +1061,7 @@ cdef class FiniteField(Field):
         if R is int or R is long or R is ZZ:
             return True
         if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
-            return R.hom((self.one_element(),), check=False)
+            return R.hom((self.one(),), check=False)
         if is_FiniteField(R):
             if R is self:
                 return True
@@ -1071,7 +1070,7 @@ cdef class FiniteField(Field):
                 return False
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
-                    return R.hom((self.one_element(),), check=False)
+                    return R.hom((self.one(),), check=False)
                 elif (R.degree().divides(self.degree())
                       and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
                     return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
@@ -1427,10 +1426,6 @@ def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     r"""
     Used to unpickle extensions of finite fields. Now superseded (hence no
     doctest), but kept around for backward compatibility.
-
-    EXAMPLES::
-
-        sage: # not tested
     """
     return _type(order, variable_name, modulus, **kwargs)
 
@@ -1438,10 +1433,6 @@ def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     r"""
     Used to unpickle finite prime fields. Now superseded (hence no doctest),
     but kept around for backward compatibility.
-
-    EXAMPLE::
-
-        sage: # not tested
     """
     return _type(order, variable_name, **kwargs)
 
@@ -1464,4 +1455,4 @@ def is_FiniteField(x):
         sage: is_FiniteField(Integers(7))
         False
     """
-    return IS_INSTANCE(x, FiniteField)
+    return isinstance(x, FiniteField)

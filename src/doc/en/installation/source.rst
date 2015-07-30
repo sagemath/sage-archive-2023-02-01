@@ -4,6 +4,8 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. _sec-installation-from-sources:
+
 Install from Source Code
 ========================
 
@@ -23,10 +25,15 @@ Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <http://www.sagemath.org/download-source.html>`_.
+`Download the Sage source code <http://www.sagemath.org/download-source.html>`_
+or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
+`the developers guide <http://www.sagemath.org/doc/developer/manual_git.html#section-git-checkout>`_).
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.
+
+.. contents:: Table of contents
+   :depth: 2
 
 Supported platforms
 -------------------
@@ -121,6 +128,8 @@ includes virtually everything you need.
 
 After extracting the Sage tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
+If cloned from a git repository, the upstream tarballs will be downloaded,
+verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not
 have to worry about trying to download and install any one of these packages
 (such as Python, for example) yourself.
@@ -175,7 +184,12 @@ you would use
 
      sudo apt-get install binutils gcc make m4 perl tar
 
-to install all general requirements (this was tested on Ubuntu 12.04.2).
+to install all general requirements, or, if you don't want Sage to build its
+own GCC::
+
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+
+(This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
 `yum <http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
@@ -306,15 +320,22 @@ It is highly recommended that you have
 `Latex <http://en.wikipedia.org/wiki/LaTeX>`_
 installed, but it is not required.
 
-On Linux systems, it is usually provided by packages derived from
-`TeX Live <www.tug.org/texlive/>`_  and can be installed using::
+The most popular packaging is `TeX Live <www.tug.org/texlive/>`_ ,
+which you can install locally inside Sage with the commands::
 
-    sudo apt-get install texlive
+    sage -sh -c '$SAGE_ROOT/src/ext/texlive/texlive-install'
 
-or similar commands.
+On Linux systems you can alternatively install your distribution's
+texlive packages::
 
-On other systems it might be necessary to install TeX Live from source code,
-which is quite easy, though a rather time-consuming process.
+    sudo apt-get install texlive       # debian
+    sudo yum install texlive           # redhat
+
+or similar commands. In addition to the base texlive install you will
+probably need a number of optional texlive packages, for example
+country-specific babel packages for the localized Sage
+documentation. The required texlive packages are listed in
+``SAGE_ROOT/src/ext/texlive/package-list.txt``.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -756,11 +777,19 @@ how it is built:
   requires that Sage be built first, so it will automatically run ``make
   build``.
 
-- ``make build-serial`` builds the components of Sage serially, rather
-  than in parallel (parallel building is the default).
-  Running ``make build-serial`` is equivalent to setting the environment
-  variable :envvar:`SAGE_PARALLEL_SPKG_BUILD` to "no" -- see below for
-  information about this variable.
+- ``make doc-html-no-plot`` builds Sage's documentation in html format
+  but skips the inclusion of graphics auto-generated using the
+  ``.. PLOT`` markup and the ``sphinx_plot`` function. This is
+  primarily intended for use when producing certain binary
+  distributions of Sage, to lower the size of the distribution. As of
+  this writing (December 2014, Sage 6.5), there are only a few such
+  plots, adding about 4M to the :file:`src/doc/output/` directory. In
+  the future, this may grow, of course. Note: after using this, if you
+  want to build the documentation and include the pictures, you should
+  run ``make doc-clean``, because the presence, or lack, of pictures
+  is cached in the documentation output.
+  You can benefit from this no-plot feature with other make targets by doing
+  ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
 
 - ``make ptest`` and ``make ptestlong``: these run Sage's test suite.
   The first version skips tests that need more than a few seconds to complete
@@ -772,6 +801,9 @@ how it is built:
   If you want to run tests depending on optional packages and additional
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
+
+- ``make doc-clean`` removes several directories which are produced
+  when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
   building: it is almost equivalent to deleting Sage's entire home directory and
@@ -790,6 +822,31 @@ platforms.
 speed up the process.)
 Building Sage involves building about 100 packages, each of which has its own
 compilation instructions.
+
+The Sage source tarball already includes the sources for all standard
+packages, that is, it allows you to build Sage without internet
+connection. The git repository, however, does not contain the source
+code for third-party packages. Instead, it will be downloaded as
+needed (Note: you can run ``make download`` to force downloading
+packages before building). Package downloads use the Sage mirror
+network, the nearest mirror will be determined automatically for
+you. This is influenced by the following environment variable:
+
+- :envvar:`SAGE_SERVER` - Try the specified mirror first, before
+  falling back to the official Sage mirror list. Note that Sage will
+  search the directory
+
+  - ``SAGE_SERVER/spkg/upstream``
+
+  for clean upstream tarballs, and it searches the directories
+
+  - ``SAGE_SERVER/spkg/standard/``,
+  - ``SAGE_SERVER/spkg/optional/``,
+  - ``SAGE_SERVER/spkg/experimental/``,
+  - ``SAGE_SERVER/spkg/archive/``
+
+  for old-style Sage packages.
+
 
 Here are some of the more commonly used variables affecting the build process:
 
@@ -822,14 +879,6 @@ Here are some of the more commonly used variables affecting the build process:
   If none of these specifies a number of jobs, use one thread (except for
   parallel testing: there we use a default of the number of CPU cores, with a
   maximum of 8 and a minimum of 2).
-
-- :envvar:`SAGE_PARALLEL_SPKG_BUILD` - if set to ``no``, then build spkgs
-  serially rather than in parallel.
-  If this is set to ``no``, then each spkg may still take advantage of the setting
-  of :envvar:`MAKE` to build using multiple jobs, but the spkgs will be built
-  one at a time.
-  Alternatively, run ``make build-serial`` which sets this environment
-  variable for you.
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
   and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
@@ -912,15 +961,6 @@ Here are some of the more commonly used variables affecting the build process:
   Python-level profiling is always avaliable; This option enables
   profiling in Cython modules.
 
-- :envvar:`SAGE_SPKG_LIST_FILES` - if set to ``yes``, then enable verbose
-  extraction of tar files, i.e. Sage's spkg files.
-  Since some spkgs contain such a huge number of files that the log files
-  get very large and harder to search (and listing the contained files is
-  usually less valuable), we decided to turn this off by default.
-  This variable affects builds of Sage with ``make`` (and ``sage --upgrade``)
-  as well as the manual installation of individual spkgs with e.g. ``sage -i``
-  or ``sage -f``.
-
 - :envvar:`SAGE_SPKG_INSTALL_DOCS` - if set to ``yes``, then install
   package-specific documentation to
   :file:`$SAGE_ROOT/local/share/doc/PACKAGE_NAME/` when an spkg is
@@ -936,6 +976,12 @@ Here are some of the more commonly used variables affecting the build process:
   and then those files are included into the documentation.
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
+
+- :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
+  argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
+  you run ``make``, ``make doc``, or ``make doc-pdf``.
+  For example, you can add ``--no-plot`` to this variable to avoid building
+  the graphics coming from the ``.. PLOT`` directive within the documentation.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
@@ -1058,6 +1104,20 @@ an unsupported machine or an unusual compiler:
 
 Environment variables dealing with specific Sage packages:
 
+- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
+  for multiprecision integer arithmetic. Supported values are
+
+    ``MPIR`` (default choice), ``GMP``.
+
+  The value used at installation time is stored in
+
+    :file:`$SAGE_LOCAL/share/mp_config`.
+
+  You should only set this environment variable before the installation process
+  starts.
+  Indeed, the only supported way to switch the library used is to restart the
+  installation process from start.
+
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
   variable to set a particular architecture and instruction set extension,
@@ -1138,6 +1198,21 @@ Environment variables dealing with specific Sage packages:
 
   - If this variable is unset, include the patch on sun4v machines only.
 
+- :envvar:`PARI_CONFIGURE` - use this to pass extra parameters to
+  PARI's ``Configure`` script, for example to specify graphics
+  support (which is disabled by default). See the file
+  :file:`build/pkgs/pari/spkg-install` for more information.
+
+- :envvar:`SAGE_TUNE_PARI`: If yes, enable PARI self-tuning. Note that
+  this can be time-consuming. If you set this variable to "yes", you
+  will also see this: ``WARNING: Tuning PARI/GP is unreliable. You may
+  find your build of PARI fails, or PARI/GP does not work properly
+  once built. We recommend to build this package with
+  SAGE_CHECK="yes".``
+
+- :envvar:`PARI_MAKEFLAGS`: The value of this variable is passed as an
+  argument to the ``$MAKE`` command when compiling PARI.
+
 Some standard environment variables which are used by Sage:
 
 - :envvar:`CC` - while some programs allow you to use this to specify your C
@@ -1166,7 +1241,13 @@ Some standard environment variables which are used by Sage:
 - :envvar:`CFLAGS`, :envvar:`CXXFLAGS` and :envvar:`FCFLAGS` - the flags for
   the C compiler, the C++ compiler and the Fortran compiler, respectively.
   The same comments apply to these: setting them may cause problems, because
-  they are not universally respected among the Sage packages.
+  they are not universally respected among the Sage packages. Note
+  also that ``export CFLAGS=""`` does not have the same effect as
+  ``unset CFLAGS``. The latter is preferable.
+
+- Similar comments apply to other compiler and linker flags like
+  :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
+  :envvar:`LDFLAG64`, and :envvar:`LD`.
 
 Sage uses the following environment variables when it runs:
 
@@ -1177,25 +1258,6 @@ Sage uses the following environment variables when it runs:
 - :envvar:`SAGE_STARTUP_FILE` - a file including commands to be executed every
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
-
-- :envvar:`SAGE_SERVER` - if you want to install a Sage package using
-  ``sage -i <package-name>``, Sage downloads the file from the web, using the
-  address ``http://www.sagemath.org/`` by default, or the address given by
-  :envvar:`SAGE_SERVER` if it is set.
-  If you wish to set up your own server, then note that Sage will search the
-  directory
-
-  - ``SAGE_SERVER/packages/upstream``
-
-  for clean upstream tarballs, and it searches the directories
-
-  - ``SAGE_SERVER/packages/standard/``,
-  - ``SAGE_SERVER/packages/optional/``,
-  - ``SAGE_SERVER/packages/experimental/``,
-  - and ``SAGE_SERVER/packages/archive/``
-
-  for old-style Sage packages.
-  See the script :file:`$SAGE_ROOT/src/bin/sage-spkg` for the implementation.
 
 - :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
   searches when trying to locate Python libraries.
@@ -1231,7 +1293,7 @@ Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
   to allow a doctest before timing it out.
-  If this isn't set, the default is 360 seconds (6 minutes).
+  If this isn't set, the default is 300 seconds (5 minutes).
 
 - :envvar:`SAGE_TIMEOUT_LONG` - used for Sage's doctesting: the number of
   seconds to allow a doctest before timing it out, if tests are run using
@@ -1247,6 +1309,27 @@ Variables dealing with doctesting:
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
   and `here (unpickle_all)
   <http://sagemath.org/doc/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
+
+- :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
+  be used instead of passing the flags ``--global-iterations`` and
+  ``--file-iterations``, respectively, to ``sage -t``. Indeed, these
+  variables are only used if the flags are unset. Run ``sage -t -h``
+  for more information on the effects of these flags (and therefore
+  these variables).
+
+Sage sets some other environment variables. The most accurate way to
+see what Sage does is to first run ``env`` from a shell prompt to see
+what environment variables you have set. Then run ``sage --sh -c
+env`` to see the list after Sage sets its variables. (This runs a
+separate shell, executes the shell command ``env``, and then exits
+that shell, so after running this, your settings will be restored.)
+Alternatively, you can peruse the shell script
+:file:`src/bin/sage-env`.
+
+Sage also has some environment-like settings. Some of these correspond
+to actual environment variables while others have names like
+environment variables but are only available while Sage is running. To
+see a list, execute ``sage.env.[TAB]`` while running Sage.
 
 .. comment:
     ***************************************************************************
@@ -1318,14 +1401,6 @@ System-wide install
    processes.
    You can also omit ``long`` to skip tests which take a long time.
 
-Sagetex
-~~~~~~~
-
-To make SageTeX available to your users, see the instructions for
-:ref:`installation in a multiuser environment <sagetex_installation_multiuser>`
-.
-
-
 Some common problems
 --------------------
 
@@ -1370,4 +1445,4 @@ would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
 
-**This page was last updated in October 2014 (Sage 6.4).**
+**This page was last updated in December 2014 (Sage 6.5).**

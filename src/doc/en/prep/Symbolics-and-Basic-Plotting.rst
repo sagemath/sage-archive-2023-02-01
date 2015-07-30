@@ -384,19 +384,19 @@ Below, you can experiment with several of the plotting options.
     sage: x = var('x')
     sage: @interact
     sage: def plot_example(f=sin(x^2),r=range_slider(-5,5,step_size=1/4,default=(-3,3)),
-    ...                    color=color_selector(widget='colorpicker'),
-    ...                    thickness=(3,(1..10)),
-    ...                    adaptive_recursion=(5,(0..10)), adaptive_tolerance=(0.01,(0.001,1)),
-    ...                    plot_points=(20,(1..100)),
-    ...                    linestyle=['-','--','-.',':'],
-    ...                    gridlines=False, fill=False,
-    ...                    frame=False, axes=True
-    ...                    ):
-    ...       show(plot(f, (x,r[0],r[1]), color=color, thickness=thickness,
-    ...                    adaptive_recursion=adaptive_recursion,
-    ...                    adaptive_tolerance=adaptive_tolerance, plot_points=plot_points,
-    ...                    linestyle=linestyle, fill=fill if fill else None),
-    ...                    gridlines=gridlines, frame=frame, axes=axes)
+    ....:                  color=color_selector(widget='colorpicker'),
+    ....:                  thickness=(3,(1..10)),
+    ....:                  adaptive_recursion=(5,(0..10)), adaptive_tolerance=(0.01,(0.001,1)),
+    ....:                  plot_points=(20,(1..100)),
+    ....:                  linestyle=['-','--','-.',':'],
+    ....:                  gridlines=False, fill=False,
+    ....:                  frame=False, axes=True
+    ....:                  ):
+    ....:     show(plot(f, (x,r[0],r[1]), color=color, thickness=thickness,
+    ....:                  adaptive_recursion=adaptive_recursion,
+    ....:                  adaptive_tolerance=adaptive_tolerance, plot_points=plot_points,
+    ....:                  linestyle=linestyle, fill=fill if fill else None),
+    ....:                  gridlines=gridlines, frame=frame, axes=axes)
 
 .. _3DPlotting:
 

@@ -1,4 +1,6 @@
 """
+Finite field morphisms
+
 This file provides several classes implementing:
 
 - embeddings between finite fields

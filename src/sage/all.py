@@ -75,16 +75,14 @@ if sys.version_info[:2] < (2, 5):
 
 ###################################################################
 
-import sage.ext.c_lib
-sage.ext.c_lib._init_csage()
-sig_on_count = sage.ext.c_lib._sig_on_reset
+# This import also setups the interrupt handler
+from sage.ext.interrupt import AlarmInterrupt, SignalError, sig_on_reset as sig_on_count
 
 from time                import sleep
 
-from sage.ext.c_lib import AlarmInterrupt, SignalError
-
 import sage.misc.lazy_import
 from sage.misc.all       import *         # takes a while
+from sage.typeset.all    import *
 from sage.repl.all       import *
 
 from sage.misc.sh import sh
@@ -97,6 +95,7 @@ try:
 except ImportError:
     pass   # dev scripts are disabled
 
+from sage.structure.all  import *
 from sage.rings.all      import *
 from sage.matrix.all     import *
 
@@ -111,7 +110,6 @@ from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.databases.all  import *
-from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
 from sage.probability.all import *
@@ -188,6 +186,11 @@ from copy import copy, deepcopy
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
 
+# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
+# (which use paths relative to SAGE_SRC)
+sys.path.append(sage.env.SAGE_SRC)
+
+
 ###########################################################
 #### WARNING:
 # DO *not* import numpy / matplotlib / networkx here!!
@@ -196,25 +199,10 @@ _init_qqbar()
 # when they are first needed.
 ###########################################################
 
-###################################################################
-
-# maximize memory resources
-#try:
-#    import resource   # unix only...
-#    resource.setrlimit(resource.RLIMIT_AS, (-1,-1))
-#except Exception:
-#    pass
-
-# very useful 2-letter shortcuts
 CC = ComplexField()
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
-# NOTE: QQ, RR, and ZZ are used by the pre-parser, and should not be
-# overwritten by the user, unless they want to change the meaning of
-# int and real in the interpreter (which is a potentially valid thing
-# to do, and doesn't mess up anything else in the Sage library).
-
 
 true = True
 false = False
@@ -265,7 +253,6 @@ def quit_sage(verbose=True):
     # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
-    sage.rings.integer.clear_mpz_globals()
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
@@ -312,9 +299,6 @@ def _write_started_file():
         True
     """
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-    # Do nothing if the file already exists
-    if os.path.isfile(started_file):
-        return
 
     # Current time with a resolution of 1 second
     import datetime

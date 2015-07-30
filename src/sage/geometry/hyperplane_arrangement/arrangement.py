@@ -83,7 +83,7 @@ Notation (iv): using the library of arrangements::
 
 Notation (v): from the bounding hyperplanes of a polyhedron::
 
-    sage: a = polytopes.n_cube(3).hyperplane_arrangement();  a
+    sage: a = polytopes.cube().hyperplane_arrangement();  a
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
     sage: a.n_regions()
     27
@@ -540,7 +540,7 @@ class HyperplaneArrangementElement(Element):
             sage: B.rank()
             2
 
-            sage: p = polytopes.n_simplex(5)
+            sage: p = polytopes.simplex(5, project=True)
             sage: H = p.hyperplane_arrangement()
             sage: H.rank()
             5
@@ -561,7 +561,7 @@ class HyperplaneArrangementElement(Element):
             sage: H(x) == 0
             False
         """
-        assert (isinstance(self, type(other))) and (self.parent() is other.parent()) # guaranteed by framework
+        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
         return cmp(self._hyperplanes, other._hyperplanes)
 
     def union(self, other):
@@ -1245,7 +1245,7 @@ class HyperplaneArrangementElement(Element):
             raise ValueError('characteristic must be zero')
         from sage.functions.generalized import sign
         values = [hyperplane(p) for hyperplane in self]
-        signs = vector(ZZ, map(sign, values))
+        signs = vector(ZZ, [sign(_) for _ in values])
         signs.set_immutable()
         return signs
     
@@ -1379,7 +1379,7 @@ class HyperplaneArrangementElement(Element):
                 if len(b_list) == 1:
                     return b_list
                 return [b_list[0], b_list[-1]]
-            b_list_list = map(skip, b_list_list)
+            b_list_list = [skip(_) for _ in b_list_list]
         M = Matroid(groundset=range(len(parallels)), matrix=matrix(A_list).transpose())
         d = self.dimension()
         # vertices are solutions v * lhs = rhs
@@ -1914,7 +1914,7 @@ class HyperplaneArrangementElement(Element):
         """
         from sage.rings.all import PolynomialRing
         from sage.matrix.constructor import identity_matrix
-        from sage.misc.misc import prod
+        from sage.misc.all import prod
         k = len(self)
         R = PolynomialRing(QQ, names, k)
         h = R.gens()
@@ -2095,7 +2095,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L._element_constructor_([[0, 1, 0], [0, 0, 1]])
             Arrangement <y | x>
 
-            sage: L._element_constructor(polytopes.n_cube(2))
+            sage: L._element_constructor(polytopes.hypercube(2))
             Arrangement <-x + 1 | -y + 1 | y + 1 | x + 1>
 
             sage: L(x, x, warn_duplicates=True)
@@ -2137,7 +2137,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         # process positional arguments
         AA = self.ambient_space()
         try:
-            hyperplanes = map(AA, args)
+            hyperplanes = [AA(_) for _ in args]
         except (TypeError, ValueError, AttributeError):
             if len(args) > 1:
                 raise
@@ -2145,7 +2145,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             if hasattr(arg, 'Hrepresentation'):
                 hyperplanes = [AA(h) for h in arg.Hrepresentation()]
             else:
-                hyperplanes = map(AA, arg)
+                hyperplanes = [AA(_) for _ in arg]
         hyperplanes = [h.primitive(signed) for h in hyperplanes]
         n = len(hyperplanes)
         hyperplanes = tuple(uniq(hyperplanes))

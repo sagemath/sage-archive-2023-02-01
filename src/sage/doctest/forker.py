@@ -42,6 +42,7 @@ from sources import DictAsObject
 from parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from parsing import SageOutputChecker, pre_hash, get_source
+from sage.repl.user_globals import set_globals
 
 
 def init_sage():
@@ -101,8 +102,12 @@ def init_sage():
     sage.doctest.DOCTEST_MODE=True
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
-    import sage.repl.display.python_hook
-    sys.displayhook = sage.repl.display.python_hook.DoctestDisplayHook()
+
+    # Use the rich output backend for doctest 
+    from sage.repl.rich_output import get_display_manager
+    dm = get_display_manager()
+    from sage.repl.rich_output.backend_doctest import BackendDoctest
+    dm.switch_backend(BackendDoctest())
 
     # Switch on extra debugging
     from sage.structure.debug_options import debug
@@ -422,6 +427,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
         """
+        # Ensure that injecting globals works as expected in doctests
+        set_globals(test.globs)
+
         # Keep track of the number of failures and tries.
         failures = tries = 0
 
@@ -843,9 +851,8 @@ class SageDocTestRunner(doctest.DocTestRunner):
             globs.start()
         example.sequence_number = len(self.history)
         self.history.append(example)
-        timer = Timer()
+        timer = Timer().start()
         try:
-            timer.start()
             compiled = compiler(example)
             timer.start()    # reset timer
             exec(compiled, globs)
@@ -1565,7 +1572,7 @@ class DocTestDispatcher(SageObject):
                     # Start new workers if possible
                     while source_iter is not None and len(workers) < opt.nthreads:
                         try:
-                            source = source_iter.next()
+                            source = next(source_iter)
                         except StopIteration:
                             source_iter = None
                         else:

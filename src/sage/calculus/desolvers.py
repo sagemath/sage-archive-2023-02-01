@@ -366,7 +366,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
     TESTS:
 
-    Trac #9961 fixed (allow assumptions on the dependent variable in desolve)::
+    :trac:`9961` fixed (allow assumptions on the dependent variable in desolve)::
 
         sage: y=function('y',x); assume(x>0); assume(y>0)
         sage: sage.calculus.calculus.maxima('domain:real')  # needed since Maxima 5.26.0 to get the answer as below
@@ -374,7 +374,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
         [x - arcsinh(y(x)/x) == _C]
 
-    Trac #10682 updated Maxima to 5.26, and it started to show a different
+    :trac:`10682` updated Maxima to 5.26, and it started to show a different
     solution in the complex domain for the ODE above::
 
         sage: sage.calculus.calculus.maxima('domain:complex')  # back to the default complex domain
@@ -385,7 +385,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
             log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 +
             2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == _C]
 
-    Trac #6479 fixed::
+    :trac:`6479` fixed::
 
         sage: x = var('x')
         sage: y = function('y', x)
@@ -397,7 +397,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: desolve( diff(y,x,x) == 0, y, [0,1,1])
         x + 1
 
-    Trac #9835 fixed::
+    :trac:`9835` fixed::
 
         sage: x = var('x')
         sage: y = function('y', x)
@@ -406,11 +406,18 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         ...
         NotImplementedError: Unable to use initial condition for this equation (freeofx).
 
-    Trac #8931 fixed::
+    :trac:`8931` fixed::
 
         sage: x=var('x'); f=function('f',x); k=var('k'); assume(k>0)
         sage: desolve(diff(f,x,2)/f==k,f,ivar=x)
         _K1*e^(sqrt(k)*x) + _K2*e^(-sqrt(k)*x)
+
+    :trac:`15775` fixed::
+
+        sage: forget()
+        sage: y = function('y')(x)
+        sage: desolve(diff(y, x) == sqrt(abs(y)), dvar=y, ivar=x)
+        sqrt(-y(x))*(sgn(y(x)) - 1) + (sgn(y(x)) + 1)*sqrt(y(x)) == _C + x
 
 
     AUTHORS:
@@ -706,7 +713,9 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     - ``vars`` - list of dependent variables
 
-    - ``ics`` - (optional) list of initial values for ivar and vars
+    - ``ics`` - (optional) list of initial values for ivar and vars.
+      If ics is defined, it should provide initial conditions for each variable,
+      otherwise an exception would be raised.
 
     - ``ivar`` - (optional) the independent variable, which must be
       specified if there is more than one independent variable in the
@@ -770,11 +779,31 @@ def desolve_system(des, vars, ics=None, ivar=None):
 
     Now type show(P1), show(P2) to view these plots.
 
+    Check that :trac:`9824` is fixed::
+
+        sage: t = var('t')
+        sage: epsilon = var('epsilon')
+        sage: x1 = function('x1', t)
+        sage: x2 = function('x2', t)
+        sage: de1 = diff(x1,t) == epsilon
+        sage: de2 = diff(x2,t) == -2
+        sage: desolve_system([de1, de2], [x1, x2], ivar=t)
+        [x1(t) == epsilon*t + x1(0), x2(t) == -2*t + x2(0)]
+        sage: desolve_system([de1, de2], [x1, x2], ics=[1,1], ivar=t)
+        Traceback (most recent call last):
+        ...
+        ValueError: Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = [1, 1], vars = [x1(t), x2(t)]
+
+
     AUTHORS:
 
     - Robert Bradshaw (10-2008)
     - Sergey Bykov (10-2014)
     """
+    if ics is not None:
+        if len(ics) != (len(vars) + 1):
+            raise ValueError("Initial conditions aren't complete: number of vars is different from number of dependent variables. Got ics = {0}, vars = {1}".format(ics, vars))
+
     if len(des)==1:
         return desolve_laplace(des[0], vars[0], ics=ics, ivar=ivar)
     ivars = set([])
@@ -1159,12 +1188,12 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         ivar = ivars[0]
 
     if not is_SymbolicVariable(dvar):
-        from sage.calculus.var import var
+        from sage.symbolic.ring import SR
         from sage.calculus.all import diff
         from sage.symbolic.relation import solve
         if is_SymbolicEquation(de):
             de = de.lhs() - de.rhs()
-        dummy_dvar=var('dummy_dvar')
+        dummy_dvar = SR.var('dummy_dvar')
         # consider to add warning if the solution is not unique
         de=solve(de,diff(dvar,ivar),solution_dict=True)
         if len(de) != 1:
@@ -1464,12 +1493,12 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         if len(ivars)==1:
             ivar = ivars.pop()
         elif not ivars:
-            from sage.symbolic.ring import var
             try:
                 safe_names = [ 't_' + str(dvar) for dvar in dvars ]
             except TypeError:  # not iterable
                 safe_names = [ 't_' + str(dvars) ]
-            ivar = map(var, safe_names)
+            from sage.symbolic.ring import SR
+            ivar = [SR.var(name) for name in safe_names]
         else:
             raise ValueError("Unable to determine independent variable, please specify.")
 
@@ -1581,7 +1610,6 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mintides
     from sage.misc.temporary_file import tmp_dir
     tempdir = tmp_dir()
@@ -1589,7 +1617,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     drfile = os.path.join(tempdir ,'driver.c')
     fileoutput = os.path.join(tempdir, 'output')
     runmefile = os.path.join(tempdir, 'runme')
-    genfiles_mintides(intfile, drfile, f, map(N, ics), N(initial), N(final), N(delta), N(tolrel),
+    genfiles_mintides(intfile, drfile, f, [N(_) for _ in ics], N(initial), N(final), N(delta), N(tolrel),
                      N(tolabs), fileoutput)
     subprocess.check_call('gcc -o ' + runmefile + ' ' + os.path.join(tempdir, '*.c ') +
                           os.path.join('$SAGE_ROOT','local','lib','libTIDES.a') + ' -lm  -O2 ' +
@@ -1600,10 +1628,7 @@ def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16)
     res = outfile.readlines()
     outfile.close()
     for i in range(len(res)):
-        l=res[i]
-        l = l.split(' ')
-        l = filter(lambda a: len(a) > 2, l)
-        res[i] = map(RealField(),l)
+        res[i] = [RealField()(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
 
@@ -1688,7 +1713,6 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     import subprocess
     if subprocess.call('command -v gcc', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         raise RuntimeError('Unable to run because gcc cannot be found')
-    from sage.misc.misc import SAGE_ROOT
     from sage.interfaces.tides import genfiles_mpfr
     from sage.functions.other import ceil
     from sage.functions.log import log
@@ -1709,10 +1733,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
     res = outfile.readlines()
     outfile.close()
     for i in range(len(res)):
-        l=res[i]
-        l = l.split(' ')
-        l = filter(lambda a: len(a) > 2, l)
-        res[i] = map(RealField(ceil(digits*log(10,2))),l)
+        res[i] = [RealField(ceil(digits*log(10,2)))(_) for _ in res[i].split(' ') if len(_) > 2]
     shutil.rmtree(tempdir)
     return res
 

@@ -713,7 +713,7 @@ class TermOrder(SageObject):
                     name = block_names[0]
                     match = re.match('m\(([-+0-9,]+)\)$',name)
                     if match: # matrix term order
-                        m = map(int,match.groups()[0].split(',')) # replace match.groups()[0]  with match.group(1) later
+                        m = [int(_) for _ in match.groups()[0].split(',')] # replace match.groups()[0]  with match.group(1) later
                         self.__copy(TermOrder(m))
                     else: # simple order
                         if name not in print_name_mapping.keys() and name not in singular_name_mapping.values():
@@ -2062,7 +2062,7 @@ def termorder_from_singular(S):
     EXAMPLE::
 
         sage: singular.eval('ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp)')
-        'ring r1 = (9,x),(a,b,c,d,e,f),(M((1,2,3,0)),wp(2,3),lp);'
+        ''
         sage: from sage.rings.polynomial.term_order import termorder_from_singular
         sage: termorder_from_singular(singular)
         Block term order with blocks:

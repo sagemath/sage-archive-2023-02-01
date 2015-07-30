@@ -95,7 +95,7 @@ This module contains the following methods
     :delim: |
 
     :meth:`bandwidth` | Compute the bandwidth of an undirected graph
-    :meth:`bandwidth_heuristics()<sage.graphs.base.boost_graph.bandwidth_heuristics>` | Uses Boost heuristics to approximate the bandwidth of the input graph
+    :meth:`~sage.graphs.base.boost_graph.bandwidth_heuristics` | Uses Boost heuristics to approximate the bandwidth of the input graph
 
 Functions
 ---------

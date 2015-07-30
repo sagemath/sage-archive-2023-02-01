@@ -762,7 +762,7 @@ def vertex_separation_exp(G, verbose = False):
 
     sage_free(neighborhoods)
     sig_off()
-    
+
     return k, list( g.int_to_vertices[i] for i in order )
 
 ##############################################################################

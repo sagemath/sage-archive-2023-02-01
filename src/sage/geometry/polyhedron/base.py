@@ -796,14 +796,16 @@ class Polyhedron_base(Element):
         return tp.OutputPlainText(text)
 
     def cdd_Hrepresentation(self):
-        """
+        r"""
         Write the inequalities/equations data of the polyhedron in
         cdd's H-representation format.
 
-        OUTPUT:
+        .. SEEALSO::
 
-        A string. If you save the output to filename.ine then you can
-        run the stand-alone cdd via ``cddr+ filename.ine``
+            :meth:`write_cdd_Hrepresentation` -- export the polyhedron as a
+            H-representation to a file.
+
+        OUTPUT: a string
 
         EXAMPLES::
 
@@ -830,17 +832,41 @@ class Polyhedron_base(Element):
                 raise TypeError('The base ring must be ZZ, QQ, or RDF')
         return cdd_Hrepresentation(cdd_type,
                                    list(self.inequality_generator()),
-                                   list(self.equation_generator()) )
+                                   list(self.equation_generator()))
+
+    def write_cdd_Hrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a H-representation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Hrepresentation` -- return the H-representation of the
+            polyhedron as a string.
+
+        EXAMPLE::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename(ext='.ext')
+            sage: polytopes.cube().write_cdd_Hrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Hrepresentation())
 
     def cdd_Vrepresentation(self):
-        """
+        r"""
         Write the vertices/rays/lines data of the polyhedron in cdd's
         V-representation format.
 
-        OUTPUT:
+        .. SEEALSO::
 
-        A string. If you save the output to filename.ext then you can
-        run the stand-alone cdd via ``cddr+ filename.ext``
+            :meth:`write_cdd_Vrepresentation` -- export the polyhedron as a
+            V-representation to a file.
+
+        OUTPUT: a string
 
         EXAMPLES::
 
@@ -868,7 +894,29 @@ class Polyhedron_base(Element):
         return cdd_Vrepresentation(cdd_type,
                                    list(self.vertex_generator()),
                                    list(self.ray_generator()),
-                                   list(self.line_generator()) )
+                                   list(self.line_generator()))
+
+    def write_cdd_Vrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a V-representation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Vrepresentation` -- return the V-representation of the
+            polyhedron as a string.
+
+        EXAMPLE::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename(ext='.ext')
+            sage: polytopes.cube().write_cdd_Vrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Vrepresentation())
 
     @cached_method
     def n_equations(self):
@@ -3866,6 +3914,80 @@ class Polyhedron_base(Element):
                 box_max.append(max_coord)
                 box_min.append(min_coord)
         return (tuple(box_min), tuple(box_max))
+
+    def integral_points_count(self,verbose=False):
+        r"""
+        Return the number of integral points in the polyhedron.
+
+        This method uses the optional package ``latte_int``.
+
+        INPUT:
+
+        - ``verbose`` (boolean; ``False`` by default) -- whether to display
+          verbose output.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: P.integral_points_count() # optional - latte_int
+            27
+            sage: P.integral_points_count(verbose=True) # optional - latte_int
+            This is LattE integrale...
+            ...
+            Total time:...
+            27
+
+        We shrink the polyhedron a little bit::
+
+            sage: Q = P*(8/9)
+            sage: Q.integral_points_count() # optional - latte_int
+            1
+
+        This no longer works if the coordinates are not rationals::
+
+            sage: Q = P*RDF(8/9)
+            sage: Q.integral_points_count() # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: LattE integrale failed (exit code 1) to execute...
+            ...Parse error in CDD-style input file /dev/stdin
+            sage: Q.integral_points_count(verbose=True) # optional - latte_int
+            Traceback (most recent call last):
+            ...
+            RuntimeError: LattE integrale failed (exit code 1) to execute count --cdd /dev/stdin, see error message above
+        """
+        if self.is_empty():
+            return 0
+
+        from subprocess import Popen, PIPE
+        from sage.misc.misc import SAGE_TMP
+        from sage.rings.integer import Integer
+
+        ine = self.cdd_Hrepresentation()
+        args = ['count', '--cdd', '/dev/stdin']
+
+        try:
+            # The cwd argument is needed because latte
+            # always produces diagnostic output files.
+            latte_proc = Popen(args,
+                               stdin=PIPE, stdout=PIPE,
+                               stderr=(None if verbose else PIPE),
+                               cwd=str(SAGE_TMP))
+        except OSError:
+            raise ValueError("The package latte_int must be installed "
+                    "(type 'sage -i latte_int' in a console or "
+                    "'install_package('latte_int')' at a Sage prompt)!\n")
+
+        ans, err = latte_proc.communicate(ine)
+        ret_code = latte_proc.poll()
+        if ret_code:
+            if err is None:
+                err = ", see error message above"
+            else:
+                err = ":\n" + err
+            raise RuntimeError("LattE integrale failed (exit code {}) to execute {}".format(ret_code, ' '.join(args)) + err.strip())
+
+        return Integer(ans.splitlines()[-1])
 
     def integral_points(self, threshold=100000):
         r"""

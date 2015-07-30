@@ -387,18 +387,25 @@ class ClusterQuiver(SageObject):
             name += ' with %s frozen vertices'%self._m
         return name
 
-    def plot(self, circular=True, center=(0,0), directed=True, mark=None, save_pos=False, greens=[]):
+    def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
+             save_pos=False, greens=[]):
         """
-        Returns the plot of the underlying digraph of ``self``.
+        Return the plot of the underlying digraph of ``self``.
 
         INPUT:
 
-        - ``circular`` -- (default:True) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``center`` -- (default:(0,0)) sets the center of the circular plot, otherwise it is ignored.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
-        - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
-        - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
-        - ``greens` -- (default:[]) if set to a list, will display the green vertices as green
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
+        - ``center`` -- (default:(0,0)) sets the center of the circular plot,
+          otherwise it is ignored.
+        - ``directed`` -- (default: ``True``) if ``True``, the directed
+          version is shown, otherwise the undirected.
+        - ``mark`` -- (default: ``None``) if set to i, the vertex i is
+          highlighted.
+        - ``save_pos`` -- (default: ``False``) if ``True``, the positions
+          of the vertices are saved.
+        - ``greens`` -- (default: []) if set to a list, will display the green
+          vertices as green
 
         EXAMPLES::
 
@@ -408,10 +415,10 @@ class ClusterQuiver(SageObject):
         """
         from sage.plot.colors import rainbow
         from sage.graphs.graph_generators import GraphGenerators
-        from sage.all import e,pi,I
+        from sage.all import e, pi, I
         graphs = GraphGenerators()
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
-        def _graphs_concentric_circles(n,m):
+        def _graphs_concentric_circles(n, m):
             g1 = graphs.CycleGraph(n).get_pos()
             g2 = graphs.CycleGraph(m).get_pos()
             for i in g2:
@@ -492,16 +499,21 @@ class ClusterQuiver(SageObject):
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
         """
-        Shows the plot of the underlying digraph of ``self``.
+        Show the plot of the underlying digraph of ``self``.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
+        - ``fig_size`` -- (default: 1) factor by which the size of the plot
+          is multiplied.
+        - ``circular`` -- (default: False) if True, the circular plot is
+          chosen, otherwise >>spring<< is used.
+        - ``directed`` -- (default: True) if True, the directed version is
+          shown, otherwise the undirected.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
-        - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
-        - ``greens` -- (default:[]) if set to a list, will display the green vertices as green
+        - ``save_pos`` -- (default:False) if True, the positions of the
+          vertices are saved.
+        - ``greens`` -- (default:[]) if set to a list, will display the green
+          vertices as green
 
         TESTS::
 

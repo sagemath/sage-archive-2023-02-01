@@ -10,7 +10,6 @@
 # hash, e.g. ecl-a014bd2c23a9ba863ecdd28c1c48d67de04d3620.tar.gz
 # Untar ECL tarball; the root dir will be named ecl.git/
 # 2) ./spkg-src
-# 3) compress ecl-$ECLVERSION into a .tar.bz2 file
 #
 # needs autotools and sage in your PATH.
 #
@@ -27,7 +26,9 @@ fi
 set -e
 
 # now we automate the task:
-ECLVERSION=15.3.7
+ECLVERSION=`cat package-version.txt`
+ECLTARBALL=ecl-"$ECLVERSION".tar
+
 mv ecl.git ecl-"$ECLVERSION"
 cd ecl-"$ECLVERSION"
 
@@ -45,21 +46,20 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-echo " we are here: "
-echo `pwd`
+echo "applying patches in " "$ECLVERSION"
 
 cd ..
 # Remove unneeded files to save space
-rm -rf msvc
+rm -rf msvc/
 cd src
-rm -rf gc-unstable gmp libffi
+rm -rf gc-unstable/ gmp/ libffi/
 libtoolize  # to generate configure script
 autoreconf -ivf
 
 cd ../../
-rm -f ecl-"$ECLVERSION".*
-tar cf ecl-"$ECLVERSION".tar ecl-"$ECLVERSION"/
-bzip2 ecl-"$ECLVERSION".tar
-mv -f ecl-"$ECLVERSION".tar.bz2 ../../../upstream/
+rm -f "$ECLTARBALL".* "$ECLTARBALL"
+tar cf "$ECLTARBALL" ecl-"$ECLVERSION"/
+bzip2 "$ECLTARBALL"
+mv -f "$ECLTARBALL".bz2 ../../../upstream/
 sage -sh sage-fix-pkg-checksums
 rm -rf ecl-"$ECLVERSION"/

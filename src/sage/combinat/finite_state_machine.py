@@ -9323,13 +9323,10 @@ class FiniteStateMachine(SageObject):
                 \end{aligned}
 
             cf. [S1986]_, p. 62, or [FHP2015]_, Theorem 1. We now
-            verify this with a transducer approach. We need to set
-            ``FSMOldCodeTransducerCartesianProduct``,
-            cf. :meth:`Transducer.cartesian_product`.
+            verify this with a transducer approach.
 
             ::
 
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
                 sage: def test(h, r):
                 ....:     R = PolynomialRing(
                 ....:             QQ,
@@ -9374,7 +9371,6 @@ class FiniteStateMachine(SageObject):
                 True
                 sage: test(3, 3)
                 True
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
 
         #.  Consider the alphabet `\{0, \ldots, r-1\}`, some `1\le j\le
             r` and some `h\ge 1`.  For some probabilities `p_0`,
@@ -9385,7 +9381,6 @@ class FiniteStateMachine(SageObject):
             The expectation of `B_j` is given in [FHP2015]_, Theorem 2.
             Here, we verify this result by using transducers::
 
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = False
                 sage: def test(h, r, j):
                 ....:     R = PolynomialRing(
                 ....:             QQ,
@@ -9445,7 +9440,6 @@ class FiniteStateMachine(SageObject):
                 ....:             numerator())
                 sage: test(2, 3, 2)
                 True
-                sage: sage.combinat.finite_state_machine.FSMOldCodeTransducerCartesianProduct = True
 
         REFERENCES:
 

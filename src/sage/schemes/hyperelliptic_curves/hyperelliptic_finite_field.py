@@ -59,7 +59,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Computes bound on number of `p`-adic digits needed to recover
         frobenius polynomial computing the characteristic polynomial
         of the frobenius matrix, i.e. returns `B` so that knowledge of
-        `a_1`, ..., `a_g`` modulo `p^B` determine frobenius polynomial
+        `a_1`, ..., `a_g` modulo `p^B` determine frobenius polynomial
         uniquely.
 
         The bound used here stems from the expression of the coefficients

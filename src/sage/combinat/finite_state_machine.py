@@ -5475,7 +5475,7 @@ class FiniteStateMachine(SageObject):
 
     def is_deterministic(self):
         """
-        Returns whether the finite finite state machine is deterministic.
+        Return whether the finite finite state machine is deterministic.
 
         INPUT:
 
@@ -5489,9 +5489,10 @@ class FiniteStateMachine(SageObject):
         each transition has input label of length one and for each
         pair `(q,a)` where `q` is a state and `a` is an element of the
         input alphabet, there is at most one transition from `q` with
-        input label `a`.
+        input label `a`. Furthermore, the finite state may not have
+        more than one initial state.
 
-        TESTS::
+        EXAMPLES::
 
             sage: fsm = FiniteStateMachine()
             sage: fsm.add_transition(('A', 'B', 0, []))
@@ -5506,7 +5507,18 @@ class FiniteStateMachine(SageObject):
             Transition from 'A' to 'B': 0,1|-
             sage: fsm.is_deterministic()
             False
+
+        Check that :trac:`18556` is fixed::
+
+            sage: Automaton().is_deterministic()
+            True
+            sage: Automaton(initial_states=[0]).is_deterministic()
+            True
+            sage: Automaton(initial_states=[0, 1]).is_deterministic()
+            False
         """
+        if len(self.initial_states())>1:
+            return False
         for state in self.iter_states():
             for transition in state.transitions:
                 if len(transition.word_in) != 1:

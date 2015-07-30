@@ -2041,12 +2041,12 @@ class ClusterSeed(SageObject):
 
         See [LeeLiM]_ for more details. 
 
-        INPUT::
+        INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
         - `a` -- a vector in `\mathbb{Z}^n` where `n` is the number of columns in `B`.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns an element in the upper cluster algebra. Depending on the input it may or may not be irreducible.
 
@@ -2082,14 +2082,15 @@ class ClusterSeed(SageObject):
 
     def LLM_gen_set(self,size_limit=-1):
         r"""
-        Produces an list of upper cluster algebra elements corresponding to all vectors in `\{0,1\}^n`. 
+        Produce a list of upper cluster algebra elements corresponding to all
+        vectors in `\{0,1\}^n`. 
 
-        INPUT::
+        INPUT:
 
         - `B` -- a skew-symmetric matrigitx.
         - `size_limit` -- a limit on how many vectors you want the function to return. 
 
-        OUTPUT::
+        OUTPUT:
 
         An array of elements in the upper cluster algebra. 
 
@@ -2107,13 +2108,13 @@ class ClusterSeed(SageObject):
              x1^-1 * x0^-1 * (x0*x3*x4 + x1*x2 + x2*x3),
              x2^-1 * x1^-1 * x0^-1 * (x0*x1*x3*x4*x5 + x0*x3*x4 + x1*x2 + x2*x3)]
         """
-        B=self.b_matrix()
-        aSet=_power_set(B.ncols())
-        genSet=[]
+        B = self.b_matrix()
+        aSet = _power_set(B.ncols())
+        genSet = []
         for i in xrange(len(aSet)):
             if i == size_limit:
                 break
-            a=aSet[i]
+            a = aSet[i]
             genSet.append(self.get_uca_element(a))
         return (genSet)
 
@@ -2122,13 +2123,13 @@ class ClusterSeed(SageObject):
         Returns a list of compatible vectors of each vector in the vector decomposition `vd`.
         Compatibility is defined as in [LLM] with respect to the matrix `B`.
 
-        INPUT::
+        INPUT:
 
         - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
         - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \mathbb{Z}`.
                     `n` must be the number of columns in `B`. Taken from the output of vector_decomposition.
 
-        OUTPUT::
+        OUTPUT:
 
         Returns an a 2-dimensional array containing all the vectors compatible with each vector in `vd.` 
 
@@ -2525,11 +2526,11 @@ def _zero_max(int1):
     r"""
     Returns the max of an integer and zero.
 
-    INPUT::
+    INPUT:
 
     - `int1` -- an integer.
 
-    OUTPUT::
+    OUTPUT:
 
     The maximum of `int1` and zero. 
 
@@ -2550,11 +2551,11 @@ def _power_set(n):
     r"""
     Returns an array of all vectors in `\{0,1\}^n`.
 
-    INPUT::
+    INPUT:
 
     - `n` -- an integer.
 
-    OUTPUT:: 
+    OUTPUT: 
 
     A 2-dimensional array containing all elements of `\{0,1\}^n`.
 
@@ -2610,12 +2611,12 @@ def _multi_concatenate(l1,l2):
     Each element of `l2` gets added to the end of a copy of each array in `l1`.
     Used to produce the power set.
 
-    INPUT::
+    INPUT:
 
     -`l1` -- a 2-dimensional array.
     -`l2` -- a single array.
 
-    OUTPUT::
+    OUTPUT:
 
     A 2-dimensional array.
     

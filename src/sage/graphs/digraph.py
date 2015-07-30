@@ -577,7 +577,7 @@ class DiGraph(GenericGraph):
         
         Sage DiGraph from igraph undirected graph::
         
-            sage: import igraph
+            sage: import igraph           # optional - python_igraph
             sage: DiGraph(igraph.Graph()) # optional - python_igraph
             Traceback (most recent call last):
             ...

@@ -25,13 +25,14 @@ AUTHORS:
 import time
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.rings.all import QQ, infinity
+from sage.rings.all import QQ, infinity, factor
 from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import  QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
+from sage.matrix.all import matrix
 
 class ClusterSeed(SageObject):
     r"""
@@ -2034,6 +2035,253 @@ class ClusterSeed(SageObject):
             raise ValueError("Greedy elements are only currently "
                              "defined for cluster seeds of rank two.")
 
+    def get_uca_element(self,a):
+        r"""
+        Computes an element in the upper cluster algebra of `B` corresponding to the vector `a \in \mathbb{Z}^n`.
+
+        See [LeeLiM]_ for more details. 
+
+        INPUT::
+
+        - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
+        - `a` -- a vector in `\mathbb{Z}^n` where `n` is the number of columns in `B`.
+
+        OUTPUT::
+
+        Returns an element in the upper cluster algebra. Depending on the input it may or may not be irreducible.
+
+        EXAMPLES::
+
+            sage: B=matrix([[0,3,-3],[-3,0,3],[3,-3,0],[1,0,0],[0,1,0],[0,0,1]])
+            sage: C=ClusterSeed(B)
+            sage: C.get_uca_element([1,1,0])
+            x1^-1 * x0^-1 * x2^3 * (x0^3*x3*x4 + x2^3*x3 + x1^3)
+            sage: C.get_uca_element([1,1,1])
+            x2^2 * x1^2 * x0^2 * (x3*x4*x5 + 1)
+    
+            sage: B=matrix([[0,3,0],[-3,0,3],[0,-3,0]])
+            sage: C=ClusterSeed(B)
+            sage: C.get_uca_element([1,1,0])
+            x1^-1 * x0^-1 * (x1^3*x2^3 + x0^3 + x2^3)
+            sage: C.get_uca_element([1,1,1])
+            x2^-1 * x1^-1 * x0^-1 * (x1 + 1) * (x0 + x2) * (x1^2 - x1 + 1) * (x0^2 - x0*x2 + x2^2)
+        
+        REFERENCES:
+
+        .. [LeeLiM] Lee-Li-Mills, A combinatorial formula for certain elements in the upper cluster algebra, :arxiv:`1409.8177`
+
+        """
+        B=self.b_matrix()
+        #Checks if the length of the
+        if len(a) != B.ncols():
+            raise ValueError('The length of the input vector must be the same as the number of columns of B.')
+        #Runs helper functions.
+        v=_vector_decomposition(a,B.nrows())
+        c=self._compute_compatible_vectors(v)
+        return self._produce_uca_element(v,c)
+
+    def LLM_gen_set(self,size_limit=-1):
+        r"""
+        Produces an list of upper cluster algebra elements corresponding to all vectors in `\{0,1\}^n`. 
+
+        INPUT::
+
+        - `B` -- a skew-symmetric matrigitx.
+        - `size_limit` -- a limit on how many vectors you want the function to return. 
+
+        OUTPUT::
+
+        An array of elements in the upper cluster algebra. 
+
+        EXAMPLES::
+
+            sage: B=matrix([[0,1,0],[-1,0,1],[0,-1,0],[1,0,0],[0,1,0],[0,0,1]])
+            sage: C=ClusterSeed(B)
+            sage: C.LLM_gen_set()
+            [1,
+             x2^-1 * (x1*x5 + 1),
+             x1^-1 * (x0*x4 + x2),
+             x2^-1 * x1^-1 * (x0*x1*x4*x5 + x0*x4 + x2),
+             x0^-1 * (x1 + x3),
+             x2^-1 * x0^-1 * (x1 + x3) * (x1*x5 + 1),
+             x1^-1 * x0^-1 * (x0*x3*x4 + x1*x2 + x2*x3),
+             x2^-1 * x1^-1 * x0^-1 * (x0*x1*x3*x4*x5 + x0*x3*x4 + x1*x2 + x2*x3)]
+        """
+        B=self.b_matrix()
+        aSet=_power_set(B.ncols())
+        genSet=[]
+        for i in xrange(len(aSet)):
+            if i == size_limit:
+                break
+            a=aSet[i]
+            genSet.append(self.get_uca_element(a))
+        return (genSet)
+
+    def _compute_compatible_vectors(self,vd):
+        r"""
+        Returns a list of compatible vectors of each vector in the vector decomposition `vd`.
+        Compatibility is defined as in [LLM] with respect to the matrix `B`.
+
+        INPUT::
+
+        - `B` -- a skew-symmetric matrix. Must have the same number of columns as the length of the vectors in `vd`.
+        - `vd` -- a collection of tuples `(v,z)` with `v \in \{0,1\}^n` and `z \in \mathbb{Z}`.
+                    `n` must be the number of columns in `B`. Taken from the output of vector_decomposition.
+
+        OUTPUT::
+
+        Returns an a 2-dimensional array containing all the vectors compatible with each vector in `vd.` 
+
+        NOTE:
+
+        If the vector in `vd` is negative it will not have any compatible vectors, so it does not contribute to the list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _vector_decomposition
+
+            sage: B=matrix([[0,1,0,0],[-1,0,1,0],[0,-1,0,1],[0,0,-1,0]])
+            sage: C=ClusterSeed(B)
+            sage: v=_vector_decomposition([3,2,3,4],4)
+            sage: C._compute_compatible_vectors(v)
+            [[[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 1], [0, 1, 1, 1], [1, 1, 1, 1]],
+            [[0, 0, 0, 0],
+            [0, 0, 0, 1],
+            [0, 0, 1, 1],
+            [1, 0, 0, 0],
+            [1, 0, 0, 1],
+            [1, 0, 1, 1]],
+            [[0, 0, 0, 0], [0, 0, 0, 1]]]
+
+        
+            sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])
+            sage: C=ClusterSeed(B)
+            sage: v=_vector_decomposition([2,-1,3,-2],4)
+            sage: C._compute_compatible_vectors(v)
+            [[[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]], [[0, 0, 0, 0], [0, 0, 1, 0]]]  
+        """
+        B=self.b_matrix()
+        #E is the set of 'edges' in the quiver. It records the tuple of indices `(i,j)` if `b_{ij}>0`.
+        E=[]
+        #Checks the upper triangular part of the exchange graph.
+        num_cols=B.ncols()
+        num_rows=B.nrows()
+        for j in range(num_cols):
+            for i in range(j,num_rows):
+                if B[i][j] > 0:
+                    E.append([i,j])
+                elif B[i][j] < 0:
+                    E.append([j,i])
+        #Checks for edges to frozen vertices. 
+        num_frozens=num_rows-num_cols
+        for k in range(num_frozens):
+            j=0
+            for j in range(i,num_cols):
+                if B[k+num_cols][j] > 0:
+                    E.append([i,j])
+                elif B[i][j] < 0:
+                    E.append([j,i])
+
+        #For each vector a in vd. check if a vector s in {0,1}^n is compatible.
+        compatibleList=[]
+        psetvect = _power_set(num_cols)
+        for p in psetvect:
+            while len(p)<len(vd[0][0]):
+                p.append(0)
+        for a in vd:
+            negative=False
+            for m in xrange(len(a)):
+        #If the vector a in vd is non-positive it is not compatible with any vector. 0 vector will pass this check but will be handled later.
+                if a[m]<0:
+                    negative=True
+                    break
+            if negative == True:
+                continue
+            clist=[]
+            for s in psetvect:
+                pass1=True
+        #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
+        #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
+                for k in xrange(num_cols):
+                    if s[k]>a[0][k]:
+                        pass1=False
+                        break
+        #The second possible failure is if (s_i,a_j-s_j) = (1,1).
+                if pass1 == True:
+                    for  e in E:
+                        if s[e[0]]==1 and (a[0][e[1]]-s[e[1]]) == 1:
+                            pass1=False
+                            break
+                if pass1 == True:
+                    clist.append(s)
+            compatibleList.append(clist)
+        return compatibleList
+
+    def _produce_uca_element(self,vd,cList):
+        r"""
+        Takes the compatible vectors and uses them to produce a Laurent polynomial in the upper cluster algebra. 
+
+        EXAMPLES::
+
+            sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _vector_decomposition
+
+            sage: B=matrix([[0,1,0,0],[-1,0,1,1],[0,-1,0,0],[0,-1,0,0],[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: C=ClusterSeed(B)
+            sage: v=_vector_decomposition([1,2,1,2],8)
+            sage: c=C._compute_compatible_vectors(v)
+            sage: C._produce_uca_element(v,c)
+            x3^-2 * x1^-2 * x2^-1 * x0^-1 * (x0*x1*x5*x7 + x2*x3 + x0*x5) * (x0*x1^2*x4*x5*x6*x7 + x0*x1*x4*x5*x6 + x0*x1*x4*x5*x7 + x1*x2*x3 + x2*x3*x4 + x0*x4*x5)
+
+            sage: B=matrix([[0,1,1,0],[-1,0,1,1],[-1,-1,0,0],[0,-1,0,0]])   
+            sage: C=ClusterSeed(B)
+            sage: v=_vector_decomposition([2,-1,3,-2],4)
+            sage: c=C._compute_compatible_vectors(v)
+            sage: C._produce_uca_element(v,c)
+            x2^-3 * x0^-2 * x1 * x3^2 * (x0*x1 + 1) * (x0*x1 + x1*x2 + 1)^2
+        """
+        B=self.b_matrix()
+        #Creates a the fraction field of a polynomial ring in which to build the Laurent polynomials.
+        num_cols=B.ncols()
+        num_rows=B.nrows()
+        R=PolynomialRing(QQ,num_rows,'x')
+        R.fraction_field()
+        #Computes the Laurent Polynomial for each vector in the decomposition.
+        finalP=[]
+        #Laurent polynomial for each vector in {0,1}^n
+        for i in range(len(vd)):  
+            final=1
+            numerator=0
+            #If the vector in vd is negative then it did not contribute any compatible vectors. It will only contribute a Laurent monomial.
+            if len(cList)>i:
+            #Each compatible sequence gives a term in the numerator of the Laurent polynomial.
+                for s in cList[i]:  
+                    term=1
+                    #Calulates the monomial in the term. 
+                    for j in range(num_rows): 
+                        x=R.gen(j)
+                        expn=0
+                        #The exponent is determined by the vectors a,s, and the matrix B.
+                        for k in range(num_cols):
+                            expn+=((vd[i][0][k]-s[k])*_zero_max(B[j][k])+s[k]*_zero_max(-B[j][k]))
+                        term=term*(x**expn)
+                    numerator+=term
+            #Gives a numerator for the negative vector, or else the product would be zero.      
+            else:
+                numerator=1
+            #Uses the vectors in vd to calculates the denominator of the Laurent.     
+            denominator=1
+            for l in range(num_cols):
+                denominator=denominator*(R.gen(l))**vd[i][0][l]
+            #Each copy of a vector in vd contributes a factor of the Laurent polynomial calculated from it. 
+            final=(numerator/denominator)**vd[i][1]
+            finalP.append(final)
+        laurentP=1
+        #The UCA element for the vector a is the product of the elements produced from the vectors in its decomposition. 
+        for p in finalP:
+            laurentP=laurentP*p
+        return factor(laurentP)
+
+
 def _bino(n, k):
     """
     Binomial coefficient which we define as zero for negative n.
@@ -2196,6 +2444,203 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
                         return False
         return True
 
+def _vector_decomposition(a,length):
+    r"""
+    Decomposes an integer vector 
+
+    INPUT:
+
+    - `a` -- a vector in `\mathbb{Z}^n.`
+
+    OUTPUT:
+
+    A decomposition of `a` into vectors `b_i \in \{0,1\}^n` such that `a= \sum c_i b_i` for `c_i \in \mathbb{Z}.`
+    Returns an array of tuples `\right[b_i,c_i\left].` 
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _vector_decomposition
+
+        sage: _vector_decomposition([2,-1,3,-2],4)
+        [[(1, 0, 1, 0), 2], [(0, 0, 1, 0), 1], [(0, 0, 0, -1), 1], [(0, -1, 0, -1), 1]]
+        sage: _vector_decomposition([3,2,3,4],4)
+        [[(1, 1, 1, 1), 2], [(1, 0, 1, 1), 1], [(0, 0, 0, 1), 1]]
+    """
+
+    #Finds the difference between the largest and smallest entry in the vector to determine the how many vectors are in the decomposition
+    max = 0
+    min = 0
+    for i in range(len(a)):
+        if a[i] > max:
+            max=a[i]
+        if a[i] < min:
+            min =a[i]
+    diff = max-min
+
+    #Creates a copy of a that will be edited when decomposing the vector.  
+    ap=copy(a)
+    if max == 0 and min == 0:
+        ap=[]
+        for i in range(length):
+            ap.append(0)
+        return [[ap,1]]
+    #Resets the counter i and puts the integer partition of the ith component of a into an array. 
+    i=0
+    cols=[]
+    for i in range(len(a)):
+        c=[]
+        for j in range(diff):
+            if ap[i]>0:
+                c.append(1)
+                ap[i]-=1
+            elif ap[i]<0:
+                c.append(-1)
+                ap[i]+=1
+            elif ap[i]==0:
+                c.append(0)
+        cols.append(c)
+    #Converts the integer partitions into decomposition vectors.
+    i=0
+    for i in range(len(cols)):
+        if cols[i][0]<0:
+            cols[i].reverse()
+    mat=matrix(cols)
+    #Adds a zero to the end of every vector for each frozen vertex. 
+    froz_mat=matrix(length-mat.nrows(),mat.ncols())
+    mat=mat.stack(froz_mat)
+    mat=mat.transpose()
+    vects=mat.rows()
+    #Collects identical decomposition vectors and counts their multiplicities. 
+    multiList=[]
+    while(len(vects)>0):
+        vect=vects[0]
+        count=vects.count(vect)
+        multiList.append([vect,count])
+        i=0
+        for i in range(count):
+            vects.remove(vect)
+    return multiList
+
+def _zero_max(int1):
+    r"""
+    Returns the max of an integer and zero.
+
+    INPUT::
+
+    - `int1` -- an integer.
+
+    OUTPUT::
+
+    The maximum of `int1` and zero. 
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _zero_max
+
+        sage: _zero_max(5)
+        5
+    
+        sage: _zero_max(-5)
+        0
+
+    """
+    return max(int1,0)
+
+def _power_set(n):
+    r"""
+    Returns an array of all vectors in `\{0,1\}^n`.
+
+    INPUT::
+
+    - `n` -- an integer.
+
+    OUTPUT:: 
+
+    A 2-dimensional array containing all elements of `\{0,1\}^n`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _power_set
+
+        sage: _power_set(2)
+        [[0, 0], [0, 1], [1, 0], [1, 1]]
+    
+        sage: _power_set(5)
+        [[0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 1],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 1],
+        [0, 0, 1, 1, 0],
+        [0, 0, 1, 1, 1],
+        [0, 1, 0, 0, 0],
+        [0, 1, 0, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 1, 0, 1, 1],
+        [0, 1, 1, 0, 0],
+        [0, 1, 1, 0, 1],
+        [0, 1, 1, 1, 0],
+        [0, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0],
+        [1, 0, 0, 1, 1],
+        [1, 0, 1, 0, 0],
+        [1, 0, 1, 0, 1],
+        [1, 0, 1, 1, 0],
+        [1, 0, 1, 1, 1],
+        [1, 1, 0, 0, 0],
+        [1, 1, 0, 0, 1],
+        [1, 1, 0, 1, 0],
+        [1, 1, 0, 1, 1],
+        [1, 1, 1, 0, 0],
+        [1, 1, 1, 0, 1],
+        [1, 1, 1, 1, 0],
+        [1, 1, 1, 1, 1]]
+
+    """
+    p=_multi_concatenate([[]],[0,1])
+    for i in range(n-1):
+        p=_multi_concatenate(p,[0,1])
+    return p
+
+def _multi_concatenate(l1,l2):
+    r"""
+    Each element of `l2` gets added to the end of a copy of each array in `l1`.
+    Used to produce the power set.
+
+    INPUT::
+
+    -`l1` -- a 2-dimensional array.
+    -`l2` -- a single array.
+
+    OUTPUT::
+
+    A 2-dimensional array.
+    
+    EXAMPLES::
+
+    sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
+
+    sage: _multi_concatenate([[0,1,2]],[3,4,5])
+    [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
+
+    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
+    [[0, 1, 2, 6],
+    [0, 1, 2, 7],
+    [0, 1, 2, 8],
+    [3, 4, 5, 6],
+    [3, 4, 5, 7],
+    [3, 4, 5, 8]]   
+    """
+    plist=[]
+    for i in l1:
+        for j in l2:
+            ip=copy(i)
+            ip.append(j)
+            plist.append(ip)
+    return plist
 
 class ClusterVariable(FractionFieldElement):
     r"""

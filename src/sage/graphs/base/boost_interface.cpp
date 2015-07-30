@@ -7,6 +7,8 @@
 #include <boost/graph/dominator_tree.hpp>
 #include <boost/graph/cuthill_mckee_ordering.hpp>
 #include <boost/graph/king_ordering.hpp>
+#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <boost/graph/prim_minimum_spanning_tree.hpp>
 
 #include <iostream>
 
@@ -34,7 +36,8 @@ typedef struct {
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
           class DirectedS,    // The kind of graph (undirectedS, directedS, or bidirectionalS)
-          class EdgeListS>    // How the list of edges is stored
+          class EdgeListS,    // How the list of edges is stored
+          class EdgeProperty> // Properties of edges (weight)
 class BoostGraph
 /*
  * This generic class wraps a Boost graph, in order to make it Cython-friendly.
@@ -52,7 +55,7 @@ class BoostGraph
 */
 {
     typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
-    property<vertex_index_t, v_index>, no_property, no_property, EdgeListS> adjacency_list;
+    property<vertex_index_t, v_index>, EdgeProperty, no_property, EdgeListS> adjacency_list;
     typedef typename boost::graph_traits<adjacency_list>::vertex_descriptor vertex_descriptor;
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
@@ -87,6 +90,10 @@ public:
 
     void add_edge(v_index u, v_index v) {
         boost::add_edge((*vertices)[u], (*vertices)[v], *graph);
+    }
+
+    void add_edge(v_index u, v_index v, double weight) {
+        boost::add_edge((*vertices)[u], (*vertices)[v], weight, *graph);
     }
 
     result_ec edge_connectivity() {
@@ -152,6 +159,33 @@ public:
         return to_return;
     }
 
+    // This function works only on undirected graphs.
+    vector<v_index> kruskal_min_spanning_tree() {
+        vector<v_index> to_return;
+        std::vector <edge_descriptor> spanning_tree;
+        kruskal_minimum_spanning_tree(*graph, std::back_inserter(spanning_tree));
+
+        for (unsigned int i = 0; i < spanning_tree.size(); i++) {
+            to_return.push_back(index[source(spanning_tree[i], *graph)]);
+            to_return.push_back(index[target(spanning_tree[i], *graph)]);
+        }
+        return to_return;
+    }
+
+    // This function works only on undirected graphs with no parallel edge.
+    vector<v_index> prim_min_spanning_tree() {
+        vector<v_index> to_return;
+        vector<vertex_descriptor> predecessors(num_verts());
+        prim_minimum_spanning_tree(*graph, make_iterator_property_map(predecessors.begin(), index));
+
+        for (unsigned int i = 0; i < predecessors.size(); i++) {
+            if (index[predecessors[i]] != i) {
+                to_return.push_back(i);
+                to_return.push_back(index[predecessors[i]]);
+            }
+        }
+        return to_return;
+    }
 };
 
 

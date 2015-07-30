@@ -2210,7 +2210,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             [0, 1]
             sage: G = DiGraph([(1,2,{'weight':1}), (1,3,{'weight':5}), (2,3,{'weight':1})])
             sage: G.shortest_path(1, 3, weight_function=lambda e:e[2]['weight'])
-            [0, 1, 2]
+            [1, 2, 3]
 
         TEST:
 

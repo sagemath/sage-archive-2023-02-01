@@ -110,7 +110,7 @@ Operations
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union (not implemented)
+    :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
     :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
     :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
     :meth:`Automaton.intersection` | Intersection of automata
@@ -3412,7 +3412,7 @@ class FiniteStateMachine(SageObject):
 
     def __or__(self, other):
         """
-        Returns the disjoint union of the finite state machines self and other.
+        Return the disjoint union of this and another finite state machine.
 
         INPUT:
 
@@ -3422,15 +3422,25 @@ class FiniteStateMachine(SageObject):
 
         A new finite state machine.
 
+        .. SEEALSO::
+
+            :meth:`.disjoint_union`, :meth:`.__and__`,
+            :meth:`Automaton.intersection`,
+            :meth:`Transducer.intersection`
+
         TESTS::
 
             sage: FiniteStateMachine() | FiniteStateMachine([('A', 'B')])
+            Finite state machine with 2 states
+            sage: FiniteStateMachine() | 42
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            TypeError: Can only add finite state machine
         """
         if is_FiniteStateMachine(other):
             return self.disjoint_union(other)
+        else:
+            raise TypeError("Can only add finite state machine")
 
     __add__ = __or__
 
@@ -6657,16 +6667,140 @@ class FiniteStateMachine(SageObject):
 
     def disjoint_union(self, other):
         """
-        TESTS::
+        Return the disjoint union of this and another finite state
+        machine.
 
-            sage: F = FiniteStateMachine([('A', 'A')])
-            sage: FiniteStateMachine().disjoint_union(F)
+        INPUT:
+
+        -   ``other`` -- a :class:`FiniteStateMachine`.
+
+        OUTPUT:
+
+        A finite state machine of the same type as this finite state
+        machine.
+
+        In general, the disjoint union of two finite state machines is
+        non-deterministic. In the case of a automata, the language
+        accepted by the disjoint union is the union of the languages
+        accepted by the constituent automata. In the case of
+        transducer, for each successful path in one of the constituent
+        transducers, there will be one successful path with the same input
+        and output labels in the disjoint union.
+
+        The labels of the states of the disjoint union are pairs ``(i,
+        s)``: for each state ``s`` of this finite state machine, there
+        is a state ``(0, s)`` in the disjoint union; for each state
+        ``s`` of the other finite state machine, there is a state ``(1,
+        s)`` in the disjoint union.
+
+        The disjoint union can also be written as ``A + B`` or ``A | B``.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 1, 0, 0), (1, 0, 1, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: A([0, 1, 0, 1])
+            True
+            sage: B = Automaton([(0, 1, 0, 0), (1, 2, 0, 0), (2, 0, 1, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B([0, 0, 1])
+            True
+            sage: C = A.disjoint_union(B)
+            sage: C
+            Automaton with 5 states
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|0,
+             Transition from (0, 1) to (0, 0): 1|0,
+             Transition from (1, 0) to (1, 1): 0|0,
+             Transition from (1, 1) to (1, 2): 0|0,
+             Transition from (1, 2) to (1, 0): 1|0]
+            sage: C([0, 0, 1])
+            True
+            sage: C([0, 1, 0, 1])
+            True
+            sage: C([1])
+            False
+            sage: C.initial_states()
+            [(0, 0), (1, 0)]
+
+        Instead of ``.disjoint_union``, alternative notations are
+        available::
+
+            sage: C1 = A + B
+            sage: C1 == C
+            True
+            sage: C2 = A | B
+            sage: C2 == C
+            True
+
+        In general, the disjoint union is not deterministic::
+
+            sage: C.is_deterministic()
+            False
+            sage: D = C.determinisation().minimization().relabeled()
+            sage: D.initial_states()
+            [1]
+            sage: D.transitions()
+            [Transition from 0 to 0: 0|-,
+             Transition from 0 to 0: 1|-,
+             Transition from 1 to 7: 0|-,
+             Transition from 1 to 0: 1|-,
+             Transition from 2 to 6: 0|-,
+             Transition from 2 to 0: 1|-,
+             Transition from 3 to 5: 0|-,
+             Transition from 3 to 0: 1|-,
+             Transition from 4 to 0: 0|-,
+             Transition from 4 to 2: 1|-,
+             Transition from 5 to 0: 0|-,
+             Transition from 5 to 3: 1|-,
+             Transition from 6 to 4: 0|-,
+             Transition from 6 to 0: 1|-,
+             Transition from 7 to 4: 0|-,
+             Transition from 7 to 3: 1|-]
+
+        Disjoint union of transducers::
+
+            sage: T1 = Transducer([(0, 0, 0, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0])
+            sage: T2 = Transducer([(0, 0, 0, 2)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0])
+            sage: T1([0])
+            [1]
+            sage: T2([0])
+            [2]
+            sage: T = T1.disjoint_union(T2)
+            sage: T([0])
             Traceback (most recent call last):
             ...
-            NotImplementedError
-        """
-        raise NotImplementedError
+            ValueError: Found more than one accepting path.
+            sage: T.process([0])
+            [(True, (1, 0), [2]), (True, (0, 0), [1])]
 
+        .. SEEALSO::
+
+            :meth:`Automaton.intersection`,
+            :meth:`Transducer.intersection`.
+        """
+        result = self.empty_copy()
+        for s in self.iter_states():
+            result.add_state(s.relabeled((0, s)))
+        for s in other.iter_states():
+            result.add_state(s.relabeled((1, s)))
+        for t in self.iter_transitions():
+            result.add_transition((0, t.from_state),
+                                  (0, t.to_state),
+                                  t.word_in,
+                                  t.word_out)
+        for t in other.iter_transitions():
+            result.add_transition((1, t.from_state),
+                                  (1, t.to_state),
+                                  t.word_in,
+                                  t.word_out)
+        return result
 
     def concatenation(self, other):
         """

@@ -43,7 +43,7 @@ cdef dict _brouwer_database = None
 @cached_function
 def is_paley(int v,int k,int l,int mu):
     r"""
-    Test if a Paley graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Paley graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -75,7 +75,7 @@ def is_paley(int v,int k,int l,int mu):
 @cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     r"""
-    Test if an Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -116,7 +116,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 @cached_function
 def is_johnson(int v,int k,int l,int mu):
     r"""
-    Test if a Johnson graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Johnson graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -152,7 +152,7 @@ def is_johnson(int v,int k,int l,int mu):
 @cached_function
 def is_steiner(int v,int k,int l,int mu):
     r"""
-    Test if a Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     A Steiner graph is the intersection graph of a Steiner set system. For more
     information, see http://www.win.tue.nl/~aeb/graphs/S.html.
@@ -196,7 +196,7 @@ def is_steiner(int v,int k,int l,int mu):
 @cached_function
 def is_affine_polar(int v,int k,int l,int mu):
     r"""
-    Test if an Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see http://www.win.tue.nl/~aeb/graphs/VO.html.
 

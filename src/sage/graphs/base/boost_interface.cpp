@@ -5,6 +5,8 @@
 #include <boost/graph/exterior_property.hpp>
 #include <boost/graph/clustering_coefficient.hpp>
 #include <boost/graph/dominator_tree.hpp>
+#include <boost/graph/cuthill_mckee_ordering.hpp>
+#include <boost/graph/king_ordering.hpp>
 
 #include <iostream>
 
@@ -132,6 +134,24 @@ public:
         }
         return fathers;
     }
+
+    // Works only in undirected graphs!
+    vector<v_index> bandwidth_ordering(bool cuthill) {
+        vector<v_index> to_return;
+        vector<vertex_descriptor> inv_perm(num_vertices(*graph));
+
+        if (cuthill) {
+            boost::cuthill_mckee_ordering(*graph, inv_perm.rbegin());
+        } else {
+            boost::king_ordering(*graph, inv_perm.rbegin());
+        }
+
+        for (int i = 0; i < inv_perm.size(); i++) {
+            to_return.push_back(index[inv_perm[i]]);
+        }
+        return to_return;
+    }
+
 };
 
 

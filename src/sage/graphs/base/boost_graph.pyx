@@ -37,7 +37,6 @@ with ``delete()``.
     :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
     :func:`min_spanning_tree` | Computes a minimum spanning tree of a (weighted) graph.
 
-
 Functions
 ---------
 """

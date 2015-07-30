@@ -66,8 +66,8 @@ import operator
 
 from sage.misc.randstate cimport randstate, current_randstate
 
+from sage.libs.pari.paridecl cimport *
 include 'sage/ext/interrupt.pxi'
-include 'sage/libs/pari/decl.pxi'
 include 'sage/libs/pari/pari_err.pxi'
 
 from sage.libs.gsl.complex cimport *

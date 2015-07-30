@@ -12935,7 +12935,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self)
+                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
 
             v = self.vertices()
         elif not isinstance(v, list):

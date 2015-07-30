@@ -1,4 +1,3 @@
-
 r"""
 Undirected graphs
 
@@ -552,6 +551,7 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 
+
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -1006,7 +1006,7 @@ class Graph(GenericGraph):
 
     When providing the optional arguments ``data_structure="static_sparse"``
     or ``immutable=True`` (both mean the same), then an immutable graph
-    results.
+    results. ::
 
           sage: G_imm = Graph(G, immutable=True)
           sage: H_imm = Graph(G, data_structure='static_sparse')
@@ -1165,7 +1165,7 @@ class Graph(GenericGraph):
         if data_structure in ["sparse", "static_sparse"]:
             CGB = SparseGraphBackend
         elif data_structure == "dense":
-             CGB = DenseGraphBackend
+            CGB = DenseGraphBackend
         else:
             raise ValueError("data_structure must be equal to 'sparse', "
                              "'static_sparse' or 'dense'")
@@ -3175,7 +3175,7 @@ class Graph(GenericGraph):
             True
         """
         # A semi-symmetric graph is always bipartite
-        if  not self.is_bipartite() :
+        if not self.is_bipartite():
             return False
 
         return (self.is_regular() and
@@ -3357,10 +3357,10 @@ class Graph(GenericGraph):
         while next_:
             e = next_.pop(-1)
             # We assume e[0] to be a `seen` vertex
-            e = e if seen.get(e[0],False) != False else (e[1],e[0],e[2])
+            e = e if seen.get(e[0],False) is not False else (e[1],e[0],e[2])
 
             # If we discovered a new vertex
-            if seen.get(e[1],False) == False:
+            if seen.get(e[1],False) is False:
                 d.add_edge(e)
                 next_.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
                 i+=1
@@ -4981,9 +4981,9 @@ class Graph(GenericGraph):
         """
         if verbose_relabel is not None:
             deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel == True:
+            if verbose_relabel is True:
                 labels="pairs"
-            if verbose_relabel == False:
+            if verbose_relabel is False:
                 labels="integers"
 
         G = self.disjoint_union(other, labels=labels)
@@ -6963,4 +6963,3 @@ Graph.tutte_polynomial = tutte_polynomial
 
 from sage.graphs.lovasz_theta import lovasz_theta
 Graph.lovasz_theta = lovasz_theta
-

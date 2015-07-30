@@ -127,7 +127,6 @@ class TransducerGenerators(object):
             [0, 1]
             sage: T.output_alphabet
             [0, 1]
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: T([0, 1, 0, 1, 1])
             [0, 1, 0, 1, 1]
 
@@ -185,7 +184,6 @@ class TransducerGenerators(object):
 
             Check some sequence::
 
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T([0, 1, 0, 1, 1, 0])
                 [0, 0, 1, 0, 0, 1]
 
@@ -203,7 +201,6 @@ class TransducerGenerators(object):
 
             Check some sequence::
 
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T([0, 1, 0, 1, 1, 0])
                 [0, 0, 0, 0, 1, 0]
 
@@ -228,7 +225,6 @@ class TransducerGenerators(object):
                  Transition from (1, 0, 1) to (): 2|0]
                 sage: input =  [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2]
                 sage: output = [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T(input) == output
                 True
 
@@ -752,7 +748,6 @@ class TransducerGenerators(object):
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: for v in srange(0, 10):
             ....:     print v, G(v.digits(base=2))
             0 []

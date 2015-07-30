@@ -6,11 +6,16 @@
 # and its subdirectories!
 #
 # HOW TO MAKE THE TARBALL:
-# 1) copy upstream ecl-$ECLVERSION.tgz to this directory
+# 1) copy upstream the tarball from gitlab; it will be named by the commit
+# hash, e.g. ecl-a014bd2c23a9ba863ecdd28c1c48d67de04d3620.tar.gz
+# Untar ECL tarball; the root dir will be named ecl.git/
 # 2) ./spkg-src
 # 3) compress ecl-$ECLVERSION into a .tar.bz2 file
 #
+# needs autotools and sage in your PATH.
+#
 # AUTHOR: Jeroen Demeyer (November 2011)
+#         Dima Pasechnik (July 2015)
 
 # Sanity check: must be run from current directory
 if ! [ -f spkg-src ]; then
@@ -21,12 +26,40 @@ fi
 # Exit on failure
 set -e
 
-# Untar ECL tarball
-ECLVERSION=13.5.1
-tar xf ecl-"$ECLVERSION".tgz
+# now we automate the task:
+ECLVERSION=15.3.7
+mv ecl.git ecl-"$ECLVERSION"
 cd ecl-"$ECLVERSION"
 
+# the patches are applied here, as it has to be done before
+# running autoconf.
+cd src
+# For some of the patches, Cygwin also has upstream fixes that are
+# closely related, keep track.  See Trac 11119, for example.
+for patch in ../patches/*.patch; do
+    [ -f "$patch" ] || continue
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+echo " we are here: "
+echo `pwd`
+
+cd ..
 # Remove unneeded files to save space
 rm -rf msvc
 cd src
 rm -rf gc-unstable gmp libffi
+libtoolize  # to generate configure script
+autoreconf -ivf
+
+cd ../../
+rm -f ecl-"$ECLVERSION".*
+tar cf ecl-"$ECLVERSION".tar ecl-"$ECLVERSION"/
+bzip2 ecl-"$ECLVERSION".tar
+mv -f ecl-"$ECLVERSION".tar.bz2 ../../../upstream/
+sage -sh sage-fix-pkg-checksums
+rm -rf ecl-"$ECLVERSION"/

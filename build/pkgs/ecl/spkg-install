@@ -7,21 +7,6 @@ if [ -z "$SAGE_LOCAL" ] ; then
 fi
 
 cd src
-# For some of the patches, Cygwin also has upstream fixes that are
-# closely related, keep track.  See Trac 11119, for example.
-for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
-
-# cd src
-# libtoolize  # to generate configure script
-# autoreconf -ivf
-# cd ..
 
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64

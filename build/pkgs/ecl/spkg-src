@@ -35,18 +35,17 @@ cd ecl-"$ECLVERSION"
 # the patches are applied here, as it has to be done before
 # running autoconf.
 cd src
+echo "applying patches in ecl-$ECLVERSION/src"
 # For some of the patches, Cygwin also has upstream fixes that are
 # closely related, keep track.  See Trac 11119, for example.
-for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
+for patch in ../../patches/*.patch; do
+    patch --verbose -p2 <"$patch"
     if [ $? -ne 0 ]; then
         echo >&2 "Error applying '$patch'"
         exit 1
     fi
 done
 
-echo "applying patches in " "$ECLVERSION"
 
 cd ..
 # Remove unneeded files to save space

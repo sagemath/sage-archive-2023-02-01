@@ -50,6 +50,8 @@ echo "Using CPPFLAGS=$CPPFLAGS"
 echo "Using LDFLAGS=$LDFLAGS"
 echo "configure scripts and/or makefiles might override these later"
 echo ""
+echo "Note that the patches were applied by spkg-source"
+echo ""
 
 # export everything. Probably not necessary in most cases.
 export CFLAGS

@@ -307,11 +307,11 @@ def strongly_regular_from_two_weight_code(L):
 
     A code is said to be a *two-weight* code the weight of its nonzero codewords
     (i.e. their number of nonzero coordinates) can only be one of two integer
-    values `w_1,w_2`. It is said to be *projective* if any two of its nonzero
-    codewords are linearly independent. A strongly regular graph can be built
-    from a two-weight projective code with weights `w_1,w_2` (assuming
-    `w_1<w_2`) by adding an edge between any two codewords whose difference has
-    weight `w_1` [LintSchrijver81]_.
+    values `w_1,w_2`. It is said to be *projective* if the minimum weight of the
+    dual code is `\geq 3`. A strongly regular graph can be built from a
+    two-weight projective code with weights `w_1,w_2` (assuming `w_1<w_2`) by
+    adding an edge between any two codewords whose difference has weight
+    `w_1`. For more information, see [LintSchrijver81]_ or [Delsarte72]_.
 
     INPUT:
 
@@ -335,6 +335,12 @@ def strongly_regular_from_two_weight_code(L):
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.
+
+    .. [Delsarte72] Ph. Delsarte,
+      Weights of linear codes and strongly regular normed spaces,
+      Discrete Mathematics (1972), Volume 3, Issue 1, Pages 47-64,
+      http://dx.doi.org/10.1016/0012-365X(72)90024-6.
+
     """
     V = map(tuple,list(L))
     w1, w2 = sorted(set(sum(map(bool,x)) for x in V).difference([0]))

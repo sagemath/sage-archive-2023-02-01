@@ -181,14 +181,14 @@ bool symbol::info(unsigned inf) const
 		case info_flags::expanded:
 			return true;
 		case info_flags::real:
-			return domain == domain::real || domain == domain::positive;
+			return domain == domain::real
+                                || domain == domain::positive
+                                || domain == domain::integer;
 		case info_flags::positive:
 		case info_flags::nonnegative:
 			return domain == domain::positive;
 		case info_flags::integer:
 			return domain == domain::integer;
-		case info_flags::has_indices:
-			return false;
 	}
 	return inherited::info(inf);
 }

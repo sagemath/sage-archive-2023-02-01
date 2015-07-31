@@ -1573,6 +1573,17 @@ bool function::info(unsigned inf) const
                 }
                 return false;
         }
+	switch (inf) {
+		case info_flags::real:
+			return domain == domain::real
+                                || domain == domain::positive
+                                || domain == domain::integer;
+		case info_flags::positive:
+		case info_flags::nonnegative:
+			return domain == domain::positive;
+		case info_flags::integer:
+			return domain == domain::integer;
+	}
         return false;
 }
 

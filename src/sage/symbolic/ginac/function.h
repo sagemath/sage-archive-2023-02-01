@@ -374,11 +374,14 @@ public:
 	static unsigned find_function(const std::string &name, unsigned nparams);
 	unsigned get_serial() const {return serial;}
 	std::string get_name() const;
+	unsigned get_domain() const { return domain; }
+	void set_domain(unsigned d) { domain = d; }
 
 // member variables
 
 protected:
 	unsigned serial;
+	unsigned domain;
 };
 
 // utility functions/macros

@@ -622,6 +622,8 @@ class Graph(GenericGraph):
 
       #.  A Sage adjacency matrix or incidence matrix
 
+      #.  A Sage Seidel adjacency matrix
+
       #.  A pygraphviz graph
 
       #.  A NetworkX graph
@@ -647,8 +649,8 @@ class Graph(GenericGraph):
     -  ``weighted`` - whether graph thinks of itself as
        weighted or not. See ``self.weighted()``
 
-    -  ``format`` - if None, Graph tries to guess- can be
-       several values, including:
+    -  ``format`` - if None, Graph tries to guess; can take
+       a number of values, namely:
 
        -  ``'int'`` - an integer specifying the number of vertices in an
           edge-free graph with vertices labelled from 0 to n-1
@@ -667,6 +669,10 @@ class Graph(GenericGraph):
        -  ``'weighted_adjacency_matrix'`` - a square Sage
           matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
           Given this format, weighted is ignored (assumed True).
+
+       -  ``'Seidel_adjacency_matrix'`` - a symmetric Sage matrix M
+          with 0s on the  diagonal, and the other entries -1 or 1, 
+          M[i,j]=-1 indicating that (i,j) is an edge, otherwise M[i,j]=1.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
           column C for each edge, where if C represents {i, j}, C[i] is -1
@@ -1344,6 +1350,40 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
+        elif format == 'Seidel_adjacency_matrix':
+            assert is_Matrix(data)
+            if data.base_ring() != ZZ:
+                try:
+                    data = data.change_ring(ZZ)
+                except TypeError:
+                    raise ValueError("Graph's Seidel adjacency matrix must"+
+                                     " have only 0,1,-1 integer entries")
+
+            if data.is_sparse():
+                entries = set(data[i,j] for i,j in data.nonzero_positions())
+            else:
+                entries = set(data.list())
+
+            if any(e <  -1 or e > 1 for e in entries):
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " have only 0,1,-1 integer entries")
+            if any(i==j for i,j in data.nonzero_positions()):
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " have 0s on the main diagonal")
+            if not data.is_symmetric():
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " be symmetric")
+            multiedges = False
+            weighted = False
+            loops = False
+            self.allow_loops(False)
+            self.allow_multiple_edges(False)
+            self.add_vertices(range(data.nrows()))
+            e = []
+            for i,j in data.nonzero_positions():
+               if i <= j and data[i,j] < 0:
+                        e.append((i,j))
+            self.add_edges(e)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
             if multiedges is None: multiedges = data.allows_multiple_edges()

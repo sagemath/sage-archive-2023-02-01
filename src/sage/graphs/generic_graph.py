@@ -1992,6 +1992,39 @@ class GenericGraph(GenericGraph_pyx):
 
     laplacian_matrix = kirchhoff_matrix
 
+    def Seidel_adjacency_matrix(self, vertices=None):
+        """
+        Returns the Seidel adjacency matrix of the graph. 
+        For `A` the (ordinary) adjacency matrix of ``self``, 
+        i.e. :meth:`GenericGraph.adjacency_matrix`, 
+        `I` the identity matrix, and `J` the all-1 matrix 
+        is given by `J-I-2A`. It is closely related to twographs, 
+        see :class:`IncidenceSystem.twograph`.
+
+        The matrix returned is over the integers. If a different ring is
+        desired, use either the change_ring function or the matrix
+        function.
+
+        INPUT:
+
+        - ``vertices`` (list) -- the ordering of the vertices defining how they
+          should appear in the matrix. By default, the ordering given by
+          :meth:`GenericGraph.vertices` is used.
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: G.Seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+        """
+        if self.is_directed():
+            raise ValueError('only makes sense for undirected graphs')
+
+        return -self.adjacency_matrix(sparse=False, vertices=vertices)+ \
+                  self.complement().adjacency_matrix(sparse=False, \
+                                            vertices=vertices)
+
     ### Attributes
 
     def get_boundary(self):
@@ -14550,6 +14583,36 @@ class GenericGraph(GenericGraph_pyx):
         if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G
+    def Seidel_switching(self, s):
+        """
+        Returns the graph obtained by Seidel switching of self
+        with respect to the subset of vertices ``s``. This is the graph
+        given by Seidel adjacency matrix DSD, for S the Seidel
+        adjacency matrix of self, and D the diagonal matrix with -1s
+        at positions corresponding to ``s``, and 1s elsewhere.
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: H = G.Seidel_switching([(0,1),(1,0),(0,0)])
+            sage: H.Seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+            sage: H.is_connected()
+            True
+        """
+        idx = frozenset([self.vertices().index(v) for v in s])
+        S = self.Seidel_adjacency_matrix()
+        for i in xrange(S.nrows()):
+            for j in xrange(i):
+                if (i in idx and (not j in idx)) or \
+                   (j in idx and (not i in idx)):
+                    S[i,j] = - S[i,j]
+                    S[j,i] = - S[j,i]
+        from sage.graphs.graph import Graph
+        H = Graph(S, format="Seidel_adjacency_matrix")
+        H.relabel(self.vertices())
+        return H
 
     def to_simple(self):
         """

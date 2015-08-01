@@ -2754,6 +2754,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = Cone([(0,)])
             sage: K.is_isomorphic(K)
             True
+            sage: K = Cone([(0,0)])
+            sage: K.is_isomorphic(K)
+            True
         """
         from sage.geometry.fan import Fan
         return Fan([self]).is_isomorphic(Fan([other]))

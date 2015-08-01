@@ -275,7 +275,7 @@ class ClusterAlgebra(Parent):
         if gvect in self._F_dict.keys():
             print "Found after "+str(mutation_counter)+" mutations."
         else: 
-            raise ValueError("Could not find a cluster variable with g-vector %s"%str(gvect))
+            raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(gvect),str(num_mutations)))
 
     def ambient(self):
         return self._ambient

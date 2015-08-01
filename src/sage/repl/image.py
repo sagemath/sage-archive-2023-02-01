@@ -42,7 +42,7 @@ class Image(SageObject):
         """
         Creates a new image with the given mode and size.
 
-        INPUT::
+        INPUT:
 
         - ``mode`` -- string. The mode to use for the new image. Valid
           options are:
@@ -221,7 +221,7 @@ class Image(SageObject):
         return self.pil.size[1]
 
     def save(self, filename):
-        """
+        r"""
         Save the bitmap image
 
         INPUT:

@@ -561,6 +561,7 @@ Enjoy and please post your best pictures on the
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
@@ -704,7 +705,7 @@ class PlotOptions:
         """
         return self.bounding_box.contains(self.projection(x))
 
-    def text(self, label, position):
+    def text(self, label, position, rgbcolor=(0,0,0)):
         r"""
         Return text widget with label ``label`` at position ``position``
 
@@ -715,6 +716,8 @@ class PlotOptions:
 
         - ``position`` -- a position
 
+        - ``rgbcolor`` -- the color as an RGB tuple
+
         EXAMPLES::
 
             sage: L = RootSystem(["A",2]).root_lattice()
@@ -723,6 +726,8 @@ class PlotOptions:
             [Text 'coucou' at the point (0.0,1.0)]
             sage: list(options.text(L.simple_root(1), [0,1]))
             [Text '$\alpha_{1}$' at the point (0.0,1.0)]
+            sage: list(options.text(L.simple_root(2), [1,0], rgbcolor=(1,0.5,0)))
+            [Text '$\alpha_{2}$' at the point (1.0,0.0)]
 
             sage: options = RootSystem(["A",2]).root_lattice().plot_parse_options(labels=False)
             sage: options.text("coucou", [0,1])
@@ -737,18 +742,18 @@ class PlotOptions:
         """
         if self.labels:
             if self.dimension <= 2:
-                if not isinstance(label, basestring):
+                if not isinstance(label, six.string_types):
                     label = "$"+str(latex(label))+"$"
                 from sage.plot.text import text
-                return text(label, position, fontsize=15)
+                return text(label, position, fontsize=15, rgbcolor=rgbcolor)
             elif self.dimension == 3:
                 # LaTeX labels not yet supported in 3D
-                if isinstance(label, basestring):
+                if isinstance(label, six.string_types):
                     label = label.replace("{","").replace("}","").replace("$","").replace("_","")
                 else:
                     label = str(label)
                 from sage.plot.plot3d.shapes2 import text3d
-                return text3d(label, position)
+                return text3d(label, position, rgbcolor=rgbcolor)
             else:
                 raise NotImplementedError("Plots in dimension > 3")
         else:

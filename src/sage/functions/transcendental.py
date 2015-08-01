@@ -76,6 +76,13 @@ class Function_zeta(GinacFunction):
             sage: a = zeta(2,hold=True); a.simplify()
             1/6*pi^2
 
+        Check that :trac:`15846` is resolved::
+
+            sage: zeta(x).series(x==1, 1)
+            1*(x - 1)^(-1) + (euler_gamma + log(2) + log(pi) + 2*zetaderiv(1, 0)) + Order(x - 1)
+            sage: zeta(x).residue(x==1)
+            1
+
         TESTS::
 
             sage: latex(zeta(x))

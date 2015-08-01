@@ -374,7 +374,7 @@ class Function_polylog(GinacFunction):
 
         TESTS:
 
-        Check if #8459 is fixed::
+        Check if :trac:`8459` is fixed::
 
             sage: t = maxima(polylog(5,x)).sage(); t
             polylog(5, x)
@@ -626,7 +626,7 @@ class Function_lambert_w(BuiltinFunction):
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
-            Integer Ring
+            Symbolic Ring
         """
         if not isinstance(z, Expression):
             if n == 0 and z == 0:

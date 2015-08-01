@@ -200,14 +200,22 @@ Methods
 -------
 """
 
-################################################################################
-#      Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>               #
-#                                                                              #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
-#                         http://www.gnu.org/licenses/                         #
-################################################################################
+#*****************************************************************************
+#       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
-include 'sage/ext/stdsage.pxi'
+
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+
+from copy import copy
+
 #####################
 # Greedy Algorithms #
 #####################
@@ -370,7 +378,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
     elif not certificate:
         return True
 
-    gg = g.copy(immutable=False)
+    gg = copy(g)
     from sage.graphs.digraph import DiGraph
     h = DiGraph()
     h.add_vertices(gg.vertices())

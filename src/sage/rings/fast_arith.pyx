@@ -41,12 +41,10 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "sage/ext/stdsage.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.ext.stdsage cimport PY_NEW
+include "sage/ext/cdefs.pxi"
 
-cdef extern from "pari/pari.h":
-    cdef long NEXT_PRIME_VIADIFF(long, byteptr)
-
+from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer

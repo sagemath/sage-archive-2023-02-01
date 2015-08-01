@@ -5,9 +5,6 @@ Power Series Methods
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
 
-
-include "sage/ext/stdsage.pxi"
-
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
@@ -23,7 +20,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         EXAMPLES::
 
-            sage: R, q = PowerSeriesRing(CC, 'q').objgen()
+            sage: R.<q> = PowerSeriesRing(CC)
             sage: R
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q
@@ -556,34 +553,6 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f + right.__f, \
                                          self.common_prec_c(right), check=True)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = PowerSeriesRing(ZZ)
-            sage: f = x^4
-            sage: f += x; f
-            x + x^4
-            sage: g = x^2 + O(x^3); g
-            x^2 + O(x^3)
-            sage: f += g; f
-            x + x^2 + O(x^3)
-            sage: f._iadd_(g)
-            x + 2*x^2 + O(x^3)
-        """
-        cdef PowerSeries_poly right = <PowerSeries_poly>right_m
-        self.__f += right.__f
-        if self._prec is not infinity:
-            if self._prec < right._prec:
-                self.__f = self.__f._inplace_truncate(self._prec)
-            else:
-                self.__f = self.__f._inplace_truncate(right._prec)
-                self._prec = right._prec
-        elif right._prec is not infinity:
-            self.__f = self.__f._inplace_truncate(right._prec)
-            self._prec = right._prec
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Return the difference of two power series.
@@ -615,29 +584,6 @@ cdef class PowerSeries_poly(PowerSeries):
                                 prec = prec,
                                 check = True)  # check, since truncation may be needed
 
-    cpdef RingElement _imul_(self, RingElement right_r):
-        """
-        Set self to self * right_r, and return this result.
-
-        EXAMPLES::
-
-            sage: k.<w> = ZZ[[]]
-            sage: f = (1+17*w+15*w^3+O(w^5))
-            sage: f *= (19*w^10+O(w^12))
-            sage: f
-            19*w^10 + 323*w^11 + O(w^12)
-
-            sage: f = 1 + w^2 + O(w^5)
-            sage: f._imul_(w^3)
-            w^3 + w^5 + O(w^8)
-        """
-        prec = self._mul_prec(right_r)
-        self.__f *= (<PowerSeries_poly>right_r).__f
-        if prec is not infinity:
-            self.__f = self.__f._inplace_truncate(prec)
-            self._prec = prec
-        return self
-
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
         Multiply self on the right by a scalar.
@@ -663,22 +609,6 @@ cdef class PowerSeries_poly(PowerSeries):
             2 + 6*t^4 + O(t^120)
         """
         return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        """
-        Set self to self left-multiplied by a scalar.
-
-        EXAMPLES::
-
-            sage: R.<t> = GF(13)[[]]
-            sage: f = 3 + 7*t^3 + O(t^4)
-            sage: f._ilmul_(2)
-            6 + t^3 + O(t^4)
-            sage: f *= 7 ; f
-            3 + 7*t^3 + O(t^4)
-        """
-        self.__f *= c
-        return self
 
     def __floordiv__(self, denom):
         """
@@ -1188,6 +1118,41 @@ cdef class PowerSeries_poly(PowerSeries):
         lead_u = resu_u.leading_coefficient()
         resu_u = resu_u / lead_u
         return lead_u / lead_v * resu_u / resu_v
+
+    def _symbolic_(self, ring):
+        """
+        Conversion to symbolic series.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: s = R([1,2,3,4,5],prec=10); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^10)
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + Order(x^10)
+            sage: SR(s).is_terminating_series()
+            False
+            sage: SR(s).variables()
+            (x,)
+            sage: s = R([1,2,3,4,5]); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: _.is_terminating_series()
+            True
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.infinity import PlusInfinity
+        poly = self.polynomial()
+        pex = SR(poly)
+        var = pex.variables()[0]
+        if not isinstance(self.prec(), PlusInfinity):
+            # GiNaC does not allow manual addition of bigoh,
+            # so we use a trick.
+            pex += var**(self.prec()+1)
+            return pex.series(var, self.prec())
+        else:
+            return pex.series(var, max(poly.exponents())+1)
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

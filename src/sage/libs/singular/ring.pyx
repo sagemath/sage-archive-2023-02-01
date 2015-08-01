@@ -14,7 +14,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 
 from sage.libs.gmp.types cimport __mpz_struct
 from sage.libs.gmp.mpz cimport mpz_init_set_ui, mpz_init_set

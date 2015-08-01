@@ -327,7 +327,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     return True
 
-def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
+def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     r"""
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
@@ -338,7 +338,8 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
 
     INPUT:
 
-    - ``v,k,l,mu`` (integers)
+    - ``v,k,l,mu`` (integers) -- note that ``mu``, if unspecified, is
+      automatically determined from ``v,k,l``.
 
     - ``existence`` (boolean;``False``) -- instead of building the graph,
       return:
@@ -351,7 +352,6 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
 
         - ``False`` -- meaning that no such strongly regular graph exists.
 
-
     EXAMPLES:
 
     Petersen's graph from its set of parameters::
@@ -359,6 +359,11 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
         sage: graphs.strongly_regular_graph(10,3,0,1,existence=True)
         True
         sage: graphs.strongly_regular_graph(10,3,0,1)
+        complement(Johnson graph with parameters 5,2): Graph on 10 vertices
+
+    Now without specifying `\mu`::
+
+        sage: graphs.strongly_regular_graph(10,3,0)
         complement(Johnson graph with parameters 5,2): Graph on 10 vertices
 
     An obviously infeasible set of parameters::
@@ -415,6 +420,8 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
     """
     load_brouwer_database()
+    if mu == -1:
+        mu = k*(k-l-1)//(v-k-1)
 
     params = (v,k,l,mu)
     params_complement = (v,v-k-1,v-2*k+mu-2,v-2*k+l)

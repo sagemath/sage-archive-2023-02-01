@@ -100,7 +100,7 @@ Properties
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
-
+    :meth:`Automaton.shannon_parry_markov_chain` | Compute Markov chain with Parry measure
 
 Operations
 ^^^^^^^^^^
@@ -10162,6 +10162,140 @@ class Automaton(FiniteStateMachine):
             return accept_input
 
 
+    def shannon_parry_markov_chain(self):
+        """
+        Compute a time homogeneous Markov chain such that all words of a
+        given length recognized by the original automaton occur as the
+        output with the same weight; the transition probabilities
+        correspond to the Parry measure.
+
+        OUTPUT:
+
+        A Markov chain. Its input labels are the transition probabilities, the
+        output labels the labels of the original automaton. In order to obtain
+        equal weight for all words of the same length, an "exit weight" is
+        needed. It is stored in the attribute ``color`` of the states of the
+        Markov chain. The weights of the words of the same length sum up to one
+        up to an exponentially small error.
+
+        The stationary distribution of this Markov chain is
+        saved as the initial probabilities of the states.
+
+        The transition probabilities correspond to the Parry measure
+        (see [S1948]_ and [P1964]_).
+
+        The automaton is assumed to be deterministic, irreducible and
+        aperiodic. All states must be final.
+
+        EXAMPLES::
+
+            sage: NAF = Automaton([(0, 0, 0), (0, 1, 1), (0, 1, -1),
+            ....:                  (1, 0, 0)], initial_states=[0],
+            ....:                 final_states=[0, 1])
+            sage: P_NAF = NAF.shannon_parry_markov_chain()
+            sage: P_NAF.transitions()
+            [Transition from 0 to 0: 1/2|0,
+             Transition from 0 to 1: 1/4|1,
+             Transition from 0 to 1: 1/4|-1,
+             Transition from 1 to 0: 1|0]
+            sage: for s in P_NAF.iter_states():
+            ....:     print s.color
+            3/4
+            3/2
+
+        The stationary distribution is also computed and saved as the
+        initial probabilities of the returned Markov chain::
+
+            sage: for s in P_NAF.states():
+            ....:     print s, s.initial_probability
+            0 2/3
+            1 1/3
+
+        The automaton is assumed to be deterministic, irreducible and aperiodic::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 1), (1, 1, 1), (1, 1, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be strongly connected.
+            sage: A = Automaton([(0, 0, 0), (0, 1, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be deterministic.
+            sage: A = Automaton([(0, 1, 0), (1, 0, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Automaton must be aperiodic.
+
+        All states must be final::
+
+            sage: A = Automaton([(0, 1, 0), (0, 0, 1), (1, 0, 0)],
+            ....:               initial_states=[0])
+            sage: A.shannon_parry_markov_chain()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: All states must be final.
+
+        ALGORITHM:
+
+        See [HKP2015a]_, Lemma 4.1.
+
+        REFERENCES:
+
+        .. [HKP2015a] Clemens Heuberger, Sara Kropf, and Helmut
+           Prodinger, *Analysis of Carries in Signed Digit Expansions*,
+           :arxiv:`1503.08816`.
+        .. [P1964] William Parry, *Intrinsic Markov chains*, Transactions
+           of the American Mathematical Society 112, 1964, pp. 55-66.
+           :doi:`10.1090/S0002-9947-1964-0161372-1`.
+        .. [S1948] Claude E. Shannon, *A mathematical theory of communication*,
+           The Bell System Technical Journal 27, 1948, 379-423,
+           :doi:`10.1002/j.1538-7305.1948.tb01338.x`.
+        """
+        from sage.modules.free_module_element import vector
+        if not self.is_deterministic():
+            raise NotImplementedError("Automaton must be deterministic.")
+        if not self.digraph().is_aperiodic():
+            raise NotImplementedError("Automaton must be aperiodic.")
+        if not self.digraph().is_strongly_connected():
+            raise NotImplementedError("Automaton must be strongly connected.")
+        if not all(s.is_final for s in self.iter_states()):
+            raise NotImplementedError("All states must be final.")
+        M = self.adjacency_matrix().change_ring(ZZ)
+        states = {state: i for i, state in enumerate(self.iter_states())}
+        w_all = sorted(M.eigenvectors_right(),
+                       key=lambda x: abs(x[0]),
+                       reverse=True)
+        w = w_all[0][1][0]
+        mu = w_all[0][0]
+        u_all = sorted(M.eigenvectors_left(),
+                       key=lambda x: abs(x[0]),
+                       reverse=True)
+        u = u_all[0][1][0]
+        u = 1/(u*w) * u
+        final = vector(int(s.is_final) for s in self.iter_states())
+        ff = u*final
+
+        assert u*w == 1
+        P = Transducer(initial_states=[s.label() for s in self.iter_initial_states()],
+                       final_states=[s.label() for s in self.iter_final_states()],
+                       on_duplicate_transition=duplicate_transition_add_input)
+        for t in self.iter_transitions():
+            P.add_transition(t.from_state.label(),
+                             t.to_state.label(),
+                             w[states[t.to_state]]/w[states[t.from_state]]/mu,
+                             t.word_in)
+        for s in self.iter_states():
+            P.state(s.label()).color = 1/(w[states[s]] * ff)
+            P.state(s.label()).initial_probability = w[states[s]] * u[states[s]]
+        return P
+            
+ 
     def with_output(self, word_out_function=None):
         r"""
         Construct a transducer out of this automaton.

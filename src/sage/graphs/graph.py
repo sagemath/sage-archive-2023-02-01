@@ -21,6 +21,8 @@ graphs.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
     :meth:`~Graph.join` | Returns the join of self and other.
+    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
+    :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
 
 
 **Distances:**
@@ -670,7 +672,7 @@ class Graph(GenericGraph):
           matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
           Given this format, weighted is ignored (assumed True).
 
-       -  ``'Seidel_adjacency_matrix'`` - a symmetric Sage matrix M
+       -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
           with 0s on the  diagonal, and the other entries -1 or 1, 
           M[i,j]=-1 indicating that (i,j) is an edge, otherwise M[i,j]=1.
 
@@ -1350,7 +1352,7 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
-        elif format == 'Seidel_adjacency_matrix':
+        elif format == 'seidel_adjacency_matrix':
             assert is_Matrix(data)
             if data.base_ring() != ZZ:
                 try:
@@ -4949,6 +4951,77 @@ class Graph(GenericGraph):
 
         G.name('%s join %s'%(self.name(), other.name()))
         return G
+
+
+    def seidel_adjacency_matrix(self, vertices=None):
+        """
+        Returns the Seidel adjacency matrix of self.
+
+        Returns the Seidel adjacency matrix of the graph. 
+        For `A` the (ordinary) adjacency matrix of ``self``, 
+        i.e. :meth:`GenericGraph.adjacency_matrix`, 
+        `I` the identity matrix, and `J` the all-1 matrix 
+        is given by `J-I-2A`. It is closely related to twographs, 
+        see :class:`IncidenceSystem.twograph`.
+
+        The matrix returned is over the integers. If a different ring is
+        desired, use either the change_ring function or the matrix
+        function.
+
+        INPUT:
+
+        - ``vertices`` (list) -- the ordering of the vertices defining how they
+          should appear in the matrix. By default, the ordering given by
+          :meth:`GenericGraph.vertices` is used.
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: G.seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+        """
+        
+        return -self.adjacency_matrix(sparse=False, vertices=vertices)+ \
+                  self.complement().adjacency_matrix(sparse=False, \
+                                            vertices=vertices)
+
+    def seidel_switching(self, s):
+        """
+        Returns the Seidel switching of self w.r.t. subset of vertices ``s``.
+
+        Returns the graph obtained by Seidel switching of self
+        with respect to the subset of vertices ``s``. This is the graph
+        given by Seidel adjacency matrix DSD, for S the Seidel
+        adjacency matrix of self, and D the diagonal matrix with -1s
+        at positions corresponding to ``s``, and 1s elsewhere.
+
+        INPUT:
+
+         - ``s`` -- a list of vertices 
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: H = G.seidel_switching([(0,1),(1,0),(0,0)])
+            sage: H.seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+            sage: H.is_connected()
+            True
+        """
+        idx = frozenset([self.vertices().index(v) for v in s])
+        S = self.seidel_adjacency_matrix()
+        for i in xrange(S.nrows()):
+            for j in xrange(i):
+                if (i in idx and (not j in idx)) or \
+                   (j in idx and (not i in idx)):
+                    S[i,j] = - S[i,j]
+                    S[j,i] = - S[j,i]
+        from sage.graphs.graph import Graph
+        H = Graph(S, format="seidel_adjacency_matrix")
+        H.relabel(self.vertices())
+        return H
 
     ### Visualization
 

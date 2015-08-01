@@ -70,6 +70,7 @@ math_substitutes = [
     (r'\\mapsto', ' |--> '),
     (r'\\lvert', '|'),
     (r'\\rvert', '|'),
+    (r'\\mid', '|'),
 ]
 nonmath_substitutes = [
     ('\\_','_'),

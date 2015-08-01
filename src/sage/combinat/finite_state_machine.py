@@ -111,7 +111,7 @@ Operations
     :delim: |
 
     :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
-    :meth:`~FiniteStateMachine.concatenation` | Concatenation (not implemented)
+    :meth:`~FiniteStateMachine.concatenation` | Concatenation
     :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
     :meth:`Automaton.intersection` | Intersection of automata
     :meth:`Transducer.intersection` | Intersection of transducers
@@ -6804,15 +6804,166 @@ class FiniteStateMachine(SageObject):
 
     def concatenation(self, other):
         """
+        Concatenate this finite state machine with another finite
+        state machine.
+
+        INPUT:
+
+        - ``other`` -- a :class:`FiniteStateMachine`
+
+        OUTPUT:
+
+        A :class:`FiniteStateMachine` of the same type as this finite
+        state machine.
+
+        Assume that both finite state machines are automata. If
+        `\mathcal{L}_1` is the language accepted by this automaton and
+        `\mathcal{L}_2` is the language accepted by the other automaton,
+        then the language accepted by the concatenated automaton is
+        `\{ w_1w_2 \mid w_1\in\mathcal{L}_1, w_2\in\mathcal{L}_2\}` where
+        `w_1w_2` denotes the concatenation of the words `w_1` and `w_2`.
+
+        Assume that both finite state machines are transducers and that
+        this transducer maps words `w_1\in\mathcal{L}_1` to words
+        `f_1(w_1)` and that the other transducer maps words
+        `w_2\in\mathcal{L}_2` to words `f_2(w_2)`. Then the concatenated
+        transducer maps words `w_1w_2` with `w_1\in\mathcal{L}_1` and
+        `w_2\in\mathcal{L}_2` to `f_1(w_1)f_2(w_2)`. Here, `w_1w_2` and
+        `f_1(w_1)f_2(w_2)` again denote concatenation of words.
+
+        Instead of ``A.concatenation(B)``, the notation ``A*B`` can be
+        used.
+
+        EXAMPLES:
+
+        Concatenation of two automata::
+
+            sage: A = automata.word([0])
+            sage: B = automata.word([1])
+            sage: C = A.concatenation(B)
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|-,
+             Transition from (0, 1) to (1, 0): -|-,
+             Transition from (1, 0) to (1, 1): 1|-]
+            sage: [w
+            ....:  for w in ([0, 0], [0, 1], [1, 0], [1, 1])
+            ....:  if C(w)]
+            [[0, 1]]
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: is_Automaton(C)
+            True
+
+        Concatenation of two transducers::
+
+            sage: A = Transducer([(0, 1, 0, 1), (0, 1, 1, 2)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: B = Transducer([(0, 1, 0, 1), (0, 1, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: C = A.concatenation(B)
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|1,
+             Transition from (0, 0) to (0, 1): 1|2,
+             Transition from (0, 1) to (1, 0): -|-,
+             Transition from (1, 0) to (1, 1): 0|1,
+             Transition from (1, 0) to (1, 1): 1|0]
+            sage: [(w, C(w)) for w in ([0, 0], [0, 1], [1, 0], [1, 1])]
+            [([0, 0], [1, 1]),
+             ([0, 1], [1, 0]),
+             ([1, 0], [2, 1]),
+             ([1, 1], [2, 0])]
+            sage: is_Transducer(C)
+            True
+
+
+        Alternative notation as multiplication::
+
+            sage: C == A*B
+            True
+
+        Final output words are taken into account::
+
+            sage: A = Transducer([(0, 1, 0, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: A.state(1).final_word_out = 2
+            sage: B = Transducer([(0, 1, 0, 3)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: B.state(1).final_word_out = 4
+            sage: C = A*B
+            sage: C([0, 0])
+            [1, 2, 3, 4]
+
         TESTS::
 
-            sage: F = FiniteStateMachine([('A', 'A')])
-            sage: FiniteStateMachine().concatenation(F)
+            sage: A = Automaton()
+            sage: F = FiniteStateMachine()
+            sage: A*F
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            TypeError: Cannot concatenate finite state machines of
+            different types.
+            sage: F*A
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot concatenate finite state machines of
+            different types.
+            sage: F*5
+            Traceback (most recent call last):
+            ...
+            TypeError: A finite state machine can only be concatenated
+            with a another finite state machine.
         """
-        raise NotImplementedError
+        if not is_FiniteStateMachine(other):
+            raise TypeError('A finite state machine can only be concatenated '
+                            'with a another finite state machine.')
+        if is_Automaton(other) != is_Automaton(self):
+            raise TypeError('Cannot concatenate finite state machines of '
+                            'different types.')
+
+        result = self.empty_copy()
+        first_states = {}
+        second_states = {}
+        for s in self.iter_states():
+            new_state = s.relabeled((0, s.label()))
+            new_state.final_word_out = None
+            new_state.is_final = False
+            first_states[s] = new_state
+            result.add_state(new_state)
+
+        for s in other.iter_states():
+            new_state = s.relabeled((1, s.label()))
+            new_state.is_initial = False
+            second_states[s] = new_state
+            result.add_state(new_state)
+
+        for t in self.iter_transitions():
+            result.add_transition(first_states[t.from_state],
+                                  first_states[t.to_state],
+                                  t.word_in,
+                                  t.word_out)
+
+        for t in other.iter_transitions():
+            result.add_transition(second_states[t.from_state],
+                                  second_states[t.to_state],
+                                  t.word_in,
+                                  t.word_out)
+
+        for s in self.iter_final_states():
+            first_state = first_states[s]
+            for t in other.iter_initial_states():
+                second_state = second_states[t]
+                result.add_transition(first_state,
+                                      second_state,
+                                      [],
+                                      s.final_word_out)
+
+        return result
+
+    __mul__ = concatenation
 
 
     def Kleene_closure(self):

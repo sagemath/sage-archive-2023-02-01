@@ -112,7 +112,7 @@ Operations
 
     :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
     :meth:`~FiniteStateMachine.concatenation` | Concatenation
-    :meth:`~FiniteStateMachine.Kleene_closure` | Kleene closure (not implemented)
+    :meth:`~FiniteStateMachine.kleene_star` | Kleene star
     :meth:`Automaton.intersection` | Intersection of automata
     :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
@@ -6966,16 +6966,98 @@ class FiniteStateMachine(SageObject):
     __mul__ = concatenation
 
 
-    def Kleene_closure(self):
-        """
-        TESTS::
+    def kleene_star(self):
+        r"""
+        Compute the Kleene closure of this finite state machine.
 
-            sage: FiniteStateMachine().Kleene_closure()
+        OUTPUT:
+
+        A :class:`FiniteStateMachine` of the same type as this finite
+        state machine.
+
+        Assume that this finite state machine is an automaton
+        recognizing the language `\mathcal{L}`.  Then the Kleene star
+        recognizes the language `\mathcal{L}^*=\{ w_1\ldots w_n \mid
+        n\ge 0, w_j\in\mathcal{L} \text{ for all } j\}`.
+
+        Assume that this finite state machine is a transducer realizing
+        a function `f` on some alphabet `\mathcal{L}`. Then the Kleene
+        star realizes a function `g` on `\mathcal{L}^*` with
+        `g(w_1\ldots w_n)=f(w_1)\ldots f(w_n)`.
+
+        EXAMPLES:
+
+        Kleene star of an automaton::
+
+            sage: A = automata.word([0, 1])
+            sage: B = A.kleene_star()
+            sage: B.transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 2 to 0: -|-,
+             Transition from 1 to 2: 1|-]
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: is_Automaton(B)
+            True
+            sage: [w for w in ([], [0, 1], [0, 1, 0], [0, 1, 0, 1], [0, 1, 1, 1])
+            ....:  if B(w)]
+            [[],
+             [0, 1],
+             [0, 1, 0, 1]]
+
+        Kleene star of a transducer::
+
+            sage: T = Transducer([(0, 1, 0, 1), (0, 1, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: S = T.kleene_star()
+            sage: S.transitions()
+            [Transition from 0 to 1: 0|1,
+             Transition from 0 to 1: 1|0,
+             Transition from 1 to 0: -|-]
+            sage: is_Transducer(S)
+            True
+            sage: for w in ([], [0], [1], [0, 0], [0, 1]):
+            ....:     print w, S.process(w)
+            []     (True, 0, [])
+            [0]    [(True, 0, [1]), (True, 1, [1])]
+            [1]    [(True, 0, [0]), (True, 1, [0])]
+            [0, 0] [(True, 0, [1, 1]), (True, 1, [1, 1])]
+            [0, 1] [(True, 0, [1, 0]), (True, 1, [1, 0])]
+
+        Final output words are taken into account::
+
+            sage: T = Transducer([(0, 1, 0, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: T.state(1).final_word_out = 2
+            sage: S = T.kleene_star()
+            sage: S.process([0, 0])
+            [(True, 0, [1, 2, 1, 2]), (True, 1, [1, 2, 1, 2])]
+
+        Final output words may lead to undesirable situations if initial
+        states and final states coincide::
+
+            sage: T = Transducer(initial_states=[0], final_states=[0])
+            sage: T.state(0).final_word_out = 1
+            sage: T([])
+            [1]
+            sage: S = T.kleene_star()
+            sage: S([])
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            RuntimeError: State 0 is in an epsilon cycle (no input), but
+            output is written.
         """
-        raise NotImplementedError
+        result = deepcopy(self)
+        for initial in result.iter_initial_states():
+            for final in result.iter_final_states():
+                result.add_transition(final, initial, [], final.final_word_out)
+
+        for initial in result.iter_initial_states():
+            initial.is_final = True
+
+        return result
 
 
     def intersection(self, other):

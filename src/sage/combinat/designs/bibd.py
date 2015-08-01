@@ -113,10 +113,10 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         [[0, 1, 2, 3, 4, 65], [0, 5, 24, 25, 39, 57], [0, 6, 27, 38, 44, 55], ...
         sage: designs.balanced_incomplete_block_design(66, 6, use_LJCR=True)  # optional - internet
         Incidence structure with 66 points and 143 blocks
-        sage: designs.balanced_incomplete_block_design(141, 6)
+        sage: designs.balanced_incomplete_block_design(216, 6)
         Traceback (most recent call last):
         ...
-        NotImplementedError: I don't know how to build a (141,6,1)-BIBD!
+        NotImplementedError: I don't know how to build a (216,6,1)-BIBD!
 
     TESTS::
 
@@ -146,10 +146,10 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
 
     For `k > 5` there are currently very few constructions::
 
-        sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
-        [1, 6, 31, 91, 121]
-        sage: [v for v in xrange(150) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
-        [51, 61, 66, 76, 81, 96, 106, 111, 126, 136, 141]
+        sage: [v for v in xrange(300) if designs.balanced_incomplete_block_design(v,6,existence=True) is True]
+        [1, 6, 31, 66, 76, 91, 96, 106, 111, 121, 126, 136, 141, 151, 156, 171, 181, 186, 196, 201, 211, 241, 271]
+        sage: [v for v in xrange(300) if designs.balanced_incomplete_block_design(v,6,existence=True) is Unknown]
+        [51, 61, 81, 166, 216, 226, 231, 246, 256, 261, 276, 286, 291]
 
     Here are some constructions with `k \geq 7` and `v` a prime power::
 

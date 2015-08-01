@@ -57,8 +57,6 @@ from block_design import BlockDesign
 from sage.rings.arith import binomial, is_prime_power
 from group_divisible_designs import GroupDivisibleDesign
 from designs_pyx import is_pairwise_balanced_design
-from sage.numerical.mip import MixedIntegerLinearProgram
-from sage.numerical.mip import MIPSolverException
 
 def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
     r"""
@@ -1234,58 +1232,105 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         l = self._lambd
         return "({},{},{})-Balanced Incomplete Block Design".format(v,k,l)
 
-    def arc(self, s=None):
+    def arc(self, s=2, solver=None, verbose=0):
         r"""
-        Return the (s,n)-arc which maximum cardinality.
+        Return the ``s``-arc with maximum cardinality.
 
-        A (s,n)-arc is a set of n points so that in each block there are
-        at most ``s`` of them.
+        A `s`-arc is a subset of points in a BIBD that intersects each block on
+        at most `s` points. It is one possible generalization of independent set
+        for graphs.
 
-        For more informations : :wikipedia:`Arc_(projective_geometry)`
+        A simple counting shows that the cardinality of a `s`-arc is at most
+        `(s-1) * r + 1` where `r` is the number of blocks incident to any point.
+        A `s`-arc in a BIBD with cardinality `(s-1) * r + 1` is called maximal
+        and is characterized by the following property: it is not empty and each
+        block either contains `0` or `s` points of this arc. Equivalently, the
+        trace of the BIBD on these points is again a BIBD (with block size `s`).
+
+        For more informations, see :wikipedia:`Arc_(projective_geometry)`.
 
         INPUT:
 
-        - ``s`` (integer) - maximum number of points from the arc in each block
+        - ``s`` - (default to ``2``) the maximum number of points from the arc
+          in each block
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES::
 
-            sage: B = designs.balanced_incomplete_block_design(13, 3)
-            sage: B.arc()
-            [1, 3, 6, 7, 9, 11]
-            sage: B.is_t_design(return_parameters=True)
-            (True, (2, 13, 3, 1))
-            sage: r = (13-1)/(3-1)
-            sage: 1 + (r-1)*1
+            sage: B = designs.balanced_incomplete_block_design(21, 5)
+            sage: a2 = B.arc()
+            sage: a2
+            [5, 9, 10, 12, 15, 20]
+            sage: len(a2)
             6
-            sage: len(B.arc())
+            sage: a4 = B.arc(4)
+            sage: a4
+            [0, 1, 2, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20]
+            sage: len(a4)
+            16
+
+        The `2`-arc and `4`-arc above are maximal. One can check that they
+        intersect the blocks in either 0 or `s` points. Or equivalently that the
+        traces are again BIBD::
+
+            sage: r = (21-1)/(5-1)
+            sage: 1 + r*1
             6
+            sage: 1 + r*3
+            16
 
-            sage: designs.balanced_incomplete_block_design(7, 2).arc()
-            [0, 1, 2, 3, 4, 5, 6]
+            sage: B.trace(a2).is_t_design(2, return_parameters=True)
+            (True, (2, 6, 2, 1))
+            sage: B.trace(a4).is_t_design(2, return_parameters=True)
+            (True, (2, 16, 4, 1))
 
-            sage: designs.balanced_incomplete_block_design(25, 3).arc()
-            [0, 2, 4, 6, 12, 13, 14, 15, 16, 19, 23]
-        
+        Some other examples which are not maximal::
+
             sage: B = designs.balanced_incomplete_block_design(25, 4)
-            sage: B.arc(3)
-            [0, 2, 3, 4, 6, 7, 8, 9, 10, 15, 16, 19, 21, 23, 24]
-            sage: B.is_t_design(return_parameters=True)
-            (True, (2, 25, 4, 1))
+            sage: a2 = B.arc(2)
             sage: r = (25-1)/(4-1)
-            sage: 1 + (r-1)*2
-            15
-            sage: len(B.arc(3))
-            15
+            sage: print len(a2), 1 + r
+            8 9
+            sage: sa2 = set(a2)
+            sage: set(len(sa2.intersection(b)) for b in B.blocks())
+            {0, 1, 2}
+            sage: B.trace(a2).is_t_design(2)
+            False
+
+            sage: a3 = B.arc(3)
+            sage: print len(a3), 1 + 2*r
+            15 17
+            sage: sa3 = set(a3)
+            sage: set(len(sa3.intersection(b)) for b in B.blocks())
+            {0, 1, 2, 3}
+            sage: B.trace(a3).is_t_design(3)
+            False
         """
-        if s is None:
-            s = 2
-        if s >= len(self._blocks[0]):
+        s = int(s)
+
+        # trivial cases
+        if s <= 0:
+            return []
+        elif s >= max(self.block_sizes()):
             return self._points[:]
-        p = MixedIntegerLinearProgram()
+
+        # linear program
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary=True)
         p.set_objective(p.sum(b[v] for v in self._points))
         for i in self._blocks:
             p.add_constraint(p.sum(b[k] for k in i) <= s)
-        p.solve()
-        r = p.get_values(b)
-        return [i for (i,j) in r.items() if j == 1]
+        p.solve(log=verbose)
+        return [i for (i,j) in p.get_values(b).items() if j == 1]

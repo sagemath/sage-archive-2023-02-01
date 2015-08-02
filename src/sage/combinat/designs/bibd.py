@@ -1315,6 +1315,17 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             {0, 1, 2, 3}
             sage: B.trace(a3).is_t_design(3)
             False
+
+        TESTS:
+
+        Test consistency with relabeling::
+
+             sage: b = designs.balanced_incomplete_block_design(7,3)
+             sage: len(b.arc())
+             4
+             sage: b.relabel(list("abcdefg"))
+             sage: len(b.arc())
+             4
         """
         s = int(s)
 

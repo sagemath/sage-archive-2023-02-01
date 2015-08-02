@@ -23,6 +23,7 @@ graphs.
     :meth:`~Graph.join` | Returns the join of self and other.
     :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
     :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
+    :meth:`~Graph.twograph`  | Returns the two-graph of self.
 
 
 **Distances:**
@@ -4962,7 +4963,7 @@ class Graph(GenericGraph):
         i.e. :meth:`GenericGraph.adjacency_matrix`, 
         `I` the identity matrix, and `J` the all-1 matrix 
         is given by `J-I-2A`. It is closely related to twographs, 
-        see :class:`IncidenceSystem.twograph`.
+        see :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
         desired, use either the change_ring function or the matrix
@@ -5022,6 +5023,24 @@ class Graph(GenericGraph):
         H = Graph(S, format="seidel_adjacency_matrix")
         H.relabel(self.vertices())
         return H
+
+
+    def twograph(self):
+        """
+        Returns the two-graph of self
+
+        Returns the two-graph with the triples
+        `T=\{t \in \binom {V}{3} : | \binom {t}{2} \cap E | odd \}`
+        where `V` and `E` are vertices and edges of self, respectively.
+
+        """
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from itertools import combinations
+        from sage.misc.functional import is_odd
+
+        T = [t for t in combinations(self.vertices(), 3) \
+             if is_odd([i in self.neighbors(j) for i,j in combinations(t, 2)].count(True))]
+        return IncidenceStructure(T)
 
     ### Visualization
 

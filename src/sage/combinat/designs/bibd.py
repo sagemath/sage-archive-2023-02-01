@@ -1321,11 +1321,11 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         Test consistency with relabeling::
 
              sage: b = designs.balanced_incomplete_block_design(7,3)
-             sage: len(b.arc())
-             4
+             sage: b.arc()
+             [0, 2, 3, 6]
              sage: b.relabel(list("abcdefg"))
-             sage: len(b.arc())
-             4
+             sage: b.arc()
+             ['a', 'c', 'd', 'g']
         """
         s = int(s)
 
@@ -1344,4 +1344,4 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         for i in self._blocks:
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)
-        return [i for (i,j) in p.get_values(b).items() if j == 1]
+        return [self._points[i] for (i,j) in p.get_values(b).items() if j == 1]

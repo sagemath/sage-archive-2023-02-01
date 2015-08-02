@@ -3,6 +3,34 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
+
+#### Helper functions. 
+# These my have to go in a more standard place or just outside this file
+
+# Define decorator to automatically transform vectors and lists to tuples
+# is there not a standard function wrapper we could use instead of this?
+from functools import wraps
+def make_hashable(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        hashable_args = []
+        for x in args:
+            try: 
+                hashable_args.append(tuple(x))
+            except:
+                hashable_args.append(x)
+        
+        hashable_kwargs = {}
+        for x in kwargs:
+            try:
+                hashable_kwargs[x] = tuple(kwargs[x])
+            except:
+                hashable_kwargs[x] = kwargs[x]
+
+        return func(*hashable_args, **hashable_kwargs)
+    return wrapper
+
+#### Done with helper functions
  
 class ClusterAlgebraElement(ElementWrapper):
 
@@ -29,6 +57,11 @@ class ClusterAlgebraElement(ElementWrapper):
         return tuple(v1-v2)
 
     def g_vector(self):
+        # at the moment it is not immediately clear to me how to compute this
+        # assuming this is a generic element of the cluster algebra it is not
+        # going to be homogeneous, expecially if we are not using principal
+        # coefficients. I am not sure it can be done if the bottom part of the
+        # exchange matrix is not invertible.
         raise NotImplementederror("This should be computed by substitution")
 
 class ClusterAlgebraSeed(SageObject):
@@ -38,6 +71,7 @@ class ClusterAlgebraSeed(SageObject):
         self._C = copy(C)
         self._G = copy(G)
         self._parent = parent
+        self._path = []
 
     def __copy__(self):
         other = type(self).__new__(type(self))
@@ -45,21 +79,22 @@ class ClusterAlgebraSeed(SageObject):
         other._C = copy(self._C)
         other._G = copy(self._G)
         other._parent = self._parent
+        other._path = copy(self._path)
         return other
 
     def parent(self):
         return self._parent
 
     def F_polynomial(self, j):
-        gvect = tuple(self._G.column(j))
-        return self.parent().F_polynomial(gvect)
+        g_vector = tuple(self._G.column(j))
+        return self.parent().F_polynomial(g_vector)
     
     #maybe this alias sould be removed
     F = F_polynomial
     
     def cluster_variable(self, j):
-        gvect = tuple(self._G.column(j))
-        return self.parent().cluster_variable(gvect)
+        g_vector = tuple(self._G.column(j))
+        return self.parent().cluster_variable(g_vector)
 
     def g_vector(self, j):
         return tuple(self._G.column(j))
@@ -91,7 +126,7 @@ class ClusterAlgebraSeed(SageObject):
             eps = -1
         
         # store the g-vector to be mutated in case we are mutating also F-polynomials
-        old_gvect = tuple(seed._G.column(k))
+        old_g_vector = tuple(seed._G.column(k))
  
         # mutate G-matrix
         J = identity_matrix(n)
@@ -102,9 +137,9 @@ class ClusterAlgebraSeed(SageObject):
  
         # F-polynomials
         if mutating_F:
-            gvect = tuple(seed._G.column(k))
-            if not self.parent()._F_dict.has_key(gvect):
-                self.parent()._F_dict.setdefault(gvect, self._mutated_F(k, old_gvect))
+            g_vector = tuple(seed._G.column(k))
+            if not self.parent()._F_dict.has_key(g_vector):
+                self.parent()._F_dict.setdefault(g_vector, self._mutated_F(k, old_g_vector))
         
         # C-matrix
         J = identity_matrix(n)
@@ -116,10 +151,16 @@ class ClusterAlgebraSeed(SageObject):
         # B-matrix
         seed._B.mutate(k)
             
+        # store mutation path    
+        if seed._path != [] and seed._path[-1] == k:
+            seed._path.pop()
+        else:
+            seed._path.append(k)
+
         if not inplace:
             return seed
 
-    def _mutated_F(self, k, old_gvect):
+    def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
@@ -132,7 +173,7 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j)**self._B[j,k]
             elif self._B[j,k] <0:
                 neg *= self.F_polynomial(j)**(-self._B[j,k])
-        return (pos+neg)//alg.F_polynomial(old_gvect)
+        return (pos+neg)//alg.F_polynomial(old_g_vector)
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
         seq = iter(sequence)
@@ -147,6 +188,9 @@ class ClusterAlgebraSeed(SageObject):
 
         if not inplace:
             return seed
+
+    def path_form_initial_seed(self):
+        return copy(self._path)
 
     def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, only_sink_source=False):
         depth_counter = 0
@@ -203,7 +247,12 @@ class ClusterAlgebraSeed(SageObject):
 
 
 class ClusterAlgebra(Parent):
- 
+    # it would be nice to have inject_variables() to allow the user to
+    # automagically export the initial cluster variables into the sage shell.
+    # Unfortunately to do this we need to inherit form ParentWithGens and, as a
+    # drawback, we get several functions that are meaningless/misleading in a
+    # cluster algebra like ngens() or gens()
+
     Element = ClusterAlgebraElement
  
     def __init__(self, B0, scalars=ZZ):
@@ -224,7 +273,7 @@ class ClusterAlgebra(Parent):
 
         self._ambient = LaurentPolynomialRing(scalars, 'x', m)
         self._ambient_field = self._ambient.fraction_field()
-
+            
         self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)]) 
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(m)])) for j in xrange(n)])
 
@@ -235,13 +284,16 @@ class ClusterAlgebra(Parent):
     def _repr_(self):
         return "Cluster Algebra of rank %s"%self.rk()
 
+    def _an_element_(self):
+        return self.Seed.cluster_variable(0)
+
     def rk(self):
         return self._n
                             
     @make_hashable          
-    def F_polynomial(self, gvect):
+    def F_polynomial(self, g_vector):
         try:
-            return self._F_dict[gvect]
+            return self._F_dict[g_vector]
         except:
             # TODO: improve this error message
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
@@ -251,31 +303,31 @@ class ClusterAlgebra(Parent):
 
     @make_hashable
     @cached_method
-    def cluster_variable(self, gvect):
-        if not gvect in self._F_dict.keys():
+    def cluster_variable(self, g_vector):
+        if not g_vector in self._F_dict.keys():
             raise ValueError("This Cluster Variable has not been computed yet.")
-        g_mon = prod([self.ambient().gen(i)**gvect[i] for i in xrange(self.rk())])
-        F_std = self.F_polynomial(gvect).subs(self._yhat)
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
+        F_std = self.F_polynomial(g_vector).subs(self._yhat)
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
-        F_trop = self.ambient_field()(self.F_polynomial(gvect).subs(self._y)).denominator()
+        F_trop = self.ambient_field()(self.F_polynomial(g_vector).subs(self._y)).denominator()
         return self.retract(g_mon*F_std*F_trop)
 
     @make_hashable
-    def find_cluster_variable(self, gvect, num_mutations=infinity):
+    def find_cluster_variable(self, g_vector, num_mutations=infinity):
         # TODO: refactor this to output also the mutation sequence that produces
         # the variable from self.Seed
         MCI = self.Seed.mutation_class_iter()
         mutation_counter = 0
-        while mutation_counter < num_mutations and gvect not in self._F_dict.keys():
+        while mutation_counter < num_mutations and g_vector not in self._F_dict.keys():
             try: 
                 MCI.next()
             except:
                 break
             mutation_counter += 1
-        if gvect in self._F_dict.keys():
+        if g_vector in self._F_dict.keys():
             print "Found after "+str(mutation_counter)+" mutations."
         else: 
-            raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(gvect),str(num_mutations)))
+            raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
 
     def ambient(self):
         return self._ambient
@@ -292,26 +344,20 @@ class ClusterAlgebra(Parent):
     def retract(self, x):
         return self(x)
 
+    # DESIDERATA: these function would be super cool to have
+    def greedy_element(self, d_vector):
+        pass
 
+    def theta_basis_element(self, g_vector):
+        pass
 
-# Define decorator to automatically transform vectors and lists to tuples
-from functools import wraps
-def make_hashable(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        hashable_args = []
-        for x in args:
-            try: 
-                hashable_args.append(tuple(x))
-            except:
-                hashable_args.append(x)
-        
-        hashable_kwargs = {}
-        for x in kwargs:
-            try:
-                hashable_kwargs[x] = tuple(kwargs[x])
-            except:
-                hashable_kwargs[x] = kwargs[x]
+    # some of these are probably irrealistic
+    def upper_cluster_algebra(self):
+        pass
 
-        return func(*hashable_args, **hashable_kwargs)
-    return wrapper
+    def upper_bound(self):
+        pass
+    
+    def lower_bound(self):
+        pass
+

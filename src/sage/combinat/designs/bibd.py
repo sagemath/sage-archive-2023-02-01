@@ -1269,12 +1269,12 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
             sage: B = designs.balanced_incomplete_block_design(21, 5)
             sage: a2 = B.arc()
-            sage: a2
+            sage: a2 # random
             [5, 9, 10, 12, 15, 20]
             sage: len(a2)
             6
             sage: a4 = B.arc(4)
-            sage: a4
+            sage: a4 # random
             [0, 1, 2, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20]
             sage: len(a4)
             16
@@ -1320,12 +1320,10 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
         Test consistency with relabeling::
 
-             sage: b = designs.balanced_incomplete_block_design(7,3)
-             sage: b.arc()
-             [0, 2, 3, 6]
-             sage: b.relabel(list("abcdefg"))
-             sage: b.arc()
-             ['a', 'c', 'd', 'g']
+            sage: b = designs.balanced_incomplete_block_design(7,3)
+            sage: b.relabel(list("abcdefg"))
+            sage: set(b.arc()).issubset(b.ground_set())
+            True
         """
         s = int(s)
 

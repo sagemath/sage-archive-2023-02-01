@@ -1403,6 +1403,17 @@ class Link:
 
         Note that this is not an invariant of the link, but of the diagram.
         In particular, it is not invariant under Reidemeister I moves.
+
+        EXAMPLES::
+
+            sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]],[-1, -1, -1, -1, 1, 1, -1, 1]])
+            sage: L._bracket_()
+            -q^14 + q^10 - q^6 + 2*q^2 - 1/q^2 + 2/q^6 - 1/q^10
+            sage: L = Link([[2, 1, 3, 4], [4, 3, 1, 2]])
+            sage: L._bracket_()
+            -q^4 - 1/q^4
+
+
         """
         t = SR(variable)
         if len(self.PD_code()) == 1:

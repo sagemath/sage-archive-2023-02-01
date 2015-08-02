@@ -1417,32 +1417,33 @@ class GenericGraph(GenericGraph_pyx):
         """
         try:
             import igraph
-            v_to_int = {v:i for i,v in enumerate(self.vertices())}
-            edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
-
-            if vertex_labels:
-                vertex_attrs = {'name':[v for i,v in enumerate(self.vertices())]}
-            else:
-                vertex_attrs = {}
-
-            if weight_function:
-                edge_attrs = {'weight':[weight_function(e) for e in self.edge_iterator()]}
-            else:
-                edge_attrs = {}
-
-            if edge_labels:
-                edge_attrs['label'] = [l for _,_,l in self.edge_iterator()]
-
-            return igraph.Graph(n = self.num_verts(),
-                                edges = edges,
-                                directed=self.is_directed(),
-                                graph_attrs = {'name':self.name()},
-                                vertex_attrs = vertex_attrs,
-                                edge_attrs = edge_attrs)
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
                               "install it, run Sage with option -i " +
                               "python_igraph.")
+
+        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
+
+        if vertex_labels:
+            vertex_attrs = {'name':[v for i,v in enumerate(self.vertices())]}
+        else:
+            vertex_attrs = {}
+
+        if weight_function:
+            edge_attrs = {'weight':[weight_function(e) for e in self.edge_iterator()]}
+        else:
+            edge_attrs = {}
+
+        if edge_labels:
+            edge_attrs['label'] = [l for _,_,l in self.edge_iterator()]
+
+        return igraph.Graph(n = self.num_verts(),
+                            edges = edges,
+                            directed=self.is_directed(),
+                            graph_attrs = {'name':self.name()},
+                            vertex_attrs = vertex_attrs,
+                            edge_attrs = edge_attrs)
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""
@@ -18021,7 +18022,8 @@ class GenericGraph(GenericGraph_pyx):
 
                 setattr(self, attr, new_attr)
 
-        self._boundary = [perm[v] for v in self._boundary]
+        if hasattr(self,'_boundary'):
+            self._boundary = [perm[v] for v in self._boundary]
 
         if return_map:
             return perm

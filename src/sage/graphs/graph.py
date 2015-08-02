@@ -697,9 +697,7 @@ class Graph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-       -  ``igraph`` - data must be an igraph Graph. In this case, vertex and
-          edge labels are also converted, and the graph name is deduced, if
-          available, as shown by the following examples.
+       - ``igraph`` - data must be an `igraph <http://igraph.org/>`__ graph.
 
     -  ``boundary`` - a list of boundary vertices, if
        empty, graph is considered as a 'graph without boundary'
@@ -1025,7 +1023,8 @@ class Graph(GenericGraph):
         sage: Graph(igraph.Graph(directed=True)) # optional - python_igraph
         Traceback (most recent call last):
         ...
-        ValueError: The input is a directed igraph network, and you are creating an undirected Sage network
+        ValueError: An *undirected* igraph graph was expected. To build an directed graph, call the DiGraph constructor.
+
     """
     _directed = False
 
@@ -1437,32 +1436,26 @@ class Graph(GenericGraph):
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
         elif format == 'igraph':
             if data.is_directed():
-                raise ValueError("The input is a directed igraph network, and" +
-                                 " you are creating an undirected Sage network")
+                raise ValueError("An *undirected* igraph graph was expected. "+
+                                 "To build an directed graph, call the DiGraph "+
+                                 "constructor.")
             try:
                 self.name(data['name'])
-            except Exception:
+            except KeyError:
                 pass
+
+            self.add_vertices(range(data.vcount()))
+
+            if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
+                self.add_edges([(e.source, e.target, e['label']) for e in data.es()])
+            elif len(data.edge_attributes()) > 0:
+                self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+            else:
+                self.add_edges(data.get_edgelist())
 
             if 'name' in data.vertex_attributes():
                 vs = data.vs()
-                self.add_vertices(vs['name'])
-
-                if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
-                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name'], e['label']) for e in data.es()])
-                elif len(data.edge_attributes()) > 0:
-                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name'], e.attributes()) for e in data.es])
-                else:
-                    self.add_edges([(vs[e.source]['name'], vs[e.target]['name']) for e in data.es])
-            else:
-                self.add_vertices(range(data.vcount()))
-
-                if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
-                    self.add_edges([(e.source, e.target, e['label']) for e in data.es()])
-                elif len(data.edge_attributes()) > 0:
-                    self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
-                else:
-                    self.add_edges(data.get_edgelist())
+                self.relabel({v:vs[v]['name'] for v in self})
 
         elif format == 'rule':
             f = data[1]

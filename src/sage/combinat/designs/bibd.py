@@ -1329,7 +1329,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
 
         p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary=True)
-        p.set_objective(p.sum(b[v] for v in self._points))
+        p.set_objective(p.sum(b[i] for i in range(len(self._points))))
         for i in self._blocks:
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)

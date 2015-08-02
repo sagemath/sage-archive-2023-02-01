@@ -4436,8 +4436,8 @@ def TruncatedTetrahedralGraph():
     r"""
     Return the truncated tetrahedron.
 
-    The truncated icosidodecahedron is an Archimedean solid with 12 vertices and
-    18 edges. For more information, see the :wikipedia:`Truncated_tetrahedron`.
+    The truncated tetrahedron is an Archimedean solid with 12 vertices and 18
+    edges. For more information, see the :wikipedia:`Truncated_tetrahedron`.
 
     EXAMPLE::
 

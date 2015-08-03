@@ -5055,6 +5055,37 @@ class Graph(GenericGraph):
                                   is_odd(sum([i in self.neighbors(j) for i,j in combinations(t, 2)])),
                                combinations(self.vertices(), 3)))
 
+    def twograph_descendant(self, v):
+        """
+        Returns the descendant graph w.r.t. vertex v of two-graph of self
+
+        self.twograph().descendant(v) without constructing the intermediate two-graph.
+
+        EXAMPLES:
+ 
+        one of s.r.g.'s from the database::
+
+            sage: A=graphs.strongly_regular_graph(280,135,70)
+            sage: A.twograph_descendant(0).is_strongly_regular(parameters=True)
+            (279, 150, 85, 75)
+        
+        TESTS::
+
+            sage: T8 = graphs.CompleteGraph(8).line_graph()
+            sage: v = T8.vertices()[0]
+            sage: T8.twograph_descendant(v)==T8.twograph().descendant(v)
+            True
+            sage: T8.twograph_descendant(v).is_strongly_regular(parameters=True)
+            (27, 16, 10, 8)
+        """
+        Nv = self.neighbors(v)
+        NonNv = filter(lambda x: not x in Nv and x != v, self.vertices())
+        return Graph([Nv+NonNv, lambda i, j: 
+                        (i in NonNv and j in NonNv    and     i in self.neighbors(j)) or
+                        (i in Nv    and j in Nv       and     i in self.neighbors(j)) or
+                        (i in Nv    and j in NonNv    and not i in self.neighbors(j)) or
+                        (j in Nv    and i in NonNv    and not i in self.neighbors(j))])
+
     ### Visualization
 
     def write_to_eps(self, filename, **options):

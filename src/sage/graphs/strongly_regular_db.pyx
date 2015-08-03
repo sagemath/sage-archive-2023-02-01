@@ -311,7 +311,7 @@ def strongly_regular_from_two_weight_code(L):
     dual code is `\geq 3`. A strongly regular graph can be built from a
     two-weight projective code with weights `w_1,w_2` (assuming `w_1<w_2`) by
     adding an edge between any two codewords whose difference has weight
-    `w_1`. For more information, see [LintSchrijver81]_ or [Delsarte72]_.
+    `w_1`. For more information, see [vLintSchrijver81]_ or [Delsarte72]_.
 
     INPUT:
 
@@ -331,7 +331,7 @@ def strongly_regular_from_two_weight_code(L):
 
     REFERENCES:
 
-    .. [LintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
+    .. [vLintSchrijver81] J. H. van Lint, and A. Schrijver (1981),
       Construction of strongly regular graphs, two-weight codes and
       partial geometries by finite fields,
       Combinatorica, 1(1), 63-73.

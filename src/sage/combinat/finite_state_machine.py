@@ -10315,11 +10315,6 @@ class Automaton(FiniteStateMachine):
         The automaton must be deterministic::
 
             sage: A = automata.word([0]) * automata.word([1])
-            sage: A.input_alphabet
-            [0]
-            sage: A.determine_alphabets()
-            sage: A.input_alphabet
-            [0, 1]
             sage: A.complement()
             Traceback (most recent call last):
             ...

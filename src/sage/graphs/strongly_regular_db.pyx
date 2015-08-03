@@ -46,7 +46,7 @@ cdef dict _brouwer_database = None
 @cached_function
 def is_paley(int v,int k,int l,int mu):
     r"""
-    Test if a Paley graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Paley graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -78,7 +78,7 @@ def is_paley(int v,int k,int l,int mu):
 @cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     r"""
-    Test if an Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -119,7 +119,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 @cached_function
 def is_johnson(int v,int k,int l,int mu):
     r"""
-    Test if a Johnson graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Johnson graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     INPUT:
 
@@ -155,7 +155,7 @@ def is_johnson(int v,int k,int l,int mu):
 @cached_function
 def is_steiner(int v,int k,int l,int mu):
     r"""
-    Test if a Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     A Steiner graph is the intersection graph of a Steiner set system. For more
     information, see http://www.win.tue.nl/~aeb/graphs/S.html.
@@ -199,7 +199,7 @@ def is_steiner(int v,int k,int l,int mu):
 @cached_function
 def is_affine_polar(int v,int k,int l,int mu):
     r"""
-    Test if an Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see http://www.win.tue.nl/~aeb/graphs/VO.html.
 
@@ -256,8 +256,8 @@ cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
 
-    If the set of parameters is not feasible, ``(None,None)`` is returned
-    instead.
+    If the set of parameters is not feasible, or if they correspond to a
+    conference graph, the function returns ``(None,None)``.
 
     INPUT:
 
@@ -845,7 +845,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     return True
 
-def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
+def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     r"""
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
@@ -856,7 +856,8 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
 
     INPUT:
 
-    - ``v,k,l,mu`` (integers)
+    - ``v,k,l,mu`` (integers) -- note that ``mu``, if unspecified, is
+      automatically determined from ``v,k,l``.
 
     - ``existence`` (boolean;``False``) -- instead of building the graph,
       return:
@@ -869,7 +870,6 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
 
         - ``False`` -- meaning that no such strongly regular graph exists.
 
-
     EXAMPLES:
 
     Petersen's graph from its set of parameters::
@@ -877,6 +877,11 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
         sage: graphs.strongly_regular_graph(10,3,0,1,existence=True)
         True
         sage: graphs.strongly_regular_graph(10,3,0,1)
+        complement(Johnson graph with parameters 5,2): Graph on 10 vertices
+
+    Now without specifying `\mu`::
+
+        sage: graphs.strongly_regular_graph(10,3,0)
         complement(Johnson graph with parameters 5,2): Graph on 10 vertices
 
     An obviously infeasible set of parameters::
@@ -933,6 +938,8 @@ def strongly_regular_graph(int v,int k,int l,int mu,bint existence=False):
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
     """
     load_brouwer_database()
+    if mu == -1:
+        mu = k*(k-l-1)//(v-k-1)
 
     params = (v,k,l,mu)
     params_complement = (v,v-k-1,v-2*k+mu-2,v-2*k+l)

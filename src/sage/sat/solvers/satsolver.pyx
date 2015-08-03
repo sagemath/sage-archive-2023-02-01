@@ -88,11 +88,11 @@ cdef class SatSolver:
 
     def read(self, filename):
         r"""
+        Reads DIMAC files.
+
         Reads in DIMAC formatted lines (lazily) from a
         file or file object and adds the corresponding
-        clauses into this instance.
-
-        See http://trac.sagemath.org/ticket/16924
+        clauses into this solver instance.
 
         INPUT:
 
@@ -105,8 +105,8 @@ cdef class SatSolver:
             sage: from sage.sat.solvers.dimacs import DIMACS
             sage: solver = DIMACS()
             sage: solver.read(file_object)
-            sage: solver
-            DIMACS Solver: ''
+            sage: solver.clauses()
+            [((1, -3), False, None), ((2, 3, -1), False, None)]
         """
         if isinstance(filename,str):
             file_object = open(filename,"r")

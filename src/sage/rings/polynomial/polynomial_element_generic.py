@@ -46,6 +46,11 @@ class Polynomial_generic_sparse(Polynomial):
     """
     A generic sparse polynomial.
 
+    The ``Polynomial_generic_sparse`` class defines functionality for sparse
+    polynomials over any base ring. A sparse polynomial is represented using a
+    dictionary which maps each exponent to the corresponding coefficient. The
+    coefficients must never be zero.
+
     EXAMPLES::
 
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)

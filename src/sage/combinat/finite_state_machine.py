@@ -113,6 +113,7 @@ Operations
     :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
     :meth:`~FiniteStateMachine.concatenation` | Concatenation
     :meth:`~FiniteStateMachine.kleene_star` | Kleene star
+    :meth:`Automaton.complement` | Complement of an automaton
     :meth:`Automaton.intersection` | Intersection of automata
     :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
@@ -10275,6 +10276,50 @@ class Automaton(FiniteStateMachine):
         else:
             raise NotImplementedError("Minimization via Moore's Algorithm is only " \
                                       "implemented for deterministic finite state machines")
+
+
+    def complement(self):
+        r"""
+        Return the complement of this automaton.
+
+        OUTPUT:
+
+        An :class:`Automaton`.
+
+        If this automaton recognizes language `\mathcal{L}` over an
+        input alphabet `\mathcal{A}`, then the complement recognizes
+        `\mathcal{A}\setminus\mathcal{L}`.
+
+        EXAMPLES::
+
+            sage: A = automata.word([0, 1])
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if A(w)]
+            [[0, 1]]
+            sage: Ac = A.complement()
+            sage: Ac.transitions()
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+
+        The automaton must be deterministic::
+
+            sage: A = automata.word([0]) * automata.word([1])
+            sage: A.complement()
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine must be deterministic.
+            sage: Ac = A.determinisation().complement()
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+        """
+        result = self.completion()
+        for state in result.iter_states():
+            state.is_final = not state.is_final
 
 
     def process(self, *args, **kwargs):

@@ -4403,12 +4403,13 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
     Ensure that we can obtain a cone in three dimensions with a large
     number (in particular, more than 2*dim) rays::
 
-        sage: set_random_seed()
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=7) # long time
-        sage: K.nrays() >= 7              # long time
+        sage: set_random_seed()                  # long time
+        sage: K = random_cone(min_ambient_dim=3, # long time
+        ....:                 max_ambient_dim=3, # long time
+        ....:                 min_rays=7)        # long time
+        sage: K.nrays() >= 7                     # long time
         True
-        sage: K.lattice_dim()             # long time
+        sage: K.lattice_dim()                    # long time
         3
 
     We need three dimensions to obtain five rays; we should throw out
@@ -4421,24 +4422,31 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         sage: K.lattice_dim()
         3
 
-    Ensure that we can generate cones which are not strictly convex::
+    Ensure that we can generate cones which are not strictly convex
+    (can take a long time)::
 
-        sage: set_random_seed()
-        sage: l = [ random_cone(min_ambient_dim=1, max_ambient_dim=8,
-        ....:                   min_rays=2, max_rays=10,
-        ....:                   strictly_convex=False).is_strictly_convex()
-        ....:       for i in range(0,10)]
-        sage: any(l)
+        sage: set_random_seed()                         # long time
+        sage: l = [ random_cone(min_ambient_dim=1,      # long time
+        ....:                   max_ambient_dim=8,      # long time
+        ....:                   min_rays=2,             # long time
+        ....:                   max_rays=10,            # long time
+        ....:                   strictly_convex=False)\
+        ....:                   .is_strictly_convex()   # long time
+        ....:       for i in range(0,10)]               # long time
+        sage: any(l)                                    # long time
         False
 
     As well as ones that are strictly convex::
 
-        sage: set_random_seed()
-        sage: l = [ random_cone(min_ambient_dim=1, max_ambient_dim=8,
-        ....:                   min_rays=2, max_rays=10,
-        ....:                   strictly_convex=True).is_strictly_convex()
-        ....:       for i in range(0,10) ]
-        sage: all(l)
+        sage: set_random_seed()                        # long time
+        sage: l = [ random_cone(min_ambient_dim=1,     # long time
+        ....:                   max_ambient_dim=8,     # long time
+        ....:                   min_rays=2,            # long time
+        ....:                   max_rays=10,           # long time
+        ....:                   strictly_convex=True)\
+        ....:                   .is_strictly_convex()  # long time
+        ....:       for i in range(0,10) ]             # long time
+        sage: all(l)                                   # long time
         True
 
     It is an error to request a non-strictly-convex trivial cone::
@@ -4466,29 +4474,13 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         sage: random_cone(lattice=L, strictly_convex=True)
         0-d cone in 0-d lattice L
 
-    Ensure that solid cones are generated when requested::
-
-        sage: set_random_seed()
-        sage: l = [ random_cone(max_ambient_dim=8, max_rays=10,
-        ....:                   solid=True).is_solid()
-        ....:       for i in range(0,10) ]
-        sage: all(l)
-        True
-
-    Ensure that non-solid cones are generated when requested::
-
-        sage: set_random_seed()
-        sage: l=[ random_cone(max_ambient_dim=8, max_rays=10,
-        ....:                 solid=False).is_solid()
-        ....:     for i in range(0,10) ]
-        sage: any(l)
-        False
-
     Ensure that solid cones are generated when requested (can take a
     long time)::
 
-        sage: set_random_seed()
-        sage: l = [ random_cone(solid=True).is_solid() # long time
+        sage: set_random_seed()                        # long time
+        sage: l = [ random_cone(max_ambient_dim=6,     # long time
+        ....:                   max_rays=10,           # long time
+        ....:                   solid=True).is_solid() # long time
         ....:       for i in range(0,10) ]             # long time
         sage: all(l)                                   # long time
         True
@@ -4496,8 +4488,10 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
     Ensure that non-solid cones are generated when requested (can take a
     long time)::
 
-        sage: set_random_seed()
-        sage: l = [ random_cone(solid=False).is_solid() # long time
+        sage: set_random_seed()                         # long time
+        sage: l = [ random_cone(max_ambient_dim=6,      # long time
+        ....:                   max_rays=10,            # long time
+        ....:                   solid=False).is_solid() # long time
         ....:       for i in range(0,10) ]              # long time
         sage: any(l)                                    # long time
         False

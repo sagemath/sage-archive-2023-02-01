@@ -125,6 +125,7 @@ Operations
     :meth:`~FiniteStateMachine.transposition` | Transposition (all transitions are reversed)
     :meth:`~FiniteStateMachine.with_final_word_out` | Machine with final output constructed by implicitly reading trailing letters, cf. :meth:`~FiniteStateMachine.construct_final_word_out` for inplace version
     :meth:`Automaton.determinisation` | Determinisation of an automaton
+    :meth:`~FiniteStateMachine.completion` | Completion of a finite state machine
     :meth:`~FiniteStateMachine.process` | Process input
     :meth:`~FiniteStateMachine.__call__` | Process input with shortened output
     :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
@@ -6802,7 +6803,7 @@ class FiniteStateMachine(SageObject):
                                   t.word_out)
         return result
 
-    def concatenation(self, other):
+    def concatenation(self, other, determine_alphabets=True):
         """
         Concatenate this finite state machine with another finite
         state machine.
@@ -6810,6 +6811,10 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``other`` -- a :class:`FiniteStateMachine`
+
+        - ``determine_alphabets`` -- a boolean (default: ``True``). If
+          ``False``, then :meth:`.determine_alphabets` is not run
+          before returning the result.
 
         OUTPUT:
 
@@ -6853,6 +6858,11 @@ class FiniteStateMachine(SageObject):
             ....:     is_Automaton, is_Transducer)
             sage: is_Automaton(C)
             True
+            sage: C.input_alphabet
+            [0, 1]
+            sage: C1 = A.concatenation(B, determine_alphabets=False)
+            sage: C1.input_alphabet
+            [0]
 
         Concatenation of two transducers::
 
@@ -6876,7 +6886,6 @@ class FiniteStateMachine(SageObject):
              ([1, 1], [2, 0])]
             sage: is_Transducer(C)
             True
-
 
         Alternative notation as multiplication::
 
@@ -6960,6 +6969,9 @@ class FiniteStateMachine(SageObject):
                                       second_state,
                                       [],
                                       s.final_word_out)
+
+        if determine_alphabets:
+            result.determine_alphabets()
 
         return result
 
@@ -8097,6 +8109,156 @@ class FiniteStateMachine(SageObject):
         return [self.induced_sub_finite_state_machine([self.state(_) for _ in component])
                 for component in condensation.vertices()
                 if condensation.out_degree(component) == 0]
+
+
+    def completion(self, sink=None):
+        """
+        Return a completion of this finite state machine.
+
+        INPUT:
+
+        - ``sink`` -- either an instance of :class:`FSMState` or a label
+          for the sink (default: ``None``). If ``None``, the least
+          available non-zero integer is used.
+
+        OUTPUT:
+
+        A :class:`FiniteStateMachine` of the same type as this finite
+        state machine.
+
+        The resulting finite state machine is a complete version of this
+        finite state machine.  A finite state machine is considered to
+        be complete if each transition has an input label of length one
+        and for each pair `(q, a)` where `q` is a state and `a` is an
+        element of the input alphabet, there is exactly one transition
+        from `q` with input label `a`.
+
+        If this finite state machine is already complete, a deep copy is
+        returned. Otherwise, a new non-final state (usually called a
+        sink) is created and transitions to this sink are introduced as
+        appropriate.
+
+        EXAMPLES::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                         (0, 1, 1, 1),
+            ....:                         (1, 1, 0, 0)])
+            sage: F.is_complete()
+            False
+            sage: G1 = F.completion()
+            sage: G1.is_complete()
+            True
+            sage: G1.transitions()
+            [Transition from 0 to 0: 0|0,
+             Transition from 0 to 1: 1|1,
+             Transition from 1 to 1: 0|0,
+             Transition from 1 to 2: 1|-,
+             Transition from 2 to 2: 0|-,
+             Transition from 2 to 2: 1|-]
+            sage: G2 = F.completion('Sink')
+            sage: G2.is_complete()
+            True
+            sage: G2.transitions()
+            [Transition from 0 to 0: 0|0,
+             Transition from 0 to 1: 1|1,
+             Transition from 1 to 1: 0|0,
+             Transition from 1 to 'Sink': 1|-,
+             Transition from 'Sink' to 'Sink': 0|-,
+             Transition from 'Sink' to 'Sink': 1|-]
+            sage: F.completion(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine already contains a state
+            '1'.
+
+        An input alphabet must be given::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                           (0, 1, 1, 1),
+            ....:                           (1, 1, 0, 0)],
+            ....:                          determine_alphabets=False)
+            sage: F.is_complete()
+            Traceback (most recent call last):
+            ...
+            ValueError: No input alphabet is given. Try calling
+            determine_alphabets().
+
+        Non-deterministic machines are not allowed. ::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0), (0, 1, 0, 0)])
+            sage: F.is_complete()
+            False
+            sage: F.completion()
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine must be deterministic.
+            sage: F = FiniteStateMachine([(0, 0, [0, 0], 0)])
+            sage: F.is_complete()
+            False
+            sage: F.completion()
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine must be deterministic.
+
+        .. SEEALSO::
+
+            :meth:`is_complete`, :meth:`split_transitions`,
+            :meth:`determine_alphabets`, :meth:`is_deterministic`
+
+        TESTS:
+
+        Test the use of an :class:`FSMState` as sink::
+
+            sage: F = FiniteStateMachine([(0, 0, 0, 0),
+            ....:                         (0, 1, 1, 1),
+            ....:                         (1, 1, 0, 0)])
+            sage: from sage.combinat.finite_state_machine import FSMState
+            sage: F.completion(FSMState(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine already contains a state
+            '1'.
+            sage: s = FSMState(2)
+            sage: G = F.completion(s)
+            sage: G.state(2) is s
+            True
+        """
+        result = deepcopy(self)
+        if result.is_complete():
+            return result
+        if not result.is_deterministic():
+            raise ValueError(
+                "The finite state machine must be deterministic.")
+
+        if sink is not None:
+            try:
+                s = result.state(sink)
+                raise ValueError("The finite state machine already "
+                                 "contains a state '%s'." % s.label())
+            except LookupError:
+                pass
+        else:
+            sink = 1 + max(itertools.chain(
+                    [-1],
+                    (s.label() for s in result.iter_states()
+                     if s.label() in ZZ)))
+
+        sink_state = result.add_state(sink)
+
+        for state in result.iter_states():
+            for transition in state.transitions:
+                if len(transition.word_in) != 1:
+                    raise ValueError(
+                        "Transitions with input labels of length greater "
+                        "than one are not allowed. Try calling "
+                        "split_transitions().")
+
+            existing = set(transition.word_in[0]
+                           for transition in state.transitions)
+            for missing in set(result.input_alphabet) - existing:
+                result.add_transition(state, sink_state, missing)
+
+        return result
 
 
     # *************************************************************************

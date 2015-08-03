@@ -10299,6 +10299,14 @@ class Automaton(FiniteStateMachine):
             [[0, 1]]
             sage: Ac = A.complement()
             sage: Ac.transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 0 to 3: 1|-,
+             Transition from 2 to 3: 0|-,
+             Transition from 2 to 3: 1|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 1 to 3: 0|-,
+             Transition from 3 to 3: 0|-,
+             Transition from 3 to 3: 1|-]
             sage: [w for w in
             ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
             ....:  if Ac(w)]
@@ -10307,6 +10315,11 @@ class Automaton(FiniteStateMachine):
         The automaton must be deterministic::
 
             sage: A = automata.word([0]) * automata.word([1])
+            sage: A.input_alphabet
+            [0]
+            sage: A.determine_alphabets()
+            sage: A.input_alphabet
+            [0, 1]
             sage: A.complement()
             Traceback (most recent call last):
             ...
@@ -10320,6 +10333,8 @@ class Automaton(FiniteStateMachine):
         result = self.completion()
         for state in result.iter_states():
             state.is_final = not state.is_final
+
+        return result
 
 
     def process(self, *args, **kwargs):

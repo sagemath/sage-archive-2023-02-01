@@ -4256,17 +4256,20 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         sage: random_cone(max_ambient_dim=0, max_rays=0)
         0-d cone in 0-d lattice N
 
-    We can predict the dimension when ``min_ambient_dim == max_ambient_dim``::
+    We can predict the ambient dimension when
+    ``min_ambient_dim == max_ambient_dim``::
 
         sage: set_random_seed()
-        sage: random_cone(min_ambient_dim=4, max_ambient_dim=4, min_rays=0, max_rays=0)
-        0-d cone in 4-d lattice N
+        sage: K = random_cone(min_ambient_dim=4, max_ambient_dim=4)
+        sage: K.lattice_dim()
+        4
 
     Likewise for the number of rays when ``min_rays == max_rays``::
 
         sage: set_random_seed()
-        sage: random_cone(min_ambient_dim=10, max_ambient_dim=10, min_rays=10, max_rays=10)
-        10-d cone in 10-d lattice N
+        sage: K = random_cone(min_rays=3, max_rays=3)
+        sage: K.nrays()
+        3
 
     If we specify a lattice, then the returned cone will live in it::
 

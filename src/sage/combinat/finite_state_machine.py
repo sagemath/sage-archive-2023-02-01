@@ -6802,7 +6802,7 @@ class FiniteStateMachine(SageObject):
                                   t.word_out)
         return result
 
-    def concatenation(self, other):
+    def concatenation(self, other, determine_alphabets=True):
         """
         Concatenate this finite state machine with another finite
         state machine.
@@ -6810,6 +6810,10 @@ class FiniteStateMachine(SageObject):
         INPUT:
 
         - ``other`` -- a :class:`FiniteStateMachine`
+
+        - ``determine_alphabets`` -- a boolean (default: ``True``). If
+          ``False``, then :meth:`.determine_alphabets` is not run
+          before returning the result.
 
         OUTPUT:
 
@@ -6853,6 +6857,11 @@ class FiniteStateMachine(SageObject):
             ....:     is_Automaton, is_Transducer)
             sage: is_Automaton(C)
             True
+            sage: C.input_alphabet
+            [0, 1]
+            sage: C1 = A.concatenation(B, determine_alphabets=False)
+            sage: C1.input_alphabet
+            [0]
 
         Concatenation of two transducers::
 
@@ -6876,7 +6885,6 @@ class FiniteStateMachine(SageObject):
              ([1, 1], [2, 0])]
             sage: is_Transducer(C)
             True
-
 
         Alternative notation as multiplication::
 
@@ -6960,6 +6968,9 @@ class FiniteStateMachine(SageObject):
                                       second_state,
                                       [],
                                       s.final_word_out)
+
+        if determine_alphabets:
+            result.determine_alphabets()
 
         return result
 

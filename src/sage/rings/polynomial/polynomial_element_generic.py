@@ -558,6 +558,13 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(QQ, sparse=True)
             sage: 2*x^2^500 > x^2^500
             True
+
+            sage: Rd = PolynomialRing(ZZ, 'x', sparse=False)
+            sage: Rs = PolynomialRing(ZZ, 'x', sparse=True)
+            sage: for _ in range(100):
+            ....:     pd = Rd.random_element()
+            ....:     qd = Rd.random_element()
+            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
         """
         d1 = self.__coeffs
         keys1 = d1.keys()

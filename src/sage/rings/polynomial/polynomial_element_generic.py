@@ -588,11 +588,9 @@ class Polynomial_generic_sparse(Polynomial):
         for k1, k2 in zip(keys1[1:], keys2[1:]):
             c = cmp(k1, k2)
             if c > 0:
-                c1 = cmp(d1[k1], zero)
-                if c1: return c1
+                return cmp(d1[k1], zero)
             elif c < 0:
-                c1 = cmp(zero, d2[k2])
-                if c1: return c1
+                return cmp(zero, d2[k2])
             c = cmp (d1[k1], d2[k2])
             if c: return c
 

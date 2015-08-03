@@ -158,7 +158,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        return [c[0] for c in sorted(self.__coeffs.iteritems())]
+        keys = self.__coeffs.keys()
+        keys.sort()
+        return keys
 
     def valuation(self):
         """

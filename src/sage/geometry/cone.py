@@ -1038,6 +1038,103 @@ class IntegralRayCollection(SageObject,
         return self._rays if not args else self._rays(*args)
 
 
+    def codim(self):
+        r"""
+        Compute the codimension of this collection of rays.
+
+        The codimension of a collection of rays is the difference between
+        the dimension of the ambient space and the dimension of the
+        subspace spanned by those rays.
+
+        OUTPUT:
+
+        A nonnegative integer representing the codimension of this
+        collection of rays.
+
+        .. SEEALSO::
+
+            :meth:`dim`, :meth:`lattice_dim`
+
+        EXAMPLES:
+
+        The codimension of the nonnegative orthant is zero, since the
+        span of its generators equals the entire ambient space::
+
+            sage: K = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: K.codim()
+            0
+
+        However, if we remove a ray so that the entire cone is contained
+        within the `x`-`y` plane, then the resulting cone will have
+        codimension one, because the `z`-axis is perpendicular to every
+        element of the cone::
+
+            sage: K = Cone([(1,0,0), (0,1,0)])
+            sage: K.codim()
+            1
+
+        If our cone is all of `\mathbb{R}^{2}`, then its codimension is
+        zero::
+
+            sage: K = Cone([(1,0), (-1,0), (0,1), (0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: K.codim()
+            0
+
+        And if the cone is trivial in any space, then its codimension is
+        equal to the dimension of the ambient space::
+
+            sage: K = Cone([], lattice=ToricLattice(0))
+            sage: K.lattice_dim()
+            0
+            sage: K.codim()
+            0
+
+            sage: K = Cone([(0,)])
+            sage: K.lattice_dim()
+            1
+            sage: K.codim()
+            1
+
+            sage: K = Cone([(0,0)])
+            sage: K.lattice_dim()
+            2
+            sage: K.codim()
+            2
+
+        TESTS:
+
+        The codimension of a cone should be an integer between zero and
+        the dimension of the ambient space, inclusive::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: c = K.codim()
+            sage: c in ZZ
+            True
+            sage: (0 <= c) and (c <= K.lattice_dim())
+            True
+
+        A solid cone should have codimension zero::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8, solid = True)
+            sage: K.codim()
+            0
+
+        The codimension of a cone is equal to the lineality of its dual::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.codim() == K.dual().lineality()
+            True
+
+        """
+        return (self.lattice_dim() - self.dim())
+
+
+
 def classify_cone_2d(ray0, ray1, check=True):
     """
     Return `(d,k)` classifying the lattice cone spanned by the two rays.

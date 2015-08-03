@@ -253,8 +253,8 @@ cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
 
-    If the set of parameters is not feasible, ``(None,None)`` is returned
-    instead.
+    If the set of parameters is not feasible, or if they correspond to a
+    conference graph, the function returns ``(None,None)``.
 
     INPUT:
 

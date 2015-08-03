@@ -4421,23 +4421,6 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         sage: K.lattice_dim()
         3
 
-    This should be possible when ``strictly_convex`` is set as well::
-
-        sage: set_random_seed()
-        sage: K = random_cone(max_ambient_dim=3, min_rays=5,
-        ....:                 strictly_convex=True)
-        sage: K.nrays() >= 5
-        True
-        sage: K.lattice_dim()
-        3
-
-        sage: K = random_cone(max_ambient_dim=3, min_rays=5,
-        ....:                 strictly_convex=False)
-        sage: K.nrays() >= 5
-        True
-        sage: K.lattice_dim()
-        3
-
     Ensure that we can generate cones which are not strictly convex::
 
         sage: set_random_seed()
@@ -4457,55 +4440,6 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         ....:       for i in range(0,10) ]
         sage: all(l)
         True
-
-    If we fix all of the parameters, we can still request
-    (non-)strictly-convex cones::
-
-        sage: set_random_seed()
-        sage: K = random_cone(min_ambient_dim=2, max_ambient_dim=2,
-        ....:                 min_rays=3, max_rays=3, strictly_convex=False)
-        sage: K.nrays()
-        3
-        sage: K.lattice_dim()
-        2
-        sage: K.is_strictly_convex()
-        False
-
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=3, max_rays=3, strictly_convex=True)
-        sage: K.nrays()
-        3
-        sage: K.lattice_dim()
-        3
-        sage: K.is_strictly_convex()
-        True
-
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=3, max_rays=3, strictly_convex=False)
-        sage: K.nrays()
-        3
-        sage: K.lattice_dim()
-        3
-        sage: K.is_strictly_convex()
-        False
-
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=4, max_rays=4, strictly_convex=True)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        3
-        sage: K.is_strictly_convex()
-        True
-
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=4, max_rays=4, strictly_convex=False)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        3
-        sage: K.is_strictly_convex()
-        False
 
     It is an error to request a non-strictly-convex trivial cone::
 
@@ -4614,91 +4548,6 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         ...
         ValueError: every cone is solid when min_rays > 2*(d - 1) where d
         is the dimension of the given lattice.
-
-    Check all four combinations of ``strictly_convex`` and ``solid``::
-
-        sage: set_random_seed()
-        sage: K = random_cone(strictly_convex=True, solid=True) # long time
-        sage: K.is_solid()                                      # long time
-        True
-        sage: K.is_strictly_convex()                            # long time
-        True
-
-        sage: K = random_cone(strictly_convex=False, solid=True) # long time
-        sage: K.is_solid()                                       # long time
-        True
-        sage: K.is_strictly_convex()                             # long time
-        False
-
-        sage: K = random_cone(strictly_convex=False, solid=False) # long time
-        sage: K.is_solid()                                        # long time
-        False
-        sage: K.is_strictly_convex()                              # long time
-        False
-
-        sage: K = random_cone(strictly_convex=True, solid=False) # long time
-        sage: K.is_solid()                                       # long time
-        False
-        sage: K.is_strictly_convex()                             # long time
-        True
-
-    If we fix all of the parameters, we can still request (non-)solid
-    cones::
-
-        sage: set_random_seed()
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=4, max_rays=4, solid=True)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        3
-        sage: K.is_solid()
-        True
-
-        sage: K = random_cone(min_ambient_dim=3, max_ambient_dim=3,
-        ....:                 min_rays=4, max_rays=4, solid=False)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        3
-        sage: K.is_solid()
-        False
-
-        sage: K = random_cone(min_ambient_dim=4, max_ambient_dim=4,
-        ....:                 min_rays=4, max_rays=4, solid=True)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        4
-        sage: K.is_solid()
-        True
-
-        sage: K = random_cone(min_ambient_dim=4, max_ambient_dim=4,
-        ....:                 min_rays=4, max_rays=4, solid=False)
-        sage: K.nrays()
-        4
-        sage: K.lattice_dim()
-        4
-        sage: K.is_solid()
-        False
-
-        sage: K = random_cone(min_ambient_dim=4, max_ambient_dim=4,
-        ....:                 min_rays=5, max_rays=5, solid=True)
-        sage: K.nrays()
-        5
-        sage: K.lattice_dim()
-        4
-        sage: K.is_solid()
-        True
-
-        sage: K = random_cone(min_ambient_dim=4, max_ambient_dim=4,
-        ....:                 min_rays=5, max_rays=5, solid=False)
-        sage: K.nrays()
-        5
-        sage: K.lattice_dim()
-        4
-        sage: K.is_solid()
-        False
 
     """
 

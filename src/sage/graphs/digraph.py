@@ -407,12 +407,6 @@ class DiGraph(GenericGraph):
         sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
         [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
 
-    Get rid of mutable default argument for `boundary` (:trac:`14794`)::
-
-        sage: D = DiGraph(boundary=None)
-        sage: D._boundary
-        []
-
     Demonstrate that digraphs using the static backend are equal to mutable
     graphs but can be used as dictionary keys::
 
@@ -886,7 +880,7 @@ class DiGraph(GenericGraph):
         self._weighted = weighted
 
         self._pos = pos
-        self._boundary = boundary if boundary is not None else []
+
         if format != 'DiGraph' or name is not None:
             self.name(name)
 
@@ -1082,7 +1076,6 @@ class DiGraph(GenericGraph):
         from sage.graphs.all import Graph
         G = Graph(name           = self.name(),
                   pos            = self._pos,
-                  boundary       = self._boundary,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
                   implementation = implementation,

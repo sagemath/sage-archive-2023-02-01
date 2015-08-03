@@ -1050,12 +1050,6 @@ class Graph(GenericGraph):
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
 
-        Get rid of mutable default argument for `boundary` (:trac:`14794`)::
-
-            sage: G = Graph(boundary=None)
-            sage: G._boundary
-            []
-
         Graphs returned when setting ``immutable=False`` are mutable::
 
             sage: g = graphs.PetersenGraph()
@@ -1536,7 +1530,7 @@ class Graph(GenericGraph):
         self._weighted = weighted
 
         self._pos = pos
-        self._boundary = boundary if boundary is not None else []
+
         if format != 'Graph' or name is not None:
             self.name(name)
 
@@ -4810,7 +4804,6 @@ class Graph(GenericGraph):
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self._pos,
-                    boundary       = self._boundary,
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
                     implementation = implementation,

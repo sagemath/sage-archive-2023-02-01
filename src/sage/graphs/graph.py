@@ -22,7 +22,7 @@ graphs.
     :meth:`~Graph.join` | Returns the join of self and other.
     :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
     :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
-    :meth:`~Graph.twograph`  | Returns the two-graph of self.
+    :meth:`~Graph.twograph`  | Returns :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` of self.
 
 
 **Distances:**
@@ -5047,11 +5047,11 @@ class Graph(GenericGraph):
             sage: T8.is_isomorphic(C)
             False
         """
-        from sage.combinat.designs.twographs import TwoGraph 
+        from sage.combinat.designs.twographs import TwoGraph
         from itertools import combinations
         from sage.misc.functional import is_odd
 
-        return TwoGraph(filter(lambda t: 
+        return TwoGraph(filter(lambda t:
                                   is_odd(sum([i in self.neighbors(j) for i,j in combinations(t, 2)])),
                                combinations(self.vertices(), 3)))
 

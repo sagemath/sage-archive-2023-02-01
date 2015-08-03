@@ -44,8 +44,8 @@ This module's methods are the following :
     :delim: |
 
     :meth:`~TwoGraph.is_regular` | returns True if the inc. system is regular twograph
-    :meth:`~TwoGraph.complement` | returns the complement of self 
-    :meth:`~TwoGraph.descendant` | returns the descendant graph at `w` 
+    :meth:`~TwoGraph.complement` | returns the complement of self
+    :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
 This module's functions are the following :
 
@@ -83,7 +83,7 @@ class TwoGraph(IncidenceStructure):
             sage: p.is_regular(alpha=True)
             (False, 0)
             sage: p.is_regular()
-            False 
+            False
         """
         if check:
            if not is_twograph(self):
@@ -106,11 +106,11 @@ class TwoGraph(IncidenceStructure):
             (9, 4, 1, 2)
         """
         from sage.graphs.graph import Graph
-        edges = map(lambda y: frozenset(filter(lambda z: z != v, y)), 
+        edges = map(lambda y: frozenset(filter(lambda z: z != v, y)),
                          filter(lambda x: v in x, self.blocks()))
         V = filter(lambda x: x != v, self.ground_set())
         return Graph([V, lambda i, j: frozenset((i,j)) in edges])
-      
+
     def complement(self):
         """
         the complement
@@ -131,7 +131,7 @@ Functions
 def is_twograph(T):
     """
     True if the incidence system is a two-graph
-    
+
     EXAMPLES::
 
         sage: p=graphs.PetersenGraph().twograph()

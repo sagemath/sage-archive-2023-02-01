@@ -574,6 +574,8 @@ class Polynomial_generic_sparse(Polynomial):
         keys2 = d2.keys()
         keys2.sort(reverse=True)
 
+        zero = self.base_ring().zero()
+
         if not keys1 and not keys2: return 0
         if not keys1: return -1
         if not keys2: return 1
@@ -586,10 +588,10 @@ class Polynomial_generic_sparse(Polynomial):
         for k1, k2 in zip(keys1[1:], keys2[1:]):
             c = cmp(k1, k2)
             if c > 0:
-                c1 = cmp(d1[k1], 0)
+                c1 = cmp(d1[k1], zero)
                 if c1: return c1
             elif c < 0:
-                c1 = cmp(0, d2[k2])
+                c1 = cmp(zero, d2[k2])
                 if c1: return c1
             c = cmp (d1[k1], d2[k2])
             if c: return c
@@ -597,8 +599,8 @@ class Polynomial_generic_sparse(Polynomial):
         n1 = len(keys1)
         n2 = len(keys2)
         c = cmp(n1, n2)
-        if c > 0: return cmp(d1[keys1[n2]], 0)
-        elif c < 0: return cmp(0, d2[keys2[n1]])
+        if c > 0: return cmp(d1[keys1[n2]], zero)
+        elif c < 0: return cmp(zero, d2[keys2[n1]])
         return 0
 
     def shift(self, n):

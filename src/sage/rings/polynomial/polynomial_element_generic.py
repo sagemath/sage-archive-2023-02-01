@@ -568,13 +568,11 @@ class Polynomial_generic_sparse(Polynomial):
         """
         d1 = self.__coeffs
         keys1 = d1.keys()
-        keys1.sort()
-        keys1.reverse()
+        keys1.sort(reverse=True)
 
         d2 = other.__coeffs
         keys2 = d2.keys()
-        keys2.sort()
-        keys2.reverse()
+        keys2.sort(reverse=True)
 
         if not keys1 and not keys2: return 0
         if not keys1: return -1

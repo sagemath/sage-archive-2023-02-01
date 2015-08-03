@@ -15,3 +15,5 @@ from covering_design import (CoveringDesign,
                              trivial_covering_design)
 
 import design_catalog as designs
+
+from twographs import *

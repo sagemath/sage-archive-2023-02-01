@@ -20,6 +20,9 @@ graphs.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
     :meth:`~Graph.join` | Returns the join of self and other.
+    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
+    :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
+    :meth:`~Graph.twograph`  | Returns the two-graph of self.
 
 
 **Distances:**
@@ -622,6 +625,8 @@ class Graph(GenericGraph):
 
       #.  A Sage adjacency matrix or incidence matrix
 
+      #.  A Sage Seidel adjacency matrix
+
       #.  A pygraphviz graph
 
       #.  A NetworkX graph
@@ -647,8 +652,8 @@ class Graph(GenericGraph):
     -  ``weighted`` - whether graph thinks of itself as
        weighted or not. See ``self.weighted()``
 
-    -  ``format`` - if None, Graph tries to guess- can be
-       several values, including:
+    -  ``format`` - if None, Graph tries to guess; can take
+       a number of values, namely:
 
        -  ``'int'`` - an integer specifying the number of vertices in an
           edge-free graph with vertices labelled from 0 to n-1
@@ -667,6 +672,10 @@ class Graph(GenericGraph):
        -  ``'weighted_adjacency_matrix'`` - a square Sage
           matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
           Given this format, weighted is ignored (assumed True).
+
+       -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
+          with 0s on the  diagonal, and the other entries -1 or 1, 
+          M[i,j]=-1 indicating that (i,j) is an edge, otherwise M[i,j]=1.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
           column C for each edge, where if C represents {i, j}, C[i] is -1
@@ -1344,6 +1353,40 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
+        elif format == 'seidel_adjacency_matrix':
+            assert is_Matrix(data)
+            if data.base_ring() != ZZ:
+                try:
+                    data = data.change_ring(ZZ)
+                except TypeError:
+                    raise ValueError("Graph's Seidel adjacency matrix must"+
+                                     " have only 0,1,-1 integer entries")
+
+            if data.is_sparse():
+                entries = set(data[i,j] for i,j in data.nonzero_positions())
+            else:
+                entries = set(data.list())
+
+            if any(e <  -1 or e > 1 for e in entries):
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " have only 0,1,-1 integer entries")
+            if any(i==j for i,j in data.nonzero_positions()):
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " have 0s on the main diagonal")
+            if not data.is_symmetric():
+                raise ValueError("Graph's Seidel adjacency matrix must"+
+                                 " be symmetric")
+            multiedges = False
+            weighted = False
+            loops = False
+            self.allow_loops(False)
+            self.allow_multiple_edges(False)
+            self.add_vertices(range(data.nrows()))
+            e = []
+            for i,j in data.nonzero_positions():
+               if i <= j and data[i,j] < 0:
+                        e.append((i,j))
+            self.add_edges(e)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
             if multiedges is None: multiedges = data.allows_multiple_edges()
@@ -4910,6 +4953,95 @@ class Graph(GenericGraph):
         G.name('%s join %s'%(self.name(), other.name()))
         return G
 
+
+    def seidel_adjacency_matrix(self, vertices=None):
+        """
+        Returns the Seidel adjacency matrix of self.
+
+        Returns the Seidel adjacency matrix of the graph. 
+        For `A` the (ordinary) adjacency matrix of ``self``, 
+        i.e. :meth:`GenericGraph.adjacency_matrix`, 
+        `I` the identity matrix, and `J` the all-1 matrix 
+        is given by `J-I-2A`. It is closely related to twographs, 
+        see :meth:`twograph`.
+
+        The matrix returned is over the integers. If a different ring is
+        desired, use either the change_ring function or the matrix
+        function.
+
+        INPUT:
+
+        - ``vertices`` (list) -- the ordering of the vertices defining how they
+          should appear in the matrix. By default, the ordering given by
+          :meth:`GenericGraph.vertices` is used.
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: G.seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+        """
+        
+        return -self.adjacency_matrix(sparse=False, vertices=vertices)+ \
+                  self.complement().adjacency_matrix(sparse=False, \
+                                            vertices=vertices)
+
+    def seidel_switching(self, s):
+        """
+        Returns the Seidel switching of self w.r.t. subset of vertices ``s``.
+
+        Returns the graph obtained by Seidel switching of self
+        with respect to the subset of vertices ``s``. This is the graph
+        given by Seidel adjacency matrix DSD, for S the Seidel
+        adjacency matrix of self, and D the diagonal matrix with -1s
+        at positions corresponding to ``s``, and 1s elsewhere.
+
+        INPUT:
+
+         - ``s`` -- a list of vertices 
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(5)
+            sage: G = G.disjoint_union(graphs.CompleteGraph(1))
+            sage: H = G.seidel_switching([(0,1),(1,0),(0,0)])
+            sage: H.seidel_adjacency_matrix().minpoly()
+            x^2 - 5
+            sage: H.is_connected()
+            True
+        """
+        idx = frozenset([self.vertices().index(v) for v in s])
+        S = self.seidel_adjacency_matrix()
+        for i in xrange(S.nrows()):
+            for j in xrange(i):
+                if (i in idx and (not j in idx)) or \
+                   (j in idx and (not i in idx)):
+                    S[i,j] = - S[i,j]
+                    S[j,i] = - S[j,i]
+        from sage.graphs.graph import Graph
+        H = Graph(S, format="seidel_adjacency_matrix")
+        H.relabel(self.vertices())
+        return H
+
+
+    def twograph(self):
+        """
+        Returns the two-graph of self
+
+        Returns the two-graph with the triples
+        `T=\{t \in \binom {V}{3} : | \binom {t}{2} \cap E | odd \}`
+        where `V` and `E` are vertices and edges of self, respectively.
+
+        """
+        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from itertools import combinations
+        from sage.misc.functional import is_odd
+
+        T = [t for t in combinations(self.vertices(), 3) \
+             if is_odd([i in self.neighbors(j) for i,j in combinations(t, 2)].count(True))]
+        return IncidenceStructure(T)
+
     ### Visualization
 
     def write_to_eps(self, filename, **options):
@@ -4927,9 +5059,9 @@ class Graph(GenericGraph):
             sage: P.write_to_eps(tmp_filename(ext='.eps'))
 
         It is relatively simple to include this file in a LaTeX
-        document.  ``\usepackagegraphics`` must appear in the
-        preamble, and ``\includegraphics{filename.eps}`` will include
-        the file. To compile the document to ``pdf`` with ``pdflatex``
+        document.  ``\usepackage{graphics}`` must appear in the
+        preamble, and ``\includegraphics{filename}`` will include
+        the file. To compile the document to ``pdf`` with ``pdflatex`` or ``xelatex``
         the file needs first to be converted to ``pdf``, for example
         with ``ps2pdf filename.eps filename.pdf``.
         """

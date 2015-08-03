@@ -602,7 +602,7 @@ def _check_database():
         In Andries Brouwer's database:
         - 448 impossible entries
         - 2950 undecided entries
-        - 1140 realizable entries (Sage misses 342 of them)
+        - 1140 realizable entries (Sage misses 338 of them)
 
     """
     global _brouwer_database

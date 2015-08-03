@@ -452,6 +452,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             return self
         return self._cartan_type
 
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: C = CartanMatrix(['F',4])
+            sage: C.subtype([1,2,3])
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -2  2]
+        """
+        ind = self.index_set()
+        I = [ind.index(i) for i in index_set]
+        return CartanMatrix(self.matrix_from_rows_and_columns(I, I))
+
     def rank(self):
         r"""
         Return the rank of ``self``.

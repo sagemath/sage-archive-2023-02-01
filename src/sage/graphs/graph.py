@@ -972,26 +972,21 @@ class Graph(GenericGraph):
            sage: Graph(g)                        # optional - python_igraph
            Graph on 3 vertices
 
-       If the igraph Graph has a vertex attribute ``'name'``, this attribute is
-       used as vertex name::
+       If ``vertex_labels`` is ``True``, the names of the vertices are given by
+       the vertex attribute ``'name'``, if available::
 
-           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']}) # optional - python_igraph
-           sage: Graph(g).vertices()                                                  # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
            ['a', 'b', 'c']
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           [0, 1, 2]
 
-       If the igraph Graph has edge attributes, they are used for edge labels::
+       If the igraph Graph has edge attributes, they are used as edge labels::
 
-           sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'weight':[1,3]}) # optional - python_igraph
-           sage: Graph(g).edges()                                             # optional - python_igraph
-           [(0, 1, {'weight': 1}), (0, 2, {'weight': 3})]
-
-       However, if there is only one attribute named ``'label'``, that attribute
-       is used as the label (so that, if we make a back and forth conversion,
-       labels do not change)::
-
-           sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'label':[1,3]}) # optional - python_igraph
-           sage: Graph(g).edges()                                            # optional - python_igraph
-           [(0, 1, 1), (0, 2, 3)]
+           sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
+           sage: Graph(g).edges()                                                               # optional - python_igraph
+           [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
     By default, graphs are mutable and can thus not be used as a dictionary
     key::
@@ -1439,21 +1434,11 @@ class Graph(GenericGraph):
                 raise ValueError("An *undirected* igraph graph was expected. "+
                                  "To build an directed graph, call the DiGraph "+
                                  "constructor.")
-            try:
-                self.name(data['name'])
-            except KeyError:
-                pass
 
             self.add_vertices(range(data.vcount()))
+            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
 
-            if len(data.edge_attributes()) == 1 and data.edge_attributes()[0] == 'label':
-                self.add_edges([(e.source, e.target, e['label']) for e in data.es()])
-            elif len(data.edge_attributes()) > 0:
-                self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
-            else:
-                self.add_edges(data.get_edgelist())
-
-            if 'name' in data.vertex_attributes():
+            if vertex_labels and 'name' in data.vertex_attributes():
                 vs = data.vs()
                 self.relabel({v:vs[v]['name'] for v in self})
 

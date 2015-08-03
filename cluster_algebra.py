@@ -34,6 +34,16 @@ def make_hashable(func):
  
 class ClusterAlgebraElement(ElementWrapper):
 
+    # this is to store extra information like g-vector: what I am thinking is to
+    # store the g_vector whenever possible and pass it along when doing sums of
+    # elements with the same degree or multiplications of any two elements.
+    # This can potentially slow things down and make life harder. We need to
+    # redefine _add_ _mul_ and _lmul_ _rmul_ accordingly if we decide that there
+    # is no other way to compute g-vectors
+    def __init__(self, parent, value, g_vector=None):
+        ElementWrapper.__init__(self, parent=parent, value=value)
+        self._g_vector = g_vector
+
     # This function needs to be removed once AdditiveMagmas.Subobjects
     # implements _add_
     def _add_(self, other):

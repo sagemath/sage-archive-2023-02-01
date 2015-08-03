@@ -36,6 +36,17 @@ AUTHORS:
 Index
 -----
 
+This module's methods are the following :
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~TwoGraph.is_regular` | returns True if the inc. system is regular twograph
+    :meth:`~TwoGraph.complement` | returns the complement of self 
+    :meth:`~TwoGraph.descendant` | returns the descendant graph at `w` 
+
 This module's functions are the following :
 
 .. csv-table::
@@ -43,53 +54,95 @@ This module's functions are the following :
     :widths: 30, 70
     :delim: |
 
-    :func:`~is_regular_twograph` | returns True if the inc. system is regular twograph
-    :func:`~is_twograph`         | returns True if the inc.system is a two-graph
-    :func:`~twograph_complement` | returns the complement of self 
-    :func:`~twograph_descendant` | returns the descendant graph at `w` 
+    :func:`~is_twograph`         | returns True if the incidence system is a two-graph
 
-Functions
+Methods
 ---------
-
 """
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
 from sage.misc.functional import is_odd, is_even
 
-def is_regular_twograph(T, alpha=False, check=False):
+class TwoGraph(IncidenceStructure):
     """
-    returns True if the inc. system is regular twograph
-    """
-    if check:
-       if not is_twograph(T):
-           if alpha:
-               return False, 0
-           return False
-    r, (_,_,_,alpha) = T.is_t_design(t=2, return_parameters=True)
-    if alpha:
-        return r, alpha
-    return r
+    two-graphs class
 
+    """
+    def is_regular(self, alpha=False, check=False):
+        """
+        returns True if self is a regular twograph
+
+        EXAMPLES::
+
+            sage: p=graphs.PetersenGraph().twograph()
+            sage: p.is_regular(alpha=True)
+            (True, 4)
+            sage: p.is_regular()
+            True
+            sage: p=graphs.PathGraph(5).twograph()
+            sage: p.is_regular(alpha=True)
+            (False, 0)
+            sage: p.is_regular()
+            False 
+        """
+        if check:
+           if not is_twograph(self):
+               if alpha:
+                   return False, 0
+               return False
+        r, (_,_,_,a) = self.is_t_design(t=2, k=3, return_parameters=True)
+        if alpha:
+            return r, a
+        return r
+
+    def descendant(self, v):
+        """
+        the descendant graph at `v`
+
+        EXAMPLES::
+
+            sage: p=graphs.PetersenGraph().twograph().descendant(0)
+            sage: p.is_strongly_regular(parameters=True)
+            (9, 4, 1, 2)
+        """
+        from sage.graphs.graph import Graph
+        edges = map(lambda y: frozenset(filter(lambda z: z != v, y)), 
+                         filter(lambda x: v in x, self.blocks()))
+        V = filter(lambda x: x != v, self.ground_set())
+        return Graph([V, lambda i, j: frozenset((i,j)) in edges])
+      
+    def complement(self):
+        """
+        the complement
+
+        EXAMPLES::
+
+            sage: p=graphs.CompleteGraph(8).line_graph().twograph()
+            sage: p.complement()
+            Incidence structure with 28 points and 1260 blocks
+        """
+        return TwoGraph(filter(lambda x: not list(x) in self.blocks(), 
+                                combinations(self.ground_set(), 3)))
+
+"""
+Functions
+---------
+"""
 def is_twograph(T):
     """
-    True if the inc.system is a two-graph
-    """
-    return all(map(lambda f: is_even(sum(map(lambda x: x in T.blocks(),  combinations(f, 3)))),
-                    combinations(T.ground_set(), 4)))
+    True if the incidence system is a two-graph
+    
+    EXAMPLES::
 
-def twograph_descendant(T,v):
+        sage: p=graphs.PetersenGraph().twograph()
+        sage: is_twograph(p)
+        True
+        sage: is_twograph(designs.projective_plane(3))
+        False
+        sage: is_twograph(designs.projective_plane(2))
+        False
     """
-    the descendant graph at `v`
-    """
-    from sage.graphs.graph import Graph
-    edges = map(lambda y: frozenset(filter(lambda z: z != v, y)), filter(lambda x: v in x, T1.blocks()))
-    V = T.ground_set()
-    V.remove(v)
-    return Graph([V, lambda i, j: frozenset((i,j)) in edges])
-  
-def twograph_complement(T):
-    """
-    the complement
-    """
-    Tc = filter(lambda x: not list(x) in T.blocks(), combinations(T.ground_set(), 3))
-    return IncidenceStructure(T.ground_set(), Tc)
+    B = map(frozenset, T.blocks())
+    return T.is_t_design(k=3) and \
+        all(map(lambda f: is_even(sum(map(lambda x: frozenset(x) in B,  combinations(f, 3)))),
+                    combinations(T.ground_set(), 4)))

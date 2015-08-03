@@ -5033,14 +5033,27 @@ class Graph(GenericGraph):
         `T=\{t \in \binom {V}{3} : | \binom {t}{2} \cap E | odd \}`
         where `V` and `E` are vertices and edges of self, respectively.
 
+
+        EXAMPLES::
+
+            sage: p=graphs.PetersenGraph()
+            sage: p.twograph()
+            Incidence structure with 10 points and 60 blocks
+            sage: p=graphs.chang_graphs()
+            sage: T8 = graphs.CompleteGraph(8).line_graph()
+            sage: C = T8.seidel_switching([(0,1,None),(2,3,None),(4,5,None),(6,7,None)])
+            sage: T8.twograph()==C.twograph()
+            True
+            sage: T8.is_isomorphic(C)
+            False
         """
-        from sage.combinat.designs.incidence_structures import IncidenceStructure
+        from sage.combinat.designs.twographs import TwoGraph 
         from itertools import combinations
         from sage.misc.functional import is_odd
 
-        T = [t for t in combinations(self.vertices(), 3) \
-             if is_odd([i in self.neighbors(j) for i,j in combinations(t, 2)].count(True))]
-        return IncidenceStructure(T)
+        return TwoGraph(filter(lambda t: 
+                                  is_odd(sum([i in self.neighbors(j) for i,j in combinations(t, 2)])),
+                               combinations(self.vertices(), 3)))
 
     ### Visualization
 

@@ -780,11 +780,11 @@ class Polynomial_generic_sparse(Polynomial):
         if not isinstance(degree, int) and not isinstance(degree, Integer):
             raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
         d = {}
-        for k in self.__coeffs.keys():
+        for k,v in self.__coeffs.iteritems():
             deg = degree - k
             if deg >= 0:
-                d[deg] = self.__coeffs[k]
-        return self.parent()(d)
+                d[deg] = v
+        return self.parent()(d, check=False)
 
     def truncate(self, n):
         """

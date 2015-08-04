@@ -680,6 +680,8 @@ def find_sage_dangling_links(app, env, node, contnode):
         except AttributeError:
             debug_inf(app, "-- %s not found in sage.all or this module"%(basename))
             return None
+        except KeyError:
+            target_module = None
     if target_module is None:
         target_module = ""
         debug_inf(app, "?? found in None !!!")

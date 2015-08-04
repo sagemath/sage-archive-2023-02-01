@@ -260,15 +260,18 @@ class Polynomial_generic_sparse(Polynomial):
             sage: (x*t+1).integral(x)
             1/2*x^2*t + x
         """
-        P = self.parent()
-        F = (self.constant_coefficient()/1).parent()
-        Q = P.change_ring(F)
+        base = self.base_ring()
+        if base.is_field():
+            Q = self.parent()
+        else:
+            F = self.base_ring().fraction_field() 
+            Q = self.parent().change_ring(F)
+
 
         if var is not None and var != self.parent().gen():
-            return Q({k:self.__coeffs[k].integral(var) for k in self.__coeffs.keys()})
+            return Q({k:v.integral(var) for k,v in self.__coeffs.iteritems()}, check=False)
 
-        d = { k+1:self.__coeffs[k]/(k+1) for k in self.__coeffs.keys()}
-        return Q(d)
+        return Q({ k+1:v/(k+1) for k,v in self.__coeffs.iteritems()}, check=False)
 
     def _dict_unsafe(self):
         """

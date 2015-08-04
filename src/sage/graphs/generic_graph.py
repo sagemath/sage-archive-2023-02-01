@@ -4220,7 +4220,7 @@ class GenericGraph(GenericGraph_pyx):
                         return False
         return True
 
-    def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
+    def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=None, ordered=True):
         r"""
         Returns the minimal genus of the graph.
 
@@ -4267,8 +4267,8 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``circular (list)`` - if ``circular`` is a list of vertices, the
            method computes the genus preserving a planar embedding of the this
-           list. (Default is False). If circular is defined ``on_embedding`` is
-           not a valid option.
+           list. If circular is defined, ``on_embedding`` is not a valid
+           option. It is set to ``None`` by default.
 
         -  ``ordered (boolean)`` - if circular is True, then
            whether or not the boundary order may be permuted. (Default is

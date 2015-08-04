@@ -1,7 +1,9 @@
 r"""
 Differentiable manifolds
 
-Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
+Given a topological field `K` with sufficient structure to define
+differentiability, e.g. a complete metric field
+(in most applications, `K = \RR` or `K = \CC`;
 see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
@@ -13,8 +15,8 @@ Note that
 - If the mention of `K` is omitted, then `K=\RR` is assumed
 - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
   `C^\infty`-manifold (even an analytic manifold)
-- If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible `C^\infty`
-  structure (Whitney's smoothing theorem)
+- If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
+  `C^\infty`-structure (Whitney's smoothing theorem)
 
 Differentiable manifolds are implemented via the class :class:`DiffManifold`.
 Open subsets of differentiable manifolds are also implemented via
@@ -89,8 +91,9 @@ and ``stereoS`` = `(V, (u, v))`, denoting by W the intersection of U and V
 (W is the subset of U defined by `x^2+y^2\not=0`, as well as the subset of V
 defined by`u^2+v^2\not=0`)::
 
-    sage: stereoN_to_S = stereoN.transition_map(stereoS, [x/(x^2+y^2), y/(x^2+y^2)],
-    ....:                intersection_name='W', restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+    sage: stereoN_to_S = stereoN.transition_map(stereoS,
+    ....:                [x/(x^2+y^2), y/(x^2+y^2)], intersection_name='W',
+    ....:                restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
     sage: stereoN_to_S
     Change of coordinates from Chart (W, (x, y)) to Chart (W, (u, v))
     sage: stereoN_to_S.display()
@@ -162,12 +165,33 @@ Similarly::
     sage: stereoN(S)
     (0, 0)
 
+A differentiable scalar field on the sphere::
+
+    sage: f = M.scalar_field({stereoN: atan(x^2+y^2), stereoS: pi/2-atan(u^2+v^2)},
+    ....:                    name='f')
+    sage: f
+    Scalar field f on the 2-dimensional differentiable manifold S^2
+    sage: f.display()
+    f: S^2 --> R
+    on U: (x, y) |--> arctan(x^2 + y^2)
+    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    sage: f(p)
+    arctan(5)
+    sage: f(N)
+    1/2*pi
+    sage: f(S)
+    0
+    sage: f.parent()
+    Algebra of differentiable scalar fields on the 2-dimensional differentiable
+     manifold S^2
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
   dimension 1 over `\CC`
 
-We declare the Riemann sphere `\CC^*` as a 1-dimensional differentiable manifold
-over `\CC`::
+We declare the Riemann sphere `\CC^*` as a 1-dimensional differentiable
+manifold over `\CC`::
 
     sage: M = DiffManifold(1, 'C*', field='complex'); M
     1-dimensional complex manifold C*
@@ -294,12 +318,14 @@ class DiffManifold(TopManifold):
     r"""
     Differentiable manifold over a topological field `K`.
 
-    Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
-    see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
-    a *differentiable manifold over* `K` is a topological manifold `M` over `K`
-    equipped with an atlas whose transitions maps are of class `C^k` (i.e.
-    `k`-times  continuously differentiable) for a fixed positive integer `k`
-    (possibly `k=\infty`). `M` is then called a `C^k`-*manifold over* `K`.
+    Given a topological field `K` with sufficient structure to define
+    differentiability, e.g. a complete metric field (in most applications,
+    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
+    other fields), a *differentiable manifold over* `K` is a topological
+    manifold `M` over `K` equipped with an atlas whose transitions maps are of
+    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
+    positive integer `k` (possibly `k=\infty`). `M` is then called a
+    `C^k`-*manifold over* `K`.
 
     Note that
 
@@ -307,7 +333,7 @@ class DiffManifold(TopManifold):
     - If `K=\CC`, any `C^k`-manifold with `k\geq 1` is actually a
       `C^\infty`-manifold (even an analytic manifold)
     - If `K=\RR`, any `C^k`-manifold with `k\geq 1` admits a compatible
-      `C^\infty` structure (Whitney's smoothing theorem)
+      `C^\infty`-structure (Whitney's smoothing theorem)
 
     INPUT:
 
@@ -323,7 +349,8 @@ class DiffManifold(TopManifold):
         - an object in the category of fields (see
           :class:`~sage.categories.fields.Fields`) for other types of manifolds
 
-    - ``diff_degree`` -- (default: ``infinity``) degree `k` of differentiability
+    - ``diff_degree`` -- (default: ``infinity``) degree `k` of
+      differentiability
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
@@ -415,8 +442,8 @@ class DiffManifold(TopManifold):
         sage: M is DiffManifold(4, 'M', latex_name='M', start_index=1)
         False
 
-    Since an open subset of a differentiable manifold `M` is itself a differentiable
-    manifold, open subsets of `M` are instances of the class
+    Since an open subset of a differentiable manifold `M` is itself a
+    differentiable manifold, open subsets of `M` are instances of the class
     :class:`DiffManifold`::
 
         sage: U = M.open_subset('U'); U
@@ -460,7 +487,8 @@ class DiffManifold(TopManifold):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M', latex_name=r'\mathbb{M}', start_index=1)
+            sage: M = DiffManifold(3, 'M', latex_name=r'\mathbb{M}',
+            ....:                  start_index=1)
             sage: M
             3-dimensional differentiable manifold M
             sage: latex(M)
@@ -571,8 +599,8 @@ class DiffManifold(TopManifold):
           subset; if none is provided, it is set to ``name``
         - ``coord_def`` -- (default: {}) definition of the subset in
           terms of coordinates; ``coord_def`` must a be dictionary with keys
-          charts on ``self`` and values the symbolic expressions formed by the
-          coordinates to define the subset.
+          charts in the manifold's atlas and values the symbolic expressions
+          formed by the coordinates to define the subset.
 
         OUTPUT:
 
@@ -582,14 +610,14 @@ class DiffManifold(TopManifold):
 
         Creating an open subset of a manifold::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: DiffManifold._clear_cache_()  # for doctests only
             sage: M = DiffManifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional differentiable manifold M
 
-        As an open subset of a differentiable manifold, A is itself a differentiable
-        manifold, on the same topological field and of the same dimension a
-        M::
+        As an open subset of a differentiable manifold, A is itself a
+        differentiable manifold, on the same topological field and of the same
+        dimension as M::
 
             sage: isinstance(A, DiffManifold)
             True
@@ -649,7 +677,7 @@ class DiffManifold(TopManifold):
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
                 raise ValueError("the " + str(chart) + "does not belong to " +
-                    "the atlas of " + str(self))
+                                 "the atlas of " + str(self))
             chart.restrict(resu, restrictions)
         #!# update tensor spaces
         return resu
@@ -699,7 +727,8 @@ class DiffManifold(TopManifold):
           treatment of the backslash character (see examples below).
           If no interval range and no LaTeX spelling is to be provided for any
           coordinate, the argument ``coordinates`` can be omitted when the
-          shortcut operator ``<,>`` is used via Sage preparser (see examples below)
+          shortcut operator ``<,>`` is used via Sage preparser (see examples
+          below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
           the coordinate symbols (this is guaranted if the shortcut operator
@@ -788,13 +817,14 @@ class DiffManifold(TopManifold):
 
         - instance of
           :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`
-          representing the algebra `C^k(U)` of all scalar fields defined
-          on `U` = ``self``, `k` being the degree of differentiability of the
-          manifold.
+          representing the algebra `C^k(M)` of all scalar fields defined
+          on `M` (the current manifold), `k` being the degree of
+          differentiability of the manifold.
 
         EXAMPLE:
 
-        Scalar algebra of a 3-dimensional open subset::
+        Scalar algebra of a 3-dimensional open subset of a differentiable
+        manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M')
@@ -820,14 +850,14 @@ class DiffManifold(TopManifold):
 
         INPUT:
 
-        - ``other`` -- an open subset of some differentiable manifold over the
-          same field as ``self``
+        - ``other`` -- a differentiable manifold over the same field as
+          ``self``
         - ``category`` -- (default: ``None``) not used here (to ensure
           compatibility with generic hook ``_Hom_``)
 
         OUTPUT:
 
-        - the homset Hom(U,V), where U is ``self`` and V is ``other``
+        - the homset Hom(M,N), where M is ``self`` and N is ``other``
 
         See class
         :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset`
@@ -844,22 +874,23 @@ class DiffManifold(TopManifold):
             True
 
         """
-        from sage.manifolds.differentiable.manifold_homset import DiffManifoldHomset
+        from sage.manifolds.differentiable.manifold_homset import \
+                                                             DiffManifoldHomset
         return DiffManifoldHomset(self, other)
 
     def diff_map(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
         Define a differentiable map between the current differentiable manifold
-        and another differentiable manifold over the same topological field.
+        and a differentiable manifold over the same topological field.
 
         See :class:`~sage.manifolds.differentiable.diff_map.DiffMap` for a
         complete documentation.
 
         INPUT:
 
-        - ``codomain`` -- the map codomain (the arrival manifold or some
-          subset of it)
+        - ``codomain`` -- the map codomain (a differentiable manifold over the
+          same topological field as the current differentiable manifold)
         - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
           either
 
@@ -867,8 +898,8 @@ class DiffManifold(TopManifold):
             the coordinate expressions (as lists (or tuples) of the
             coordinates of the image expressed in terms of the coordinates of
             the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            ``codomain``)
+            as keys (chart1 being a chart on the current manifold and chart2 a
+            chart on ``codomain``)
           - (ii) a single coordinate expression in a given pair of charts, the
             latter being provided by the arguments ``chart1`` and ``chart2``
 
@@ -916,8 +947,8 @@ class DiffManifold(TopManifold):
         keys (case (i) above)::
 
             sage: Phi1 = U.diff_map(N,
-            ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph), cos(th))},
-            ....:        name='Phi', latex_name=r'\Phi')
+            ....:        {(c_spher, c_cart): (sin(th)*cos(ph), sin(th)*sin(ph),
+            ....:         cos(th))}, name='Phi', latex_name=r'\Phi')
             sage: Phi1 == Phi
             True
 
@@ -974,8 +1005,8 @@ class DiffManifold(TopManifold):
             the coordinate expressions (as lists (or tuples) of the
             coordinates of the image expressed in terms of the coordinates of
             the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on ``self`` and chart2 a chart on
-            ``codomain``)
+            as keys (chart1 being a chart on the current manifold and chart2
+            a chart on ``codomain``)
           - (ii) a single coordinate expression in a given pair of charts, the
             latter being provided by the arguments ``chart1`` and ``chart2``
 

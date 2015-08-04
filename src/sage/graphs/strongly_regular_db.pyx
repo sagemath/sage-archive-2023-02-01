@@ -1012,15 +1012,14 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     A realizable set of parameters that Sage cannot realize (help us!)::
 
-        sage: graphs.strongly_regular_graph(279,128,52,64,existence=True)
+        sage: graphs.strongly_regular_graph(126,50,13,24,existence=True)
         True
-        sage: graphs.strongly_regular_graph(279,128,52,64)
+        sage: graphs.strongly_regular_graph(126,50,13)
         Traceback (most recent call last):
         ...
-        RuntimeError: Andries Brouwer's database claims that such a
-        (279,128,52,64)-strongly regular graph exists, but Sage does not know
-        how to build it. If *you* do, please get in touch with us on sage-devel!
-        Comments: pg(8,15,4)?; 2-graph*
+        RuntimeError: Andries Brouwer's database claims that such a (126,50,13,24)-strongly
+        regular graph exists, but Sage does not know how to build it.
+        ...
 
     A large unknown set of parameters (not in Andries Brouwer's database)::
 

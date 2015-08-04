@@ -4989,9 +4989,9 @@ class Graph(GenericGraph):
 
     def seidel_switching(self, s):
         """
-        Returns the Seidel switching of self w.r.t. subset of vertices ``s``.
+        Returns the Seidel switching of ``self`` w.r.t. subset of vertices ``s``.
 
-        Returns the graph obtained by Seidel switching of self
+        Returns the graph obtained by Seidel switching of ``self``
         with respect to the subset of vertices ``s``. This is the graph
         given by Seidel adjacency matrix DSD, for S the Seidel
         adjacency matrix of self, and D the diagonal matrix with -1s
@@ -4999,7 +4999,11 @@ class Graph(GenericGraph):
 
         INPUT:
 
-         - ``s`` -- a list of vertices 
+         - ``s`` -- a list of vertices of ``self``
+
+        OUTPUT:
+
+         - :class:`~Graph` which is the switching of ``self`` w.r.t. ``s``
 
         EXAMPLES::
 
@@ -5011,19 +5015,12 @@ class Graph(GenericGraph):
             sage: H.is_connected()
             True
         """
-        idx = frozenset([self.vertices().index(v) for v in s])
-        S = self.seidel_adjacency_matrix()
-        for i in xrange(S.nrows()):
-            for j in xrange(i):
-                if (i in idx and (not j in idx)) or \
-                   (j in idx and (not i in idx)):
-                    S[i,j] = - S[i,j]
-                    S[j,i] = - S[j,i]
-        from sage.graphs.graph import Graph
-        H = Graph(S, format="seidel_adjacency_matrix")
-        H.relabel(self.vertices())
+        from itertools import product
+        from copy import deepcopy
+        H = deepcopy(self)
+        H.add_edges(product(s, set(self).difference(s)))
+        H.delete_edges(self.edge_boundary(s))
         return H
-
 
     def twograph(self):
         """

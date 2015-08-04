@@ -301,6 +301,24 @@ def SRG_280_135_70_60():
     g.relabel()
     return g
 
+def SRG_279_150_85_75():
+    r"""
+    Return a strongly regular graph with parameters (279, 150, 85, 75)
+
+    This graph is built as a two-graph descendant graph of SRG_280_135_70_60.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_279_150_85_75
+        sage: g=SRG_279_150_85_75()
+        sage: g.is_strongly_regular(parameters=True)
+        (279, 150, 85, 75)
+    """
+    from sage.graphs.strongly_regular_db import SRG_280_135_70_60
+    g = SRG_280_135_70_60().twograph_descendant(0)
+    g.relabel()
+    return g
+
 def strongly_regular_from_two_weight_code(L):
     r"""
     Return a strongly regular graph from a two-weight code.

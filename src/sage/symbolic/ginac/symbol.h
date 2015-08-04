@@ -25,6 +25,7 @@
 
 #include "basic.h"
 #include "ex.h"
+#include "infoflagbase.h"
 
 #include <string>
 
@@ -84,7 +85,8 @@ public:
 	void set_name(const std::string & n) { name = n; }
 	std::string get_name() const { return name; }
 	unsigned get_domain() const { return domain; }
-	void set_domain(unsigned d) { domain = d; }
+	void set_domain(unsigned d);
+	void set_info(unsigned flag, bool value=true) { iflags.set(flag, value); }
 	std::string get_texname() const { return TeX_name; }
 	void set_texname(const std::string & t) { TeX_name = t; }
 protected:
@@ -103,6 +105,7 @@ protected:
 	std::string name;                ///< printname of this symbol
 	std::string TeX_name;            ///< LaTeX name of this symbol
 	unsigned domain;                 ///< domain of symbol
+	infoflagbase iflags;              ///< bitset with info_flags
 	unsigned ret_type;               ///< value returned by return_type()
 	tinfo_t ret_type_tinfo;         ///< value returned by return_type_tinfo()
 private:

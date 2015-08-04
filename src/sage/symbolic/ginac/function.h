@@ -24,6 +24,7 @@
 #define __GINAC_FUNCTION_H__
 
 #include "exprseq.h"
+#include "infoflagbase.h"
 
 #include <string>
 #include <vector>
@@ -375,13 +376,15 @@ public:
 	unsigned get_serial() const {return serial;}
 	std::string get_name() const;
 	unsigned get_domain() const { return domain; }
-	void set_domain(unsigned d) { domain = d; }
+	void set_domain(unsigned d);
+	void set_info(unsigned flag, bool value=true) { iflags.set(flag, value); }
 
 // member variables
 
 protected:
 	unsigned serial;
 	unsigned domain;
+	infoflagbase iflags;
 };
 
 // utility functions/macros

@@ -1492,6 +1492,28 @@ std::string function::get_name() const
 	return registered_functions()[serial].name;
 }
 
+void function::set_domain(unsigned d)
+{
+        domain = d;
+        iflags.clear();
+        switch (d) {
+                case domain::complex:
+                        break;
+                case domain::real:
+                        iflags.set(info_flags::real, true);
+                        break;
+                case domain::positive:
+                        iflags.set(info_flags::real, true);
+                        iflags.set(info_flags::positive, true);
+                        iflags.set(info_flags::nonnegative, true);
+                        break;
+                case domain::integer:
+                        iflags.set(info_flags::real, true);
+                        iflags.set(info_flags::integer, true);
+                        break;
+        }
+}
+
 bool function::info(unsigned inf) const
 {
         if (serial == exp_SERIAL::serial)
@@ -1573,18 +1595,8 @@ bool function::info(unsigned inf) const
                 }
                 return false;
         }
-	switch (inf) {
-		case info_flags::real:
-			return domain == domain::real
-                                || domain == domain::positive
-                                || domain == domain::integer;
-		case info_flags::positive:
-		case info_flags::nonnegative:
-			return domain == domain::positive;
-		case info_flags::integer:
-			return domain == domain::integer;
-	}
-        return false;
+
+	return iflags.get(inf);
 }
 
 } // namespace GiNaC

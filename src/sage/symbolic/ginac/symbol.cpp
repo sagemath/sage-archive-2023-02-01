@@ -156,7 +156,7 @@ void symbol::do_print_tree(const print_tree & c, unsigned level) const
 	c.s << std::string(level, ' ') << name << " (" << class_name() << ")" << " @" << this
 	    << ", serial=" << serial
 	    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
-	    << ", domain=" << domain
+	    << ", domain=" << domain << ", iflags=" << iflags.to_string()
 	    << std::endl;
 }
 
@@ -166,6 +166,28 @@ void symbol::do_print_python_repr(const print_python_repr & c, unsigned level) c
 	if (TeX_name != default_TeX_name())
 		c.s << "','" << TeX_name;
 	c.s << "')";
+}
+
+void symbol::set_domain(unsigned d)
+{
+        domain = d;
+        iflags.clear();
+        switch (d) {
+                case domain::complex:
+                        break;
+                case domain::real:
+                        iflags.set(info_flags::real, true);
+                        break;
+                case domain::positive:
+                        iflags.set(info_flags::real, true);
+                        iflags.set(info_flags::positive, true);
+                        iflags.set(info_flags::nonnegative, true);
+                        break;
+                case domain::integer:
+                        iflags.set(info_flags::real, true);
+                        iflags.set(info_flags::integer, true);
+                        break;
+        }
 }
 
 bool symbol::info(unsigned inf) const
@@ -180,17 +202,10 @@ bool symbol::info(unsigned inf) const
 		case info_flags::rational_function: 
 		case info_flags::expanded:
 			return true;
-		case info_flags::real:
-			return domain == domain::real
-                                || domain == domain::positive
-                                || domain == domain::integer;
-		case info_flags::positive:
-		case info_flags::nonnegative:
-			return domain == domain::positive;
-		case info_flags::integer:
-			return domain == domain::integer;
+                default:
+                        return iflags.get(inf);
 	}
-	return inherited::info(inf);
+	return false;
 }
 
 ex symbol::eval(int level) const

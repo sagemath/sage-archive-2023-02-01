@@ -1181,11 +1181,19 @@ class Link:
             sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
             sage: L.orientation()
             [-1, -1, -1, -1, 1, -1, 1]
+            sage: L = Link([[1, 2, 3, 3], [2, 4, 5, 5], [4, 1, 7, 7]])
+            sage: L.orientation()
+            [-1, -1, 1]
+
         """
         directions = self._directions_of_edges_()[0]
         orientation = []
         for C in self.PD_code():
-            if directions[C[1]] == C:
+            if C[0] == C[1] or C[2] == C[3]:
+                orientation.append(-1)
+            elif C[1] == C[2] or C[0] == C[3]:
+                orientation.append(1)
+            elif directions[C[1]] == C:
                 orientation.append(-1)
             else:
                 orientation.append(1)

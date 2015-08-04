@@ -44,7 +44,7 @@ This module's methods are the following :
     :delim: |
 
     :meth:`~TwoGraph.is_regular` | returns True if the inc. system is regular twograph
-    :meth:`~TwoGraph.complement` | returns the complement of self
+    :meth:`~TwoGraph.complement` | returns the complement of ``self``
     :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
 This module's functions are the following :
@@ -70,7 +70,7 @@ class TwoGraph(IncidenceStructure):
     """
     def is_regular(self, alpha=False, check=False):
         """
-        returns True if self is a regular twograph
+        returns True if ``self`` is a regular twograph
 
         EXAMPLES::
 
@@ -97,8 +97,20 @@ class TwoGraph(IncidenceStructure):
 
     def descendant(self, v):
         """
-        the descendant graph at `v`
+        the descendant graph at ``v``
 
+        The switching class of graphs corresponding to ``self`` contains a graph
+        ``D`` with ``v`` its own connected component; removing ``v`` from ``D``, one obtains
+        the descendant graph of ``self`` at ``v``.
+
+        INPUT:
+
+            - ``v`` -- an element of ``self.ground_set()`` 
+
+        OUTPUT:
+
+            - the descendant :class:`graph <sage.graphs.graph.Graph>` at ``v``
+ 
         EXAMPLES::
 
             sage: p=graphs.PetersenGraph().twograph().descendant(0)

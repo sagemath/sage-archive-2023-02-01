@@ -992,6 +992,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         (231,  30,  9,  3): [CameronGraph],
         (275, 112, 30, 56): [McLaughlinGraph],
         (280, 135, 70, 60): [SRG_280_135_70_60],
+        (279, 150, 85, 75): [SRG_279_150_85_75],
         (1024, 198, 22, 42): [SRG_1024_198_22_42],
         (243,  20, 199,200): [SRG_243_20_199_200],
         (256,  53,  92, 90): [SRG_256_53_92_90],

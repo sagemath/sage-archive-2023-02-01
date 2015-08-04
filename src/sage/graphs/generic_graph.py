@@ -71,7 +71,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
     :meth:`~GenericGraph.loop_edges` | Returns a list of all loops in the graph.
     :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops.
-    :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, boundary, associated objects, and position information.
+    :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, associated objects, and position information.
     :meth:`~GenericGraph.degree` | Return the degree (in + out for digraphs) of a vertex or of vertices.
     :meth:`~GenericGraph.average_degree` | Return the average degree of the graph.
     :meth:`~GenericGraph.degree_histogram` | Return a list, whose ith entry is the frequency of degree i.
@@ -10422,8 +10422,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def clear(self):
         """
-        Empties the graph of vertices and edges and removes name, boundary,
-        associated objects, and position information.
+        Empties the graph of vertices and edges and removes name, associated
+        objects, and position information.
 
         EXAMPLES::
 

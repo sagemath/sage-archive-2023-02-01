@@ -1,7 +1,9 @@
 r"""
 Differentiable manifolds
 
-Given a topological field `K` (in most applications, `K = \RR` or `K = \CC`;
+Given a topological field `K` with sufficient structure to define
+differentiability, e.g. a complete metric field
+(in most applications, `K = \RR` or `K = \CC`;
 see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
@@ -163,6 +165,64 @@ Similarly::
     sage: stereoN(S)
     (0, 0)
 
+A differentiable scalar field on the sphere::
+
+    sage: f = M.scalar_field({stereoN: atan(x^2+y^2), stereoS: pi/2-atan(u^2+v^2)},
+    ....:                    name='f')
+    sage: f
+    Scalar field f on the 2-dimensional differentiable manifold S^2
+    sage: f.display()
+    f: S^2 --> R
+    on U: (x, y) |--> arctan(x^2 + y^2)
+    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    sage: f(p)
+    arctan(5)
+    sage: f(N)
+    1/2*pi
+    sage: f(S)
+    0
+    sage: f.parent()
+    Algebra of differentiable scalar fields on the 2-dimensional differentiable
+     manifold S^2
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
+
+A differentiable manifold has a default vector frame, which, unless otherwise
+specified, is the coordinate frame associated with the first defined chart::
+
+    sage: M.default_frame()
+    Coordinate frame (U, (d/dx,d/dy))
+    sage: latex(M.default_frame())
+    \left(U ,\left(\frac{\partial}{\partial x },\frac{\partial}{\partial y }\right)\right)
+    sage: M.default_frame() is stereoN.frame()
+    True
+
+A vector field on the sphere::
+
+    sage: w = M.vector_field('w')
+    sage: w[stereoN.frame(), :] = [x, y]
+    sage: w.add_comp_by_continuation(stereoS.frame(), W, stereoS)
+    sage: w.display() # display in the default frame (stereoN.frame())
+    w = x d/dx + y d/dy
+    sage: w.display(stereoS.frame())
+    w = -u d/du - v d/dv
+    sage: w.parent()
+    Module X(S^2) of vector fields on the 2-dimensional differentiable
+     manifold S^2
+    sage: w.parent().category()
+    Category of modules over Algebra of differentiable scalar fields on the
+     2-dimensional differentiable manifold S^2
+
+Vector fields act on scalar fields::
+
+    sage: w(f)
+    Scalar field w(f) on the 2-dimensional differentiable manifold S^2
+    sage: w(f).display()
+    w(f): S^2 --> R
+    on U: (x, y) |--> 2*(x^2 + y^2)/(x^4 + 2*x^2*y^2 + y^4 + 1)
+    on V: (u, v) |--> 2*(u^2 + v^2)/(u^4 + 2*u^2*v^2 + v^4 + 1)
+    sage: w(f) == f.differential()(w)
+    True
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
   dimension 1 over `\CC`
@@ -295,12 +355,14 @@ class DiffManifold(TopManifold):
     r"""
     Differentiable manifold over a topological field `K`.
 
-    Given a topological field `K` (in most applications, `K = \RR` or
-    `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
-    a *differentiable manifold over* `K` is a topological manifold `M` over `K`
-    equipped with an atlas whose transitions maps are of class `C^k` (i.e.
-    `k`-times  continuously differentiable) for a fixed positive integer `k`
-    (possibly `k=\infty`). `M` is then called a `C^k`-*manifold over* `K`.
+    Given a topological field `K` with sufficient structure to define
+    differentiability, e.g. a complete metric field (in most applications,
+    `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
+    other fields), a *differentiable manifold over* `K` is a topological
+    manifold `M` over `K` equipped with an atlas whose transitions maps are of
+    class `C^k` (i.e. `k`-times  continuously differentiable) for a fixed
+    positive integer `k` (possibly `k=\infty`). `M` is then called a
+    `C^k`-*manifold over* `K`.
 
     Note that
 
@@ -601,7 +663,7 @@ class DiffManifold(TopManifold):
 
         Creating an open subset of a manifold::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: DiffManifold._clear_cache_()  # for doctests only
             sage: M = DiffManifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional differentiable manifold M
@@ -841,14 +903,14 @@ class DiffManifold(TopManifold):
 
         INPUT:
 
-        - ``other`` -- an open subset of some differentiable manifold over the
-          same field as ``self``
+        - ``other`` -- a differentiable manifold over the same field as
+          ``self``
         - ``category`` -- (default: ``None``) not used here (to ensure
           compatibility with generic hook ``_Hom_``)
 
         OUTPUT:
 
-        - the homset Hom(U,V), where U is ``self`` and V is ``other``
+        - the homset Hom(M,N), where M is ``self`` and N is ``other``
 
         See class
         :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset`
@@ -865,7 +927,8 @@ class DiffManifold(TopManifold):
             True
 
         """
-        from sage.manifolds.differentiable.manifold_homset import DiffManifoldHomset
+        from sage.manifolds.differentiable.manifold_homset import \
+                                                             DiffManifoldHomset
         return DiffManifoldHomset(self, other)
 
     def diff_map(self, codomain, coord_functions=None, chart1=None,
@@ -888,8 +951,8 @@ class DiffManifold(TopManifold):
             the coordinate expressions (as lists (or tuples) of the
             coordinates of the image expressed in terms of the coordinates of
             the considered point) with the pairs of charts (chart1, chart2)
-            as keys (chart1 being a chart on the  and chart2 a chart on
-            ``codomain``)
+            as keys (chart1 being a chart on the current manifold and chart2 a
+            chart on ``codomain``)
           - (ii) a single coordinate expression in a given pair of charts, the
             latter being provided by the arguments ``chart1`` and ``chart2``
 
@@ -1211,7 +1274,7 @@ class DiffManifold(TopManifold):
             Algebra of differentiable scalar fields on the Open subset U of the
              2-dimensional differentiable manifold S^2
 
-        `\mathcal{X}(U,\mathbb{R}^3)` is a free module because `\mathbb{R}^3`
+        `\mathcal{X}(U,\Phi)` is a free module because `\mathbb{R}^3`
         is parallelizable and its rank is 3::
 
             sage: XU_R3.rank()
@@ -1297,8 +1360,8 @@ class DiffManifold(TopManifold):
     def diff_form_module(self, degree, dest_map=None):
         r"""
         Return the set of differential forms of a given degree defined on
-        ``self``, possibly within some ambient manifold, as a module over the
-        algebra of scalar fields defined on ``self``.
+        the manifold, possibly with values in another manifold, as a module
+        over the algebra of scalar fields defined on the manifold.
 
         See :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
         for a complete documentation.
@@ -1307,20 +1370,45 @@ class DiffManifold(TopManifold):
 
         - ``degree`` -- positive integer; the degree `p` of the differential
           forms
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ U \rightarrow V`, where `U` is ``self``
-          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
-          if none is provided, the identity map is assumed (case of
-          differential forms *on* `U`)
+        - ``dest_map`` -- (default: ``None``) destination map, i.e. a
+          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          current manifold and `N` a differentiable manifold;
+          if ``None``, it is assumed that `N=M` and that `\Phi` is the identity
+          map (case of differential forms *on* `M`), otherwise ``dest_map``
+          must be an instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`
-          representing the module `\Lambda^p(U,\Phi)` of `p`-forms on the open
-          subset `U` = ``self`` taking values on `\Phi(U)\subset V\subset M`.
+          (or of
+          :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormFreeModule`
+          if `N` is parallelizable) representing the module `\Lambda^p(M,\Phi)`
+          of `p`-forms on `M` taking values on `\Phi(M)\subset N`.
 
         EXAMPLE:
+
+        Module of 2-forms on a 3-dimensional parallelizable manifold::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: M.diff_form_module(2)
+            Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
+             manifold M
+            sage: M.diff_form_module(2).category()
+            Category of modules over Algebra of differentiable scalar fields
+             on the 3-dimensional differentiable manifold M
+            sage: M.diff_form_module(2).base_ring()
+            Algebra of differentiable scalar fields on the 3-dimensional
+             differentiable manifold M
+            sage: M.diff_form_module(2).rank()
+            3
+
+        The outcome is cached::
+
+            sage: M.diff_form_module(2) is M.diff_form_module(2)
+            True
 
         """
         return self.vector_field_module(dest_map=dest_map).dual_exterior_power(
@@ -1329,40 +1417,81 @@ class DiffManifold(TopManifold):
     def automorphism_field_group(self, dest_map=None):
         r"""
         Return the group of tangent-space automorphism fields defined on
-        ``self``, possibly within some ambient manifold.
+        the manifold, possibly with values in another manifold, as a module
+        over the algebra of scalar fields defined on the manifold.
 
-        If `U` stands for the open subset ``self`` and `\Phi` is a
-        differentiable map `\Phi: U \rightarrow V = \Phi(U) \subset M`,
-        where `M` is a manifold, this method called with ``dest_map``
-        being `\Phi` returns the general linear group
-        `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module
-        `\mathcal{X}(U,\Phi)` of vector fields along `U` with values in
-        `V=\Phi(U)`.
+        If `M` is the current manifold and `\Phi` a differentiable map
+        `\Phi: M \rightarrow N`, where `N` is a differentiable manifold,
+        this method called
+        with ``dest_map`` being `\Phi` returns the general linear group
+        `\mathrm{GL}(\mathcal{X}(M,\Phi))` of the module
+        `\mathcal{X}(M,\Phi)` of vector fields along `M` with values in
+        `\Phi(M)\subset N`.
 
         INPUT:
 
-        - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ U \rightarrow V`, where `U` is ``self``
-          (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
-          if none is provided, the identity map is assumed
+        - ``dest_map`` -- (default: ``None``) destination map, i.e. a
+          differentiable map `\Phi:\ M \rightarrow N`, where `M` is the
+          current manifold and `N` a differentiable manifold;
+          if ``None``, it is assumed that `N=M` and that `\Phi` is the identity
+          map, otherwise ``dest_map`` must be an instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
-          (if ``self`` is parallelizable) or of
+          (if `N` is parallelizable) or of
           :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
-          (if ``self`` is not parallelizable) representing
+          (if `N` is not parallelizable) representing
           `\mathrm{GL}(\mathcal{X}(U,\Phi))`
 
         EXAMPLE:
 
+        Group of tangent-space automorphism fields of a 2-dimensional
+        differentiable manifold::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: M.automorphism_field_group()
+            General linear group of the Module X(M) of vector fields on the
+             2-dimensional differentiable manifold M
+            sage: M.automorphism_field_group().category()
+            Category of groups
+
+        See the documentation of classes
+        :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup`
+        and
+        :class:`~sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup`
+        for more examples.
         """
         return self.vector_field_module(dest_map=dest_map).general_linear_group()
 
     def vector_field(self, name=None, latex_name=None, dest_map=None):
         r"""
-        Define a vector field on ``self``.
+        Define a vector field on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the vector field
+        take its values on another manifold. More precisely, if `M` is
+        the current manifold, `N` a differentiable manifold and
+        `\Phi:\  M \rightarrow N` a differentiable map, a *vector field
+        along* `M` *with values on* `N` is a differentiable map
+
+        .. MATH::
+
+            v:\ M  \longrightarrow TN
+
+        (`TN` being the tangent bundle of `N`) such that
+
+        .. MATH::
+
+            \forall p \in M,\ v(p) \in T_{\Phi(p)}N,
+
+        where `T_{\Phi(p)}N` is the tangent space to `N` at the point `\Phi(p)`.
+
+        The standard case of vector fields *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
 
         See :class:`~sage.manifolds.differentiable.vectorfield.VectorField` for
         a complete documentation.
@@ -1373,20 +1502,25 @@ class DiffManifold(TopManifold):
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           vector field; if none is provided, the LaTeX symbol is set to
           ``name``
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a vector field *on* `M`),
+          otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a vector field *on* ``self``)
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+        - instance of
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+          (or of
+          :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
+          if `N` is parallelizable)
           representing the defined vector field.
 
         EXAMPLES:
 
-        A vector field on a 3-dimensional open subset::
+        A vector field on a open subset of a 3-dimensional differentiable
+        manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M')
@@ -1396,8 +1530,9 @@ class DiffManifold(TopManifold):
             Vector field v on the Open subset U of the 3-dimensional
              differentiable manifold M
 
-        Vector fields on `U` form the set `\mathcal{X}(U)`, which is a module
-        over the algebra `C^k(U)` of differentiable scalar fields on `U`::
+        The vector fields on `U` form the set `\mathcal{X}(U)`, which is a
+        module over the algebra `C^k(U)` of differentiable scalar fields on
+        `U`::
 
             sage: v.parent()
             Free module X(U) of vector fields on the Open subset U of the
@@ -1416,15 +1551,41 @@ class DiffManifold(TopManifold):
     def tensor_field(self, k, l, name=None, latex_name=None, sym=None,
         antisym=None, dest_map=None):
         r"""
-        Define a tensor field on ``self``.
+        Define a tensor field on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the tensor field
+        take its values on another manifold. More precisely, if `M` is
+        the current manifold, `N` a differentiable manifold,
+        `\Phi:\  M \rightarrow N` a differentiable map and `(k,l)`
+        a pair of non-negative integers, a *tensor field of type* `(k,l)`
+        *along* `M` *with values on* `N` is a differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(k,l)}N
+
+        (`T^{(k,l)}N` being the tensor bundle of type `(k,l)` over `N`)
+        such that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}N),
+
+        where `T^{(k,l)}(T_{\Phi(p)}N)` is the space of tensors of type
+        `(k,l)` on the tangent space `T_{\Phi(p)}N`.
+
+        The standard case of tensor fields *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
 
         See :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for
         a complete documentation.
 
         INPUT:
 
-        - ``k`` -- the contravariant rank, the tensor type being (k,l)
-        - ``l`` -- the covariant rank, the tensor type being (k,l)
+        - ``k`` -- the contravariant rank `k`, the tensor type being `(k,l)`
+        - ``l`` -- the covariant rank `l`, the tensor type being `(k,l)`
         - ``name`` -- (default: ``None``) name given to the tensor field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           tensor field; if none is provided, the LaTeX symbol is set to ``name``
@@ -1440,20 +1601,25 @@ class DiffManifold(TopManifold):
         - ``antisym`` -- (default: ``None``) antisymmetry or list of
           antisymmetries among the arguments, with the same convention as for
           ``sym``.
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a tensor field *on* `M`),
+          otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a tensor field *on* ``self``)
 
         OUTPUT:
 
-        - instance of :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - instance of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+          (or of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          if `N` is parallelizable)
           representing the defined tensor field.
 
         EXAMPLES:
 
-        A tensor field of type (2,0) on a 3-dimensional open subset::
+        A tensor field of type (2,0) on an open subset of a 3-dimensional
+        differentiable manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M')
@@ -1463,8 +1629,9 @@ class DiffManifold(TopManifold):
             Tensor field T of type (2,0) on the Open subset U of the
              3-dimensional differentiable manifold M
 
-        Type-(2,0) tensor fields on `U` form the set `\mathcal{T}^{(2,0)}(U)`,
-        which is a module over the algebra `C^k(U)` of differentiable scalar
+        The type-(2,0) tensor fields on `U` form the set
+        `\mathcal{T}^{(2,0)}(U)`, which is a module over the algebra `C^k(U)`
+        of differentiable scalar
         fields on `U`::
 
             sage: t.parent()
@@ -1484,25 +1651,55 @@ class DiffManifold(TopManifold):
 
     def sym_bilin_form_field(self, name=None, latex_name=None, dest_map=None):
         r"""
-        Define a field of symmetric bilinear forms on ``self``.
+        Define a field of symmetric bilinear forms on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the field
+        take its values on another manifold. More precisely, if `M` is
+        the current manifold, `N` a differentiable manifold and
+        `\Phi:\  M \rightarrow N` a differentiable map, a *field of
+        symmetric bilinear forms along* `M` *with values on* `N` is a
+        differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(0,2)}N
+
+        (`T^{(0,2)}N` being the tensor bundle of type `(0,2)` over `N`)
+        such that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) \in S(T_{\Phi(p)}N),
+
+        where `S(T_{\Phi(p)}N)` is the space of symmetric bilinear forms on
+        the tangent space `T_{\Phi(p)}N`.
+
+        The standard case of fields of symmetric bilinear forms *on* `M`
+        corresponds to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+        `\Phi` being an immersion and `\Phi` being a curve in `N` (`M` is then
+        an open interval of `\RR`).
+
 
         INPUT:
 
         - ``name`` -- (default: ``None``) name given to the field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           field; if none is provided, the LaTeX symbol is set to ``name``
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a field *on* `M`),
+          otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a field of symmetric bilinear forms *on* ``self``)
 
         OUTPUT:
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          of tensor type (0,2) and symmetric representing the defined
-          symmetric bilinear form field.
+          (or of
+          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          if `N` is parallelizable)
+          of tensor type (0,2) and symmetric representing the defined field of
+          symmetric bilinear forms.
 
         EXAMPLE:
 
@@ -1619,7 +1816,37 @@ class DiffManifold(TopManifold):
     def diff_form(self, degree, name=None, latex_name=None,
                   dest_map=None):
         r"""
-        Define a differential form on ``self``.
+        Define a differential form on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the
+        differential form take its values on another manifold. More precisely,
+        if `M` is the current manifold, `N` a differentiable
+        manifold, `\Phi:\  M \rightarrow N` a differentiable map and `p`
+        a non-negative integer, a *differential form of degree* `p` (or
+        `p`-form) *along* `M` *with values on* `N` is a differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(0,p)}N
+
+        (`T^{(0,p)}N` being the tensor bundle of type `(0,p)` over `N`)
+        such that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) \in \Lambda^p(T^*_{\Phi(p)}N),
+
+        where `\Lambda^p(T^*_{\Phi(p)}N)` is the `p`-th exterior power of the
+        dual of the tangent space `T_{\Phi(p)}N`.
+
+        The standard case of a differential form *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
+
+        For `p=1`, one can use the method
+        :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.one_form`
+        instead.
 
         See :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a
         complete documentation.
@@ -1632,20 +1859,23 @@ class DiffManifold(TopManifold):
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           differential form; if none is provided, the LaTeX symbol is set to
           ``name``
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a differential form *on*
+          `M`), otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a differential form *on* ``self``)
 
         OUTPUT:
 
         - the `p`-form, as an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+          (or of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+          if `N` is parallelizable)
 
         EXAMPLE:
 
-        A 2-form on a 4-dimensional open subset::
+        A 2-form on a open subset of a 4-dimensional differentiable manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(4, 'M')
@@ -1667,7 +1897,30 @@ class DiffManifold(TopManifold):
 
     def one_form(self, name=None, latex_name=None, dest_map=None):
         r"""
-        Define a 1-form on ``self``.
+        Define a 1-form on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the
+        1-form take its values on another manifold. More precisely,
+        if `M` is the current manifold, `N` a differentiable
+        manifold and `\Phi:\  M \rightarrow N` a differentiable map,
+        a *1-form along* `M` *with values on* `N` is a differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^*N
+
+        (`T^*N` being the cotangent bundle of `N`) such that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) \in T^*_{\Phi(p)}N,
+
+        where `T^*_{\Phi(p)}` is the dual of the tangent space `T_{\Phi(p)}N`.
+
+        The standard case of a 1-form *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
 
         See :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for a
         complete documentation.
@@ -1677,16 +1930,19 @@ class DiffManifold(TopManifold):
         - ``name`` -- (default: ``None``) name given to the 1-form
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           1-form; if none is provided, the LaTeX symbol is set to ``name``
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a 1-form *on* `M`),
+          otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a 1-form *on* ``self``)
 
         OUTPUT:
 
         - the 1-form, as an instance of
           :class:`~sage.manifolds.differentiable.diff_form.DiffForm`
+          (or of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+          if `N` is parallelizable)
 
         EXAMPLE:
 
@@ -1715,7 +1971,33 @@ class DiffManifold(TopManifold):
                            dest_map=None):
         r"""
         Define a field of automorphisms (invertible endomorphisms in each
-        tangent space) on ``self``.
+        tangent space) on the manifold.
+
+        Via the argument ``dest_map``, it is possible to let the
+        field take its values on another manifold. More precisely,
+        if `M` is the current manifold, `N` a differentiable
+        manifold and `\Phi:\  M \rightarrow N` a differentiable map,
+        a *field of automorphisms along* `M` *with values on* `N` is a
+        differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(1,1)}N
+
+        (`T^{(1,1)}N` being the tensor bundle of type `(1,1)` over `N`) such
+        that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) \in \mathrm{GL}\left(T_{\Phi(p)}N\right),
+
+        where `\mathrm{GL}\left(T_{\Phi(p)}N\right)` is the general linear
+        group of the the tangent space `T_{\Phi(p)}N`.
+
+        The standard case of a field of automorphisms *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
 
         See :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
         for a complete documentation.
@@ -1725,11 +2007,11 @@ class DiffManifold(TopManifold):
         - ``name`` -- (default: ``None``) name given to the field
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
           field; if none is provided, the LaTeX symbol is set to ``name``
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a field of automorphisms
+          *on* `M`), otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of an automorphism field *on* ``self``)
 
         OUTPUT:
 
@@ -1737,7 +2019,7 @@ class DiffManifold(TopManifold):
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
           (or of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
-          if the codomain is parallelizable) representing the defined field of
+          if `N` is parallelizable) representing the defined field of
           automorphisms.
 
         EXAMPLE:
@@ -1765,7 +2047,34 @@ class DiffManifold(TopManifold):
     def tangent_identity_field(self, name='Id', latex_name=None,
                                dest_map=None):
         r"""
-        Return the field of identity maps in the tangent spaces on ``self``.
+        Return the field of identity maps in the tangent spaces on the
+        manifold.
+
+        Via the argument ``dest_map``, it is possible to let the
+        field take its values on another manifold. More precisely,
+        if `M` is the current manifold, `N` a differentiable
+        manifold and `\Phi:\  M \rightarrow N` a differentiable map,
+        a *field of identity maps along* `M` *with values on* `N` is a
+        differentiable map
+
+        .. MATH::
+
+            t:\ M  \longrightarrow T^{(1,1)}N
+
+        (`T^{(1,1)}N` being the tensor bundle of type `(1,1)` over `N`) such
+        that
+
+        .. MATH::
+
+            \forall p \in M,\ t(p) = \mathrm{Id}_{T_{\Phi(p)}N},
+
+        where `\mathrm{Id}_{T_{\Phi(p)}N}` is the identity map of the tangent
+        space `T_{\Phi(p)}N`.
+
+        The standard case of a field of identity maps *on* `M` corresponds
+        to `N=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+        being an immersion and `\Phi` being a curve in `N` (`M` is then an open
+        interval of `\RR`).
 
         INPUT:
 
@@ -1774,11 +2083,11 @@ class DiffManifold(TopManifold):
         - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
           the field of identity map; if none is provided, the LaTeX symbol is
           set to '\mathrm{Id}' if ``name`` is 'Id' and to ``name`` otherwise
-        - ``dest_map`` -- (default: ``None``) instance of
+        - ``dest_map`` -- (default: ``None``) the destination map
+          `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N=M` and
+          that `\Phi` is the identity map (case of a field of identity maps
+          *on* `M`), otherwise ``dest_map`` must be an instance of instance of
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-          representing the destination map `\Phi:\ U \rightarrow V`, where `U`
-          is ``self``; if none is provided, the identity map is assumed (case
-          of a tangent-space identity map field *on* ``self``)
 
         OUTPUT:
 
@@ -1786,8 +2095,7 @@ class DiffManifold(TopManifold):
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
           (or of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
-          if the codomain is parallelizable) representing the field of identity
-          maps.
+          if `N` is parallelizable) representing the field of identity maps.
 
         EXAMPLE:
 
@@ -1812,14 +2120,15 @@ class DiffManifold(TopManifold):
 
     def default_frame(self):
         r"""
-        Return the default vector frame defined on ``self``.
+        Return the default vector frame defined on the manifold.
 
-        By 'vector frame' it is meant a field on ``self`` that provides,
+        By 'vector frame' it is meant a field on the manifold that provides,
         at each point p, a vector basis of the tangent space at p.
 
         Unless changed via :meth:`set_default_frame`, the default frame is the
-        first one defined on ``self``, usually implicitely as the coordinate
-        basis associated with the first chart defined on ``self``.
+        first one defined on the manifold, usually implicitely as the
+        coordinate basis associated with the first chart defined on the
+        manifold.
 
         OUTPUT:
 
@@ -1829,7 +2138,7 @@ class DiffManifold(TopManifold):
         EXAMPLES:
 
         The default vector frame is often the coordinate frame associated
-        with the first chart defined on ``self``::
+        with the first chart defined on the manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')
@@ -1842,13 +2151,13 @@ class DiffManifold(TopManifold):
 
     def set_default_frame(self, frame):
         r"""
-        Changing the default vector frame on ``self``.
+        Changing the default vector frame on the manifold.
 
         INPUT:
 
         - ``frame`` -- a vector frame (instance of
           :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`)
-          defined on ``self``
+          defined on the manifold
 
         EXAMPLE:
 
@@ -1879,7 +2188,7 @@ class DiffManifold(TopManifold):
 
     def change_of_frame(self, frame1, frame2):
         r"""
-        Return a change of vector frames defined on ``self``.
+        Return a change of vector frames defined on the manifold.
 
         INPUT:
 
@@ -2010,10 +2319,10 @@ class DiffManifold(TopManifold):
     def vector_frame(self, symbol=None, latex_symbol=None, dest_map=None,
                      from_frame=None):
         r"""
-        Define a vector frame on ``self``.
+        Define a vector frame on the manifold.
 
-        A *vector frame* is a field on ``self`` that provides, at each point
-        p of ``self``, a vector basis of the tangent space at p.
+        A *vector frame* is a field on the manifold that provides, at each
+        point p of the manifold, a vector basis of the tangent space at p.
 
         See :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame` for
         a complete documentation.
@@ -2067,11 +2376,27 @@ class DiffManifold(TopManifold):
 
     def _set_covering_frame(self, frame):
         r"""
-        Declare a frame covering ``self``.
+        Declare a frame covering the manifold.
+
+        This helper method is invoked by the frame constructor.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: M._covering_frames
+            []
+            sage: e = M.vector_frame('e')
+            sage: M._covering_frames
+            [Vector frame (M, (e_0,e_1))]
+            sage: M._covering_frames = []
+            sage: M._set_covering_frame(e)
+            sage: M._covering_frames
+            [Vector frame (M, (e_0,e_1))]
+
         """
         self._covering_frames.append(frame)
         self._parallelizable_parts = set([self])
-        # if self cotained smaller parallelizable parts, they are forgotten
+        # if self contained smaller parallelizable parts, they are forgotten
         for sd in self._supersets:
             if not sd.is_manifestly_parallelizable():
                 sd._parallelizable_parts.add(self)
@@ -2112,11 +2437,11 @@ class DiffManifold(TopManifold):
 
     def coframes(self):
         r"""
-        Return the list of coframes defined on subsets of ``self``.
+        Return the list of coframes defined on open subsets of the manifold.
 
         OUTPUT:
 
-        - list of coframes defined on open subsets of ``self``.
+        - list of coframes defined on open subsets of the manifold.
 
         EXAMPLES:
 
@@ -2148,7 +2473,53 @@ class DiffManifold(TopManifold):
 
     def changes_of_frame(self):
         r"""
-        Return the changes of vector frames defined on ``self``.
+        Return all the changes of vector frames defined on the manifold.
+
+        OUTPUT:
+
+        - dictionary of fields of tangent-space automorphisms representing
+          the changes of frames, the keys being the pair of frames
+
+        EXAMPLE:
+
+        Let us consider a first vector frame on a 2-dimensional differentiable
+        manifold::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e = X.frame(); e
+            Coordinate frame (M, (d/dx,d/dy))
+
+        At this stage, the dictionary of changes of frame is empty::
+
+            sage: M.changes_of_frame()
+            {}
+
+        We introduce a second frame on the manifold, relating it to
+        frame ``e`` by a field of tangent-space automorphisms::
+
+            sage: a = M.automorphism_field(name='a')
+            sage: a[:] = [[-y, x], [1, 2]]
+            sage: f = e.new_frame(a, 'f'); f
+            Vector frame (M, (f_0,f_1))
+
+        Then we have::
+
+            sage: M.changes_of_frame()  # random (dictionary output)
+            {(Coordinate frame (M, (d/dx,d/dy)),
+              Vector frame (M, (f_0,f_1))): Field of tangent-space
+               automorphisms on the 2-dimensional differentiable manifold M,
+             (Vector frame (M, (f_0,f_1)),
+              Coordinate frame (M, (d/dx,d/dy))): Field of tangent-space
+               automorphisms on the 2-dimensional differentiable manifold M}
+
+        Some checks::
+
+            sage: M.changes_of_frame()[(e,f)] == a
+            True
+            sage: M.changes_of_frame()[(f,e)] == a^(-1)
+            True
+
         """
         return self._frame_changes
 
@@ -2159,5 +2530,29 @@ class DiffManifold(TopManifold):
 
         If ``False`` is returned, either the manifold is not parallelizable or
         no vector frame has been defined on it yet.
+
+        EXAMPLES:
+
+        A just created manifold is a priori not manifestly parallelizable::
+
+            sage: DiffManifold._clear_cache_()  # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: M.is_manifestly_parallelizable()
+            False
+
+        Defining a vector frame on it makes it parallelizable::
+
+            sage: e = M.vector_frame('e')
+            sage: M.is_manifestly_parallelizable()
+            True
+
+        Defining a coordinate chart on the whole manifold also makes it
+        parallelizable::
+
+            sage: N = DiffManifold(4, 'N')
+            sage: X.<t,x,y,z> = N.chart()
+            sage: N.is_manifestly_parallelizable()
+            True
+
         """
         return not self._covering_frames == []

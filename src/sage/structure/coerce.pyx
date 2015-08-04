@@ -411,7 +411,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: maps, actions = cm.get_cache()
 
-        Now lets see what happens when we do a binary operations with
+        Now let us see what happens when we do a binary operations with
         an integer and a rational::
 
             sage: left_morphism_ref, right_morphism_ref = maps[ZZ, QQ]
@@ -512,7 +512,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         The function _test_exception_stack is executing the following code::
 
             try:
-                raise TypeError, "just a test"
+                raise TypeError("just a test")
             except TypeError:
                 cm._record_exception()
         """
@@ -540,7 +540,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             ['Traceback (most recent call last):\n  File "sage/structure/coerce.pyx", line ...TypeError: just a test']
         """
         try:
-            raise TypeError, "just a test"
+            raise TypeError("just a test")
         except TypeError:
             self._record_exception()
 
@@ -780,7 +780,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 all.append("Coercion on right operand via")
                 all.append(y_mor)
                 if res is not None and res is not y_mor.codomain():
-                    raise RuntimeError, ("BUG in coercion model: codomains not equal!", x_mor, y_mor)
+                    raise RuntimeError("BUG in coercion model: codomains not equal!", x_mor, y_mor)
                 res = y_mor.codomain()
             all.append("Arithmetic performed after coercions.")
             if op is div and isinstance(res, Parent):
@@ -1067,7 +1067,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         # We should really include the underlying error.
         # This causes so much headache.
-        raise TypeError, arith_error_message(x,y,op)
+        raise TypeError(arith_error_message(x,y,op))
 
     cpdef canonical_coercion(self, x, y):
         r"""
@@ -1338,9 +1338,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             if homs is not None:
                 x_map, y_map = homs
                 if x_map is not None and not isinstance(x_map, Map):
-                    raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
                 if y_map is not None and not isinstance(y_map, Map):
-                    raise RuntimeError, "BUG in coercion model: coerce_map_from must return a Map"
+                    raise RuntimeError("BUG in coercion model: coerce_map_from must return a Map")
         if homs is None:
             refs = None
             swap = None
@@ -1397,14 +1397,14 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 if connecting is not None:
                     R_map = R_map * connecting
             if R_map.domain() is not R:
-                raise RuntimeError, ("BUG in coercion model, left domain must be original parent", R, R_map)
+                raise RuntimeError("BUG in coercion model, left domain must be original parent", R, R_map)
         if S_map is not None and S_map.domain() is not S:
             if fix:
                 connecting = S_map.domain()._internal_coerce_map_from(S)
                 if connecting is not None:
                     S_map = S_map * connecting
             if S_map.domain() is not S:
-                raise RuntimeError, ("BUG in coercion model, right domain must be original parent", S, S_map)
+                raise RuntimeError("BUG in coercion model, right domain must be original parent", S, S_map)
         # Make sure the codomains are correct
         if R_map.codomain() is not S_map.codomain():
             if fix:
@@ -1416,7 +1416,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                     if connecting is not None:
                         R_map = connecting * R_map
             if R_map.codomain() is not S_map.codomain():
-                raise RuntimeError, ("BUG in coercion model, codomains must be identical", R_map, S_map)
+                raise RuntimeError("BUG in coercion model, codomains must be identical", R_map, S_map)
         if isinstance(R_map, IdentityMorphism):
             R_map = None
         elif isinstance(S_map, IdentityMorphism):
@@ -1494,9 +1494,9 @@ cdef class CoercionModel_cache_maps(CoercionModel):
                 coerce_R = Z._internal_coerce_map_from(R)
                 coerce_S = Z._internal_coerce_map_from(S)
                 if coerce_R is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (R, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (R, Z))
                 if coerce_S is None:
-                    raise TypeError, "No coercion from %s to pushout %s" % (S, Z)
+                    raise TypeError("No coercion from %s to pushout %s" % (S, Z))
                 return coerce_R, coerce_S
             except Exception:
                 self._record_exception()
@@ -1779,5 +1779,3 @@ Original elements %r (parent %s) and %r (parent %s) and maps
 %s %r"""%( x_elt, y_elt, parent_c(x_elt), parent_c(y_elt),
             x, parent_c(x), y, parent_c(y),
             type(x_map), x_map, type(y_map), y_map)
-
-

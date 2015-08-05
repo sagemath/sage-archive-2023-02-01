@@ -9574,6 +9574,26 @@ class Automaton(FiniteStateMachine):
             [frozenset(['A', 'C'])]
             sage: Ddet.process(list('aaab'))
             (True, frozenset(['A', 'C']))
+
+        Test that :trac:`18992` is fixed::
+
+            sage: A = Automaton([(0, 1, []), (1, 1, 0)],
+            ....:               initial_states=[0], final_states=[1])
+            sage: B = A.determinisation()
+            sage: B.initial_states()
+            [frozenset([0, 1])]
+            sage: B.final_states()
+            [frozenset([0, 1]), frozenset([1])]
+            sage: B.transitions()
+            [Transition from frozenset([0, 1]) to frozenset([1]): 0|-,
+            Transition from frozenset([1]) to frozenset([1]): 0|-]
+            sage: C = B.minimization().relabeled()
+            sage: C.initial_states()
+            [0]
+            sage: C.final_states()
+            [0]
+            sage: C.transitions()
+            [Transition from 0 to 0: 0|-]
         """
         if any(len(t.word_in) > 1 for t in self.iter_transitions()):
             return self.split_transitions().determinisation()
@@ -9608,7 +9628,10 @@ class Automaton(FiniteStateMachine):
             return (frozenset(result), [])
 
         result = self.empty_copy()
-        new_initial_states = [frozenset(self.iter_initial_states())]
+        new_initial_states = [frozenset(set().union(
+                    *(epsilon_successors[s]
+                      for s in self.iter_initial_states()
+                      )))]
         result.add_from_transition_function(set_transition,
                                             initial_states=new_initial_states)
 

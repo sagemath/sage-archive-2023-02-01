@@ -6831,6 +6831,10 @@ class FiniteStateMachine(SageObject):
         `w_2\in\mathcal{L}_2` to `f_1(w_1)f_2(w_2)`. Here, `w_1w_2` and
         `f_1(w_1)f_2(w_2)` again denote concatenation of words.
 
+        The input alphabet is the union of the input alphabets (if
+        possible) and ``None`` otherwise. In the latter case, try
+        calling :meth:`.determine_alphabets`.
+
         Instead of ``A.concatenation(B)``, the notation ``A*B`` can be
         used.
 
@@ -6897,6 +6901,31 @@ class FiniteStateMachine(SageObject):
             sage: C([0, 0])
             [1, 2, 3, 4]
 
+        Handling of the input alphabet::
+
+            sage: A = Automaton([(0, 0, 0)])
+            sage: B = Automaton([(0, 0, 1)], input_alphabet=[1, 2])
+            sage: C = Automaton([(0, 0, 2)], determine_alphabets=False)
+            sage: D = Automaton([(0, 0, [[0, 0]])], input_alphabet=[[0, 0]])
+            sage: A.input_alphabet
+            [0]
+            sage: B.input_alphabet
+            [1, 2]
+            sage: C.input_alphabet is None
+            True
+            sage: D.input_alphabet
+            [[0, 0]]
+            sage: (A*B).input_alphabet
+            [0, 1, 2]
+            sage: (A*C).input_alphabet is None
+            True
+            sage: (A*D).input_alphabet is None
+            True
+
+        .. SEEALSO::
+
+            :meth:`~.disjoint_union`, :meth:`.determine_alphabets`.
+
         TESTS::
 
             sage: A = Automaton()
@@ -6960,6 +6989,13 @@ class FiniteStateMachine(SageObject):
                                       second_state,
                                       [],
                                       s.final_word_out)
+
+        try:
+            result.input_alphabet = list(set(self.input_alphabet)
+                                         | set(other.input_alphabet))
+        except TypeError:
+            # e.g. None or unhashable letters
+            result.input_alphabet = None
 
         return result
 

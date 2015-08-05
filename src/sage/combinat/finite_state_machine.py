@@ -6693,6 +6693,10 @@ class FiniteStateMachine(SageObject):
         ``s`` of the other finite state machine, there is a state ``(1,
         s)`` in the disjoint union.
 
+        The input alphabet is the union of the input alphabets (if
+        possible) and ``None`` otherwise. In the latter case, try
+        calling :meth:`.determine_alphabets`.
+
         The disjoint union can also be written as ``A + B`` or ``A | B``.
 
         EXAMPLES::
@@ -6780,10 +6784,31 @@ class FiniteStateMachine(SageObject):
             sage: T.process([0])
             [(True, (1, 0), [2]), (True, (0, 0), [1])]
 
+        Handling of the input alphabet (see :trac:`18989`)::
+
+            sage: A = Automaton([(0, 0, 0)])
+            sage: B = Automaton([(0, 0, 1)], input_alphabet=[1, 2])
+            sage: C = Automaton([(0, 0, 2)], determine_alphabets=False)
+            sage: D = Automaton([(0, 0, [[0, 0]])], input_alphabet=[[0, 0]])
+            sage: A.input_alphabet
+            [0]
+            sage: B.input_alphabet
+            [1, 2]
+            sage: C.input_alphabet is None
+            True
+            sage: D.input_alphabet
+            [[0, 0]]
+            sage: (A + B).input_alphabet
+            [0, 1, 2]
+            sage: (A + C).input_alphabet is None
+            True
+            sage: (A + D).input_alphabet is None
+            True
+
         .. SEEALSO::
 
             :meth:`Automaton.intersection`,
-            :meth:`Transducer.intersection`.
+            :meth:`Transducer.intersection`, :meth:`.determine_alphabets`.
         """
         result = self.empty_copy()
         for s in self.iter_states():
@@ -6800,6 +6825,13 @@ class FiniteStateMachine(SageObject):
                                   (1, t.to_state),
                                   t.word_in,
                                   t.word_out)
+        try:
+            result.input_alphabet = list(set(self.input_alphabet)
+                                         | set(other.input_alphabet))
+        except TypeError:
+            # e.g. None or unhashable letters
+            result.input_alphabet = None
+
         return result
 
     def concatenation(self, other):

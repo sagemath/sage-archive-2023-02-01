@@ -35,6 +35,7 @@ with ``delete()``.
     :func:`edge_connectivity` | Returns the edge connectivity of the graph.
     :func:`dominator_tree` | Returns a dominator tree of the graph.
     :func:`bandwidth_heuristics` | Uses heuristics to approximate the bandwidth of the graph.
+    :func:`min_spanning_tree` | Computes a minimum spanning tree of a (weighted) graph.
 
 Functions
 ---------
@@ -66,6 +67,57 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
 
     for u,v in g_sage.edge_iterator(labels=None):
         g.add_edge(vertex_to_int[u], vertex_to_int[v])
+
+cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
+                                          g_sage,
+                                          weight_function = None):
+    r"""
+    Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
+
+    The Boost graph ``*g`` must represent an empty weighted graph. The edge
+    weights are chosen as follows, and they must be convertible to floats,
+    otherwise an error is raised.
+
+    - If ``weight_function`` is not ``None``, this function is used.
+
+    - If ``weight_function`` is ``None`` and ``g`` is weighted, the edge labels
+      of ``g`` are used; in other words, the weight of an edge ``e=(u,v,l)`` is
+      ``l``.
+
+    - Otherwise, all weights are set to 1.
+
+    In particular, the ``weight_function`` must be a function which inputs an
+    edge ``e`` and outputs a number.
+    """
+
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g_sage, GenericGraph):
+        raise ValueError("The input parameter must be a Sage graph.")
+
+    if g.num_verts() > 0:
+        raise ValueError("The Boost graph in input must be empty")
+
+    N = g_sage.num_verts()
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g_sage.vertices())}
+
+    for i in range(N):
+        g.add_vertex()
+
+    if weight_function is not None:
+        for e in g_sage.edge_iterator():
+            g.add_edge(vertex_to_int[e[0]],
+                       vertex_to_int[e[1]],
+                       float(weight_function(e)))
+
+    elif g_sage.weighted():
+        for u,v,w in g_sage.edge_iterator():
+            g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
+
+    else:
+        for u,v in g_sage.edge_iterator(labels=False):
+            g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
+
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
     r"""
@@ -467,3 +519,120 @@ cpdef bandwidth_heuristics(g, algorithm = 'cuthill_mckee'):
 
     sig_off()
     return (bandwidth, [int_to_vertex[result[i]] for i in range(n)])
+
+cpdef min_spanning_tree(g,
+                        weight_function=None,
+                        algorithm='Kruskal'):
+    r"""
+    Uses Boost to compute the minimum spanning tree of the input graph.
+
+    INPUT:
+
+    - ``g`` (``Graph``) - the input graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge ``e`` and
+      outputs its weight. An edge has the form ``(u,v,l)``, where ``u`` and
+      ``v`` are vertices, ``l`` is a label (that can be of any kind). The
+      ``weight_function`` can be used to transform the label into a weight (see
+      the example below). In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e`` is
+        ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted (that
+        is, ``g.weighted()==True``), for each edge ``e=(u,v,l)``, we set weight
+        ``l``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set all
+        weights to 1 (hence, the output can be any spanning tree).
+
+      Note that, if the weight is not convertible to a number with function
+      ``float()``, an error is raised (see tests below).
+
+    - ``algorithm`` (``'Kruskal'`` or ``'Prim'``) - the algorithm used.
+
+    OUTPUT:
+
+    The edges of a minimum spanning tree of ``g``, if one exists, otherwise
+    the empty list.
+
+    .. seealso::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.min_spanning_tree`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import min_spanning_tree
+        sage: min_spanning_tree(graphs.PathGraph(4))
+        [(0, 1, None), (1, 2, None), (2, 3, None)]
+
+        sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
+        sage: min_spanning_tree(G, weight_function=lambda e: e[2]['weight'])
+        [(0, 1, {'name': 'a', 'weight': 1}), (1, 2, {'name': 'b', 'weight': 1})]
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: min_spanning_tree("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Sage Graph.
+
+    Given a wrong algorithm::
+
+        sage: min_spanning_tree(graphs.PathGraph(3), algorithm='tip top')
+        Traceback (most recent call last):
+        ...
+        ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
+
+    If the weight is not a number::
+
+        sage: g = Graph([(0,1,1), (1,2,'a')], weighted=True)
+        sage: min_spanning_tree(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: could not convert string to float: a
+
+        sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
+        sage: min_spanning_tree(g)
+        Traceback (most recent call last):
+        ...
+        TypeError: float() argument must be a string or a number
+    """
+    from sage.graphs.graph import Graph
+
+    if not isinstance(g, Graph):
+        raise ValueError("The input g must be a Sage Graph.")
+    if not algorithm in ['Kruskal', 'Prim']:
+        raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+
+    if g.allows_loops() or g.allows_multiple_edges():
+        g = g.to_simple()
+    # Now g has no self loops and no multiple edges.
+    sig_on()
+    # These variables are automatically deleted when the function terminates.
+    cdef BoostVecWeightedGraph g_boost
+    cdef vector[v_index] result
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+
+    try:
+        boost_weighted_graph_from_sage_graph(&g_boost, g, weight_function)
+    except Exception, e:
+        sig_off()
+        raise e
+
+    if algorithm=='Kruskal':
+        result = <vector[v_index]> g_boost.kruskal_min_spanning_tree()
+    elif algorithm=='Prim':
+        result = <vector[v_index]> g_boost.prim_min_spanning_tree()
+
+    cdef int n = g.num_verts()
+    sig_off()
+
+    if result.size() != 2 * (n - 1):
+        return []
+    else:
+        edges = [(int_to_vertex[result[2*i]], int_to_vertex[result[2*i+1]]) for i in range(n-1)]
+        return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])

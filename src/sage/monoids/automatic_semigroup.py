@@ -994,7 +994,7 @@ class AutomaticMonoid(AutomaticSemigroup):
         return self._one
 
     # This method takes the monoid generators and adds the unit
-    semigroup_generators = Monoids.ParentMethods.semigroup_generators.im_func
+    semigroup_generators = Monoids.ParentMethods.semigroup_generators.__func__
 
     def monoid_generators(self):
         """

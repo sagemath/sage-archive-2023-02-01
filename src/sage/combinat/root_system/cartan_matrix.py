@@ -27,7 +27,8 @@ from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.classcall_metaclass import typecall
 from sage.misc.misc import powerset
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
@@ -193,7 +194,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         :meth:`row_with_indices()` and :meth:`column_with_indices()`
         respectively.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
@@ -450,6 +451,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if self._cartan_type is None:
             return self
         return self._cartan_type
+
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: C = CartanMatrix(['F',4])
+            sage: C.subtype([1,2,3])
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -2  2]
+        """
+        ind = self.index_set()
+        I = [ind.index(i) for i in index_set]
+        return CartanMatrix(self.matrix_from_rows_and_columns(I, I))
 
     def rank(self):
         r"""

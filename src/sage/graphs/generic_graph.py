@@ -14,6 +14,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
+    :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
     :meth:`~GenericGraph.adjacency_matrix` | Return the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Return an incidence matrix of the (di)graph
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
@@ -241,6 +242,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.transitive_reduction` | Return a transitive reduction of a graph.
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
+    :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
 
 **Plot/embedding-related methods:**
 
@@ -1084,6 +1086,97 @@ class GenericGraph(GenericGraph_pyx):
             5
         """
         return self.copy(immutable=False)
+
+    def export_to_file(self, filename, format=None, **kwds):
+        r"""
+        Export the graph to a file.
+
+        INPUT:
+
+        - ``filename`` (string) -- a file name.
+
+        - ``format`` (string) -- select the output format explicitly. If set to
+          ``None`` (default), the format is set to be the file extension of
+          ``filename``. Admissible formats are: ``adjlist``, ``dot``,
+          ``edgelist``, ``gexf``, ``gml``, ``graphml``, ``multiline_adjlist``,
+          ``pajek``, ``yaml``.
+
+        - All other arguments are forwarded to the subfunction. For more
+          information, see their respective documentation:
+
+          .. csv-table::
+              :class: contentstable
+              :widths: 30, 70
+              :delim: |
+
+              ``adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.adjlist.write_adjlist.html
+              ``dot`` | https://networkx.github.io/documentation/latest/reference/generated/networkx.drawing.nx_pydot.write_dot.html
+              ``edgelist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.edgelist.write_edgelist.html
+              ``gexf`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gexf.write_gexf.html
+              ``gml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.gml.write_gml.html
+              ``graphml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.graphml.write_graphml.html
+              ``multiline_adjlist`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.multiline_adjlist.write_multiline_adjlist.html
+              ``pajek`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.pajek.write_pajek.html
+              ``yaml`` | http://networkx.lanl.gov/reference/generated/networkx.readwrite.nx_yaml.write_yaml.html
+
+        .. SEEALSO::
+
+            * :meth:`~sage.structure.sage_object.SageObject.save` -- save a Sage
+              object to a 'sobj' file (preserves all its attributes).
+
+        .. NOTE::
+
+            This functions uses the ``write_*`` functions defined in NetworkX
+            (see http://networkx.lanl.gov/reference/readwrite.html).
+
+        EXAMPLE::
+
+            sage: g = graphs.PetersenGraph()
+            sage: filename = tmp_filename(ext=".pajek")
+            sage: g.export_to_file(filename)
+            sage: import networkx
+            sage: G_networkx = networkx.read_pajek(filename)
+            sage: Graph(G_networkx).is_isomorphic(g)
+            True
+            sage: filename = tmp_filename(ext=".edgelist")
+            sage: g.export_to_file(filename, data=False)
+            sage: h = Graph(networkx.read_edgelist(filename))
+            sage: g.is_isomorphic(h)
+            True
+
+        TESTS::
+
+            sage: g.export_to_file("hey",format="When I feel heavy metaaaaaallll...")
+            Traceback (most recent call last):
+            ...
+            ValueError: Format 'When I feel heavy metaaaaaallll...' unknown.
+            sage: g.export_to_file("my_file.Yeeeeppeeeeee")
+            Traceback (most recent call last):
+            ...
+            RuntimeError: The file format could not be guessed from 'my_file.Yeeeeppeeeeee'
+        """
+        import networkx
+
+        formats = {"adjlist"           : networkx.write_adjlist,
+                   "dot"               : networkx.write_dot,
+                   "edgelist"          : networkx.write_edgelist,
+                   "gexf"              : networkx.write_gexf,
+                   "gml"               : networkx.write_gml,
+                   "graphml"           : networkx.write_graphml,
+                   "multiline_adjlist" : networkx.write_multiline_adjlist,
+                   "pajek"             : networkx.write_pajek,
+                   "yaml"              : networkx.write_yaml}
+
+        if format is None:
+            ext = filename[1+filename.rfind("."):]
+            if ext not in formats:
+                raise RuntimeError("The file format could not be guessed from '{}'".format(filename))
+            format = ext
+
+        if format not in formats:
+            raise ValueError("Format '{}' unknown.".format(format))
+
+        formats[format](self.networkx_graph(),filename,**kwds)
 
     def _scream_if_not_simple(self, allow_loops=False, allow_multiple_edges=False):
         r"""
@@ -2402,15 +2495,27 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.multiple_edges(None)
 
-    def allow_multiple_edges(self, new, check=True):
+    def allow_multiple_edges(self, new, check=True, keep_label='any'):
         """
         Changes whether multiple edges are permitted in the (di)graph.
 
         INPUT:
 
-        - ``new`` - boolean.
+        - ``new`` (boolean): if ``True``, the new graph will allow multiple
+          edges.
 
-        EXAMPLES::
+        - ``check`` (boolean): if ``True`` and ``new`` is ``False``, we remove
+          all multiple edges from the graph.
+
+        - ``keep_label`` (``'any','min','max'``): used only if ``new`` is
+          ``False`` and ``check`` is ``True``. If there are multiple edges with
+          different labels, this variable defines which label should be kept:
+          any label (``'any'``), the smallest label (``'min'``), or the largest
+          (``'max'``).
+
+        EXAMPLES:
+
+        The standard behavior with undirected graphs::
 
             sage: G = Graph(multiedges=True,sparse=True); G
             Multi-graph on 0 vertices
@@ -2418,17 +2523,33 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges()
-            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            [(0, 1, 1), (0, 1, 2), (0, 1, 3)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.edges()
-            [(0, 1, None)]
+            [(0, 1, 1)]
+
+        If we ask for the minimum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='min')
+            sage: G.edges()
+            [(0, 1, 1)]
+
+        If we ask for the maximum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='max')
+            sage: G.edges()
+            [(0, 1, 3)]
+
+        The standard behavior with digraphs::
 
             sage: D = DiGraph(multiedges=True,sparse=True); D
             Multi-digraph on 0 vertices
@@ -2448,15 +2569,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        seen = set()
+        seen = dict()
+
+        if not keep_label in ['any','min','max']:
+            raise ValueError("Variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
             for u,v,l in self.multiple_edges():
-                if (u,v) in seen:
-                    self.delete_edge(u,v,l)
+                if not (u,v) in seen:
+                    # This is the first time we see this edge
+                    seen[(u,v)] = l
                 else:
-                    seen.add((u,v))
+                    # This edge has already been seen: we have to remove
+                    # something from the graph.
+                    oldl = seen[(u,v)]
+                    if ((keep_label=='min' and l<oldl) or (keep_label=='max' and l>oldl)):
+                        # Keep the new edge, delete the old one
+                        self.delete_edge((u,v,oldl))
+                        seen[(u,v)] = l
+                    else:
+                        # Delete the new edge
+                        self.delete_edge((u,v,l))
 
         self._backend.multiple_edges(new)
 
@@ -3209,17 +3343,23 @@ class GenericGraph(GenericGraph_pyx):
             return edges
 
     def min_spanning_tree(self,
-                          weight_function=lambda e: 1,
+                          weight_function=None,
                           algorithm="Kruskal",
                           starting_vertex=None,
                           check=False):
         r"""
         Returns the edges of a minimum spanning tree.
 
+        At the moment, no algorithm for directed graph is implemented: if the
+        graph is directed, a minimum spanning tree of the corresponding
+        undirected graph is returned.
+
         INPUT:
 
         - ``weight_function`` -- A function that takes an edge and returns a
-          numeric weight. Defaults to assigning each edge a weight of 1.
+          numeric weight. If ``None`` (default), the algorithm uses the edge
+          weights, if available, otherwise it assigns weight 1 to each edge (in
+          the latter case, the output can be any spanning tree).
 
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
@@ -3236,7 +3376,8 @@ class GenericGraph(GenericGraph_pyx):
             implementation.
 
         - ``starting_vertex`` -- The vertex from which to begin the search
-          for a minimum spanning tree.
+          for a minimum spanning tree (available only for ``Prim_fringe`` and
+          ``Prim_edge``).
 
         - ``check`` -- Boolean; default: ``False``. Whether to first perform
           sanity checks on the input graph ``G``. If appropriate, ``check``
@@ -3263,7 +3404,7 @@ class GenericGraph(GenericGraph_pyx):
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -3275,14 +3416,67 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (3, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
-            [(2, 4), (4, 3), (4, 1), (4, 0)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
+
+        NetworkX algorithm::
+
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None)]
+
+        TESTS:
+
+        Check that, if ``weight_function`` is not provided, then edge weights
+        are used::
+
+            sage: g = Graph(weighted=True)
+            sage: g.add_edges([[0,1,1],[1,2,1],[2,0,10]])
+            sage: g.min_spanning_tree()
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, 1), (1, 2, 1)]
+
+        Check that, if ``weight_function`` is provided, it overrides edge
+        weights::
+
+            sage: g = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+            sage: weight = lambda e:3-e[0]-e[1]
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+
+        If the graph is directed, it is transformed into an undirected graph::
+
+            sage: g = digraphs.Circuit(3)
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
+            sage: g.to_undirected().min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
         """
         if algorithm == "Kruskal":
             from spanning_tree import kruskal
-            return kruskal(self, wfunction=weight_function, check=check)
-        elif algorithm == "Prim_fringe":
+            if self.is_directed():
+                return kruskal(self.to_undirected(), wfunction=weight_function, check=check)
+            else:
+                return kruskal(self, wfunction=weight_function, check=check)
+
+        if weight_function is None:
+            if self.weighted():
+                weight_function = lambda e:self.edge_label(e[0], e[1])
+            else:
+                weight_function = lambda e:1
+
+        if algorithm == "Prim_fringe":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
             else:
@@ -3297,7 +3491,8 @@ class GenericGraph(GenericGraph_pyx):
             for i in range(self.order() - 1):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
-                edges.append((fringe_list[u][1], u))
+                x = fringe_list[u][1]
+                edges.append((min(x,u), max(x,u), self.edge_label(x, u)))
                 tree.add(u)
                 fringe_list.pop(u)
                 # update fringe list
@@ -3305,7 +3500,8 @@ class GenericGraph(GenericGraph_pyx):
                     w = weight_function((u, neighbor))
                     if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
                         fringe_list[neighbor] = (w, u)
-            return edges
+            return sorted(edges)
+
         elif algorithm == "Prim_edge":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
@@ -3336,11 +3532,13 @@ class GenericGraph(GenericGraph_pyx):
                         break
                     else:
                         i += 1
-            return edges
+            return sorted(edges)
+
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(u, v, dict(weight=weight_function((u, v)))) for u, v, l in self.edge_iterator()])
-            return list(networkx.mst(G))
+            return sorted([(u,v,self.edge_label(u,v)) if u<v else (v,u,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()])
+
         else:
             raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)
 
@@ -12239,15 +12437,15 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used. If ``None``,
-          the best option is chosen. Boost implementation only works on
-          undirected graphs.
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed graphs.
 
         EXAMPLES::
 
             sage: (graphs.FruchtGraph()).clustering_average()
-            0.25
+            1/4
             sage: (graphs.FruchtGraph()).clustering_average(implementation='networkx')
             0.25
 
@@ -12258,36 +12456,42 @@ class GenericGraph(GenericGraph_pyx):
             sage: digraphs.Circuit(10).clustering_average(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected graphs.
+            ValueError: This value of 'implementation' is invalid for directed graphs
 
-        The result is the same with Boost and NetworkX::
+        The result is the same with all implementations::
 
             sage: G = graphs.RandomGNM(10,20)
-            sage: average_boost    = G.clustering_average(implementation='boost')
-            sage: average_networkx = G.clustering_average(implementation='networkx')
-            sage: average_boost-average_networkx # tol abs 1e-12
+            sage: coeffs = [G.clustering_average(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
+            sage: max(coeffs)-min(coeffs) # tol abs 1e-12
             0
 
         """
         if implementation == None:
-            if not self.is_directed():
-                implementation = 'boost'
-            else:
-                implementation = 'networkx'
-
-        if not implementation in ['networkx','boost']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', or None.")
-
-        if (implementation == 'boost'):
+            from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed():
-                raise ValueError("Boost algorithm is only implemented for " +
-                                 "undirected graphs.")
+                implementation = 'networkx'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if self.is_directed() and implementation != 'networkx':
+            raise ValueError("This value of 'implementation' is invalid for directed graphs")
+
+        if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
             return clustering_coeff(self)[0]
-        else:
+        elif implementation == 'networkx':
             import networkx
             return networkx.average_clustering(self.networkx_graph(copy=False))
+        else:
+            from sage.stats.basic_stats import mean
+            return mean(self.clustering_coeff(implementation=implementation).values())
 
     def clustering_coeff(self,
                          nodes=None,
@@ -12321,25 +12525,18 @@ class GenericGraph(GenericGraph_pyx):
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
-        - ``implementation`` - if ``'boost'``, then the Boost algorithm is used,
-          if ``'networkx'``, then the NetworkX algorithm is used, if 'None', the
-          best option is chosen by the algorithm. Boost implementation only
-          works on undirected graphs, and only if ``weight`` is ``False``.
+        - ``implementation`` - one of ``'boost'``, ``'sparse_copy'``,
+          ``'dense_copy'``, ``'networkx'`` or ``None`` (default). In the latter
+          case, the best algorithm available is used. Note that only
+          ``'networkx'`` supports directed or weighted graphs, and that
+          ``'sparse_copy'`` and ``'dense_copy'`` do not support ``node``
+          different from ``None``
 
         EXAMPLES::
 
-            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='networkx').values()
-            [0.3333333333333333, 0.3333333333333333, 0.0, 0.3333333333333333,
-             0.3333333333333333, 0.3333333333333333, 0.3333333333333333,
-             0.3333333333333333, 0.0, 0.3333333333333333, 0.3333333333333333,
-             0.0]
-
-            sage: (graphs.FruchtGraph()).clustering_coeff(implementation='boost')
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
-             3: 0.3333333333333333, 4: 0.3333333333333333,
-             5: 0.3333333333333333, 6: 0.3333333333333333,
-             7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-             10: 0.3333333333333333, 11: 0.0}
+            sage: graphs.FruchtGraph().clustering_coeff()
+            {0: 1/3, 1: 1/3, 2: 0, 3: 1/3, 4: 1/3, 5: 1/3,
+             6: 1/3, 7: 1/3, 8: 0, 9: 1/3, 10: 1/3, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
@@ -12374,51 +12571,75 @@ class GenericGraph(GenericGraph_pyx):
             sage: graphs.FruchtGraph().clustering_coeff(implementation='boost', weight=True)
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
 
         Boost does not work with DiGraph::
 
             sage: digraphs.Circuit(10).clustering_coeff(implementation='boost')
             Traceback (most recent call last):
             ...
-            ValueError: Boost algorithm is only implemented for undirected, unweighted graphs.
+            ValueError: This value of 'implementation' is invalid for directed/weighted graphs
 
-        Check that the result is the same with Boost and NetworkX::
+        Check that the result is the same with all implementations::
 
             sage: G = graphs.RandomGNM(10,20)
-            sage: clust_boost = G.clustering_coeff(implementation='boost')
-            sage: clust_networkx = G.clustering_coeff(implementation='networkx')
+            sage: G.relabel(list("abcdefghik"))
+            sage: coeffs = [G.clustering_coeff(implementation=impl)
+            ....:           for impl in ['boost','sparse_copy','dense_copy','networkx']]
             sage: for v in G:
-            ....:     if abs(clust_boost[v] - clust_networkx[v]) > 1E-12:
-            ....:         print "Error:"
-            ....:         print "   Boost clustering of", v, "is", clust_boost[v]
-            ....:         print "NetworkX clustering of", v, "is", clust_networkx[v]
-
+            ....:     coeffs_v = [c[v] for c in coeffs]
+            ....:     if max(coeffs_v) - min(coeffs_v) > 1E-12:
+            ....:         print "Error for v=",v
+            ....:         print "min=",min(coeffs_v),"max=",max(coeffs_v)
         """
+        from sage.rings.integer import Integer
         if return_vertex_weights is not None:
             from sage.misc.superseded import deprecation
             deprecation(17134, "The option 'return_vertex_weights' has been " +
                         "deprecated and is ignored.")
 
         if implementation == None:
-            if (not self.is_directed()) and not weight:
-                implementation = 'boost'
-            else:
-                implementation = 'networkx'
-
-        if not implementation in ['networkx','boost']:
-            raise ValueError("The implementation can only be 'networkx', " +
-                             "'boost', or None.")
-
-        if (implementation == 'boost'):
+            from sage.graphs.base.dense_graph import DenseGraphBackend
             if self.is_directed() or weight:
-                raise ValueError("Boost algorithm is only implemented for " +
-                                 "undirected, unweighted graphs.")
+                implementation = 'networkx'
+            elif nodes is not None:
+                implementation = 'boost'
+            elif isinstance(self._backend, DenseGraphBackend):
+                implementation = 'dense_copy'
+            else:
+                implementation = 'sparse_copy'
+
+        if not implementation in ['networkx','boost', 'dense_copy', 'sparse_copy']:
+            raise ValueError("The implementation can only be 'networkx', " +
+                             "'boost', 'sparse_copy', 'dense_copy' or None.")
+
+        if ((self.is_directed() or weight) and
+            implementation != 'networkx'):
+            raise ValueError("This value of 'implementation' is invalid for directed/weighted graphs")
+
+        if (implementation in ['sparse_copy','dense_copy'] and nodes is not None):
+            raise ValueError("'sparse_copy','dense_copy' do not support 'nodes' different from 'None'")
+
+        def coeff_from_triangle_count(v,count):
+            dv = self.degree(v)
+            if dv < 2:
+                return 0
+            return 2*count/Integer(dv*(dv-1))
+
+        if implementation == 'boost':
             from sage.graphs.base.boost_graph import clustering_coeff
             return clustering_coeff(self, nodes)[1]
-        else:
+        elif implementation == 'networkx':
             import networkx
             return networkx.clustering(self.networkx_graph(copy=False), nodes, weight=weight)
+        elif implementation == 'sparse_copy':
+            from sage.graphs.base.static_sparse_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
+        elif implementation =="dense_copy":
+            from sage.graphs.base.static_dense_graph import triangles_count
+            return {v:coeff_from_triangle_count(v,count)
+                    for v,count in triangles_count(self).iteritems()}
 
     def cluster_transitivity(self):
         r"""
@@ -12594,7 +12815,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self)
+                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
 
             v = self.vertices()
         elif not isinstance(v, list):
@@ -13399,10 +13620,10 @@ class GenericGraph(GenericGraph_pyx):
                 return Integer(tr//6)
             elif algorithm=="sparse_copy":
                 from sage.graphs.base.static_sparse_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=="dense_copy":
                 from sage.graphs.base.static_dense_graph import triangles_count
-                return triangles_count(self)
+                return sum(triangles_count(self).itervalues())/3
             elif algorithm=='matrix':
                 return (self.adjacency_matrix()**3).trace() // 6
             else:
@@ -14435,10 +14656,22 @@ class GenericGraph(GenericGraph_pyx):
             return G.copy(immutable=True)
         return G
 
-    def to_simple(self):
+    def to_simple(self, to_undirected=True, keep_label='any'):
         """
-        Returns a simple version of itself (i.e., undirected and loops and
-        multiple edges are removed).
+        Returns a simple version of itself.
+
+        In particular, loops and multiple edges are removed, and the graph might
+        optionally be converted to an undirected graph.
+
+        INPUT:
+
+        - ``to_undirected`` - boolean - if ``True``, the graph is also converted
+          to an undirected graph.
+
+        - ``keep_label`` (``'any','min','max'``): if there are multiple edges
+          with different labels, this variable defines which label should be
+          kept: any label (``'any'``), the smallest label (``'min'``), or the
+          largest (``'max'``).
 
         EXAMPLES::
 
@@ -14455,10 +14688,17 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: H.allows_multiple_edges()
             False
+            sage: G.to_simple(to_undirected=False, keep_label='min').edges()
+            [(2, 3, 1), (3, 2, None)]
+            sage: G.to_simple(to_undirected=False, keep_label='max').edges()
+            [(2, 3, 2), (3, 2, None)]
         """
-        g=self.to_undirected()
+        if to_undirected:
+            g=self.to_undirected()
+        else:
+            g=copy(self)
         g.allow_loops(False)
-        g.allow_multiple_edges(False)
+        g.allow_multiple_edges(False, keep_label=keep_label)
         return g
 
     def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
@@ -18778,6 +19018,9 @@ import sage.graphs.distances_all_pairs
 GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
 GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
 GenericGraph.diameter = types.MethodType(sage.graphs.distances_all_pairs.diameter, None, GenericGraph)
+
+from sage.graphs.base.boost_graph import dominator_tree
+GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
 # From Python modules
 import sage.graphs.line_graph

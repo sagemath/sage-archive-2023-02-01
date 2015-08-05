@@ -75,13 +75,13 @@ explicit calls to Maxima or other systems.
 
 ::
 
-    sage: # (NOT REALLY) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
+    sage: # (YES) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
     sage: a = sqrt(14+3*sqrt(3+2*sqrt(5-12*sqrt(3-2*sqrt(2)))))
     sage: b = 3+sqrt(2)
     sage: a, b
     (sqrt(3*sqrt(2*sqrt(-12*sqrt(-2*sqrt(2) + 3) + 5) + 3) + 14), sqrt(2) + 3)
     sage: bool(a==b)
-    False
+    True
     sage: abs(float(a-b)) < 1e-10
     True
     sage: # 2*Infinity-3=Infinity.

@@ -1662,8 +1662,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 unit = unit * v[i][0]
                 del v[i]
                 break
-        F = Factorization(v, unit=unit)
-        F.sort()
+        F = sorted(Factorization(v, unit=unit))
         return F
 
     def lift(self,I):

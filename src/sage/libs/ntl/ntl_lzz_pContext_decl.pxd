@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct zz_pContext_c "struct zz_pContext":
         pass

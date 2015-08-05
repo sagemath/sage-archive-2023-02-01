@@ -17,8 +17,6 @@ namespace GiNaC {
 class infoflagbase {
 public:
 	infoflagbase();
-	infoflagbase(const infoflagbase& orig);
-	virtual ~infoflagbase();
 
 	std::string to_string() const       { return bits.to_string(); }
 	bool get(unsigned flag) const;
@@ -36,10 +34,10 @@ private:
 		info_flags::nonzero,
 		};
 
-	static unsigned* index, max;
+	static unsigned index[info_flags::relation];
 	static void init_index();
 
-	std::bitset<sizeof(flags)/sizeof(info_flags)> bits;
+	std::bitset<sizeof(flags)/sizeof(unsigned)> bits;
 
 
 };

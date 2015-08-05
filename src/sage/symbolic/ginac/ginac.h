@@ -59,6 +59,8 @@
 #include "fderivative.h"
 #include "operators.h"
 
+#include "assume.h"
+
 #include "idx.h"
 #include "indexed.h"
 #include "tensor.h"

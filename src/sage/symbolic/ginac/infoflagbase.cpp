@@ -10,38 +10,29 @@
 
 namespace GiNaC {
 
-infoflagbase::infoflagbase() {
-        if (index == nullptr)
+static bool initialized = false;
+
+infoflagbase::infoflagbase()
+{
+        if (not initialized)
                 init_index();
-}
-
-infoflagbase::infoflagbase(const infoflagbase& orig) {
-}
-
-infoflagbase::~infoflagbase() {
 }
 
 //------------------------------------------
 constexpr unsigned const infoflagbase::flags[];
-unsigned* infoflagbase::index = nullptr;
-unsigned infoflagbase::max;
+unsigned infoflagbase::index[info_flags::relation];
 
 void infoflagbase::init_index()
 {
-        max = 0;
-        for (unsigned i : flags)
-                if (max < i)
-                        max = i;
-
-        index = new unsigned(max+1);
         unsigned ctr = 0;
         for (unsigned i : flags)
                 index[i] = ctr++; 
+        initialized = true;
 }
 
 bool infoflagbase::get(unsigned flag) const
 {
-        if (flag > max)
+        if (flag > info_flags::relation)
                 throw(std::runtime_error("requested wrong info flag"));
         return bits[index[flag]];
 }

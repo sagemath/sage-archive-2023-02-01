@@ -9,19 +9,7 @@ difference family (or check that it can be built) with :func:`difference_family`
 
 It defines the following functions:
 
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
-
-    :func:`is_difference_family` | Check if the input is a (``k``, ``l``)-difference family.
-    :func:`difference_family` | Return a (``k``, ``l``)-difference family on an Abelian group of size ``v``.
-    :func:`radical_difference_family` | Return a radical difference family.
-    :func:`radical_difference_set` | Return a radical difference set.
-    :func:`singer_difference_set` | Return a difference set associated to hyperplanes in a projective space.
-    :func:`df_q_6_1` | Return a difference family with parameter `k=6` on a finite field.
-    :func:`one_radical_difference_family` | Return a radical difference family using an exhaustive search.
-    :func:`twin_prime_powers_difference_set` | Return a twin prime powers difference family.
+{INDEX_OF_FUNCTIONS}
 
 REFERENCES:
 
@@ -1338,3 +1326,7 @@ def difference_family(v, k, l=1, existence=False, explain_construction=False, ch
                 "Please contact sage-devel@googlegroups.com".format(G,v,k,l,D))
 
     return G, D
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+import sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))

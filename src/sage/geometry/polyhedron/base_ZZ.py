@@ -14,7 +14,6 @@ Base class for polyhedra over `\ZZ`
 
 from sage.rings.all import ZZ, QQ, gcd
 from sage.misc.all import cached_method
-from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from constructor import Polyhedron
 from base import Polyhedron_base
@@ -256,27 +255,17 @@ class Polyhedron_ZZ(Polyhedron_base):
             sage: P.ehrhart_polynomial(bim_bam_boum=19)   # optional - latte_int
             Traceback (most recent call last):
             ...
-            RuntimeError: Latte returned 1 when running:
-            count --ehrhart-polynomial --redundancy-check=none --bim-bam-boum=19 --cdd ...
-            (see output above)
+            RuntimeError: LattE integrale failed with exit code 1 to execute...
         """
-        if not self.is_lattice_polytope():
-            raise ValueError("this must be a lattice polytope")
-
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(QQ, 't')
         if self.is_empty():
             return R.zero()
 
-        from sage.misc.temporary_file import tmp_filename
         from sage.misc.misc import SAGE_TMP
         from subprocess import Popen, PIPE
 
-        in_str = self.cdd_Hrepresentation()
-        in_filename = tmp_filename() + '.ine'
-        in_file = open(in_filename, 'w')
-        in_file.write(self.cdd_Hrepresentation())
-        in_file.close()
+        ine = self.cdd_Hrepresentation()
 
         args = ['count', '--ehrhart-polynomial']
         if 'redundancy_check' not in kwds:
@@ -305,22 +294,28 @@ class Polyhedron_ZZ(Polyhedron_base):
                 args.append('--{}'.format(key))
             else:
                 args.append('--{}={}'.format(key, value))
-        args.append('--cdd')
-        args.append(in_filename)
+        args += ['--cdd', '/dev/stdin']
 
         try:
-            latte_proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=(None if verbose else PIPE), cwd=str(SAGE_TMP))
+            # The cwd argument is needed because latte
+            # always produces diagnostic output files.
+            latte_proc = Popen(args,
+                               stdin=PIPE, stdout=PIPE,
+                               stderr=(None if verbose else PIPE),
+                               cwd=str(SAGE_TMP))
         except OSError:
-            raise ValueError("The package latte_int must be installed (type "
-                    "'sage -i latte_int') in a console or "
-                    "'install_package('latte_int') at a Sage prompt)!\n")
+            raise ValueError("The package latte_int must be installed "
+                    "(type 'sage -i latte_int' in a console or "
+                    "'install_package('latte_int')' at a Sage prompt)!\n")
 
-        ans, err = latte_proc.communicate()
+        ans, err = latte_proc.communicate(ine)
         ret_code = latte_proc.poll()
         if ret_code:
-            if not verbose:
-                print err
-            raise RuntimeError("Latte returned {} when running:\n{}\n(see output above)".format(ret_code, ' '.join(args)))
+            if err is None:
+                err = ", see error message above"
+            else:
+                err = ":\n" + err
+            raise RuntimeError("LattE integrale failed with exit code {} to execute {}".format(ret_code, ' '.join(args)) + err.strip())
 
         p = ans.splitlines()[-2]
 

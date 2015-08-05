@@ -33,14 +33,11 @@ with ``delete()``.
 
     :func:`clustering_coeff`  | Returns the clustering coefficient of all vertices in the graph.
     :func:`edge_connectivity` | Returns the edge connectivity of the graph.
+    :func:`dominator_tree` | Returns a dominator tree of the graph.
 
 Functions
 ---------
 """
-
-from sage.graphs.graph import Graph
-from sage.graphs.digraph import DiGraph
-from sage.graphs.generic_graph import GenericGraph
 
 include "sage/ext/interrupt.pxi"
 
@@ -51,6 +48,8 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     The Boost graph ``*g`` must represent an empty graph (an exception is raised
     otherwise).
     """
+
+    from sage.graphs.generic_graph import GenericGraph
 
     if not isinstance(g_sage, GenericGraph):
         raise ValueError("The input parameter must be a Sage graph.")
@@ -103,6 +102,9 @@ cpdef edge_connectivity(g):
         [4, [(0, 1), (0, 2), (0, 3), (0, 4)]]
 
     """
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
+
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
@@ -190,6 +192,8 @@ cpdef clustering_coeff(g, vertices = None):
         sage: clustering_coeff(g, vertices="abde")
         [0.5, {'a': 0.5, 'b': 0.5, 'd': 0.5, 'e': 0.5}]
     """
+    from sage.graphs.graph import Graph
+
     sig_on()
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost
@@ -210,3 +214,151 @@ cpdef clustering_coeff(g, vertices = None):
     clust_v_sage = {g_vertices[v]: clust_v_int[v] for v in vertices_boost}
     sig_off()
     return [average_clustering, clust_v_sage]
+
+
+cpdef dominator_tree(g, root, return_dict = False):
+    r"""
+    Uses Boost to compute the dominator tree of ``g``, rooted at ``root``.
+
+    A node `d` dominates a node `n` if every path from the entry node
+    ``root`` to `n` must go through `d`. The immediate dominator of a node
+    `n` is the unique node that strictly dominates `n` but does not dominate
+    any other node that dominates `n`. A dominator tree is a tree where each
+    node's children are those nodes it immediately dominates. For more
+    information, see :wikipedia:`Dominator_(graph_theory)`.
+
+    If the graph is connected and undirected, the parent of a vertex `v` is:
+
+     - the root if `v` is in the same biconnected component as the root;
+
+     - the first cut vertex in a path from `v` to the root, otherwise.
+
+    If the graph is not connected, the dominator tree of the whole graph is
+    equal to the dominator tree of the connected component of the root.
+
+    If the graph is directed, computing a dominator tree is more complicated,
+    and it needs time `O(m\log m)`, where `m` is the number of edges. The
+    implementation provided by Boost is the most general one, so it needs time
+    `O(m\log m)` even for undirected graphs.
+
+    INPUT:
+
+    - ``g`` (generic_graph) - the input graph.
+
+    - ``root`` (vertex) - the root of the dominator tree.
+
+    - ``return_dict`` (boolean) - if ``True``, the function returns a
+      dictionary associating to each vertex its parent in the dominator
+      tree. If ``False`` (default), it returns the whole tree, as a ``Graph``
+      or a ``DiGraph``.
+
+    OUTPUT:
+
+    The dominator tree, as a graph or as a dictionary, depending on the
+    value of ``return_dict``. If the output is a dictionary, it will contain
+    ``None`` in correspondence of ``root`` and of vertices that are not
+    reachable from ``root``. If the output is a graph, it will not contain
+    vertices that are not reachable from ``root``.
+
+    EXAMPLES:
+
+    An undirected grid is biconnected, and its dominator tree is a star
+    (everyone's parent is the root)::
+
+        sage: g = graphs.GridGraph([2,2]).dominator_tree((0,0))
+        sage: g.to_dictionary()
+        {(0, 0): [(0, 1), (1, 0), (1, 1)], (0, 1): [(0, 0)], (1, 0): [(0, 0)], (1, 1): [(0, 0)]}
+
+    If the graph is made by two 3-cycles `C_1,C_2` connected by an edge `(v,w)`,
+    with `v \in C_1`, `w \in C_2`, the cut vertices are `v` and `w`, the
+    biconnected components are `C_1`, `C_2`, and the edge `(v,w)`. If the root
+    is in `C_1`, the parent of each vertex in `C_1` is the root, the parent of
+    `w` is `v`, and the parent of each vertex in `C_2` is `w`::
+
+         sage: G = 2 * graphs.CycleGraph(3)
+         sage: v = 0
+         sage: w = 3
+         sage: G.add_edge(v,w)
+         sage: G.dominator_tree(1, return_dict=True)
+         {0: 1, 1: None, 2: 1, 3: 0, 4: 3, 5: 3}
+
+    An example with a directed graph::
+
+        sage: g = digraphs.Circuit(10).dominator_tree(5)
+        sage: g.to_dictionary()
+        {0: [1], 1: [2], 2: [3], 3: [4], 4: [], 5: [6], 6: [7], 7: [8], 8: [9], 9: [0]}
+
+    If the output is a dictionary::
+
+        sage: graphs.GridGraph([2,2]).dominator_tree((0,0), return_dict = True)
+        {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 0)}
+
+    TESTS:
+
+    If ``g`` is not a graph, an error is raised::
+
+        sage: from sage.graphs.base.boost_graph import dominator_tree
+        sage: dominator_tree('I am not a graph', 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Sage graph.
+
+    If ``root`` is not a vertex, an error is raised::
+
+        sage: digraphs.TransitiveTournament(10).dominator_tree('Not a vertex!')
+        Traceback (most recent call last):
+        ...
+        ValueError: The input root must be a vertex of g.
+        sage: graphs.GridGraph([2,2]).dominator_tree(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input root must be a vertex of g.
+
+    """
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
+
+    if not isinstance(g, Graph) and not isinstance(g, DiGraph):
+        raise ValueError("The input g must be a Sage graph.")
+    if not root in g.vertices():
+        raise ValueError("The input root must be a vertex of g.")
+
+    sig_on()
+    # These variables are automatically deleted when the function terminates.
+    cdef BoostVecGraph g_boost_und
+    cdef BoostVecDiGraph g_boost_dir
+    cdef vector[v_index] result
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
+
+    if isinstance(g, Graph):
+        boost_graph_from_sage_graph(&g_boost_und, g)
+        result = <vector[v_index]> g_boost_und.dominator_tree(vertex_to_int[root])
+
+    elif isinstance(g, DiGraph):
+        boost_graph_from_sage_graph(&g_boost_dir, g)
+        result = <vector[v_index]> g_boost_dir.dominator_tree(vertex_to_int[root])
+
+    sig_off()
+
+    cdef v_index no_parent = -1
+
+    if return_dict:
+        return {v:(None if result[vertex_to_int[v]] == no_parent else int_to_vertex[<int> result[vertex_to_int[v]]]) for v in g.vertices()};
+
+    edges = [[int_to_vertex[result[vertex_to_int[v]]], v] for v in g.vertices() if result[vertex_to_int[v]] != no_parent]
+
+    if g.is_directed():
+        if len(edges) == 0:
+            g = DiGraph()
+            g.add_vertex(root)
+            return g
+        else:
+            return DiGraph(edges)
+    else:
+        if len(edges) == 0:
+            g = Graph()
+            g.add_vertex(root)
+            return g
+        else:
+            return Graph(edges)

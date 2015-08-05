@@ -64,6 +64,7 @@ from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.misc.decorators import rename_keyword
 from sage.homology.homology_group import HomologyGroup
+from functools import reduce
 
 
 def _latex_module(R, m):

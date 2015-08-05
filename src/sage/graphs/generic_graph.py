@@ -14863,12 +14863,6 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: BFS algorithm does not work on weighted graphs.
-
-        REFERENCE:
-
-        .. [KRG96b] S. Klavzar, A. Rajapakse, and I. Gutman. The Szeged and the
-           Wiener index of graphs. *Applied Mathematics Letters*, 9(5):45--49,
-           1996.
         """
         by_weight = by_weight or (weight_function is not None)
 

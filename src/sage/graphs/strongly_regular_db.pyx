@@ -328,6 +328,64 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 from sage.graphs.generators.families import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
+@cached_function
+def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
+    r"""
+    Test whether some descendant graph of an s.r.g. is `(v_0,k_0,\lambda_0,\mu_0)`-s.r.g.
+
+    We check whether there can exist (v,k,\lambda,\mu)-s.r.g. `G` so that ``self`` is a
+    descendant graph of the regular two-graph specified by `G`.  Specifically, we must have
+    that `v=v_0+1=2(2k-\lambda-\mu)`, and `k_0=2(k-\mu)`, `lambda_0=k+\lambda-2\mu`, `\mu_0=k-\mu`,
+    which give 2 linear conditions, say `k-\mu=\mu_0` and `\lambda-\mu=\lambda_0-\mu_0`.
+    Further, there is a quadratic relation `2 k^2-(v_0+1+4 \mu_0) k+ 2 v_0 \mu_0=0`.
+
+    If we can contruct such `G` then we return a function to build a `(v_0,k_0,\lambda_0,\mu_0)`-s.r.g.
+    For more information, see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
+
+    INPUT:
+
+    - ``v0,k0,l0,mu0`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists and is known, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_two_graph_descendant_of_srg
+        sage: t = is_two_graph_descendant_of_srg(27, 10, 1, 5); t
+        (<cyfunction is_two_graph_descendant_of_srg.<locals>.la at...
+        sage: g = t[0](*t[1:]); g
+        Graph on 27 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (27, 10, 1, 5)
+        sage: t = is_two_graph_descendant_of_srg(5,5,5,5); t
+
+    TESTS::
+
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75, existence=True)
+        True
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75).is_strongly_regular(parameters=True)
+        (279, 150, 85, 75)
+    """
+    cdef int b, k, s
+    from sage.misc.functional import is_even
+    if k0 != 2*mu0 or is_even(v0):
+        return
+    b = v0+1+4*mu0
+    D = sqrt(b**2-16*v0*mu0)
+    if int(D)==D:
+        for kf in map(lambda s: (s*D+b)/4, [-1,1]):
+            k = int(kf)
+            if k == kf and True==\
+                strongly_regular_graph(v0+1, k, l0 - 2*mu0 + k , k - mu0,  existence=True):
+                def la(vv):
+                    g = strongly_regular_graph(vv, k, l0 - 2*mu0 + k)
+                    return g.twograph_descendant(g.vertex_iterator().next())
+                return(la, v0+1)
+    return
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -374,24 +432,6 @@ def SRG_280_135_70_60():
     edges = J2.orbit((1,2),"OnSets")
     g     = Graph()
     g.add_edges(edges)
-    g.relabel()
-    return g
-
-def SRG_279_150_85_75():
-    r"""
-    Return a strongly regular graph with parameters (279, 150, 85, 75)
-
-    This graph is built as a two-graph descendant graph of SRG_280_135_70_60.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.strongly_regular_db import SRG_279_150_85_75
-        sage: g=SRG_279_150_85_75()
-        sage: g.is_strongly_regular(parameters=True)
-        (279, 150, 85, 75)
-    """
-    from sage.graphs.strongly_regular_db import SRG_280_135_70_60
-    g = SRG_280_135_70_60().twograph_descendant(0)
     g.relabel()
     return g
 
@@ -1067,7 +1107,6 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         (231,  30,  9,  3): [CameronGraph],
         (275, 112, 30, 56): [McLaughlinGraph],
         (280, 135, 70, 60): [SRG_280_135_70_60],
-        (279, 150, 85, 75): [SRG_279_150_85_75],
         (1024, 198, 22, 42): [SRG_1024_198_22_42],
         (243,  20, 199,200): [SRG_243_20_199_200],
         (256,  53,  92, 90): [SRG_256_53_92_90],
@@ -1095,7 +1134,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
-                      is_orthogonal_polar]
+                      is_orthogonal_polar,
+                      is_two_graph_descendant_of_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

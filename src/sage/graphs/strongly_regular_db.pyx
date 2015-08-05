@@ -252,6 +252,82 @@ def is_affine_polar(int v,int k,int l,int mu):
             from sage.graphs.generators.families import AffineOrthogonalPolarGraph
             return (lambda d,q : AffineOrthogonalPolarGraph(d,q,sign='-'),2*e,q)
 
+@cached_function
+def is_orthogonal_polar(int v,int k,int l,int mu):
+    r"""
+    Test whether some Orthogonal Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_orthogonal_polar
+        sage: t = is_orthogonal_polar(85, 20, 3, 5); t
+        (<function OrthogonalPolarGraph at ...>, 5, 4, '')
+        sage: g = t[0](*t[1:]); g
+        Orthogonal Polar Graph O(5, 4): Graph on 85 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (85, 20, 3, 5)
+
+        sage: t = is_orthogonal_polar(5,5,5,5); t
+
+    TESTS:
+
+    All of ``O(2m+1,q)``, ``O^+(2m,q)`` and ``O^-(2m,q)`` appear::
+
+        sage: is_orthogonal_polar(85, 20, 3, 5)
+        (<function OrthogonalPolarGraph at ...>, 5, 4, '')
+        sage: is_orthogonal_polar(119,54,21,27)
+        (<function OrthogonalPolarGraph at ...>, 8, 2, '-')
+        sage: is_orthogonal_polar(130,48,20,16)
+        (<function OrthogonalPolarGraph at ...>, 6, 3, '+')
+
+    """
+    from sage.rings.arith import divisors
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    q_pow_m_minus_one = -s-1 if abs(s) > r else r+1
+
+    if is_prime_power(q_pow_m_minus_one):
+        prime,power = is_prime_power(q_pow_m_minus_one,get_data=True)
+        for d in divisors(power):
+            q = prime**d
+            m = (power//d)+1
+
+            # O(2m+1,q)
+            if (v == (q**(2*m)-1)/(q-1)              and
+                k == q*(q**(2*m-2)-1)/(q-1)          and
+                l == q**2*(q**(2*m-4)-1)/(q-1) + q-1 and
+                mu== (q**(2*m-2)-1)/(q-1)):
+                from sage.graphs.generators.families import OrthogonalPolarGraph
+                return (OrthogonalPolarGraph, 2*m+1, q, "")
+
+            # O^+(2m,q)
+            if (v ==   (q**(2*m-1)-1)/(q-1) + q**(m-1)   and
+                k == q*(q**(2*m-3)-1)/(q-1) + q**(m-1) and
+                k == q**(2*m-3) + l + 1                  and
+                mu== k/q):
+                from sage.graphs.generators.families import OrthogonalPolarGraph
+                return (OrthogonalPolarGraph, 2*m, q, "+")
+
+            # O^+(2m+1,q)
+            if (v ==   (q**(2*m-1)-1)/(q-1) - q**(m-1)   and
+                k == q*(q**(2*m-3)-1)/(q-1) - q**(m-1) and
+                k == q**(2*m-3) + l + 1                  and
+                mu== k/q):
+                from sage.graphs.generators.families import OrthogonalPolarGraph
+                return (OrthogonalPolarGraph, 2*m, q, "-")
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -1000,7 +1076,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
-                      is_steiner, is_affine_polar]
+                      is_steiner, is_affine_polar,
+                      is_orthogonal_polar]
 
     # Going through all test functions, for the set of parameters and its
     # complement.
@@ -1135,7 +1212,7 @@ def _check_database():
         In Andries Brouwer's database:
         - 448 impossible entries
         - 2950 undecided entries
-        - 1140 realizable entries (Sage misses 308 of them)
+        - 1140 realizable entries (Sage misses 276 of them)
 
     """
     global _brouwer_database

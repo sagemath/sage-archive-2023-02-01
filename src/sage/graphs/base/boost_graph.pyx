@@ -110,13 +110,9 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
                        vertex_to_int[e[1]],
                        float(weight_function(e)))
 
-    elif g_sage.weighted():
+    else:
         for u,v,w in g_sage.edge_iterator():
             g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
-
-    else:
-        for u,v in g_sage.edge_iterator(labels=False):
-            g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
 
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
@@ -636,3 +632,252 @@ cpdef min_spanning_tree(g,
     else:
         edges = [(int_to_vertex[result[2*i]], int_to_vertex[result[2*i+1]]) for i in range(n-1)]
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
+
+
+cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
+    r"""
+    Computes the shortest paths from ``start`` to all other vertices.
+
+    This routine outputs all shortest paths from node ``start`` to any other
+    node in the graph. The input graph can be weighted: if the algorithm is
+    Dijkstra, no negative weights are allowed, while if the algorithm is
+    Bellman-Ford, negative weights are allowed, but there must be no negative
+    cycle (otherwise, the shortest paths might not exist).
+
+    However, Dijkstra algorithm is more efficient: for this reason, we suggest
+    to use Bellman-Ford only if necessary (which is also the default option).
+    Note that, if the graph is undirected, a negative edge automatically creates
+    a negative cycle: for this reason, in this case, Dijkstra algorithm is
+    always better.
+
+    The running-time is `O(n \log n+m)` for Dijkstra algorithm and `O(mn)` for
+    Bellman-Ford algorithm, where `n` is the number of nodes and `m` is the
+    number of edges.
+
+    INPUT:
+
+    - ``g`` (generic_graph) - the input graph.
+
+    - ``start`` (vertex) - the starting vertex to compute shortest paths.
+
+    - ``weight_function`` (function) - a function that associates a weight to
+      each edge. If ``None`` (default), the weights of ``g`` are used, if
+      available, otherwise all edges have weight 1.
+
+    - ``algorithm`` (``None`` - default, ``Dijkstra``, or ``Bellman-Ford``) -
+      the algorithm used. Dijkstra algorithm is more efficient, but it does not
+      work with edges with negative weight. Bellman-Ford works also in
+      this case, assuming there is no negative cycle. If ``algorithm==None``
+      (default), we use Dijkstra if possible, otherwise Bellman-Ford.
+
+    OUTPUT:
+
+    A pair of dictionaries ``[distances, predecessors]`` such that, for each
+    vertex ``v``, ``distances[v]`` is the distance from ``start`` to ``v``,
+    ``predecessors[v]`` is the last vertex in a shortest path from ``start`` to
+    ``v``.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: shortest_paths(g, 1)
+        [{0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0}, {0: 1, 1: 1, 2: 1, 3: 2}]
+
+    Directed graphs::
+
+        sage: g = DiGraph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: shortest_paths(g, 1)
+        [{0: 1.7976931348623157e+308, 1: 0.0, 2: 2.0, 3: 3.0},
+        {0: 0, 1: 1, 2: 1, 3: 2}]
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: shortest_paths("I am not a graph!", 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Sage Graph or DiGraph.
+
+    If there is a negative cycle::
+
+        sage: from sage.graphs.base.boost_graph import shortest_paths
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: shortest_paths(g, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph contains a negative cycle.
+
+    If Dijkstra is used with negative weights::
+
+        sage: from sage.graphs.base.boost_graph import shortest_paths
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
+        sage: shortest_paths(g, 1, algorithm='Dijkstra')
+        Traceback (most recent call last):
+        ...
+        ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
+
+    """
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise ValueError("The input g must be a Sage Graph or DiGraph.")
+    elif g.num_edges() == 0:
+        from sage.rings.infinity import Infinity
+        return [{v:Infinity for v in g.vertices}, {v:None for v in g.vertices()}]
+    # These variables are automatically deleted when the function terminates.
+    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef result_distances result
+
+    if algorithm is None:
+        # Check if there are edges with negative weights
+        if weight_func is not None:
+            for u,v in g.edge_iterator(labels=False):
+                if weight_func((u,v)) < 0:
+                    algorithm = 'Bellman-Ford'
+                    break
+
+        elif g.weighted():
+            for _,_,w in g.edge_iterator():
+                try:
+                    if w < 0:
+                        algorithm = 'Bellman-Ford'
+                        break
+                except Exception:
+                    pass
+
+        if algorithm is None:
+            algorithm = 'Dijkstra'
+
+    sig_on()
+    if algorithm == 'Bellman-Ford':
+        if g.is_directed():
+            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            result = g_boost_dir.bellman_ford_shortest_paths(v_to_int[start])
+        else:
+            boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            result = g_boost_und.bellman_ford_shortest_paths(v_to_int[start])
+        if result.distances.size() == 0:
+            sig_off()
+            raise ValueError("The graph contains a negative cycle.");
+
+    elif algorithm == 'Dijkstra':
+        if g.is_directed():
+            boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            result = g_boost_dir.dijkstra_shortest_paths(v_to_int[start])
+        else:
+            boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            result = g_boost_und.dijkstra_shortest_paths(v_to_int[start])
+        if result.distances.size() == 0:
+            sig_off()
+            raise ValueError("Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.");
+
+    else:
+        sig_off()
+        raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+    sig_off()
+
+    return [{int_to_v[v]:result.distances[v] for v in range(g.num_verts())},
+            {int_to_v[v]:result.predecessors[v] for v in range(g.num_verts())}]
+
+cpdef johnson_shortest_paths(g, weight_function = None):
+    r"""
+    Uses Johnson algorithm to solve the all-pairs-shortest-paths.
+
+    This routine outputs the distance between each pair of vertices, using a
+    dictionary of dictionaries. It works on all kinds of graphs, but it is
+    designed specifically for graphs with negative weights (otherwise there are
+    more efficient algorithms, like Dijkstra).
+
+    The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
+    `m` is the number of edges.
+
+    INPUT:
+
+    - ``g`` (generic_graph) - the input graph.
+
+    - ``weight_function`` (function) - a function that inputs an edge
+      ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+      is automatically set to ``True``. If ``None`` and ``by_weight`` is
+      ``True``, we use the edge label ``l`` as a weight.
+
+    OUTPUT:
+
+    A dictionary of dictionary ``distances`` such that ``distances[v][w]`` is
+    the distance between vertex ``v`` and vertex ``w``.
+
+    EXAMPLES:
+
+    Undirected graphs::
+
+        sage: from sage.graphs.base.boost_graph import johnson_shortest_paths
+        sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
+        sage: johnson_shortest_paths(g)
+        {0: {0: 0.0, 1: 1.0, 2: 3.0, 3: 4.0},
+         1: {0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0},
+         2: {0: 3.0, 1: 2.0, 2: 0.0, 3: 1.0},
+         3: {0: 4.0, 1: 3.0, 2: 1.0, 3: 0.0}}
+
+    Directed graphs::
+
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
+        sage: johnson_shortest_paths(g)
+        {0: {0: 0.0, 1: 1.0, 2: -1.0, 3: 0.0},
+         1: {0: 1.7976931348623157e+308, 1: 0.0, 2: -2.0, 3: -1.0},
+         2: {0: 1.7976931348623157e+308, 1: 1.7976931348623157e+308, 2: 0.0, 3: 1.0},
+         3: {0: 1.7976931348623157e+308, 1: 1.7976931348623157e+308, 2: 1.7976931348623157e+308, 3: 0.0}}
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: johnson_shortest_paths("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        ValueError: The input g must be a Sage Graph or DiGraph.
+
+    If there is a negative cycle::
+
+        sage: from sage.graphs.base.boost_graph import shortest_paths
+        sage: g = DiGraph([(0,1,1),(1,2,-2),(2,0,0.5),(2,3,1)], weighted=True)
+        sage: johnson_shortest_paths(g)
+        Traceback (most recent call last):
+        ...
+        ValueError: The graph contains a negative cycle.
+
+    """
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise ValueError("The input g must be a Sage Graph or DiGraph.")
+    elif g.num_edges() == 0:
+        from sage.rings.infinity import Infinity
+        return [{v:Infinity for v in g.vertices}, {v:None for v in g.vertices()}]
+    # These variables are automatically deleted when the function terminates.
+    cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
+    cdef BoostVecWeightedDiGraphU g_boost_dir
+    cdef BoostVecWeightedGraph g_boost_und
+    cdef int N = g.num_verts()
+    cdef vector[vector[double]] result
+
+    sig_on()
+    if g.is_directed():
+        boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+        result = g_boost_dir.johnson_shortest_paths()
+    else:
+        boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+        result = g_boost_und.johnson_shortest_paths()
+    sig_off()
+
+    if result.size() == 0:
+        raise ValueError("The graph contains a negative cycle.")
+
+    return {int_to_v[v]:{int_to_v[w]:result[v][w] for w in range(N)}
+            for v in range(N)}

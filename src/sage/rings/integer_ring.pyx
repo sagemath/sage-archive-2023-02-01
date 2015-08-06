@@ -1398,7 +1398,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # Computation of roots of modulus > 1
         i_min = 0
-        g = R.zero_element()
+        g = R.zero()
 
         # Looking for "large" gaps in the exponents
         # These gaps split the polynomial into lower degree components

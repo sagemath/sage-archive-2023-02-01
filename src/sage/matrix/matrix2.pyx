@@ -13208,7 +13208,7 @@ cdef class Matrix(matrix1.Matrix):
 
         return left_mat, a, pivs
 
-    def _zigzag_form(self, basis=True):
+    def _zigzag_form(self, bint basis=True):
         r"""
         Helper method for computation of ZigZag form.
 
@@ -13303,23 +13303,22 @@ cdef class Matrix(matrix1.Matrix):
 
         - Rob Beezer (2011-06-09)
         """
-        import sage.matrix.constructor
         cdef Py_ssize_t n, s, c, i, j, k
 
         n = self._ncols
         R = self.base_ring()
-        zero = R(0)
-        one = R(1)
-        cdef Matrix Z
-        Z = self.__copy__()
-        polys = []    # coefficients for polynomials of companion matrices
-        corners = []  # zero or one in corner of off-diagonal blocks
+        zero = R.zero()
+        one = R.one()
+        cdef Matrix Z = self.__copy__()
+        cdef list polys = []    # coefficients for polynomials of companion matrices
+        cdef list corners = []  # zero or one in corner of off-diagonal blocks
         if basis:
+            import sage.matrix.constructor
             U = sage.matrix.constructor.identity_matrix(R, n) # transformation matrix
         # parity switch, True iff working on transpose
         # if False, mimic row operations only on U
         # if True,  mimic column operations only on U
-        trans = False
+        cdef bint trans = False, zigging
         s = 0  # index of top row of current block
         c = 0  # index of current row of current block
         while s < n:
@@ -13328,7 +13327,7 @@ cdef class Matrix(matrix1.Matrix):
             while zigging:  # zigging means we are building a block
                 nonzero = -1
                 for i in range(c+1, n):
-                    if Z[i, c] != 0:
+                    if Z.get_unsafe(i,c):
                         nonzero = i
                         break
                 zigging = (nonzero != -1)
@@ -13342,19 +13341,19 @@ cdef class Matrix(matrix1.Matrix):
                             U.swap_rows(nonzero, c+1)
 
                     # create a subdiagonal entry 1
-                    scale = Z[c+1, c]
+                    scale = Z.get_unsafe(c+1, c)
                     Z.rescale_row(c+1, 1/scale)
                     Z.rescale_col(c+1, scale)
                     if basis:
                         if trans:
                             U.rescale_col(c+1, scale)
                         else:
-                            U.rescale_row(c+1, 1/scale)
+                            U.rescale_row(c+1, ~scale)
 
                     # clear column throughout the block,and in all rows below
                     for i in range(s, n):
                         if i != c+1:
-                            scale = Z[i, c]
+                            scale = Z.get_unsafe(i, c)
                             Z.add_multiple_of_row(i, c+1, -scale)
                             Z.add_multiple_of_column(c+1, i, scale)
                             if basis:
@@ -13372,10 +13371,8 @@ cdef class Matrix(matrix1.Matrix):
             # (inclusive), use it to clear entries to the right
             # but first record polynomial for block just built
             # this is the full monic polynomial, with correct coefficients
-            p = []
-            for i in range(s, c+1):
-                p.append(-Z[i, c])
-            p.append(R(1))
+            p = [-Z.get_unsafe(i,c) for i in range(s,c+1)]
+            p.append(one)
             polys.append(p)
 
             # use new unit columns (i) to clear rows to right (j)
@@ -13383,7 +13380,7 @@ cdef class Matrix(matrix1.Matrix):
             # it is important that the loop on  i  goes in reverse
             for i in range(c-1, s-1, -1):
                 for j in range(c+1, n):
-                    scale = Z[i+1, j]
+                    scale = Z.get_unsafe(i+1, j)
                     # Effectively: Z.add_multiple_of_column(j, i, -scale)
                     Z.set_unsafe(i+1, j, zero)
                     # row j leads with zeros, up to, and including column c
@@ -13402,7 +13399,7 @@ cdef class Matrix(matrix1.Matrix):
             nonzero = -1
             # locate a nonzero entry in row  s
             for j in range(c+1, n):
-                if Z[s, j] != 0:
+                if Z.get_unsafe(s, j):
                     nonzero = j
                     break
             if (nonzero != -1):
@@ -13415,16 +13412,16 @@ cdef class Matrix(matrix1.Matrix):
                             U.swap_columns(c+1, nonzero)
                         else:
                             U.swap_rows(c+1, nonzero)
-                scale = Z[s, c+1]
-                Z.rescale_col(c+1, 1/scale)
+                scale = Z.get_unsafe(s, c+1)
+                Z.rescale_col(c+1, ~scale)
                 Z.rescale_row(c+1, scale)
                 if basis:
                     if trans:
-                        U.rescale_col(c+1, 1/scale)
+                        U.rescale_col(c+1, ~scale)
                     else:
                         U.rescale_row(c+1, scale)
                 for j in range(c+2, n):
-                    scale = Z[s, j]
+                    scale = Z.get_unsafe(s, j)
                     # exploiting leading zeros does not seem too beneficial here
                     Z.add_multiple_of_column(j, c+1, -scale)
                     Z.add_multiple_of_row(c+1, j, scale)
@@ -13436,7 +13433,7 @@ cdef class Matrix(matrix1.Matrix):
 
             # maybe move this closer to where we know which it is
             if c < n-1:
-                corners.append(Z[s, c+1])
+                corners.append(Z.get_unsafe(s, c+1))
             # reset indices for constructing next block
             # transpose all elements, this is a zig or a zag
             c = c+1
@@ -14127,22 +14124,22 @@ cdef class Matrix(matrix1.Matrix):
             raise ValueError("'subdivide' keyword must be True or False, not {0}".format(subdivide))
 
         _, polys, corners = self._zigzag_form(basis=False)
-        k = len(polys)
+        cdef Py_ssize_t k = len(polys), j, i
         F = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing(R, 'x')
-        C = [F(p) for p in polys]
-        B = [(b == 1) for b in corners]
+        cdef list C = [F(p) for p in polys]
+        cdef list B = [b.is_one() for b in corners]
         B.append(False)  # no last block, so no corner
 
         if B[0]:
-            V = [F(1)]
+            V = [F.one()]
         else:
-            V = [F(0)]
+            V = [F.zero()]
 
         for j in range(1, k):
-            V[j-1] = gcd([V[j-1],C[j],C[j-1]])
+            V[j-1] = gcd([V[j-1], C[j], C[j-1]])
             for i in range(j-2, -1, -1):
                 V[i] = gcd([V[i], V[i+1], C[i]])
-            m = F(-1)
+            m = -F.one()
             for i in range(j):
                 g = gcd(m*V[i], C[i])
                 q, _ = C[i].quo_rem(g)
@@ -14150,22 +14147,22 @@ cdef class Matrix(matrix1.Matrix):
                 if B[j]:
                     _, V[i] = m.quo_rem(C[i])
                 else:
-                    V[i] = F(0)
+                    V[i] = F.zero()
                 m = m * q
             C[j] = m * C[j]
             if B[j]:
                 V.append(m)
             else:
-                V.append(F(0))
+                V.append(F.zero())
 
         # Leading constant polynomials in C are size zero blocks, so toss them
         # Massage remainder to have leading coefficient 1
-        while (len(C) > 0) and C[0].degree() == 0:
-            C.remove(C[0])
+        while C and not C[0].degree():
+            del C[0]
         for i in range(len(C)):
-            unit = C[i].list()[-1]
-            if unit != R(1):
-                C[i] = (1/unit)*C[i]
+            unit = C[i].leading_coefficient()
+            if not unit.is_one():
+                C[i] = ~unit*C[i]
 
         if format == 'invariants':
             inv = []

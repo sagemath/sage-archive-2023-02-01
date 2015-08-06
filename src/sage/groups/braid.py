@@ -526,7 +526,7 @@ class Braid(FinitelyPresentedGroupElement):
 
     def LKB_matrix(self, variables='x,y'):
         """
-        Return the Lawence-Krammer-Bigelow representation matrix.
+        Return the Lawrence-Krammer-Bigelow representation matrix.
 
         The matrix is expressed in the basis $\{e_{i, j} \mid 1\\leq i
         < j \leq n\}$, where the indices are ordered
@@ -541,7 +541,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         OUTPUT:
 
-        The matrix corresponding to the Lawence-Krammer-Bigelow representation of the braid.
+        The matrix corresponding to the Lawrence-Krammer-Bigelow representation of the braid.
 
         EXAMPLES::
 

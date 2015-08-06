@@ -207,7 +207,7 @@ doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
 	cd ../.. && sage-logger './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 doc-html-mathjax: $(DOC_DEPENDENCIES)
-	cd ../.. && sage-loggger './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+	cd ../.. && sage-logger './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax

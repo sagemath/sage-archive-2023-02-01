@@ -106,13 +106,26 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
 
     if weight_function is not None:
         for e in g_sage.edge_iterator():
-            g.add_edge(vertex_to_int[e[0]],
-                       vertex_to_int[e[1]],
-                       float(weight_function(e)))
-
-    else:
+            try:
+                g.add_edge(vertex_to_int[e[0]],
+                           vertex_to_int[e[1]],
+                           float(weight_function(e)))
+            
+            except (ValueError, TypeError):
+                raise ValueError("The weight function cannot find the" +
+                                         " weight of " + str(e) + ".")
+            
+    elif g_sage.weighted():
         for u,v,w in g_sage.edge_iterator():
-            g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
+            try:
+                g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
+            except (ValueError, TypeError):
+                raise ValueError("The weight function cannot find the" +
+                                         " weight of " + str((u,v,w)) + ".")
+    else:
+        for u,v in g_sage.edge_iterator(labels=False):
+            g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
+
 
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
@@ -664,11 +677,14 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
       each edge. If ``None`` (default), the weights of ``g`` are used, if
       available, otherwise all edges have weight 1.
 
-    - ``algorithm`` (``None`` - default, ``Dijkstra``, or ``Bellman-Ford``) -
-      the algorithm used. Dijkstra algorithm is more efficient, but it does not
-      work with edges with negative weight. Bellman-Ford works also in
-      this case, assuming there is no negative cycle. If ``algorithm==None``
-      (default), we use Dijkstra if possible, otherwise Bellman-Ford.
+    - ``algorithm`` (string) - one of the following algorithms:
+
+      - ``'Dijkstra','Dijkstra_Boost'``: the Dijkstra algorithm implemented in
+        Boost (works only with positive weights).
+
+      - ``'Bellman-Ford','Bellman-Ford_Boost'``: the Bellman-Ford algorithm
+        implemented in Boost (works also with negative weights, if there is no
+        negative cycle).
 
     OUTPUT:
 
@@ -685,13 +701,16 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: shortest_paths(g, 1)
         [{0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0}, {0: 1, 1: 1, 2: 1, 3: 2}]
+        sage: g = graphs.GridGraph([2,2])
+        sage: shortest_paths(g,(0,0),weight_function=lambda e:2)
+        [{(0, 0): 0.0, (0, 1): 2.0, (1, 0): 2.0, (1, 1): 4.0},
+         {(0, 0): (0, 0), (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)}]
 
     Directed graphs::
 
         sage: g = DiGraph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: shortest_paths(g, 1)
-        [{0: 1.7976931348623157e+308, 1: 0.0, 2: 2.0, 3: 3.0},
-        {0: 0, 1: 1, 2: 1, 3: 2}]
+        [{1: 0.0, 2: 2.0, 3: 3.0}, {1: 1, 2: 1, 3: 2}]
 
     TESTS:
 
@@ -728,6 +747,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     elif g.num_edges() == 0:
         from sage.rings.infinity import Infinity
         return [{v:Infinity for v in g.vertices}, {v:None for v in g.vertices()}]
+
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
     cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
@@ -737,54 +757,78 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
 
     if algorithm is None:
         # Check if there are edges with negative weights
-        if weight_func is not None:
-            for u,v in g.edge_iterator(labels=False):
-                if weight_func((u,v)) < 0:
-                    algorithm = 'Bellman-Ford'
-                    break
-
-        elif g.weighted():
-            for _,_,w in g.edge_iterator():
+        if weight_function is not None:
+            for e in g.edge_iterator():
                 try:
-                    if w < 0:
+                    if float(weight_function(e)) < 0:
                         algorithm = 'Bellman-Ford'
                         break
-                except Exception:
-                    pass
+                except ValueError, TypeError:
+                    raise ValueError("I cannot find the weight of edge " +
+                                     str(e) + ".")
+
+        else:
+            for _,_,w in g.edge_iterator():
+                try:
+                    if float(w) < 0:
+                        algorithm = 'Bellman-Ford'
+                        break
+                except ValueError, TypeError:
+                    raise ValueError("The label '", str(w), "' is not convertible " +
+                                     "to a float.")
 
         if algorithm is None:
             algorithm = 'Dijkstra'
 
-    sig_on()
-    if algorithm == 'Bellman-Ford':
+    if algorithm in ['Bellman-Ford', 'Bellman-Ford_Boost']:
         if g.is_directed():
             boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            sig_on()
             result = g_boost_dir.bellman_ford_shortest_paths(v_to_int[start])
+            sig_off()
         else:
             boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            sig_on()
             result = g_boost_und.bellman_ford_shortest_paths(v_to_int[start])
-        if result.distances.size() == 0:
             sig_off()
+        if result.distances.size() == 0:
             raise ValueError("The graph contains a negative cycle.");
 
-    elif algorithm == 'Dijkstra':
+    elif algorithm in ['Dijkstra', 'Dijkstra_Boost']:
         if g.is_directed():
             boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+            sig_on()
             result = g_boost_dir.dijkstra_shortest_paths(v_to_int[start])
+            sig_off()
         else:
             boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+            sig_on()
             result = g_boost_und.dijkstra_shortest_paths(v_to_int[start])
-        if result.distances.size() == 0:
             sig_off()
+        if result.distances.size() == 0:
             raise ValueError("Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.");
 
     else:
-        sig_off()
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
-    sig_off()
 
-    return [{int_to_v[v]:result.distances[v] for v in range(g.num_verts())},
-            {int_to_v[v]:result.predecessors[v] for v in range(g.num_verts())}]
+    
+    dist = {}
+    pred = {}
+    
+    if weight_function is not None:
+        correct_type = type(weight_function(g.edge_iterator().next()))
+    elif g.weighted():
+        correct_type = type(g.edge_iterator().next()[2])
+    else:
+        correct_type = int
+
+    import sys
+    for v in range(g.num_verts()):
+        if result.distances[v] != sys.float_info.max:
+            w = int_to_v[v]
+            dist[w] = correct_type(result.distances[v])
+            pred[w] = int_to_v[result.predecessors[v]] if result.predecessors[v] != v else None
+    return [dist, pred]
 
 cpdef johnson_shortest_paths(g, weight_function = None):
     r"""
@@ -867,14 +911,16 @@ cpdef johnson_shortest_paths(g, weight_function = None):
     cdef int N = g.num_verts()
     cdef vector[vector[double]] result
 
-    sig_on()
     if g.is_directed():
         boost_weighted_graph_from_sage_graph(&g_boost_dir, g, weight_function)
+        sig_on()
         result = g_boost_dir.johnson_shortest_paths()
+        sig_off()
     else:
         boost_weighted_graph_from_sage_graph(&g_boost_und, g, weight_function)
+        sig_on()
         result = g_boost_und.johnson_shortest_paths()
-    sig_off()
+        sig_off()
 
     if result.size() == 0:
         raise ValueError("The graph contains a negative cycle.")

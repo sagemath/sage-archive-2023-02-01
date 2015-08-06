@@ -75,6 +75,7 @@ ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS, no_property] BoostVecGraph
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS, no_property] BoostVecDiGraph
 
 ctypedef BoostGraph[vecS, vecS, undirectedS,    vecS, EdgeWeight] BoostVecWeightedGraph
+ctypedef BoostGraph[vecS, vecS, directedS,      vecS, EdgeWeight] BoostVecWeightedDiGraphU
 ctypedef BoostGraph[vecS, vecS, bidirectionalS, vecS, EdgeWeight] BoostVecWeightedDiGraph
 
 ctypedef BoostGraph[setS, vecS, undirectedS,    vecS, no_property] BoostSetGraph
@@ -86,6 +87,7 @@ ctypedef fused BoostVecGenGraph:
 ctypedef fused BoostWeightedGraph:
     BoostVecWeightedGraph
     BoostVecWeightedDiGraph
+    BoostVecWeightedDiGraphU
 
 ctypedef fused BoostGenGraph:
     BoostVecGraph

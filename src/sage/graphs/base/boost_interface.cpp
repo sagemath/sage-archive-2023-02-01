@@ -9,6 +9,9 @@
 #include <boost/graph/king_ordering.hpp>
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
+#include <boost/graph/bellman_ford_shortest_paths.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/johnson_all_pairs_shortest.hpp>
 
 #include <iostream>
 

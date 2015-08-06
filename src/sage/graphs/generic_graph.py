@@ -20,8 +20,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.distance_matrix` | Return the distance matrix of the (strongly) connected (di)graph
     :meth:`~GenericGraph.weighted_adjacency_matrix` | Return the weighted adjacency matrix of the graph
     :meth:`~GenericGraph.kirchhoff_matrix` | Return the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
-    :meth:`~GenericGraph.get_boundary` | Return the boundary of the (di)graph.
-    :meth:`~GenericGraph.set_boundary` | Set the boundary of the (di)graph.
     :meth:`~GenericGraph.has_loops` | Return whether there are loops in the (di)graph.
     :meth:`~GenericGraph.allows_loops` | Return whether loops are permitted in the (di)graph.
     :meth:`~GenericGraph.allow_loops` | Change whether loops are permitted in the (di)graph.
@@ -73,7 +71,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.remove_loops` | Remove loops on vertices in vertices. If vertices is None, removes all loops.
     :meth:`~GenericGraph.loop_edges` | Returns a list of all loops in the graph.
     :meth:`~GenericGraph.number_of_loops` | Return the number of edges that are loops.
-    :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, boundary, associated objects, and position information.
+    :meth:`~GenericGraph.clear` | Empty the graph of vertices and edges and removes name, associated objects, and position information.
     :meth:`~GenericGraph.degree` | Return the degree (in + out for digraphs) of a vertex or of vertices.
     :meth:`~GenericGraph.average_degree` | Return the average degree of the graph.
     :meth:`~GenericGraph.degree_histogram` | Return a list, whose ith entry is the frequency of degree i.
@@ -910,13 +908,11 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        We make copies of the ``_pos`` and ``_boundary`` attributes::
+        We make copies of the ``_pos`` attribute::
 
             sage: g = graphs.PathGraph(3)
             sage: h = copy(g)
             sage: h._pos is g._pos
-            False
-            sage: h._boundary is g._boundary
             False
 
         We make sure that one can make immutable copies by providing the
@@ -1043,7 +1039,7 @@ class GenericGraph(GenericGraph_pyx):
                 data_structure = "sparse"
 
         G = self.__class__(self, name=self.name(), pos=copy(self._pos),
-                           boundary=copy(self._boundary), weighted=weighted,
+                           weighted=weighted,
                            implementation=implementation,
                            data_structure=data_structure)
 
@@ -1475,7 +1471,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return d
 
-    def adjacency_matrix(self, sparse=None, boundary_first=False, vertices=None):
+    def adjacency_matrix(self, sparse=None, vertices=None):
         """
         Returns the adjacency matrix of the (di)graph.
 
@@ -1486,9 +1482,6 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``sparse`` - whether to represent with a sparse matrix
-
-        - ``boundary_first`` - whether to represent the boundary vertices in the
-           upper left block. Cannot be used in conjunction with ``vertices``.
 
         - ``vertices`` (list) -- the ordering of the vertices defining how they
           should appear in the matrix. By default, the ordering given by
@@ -1578,13 +1571,12 @@ class GenericGraph(GenericGraph_pyx):
             sparse=True
             if self.has_multiple_edges() or n <= 256 or self.density() > 0.05:
                 sparse=False
+
         if vertices is None:
-            vertices = self.vertices(boundary_first=boundary_first)
+            vertices = self.vertices()
         elif (len(vertices) != n or
               set(vertices) != set(self.vertices())):
             raise ValueError("``vertices`` must be a permutation of the vertices")
-        elif boundary_first:
-            raise ValueError("``boundary`` and ``vertices`` cannot be used simultaneously")
 
         new_indices = dict((v,i) for i,v in enumerate(vertices))
         D = {}
@@ -1776,7 +1768,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return ret
 
-    def weighted_adjacency_matrix(self, sparse=True, boundary_first=False):
+    def weighted_adjacency_matrix(self, sparse=True):
         """
         Returns the weighted adjacency matrix of the graph.
 
@@ -1808,7 +1800,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.has_multiple_edges():
             raise NotImplementedError("don't know how to represent weights for a multigraph")
 
-        verts = self.vertices(boundary_first=boundary_first)
+        verts = self.vertices()
         new_indices = dict((v,i) for i,v in enumerate(verts))
 
         D = {}
@@ -1895,33 +1887,6 @@ class GenericGraph(GenericGraph_pyx):
             [-1  2 -1  0]
             [-1 -1  2  0]
             [-1  0  0  1]
-            sage: G.set_boundary([2,3])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: M = G.kirchhoff_matrix(weighted=True, boundary_first=True); M
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            [ 5  0 -3 -2]
-            [ 0  4 -4  0]
-            [-3 -4  8 -1]
-            [-2  0 -1  3]
-            sage: M = G.kirchhoff_matrix(boundary_first=True); M
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            [ 2  0 -1 -1]
-            [ 0  1 -1  0]
-            [-1 -1  3 -1]
-            [-1  0 -1  2]
-            sage: M = G.laplacian_matrix(boundary_first=True); M
-            [ 2  0 -1 -1]
-            [ 0  1 -1  0]
-            [-1 -1  3 -1]
-            [-1  0 -1  2]
-            sage: M = G.laplacian_matrix(boundary_first=True, sparse=False); M
-            [ 2  0 -1 -1]
-            [ 0  1 -1  0]
-            [-1 -1  3 -1]
-            [-1  0 -1  2]
             sage: M = G.laplacian_matrix(normalized=True); M
             [                   1 -1/6*sqrt(3)*sqrt(2) -1/6*sqrt(3)*sqrt(2)         -1/3*sqrt(3)]
             [-1/6*sqrt(3)*sqrt(2)                    1                 -1/2                    0]
@@ -1993,48 +1958,6 @@ class GenericGraph(GenericGraph_pyx):
     laplacian_matrix = kirchhoff_matrix
 
     ### Attributes
-
-    def get_boundary(self):
-        """
-        Returns the boundary of the (di)graph.
-
-        EXAMPLES::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.set_boundary([0,1,2,3,4])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: G.get_boundary()
-            [0, 1, 2, 3, 4]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
-
-        return self._boundary
-
-    def set_boundary(self, boundary):
-        """
-        Sets the boundary of the (di)graph.
-
-        EXAMPLES::
-
-            sage: G = graphs.PetersenGraph()
-            sage: G.set_boundary([0,1,2,3,4])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: G.get_boundary()
-            [0, 1, 2, 3, 4]
-            sage: G.set_boundary((1..4))
-            sage: G.get_boundary()
-            [1, 2, 3, 4]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
-
-        if isinstance(boundary,list):
-            self._boundary = boundary
-        else:
-            self._boundary = list(boundary)
 
     def set_embedding(self, embedding):
         """
@@ -4123,9 +4046,6 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
-            sage: g439.set_boundary([1,2,3,4])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
             sage: g439.show()
             sage: g439.is_circular_planar(boundary = [1,2,3,4])
             False
@@ -4420,7 +4340,7 @@ class GenericGraph(GenericGraph_pyx):
                         return False
         return True
 
-    def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=False, ordered=True):
+    def genus(self, set_embedding=True, on_embedding=None, minimal=True, maximal=False, circular=None, ordered=True):
         r"""
         Returns the minimal genus of the graph.
 
@@ -4465,10 +4385,10 @@ class GenericGraph(GenericGraph_pyx):
            priority over maximal. However, maximal takes priority over the
            default minimal.
 
-        -  ``circular (boolean)`` - whether or not to compute
-           the genus preserving a planar embedding of the boundary. (Default
-           is False). If circular is True, on_embedding is not a valid
-           option.
+        - ``circular (list)`` - if ``circular`` is a list of vertices, the
+           method computes the genus preserving a planar embedding of the this
+           list. If circular is defined, ``on_embedding`` is not a valid
+           option. It is set to ``None`` by default.
 
         -  ``ordered (boolean)`` - if circular is True, then
            whether or not the boundary order may be permuted. (Default is
@@ -4498,20 +4418,15 @@ class GenericGraph(GenericGraph_pyx):
         preserving a planar, ordered boundary::
 
             sage: cube = graphs.CubeGraph(2)
-            sage: cube.set_boundary(['01','10'])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: cube.genus()
+            sage: cube.genus(circular=['01','10'])
             0
             sage: cube.is_circular_planar()
             True
-            sage: cube.genus(circular=True)
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
+            sage: cube.genus(circular=['01','10'])
             0
-            sage: cube.genus(circular=True, on_embedding=True)
+            sage: cube.genus(circular=['01','10'], on_embedding=True)
             0
-            sage: cube.genus(circular=True, maximal=True)
+            sage: cube.genus(circular=['01','10'], maximal=True)
             Traceback (most recent call last):
             ...
             NotImplementedError: Cannot compute the maximal genus of a genus respecting a boundary.
@@ -4562,10 +4477,12 @@ class GenericGraph(GenericGraph_pyx):
         if maximal:
             minimal = False
 
-        if circular:
+        if circular is not None:
+            if not isinstance(circular,list):
+                raise ValueError("'circular' is expected to be a list")
             if maximal:
                 raise NotImplementedError("Cannot compute the maximal genus of a genus respecting a boundary.")
-            boundary = G.get_boundary()
+            boundary = circular
             if hasattr(G, '_embedding'):
                 del(G._embedding)
 
@@ -9085,14 +9002,9 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
             sage: G = graphs.PathGraph(5)
             sage: G.set_vertices({0: 'no delete', 1: 'delete'})
-            sage: G.set_boundary([1,2])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
             sage: G.delete_vertex(1)
             sage: G.get_vertices()
             {0: 'no delete', 2: None, 3: None, 4: None}
-            sage: G.get_boundary()
-            [2]
             sage: G.get_pos()
             {0: (0, 0), 2: (2, 0), 3: (3, 0), 4: (4, 0)}
         """
@@ -9106,7 +9018,6 @@ class GenericGraph(GenericGraph_pyx):
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 getattr(self, attr).pop(vertex, None)
-        self._boundary = [v for v in self._boundary if v != vertex]
 
     def delete_vertices(self, vertices):
         """
@@ -9138,8 +9049,6 @@ class GenericGraph(GenericGraph_pyx):
                 attr_dict = getattr(self, attr)
                 for vertex in vertices:
                     attr_dict.pop(vertex, None)
-
-        self._boundary = [v for v in self._boundary if v not in vertices]
 
     def has_vertex(self, vertex):
         """
@@ -9481,7 +9390,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.iterator_nbrs(vertex)
 
-    def vertices(self, key=None, boundary_first=False):
+    def vertices(self, key=None):
         r"""
         Return a list of the vertices.
 
@@ -9490,9 +9399,6 @@ class GenericGraph(GenericGraph_pyx):
         - ``key`` - default: ``None`` - a function that takes
           a vertex as its one argument and returns a value that
           can be used for comparisons in the sorting algorithm.
-
-        - ``boundary_first`` - default:  ``False`` - if ``True``,
-          return the boundary vertices first.
 
         OUTPUT:
 
@@ -9559,32 +9465,8 @@ class GenericGraph(GenericGraph_pyx):
             [t^2 + 2, t^2, 5*t, 4*t^2 - 6]
             sage: [x.discriminant() for x in verts]
             [-8, 0, 1, 96]
-
-        If boundary vertices are requested first, then they are sorted
-        separately from the remainder (which are also sorted). ::
-
-            sage: P = graphs.PetersenGraph()
-            sage: P.set_boundary((5..9))
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: P.vertices(boundary_first=True)
-            [5, 6, 7, 8, 9, 0, 1, 2, 3, 4]
-            sage: P.vertices(boundary_first=True, key=lambda x: -x)
-            [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
         """
-        if not boundary_first:
-            return sorted(list(self.vertex_iterator()), key=key)
-
-        from sage.misc.superseded import deprecation
-        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
-        bdy_verts = []
-        int_verts = []
-        for v in self.vertex_iterator():
-            if v in self._boundary:
-                bdy_verts.append(v)
-            else:
-                int_verts.append(v)
-        return sorted(bdy_verts, key=key) + sorted(int_verts, key=key)
+        return sorted(list(self.vertex_iterator()), key=key)
 
     def neighbors(self, vertex):
         """
@@ -10660,8 +10542,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def clear(self):
         """
-        Empties the graph of vertices and edges and removes name, boundary,
-        associated objects, and position information.
+        Empties the graph of vertices and edges and removes name, associated
+        objects, and position information.
 
         EXAMPLES::
 
@@ -11250,8 +11132,6 @@ class GenericGraph(GenericGraph_pyx):
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 value = dict([(v, getattr(self, attr).get(v, None)) for v in G])
                 setattr(G, attr,value)
-
-        G._boundary = [v for v in self._boundary if v in G]
 
         return G
 
@@ -13797,96 +13677,6 @@ class GenericGraph(GenericGraph_pyx):
 
 
     ### Paths
-
-    def interior_paths(self, start, end):
-        """
-        Returns an exhaustive list of paths (also lists) through only
-        interior vertices from vertex start to vertex end in the
-        (di)graph.
-
-        Note - start and end do not necessarily have to be boundary
-        vertices.
-
-        INPUT:
-
-
-        -  ``start`` - the vertex of the graph to search for
-           paths from
-
-        -  ``end`` - the vertex of the graph to search for
-           paths to
-
-
-        EXAMPLES::
-
-            sage: eg1 = Graph({0:[1,2], 1:[4], 2:[3,4], 4:[5], 5:[6]})
-            sage: sorted(eg1.all_paths(0,6))
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg2 = copy(eg1)
-            sage: eg2.set_boundary([0,1,3])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            sage: sorted(eg2.interior_paths(0,6))
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
-            [[0, 2, 4, 5, 6]]
-            sage: sorted(eg2.all_paths(0,6))
-            [[0, 1, 4, 5, 6], [0, 2, 4, 5, 6]]
-            sage: eg3 = graphs.PetersenGraph()
-            sage: eg3.set_boundary([0,1,2,3,4])
-            sage: sorted(eg3.all_paths(1,4))
-            [[1, 0, 4],
-             [1, 0, 5, 7, 2, 3, 4],
-             [1, 0, 5, 7, 2, 3, 8, 6, 9, 4],
-             [1, 0, 5, 7, 9, 4],
-             [1, 0, 5, 7, 9, 6, 8, 3, 4],
-             [1, 0, 5, 8, 3, 2, 7, 9, 4],
-             [1, 0, 5, 8, 3, 4],
-             [1, 0, 5, 8, 6, 9, 4],
-             [1, 0, 5, 8, 6, 9, 7, 2, 3, 4],
-             [1, 2, 3, 4],
-             [1, 2, 3, 8, 5, 0, 4],
-             [1, 2, 3, 8, 5, 7, 9, 4],
-             [1, 2, 3, 8, 6, 9, 4],
-             [1, 2, 3, 8, 6, 9, 7, 5, 0, 4],
-             [1, 2, 7, 5, 0, 4],
-             [1, 2, 7, 5, 8, 3, 4],
-             [1, 2, 7, 5, 8, 6, 9, 4],
-             [1, 2, 7, 9, 4],
-             [1, 2, 7, 9, 6, 8, 3, 4],
-             [1, 2, 7, 9, 6, 8, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 5, 0, 4],
-             [1, 6, 8, 3, 2, 7, 9, 4],
-             [1, 6, 8, 3, 4],
-             [1, 6, 8, 5, 0, 4],
-             [1, 6, 8, 5, 7, 2, 3, 4],
-             [1, 6, 8, 5, 7, 9, 4],
-             [1, 6, 9, 4],
-             [1, 6, 9, 7, 2, 3, 4],
-             [1, 6, 9, 7, 2, 3, 8, 5, 0, 4],
-             [1, 6, 9, 7, 5, 0, 4],
-             [1, 6, 9, 7, 5, 8, 3, 4]]
-            sage: sorted(eg3.interior_paths(1,4))
-            [[1, 6, 8, 5, 7, 9, 4], [1, 6, 9, 4]]
-            sage: dg = DiGraph({0:[1,3,4], 1:[3], 2:[0,3,4],4:[3]}, boundary=[4])
-            sage: sorted(dg.all_paths(0,3))
-            [[0, 1, 3], [0, 3], [0, 4, 3]]
-            sage: sorted(dg.interior_paths(0,3))
-            [[0, 1, 3], [0, 3]]
-            sage: ug = dg.to_undirected()
-            sage: sorted(ug.all_paths(0,3))
-            [[0, 1, 3], [0, 2, 3], [0, 2, 4, 3], [0, 3], [0, 4, 2, 3], [0, 4, 3]]
-            sage: sorted(ug.interior_paths(0,3))
-            [[0, 1, 3], [0, 2, 3], [0, 3]]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(15494, "The boundary parameter is deprecated and will soon disappear.")
-
-        H = copy(self)
-        for vertex in self.get_boundary():
-            if (vertex != start and vertex != end):
-                H.delete_edges(H.edges_incident(vertex))
-        return H.all_paths(start, end)
 
     def all_paths(self, start, end):
         """
@@ -17199,9 +16989,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
-            sage: g.set_boundary([0,1])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
             sage: GP = g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.plot()
             Graphics object consisting of 22 graphics primitives
@@ -18907,15 +18694,10 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G = graphs.PathGraph(5)
             sage: G.set_vertices({0: 'before', 1: 'delete', 2: 'after'})
-            sage: G.set_boundary([1,2,3])
-            doctest:...: DeprecationWarning: The boundary parameter is deprecated and will soon disappear.
-            See http://trac.sagemath.org/15494 for details.
             sage: G.delete_vertex(1)
             sage: G.relabel()
             sage: G.get_vertices()
             {0: 'before', 1: 'after', 2: None, 3: None}
-            sage: G.get_boundary()
-            [1, 2]
             sage: G.get_pos()
             {0: (0, 0), 1: (2, 0), 2: (3, 0), 3: (4, 0)}
 
@@ -19026,8 +18808,6 @@ class GenericGraph(GenericGraph_pyx):
                     new_attr[perm[v]] = value
 
                 setattr(self, attr, new_attr)
-
-        self._boundary = [perm[v] for v in self._boundary]
 
         if return_map:
             return perm

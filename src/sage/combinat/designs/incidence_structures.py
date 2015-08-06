@@ -1172,7 +1172,6 @@ class IncidenceStructure(object):
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
-          Only useful when ``algorithm == "LP"``.
 
         EXAMPLE::
 

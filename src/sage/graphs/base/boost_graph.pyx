@@ -110,11 +110,11 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
                 g.add_edge(vertex_to_int[e[0]],
                            vertex_to_int[e[1]],
                            float(weight_function(e)))
-            
+
             except (ValueError, TypeError):
                 raise ValueError("The weight function cannot find the" +
                                          " weight of " + str(e) + ".")
-            
+
     elif g_sage.weighted():
         for u,v,w in g_sage.edge_iterator():
             try:
@@ -601,13 +601,14 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        ValueError: could not convert string to float: a
+        ValueError: The weight function cannot find the weight of (1, 2, 'a').
 
         sage: g = Graph([(0,1,1), (1,2,[1,2,3])], weighted=True)
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        TypeError: float() argument must be a string or a number
+        ValueError: The weight function cannot find the weight of (1, 2, [1, 2, 3]).
+
     """
     from sage.graphs.graph import Graph
 
@@ -700,17 +701,17 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         sage: from sage.graphs.base.boost_graph import shortest_paths
         sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: shortest_paths(g, 1)
-        [{0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0}, {0: 1, 1: 1, 2: 1, 3: 2}]
+        [{0: 1, 1: 0, 2: 2, 3: 3}, {0: 1, 1: None, 2: 1, 3: 2}]
         sage: g = graphs.GridGraph([2,2])
         sage: shortest_paths(g,(0,0),weight_function=lambda e:2)
-        [{(0, 0): 0.0, (0, 1): 2.0, (1, 0): 2.0, (1, 1): 4.0},
-         {(0, 0): (0, 0), (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)}]
+        [{(0, 0): 0, (0, 1): 2, (1, 0): 2, (1, 1): 4},
+         {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)}]
 
     Directed graphs::
 
         sage: g = DiGraph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: shortest_paths(g, 1)
-        [{1: 0.0, 2: 2.0, 3: 3.0}, {1: 1, 2: 1, 3: 2}]
+        [{1: 0, 2: 2, 3: 3}, {1: None, 2: 1, 3: 2}]
 
     TESTS:
 
@@ -738,7 +739,13 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
+        
+    Wrong starting vartex::
 
+        sage: shortest_paths(g, [])
+        Traceback (most recent call last):
+        ...
+        ValueError: The starting vertex [] is not in the graph.
     """
     from sage.graphs.generic_graph import GenericGraph
 
@@ -746,7 +753,8 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         raise ValueError("The input g must be a Sage Graph or DiGraph.")
     elif g.num_edges() == 0:
         from sage.rings.infinity import Infinity
-        return [{v:Infinity for v in g.vertices}, {v:None for v in g.vertices()}]
+        return [{start:0}, {start:None}]
+
 
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
@@ -754,6 +762,10 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
+    
+    if start not in v_to_int.keys():
+        raise ValueError("The starting vertex " + str(start) + " is not in " +
+                         "the graph.")
 
     if algorithm is None:
         # Check if there are edges with negative weights
@@ -811,17 +823,21 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     else:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
-    
+
     dist = {}
     pred = {}
-    
+
     if weight_function is not None:
         correct_type = type(weight_function(g.edge_iterator().next()))
     elif g.weighted():
         correct_type = type(g.edge_iterator().next()[2])
     else:
         correct_type = int
-
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+    
     import sys
     for v in range(g.num_verts()):
         if result.distances[v] != sys.float_info.max:
@@ -863,19 +879,19 @@ cpdef johnson_shortest_paths(g, weight_function = None):
         sage: from sage.graphs.base.boost_graph import johnson_shortest_paths
         sage: g = Graph([(0,1,1),(1,2,2),(1,3,4),(2,3,1)], weighted=True)
         sage: johnson_shortest_paths(g)
-        {0: {0: 0.0, 1: 1.0, 2: 3.0, 3: 4.0},
-         1: {0: 1.0, 1: 0.0, 2: 2.0, 3: 3.0},
-         2: {0: 3.0, 1: 2.0, 2: 0.0, 3: 1.0},
-         3: {0: 4.0, 1: 3.0, 2: 1.0, 3: 0.0}}
+        {0: {0: 0, 1: 1, 2: 3, 3: 4},
+         1: {0: 1, 1: 0, 2: 2, 3: 3},
+         2: {0: 3, 1: 2, 2: 0, 3: 1},
+         3: {0: 4, 1: 3, 2: 1, 3: 0}}
 
     Directed graphs::
 
         sage: g = DiGraph([(0,1,1),(1,2,-2),(1,3,4),(2,3,1)], weighted=True)
         sage: johnson_shortest_paths(g)
-        {0: {0: 0.0, 1: 1.0, 2: -1.0, 3: 0.0},
-         1: {0: 1.7976931348623157e+308, 1: 0.0, 2: -2.0, 3: -1.0},
-         2: {0: 1.7976931348623157e+308, 1: 1.7976931348623157e+308, 2: 0.0, 3: 1.0},
-         3: {0: 1.7976931348623157e+308, 1: 1.7976931348623157e+308, 2: 1.7976931348623157e+308, 3: 0.0}}
+        {0: {0: 0, 1: 1, 2: -1, 3: 0},
+         1: {1: 0, 2: -2, 3: -1},
+         2: {2: 0, 3: 1},
+         3: {3: 0}}
 
     TESTS:
 
@@ -902,7 +918,7 @@ cpdef johnson_shortest_paths(g, weight_function = None):
         raise ValueError("The input g must be a Sage Graph or DiGraph.")
     elif g.num_edges() == 0:
         from sage.rings.infinity import Infinity
-        return [{v:Infinity for v in g.vertices}, {v:None for v in g.vertices()}]
+        return [{v:{v:0} for v in g.vertices()}, {v:{v:None} for v in g.vertices()}]
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
     cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}
@@ -925,5 +941,18 @@ cpdef johnson_shortest_paths(g, weight_function = None):
     if result.size() == 0:
         raise ValueError("The graph contains a negative cycle.")
 
-    return {int_to_v[v]:{int_to_v[w]:result[v][w] for w in range(N)}
+    if weight_function is not None:
+        correct_type = type(weight_function(g.edge_iterator().next()))
+    elif g.weighted():
+        correct_type = type(g.edge_iterator().next()[2])
+    else:
+        correct_type = int
+    # Needed for rational curves.
+    from sage.rings.real_mpfr import RealNumber, RR
+    if correct_type == RealNumber:
+        correct_type = RR
+
+    import sys
+    return {int_to_v[v]:{int_to_v[w]:correct_type(result[v][w])
+                    for w in range(N) if result[v][w] != sys.float_info.max}
             for v in range(N)}

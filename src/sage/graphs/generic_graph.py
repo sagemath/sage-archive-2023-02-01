@@ -12726,8 +12726,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
-            ``by_weight`` is ``False``, else ``'Floyd-Warshall-Python'``.
+            ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Floyd-Warshall-Cython'`` otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -12818,13 +12826,20 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
           - ``'From_Dictionary'``: uses the (already computed) distances, that
             are provided by input variable ``dist_dict``.
 
           - ``None`` (default): Sage chooses the best algorithm:
             ``'From_Dictionary'`` if ``dist_dict`` is not None, ``'BFS'`` for
-            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted
-            graphs.
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'`` otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -12868,6 +12883,10 @@ class GenericGraph(GenericGraph_pyx):
             [1, 1, 1]
             sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_NetworkX')
             [2, 1, 2]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Dijkstra_Boost')
+            [2, 1, 2]
+            sage: G.eccentricity(by_weight = True, algorithm = 'Johnson_Boost')
+            [2, 1, 2]
             sage: G.eccentricity(by_weight = True, algorithm = 'Floyd-Warshall-Python')
             [2, 1, 2]
             sage: G.eccentricity(dist_dict = G.shortest_path_all_pairs(by_weight = True)[0])
@@ -12904,13 +12923,36 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'Floyd-Warshall-Python' works only if all eccentricities are needed.
+            sage: G.eccentricity(0, algorithm = 'Johnson_Boost')
+            Traceback (most recent call last):
+            ...
+            ValueError: Algorithm 'Johnson_Boost' works only if all eccentricities are needed.
         """
-        if algorithm is None and dist_dict is not None:
-            algorithm='From_Dictionary'
+        if weight_function is not None:
+            by_weight = True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+
+        if algorithm is None:
+            if dist_dict is not None:
+                algorithm='From_Dictionary'
+            elif not by_weight:
+                algorithm='BFS'
+            else:
+                for e in self.edge_iterator():
+                    try:
+                        if float(weight_function(e)) < 0:
+                            algorithm='Johnson_Boost'
+                            break
+                    except (ValueError, TypeError):
+                        raise ValueError("The weight function cannot find the" +
+                                         " weight of " + str(e) + ".")
+            if algorithm is None:
+                algorithm='Dijkstra_Boost'
 
         if v is None:
             # If we want to use BFS, we use the Cython routine
-            if algorithm=='BFS' or (algorithm is None and not by_weight):
+            if algorithm=='BFS':
                 if by_weight:
                     raise ValueError("Algorithm 'BFS' does not work with weights.")
                 from sage.graphs.distances_all_pairs import eccentricity
@@ -12919,13 +12961,13 @@ class GenericGraph(GenericGraph_pyx):
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
                     return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
-            if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython']:
+            if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
                                                          check_weight)[0]
                 algorithm='From_Dictionary'
             v = self.vertices()
-        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython']:
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
             raise ValueError("Algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed.")
 
@@ -12987,10 +13029,17 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
+          
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
 
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted
-            graphs.
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -13074,9 +13123,16 @@ class GenericGraph(GenericGraph_pyx):
             They work only if ``by_weight==False``. See the function
             documentation for more information.
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` for
-            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted
-            graphs.
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'iFUB'`` if
+            ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -13175,9 +13231,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted
-            graphs.
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -13528,9 +13591,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
-            unweighted graphs, and ``'Dijkstra_NetworkX'`` for weighted
-            graphs.
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -14190,7 +14260,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX (works only with positive weights).
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
           - ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm, implemented in
@@ -14263,15 +14333,15 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             TypeError: unsupported operand type(s) for +: 'int' and 'dict'
-            
+
         Negative weights::
-            
+
             sage: D = DiGraph([(0,1,1),(1,2,-2),(0,2,4)])
             sage: D.shortest_paths(0, by_weight=True)
             {0: [0], 1: [0, 1], 2: [0, 1, 2]}
 
         Negative cycles::
-        
+
             sage: D.add_edge(2,0,0)
             sage: D.shortest_paths(0, by_weight=True)
             Traceback (most recent call last):
@@ -14294,9 +14364,9 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The 'BFS' algorithm does not work on weighted graphs.
-            
+
         If we run Dijkstra with negative weights::
-            
+
             sage: D = DiGraph([(0,1,1),(1,2,-2),(0,2,4)])
             sage: D.shortest_paths(0, algorithm='Dijkstra_Boost', by_weight=True)
             Traceback (most recent call last):
@@ -14339,7 +14409,7 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     G = networkx.Graph(self.edges(labels=False))
             return networkx.single_source_dijkstra_path(G, u)
-        
+
         elif algorithm in ['Dijkstra_Boost','Bellman-Ford_Boost',None]:
             from sage.graphs.base.boost_graph import shortest_paths
             _,pred = shortest_paths(self, u, weight_function, algorithm)
@@ -14453,7 +14523,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX (works only with positive weights).
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
           - ``'Bellman-Ford_Boost'``: the Bellman-Ford algorithm, implemented in
@@ -14477,22 +14547,22 @@ class GenericGraph(GenericGraph_pyx):
           lengths was outputted. Now we use variable ``by_weight`` to decide.
 
         EXAMPLES:
-        
+
         Unweighted case::
 
             sage: D = graphs.DodecahedralGraph()
             sage: D.shortest_path_lengths(0)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 3, 7: 3, 8: 2, 9: 2, 10: 1, 11: 2, 12: 3, 13: 3, 14: 4, 15: 5, 16: 4, 17: 3, 18: 2, 19: 1}
-            
+
         Weighted case::
-        
+
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
-            sage: G.shortest_path_lengths(0, by_weight=True)    
+            sage: G.shortest_path_lengths(0, by_weight=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1}
-            
+
         Using a weight function::
-            
+
             sage: D = DiGraph([(0,1,{'weight':1}),(1,2,{'weight':3}),(0,2,{'weight':5})])
             sage: weight_function = lambda e:e[2]['weight']
             sage: D.shortest_path_lengths(1, algorithm='Dijkstra_NetworkX', by_weight=False)
@@ -14501,25 +14571,34 @@ class GenericGraph(GenericGraph_pyx):
             {0: 0, 1: 1, 2: 4}
             sage: D.shortest_path_lengths(1, weight_function=weight_function)
             {1: 0, 2: 3}
-            
+
         Negative weights::
-        
+
             sage: D = DiGraph([(0,1,{'weight':-1}),(1,2,{'weight':3}),(0,2,{'weight':5})])
             sage: D.shortest_path_lengths(0, weight_function=weight_function)
             {0: 0, 1: -1, 2: 2}
-            
+
         Negative cycles::
-        
+
             sage: D = DiGraph([(0,1,{'weight':-5}),(1,2,{'weight':3}),(2,0,{'weight':1})])
             sage: D.shortest_path_lengths(0, weight_function=weight_function)
             Traceback (most recent call last):
             ...
             ValueError: The graph contains a negative cycle.
 
+        Checking that distances are equal regardless of the algorithm used::
+
+            sage: g = graphs.Grid2dGraph(5,5)
+            sage: d1 = g.shortest_path_lengths((0,0), algorithm="BFS")
+            sage: d2 = g.shortest_path_lengths((0,0), algorithm="Dijkstra_NetworkX")
+            sage: d3 = g.shortest_path_lengths((0,0), algorithm="Dijkstra_Boost")
+            sage: d4 = g.shortest_path_lengths((0,0), algorithm="Bellman-Ford_Boost")
+            sage: d1 == d2 == d3 == d4
+            True
         """
         if weight_sums is not None:
             deprecation(18938, "Now weight_sums is replaced by by_weight.")
-            
+
         if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and weight_function is None and by_weight):
             if weight_function is None and not by_weight:
                 weight_function = lambda e:1
@@ -14559,16 +14638,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost 
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
           - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
             Boost (works also with negative weights, if there is no negative
             cycle).
-            
+
           - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
             ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
-            positive, ``'Johnson_Boost'`` otherwise.
+            positive, ``'Floyd-Warshall-Cython'`` otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -14684,6 +14763,20 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1 == d2 == d3 == d4 == d5 == d6
             True
 
+        Checking that weighted distances are equal regardless of the algorithm used::
+
+            sage: g = Graph()
+            sage: import random
+            sage: for v in range(5):
+            ....:     for w in range(5):
+            ....:         g.add_edge(v,w,random.uniform(1,10))
+            sage: d1, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall-Python")
+            sage: d2, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_NetworkX")
+            sage: d3, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
+            sage: d4, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
+            sage: d1 == d2 == d3 == d4
+            True
+
         Checking a random path is valid::
 
             sage: dist, path = g.shortest_path_all_pairs(algorithm="BFS")
@@ -14695,13 +14788,13 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         Negative weights::
-        
+
             sage: g = DiGraph([(0,1,-2),(1,0,1)], weighted=True)
             sage: g.shortest_path_all_pairs(by_weight=True)
             Traceback (most recent call last):
             ...
             ValueError: The graph contains a negative cycle.
-             
+
         TESTS:
 
         Wrong name for ``algorithm``::
@@ -14722,22 +14815,22 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: Algorithm 'Floyd-Warshall-Cython' does not work with weights.
-            
+
         Dijkstra with negative weights::
-        
+
             sage: g = Graph({0: {1:1}, 1: {2:1}, 2: {3: 1}, 3: {4: -2}, 4: {0: -2}})
             sage: g.shortest_path_all_pairs(algorithm="Dijkstra_Boost", by_weight=True)
             Traceback (most recent call last):
             ...
             ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
-            
+
         """
         if default_weight != None:
             deprecation(18938, "Variable default_weight is deprecated: hence," +
                         " it is ignored. Please, use weight_function, instead.")
 
         if weight_function is not None:
-            by_weight = True            
+            by_weight = True
         elif by_weight:
             weight_function = lambda e:e[2]
 
@@ -14746,7 +14839,7 @@ class GenericGraph(GenericGraph_pyx):
                 for e in self.edges():
                     try:
                         if weight_function(e) < 0:
-                            algorithm = "Johnson_Boost"
+                            algorithm = "Floyd-Warshall-Python"
                             break
                     except (ValueError, TypeError):
                         raise ValueError("The weight function cannot find the" +
@@ -14773,9 +14866,9 @@ class GenericGraph(GenericGraph_pyx):
                 weight_function = lambda e:e[2]
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             return [johnson_shortest_paths(self, weight_function), None]
-        
+
         elif algorithm == "Dijkstra_Boost":
-            from sage.graphs.base.boost_graph import shortest_paths 
+            from sage.graphs.base.boost_graph import shortest_paths
             dist = dict()
             pred = dict()
             if by_weight and weight_function is None:
@@ -14835,6 +14928,8 @@ class GenericGraph(GenericGraph_pyx):
                 du = dist[u]
                 for v in verts:
                     if du[v] > du[w] + dw[v]:
+                        if u == v:
+                            raise ValueError("The graph contains a negative cycle.")
                         du[v] = du[w] + dw[v]
                         pred[u][v] = pred[w][v]
 
@@ -14876,8 +14971,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
-            ``by_weight`` is ``False``, else ``'Floyd-Warshall-Python'``.
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
@@ -14893,14 +14996,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.wiener_index()
             15
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 1))
-            20 
+            20
             sage: G.wiener_index(weight_function=lambda e:(e[2] if e[2] is not None else 200))
-            820 
+            820
             sage: G.wiener_index(algorithm='BFS')
             15
             sage: G.wiener_index(algorithm='Floyd-Warshall-Cython')
             15
             sage: G.wiener_index(algorithm='Floyd-Warshall-Python')
+            15
+            sage: G.wiener_index(algorithm='Dijkstra_Boost')
+            15
+            sage: G.wiener_index(algorithm='Johnson_Boost')
             15
             sage: G.wiener_index(algorithm='Dijkstra_NetworkX')
             15
@@ -14972,8 +15079,16 @@ class GenericGraph(GenericGraph_pyx):
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
 
-          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
-            ``by_weight`` is ``False``, else ``'Floyd-Warshall-Python'``.
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` for
+            unweighted graphs, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'``, otherwise.
 
         - ``weight_function`` (function) - a function that inputs an edge
           ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``

@@ -2493,7 +2493,7 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
 
-def UnitaryPolarGraph(m, q):
+def UnitaryPolarGraph(m, q, algorithm="naive"):
     r"""
     Returns the Unitary Polar Graph `O^{\epsilon}(m,q)`.
 
@@ -2506,45 +2506,49 @@ def UnitaryPolarGraph(m, q):
 
     EXAMPLES::
 
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
-        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
+        sage: G = graphs.UnitaryPolarGraph(4,2); G
+        Unitary Polar Graph O(4, 2); GQ(4, 2): Graph on 45 vertices
         sage: G.is_strongly_regular(parameters=True)
-        (130, 48, 20, 16)
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
-        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (112, 30, 2, 10)
-        sage: G = graphs.OrthogonalPolarGraph(5,3); G
-        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (40, 12, 2, 4)
+        (45, 12, 3, 3)
+        sage: graphs.UnitaryPolarGraph(5,2).is_strongly_regular(parameters=True)
+        (165, 36, 3, 9)
+        sage: graphs.UnitaryPolarGraph(6,2)    # not tested - long time
+        Unitary Polar Graph O(6, 2): Graph on 693 vertices
 
     TESTS::
 
-        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '-' or '+' when m is even
-        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '' or '+' when m is odd
+        sage: graphs.UnitaryPolarGraph(4,3).is_strongly_regular(parameters=True) # long time
+        (280, 36, 8, 4)
+
     """
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module_element import free_module_element as vector
-    from __builtin__ import sum as psum
-    Fq = FiniteField(q**2, 'a')
-    PG = ProjectiveSpace(m - 1, Fq)
+    if algorithm!="gap": # slow on large examples
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.modules.free_module_element import free_module_element as vector
+        from __builtin__ import sum as psum
+        Fq = FiniteField(q**2, 'a')
+        PG = ProjectiveSpace(m - 1, Fq)
+        def P(xx,yy):
+            x = vector(xx)
+            y = vector(yy)
+            return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
 
-    def F(x):
-        return psum(map(lambda j: x[j]*x[m-1-j]**q, xrange(m)))==0  
-
-    V = filter(lambda x: F(vector(x)), PG)
-
-    G = Graph([V,lambda x,y:  # bottleneck is here, of course:
-                 all(map(lambda c: F(vector(x)-c*vector(y)), Fq))],loops=False)
-
+        V = filter(lambda x: P(x,x), PG)
+        G = Graph([V,lambda x,y:  # bottleneck is here, of course:
+                     P(vector(x),vector(y))], loops=False)
+    else:
+        from sage.libs.gap.libgap import libgap
+        Fq=libgap.GF(q**2)
+        g=libgap.GeneralUnitaryGroup(m, q)
+        W=libgap.FullRowSpace(Fq,m)
+        B=libgap.Elements(libgap.Basis(W))
+        V1=B[0]
+        V2=B[1]
+        V = libgap.Orbit(g,V1,libgap.OnLines) 
+        L1 = libgap.Subspace(W,[V1,V2])
+        L = libgap.Orbit(g, L1)
+        lines = map(lambda x: libgap.Intersection(x.Elements(),V), L)
+        ################### unfinished - this part does not work!
     G.relabel()
     G.name("Unitary Polar Graph O" + str((m, q)))
     if m==4:
@@ -2552,3 +2556,5 @@ def UnitaryPolarGraph(m, q):
     if m==5:
         G.name(G.name()+'; GQ'+str((q**2,q**3)))
     return G
+
+

@@ -376,9 +376,9 @@ def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
     b = v0+1+4*mu0
     D = sqrt(b**2-16*v0*mu0)
     if int(D)==D:
-        for kf in map(lambda s: (s*D+b)/4, [-1,1]):
+        for kf in [(-D+b)/4, (D+b)/4]:
             k = int(kf)
-            if k == kf and True==\
+            if k == kf and \
                 strongly_regular_graph(v0+1, k, l0 - 2*mu0 + k , k - mu0,  existence=True):
                 def la(vv):
                     g = strongly_regular_graph(vv, k, l0 - 2*mu0 + k)

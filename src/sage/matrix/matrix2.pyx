@@ -10415,7 +10415,7 @@ cdef class Matrix(matrix1.Matrix):
                 _, SB = B.jordan_form(transformation=True)
             except Exception:
                 raise RuntimeError('unable to compute transformation for similar matrices')
-            return (False, SB*SA.inverse())
+            return (True, SB*SA.inverse())
 
     def symplectic_form(self):
         r"""

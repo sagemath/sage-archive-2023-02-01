@@ -4527,7 +4527,7 @@ cdef class Matroid(SageObject):
             components = components2
         return components
 
-    cpdef is_connected(self):
+    cpdef is_connected(self, certificate=False):
         """
         Test if the matroid is connected.
 
@@ -4555,7 +4555,17 @@ cdef class Matroid(SageObject):
             True
 
         """
-        return len(self.components()) == 1
+        components = self.components()
+        if len(components) == 1:
+            if certificate:
+                return True, None
+            else:
+                return True
+        else:
+            if certificate:
+                return False, components[0]
+            else:
+                return False
 
     cpdef connectivity(self, S, T=None):
         r"""
@@ -4771,6 +4781,129 @@ cdef class Matroid(SageObject):
                 I = I.symmetric_difference(path)
         return frozenset(I), frozenset(predecessor)|S
 
+    cpdef is_kconnected(self, k, certificate=False):
+        r"""
+        Return ``True`` if the matroid is `k`-connected, ``False`` otherwise.  It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``k`` -- a integer greater or equal to 1.
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is k-connected,
+          and ``False, X`` otherwise, where ``X`` is a `<k`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        .. SEEALSO::
+
+            :meth:`is_connected`, `is_3connected`
+
+        ALGORITHM:
+
+        Apply linking algorithm to find small separator.
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3).is_kconnected(3)
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M.is_kconnected(3)
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N.is_kconnected(3)
+            False
+            sage: matroids.named_matroids.BetsyRoss().is_kconnected(3)
+            True
+            sage: matroids.AG(5,2).is_kconnected(4)
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M.is_kconnected(3)
+            False
+            sage: B, X = M.is_kconnected(3,True)
+            sage: M.connectivity(X)<3
+            True
+        """
+        # base case
+        if k<1:
+            raise ValueError("k is less than 1")
+        if k<=2:
+            return self.is_connected(certificate)
+        if k==3:
+            return self.is_3connected(certificate)
+        # recursive case
+        sol,cert = self.is_kconnected(k-1, True)
+        if not sol:
+            if certificate:
+                return False, cert
+            return False
+        m = k-1
+        E = set(self.groundset())
+        Q = set(list(E)[:m])
+        E = E-Q
+        for r in range(len(Q)/2+1):
+            R = set(list(E)[:r])
+            for Q1 in map(set,combinations(Q, r)):
+                Q2 = Q-Q1
+                # optimization, ignore half of the {Q1,Q2}
+                if (len(Q2)==r and min(Q1)!=min(Q)):
+                    continue
+                # Given Q1, Q2 partition of Q, find all extensions
+                for r2 in range(r+1):
+                    for R1 in map(set,combinations(R, r2)):
+                        R2 = R-R1
+                        # F is the set of elements cannot be in the extension of Q1
+                        F = set([])
+                        U = E-R
+                        # if Q1|R1 is full
+                        if m-len(Q1)-len(R1) == 0:
+                            T=Q1|R1
+                            for B in map(set,combinations(U, m-len(Q2)-len(R2))):
+                                S = Q2|R2|B
+                                _, X = self._link(S, T)
+                                if self.connectivity(X)<m:
+                                    if certificate:
+                                        return False, X
+                                    return False
+                            continue
+                        # pick an element and assume it's an extension of Q1
+                        for e in U:
+                            U = U-F
+                            # not enough elements
+                            if len(U-set([e]))<m-len(Q1)-len(R1)-1:
+                                break
+                            # extension of Q2 is full
+                            if len(F)==m-len(Q2)-len(R2):
+                                S = Q2|R2|F
+                                for A in map(set,combinations(U,m-len(Q1)-len(R1))):
+                                    T = Q1|R1|A
+                                    _, X = self._link(S, T)
+                                    if self.connectivity(X)<m:
+                                        if certificate:
+                                            return False, X
+                                        return False
+                                break
+                            for A in map(set,combinations(U-set([e]),m-len(Q1)-len(R1)-1)):
+                                A.add(e)
+                                T = Q1|R1|A
+                                for B in map(set,combinations(U-A, m-len(Q2)-len(R2)-len(F))):
+                                    B |= F
+                                    S = Q2|R2|B
+                                    _, X = self._link(S, T)
+                                    if self.connectivity(X)<m:
+                                        if certificate:
+                                            return False, X
+                                        return False
+                            F.add(e)
+        if certificate:
+            return True, None
+        return True
 
     cpdef is_3connected(self, certificate=False, algorithm=None, separation=False):
         r"""

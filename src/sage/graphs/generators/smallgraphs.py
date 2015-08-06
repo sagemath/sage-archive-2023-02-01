@@ -3451,6 +3451,7 @@ def LocalMcLaughlinGraph():
     EXAMPLES::
 
         sage: g = graphs.LocalMcLaughlinGraph(); g   # long time # optional - gap_packages
+        Local McLaughlin Graph: Graph on 162 vertices
         sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
         (162, 56, 10, 24)
     """

@@ -4,35 +4,7 @@ Incidence structures (i.e. hypergraphs, i.e. set systems)
 An incidence structure is specified by a list of points, blocks, or an incidence
 matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following methods:
 
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
-
-    :meth:`~IncidenceStructure.ground_set` | Return the ground set (i.e the list of points).
-    :meth:`~IncidenceStructure.num_points` | Return the size of the ground set.
-    :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
-    :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
-    :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
-    :meth:`~IncidenceStructure.degree` | Return the degree of a point `p`
-    :meth:`~IncidenceStructure.degrees` | Return the degree of all sets of given size, or the degree of all points.
-    :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
-    :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
-    :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
-    :meth:`~IncidenceStructure.incidence_graph` | Return the incidence graph of the design
-    :meth:`~IncidenceStructure.packing` | Return a maximum packing
-    :meth:`~IncidenceStructure.relabel` | Relabel the ground set
-    :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
-    :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
-    :meth:`~IncidenceStructure.dual` | Return the dual design.
-    :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
-    :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
-    :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
-    :meth:`~IncidenceStructure.isomorphic_substructures_iterator` | Iterates over all copies of ``H2`` contained in ``self``
-    :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
-    :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
-    :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
-    :meth:`~IncidenceStructure.trace` | Return the trace of a set of point
+{METHODS_OF_IncidenceStructure}
 
 REFERENCES:
 
@@ -1939,3 +1911,6 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+__doc__ = __doc__.format(METHODS_OF_IncidenceStructure=gen_rest_table_index(IncidenceStructure))

@@ -206,9 +206,11 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
+    echo "  -sdist              -- build a source distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
-    echo "  -sdist              -- build a source distribution of Sage"
+    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
+    echo "                         the packages located in upstream/"
 
     echo
     ####  1.......................26..................................................78
@@ -457,6 +459,11 @@ fi
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
     exec pip "$@"
+fi
+
+if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
+    shift
+    exec sage-fix-pkg-checksums "$@"
 fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then

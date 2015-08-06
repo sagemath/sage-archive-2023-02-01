@@ -62,6 +62,8 @@ Note that the function is recomputed each time::
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from cpython.object cimport PyObject_Call, PyObject_RichCompare
+
 import types
 
 def is_lazy_string(obj):
@@ -78,18 +80,46 @@ def is_lazy_string(obj):
     """
     return isinstance(obj, _LazyString)
 
-def lazy_string(func, *args, **kwargs):
+def lazy_string(f, *args, **kwargs):
     """
-    Creates a lazy string by invoking func with args.
+    Creates a lazy string.
+
+    INPUT:
+
+    - ``f``, either a callable or a (format) string
+    - positional arguments that are given to ``f``, either by calling or by
+      applying it as a format string
+    - named arguments, that are forwarded to ``f`` if it is not a string
+
 
     EXAMPLES::
 
         sage: from sage.misc.lazy_string import lazy_string
-        sage: f = lambda: "laziness"
-        sage: s = lazy_string(f); s
-        l'laziness'
+        sage: f = lambda x: "laziness in "+str(x)
+        sage: s = lazy_string(f, ZZ); s
+        l'laziness in Integer Ring'
+
+    Here, we demonstrate that the evaluation is postponed until the value is
+    needed, and that the result is not cached::
+
+        sage: class C:
+        ....:     def __repr__(self):
+        ....:         print "determining string representation"
+        ....:         return "a test"
+        sage: c = C()
+        sage: s = lazy_string("this is %s", c)
+        sage: s
+        determining string representation
+        l'this is a test'
+        sage: s == 'this is a test'
+        determining string representation
+        True
+        sage: unicode(s)
+        determining string representation
+        u'this is a test'
+
     """
-    return _LazyString(func, args, kwargs)
+    return _LazyString(f, args, kwargs)
 
 def _make_lazy_string(ftype, fpickle, args, kwargs):
     """
@@ -109,36 +139,110 @@ def _make_lazy_string(ftype, fpickle, args, kwargs):
         f = fpickle
     return _LazyString(f, args, kwargs)
 
-class _LazyString(object):
+cdef class _LazyString(object):
     """
-    Class for strings created by a function call.
+    Lazy class for strings created by a function call or a format string.
 
-    The proxy implementation attempts to be as complete as possible, so that
-    the lazy objects should mostly work as expected, for example for sorting.
+    INPUT:
+
+    - ``f``, either a callable or a (format) string
+    - ``args``, a tuple of arguments that are given to ``f``, either by calling
+      or by applying it as a format string
+    - ``kwargs``, a dictionary of optional arguments, that are forwarded to ``f``
+      if it is a callable.
+
+    .. NOTE::
+
+        Evaluation of ``f`` is postponed until it becomes necessary, e.g., for
+        comparison. The result of evaluation is not cached. The proxy
+        implementation attempts to be as complete as possible, so that the
+        lazy objects should mostly work as expected, for example for sorting.
+
+        The function :func:`lazy_string` creates lazy strings in a slightly more
+        convenient way, because it is then not needed to provide the arguments as
+        tuple and dictionary.
 
     EXAMPLES::
 
-        sage: from sage.misc.lazy_string import lazy_string
+        sage: from sage.misc.lazy_string import lazy_string, _LazyString
         sage: f = lambda x: "laziness in the " + repr(x)
         sage: s = lazy_string(f, ZZ); s
         l'laziness in the Integer Ring'
-    """
-    __slots__ = ('_func', '_args', '_kwargs')
+        sage: lazy_string("laziness in the %s", ZZ)
+        l'laziness in the Integer Ring'
 
-    def __init__(self, func, args, kwargs):
+    Here, we demonstrate that the evaluation is postponed until the value is
+    needed, and that the result is not cached. Also, we create a lazy string directly,
+    without calling :func:`lazy_string`::
+
+        sage: class C:
+        ....:     def __repr__(self):
+        ....:         print "determining string representation"
+        ....:         return "a test"
+        sage: c = C()
+        sage: s = _LazyString("this is %s", (c,), {})
+        sage: s
+        determining string representation
+        l'this is a test'
+        sage: s == 'this is a test'
+        determining string representation
+        True
+        sage: unicode(s)
+        determining string representation
+        u'this is a test'
+
+    """
+
+    def __init__(self, f, args, kwargs):
         """
+        INPUT:
+
+        - ``f``, either a callable or a (format) string
+        - ``args``, a tuple of arguments that are given to ``f``, either by calling
+          or by applying it as a format string
+        - ``kwargs``, a dictionary of optional arguments, that are forwarded to ``f``
+          if it is a callable.
+
         EXAMPLES::
 
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda x: "laziness" + repr(x)
             sage: s = lazy_string(f, 5); s
             l'laziness5'
+            sage: lazy_string("This is %s", ZZ)
+            l'This is Integer Ring'
+            sage: lazy_string(u"This is %s", ZZ)
+            lu'This is Integer Ring'
         """
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
+        self.func = f
+        self.args = <tuple?>args
+        self.kwargs = <dict?>kwargs
 
-    value = property(lambda x: x._func(*x._args, **x._kwargs))
+    cdef value(self):
+        cdef f = self.func
+        if isinstance(f, basestring):
+            return f % self.args
+        return PyObject_Call(f, self.args, self.kwargs)
+
+    property value:
+        def __get__(self):
+            """
+            Return the value of this lazy string, as an ordinary string.
+
+            EXAMPLES::
+
+                sage: from sage.misc.lazy_string import lazy_string
+                sage: f = lambda: "laziness"
+                sage: lazy_string(f).value
+                'laziness'
+
+            ::
+
+                sage: from sage.misc.lazy_string import lazy_string
+                sage: lazy_string("%s", "laziness").value
+                'laziness'
+            """
+            return self.value()
 
     def __contains__(self, key):
         """
@@ -152,7 +256,7 @@ class _LazyString(object):
             sage: 'ni' in s
             False
         """
-        return key in self.value
+        return key in self.value()
 
     def __nonzero__(self):
         """
@@ -166,7 +270,7 @@ class _LazyString(object):
             sage: bool(lazy_string(f))
             False
         """
-        return bool(self.value)
+        return bool(self.value())
 
     def __dir__(self):
         """
@@ -193,7 +297,7 @@ class _LazyString(object):
             sage: "".join(list(s)) # indirect doctest
             'laziness'
         """
-        return iter(self.value)
+        return iter(self.value())
 
     def __len__(self):
         """
@@ -205,7 +309,7 @@ class _LazyString(object):
             sage: len(s)
             8
         """
-        return len(self.value)
+        return len(self.value())
 
     def __str__(self):
         """
@@ -217,7 +321,7 @@ class _LazyString(object):
             sage: str(s) # indirect doctest
             'laziness'
         """
-        return str(self.value)
+        return str(self.value())
 
     def __unicode__(self):
         """
@@ -229,7 +333,7 @@ class _LazyString(object):
             sage: unicode(s) # indirect doctest
             u'laziness'
         """
-        return unicode(self.value)
+        return unicode(self.value())
 
     def __add__(self, other):
         """
@@ -241,19 +345,10 @@ class _LazyString(object):
             sage: s + " supreme"
             'laziness supreme'
         """
-        return self.value + other
-
-    def __radd__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
-            sage: "no " + s
-            'no laziness'
-        """
-        return other + self.value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() + other
+        else:
+            return self + (<_LazyString>other).value()
 
     def __mod__(self, other):
         """
@@ -264,20 +359,16 @@ class _LazyString(object):
             sage: s = lazy_string(f)
             sage: s % "ine"
             'laziness'
-        """
-        return self.value % other
-
-    def __rmod__(self, other):
-        """
-        EXAMPLES::
-
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda: "ine"
             sage: s = lazy_string(f)
             sage: "laz%sss" % s
             'laziness'
         """
-        return other % self.value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() % other
+        else:
+            return self % (<_LazyString>other).value()
 
     def __mul__(self, other):
         """
@@ -288,22 +379,15 @@ class _LazyString(object):
             sage: s = lazy_string(f)
             sage: s * 2
             'lazinesslaziness'
-        """
-        return self.value * other
-
-    def __rmul__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: 2 * s
             'lazinesslaziness'
         """
-        return other * self.value
+        if isinstance(self, _LazyString):
+            return (<_LazyString>self).value() * other
+        else:
+            return self * (<_LazyString>other).value()
 
-    def __lt__(self, other):
+    def __richcmp__(self, other, int op):
         """
         EXAMPLES::
 
@@ -316,80 +400,30 @@ class _LazyString(object):
             False
             sage: s < s
             False
-        """
-        return self.value < other
-
-    def __le__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: s <= 'laziness'
             True
             sage: s <= 'azi'
             False
             sage: s <= s
             True
-        """
-        return self.value <= other
-
-    def __eq__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: s == 'laziness'
             True
             sage: s == 'azi'
             False
             sage: s == s
             True
-        """
-        return self.value == other
-
-    def __ne__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: s != 'laziness'
             False
             sage: s != 'azi'
             True
             sage: s != s
             False
-        """
-        return self.value != other
-
-    def __gt__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: s > 'laziness'
             False
             sage: s > 'azi'
             True
             sage: s > s
             False
-        """
-        return self.value > other
-
-    def __ge__(self, other):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
             sage: s >= 'laziness'
             True
             sage: s >= 'azi'
@@ -397,7 +431,8 @@ class _LazyString(object):
             sage: s >= s
             True
         """
-        return self.value >= other
+        self = (<_LazyString?>self).value()
+        return PyObject_RichCompare(self, other, op)
 
     def __getattr__(self, name):
         """
@@ -415,7 +450,7 @@ class _LazyString(object):
         """
         if name == '__members__':
             return self.__dir__()
-        return getattr(self.value, name)
+        return getattr(self.value(), name)
 
     def __reduce__(self):
         """
@@ -428,15 +463,14 @@ class _LazyString(object):
             sage: s = lazy_string(f)
             sage: TestSuite(s).run() # indirect doctest
         """
-        import types
-        if isinstance(self._func, types.FunctionType):
+        if isinstance(self.func, types.FunctionType):
             from sage.misc.fpickle import pickle_function
-            f = pickle_function(self._func)
+            f = pickle_function(self.func)
             ftype = 'func'
         else:
             f = self.func
             ftype = None
-        return _make_lazy_string, (ftype, f, self._args, self._kwargs)
+        return _make_lazy_string, (ftype, f, self.args, self.kwargs)
 
     def __getitem__(self, key):
         """
@@ -448,7 +482,7 @@ class _LazyString(object):
             sage: s[4]
             'n'
         """
-        return self.value[key]
+        return self.value()[key]
 
     def __copy__(self):
         """
@@ -473,6 +507,46 @@ class _LazyString(object):
             l'laziness'
         """
         try:
-            return 'l' + repr(self.value)
+            return 'l' + repr(self.value())
         except Exception:
             return '<%s broken>' % self.__class__.__name__
+
+    cpdef update_lazy_string(self, args, kwds):
+        """
+        Change this lazy string in-place.
+
+        INPUT:
+
+        - ``args``, a tuple
+        - ``kwds``, a dict
+
+        .. NOTE::
+
+            Lazy strings are not hashable, and thus an in-place change is
+            allowed.
+
+        EXAMPLES::
+
+            sage: from sage.misc.lazy_string import lazy_string
+            sage: f = lambda op,A,B:"unsupported operand parent(s) for '%s': '%s' and '%s'"%(op,A,B)
+            sage: R = GF(5)
+            sage: S = GF(3)
+            sage: D = lazy_string(f, '+', R, S)
+            sage: D
+            l"unsupported operand parent(s) for '+': 'Finite Field of size 5' and 'Finite Field of size 3'"
+            sage: D.update_lazy_string(('+', S, R), {})
+
+        Apparently, the lazy string got changed in-place::
+
+            sage: D
+            l"unsupported operand parent(s) for '+': 'Finite Field of size 3' and 'Finite Field of size 5'"
+
+        TESTS::
+
+            sage: D.update_lazy_string(None, None)
+            Traceback (most recent call last):
+            ...
+            TypeError: Expected tuple, got NoneType
+        """
+        self.args = <tuple?>args
+        self.kwargs = <dict?>kwds

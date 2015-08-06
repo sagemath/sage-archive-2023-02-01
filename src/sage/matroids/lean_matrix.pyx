@@ -1,3 +1,4 @@
+# cython: profile=True
 """
 Lean matrices
 
@@ -535,21 +536,6 @@ cdef class LeanMatrix:
         - `False, None`  -- if the input submatrices does not induce a `m``-separator.
         - `True, E` -- if there exist a ``m``-separator ``E``.
 
-        EXAMPLES::
-
-            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
-            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
-            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
-            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
-            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
-            sage: M._reduced_representation().shifting_all([0,1],[0,1],[],[],3)
-            (False, None)
-            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
-            ....:                                          [1,1,1,1,0],
-            ....:                                          [0,1,1,1,0],
-            ....:                                          [0,0,0,1,1]])
-            sage: M._reduced_representation().shifting_all([1], [1], [0], [0], 3)[0]
-            True
         """
         for z in xrange(self.ncols()):
             if z in P_cols+Q_cols:
@@ -570,9 +556,9 @@ cdef class LeanMatrix:
 
     cdef shifting(self, U_1, V_2, U_2, V_1, z2, z1, int m):
         r"""
-        Let `E_1` be the submatrix of `M` using rows `U_1` and columns `V_2` with
+        Let `E_1` be the submatrix using rows `U_1` and columns `V_2` with
         optional column `z2` attached.
-        Let `E_2` be the submatrix of `M` using rows `U_2` and columns `V_1` with
+        Let `E_2` be the submatrix using rows `U_2` and columns `V_1` with
         optional column `z1` attached.
         If `E_1` and `E_2` can be extended to a ``m``-separator, then it 
         returns `True, E`, where `E` is a ``m``-separator. Otherwise it 
@@ -597,21 +583,6 @@ cdef class LeanMatrix:
 
         - `False, None`  -- if the input submatrices does not induce a `m``-separator.
         - `True, (X,Y)` -- row indices `X` and column indices `Y` defines a ``m``-separator.
-
-        EXAMPLES::
-            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
-            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
-            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
-            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
-            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
-            sage: M._reduced_representation().shifting([0,1],[0,1],[],[],2,None,3)
-            (False, None)
-            sage: M = Matroid(field=GF(2), reduced_matrix=[[1,0,1,1,1],
-            ....:                                          [1,1,1,1,0],
-            ....:                                          [0,1,1,1,0],
-            ....:                                          [0,0,0,1,1]])
-            sage: M._reduced_representation().shifting([1], [1], [0], [0], None, 2, 3)[0]
-            True
         """
         # make copy because of destructive updates
         cdef list X_1 = list(U_1)
@@ -642,7 +613,6 @@ cdef class LeanMatrix:
         cdef dict rU = dict(zip(lU_2,xrange(len(U_2))))
         cdef dict rV = dict(zip(lV_2,xrange(len(V_2))))
 
-        # M2 = self.copy()
         # find a unique representation of every column in U_1xY_3 using columns in U_1xV_2
         B = self.matrix_from_rows_and_columns(list(U_1), xrange(len(Y)))
         B.gauss_jordan_reduce(lV_2)

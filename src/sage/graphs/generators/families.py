@@ -2492,3 +2492,63 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     G.relabel()
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
+
+def UnitaryPolarGraph(m, q):
+    r"""
+    Returns the Unitary Polar Graph `O^{\epsilon}(m,q)`.
+
+    For more information on Orthogonal Polar graphs, see see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
+        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (130, 48, 20, 16)
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
+        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (112, 30, 2, 10)
+        sage: G = graphs.OrthogonalPolarGraph(5,3); G
+        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (40, 12, 2, 4)
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '-' or '+' when m is even
+        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '' or '+' when m is odd
+    """
+    from sage.schemes.projective.projective_space import ProjectiveSpace
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module_element import free_module_element as vector
+    from __builtin__ import sum as psum
+    Fq = FiniteField(q**2, 'a')
+    PG = ProjectiveSpace(m - 1, Fq)
+
+    def F(x):
+        return psum(map(lambda j: x[j]*x[m-1-j]**q, xrange(m)))==0  
+
+    V = filter(lambda x: F(vector(x)), PG)
+
+    G = Graph([V,lambda x,y:  # bottleneck is here, of course:
+                 all(map(lambda c: F(vector(x)-c*vector(y)), Fq))],loops=False)
+
+    G.relabel()
+    G.name("Unitary Polar Graph O" + str((m, q)))
+    if m==4:
+        G.name(G.name()+'; GQ'+str((q**2,q)))
+    if m==5:
+        G.name(G.name()+'; GQ'+str((q**2,q**3)))
+    return G

@@ -7976,7 +7976,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                 q = R(x[n+k-1]/y[n-1])
             except TypeError:
                 raise ArithmeticError("Division non exact (consider coercing to polynomials over the fraction field)")
-            x[n+k-1] = R.zero_element()
+            x[n+k-1] = R.zero()
             for j from n+k-2 >= j >= k:
                 x[j] -= q * y[j-k]
             quo.insert(0,q)

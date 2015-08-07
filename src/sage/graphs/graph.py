@@ -5006,8 +5006,7 @@ class Graph(GenericGraph):
             True
         """
         from itertools import product
-        from copy import deepcopy
-        H = deepcopy(self)
+        H = copy(self)
         H.add_edges(product(s, set(self).difference(s)))
         H.delete_edges(self.edge_boundary(s))
         return H

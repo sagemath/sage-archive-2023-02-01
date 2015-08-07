@@ -1314,8 +1314,13 @@ class GenericGraph(GenericGraph_pyx):
         Optionally, it is possible to add vertex attributes and edge attributes
         to the output graph.
 
-        For more information on the Python version of igraph, see
-        http://igraph.org/python/.
+        .. NOTE::
+
+            This routine needs the optional package igraph to be installed:
+            to do so, it is enough to
+            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            more information on the Python version of igraph, see
+            http://igraph.org/python/.
 
         INPUT:
 
@@ -1426,8 +1431,8 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run Sage with option -i " +
-                              "python_igraph.")
+                              "install it, run 'sage -i igraph' followed by " +
+                              "'sage -i python_igraph'.")
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]

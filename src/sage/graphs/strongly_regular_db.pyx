@@ -869,7 +869,8 @@ def SRG_120_63_30_36():
     r"""
     Return a `(120,63,30,36)`-strongly regular graph
 
-    It is the distance-2 graph of :func:`~sage.graphs.generators.families.JohnsonGraph(10,3)`.
+    It is the distance-2 graph of :meth:`JohnsonGraph(10,3)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
 
     EXAMPLES::
 
@@ -885,7 +886,8 @@ def SRG_126_25_8_4():
     r"""
     Return a `(126,25,8,4)`-strongly regular graph
 
-    It is the distance-1 or 4 graph of :func:`~sage.graphs.generators.families.JohnsonGraph(9,4)`.
+    It is the distance-(1 or 4) graph of :meth:`JohnsonGraph(9,4)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
 
     EXAMPLES::
 
@@ -902,7 +904,7 @@ def SRG_175_72_20_36():
     Return a `(175,72,20,36)`-strongly regular graph
 
     This graph is obtained from the line graph of
-    :func:`~sage.graphs.generators.smallgraphs.HoffmanSingletonGraph`. Setting
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
     two yields the strongly regular graph. For more information, see
     http://www.win.tue.nl/~aeb/graphs/McL.html.

@@ -7941,7 +7941,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             ...
             ZeroDivisionError: Division by zero polynomial
 
-        TESTS::
+        TESTS:
 
         The following shows that :trac:`16649` is indeed fixed. ::
 

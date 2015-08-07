@@ -256,9 +256,6 @@ class DiGraph(GenericGraph):
 
        -  ``igraph`` - data must be an igraph directed Graph.
 
-    -  ``boundary`` - a list of boundary vertices, if
-       empty, digraph is considered as a 'graph without boundary'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.

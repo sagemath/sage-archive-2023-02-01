@@ -699,9 +699,6 @@ class Graph(GenericGraph):
 
        - ``igraph`` - data must be an `igraph <http://igraph.org/>`__ graph.
 
-    -  ``boundary`` - a list of boundary vertices, if
-       empty, graph is considered as a 'graph without boundary'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.

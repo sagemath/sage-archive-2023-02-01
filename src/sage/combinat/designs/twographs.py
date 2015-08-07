@@ -118,10 +118,8 @@ class TwoGraph(IncidenceStructure):
             (9, 4, 1, 2)
         """
         from sage.graphs.graph import Graph
-        edges = map(lambda y: frozenset(filter(lambda z: z != v, y)),
-                         filter(lambda x: v in x, self.blocks()))
-        V = filter(lambda x: x != v, self.ground_set())
-        return Graph([V, lambda i, j: frozenset((i,j)) in edges])
+        return Graph(map(lambda y: filter(lambda z: z != v, y),
+                            filter(lambda x: v in x, self.blocks())))
 
     def complement(self):
         """

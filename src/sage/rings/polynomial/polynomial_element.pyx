@@ -3013,24 +3013,56 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Check that :trac:`18600` is fixed::
 
-            sage: R.<x> = ZZ[]
-            sage: S.<t> = R[]
-            sage: p = 1 + x*t + x^2 + t^2
+            sage: Sx.<x> = ZZ[]
+            sage: Sxy.<y> = Sx[]
+            sage: Sxyz.<z> = Sxy[]
+            sage: p = 1 + x*y + x*z + y*z^2
+            sage: q = p.integral()
+            sage: q
+            1/3*y*z^3 + 1/2*x*z^2 + (x*y + 1)*z
+            sage: q.parent()
+            Univariate Polynomial Ring in z over Univariate Polynomial Ring in y
+            over Univariate Polynomial Ring in x over Rational Field
+            sage: q.derivative() == p
+            True
+            sage: p.integral(y)
+            1/2*y^2*z^2 + x*y*z + 1/2*x*y^2 + y
+            sage: p.integral(y).derivative(y) == p
+            True
+            sage: p.integral(x).derivative(x) == p
+            True
+
+        Check that it works with non-integral domains (:trac:`18600`)::
+
+            sage: x = polygen(Zmod(4))
+            sage: p = x**4 + 1
             sage: p.integral()
-            1/3*t^3 + 1/2*x*t^2 + (x^2 + 1)*t
-            sage: p.integral(x)
-            x*t^2 + 1/2*x^2*t + 1/3*x^3 + x
+            x^5 + x
+            sage: p.integral().derivative() == p
+            True
         """
         R = self._parent
-        Q = (self.constant_coefficient()/1).parent()
-        S = R.change_ring(Q)
+
+        # TODO:
+        # calling the coercion model bin_op is much more accurate than using the
+        # true division (which is bypassed by polynomials). But it does not work
+        # in all cases!!
+        cm = sage.structure.element.get_coercion_model()
+        try:
+            S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            Q = S.base_ring()
+        except TypeError:
+            Q = (R.base_ring().one()/1).parent()
+            S = R.change_ring(Q)
         if var is not None and var != R.gen():
             # call integral() recursively on coefficients
             return S([coeff.integral(var) for coeff in self.list()])
         cdef Py_ssize_t n, degree = self.degree()
-        coeffs = self.list()
-        v = [0] + [coeffs[n]/(n+1) for n from 0 <= n <= degree]
-        return S(v)
+        p = S.zero()
+        for n in range(degree+1):
+            if self[n]:
+                p += cm.bin_op(Q(self[n]), n+1, operator.div) * S.gen()**(n+1)
+        return p
 
     def dict(self):
         """

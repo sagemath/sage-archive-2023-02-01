@@ -127,14 +127,20 @@ class TwoGraph(IncidenceStructure):
         """
         the complement
 
+        The two-graph constisting exactly of triples not in ``self``.
+
         EXAMPLES::
 
             sage: p=graphs.CompleteGraph(8).line_graph().twograph()
-            sage: p.complement()
+            sage: pc = p.complement(); pc
             Incidence structure with 28 points and 1260 blocks
+
+        TESTS::
+
+            sage: is_twograph(pc)
+            True
         """
-        return TwoGraph(filter(lambda x: not list(x) in self.blocks(), 
-                                combinations(self.ground_set(), 3)))
+        return super(TwoGraph, self).complement(uniform=True)
 
 """
 Functions

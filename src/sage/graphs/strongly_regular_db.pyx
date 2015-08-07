@@ -865,6 +865,38 @@ def SRG_256_70_114_110():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_120_63_30_36():
+    r"""
+    Return a `(120,63,30,36)`-strongly regular graph
+
+    It is the distance-2 graph of :func:`~sage.graphs.generators.families.JohnsonGraph(10,3)`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_120_63_30_36
+        sage: G =  SRG_120_63_30_36()
+        sage: G.is_strongly_regular(parameters=True)
+        (120, 63, 30, 36)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(10,3).distance_graph([2])
+
+def SRG_126_25_8_4():
+    r"""
+    Return a `(126,25,8,4)`-strongly regular graph
+
+    It is the distance-1 or 4 graph of :func:`~sage.graphs.generators.families.JohnsonGraph(9,4)`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_126_25_8_4
+        sage: G =  SRG_126_25_8_4()
+        sage: G.is_strongly_regular(parameters=True)
+        (126, 25, 8, 4)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(9,4).distance_graph([1,4])
+
 def SRG_175_72_20_36():
     r"""
     Return a `(175,72,20,36)`-strongly regular graph
@@ -1066,6 +1098,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         ( 77,  16,  0,  4): [M22Graph],
         (100,  22,  0,  6): [HigmanSimsGraph],
         (162,  56, 10, 24): [LocalMcLaughlinGraph],
+        (120,  63, 30, 36): [SRG_120_63_30_36],
+        (126,  25,  8,  4): [SRG_126_25_8_4],
         (175,  72, 20, 36): [SRG_175_72_20_36],
         (231,  30,  9,  3): [CameronGraph],
         (275, 112, 30, 56): [McLaughlinGraph],

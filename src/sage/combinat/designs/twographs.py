@@ -43,7 +43,7 @@ This module's methods are the following :
     :widths: 30, 70
     :delim: |
 
-    :meth:`~TwoGraph.is_regular` | returns True if the inc. system is regular twograph
+    :meth:`~TwoGraph.is_regular_twograph` | returns True if the inc. system is regular twograph
     :meth:`~TwoGraph.complement` | returns the complement of ``self``
     :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
@@ -68,21 +68,23 @@ class TwoGraph(IncidenceStructure):
     two-graphs class
 
     """
-    def is_regular(self, alpha=False, check=False):
+    def is_regular_twograph(self, alpha=False, check=False):
         """
-        returns True if ``self`` is a regular twograph
+        returns True if ``self`` is a regular twograph, i.e. a 2-design:
+        each pair of elements of ``self.ground_set()`` is contained in
+        exactly ``alpha`` triples.
 
         EXAMPLES::
 
             sage: p=graphs.PetersenGraph().twograph()
-            sage: p.is_regular(alpha=True)
+            sage: p.is_regular_twograph(alpha=True)
             (True, 4)
-            sage: p.is_regular()
+            sage: p.is_regular_twograph()
             True
             sage: p=graphs.PathGraph(5).twograph()
-            sage: p.is_regular(alpha=True)
+            sage: p.is_regular_twograph(alpha=True)
             (False, 0)
-            sage: p.is_regular()
+            sage: p.is_regular_twograph()
             False
         """
         if check:
@@ -123,7 +125,7 @@ class TwoGraph(IncidenceStructure):
 
     def complement(self):
         """
-        the complement
+        the complement of ``self``
 
         The two-graph constisting exactly of triples not in ``self``.
 

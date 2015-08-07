@@ -12,6 +12,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.networkx_graph` | Create a new NetworkX graph from the Sage graph
+    :meth:`~GenericGraph.igraph_graph` | Create a new igraph graph from the Sage graph
     :meth:`~GenericGraph.to_dictionary` | Create a dictionary encoding the graph.
     :meth:`~GenericGraph.copy` | Return a copy of the graph.
     :meth:`~GenericGraph.export_to_file` | Export the graph to a file.
@@ -1305,6 +1306,142 @@ class GenericGraph(GenericGraph_pyx):
                     except (TypeError, ValueError, NetworkXError):
                         N.add_edge(u,v,weight=l)
             return N
+
+    def igraph_graph(self, vertex_attrs={}, edge_attrs={}):
+        r"""
+        Converts the graph into an igraph graph.
+
+        Optionally, it is possible to add vertex attributes and edge attributes
+        to the output graph.
+
+        .. NOTE::
+
+            This routine needs the optional package igraph to be installed:
+            to do so, it is enough to
+            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            more information on the Python version of igraph, see
+            http://igraph.org/python/.
+
+        INPUT:
+
+        - ``vertex_attrs`` (dictionary) - a dictionary where the key is a string
+          (the attribute name), and the value is an iterable containing in
+          position i the label of the ith vertex (see
+          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
+          more information).
+
+        - ``edge_attrs`` (dictionary) - a dictionary where the key is a string
+          (the attribute name), and the value is an iterable containing in
+          position i the label of the ith edge in the list outputted by
+          ``self.edges()`` (see
+          http://igraph.org/python/doc/igraph.Graph-class.html#__init__
+          for more information).
+
+        .. NOTE::
+
+            In igraph, a graph is weighted if the edge labels have attribute
+            ``weight``. Hence, to create a weighted graph, it is enough to add
+            this attribute.
+
+        EXAMPLES:
+
+        Standard conversion::
+
+            sage: G = graphs.TetrahedralGraph() # optional - python_igraph
+            sage: H = G.igraph_graph()          # optional - python_igraph
+            sage: H.summary()                   # optional - python_igraph
+            'IGRAPH U--- 4 6 -- '
+            sage: G = digraphs.Path(3)          # optional - python_igraph
+            sage: H = G.igraph_graph()          # optional - python_igraph
+            sage: H.summary()                   # optional - python_igraph
+            'IGRAPH D--- 3 2 -- '
+
+        Adding edge attributes::
+
+            sage: G = Graph([(1,2,'a'),(2,3,'b')])                                     # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs = {'label':[e[2] for e in G.edges()]}) # optional - python_igraph
+            sage: H.es['label']                                                        # optional - python_igraph
+            ['a', 'b']
+
+
+        If edges have an attribute ``weight``, the igraph graph is considered
+        weighted::
+
+            sage: G = Graph([(1,2,{'weight':1}),(2,3,{'weight':2})])                              # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs = {'weight':[e[2]['weight'] for e in G.edges()]}) # optional - python_igraph
+            sage: H.is_weighted()                                                                 # optional - python_igraph
+            True
+            sage: H.es['weight']                                                                  # optional - python_igraph
+            [1, 2]
+
+        Adding vertex attributes::
+
+            sage: G = graphs.GridGraph([2,2])                            # optional - python_igraph
+            sage: H = G.igraph_graph(vertex_attrs={'name':G.vertices()}) # optional - python_igraph
+            sage: H.vs()['name']                                         # optional - python_igraph
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        TESTS:
+
+        Converting a DiGraph back and forth::
+
+            sage: G = DiGraph([('a','b',{'w':1}),('b','c',{'w':2})])    # optional - python_igraph
+            sage: vertex_attrs={'name':G.vertices()}                    # optional - python_igraph
+            sage: edge_attrs={'w':[e[2]['w'] for e in G.edges()]}       # optional - python_igraph
+            sage: H = DiGraph(G.igraph_graph(vertex_attrs, edge_attrs)) # optional - python_igraph
+            sage: G == H                                                # optional - python_igraph
+            True
+            sage: G.edges() == H.edges()                                # optional - python_igraph
+            True
+            sage: H = DiGraph(G.igraph_graph(edge_attrs=edge_attrs))    # optional - python_igraph
+            sage: G == H                                                # optional - python_igraph
+            False
+
+        When checking for equality, edge labels are not taken into account::
+
+            sage: H = DiGraph(G.igraph_graph(vertex_attrs)) # optional - python_igraph
+            sage: G == H                                    # optional - python_igraph
+            True
+            sage: G.edges() == H.edges()                    # optional - python_igraph
+            False
+
+        Converting a Graph back and forth::
+
+            sage: G = Graph([('a','b',{'w':1}),('b','c',{'w':2})])    # optional - python_igraph
+            sage: vertex_attrs={'name':G.vertices()}                  # optional - python_igraph
+            sage: edge_attrs={'w':[e[2]['w'] for e in G.edges()]}     # optional - python_igraph
+            sage: H = Graph(G.igraph_graph(vertex_attrs, edge_attrs)) # optional - python_igraph
+            sage: G == H                                              # optional - python_igraph
+            True
+            sage: G.edges() == H.edges()                              # optional - python_igraph
+            True
+            sage: H = Graph(G.igraph_graph(edge_attrs=edge_attrs))    # optional - python_igraph
+            sage: G == H                                              # optional - python_igraph
+            False
+
+        When checking for equality, edge labels are not taken into account::
+
+            sage: H = Graph(G.igraph_graph(vertex_attrs)) # optional - python_igraph
+            sage: G == H                                  # optional - python_igraph
+            True
+            sage: G.edges() == H.edges()                  # optional - python_igraph
+            False
+        """
+        try:
+            import igraph
+        except ImportError:
+            raise ImportError("The package igraph is not available. To " +
+                              "install it, run 'sage -i igraph' followed by " +
+                              "'sage -i python_igraph'.")
+
+        v_to_int = {v:i for i,v in enumerate(self.vertices())}
+        edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
+
+        return igraph.Graph(n = self.num_verts(),
+                            edges = edges,
+                            directed=self.is_directed(),
+                            vertex_attrs = vertex_attrs,
+                            edge_attrs = edge_attrs)
 
     def to_dictionary(self, edge_labels=False, multiple_edges=False):
         r"""

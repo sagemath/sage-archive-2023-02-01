@@ -3824,6 +3824,71 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")
 
+    def pseudo_quo_rem(self,other):
+        """
+        Compute the pseudo-division of two polynomials.
+
+        INPUT:
+
+        - ``other`` -- A nonzero polynomial, otherwise an exception ValueError is raised
+
+        OUTPUT:
+
+        If ``other`` is nonzero, this algorithm finds Q and R such that
+        l^(m-n+1) self = Q * other + R where m = deg(self), n = deg(other),
+        l is the leading coefficient of other, and such that deg(R) < deg(other).
+
+        ALGORITHM:
+
+        Algorithm 3.1.2 in [GTM138]_.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^4 + 6*x^3 + x^2 - x + 2
+            sage: q = 2*x^2 - 3*x - 1
+            sage: (quo,rem)=p.pseudo_quo_rem(q); quo,rem
+            (4*x^2 + 30*x + 51, 175*x + 67)
+            sage: 2^(4-2+1)*p == quo*q + rem
+            True
+
+            sage: S.<T> = R[]
+            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
+            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
+            sage: quo,rem=p.pseudo_quo_rem(q); quo,rem
+            ((3*x^4 + 13*x^3 + 19*x^2 + 5*x)*T + 18*x^4 + 12*x^3 + 16*x^2 + 16*x,
+             (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
+            sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
+            True
+
+        REFERENCES:
+
+        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
+           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("Pseudo-division by zero is not possible")
+
+        # if other is a constant, then R = 0 and Q = self * other^(deg(self))
+        if other in self.parent().base_ring():
+            return (self * other**(self.degree()), self.parent().zero())
+
+        R = self
+        B = other
+        Q = self.parent().zero()
+        e = self.degree() - other.degree() + 1
+        d = B.leading_coefficient()
+
+        while not R.degree() < B.degree():
+            c = R.leading_coefficient()
+            diffdeg = R.degree() - B.degree()
+            Q = d*Q + self.parent()(c).shift(diffdeg)
+            R = d*R - c*B.shift(diffdeg)
+            e -= 1
+
+        q = d**e
+        return (q*Q,q*R)
+
     @coerce_binop
     def gcd(self, other):
         """
@@ -3844,7 +3909,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             The actual algorithm for computing greatest common divisors depends
             on the base ring underlying the polynomial ring. If the base ring
             defines a method ``_gcd_univariate_polynomial``, then this method
-            will be called (see examples below).
+            will be called (see examples below). If no such method exists, a
+            fallback algorithm is used.
+
+        ALGORITHM:
+
+        The fallback algorithm is Algorithm 3.3.1 in [GTM138]_.
 
         EXAMPLES::
 
@@ -3856,125 +3926,37 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x).gcd(0)
             x
 
-            One can easily add gcd functionality to new rings by providing a
-            method ``_gcd_univariate_polynomial``::
+        A fallback algorithm is implemented for rings that have no method
+        ``_gcd_univariate_polynomial``::
 
-            sage: R.<x> = QQ[]
-            sage: S.<y> = R[]
-            sage: h1 = y*x
-            sage: h2 = y^2*x^2
-            sage: h1.gcd(h2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide a gcd implementation for univariate polynomials
+            sage: R.<x> = ZZ[]
+            sage: S.<y> = PolynomialRing(R, sparse=True)
+            sage: p = (-3*x^2 - x)*y^3 - 3*x*y^2 + (x^2 - x)*y + 2*x^2 + 3*x - 2
+            sage: q = (-x^2 - 4*x - 5)*y^2 + (6*x^2 + x + 1)*y + 2*x^2 - x
+            sage: p.gcd(q)
+            1
+            sage: r = (1 + x)*y^2 + (x - 1)*y + 2*x + 3
+            sage: (p*r).gcd(q*r)
+            (x + 1)*y^2 + (x - 1)*y + 2*x + 3
+
+        One can easily provide a specialized gcd function for rings by providing
+        a method ``_gcd_univariate_polynomial``::
+
             sage: T.<x,y> = QQ[]
             sage: R._gcd_univariate_polynomial = lambda f,g: S(T(f).gcd(g))
-            sage: h1.gcd(h2)
-            x*y
+            sage: (p*r).gcd(q*r)
+            (x + 1)*y^2 + (x - 1)*y + 2*x + 3
             sage: del R._gcd_univariate_polynomial
 
+        REFERENCES:
+
+        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
+           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
         """
         if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
             return self.base_ring()._gcd_univariate_polynomial(self, other)
-        else:
-            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
 
-    def pseudo_quo_rem(self,other):
-        """
-        Compute the pseudo-division of two polynomials.
-
-        INPUT:
-
-        - ``other`` -- A nonzero polynomial, otherwise an exception ValueError is raised
-
-        OUTPUT:
-
-        If ``other`` is nonzero, this algorithm finds Q and R such that
-        l^(m-n+1) self = Q * other + R where m = deg(self), n = deg(other),
-        l is the leading coefficient of other, and such that deg(R) < deg(other).
-
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ,Sparse=True)
-            sage: p = x^4 + 6*x^3 + x^2 - x + 2
-            sage: q = 2*x^2 - 3*x - 1
-            sage: (quo,rem)=p.pseudo_quo_rem(q); quo,rem
-            (4*x^2 + 30*x + 51, 175*x + 67)
-            sage: 2^(4-2+1)*p == quo*q + rem
-            True
-
-            sage: S.<T> = R[]
-            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
-            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
-            sage: quo,rem=p.pseudo_quo_rem(q); quo,rem
-            ((3*x^4 + 13*x^3 + 19*x^2 + 5*x)*T + 18*x^4 + 12*x^3 + 16*x^2 + 16*x,
-             (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
-            sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
-            True
-
-        AUTHORS:
-
-        - Bruno Grenet (2014-06-25)
-        """
-        # This is Algorithm 3.1.2 in Cohen [GTM 138]
-        if other.is_zero():
-            raise ZeroDivisionError("Pseudo-division by zero is not possible")
-
-        # if other is a constant, then R = 0 and Q = self * other^(deg(self))
-        if other in self.parent().base_ring():
-            return (self * other**(self.degree()), self.parent().zero_element())
-
-        R = self
-        B = other
-        Q = self.parent().zero_element()
-        e = self.degree() - other.degree() + 1
-        d = B.leading_coefficient()
-
-        while not R.degree() < B.degree():
-            c = R.leading_coefficient()
-            diffdeg = R.degree() - B.degree()
-            Q = d*Q + self.parent()(c).shift(diffdeg)
-            R = d*R - c*B.shift(diffdeg)
-            e -= 1
-
-        q = d**e
-        return (q*Q,q*R)
-
-    @coerce_binop
-    def gcd(self, other):
-        """
-        Return the gcd of self and other
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ,Sparse=True)
-            sage: p = x^4 + 6*x^3 + x^2 - x + 2
-            sage: q = 2*x^2 - 3*x - 1
-            sage: gcd(p,q)
-            1
-            sage: r = x^2 + x + 1
-            sage: gcd(p*r,q*r)
-            x^2 + x + 1
-
-            sage: S.<T> = R[]
-            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
-            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
-            sage: gcd(p,q)
-            1
-            sage: r = (1 + x)*T^2 + (x - 1)*T + 2*x + 3
-            sage: gcd(p*r,q*r)
-            (x + 1)*T^2 + (x - 1)*T + 2*x + 3
-
-        AUTHORS:
-
-        - Bruno Grenet (2014-06-25)
-        """
-        # This is Algorithm 3.3.1 in Cohen [GTM 138]
+        # Fallback algorithm: Algorithm 3.3.1 in Cohen [GTM 138]
         if not self.parent().base_ring().is_unique_factorization_domain():
             raise ValueError("The base ring must be a unique factorization domain")
 
@@ -3986,9 +3968,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if B.is_zero():
             return A
 
-        #from sage.rings.arith import gcd
-
-        a = b = self.base_ring().zero_element()
+        a = b = self.base_ring().zero()
         for c in A.coefficients():
             a = a.gcd(c)
             if a.is_one():
@@ -4015,7 +3995,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             _, R = A.pseudo_quo_rem(B)
 
         if R.is_zero():
-            b = self.base_ring().zero_element()
+            b = self.base_ring().zero()
             for c in B.coefficients():
                 b = b.gcd(c)
                 if b.is_one():
@@ -4024,9 +4004,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(d*B/b)
 
         return d
-
-
-
 
     @coerce_binop
     def lcm(self, other):
@@ -6787,15 +6764,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0).is_squarefree()
             False
-
-        This can obviously fail if the ring does not implement ``gcd()``::
-
             sage: S.<y> = QQ[]
             sage: R.<x> = S[]
-            sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Univariate Polynomial Ring in y over Rational Field does not provide a gcd implementation for univariate polynomials
+            sage: (2*x*y).is_squarefree()
+            True
             sage: (2*x*y^2).is_squarefree()
             False
 

@@ -184,7 +184,7 @@ class TensorAlgebra(CombinatorialFreeModule):
         """
         if len(m) == 0:
             return '1'
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         symb = self._print_options['tensor_symbol']
         if symb is None:
             symb = tensor.symbol

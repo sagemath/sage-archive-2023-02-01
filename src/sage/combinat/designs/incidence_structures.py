@@ -934,6 +934,106 @@ class IncidenceStructure(object):
             else:
                 return d
 
+    def is_regular(self,r=None):
+        r"""
+        Test whether the incidence structure is `r`-regular.
+
+        An incidence structure is said to be `r`-regular if all its points are
+        incident with exactly `r` blocks.
+
+        INPUT:
+
+        - ``r`` (integer)
+
+        OUTPUT:
+
+        If ``r`` is defined, a boolean is returned. If ``r`` is set to ``None``
+        (default), the method returns either ``False`` or the integer ``r`` such
+        that the incidence structure is `r`-regular.
+
+        .. WARNING::
+
+            In case of `0`-regular incidence structure, beware that ``if not
+            H.is_regular()`` is a satisfied condition.
+
+        EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular()
+            3
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular(r=3)
+            True
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular(r=4)
+            False
+
+        TESTS::
+
+            sage: IncidenceStructure([]).is_regular()
+            Traceback (most recent call last):
+            ...
+            ValueError: This incidence structure has no points.
+        """
+        if self.num_points() == 0:
+            raise ValueError("This incidence structure has no points.")
+        count = [0]*self.num_points()
+        for b in self._blocks:
+            for x in b:
+                count[x] += 1
+        count = set(count)
+        if len(count) != 1:
+            return False
+        elif r is None:
+            return count.pop()
+        else:
+            return count.pop() == r
+
+    def is_uniform(self,k=None):
+        r"""
+        Test whether the incidence structure is `k`-uniform
+
+        An incidence structure is said to be `k`-uniform if all its blocks have
+        size `k`.
+
+        INPUT:
+
+        - ``k`` (integer)
+
+        OUTPUT:
+
+        If ``k`` is defined, a boolean is returned. If ``k`` is set to ``None``
+        (default), the method returns either ``False`` or the integer ``k`` such
+        that the incidence structure is `r`-regular.
+
+        .. WARNING::
+
+            In case of `0`-uniform incidence structure, beware that ``if not
+            H.is_uniform()`` is a satisfied condition.
+
+        EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform()
+            3
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform(k=3)
+            True
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform(k=4)
+            False
+
+        TESTS::
+
+            sage: IncidenceStructure([]).is_regular()
+            Traceback (most recent call last):
+            ...
+            ValueError: This incidence structure has no points.
+        """
+        if self.num_blocks() == 0:
+            raise ValueError("This incidence structure has no blocks.")
+        sizes = set(self.block_sizes())
+        if len(sizes) != 1:
+            return False
+        elif k is None:
+            return sizes.pop()
+        else:
+            return sizes.pop() == k
+
     def is_connected(self):
         r"""
         Test whether the design is connected.
@@ -1046,6 +1146,78 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
+
+    def complement(self,uniform=False):
+        r"""
+        Return the complement of the incidence structure.
+
+        Two different definitions of "complement" are made available, according
+        to the value of ``uniform``.
+
+        INPUT:
+
+        - ``uniform`` (boolean) --
+
+          - if set to ``False`` (default), returns the incidence structure whose
+            blocks are the complements of all blocks of the incidence structure.
+
+          - If set to ``True`` and the incidence structure is `k`-uniform,
+            returns the incidence structure whose blocks are all `k`-sets of the
+            ground set that do not appear in ``self``.
+
+        EXAMPLES:
+
+        The complement of a
+        :class:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign` is
+        also a `2`-design::
+
+            sage: bibd = designs.balanced_incomplete_block_design(13,4)
+            sage: bibd.is_t_design(return_parameters=True)
+            (True, (2, 13, 4, 1))
+            sage: bibd.complement().is_t_design(return_parameters=True)
+            (True, (2, 13, 9, 6))
+
+        The "uniform" complement of a graph is a graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: G = IncidenceStructure(g.edges(labels=False))
+            sage: H = G.complement(uniform=True)
+            sage: h = Graph(H.blocks())
+            sage: g == h
+            False
+            sage: g == h.complement()
+            True
+
+        TESTS::
+
+            sage: bibd.relabel({i:str(i) for i in bibd.ground_set()})
+            sage: bibd.complement().ground_set()
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+        """
+        if uniform:
+            k = self.is_uniform()
+            if k is False:
+                raise ValueError("The incidence structure is not uniform.")
+
+            blocks     = []
+            num_blocks = self.num_blocks()
+            i = 0
+            from itertools import combinations
+            for B in combinations(range(self.num_points()),k):
+                B = list(B)
+                while i<num_blocks and self._blocks[i] < B:
+                    i += 1
+                if i<num_blocks and self._blocks[i] == B:
+                    i += 1
+                    continue
+                blocks.append(B)
+            I = IncidenceStructure(blocks,copy=False)
+        else:
+            X = set(range(self.num_points()))
+            I = IncidenceStructure([X.difference(B) for B in self._blocks])
+
+        I.relabel({i:self._points[i] for i in range(self.num_points())})
+        return I
 
     def relabel(self, perm=None, inplace=True):
         r"""

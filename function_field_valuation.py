@@ -254,6 +254,9 @@ class FunctionFieldPolymodValuation(DiscreteValuation):
 
 from sage.structure.unique_representation import UniqueRepresentation
 class TrivialValuation(UniqueRepresentation, DiscreteValuation):
+    from gauss_valuation import classmaker
+    __metaclass__ = classmaker()
+
     def __init__(self, domain):
         DiscreteValuation.__init__(self, domain)
 

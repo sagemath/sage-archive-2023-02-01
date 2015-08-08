@@ -3052,17 +3052,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
             Q = S.base_ring()
         except TypeError:
-            Q = (R.base_ring().one()/1).parent()
+            Q = (R.base_ring().one()/ZZ.one()).parent()
             S = R.change_ring(Q)
         if var is not None and var != R.gen():
             # call integral() recursively on coefficients
-            return S([coeff.integral(var) for coeff in self.list()])
-        cdef Py_ssize_t n, degree = self.degree()
-        p = S.zero()
-        for n in range(degree+1):
-            if self[n]:
-                p += cm.bin_op(Q(self[n]), n+1, operator.div) * S.gen()**(n+1)
-        return p
+            return S([coeff.integral(var) for coeff in self])
+        cdef Py_ssize_t n
+        zero = Q.zero()
+        p = [zero] + [cm.bin_op(Q(self[n]), n+1, operator.div) if self[n] else zero for n in range(self.degree()+1)]
+        return S(p)
 
     def dict(self):
         """

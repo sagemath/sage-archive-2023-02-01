@@ -791,9 +791,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 1)
             0
         """
-        if i is None:
-            i = float("inf")
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
@@ -1149,9 +1146,6 @@ class RCNonSimplyLaced(RiggedConfigurations):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            i = float("inf")
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
@@ -1501,9 +1495,6 @@ class RCTypeA2Even(RCNonSimplyLaced):
             sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            i = float("inf")
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
@@ -1656,8 +1647,6 @@ class RCTypeA2Dual(RCTypeA2Even):
         """
         if a != self._cartan_type.classical().rank()-1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
-        if i is None:
-            i = float("inf")
 
         vac_num = 0
         if "B" in options:

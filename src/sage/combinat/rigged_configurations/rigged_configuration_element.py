@@ -823,7 +823,7 @@ class RiggedConfigurationElement(ClonableArray):
             [1 1]
         """
         a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
         if not self[a]:
             return Integer(p_inf)
         return Integer(p_inf - min(0, min(self[a].rigging)))
@@ -2176,7 +2176,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
 
         a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
         if not self[a]:
             phi = p_inf
         else:

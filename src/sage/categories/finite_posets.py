@@ -67,7 +67,8 @@ class FinitePosets(CategoryWithAxiom):
                 sage: P.is_lattice()
                 False
             """
-            return self.is_meet_semilattice() and self.is_join_semilattice()
+            return (self.cardinality() == 0 or
+                     (self.has_bottom() and self.is_join_semilattice()))
 
         def is_selfdual(self):
             r"""

@@ -252,9 +252,6 @@ class DiGraph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-    -  ``boundary`` - a list of boundary vertices, if
-       empty, digraph is considered as a 'graph without boundary'
-
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
       ``data_structure="dense"``.
@@ -407,12 +404,6 @@ class DiGraph(GenericGraph):
         sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
         [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
 
-    Get rid of mutable default argument for `boundary` (:trac:`14794`)::
-
-        sage: D = DiGraph(boundary=None)
-        sage: D._boundary
-        []
-
     Demonstrate that digraphs using the static backend are equal to mutable
     graphs but can be used as dictionary keys::
 
@@ -447,7 +438,7 @@ class DiGraph(GenericGraph):
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=None, weighted=None, implementation='c_graph',
+                 weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
@@ -886,7 +877,7 @@ class DiGraph(GenericGraph):
         self._weighted = weighted
 
         self._pos = pos
-        self._boundary = boundary if boundary is not None else []
+
         if format != 'DiGraph' or name is not None:
             self.name(name)
 
@@ -1082,7 +1073,6 @@ class DiGraph(GenericGraph):
         from sage.graphs.all import Graph
         G = Graph(name           = self.name(),
                   pos            = self._pos,
-                  boundary       = self._boundary,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
                   implementation = implementation,

@@ -239,7 +239,7 @@ class Converter(object):
             sage: c.get_fake_div((2*x^3+2*x-1)/((x-2)*(x+1)))
             FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x + 1, x - 2], <built-in function mul>)], <built-in function div>)
 
-        Check if #8056 is fixed, i.e., if numerator is 1.::
+        Check if :trac:`8056` is fixed, i.e., if numerator is 1.::
 
             sage: c.get_fake_div(1/pi/x)
             FakeExpression([1, FakeExpression([pi, x], <built-in function mul>)], <built-in function div>)
@@ -1462,7 +1462,8 @@ class FastCallableConverter(Converter):
 
         TESTS:
 
-        Check if rational functions with numerator 1 can be converted. #8056::
+        Check if rational functions with numerator 1 can
+        be converted. (:trac:`8056`)::
 
             sage: (1/pi/x)._fast_callable_(etb)
             div(1, mul(pi, v_0))

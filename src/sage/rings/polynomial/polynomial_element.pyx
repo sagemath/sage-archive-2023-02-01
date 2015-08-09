@@ -1280,6 +1280,59 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 raise ValueError("Impossible inverse modulo")
 
+    cpdef Polynomial inverse_series(self, long prec):
+        r"""
+        Return a polynomial approximation of precision ``prec`` of the inverse
+        series of this polynomial.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: s = (1+x).inverse_series(5)
+            sage: s
+            x^4 - x^3 + x^2 - x + 1
+            sage: s * (1+x)
+            x^5 + 1
+
+        Note that the constant coefficient needs to be a unit::
+
+            sage: ZZx.<x> = ZZ[]
+            sage: ZZxy.<y> = ZZx[]
+            sage: (1+x + y**2).inverse_series(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term x + 1 is not a unit
+            sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series(4)
+            (-1/(x^2 + 2*x + 1))*y^2 + 1/(x + 1)
+
+        The method works on any polynomial ring::
+
+            sage: R = Zmod(4)
+            sage: Rx.<x> = R[]
+            sage: Rxy.<y> = Rx[]
+
+            sage: p = 1 + (1+2*x)*y + x**2*y**4
+            sage: q = p.inverse_series(10)
+            sage: (p*q).truncate(11)
+            (2*x^4 + 3*x^2 + 3)*y^10 + 1
+        """
+        if not self[0].is_unit():
+            raise ValueError("constant term {} is not a unit".format(self[0]))
+
+        R = self._parent
+        A = R.base_ring()
+        try:
+            first_coeff = self[0].inverse_of_unit()
+        except AttributeError:
+            first_coeff = A(~self[0])
+
+        two = A(2)
+        current = R(first_coeff)
+        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
+            z = (current*current) * self.truncate(next_prec)
+            current = two*current - z.truncate(next_prec)
+        return current
+
     def __long__(self):
         """
         EXAMPLES::

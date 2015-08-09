@@ -17,7 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
-from tensor import TensorProductsCategory
+from sage.categories.tensor import TensorProductsCategory, tensor
 from dual import DualObjectsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
@@ -384,6 +384,39 @@ class Modules(Category_module):
             return GradedModulesCategory.category_of(self)
 
         @cached_method
+        def Super(self, base_ring=None):
+            r"""
+            Return the super-analogue category of ``self``.
+
+            INPUT::
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Super()
+                Category of super modules over Integer Ring
+
+                sage: Coalgebras(QQ).Super()
+                Category of super coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Super()
+                Category of super algebras with basis over Rational Field
+
+            .. TODO::
+
+                Same as :meth:`Graded`.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Super.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.super_modules import SuperModulesCategory
+            return SuperModulesCategory.category_of(self)
+
+        @cached_method
         def WithBasis(self):
             r"""
             Return the full subcategory of the objects of ``self`` with
@@ -430,10 +463,22 @@ class Modules(Category_module):
                 return []
 
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
+    Super = LazyImport('sage.categories.super_modules', 'SuperModules')
     WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
-        pass
+        @cached_method
+        def tensor_square(self):
+            """
+            Returns the tensor square of ``self``
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example()
+                sage: A.tensor_square()
+                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field # An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+            """
+            return tensor([self, self])
 
     class ElementMethods:
 

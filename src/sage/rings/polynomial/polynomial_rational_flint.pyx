@@ -1232,6 +1232,48 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_off()
         return res
 
+    cpdef Polynomial inverse_series(self, long prec):
+        r"""
+        Return a polynomial approximation of precision ``prec`` of the inverse
+        series of this polynomial.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: p = 2 + x - 3/5*x**2
+            sage: q5 = p.inverse_series(5)
+            sage: q5
+            151/800*x^4 - 17/80*x^3 + 11/40*x^2 - 1/4*x + 1/2
+            sage: q5 * p
+            -453/4000*x^6 + 253/800*x^5 + 1
+
+            sage: q100 = p.inverse_series(100)
+            sage: (q100 * p).truncate(100)
+            1
+
+        TESTS::
+
+            sage: (0*x).inverse_series(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is zero
+            sage: x.inverse_series(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term is zero
+        """
+        if fmpq_poly_degree(self.__poly) == -1 or \
+           fmpz_is_zero(fmpq_poly_numref(self.__poly)):
+            raise ValueError("constant term is zero")
+
+        cdef Polynomial_rational_flint res = self._new()
+        if prec <= 0:
+            return res
+        sig_on()
+        fmpq_poly_inv_series(res.__poly, self.__poly, prec)
+        sig_off()
+        return res
+
     def __mod__(Polynomial_rational_flint self, right):
         """
         Returns the remainder of self and right obtain by Euclidean division.

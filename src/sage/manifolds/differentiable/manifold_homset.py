@@ -217,7 +217,7 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent.
+        Determine whether coercion to ``self`` exists from other parent.
 
         EXAMPLE::
 

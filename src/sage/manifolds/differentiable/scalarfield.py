@@ -675,27 +675,29 @@ class DiffScalarField(ScalarField):
 
         EXAMPLES:
 
-        Differential 1-form on a 3-dimensional manifold::
+        Differential of a scalar field on a 3-dimensional differentiable
+        manifold::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M')
             sage: c_xyz.<x,y,z> = M.chart()
             sage: f = M.scalar_field(cos(x)*z^3 + exp(y)*z^2, name='f')
             sage: df = f.differential() ; df
-            1-form 'df' on the 3-dimensional manifold 'M'
+            1-form df on the 3-dimensional differentiable manifold M
             sage: df.display()
             df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
             sage: latex(df)
             \mathrm{d}f
             sage: df.parent()
-            Free module /\^1(M) of 1-forms on the 3-dimensional manifold 'M'
+            Free module /\^1(M) of 1-forms on the 3-dimensional differentiable
+             manifold M
 
         Since the exterior derivative of a scalar field (considered a 0-form)
         is nothing but its differential, ``exterior_der()`` is an alias of
         ``differential()``::
 
             sage: df = f.exterior_der() ; df
-            1-form 'df' on the 3-dimensional manifold 'M'
+            1-form df on the 3-dimensional differentiable manifold M
             sage: df.display()
             df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
             sage: latex(df)
@@ -706,10 +708,10 @@ class DiffScalarField(ScalarField):
             sage: c_uvw.<u,v,w> = M.chart()
             sage: g = M.scalar_field(u*v^2*w^3, c_uvw, name='g')
             sage: dg = g.differential() ; dg
-            1-form 'dg' on the 3-dimensional manifold 'M'
+            1-form dg on the 3-dimensional differentiable manifold M
             sage: dg._components
-            {coordinate frame (M, (d/du,d/dv,d/dw)): 1-index components w.r.t.
-             coordinate frame (M, (d/du,d/dv,d/dw))}
+            {Coordinate frame (M, (d/du,d/dv,d/dw)): 1-index components w.r.t.
+             Coordinate frame (M, (d/du,d/dv,d/dw))}
             sage: dg.comp(c_uvw.frame())[:, c_uvw]
             [v^2*w^3, 2*u*v*w^3, 3*u*v^2*w^2]
             sage: dg.display(c_uvw.frame(), c_uvw)
@@ -718,7 +720,7 @@ class DiffScalarField(ScalarField):
         The exterior derivative is nilpotent::
 
             sage: ddf = df.exterior_der() ; ddf
-            2-form 'ddf' on the 3-dimensional manifold 'M'
+            2-form ddf on the 3-dimensional differentiable manifold M
             sage: ddf == 0
             True
             sage: ddf[:] # for the incredule
@@ -726,7 +728,7 @@ class DiffScalarField(ScalarField):
             [0 0 0]
             [0 0 0]
             sage: ddg = dg.exterior_der() ; ddg
-            2-form 'ddg' on the 3-dimensional manifold 'M'
+            2-form ddg on the 3-dimensional differentiable manifold M
             sage: ddg == 0
             True
 
@@ -786,7 +788,7 @@ class DiffScalarField(ScalarField):
             sage: v = M.vector_field(name='v')
             sage: v[:] = (-y, x)
             sage: f.lie_der(v)
-            scalar field on the 2-dimensional manifold 'M'
+            Scalar field on the 2-dimensional differentiable manifold M
             sage: f.lie_der(v).expr()
             -x^3*sin(y) - 2*x*y*cos(y)
 

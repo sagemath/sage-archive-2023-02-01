@@ -19,8 +19,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-   (New York) (2013)
+.. [1] Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
+   Springer (New York) (2013)
 
 """
 
@@ -211,8 +211,8 @@ class DiffChart(Chart):
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
 
-    The chart map `\varphi` acting on a point is obtained by means of the
-    call operator, i.e. the operator ``()``::
+    The action of the chart map `\varphi` on a point is obtained by means of
+    the call operator, i.e. the operator ``()``::
 
         sage: p = M.point((1+i, 2), chart=X); p
         Point on the 2-dimensional complex manifold M
@@ -220,6 +220,20 @@ class DiffChart(Chart):
         (I + 1, 2)
         sage: X(p) == p.coord(X)
         True
+
+    A vector frame is naturally associated to each chart::
+
+        sage: X.frame()
+        Coordinate frame (M, (d/dx,d/dy))
+        sage: Y.frame()
+        Coordinate frame (U, (d/dz1,d/dz2))
+
+    as well as a dual frame (basis of 1-forms)::
+
+        sage: X.coframe()
+        Coordinate coframe (M, (dx,dy))
+        sage: Y.coframe()
+        Coordinate coframe (U, (dz1,dz2))
 
     .. SEEALSO::
 
@@ -395,17 +409,17 @@ class DiffChart(Chart):
             sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
-            coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (d/dx,d/dy))
             sage: type(c_xy.frame())
             <class 'sage.manifolds.differentiable.vectorframe.CoordFrame'>
 
-        Check that c_xy.frame() is indeed the coordinate frame associated with
-        (x,y)::
+        Check that ``c_xy.frame()`` is indeed the coordinate frame associated
+        with the coordinates `(x,y)`::
 
             sage: ex = c_xy.frame()[0] ; ex
-            vector field 'd/dx' on the 2-dimensional manifold 'M'
+            Vector field d/dx on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            vector field 'd/dy' on the 2-dimensional manifold 'M'
+            Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
             M --> R
             (x, y) |--> 1
@@ -440,21 +454,21 @@ class DiffChart(Chart):
             sage: M = DiffManifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.coframe()
-            coordinate coframe (M, (dx,dy))
+            Coordinate coframe (M, (dx,dy))
             sage: type(c_xy.coframe())
             <class 'sage.manifolds.differentiable.vectorframe.CoordCoFrame'>
 
-        Check that c_xy.coframe() is indeed the coordinate coframe associated
-        with (x,y)::
+        Check that ``c_xy.coframe()`` is indeed the coordinate coframe
+        associated with the coordinates `(x,y)`::
 
             sage: dx = c_xy.coframe()[0] ; dx
-            1-form 'dx' on the 2-dimensional manifold 'M'
+            1-form dx on the 2-dimensional differentiable manifold M
             sage: dy = c_xy.coframe()[1] ; dy
-            1-form 'dy' on the 2-dimensional manifold 'M'
+            1-form dy on the 2-dimensional differentiable manifold M
             sage: ex = c_xy.frame()[0] ; ex
-            vector field 'd/dx' on the 2-dimensional manifold 'M'
+            Vector field d/dx on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            vector field 'd/dy' on the 2-dimensional manifold 'M'
+            Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
              dx(d/dx): M --> R
                (x, y) |--> 1
@@ -475,8 +489,9 @@ class DiffChart(Chart):
         r"""
         Return the restriction of the chart to some subset.
 
-        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
-        is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
+        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
+        of it is a chart `(V,\psi)` such that `V\subset U` and
+        `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
@@ -503,7 +518,7 @@ class DiffChart(Chart):
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+        - chart `(V,\psi)`, as an instance of :class:`DiffChart`.
 
         EXAMPLES:
 
@@ -541,10 +556,11 @@ class RealDiffChart(DiffChart, RealChart):
     r"""
     Chart on a differentiable manifold over `\RR`.
 
-    Given a differentiable manifold `M` of dimension `n` over `\RR`, a *chart* is
-    a pair `(U,\varphi)`, where `U` is an open subset of `M` and
-    `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
-    an open subset `V` of `\RR^n`.
+    Given a differentiable manifold `M` of dimension `n` over `\RR`,
+    a *chart* is a member `(U,\varphi)` of the manifold's
+    differentiable atlas; `U` is then an open subset of `M` and
+    `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from
+    `U` to an open subset `V` of `\RR^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
     `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`, are
@@ -649,7 +665,8 @@ class RealDiffChart(DiffChart, RealChart):
         sage: c_spher
         Chart (U, (r, th, ph))
 
-    Note the prefix 'r' for the string defining the coordinates in the arguments of ``Chart``.
+    Note the prefix 'r' for the string defining the coordinates in the
+    arguments of ``chart``.
 
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::
@@ -721,8 +738,8 @@ class RealDiffChart(DiffChart, RealChart):
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
 
-    The chart map `\varphi` acting on a point is obtained by means of the
-    call operator, i.e. the operator ``()``::
+    The action of the chart map `\varphi` on a point is obtained by means of
+    the call operator, i.e. the operator ``()``::
 
         sage: p = M.point((1,0,-2)); p
         Point on the 3-dimensional differentiable manifold R^3
@@ -760,6 +777,20 @@ class RealDiffChart(DiffChart, RealChart):
         sage: c_cart.valid_coordinates(1,0,2)
         True
 
+    A vector frame is naturally associated to each chart::
+
+        sage: c_cart.frame()
+        Coordinate frame (R^3, (d/dx,d/dy,d/dz))
+        sage: c_spher.frame()
+        Coordinate frame (U, (d/dr,d/dth,d/dph))
+
+    as well as a dual frame (basis of 1-forms)::
+
+        sage: c_cart.coframe()
+        Coordinate coframe (R^3, (dx,dy,dz))
+        sage: c_spher.coframe()
+        Coordinate coframe (U, (dr,dth,dph))
+
     Chart grids can be drawn in 2D or 3D graphics thanks to the method
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
@@ -790,10 +821,11 @@ class RealDiffChart(DiffChart, RealChart):
 
     def restrict(self, subset, restrictions=None):
         r"""
-        Return the restriction of ``self`` to some subset.
+        Return the restriction of the chart to some subset.
 
-        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
-        is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
+        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
+        of it is a chart `(V,\psi)` such that `V\subset U` and
+        `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
@@ -820,7 +852,7 @@ class RealDiffChart(DiffChart, RealChart):
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+        - chart `(V,\psi)`, as an instance of :class:`RealDiffChart`.
 
         EXAMPLES:
 

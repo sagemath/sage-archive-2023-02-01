@@ -2,11 +2,11 @@ r"""
 Algebra of differentiable scalar fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
-`C^k(U)` of scalar fields on some open subset `U` of a differentiable manifold
-`M` of class `C^k` over a topological field `K` (in most applications,
-`K = \RR` or `K = \CC`). By *differentiable scalar field*, it is meant a
-function `U\rightarrow K` that is `k`-times continuously differentiable.
-`C^k(U)` is an algebra over `K`, whose ring product is the
+`C^k(U)` of differentiable scalar fields on some open subset `U` of a
+differentiable manifold `M` of class `C^k` over a topological field `K` (in
+most applications, `K = \RR` or `K = \CC`). By *differentiable scalar field*,
+it is meant a function `U\rightarrow K` that is `k`-times continuously
+differentiable. `C^k(U)` is an algebra over `K`, whose ring product is the
 pointwise multiplication of `K`-valued functions, which is clearly commutative.
 
 AUTHORS:
@@ -113,7 +113,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Those of `C^k(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
         W --> R
         (x, y) |--> 2
@@ -131,7 +132,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: CW.zero()
-        Scalar field zero on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field zero on the Open subset W of the 2-dimensional
+         differentiable manifold M
         sage: CW.zero().display()
         zero: W --> R
            (x, y) |--> 0
@@ -157,8 +159,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         (u, v) |--> 1
 
     A generic element can be constructed as for any parent in Sage, namely
-    by means of the ``__call__`` operator on the parent (here with the dictionary
-    of the coordinate expressions defining the scalar field)::
+    by means of the ``__call__`` operator on the parent (here with the
+    dictionary of the coordinate expressions defining the scalar field)::
 
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional differentiable manifold M
@@ -211,7 +213,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     on `M`::
 
         sage: fW = CW(f) ; fW
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: fW.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)
@@ -296,7 +299,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: f/fW == CW.one()
         True
         sage: s = f*fW ; s
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)^2

@@ -80,7 +80,7 @@ class VectorField(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
       fields along `U` with values on `\Phi(U)\subset V \subset M`
     - ``name`` -- (default: ``None``) name given to the vector field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
@@ -174,6 +174,39 @@ class VectorField(TensorField):
 
     """
     def __init__(self, vector_field_module, name=None, latex_name=None):
+        r"""
+        Construct a vector field with values on a non-parallelizable manifold.
+
+        TESTS:
+
+        Construction with ``parent.element_class``::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: XM = M.vector_field_module()
+            sage: a = XM.element_class(XM, name='a'); a
+            Vector field a on the 2-dimensional differentiable manifold M
+            sage: a[c_xy.frame(),:] = [x, y]
+            sage: a[c_uv.frame(),:] = [-u, -v]
+            sage: TestSuite(a).run(skip='_test_pickling')
+
+        Construction with ``DiffManifold.vector_field``::
+
+            sage: a1 = M.vector_field(name='a'); a1
+            Vector field a on the 2-dimensional differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+
+        .. TODO::
+
+            fix _test_pickling
+
+        """
         TensorField.__init__(self, vector_field_module, (1,0), name=name,
                              latex_name=latex_name)
         # Initialization of derived quantities:
@@ -184,6 +217,18 @@ class VectorField(TensorField):
     def _repr_(self) :
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: v = M.vector_field(name='v')
+            sage: v._repr_()
+            'Vector field v on the 2-dimensional differentiable manifold M'
+            sage: repr(v)  # indirect doctest
+            'Vector field v on the 2-dimensional differentiable manifold M'
+            sage: v  # indirect doctest
+            Vector field v on the 2-dimensional differentiable manifold M
+
         """
         description = "Vector field "
         if self._name is not None:
@@ -194,18 +239,41 @@ class VectorField(TensorField):
         r"""
         Create an instance of the same class as ``self`` on the same module.
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: v = M.vector_field(name='v')
+            sage: u = v._new_instance(); u
+            Vector field on the 2-dimensional differentiable manifold M
+            sage: u.parent() is v.parent()
+            True
+
         """
         return self.__class__(self._vmodule)
 
     def _init_dependencies(self):
         r"""
         Initialize list of quantities that depend on ``self``
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: v = M.vector_field(name='v')
+            sage: v._init_dependencies()
+
         """
         self._lie_der_along_self = {}
 
     def _del_dependencies(self):
         r"""
         Clear list of quantities that depend on ``self``
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: v = M.vector_field(name='v')
+            sage: v._del_dependencies()
+
         """
         if self._lie_der_along_self != {}:
             for idtens, tens in self._lie_der_along_self.iteritems():
@@ -224,6 +292,28 @@ class VectorField(TensorField):
 
         - scalar field representing the derivative of `f` along the vector
           field, i.e. `v^i \frac{\partial f}{\partial x^i}`
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: a = M.vector_field(name='a')
+            sage: a[c_xy.frame(),:] = [x, y]
+            sage: a[c_uv.frame(),:] = [-u, -v]
+            sage: f = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2-atan(u^2+v^2)},
+            ....:                    name='f')
+            sage: s = a.__call__(f); s
+            Scalar field a(f) on the 2-dimensional differentiable manifold M
+            sage: s.display()
+            a(f): M --> R
+            on U: (x, y) |--> 2*(x^2 + y^2)/(x^4 + 2*x^2*y^2 + y^4 + 1)
+            on V: (u, v) |--> 2*(u^2 + v^2)/(u^4 + 2*u^2*v^2 + v^4 + 1)
+            sage: s == f.differential()(a)
+            True
 
         """
         if scalar._tensor_type == (0,1):
@@ -418,6 +508,36 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     """
     def __init__(self, vector_field_module, name=None, latex_name=None):
+        r"""
+        Construct a vector field with values on a parallelizable manifold.
+
+        TESTS:
+
+        Construction via ``parent.element_class``::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()  # the parent
+            sage: v = XM.element_class(XM, name='v'); v
+            Vector field v on the 2-dimensional differentiable manifold M
+            sage: v[:] = (-y, x)
+            sage: v.display()
+            v = -y d/dx + x d/dy
+            sage: TestSuite(v).run()
+
+        Construction via ``DiffManifold.vector_field``::
+
+            sage: u = M.vector_field(name='u'); u
+            Vector field u on the 2-dimensional differentiable manifold M
+            sage: type(u) == type(v)
+            True
+            sage: u.parent() is v.parent()
+            True
+            sage: u[:] = (1+x, 1-y)
+            sage: TestSuite(u).run()
+
+        """
         FiniteRankFreeModuleElement.__init__(self, vector_field_module,
                                              name=name, latex_name=latex_name)
         # TensorFieldParal attributes:
@@ -434,12 +554,35 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     def _repr_(self) :
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: v = M.vector_field(name='v')
+            sage: v._repr_()
+            'Vector field v on the 2-dimensional differentiable manifold M'
+            sage: repr(v)  # indirect doctest
+            'Vector field v on the 2-dimensional differentiable manifold M'
+            sage: v  # indirect doctest
+            Vector field v on the 2-dimensional differentiable manifold M
+
         """
         return VectorField._repr_(self)
 
     def _new_instance(self):
         r"""
         Create an instance of the same class as ``self`` on the same module.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: v = M.vector_field(name='v')
+            sage: u = v._new_instance(); u
+            Vector field on the 2-dimensional differentiable manifold M
+            sage: u.parent() is v.parent()
+            True
 
         """
         return self.__class__(self._fmodule)
@@ -452,6 +595,13 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: v = M.vector_field(name='v')
+            sage: v._del_derived()
 
         """
         TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
@@ -483,8 +633,9 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             sage: v[:] = (-y, x)
             sage: v(f)
             Scalar field on the 2-dimensional differentiable manifold M
-            sage: v(f).expr()
-            2*x^2*y - y^3
+            sage: v(f).display()
+            M --> R
+            (x, y) |--> 2*x^2*y - y^3
 
         """
         from sage.manifolds.differentiable.vectorframe import CoordFrame

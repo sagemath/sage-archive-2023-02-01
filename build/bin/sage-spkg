@@ -327,6 +327,7 @@ if [ ! -f "$PKG_SRC" ]; then
             if [ -z "$PKG_URL" ]; then
                 echo >&2 "Error: could not find a package matching $PKG_NAME"
                 echo >&2 "       Try 'sage --package list' to see the available packages"
+		echo >&2 "       $(sage-package apropos $PKG_NAME)"
                 exit 1
             fi
 

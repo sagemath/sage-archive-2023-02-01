@@ -22,7 +22,7 @@ EXAMPLES::
 
     sage: G_sum = TX + X.sheaves.trivial_bundle(2)
     sage: V_sum = G_sum.wedge(2) * K                      # long time
-    sage: V_sum.cohomology(dim=True, weight=(0,0,0,0))    # long time 
+    sage: V_sum.cohomology(dim=True, weight=(0,0,0,0))    # long time
     (0, 0, 18, 16, 1)
     sage: Gtilde = G_sum.random_deformation()
     sage: V = Gtilde.wedge(2) * K                     # long time
@@ -34,7 +34,7 @@ REFERENCES:
 ..  [Klyachko]
     Klyachko, Anton Alexander:
     Equivariant Bundles on Toral Varieties,
-    Math USSR Izv. 35 (1990), 337-375. 
+    Math USSR Izv. 35 (1990), 337-375.
     http://iopscience.iop.org/0025-5726/35/2/A04/pdf/0025-5726_35_2_A04.pdf
 """
 
@@ -42,8 +42,8 @@ REFERENCES:
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of 
-#  the License, or (at your option) any later version.  
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -135,33 +135,33 @@ def Bundle(toric_variety, multi_filtration, check=True):
 
 
 class KlyachkoBundle_class(SageObject):
-    
+
     def __init__(self, toric_variety, multi_filtration, check=True):
         r"""
         A toric bundle using Klyachko's representation.
-    
+
         .. warning::
 
             You should always use the :func:`Bundle` factory function
             to construct instances.
 
         INPUT:
-    
+
         - ``toric_variety`` -- a toric variety. The base space of the bundle.
-    
+
         - ``multi_filtration`` -- a
           :func:`~sage.modules.multi_filtered_vector_space.MultiFilteredVectorSpace`
           with index set the rays of the fan.
-    
+
         - ``check`` -- boolean (default: ``True``). Whether to perform
           consistency checks.
 
         EXAMPLES::
-    
+
             sage: P1 = toric_varieties.P1()
             sage: r1, r2 = P1.fan().rays()
             sage: F = MultiFilteredVectorSpace({
-            ....:      r1:FilteredVectorSpace(3,1), 
+            ....:      r1:FilteredVectorSpace(3,1),
             ....:      r2:FilteredVectorSpace(3,0)});  F
             Filtrations
                 N(-1): QQ^3 >=  0   >= 0
@@ -203,11 +203,11 @@ class KlyachkoBundle_class(SageObject):
     def base_ring(self):
         r"""
         Return the base field.
-        
+
         OUTPUT:
-        
+
         A field.
-        
+
         EXAMPLES::
 
             sage: T_P2 = toric_varieties.P2().sheaves.tangent_bundle()
@@ -232,7 +232,7 @@ class KlyachkoBundle_class(SageObject):
         """
         from sage.modules.all import VectorSpace
         return VectorSpace(self.base_ring(), self.rank())
-        
+
     def rank(self):
         r"""
         Return the rank of the vector bundle.
@@ -254,17 +254,17 @@ class KlyachkoBundle_class(SageObject):
         Return a string representation.
 
         OUTPUT:
-        
+
         String.
 
         EXAMPLES::
-        
+
             sage: toric_varieties.P2().sheaves.tangent_bundle()
             Rank 2 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
         """
         s = 'Rank '+str(self.rank())+' bundle on '+str(self._variety)+'.'
         return s
-        
+
     def get_filtration(self, ray=None):
         r"""
         Return the filtration associated to the ``ray``.
@@ -281,7 +281,7 @@ class KlyachkoBundle_class(SageObject):
         no ray is specified, all filtrations are returned.
 
         EXAMPLES::
-        
+
             sage: TX = toric_varieties.dP6().sheaves.tangent_bundle()
             sage: TX.get_filtration(0)
             QQ^2 >= QQ^1 >= 0
@@ -323,7 +323,7 @@ class KlyachkoBundle_class(SageObject):
           the toric variety, either via its index or its generator.
 
         - ``i`` -- integer. The filtration degree.
-        
+
         OUTPUT:
 
         A subspace of the :meth:`fiber` vector space. The defining
@@ -342,11 +342,11 @@ class KlyachkoBundle_class(SageObject):
     def filtration_intersection(self, sigma, i):
         r"""
         Return the intersection of the filtered subspaces.
-        
+
         INPUT:
 
         - ``sigma`` -- a cone of the fan of the base toric variety.
-        
+
         - ``i`` -- integer. The filtration degree.
 
         OUPUT:
@@ -358,7 +358,7 @@ class KlyachkoBundle_class(SageObject):
 
             \bigcap_{r\in \{r_1,\dots,r_k\}}
             E^{r}(i)
-        
+
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
@@ -388,7 +388,7 @@ class KlyachkoBundle_class(SageObject):
         - ``alpha`` -- a ray of the fan. Can be specified by its index
           (an integer), a one-dimensional cone, or a `N`-lattice
           point.
-        
+
         - ``m`` -- tuple of integers or `M`-lattice point. A point in
           the dual lattice of the fan.
 
@@ -434,7 +434,7 @@ class KlyachkoBundle_class(SageObject):
     def E_intersection(self, sigma, m):
         r"""
         Return the vector subspace ``E^\sigma(m)``.
-        
+
         See [Klyachko]_, equation 4.1.
 
         INPUT:
@@ -447,7 +447,7 @@ class KlyachkoBundle_class(SageObject):
         OUPUT:
 
         The subspace `E^\sigma(m)`
-        
+
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
@@ -463,7 +463,7 @@ class KlyachkoBundle_class(SageObject):
             [0 1]
 
         For the empty cone, this is always the whole vector space::
-        
+
             sage: V.E_intersection(fan(0)[0], (1,0))
             Vector space of dimension 2 over Rational Field
         """
@@ -477,7 +477,7 @@ class KlyachkoBundle_class(SageObject):
     def E_quotient(self, sigma, m):
         r"""
         Return the vector space quotient `E_\sigma(m)`.
-        
+
         See [Klyachko]_, equation 4.1.
 
         INPUT:
@@ -490,7 +490,7 @@ class KlyachkoBundle_class(SageObject):
         OUPUT:
 
         The subspace `E_\sigma(m)`
-        
+
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
@@ -541,7 +541,7 @@ class KlyachkoBundle_class(SageObject):
         The restriction map
 
         .. math::
-        
+
             E_\sigma(m) \to E_\tau(m)
 
         EXAMPLES::
@@ -663,7 +663,7 @@ class KlyachkoBundle_class(SageObject):
         Return the bundle cohomology groups.
 
         INPUT:
-        
+
         - ``degree`` -- ``None`` (default) or an integer. The degree of
           the cohomology group.
 
@@ -720,7 +720,7 @@ class KlyachkoBundle_class(SageObject):
         C_homology = C.homology()
         HH = dict()
         for d in range(0, space_dim+1):
-            try: 
+            try:
                 HH[d] = C_homology[d]
             except KeyError:
                 HH[d] = FreeModule(self.base_ring(), 0)
@@ -731,9 +731,9 @@ class KlyachkoBundle_class(SageObject):
     def __cmp__(self, other):
         """
         Compare ``self`` and ``other``
-        
+
         .. warning::
-        
+
             This method tests whether the underlying representation is
             the same. Use :meth:`is_isomorphic` to test for
             mathematical equivalence.
@@ -747,10 +747,10 @@ class KlyachkoBundle_class(SageObject):
         `-1`, `0`, or `+1`.
 
         EXAMPLES::
-            
+
             sage: X = toric_varieties.P2()
-            sage: V1 = X.sheaves.trivial_bundle(1) 
-            sage: V2 = X.sheaves.trivial_bundle(2) 
+            sage: V1 = X.sheaves.trivial_bundle(1)
+            sage: V2 = X.sheaves.trivial_bundle(2)
             sage: abs(cmp(V2, V1))
             1
             sage: cmp(V2, V1+V1)
@@ -798,7 +798,7 @@ class KlyachkoBundle_class(SageObject):
     def direct_sum(self, other):
         """
         Return the sum of two vector bundles.
-        
+
         INPUT:
 
         - ``other`` -- a Klyachko bundle over the same base.
@@ -810,13 +810,13 @@ class KlyachkoBundle_class(SageObject):
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
-            sage: V1 = X.sheaves.trivial_bundle(1) 
-            sage: V2 = X.sheaves.trivial_bundle(2) 
+            sage: V1 = X.sheaves.trivial_bundle(1)
+            sage: V2 = X.sheaves.trivial_bundle(2)
             sage: V2.direct_sum(V1)
             Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
-            
-            sage: V1 = X.sheaves.trivial_bundle(1) 
-            sage: V2 = X.sheaves.trivial_bundle(2) 
+
+            sage: V1 = X.sheaves.trivial_bundle(1)
+            sage: V2 = X.sheaves.trivial_bundle(2)
             sage: V2 == V1 + V1
             True
         """
@@ -830,7 +830,7 @@ class KlyachkoBundle_class(SageObject):
     def tensor_product(self, other):
         """
         Return the sum of two vector bundles.
-        
+
         INPUT:
 
         - ``other`` -- a Klyachko bundle over the same base.
@@ -844,7 +844,7 @@ class KlyachkoBundle_class(SageObject):
             sage: X = toric_varieties.P2()
             sage: OX = X.sheaves.trivial_bundle(1)
             sage: X.sheaves.tangent_bundle().tensor_product(OX)
-            Rank 2 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.            
+            Rank 2 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
             sage: OX == OX * OX
             True
         """
@@ -858,7 +858,7 @@ class KlyachkoBundle_class(SageObject):
     def exterior_power(self, n):
         """
         Return the `n`-th exterior power.
-        
+
         INPUT:
 
         - ``n`` -- integer.
@@ -882,11 +882,11 @@ class KlyachkoBundle_class(SageObject):
         return self.__class__(self.variety(), filt, check=True)
 
     wedge = exterior_power
-        
+
     def symmetric_power(self, n):
         """
         Return the `n`-th symmetric power.
-        
+
         INPUT:
 
         - ``n`` -- integer.
@@ -911,7 +911,7 @@ class KlyachkoBundle_class(SageObject):
     def dual(self):
         """
         Return the dual bundle.
-        
+
         OUTPUT:
 
         The dual bundle as a new Klyachko bundle.
@@ -927,8 +927,8 @@ class KlyachkoBundle_class(SageObject):
             True
         """
         filt = self._filt.dual()
-        return self.__class__(self.variety(), filt, check=True)    
-        
+        return self.__class__(self.variety(), filt, check=True)
+
     def random_deformation(self, epsilon=None):
         """
         Return a generic torus-equivariant deformation of the bundle.
@@ -955,6 +955,4 @@ class KlyachkoBundle_class(SageObject):
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)
-        return self.__class__(self.variety(), filt, check=True)    
-
-        
+        return self.__class__(self.variety(), filt, check=True)

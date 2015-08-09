@@ -17,9 +17,9 @@ EXAMPLES::
     sage: W = VectorCollection([(1,1), (1,-1), (-1, 1)], QQ, 2)
     sage: VW = TensorOperation([V, W], operation='product')
 
-Here is the tensor product of two vectors:
+Here is the tensor product of two vectors::
 
-    sage: V.vectors()[0]    
+    sage: V.vectors()[0]
     (1, 0)
     sage: W.vectors()[1]
     (1, -1)
@@ -27,12 +27,12 @@ Here is the tensor product of two vectors:
     (1, -1, 0, 0)
 
     sage: rows = []
-    sage: for i, j in CartesianProduct(range(3), range(3)): 
+    sage: for i, j in CartesianProduct(range(3), range(3)):
     ....:     v = V.vectors()[i]
     ....:     w = W.vectors()[j]
     ....:     i_tensor_j = VW.index_map(i, j)
     ....:     vw = VW.vectors()[i_tensor_j]
-    ....:     rows.append([i, v, j, w, i_tensor_j, vw]) 
+    ....:     rows.append([i, v, j, w, i_tensor_j, vw])
     sage: table(rows)
           0   (1, 0)    0   (1, 1)    0   (1, 1, 0, 0)
           0   (1, 0)    1   (1, -1)   1   (1, -1, 0, 0)
@@ -49,8 +49,8 @@ Here is the tensor product of two vectors:
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of 
-#  the License, or (at your option) any later version.  
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -77,7 +77,7 @@ def symmetrized_coordinate_sums(dim, n):
     A symmetrized formal sum of multi-indices (tuples of integers)
 
     EXAMPLES::
-    
+
         sage: from sage.modules.tensor_operations import symmetrized_coordinate_sums
         sage: symmetrized_coordinate_sums(2, 2)
         ((0, 1) + (1, 0), (0, 0), (1, 1))
@@ -109,7 +109,7 @@ def antisymmetrized_coordinate_sums(dim, n):
     An anti-symmetrized formal sum of multi-indices (tuples of integers)
 
     EXAMPLES::
-    
+
         sage: from sage.modules.tensor_operations import antisymmetrized_coordinate_sums
         sage: antisymmetrized_coordinate_sums(3, 2)
         ((0, 1) - (1, 0), (0, 2) - (2, 0), (1, 2) - (2, 1))
@@ -134,7 +134,7 @@ class VectorCollection(FreeModule_ambient_field):
     A collection of rays in a vector space.
 
     .. warning::
-    
+
         This class is only used as a base class for filtered vector
         spaces. You should not use it yourself.
 
@@ -150,11 +150,11 @@ class VectorCollection(FreeModule_ambient_field):
       vector space.
 
     EXAMPLES::
-    
+
         sage: from sage.modules.tensor_operations import VectorCollection
         sage: R = VectorCollection([(1,0), (0,1), (1,2)], QQ, 2);  R
         Vector space of dimension 2 over Rational Field
-    
+
     TESTS::
 
         sage: R.vectors()
@@ -185,7 +185,7 @@ class VectorCollection(FreeModule_ambient_field):
 
         A tuple of vectors. The vectors that were specified in the
         constructor, in the same order.
-        
+
         EXAMPLES::
 
             sage: from sage.modules.tensor_operations import VectorCollection
@@ -194,7 +194,7 @@ class VectorCollection(FreeModule_ambient_field):
             ((1, 0), (0, 1), (1, 2))
         """
         return self._vectors
-    
+
     def n_vectors(self):
         """
         Return the number of vectors
@@ -203,6 +203,7 @@ class VectorCollection(FreeModule_ambient_field):
 
         Integer.
 
+        EXAMPLES::
 
             sage: from sage.modules.tensor_operations import VectorCollection
             sage: V = VectorCollection([(1,0), (0,1), (1,2)], QQ, 2)
@@ -218,7 +219,7 @@ class TensorOperation(VectorCollection):
     :class:`VectorCollection` objects.
 
     .. warning::
-    
+
         This class is only used as a base class for filtered vector
         spaces. You should not use it yourself.
 
@@ -229,7 +230,7 @@ class TensorOperation(VectorCollection):
 
     - ``operation`` -- string. The tensor operation. Currently allowed
       values are ``product``, ``symmetric``, and ``antisymmetric``.
-    
+
     .. todo::
 
         More general tensor operations (specified by Young tableaux)
@@ -237,8 +238,7 @@ class TensorOperation(VectorCollection):
 
     EXAMPLES::
 
-        sage: from sage.modules.tensor_operations import \
-        ....:      VectorCollection, TensorOperation
+        sage: from sage.modules.tensor_operations import VectorCollection, TensorOperation
         sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
         sage: S = VectorCollection([(1,), (-1,)], QQ, 1)
         sage: R_tensor_S = TensorOperation([R, S])
@@ -341,9 +341,9 @@ class TensorOperation(VectorCollection):
     def _init_product(self):
         """
         Initialization for the tensor product
-        
+
         EXAMPLES::
-        
+
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (1,2), (-1,-2)], QQ, 2)
@@ -407,13 +407,13 @@ class TensorOperation(VectorCollection):
         """
         Return the result of the tensor operation.
 
-        INPUT: 
-        
-        - ``*i`` -- list of integers. The indices (in the
-        corresponding factor of the tensor operation) of the domain
-        vector.
+        INPUT:
 
-        OUTPUT::
+        - ``*i`` -- list of integers. The indices (in the
+          corresponding factor of the tensor operation) of the domain
+          vector.
+
+        OUTPUT:
 
         The index (in :meth:`vectors`) of the image of the tensor
         product/operation acting on the domain vectors indexed by `i`.
@@ -437,7 +437,7 @@ class TensorOperation(VectorCollection):
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (0,1), (-2,-3)], QQ, 2)
-            sage: detR = TensorOperation([R]*2, 'antisymmetric') 
+            sage: detR = TensorOperation([R]*2, 'antisymmetric')
             sage: detR.index_map(1, 0)
             0
             sage: detR.index_map(0, 1)
@@ -464,7 +464,7 @@ class TensorOperation(VectorCollection):
         A choice of pre-image multi-indices.
 
         OUTPUT:
-        
+
         A list of multi-indices (tuples of integers) whose image is
         the entire image under the :meth:`index_map`.
 
@@ -473,7 +473,7 @@ class TensorOperation(VectorCollection):
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (0,1), (-2,-3)], QQ, 2)
-            sage: detR = TensorOperation([R]*2, 'antisymmetric') 
+            sage: detR = TensorOperation([R]*2, 'antisymmetric')
             sage: sorted(detR.preimage())
             [(0, 1), (0, 2), (1, 2)]
             sage: sorted(detR.codomain())
@@ -494,16 +494,10 @@ class TensorOperation(VectorCollection):
             sage: from sage.modules.tensor_operations import \
             ....:      VectorCollection, TensorOperation
             sage: R = VectorCollection([(1,0), (0,1), (-2,-3)], QQ, 2)
-            sage: detR = TensorOperation([R]*2, 'antisymmetric') 
+            sage: detR = TensorOperation([R]*2, 'antisymmetric')
             sage: sorted(detR.preimage())
             [(0, 1), (0, 2), (1, 2)]
             sage: sorted(detR.codomain())
             [0, 1, 2]
         """
         return self._index_map.values()
-
-
-
-
-
-

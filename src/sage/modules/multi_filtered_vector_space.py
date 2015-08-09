@@ -1,4 +1,4 @@
-"""
+r"""
 Multiple `\ZZ`-Graded Filtrations of a Single Vector Space
 
 See :mod:`filtered_vector_space` for simply graded vector spaces. This
@@ -34,8 +34,8 @@ arbitrary indexing set and values are
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of 
-#  the License, or (at your option) any later version.  
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -110,7 +110,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         INPUT:
 
         - ``base_ring`` -- a ring. the base ring.
-        
+
         - ``dim`` -- integer. The dimension of the ambient vector space.
 
         - ``filtrations`` -- a dictionary whose values are
@@ -128,14 +128,14 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                 1: QQ^2 >=  0   >=  0   >= 0
                 2: QQ^2 >= QQ^2 >= QQ^2 >= 0
         """
-        if check: 
+        if check:
             assert isinstance(dim, Integer)
             assert base_ring in Fields()
             assert all(base_ring == f.base_ring() for f in filtrations.values())
             assert all(dim == f.dimension() for f in filtrations.values())
         super(MultiFilteredVectorSpace_class, self).__init__(base_ring, dim)
         self._filt = dict(filtrations)
-        
+
     @cached_method
     def index_set(self):
         """
@@ -146,7 +146,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         Set.
 
         EXAMPLES::
-        
+
             sage: F1 = FilteredVectorSpace(2, 1)
             sage: F2 = FilteredVectorSpace(2, 3)
             sage: V = MultiFilteredVectorSpace({1:F1, 2:F2})
@@ -159,9 +159,9 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
     def change_ring(self, base_ring):
         """
         Return the same multi-filtration over a different base ring.
-        
+
         INPUT:
-        
+
         - ``base_ring`` -- a ring. The new base ring.
 
         OUTPUT:
@@ -177,7 +177,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F = MultiFilteredVectorSpace({'a':V, 'b':W});  F
             Filtrations
                 a: QQ^2 >=  0   >=  0   >= 0
-                b: QQ^2 >= QQ^2 >= QQ^2 >= 0          
+                b: QQ^2 >= QQ^2 >= QQ^2 >= 0
             sage: F.change_ring(RDF)
             Filtrations
                 a: RDF^2 >=   0   >=   0   >= 0
@@ -217,10 +217,10 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         Return whether the multi-filtration is constant.
 
         OUTPUT:
-        
+
         Boolean. Whether the each filtration is constant, see
         :meth:`~sage.modules.filtered_vector_space.FilteredVectorSpace_class.is_constant`.
-        
+
         EXAMPLES::
 
             sage: V = FilteredVectorSpace(2, 0)
@@ -245,7 +245,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
 
         Boolean. Whether each filtration is constant, see
         :meth:`~sage.modules.filtered_vector_space.FilteredVectorSpace_class.is_exhaustive`.
-        
+
         EXAMPLES::
 
             sage: F1 = FilteredVectorSpace(2, 1)
@@ -282,7 +282,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
     def support(self):
         """
         Return the degrees in which there are non-trivial generators.
-        
+
         OUTPUT:
 
         A tuple of integers (and plus infinity) in ascending
@@ -313,7 +313,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         (descending) filtrations such that, for each individual
         filtration, the filtered vector space `F_d` still equal to
         `F_{-\infty}`.
-        
+
         EXAMPLES::
 
             sage: F1 = FilteredVectorSpace(2, 1)
@@ -366,7 +366,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             QQ^2 >= 0
         """
         return self._filt[key]
-        
+
     def get_degree(self, key, deg):
         r"""
         Return one filtered vector space.
@@ -398,7 +398,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
 
     def graded(self, key, deg):
         r"""
-        Return the associated graded vectorspace.
+        Return the associated graded vector space.
 
         INPUT:
 
@@ -432,12 +432,12 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         r"""
         Return as string representation of ``self``.
 
-        OUTPUT: 
-        
+        OUTPUT:
+
         A string.
 
         EXAMPLES::
-        
+
             sage: rays = [(1,0), (1,1), (1,2), (-1,-1)]
             sage: F1 = FilteredVectorSpace(rays, {0:[1, 2], 2:[3]})
             sage: F2 = FilteredVectorSpace(rays, {0:[1, 2], oo:[3]})
@@ -503,7 +503,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
 
         The direct sum as a multi-filtered vector space. See
         :meth:`~sage.modules.filtered_vector_space.FilteredVectorSpace_class.direct_sum`.
-        
+
         EXAMPLES::
 
             sage: F1 = FilteredVectorSpace(2, 1)
@@ -529,7 +529,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         return MultiFilteredVectorSpace(filtrations)
 
     __add__ = direct_sum
-    
+
     def tensor_product(self, other):
         r"""
         Return the graded tensor product.
@@ -568,7 +568,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         for key in self.index_set():
             filtrations[key] = self._filt[key] * other._filt[key]
         return MultiFilteredVectorSpace(filtrations)
-        
+
     __mul__ = tensor_product
 
     def exterior_power(self, n):
@@ -599,7 +599,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         for key in self.index_set():
             filtrations[key] = self._filt[key].exterior_power(n)
         return MultiFilteredVectorSpace(filtrations)
-    
+
     wedge = exterior_power
 
     def symmetric_power(self, n):
@@ -697,11 +697,11 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             sage: F1 = FilteredVectorSpace(2, 1)
             sage: F2 = FilteredVectorSpace(1, 3) + FilteredVectorSpace(1,0)
             sage: V = MultiFilteredVectorSpace({'a':F1, 'b':F2})
-            sage: V.get_degree('b',1) 
+            sage: V.get_degree('b',1)
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
-            sage: V.random_deformation(1/100).get_degree('b',1) 
+            sage: V.random_deformation(1/100).get_degree('b',1)
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [     1 8/1197]
@@ -710,6 +710,3 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         for key in self.index_set():
             filtrations[key] = self._filt[key].random_deformation(epsilon)
         return MultiFilteredVectorSpace(filtrations)
-
-
-

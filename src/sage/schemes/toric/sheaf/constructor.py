@@ -2,7 +2,7 @@ r"""
 Construct sheaves on toric varieties.
 
 A toric vector bundle (on a toric variety) is a vector bundle that is
-equivarint with respect to the algebraic torus action.
+equivariant with respect to the algebraic torus action.
 """
 
 
@@ -10,8 +10,8 @@ equivarint with respect to the algebraic torus action.
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of 
-#  the License, or (at your option) any later version.  
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -49,7 +49,7 @@ def TangentBundle(X):
         filtrations[ray] = F
     import klyachko
     return klyachko.Bundle(X, filtrations, check=True)
-    
+
 
 def CotangentBundle(X):
     r"""
@@ -115,7 +115,7 @@ def LineBundle(X, D):
     - ``X`` -- a toric variety. The base space of the bundle.
 
     - ``D`` -- a toric divisor.
-    
+
     OUTPUT:
 
     The line bundle `O(D)` as a Klyachko bundle of rank 1.
@@ -133,14 +133,14 @@ def LineBundle(X, D):
         raise ValueError('not a toric variety')
     from sage.modules.free_module import VectorSpace
     base_ring = X.base_ring()
-    filtrations = dict([X.fan().ray(i), 
+    filtrations = dict([X.fan().ray(i),
                         FilteredVectorSpace(1, D.function_value(i), base_ring=base_ring)]
                        for i in range(X.fan().nrays()))
     import klyachko
     return klyachko.Bundle(X, filtrations, check=True)
-    
-    
-        
+
+
+
 class SheafLibrary(object):
 
     def __init__(self, toric_variety):
@@ -179,18 +179,18 @@ class SheafLibrary(object):
     def trivial_bundle(self, rank=1):
         r"""
         Return the trivial bundle of rank ``r``.
-    
+
         INPUT:
 
         - ``rank`` -- integer (optional; default: `1`). The rank of
           the bundle.
-    
+
         OUTPUT:
-    
+
         The trivial bundle as a Klyachko bundle.
-    
+
         EXAMPLES::
-    
+
             sage: P2 = toric_varieties.P2()
             sage: I3 = P2.sheaves.trivial_bundle(3);  I3
             Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
@@ -202,18 +202,18 @@ class SheafLibrary(object):
     def line_bundle(self, divisor):
         """
         Construct the rank-1 bundle `O(D)`.
-    
+
         INPUT:
-    
+
         - ``divisor`` -- a toric divisor.
-        
+
         OUTPUT:
-    
+
         The line bundle `O(D)` for the given divisor as a Klyachko
         bundle of rank 1.
-    
+
         EXAMPLES::
-    
+
             sage: X = toric_varieties.dP8()
             sage: D = X.divisor(0)
             sage: O_D = X.sheaves.line_bundle(D)
@@ -224,14 +224,14 @@ class SheafLibrary(object):
 
     def tangent_bundle(self):
         r"""
-        Return the cotangent bundle of the toric variety.
+        Return the tangent bundle of the toric variety.
 
         OUTPUT:
 
         The tangent bundle as a Klyachko bundle.
 
         EXAMPLES::
-        
+
             sage: toric_varieties.dP6().sheaves.tangent_bundle()
             Rank 2 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
         """
@@ -239,14 +239,14 @@ class SheafLibrary(object):
 
     def cotangent_bundle(self):
         r"""
-        Return the tangent bundle of the toric variety.
+        Return the cotangent bundle of the toric variety.
 
         OUTPUT:
 
         The cotangent bundle as a Klyachko bundle.
 
         EXAMPLES::
-        
+
             sage: dP6 = toric_varieties.dP6()
             sage: TX = dP6.sheaves.tangent_bundle()
             sage: TXdual = dP6.sheaves.cotangent_bundle()
@@ -257,8 +257,8 @@ class SheafLibrary(object):
 
     def Klyachko(self, multi_filtration):
         """
-        Construct a Klyachko bundle (sheaf) from filtration data.        
-        
+        Construct a Klyachko bundle (sheaf) from filtration data.
+
         INPUT:
 
         - ``multi_filtration`` -- a multi-filtered vectors space with

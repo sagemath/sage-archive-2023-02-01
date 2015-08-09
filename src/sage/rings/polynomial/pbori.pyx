@@ -184,7 +184,7 @@ REFERENCES:
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
-include "sage/ext/python.pxi"
+from cpython.object cimport Py_EQ, Py_NE
 
 import operator
 
@@ -2806,7 +2806,7 @@ cdef class BooleanMonomialVariableIterator:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: m = f.lm()
-            sage: iter(m).next()
+            sage: next(iter(m))
             x
         """
         cdef PBVar value
@@ -2859,7 +2859,7 @@ cdef class BooleanMonomialIterator:
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
             sage: f = x*y + z + 1
             sage: m = f.lm()
-            sage: m.iterindex().next()
+            sage: next(m.iterindex())
             0
         """
         cdef int value
@@ -4856,7 +4856,7 @@ cdef class BooleanPolynomialIterator:
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: it = iter(B.random_element())
-            sage: it.next() # indirect doctest
+            sage: next(it) # indirect doctest
             a*b
         """
         cdef PBMonom value
@@ -5942,7 +5942,7 @@ cdef class BooleSetIterator:
             sage: f
             a*b + a*c + a + b*d + 1
             sage: it = iter(f.set())
-            sage: it.next()
+            sage: next(it)
             a*b
         """
         cdef PBMonom value

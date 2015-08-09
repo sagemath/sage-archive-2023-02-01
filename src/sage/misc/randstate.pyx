@@ -1,5 +1,3 @@
-# distutils: libraries = gmp
-
 r"""
 Random Number States
 

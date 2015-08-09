@@ -29,7 +29,7 @@ from sage.rings.arith import factorial
 import sage.rings.integer
 from sage.sets.set import Set, is_Set
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -126,7 +126,7 @@ class OrderedSetPartition(ClonableArray):
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, parts):

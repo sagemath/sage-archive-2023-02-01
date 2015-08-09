@@ -134,7 +134,7 @@ class DifferentialForms(Algebra):
             True
         """
 
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             return self._patch == other._patch
         else:
             return False
@@ -346,9 +346,8 @@ class DifferentialForms(Algebra):
             'Algebra of differential forms in the variables x, y, z'
         """
 
-        from string import join
         return "Algebra of differential forms in the variables " + \
-            ', '.join([str(var) for var in self._patch.coordinates()])
+            ', '.join(str(var) for var in self._patch.coordinates())
 
 
     def _latex_(self):

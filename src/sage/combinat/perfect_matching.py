@@ -56,7 +56,7 @@ REFERENCES:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -107,7 +107,7 @@ class PerfectMatching(ElementWrapper):
     __lt__ = ElementWrapper._lt_by_value
     #During the creation of the instance of the class, the function
     #__classcall_private__ will be called instead of __init__ directly.
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, p):
@@ -244,8 +244,18 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: P = PerfectMatching([(1,3),(2,5),(4,6)])
-            sage: latex(P) #indirect doctest # optional - requires dot2tex
-            \begin{tikzpture}
+            sage: latex(P)  # optional - dot2tex; random
+            \begin{tikzpicture}
+            ...
+            \end{tikzpicture}
+
+        TESTS:
+
+        Above we added ``random`` since warnings might be displayed
+        once. The second time, there should be no warnings::
+
+            sage: print P._latex_()  # optional - dot2tex
+            \begin{tikzpicture}
             ...
             \end{tikzpicture}
         """

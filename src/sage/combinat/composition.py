@@ -40,6 +40,7 @@ from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
 class Composition(CombinatorialElement):
@@ -160,7 +161,7 @@ class Composition(CombinatorialElement):
             [ #  #   ##  #     #  ##   ###       ]
             [ #, ##,  #, ###,  #,  ##,   #, #### ]
         """
-        from sage.misc.ascii_art import ascii_art
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self.to_skew_partition())
 
     def __setstate__(self, state):

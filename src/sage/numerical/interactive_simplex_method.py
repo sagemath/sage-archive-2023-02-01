@@ -531,7 +531,7 @@ class InteractiveLPProblem(SageObject):
             prefix = x
             x = ["{}{:d}".format(x, i) for i in range(1, n+1)]
         else:
-            x = map(str, x)
+            x = [str(_) for _ in x]
             if len(x) != n:
                 raise ValueError("A and x have incompatible dimensions")
         R = PolynomialRing(base_ring, x, order="neglex")
@@ -928,8 +928,8 @@ class InteractiveLPProblem(SageObject):
             R = QQ
         else:
             R = RDF
-            ieqs = [map(R, ieq) for ieq in ieqs]
-            eqns = [map(R, eqn) for eqn in eqns]
+            ieqs = [[R(_) for _ in ieq] for ieq in ieqs]
+            eqns = [[R(_) for _ in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
 
     def is_bounded(self):
@@ -1225,7 +1225,7 @@ class InteractiveLPProblem(SageObject):
                 ieqs = [[-bi] + list(Ai), [bi+pad*Ai.norm().n()] + list(-Ai)]
             else:
                 continue
-            ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         # Same for variables, but no legend
@@ -1240,7 +1240,7 @@ class InteractiveLPProblem(SageObject):
                 ieqs = [[0] + list(ni), [pad] + list(-ni)]
             else:
                 continue
-            ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         if F.vertices():
@@ -1248,7 +1248,7 @@ class InteractiveLPProblem(SageObject):
             result += text("$F$", F.center(),
                            fontsize=20, color="black", zorder=5)
         result.set_axes_range(xmin, xmax, ymin, ymax)
-        result.axes_labels(map(lambda xi: "${}$".format(latex(xi)), x))
+        result.axes_labels(["${}$".format(latex(xi)) for xi in x])
         result.legend(True)
         result.set_legend_options(fancybox=True, handlelength=1.5, loc=1,
                                   shadow=True)
@@ -1427,7 +1427,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 raise ValueError("wrong number of slack variables")
         if auxiliary_variable is None:
            auxiliary_variable = self._prefix + "0"
-        names = [str(auxiliary_variable)] + map(str, self.x()) + slack_variables
+        names = [str(auxiliary_variable)] +[str(_) for _ in self.x()] + slack_variables
         if names[0] == names[1]:
             names.pop(0)
         R = PolynomialRing(self.base_ring(), names, order="neglex")
@@ -1636,8 +1636,8 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
                 i = B.index(xj)
                 c -= cj * A[i]
                 v += cj * b[i]
-        B = map(self._R, B)
-        N = map(self._R, N)
+        B = [self._R(_) for _ in B]
+        N = [self._R(_) for _ in N]
         return LPDictionary(A, b, c, v, B, N, self._objective)
 
     def final_dictionary(self):
@@ -2646,7 +2646,7 @@ class LPDictionary(LPAbstractDictionary):
         r"""
         See :class:`LPDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = matrix(QQ, ([1, 1], [3, 1]))
             sage: b = vector(QQ, (1000, 1500))
@@ -3214,7 +3214,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         r"""
         See :class:`LPRevisedDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
@@ -3350,7 +3350,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             if show_ratios:
                 if ratios and ratios[0][1] == x_B[i]:
                     entries.append(ratios.pop(0)[0])
-            terms = map(latex, entries)
+            terms = [latex(_) for _ in entries]
             if leaving is not None and i == l:
                 for j, t in enumerate(terms):
                     if j == m + 2:
@@ -3361,7 +3361,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         top = "\n".join(lines)
 
         def make_line(header, terms):
-            terms = map(latex, terms)
+            terms = [latex(_) for _ in terms]
             if entering is not None:
                 terms[k] = r"\color{green} " + terms[k]
             lines.append(" & ".join([header] + terms) + r" \\")

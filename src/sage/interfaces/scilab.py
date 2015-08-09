@@ -207,7 +207,8 @@ class Scilab(Expect):
           505.
     """
     def __init__(self, maxread=100, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None):
+                 logfile=None, server=None,server_tmpdir=None,
+                 seed=None):
         """
         Initializes the Scilab class.
 
@@ -229,6 +230,37 @@ class Scilab(Expect):
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=100)
+        self._seed = seed
+
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for gp interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.scilab import Scilab # optional - scilab
+            sage: s = Scilab() # optional - scilab
+            sage: s.set_seed(1) # optional - scilab
+            1
+            sage: [s.rand() for i in range(5)] # optional - scilab
+            [
+            <BLANKLINE>
+                 0.6040239,
+            <BLANKLINE>
+                 0.0079647,
+            <BLANKLINE>
+                 0.6643966,
+            <BLANKLINE>
+                 0.9832111,
+            <BLANKLINE>
+                 0.5321420]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("rand('seed',%d)" % seed)
+        self._seed = seed
+        return seed
 
     def _quit_string(self):
         """
@@ -267,6 +299,9 @@ class Scilab(Expect):
         """
         Expect._start(self)
         self.eval("mode(0)")
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def eval(self, command, *args, **kwds):
         """

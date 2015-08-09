@@ -853,8 +853,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Compare the two polynomials self and other.
 
-        We order polynomials first by degree, then in dictionary order
-        starting with the coefficient of largest degree.
+        We order polynomials first by degree (but treating 0 as having
+        degree 0), then in dictionary order starting with the
+        coefficient of largest degree.
 
         EXAMPLES::
 
@@ -865,15 +866,37 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: R(-1) < 0
-            False
             sage: x^3 - 3 > 393939393
             True
+
+        Test comparison with zero (:trac:`18633`)::
+
+            sage: 0 < R(1)
+            True
+            sage: R(-1) < 0
+            True
+            sage: -x < 0
+            False
+            sage: R(0) == R(0)
+            True
         """
-        d1 = self.degree(); d2 = other.degree()
-        c = cmp(d1, d2)
-        if c: return c
-        for i in reversed(xrange(d1+1)):
+        cdef Py_ssize_t d1 = self.degree()
+        cdef Py_ssize_t d2 = other.degree()
+
+        # Special case constant polynomials
+        if d1 <= 0 and d2 <= 0:
+            return cmp(self[0], other[0])
+
+        # For different degrees, compare the degree
+        if d1 != d2:
+            if d1 < d2:
+                return -1
+            else:
+                return 1
+
+        cdef Py_ssize_t i
+        cdef int c
+        for i in reversed(range(d1+1)):
             c = cmp(self[i], other[i])
             if c: return c
         return 0
@@ -2723,19 +2746,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: isinstance(x.numerator() / R(1), Polynomial)
             False
+
+        TESTS:
+
+        Check that :trac:`18518` is fixed::
+
+            sage: R.<x> = PolynomialRing(QQ, sparse=True)
+            sage: p = x^(2^100) - 1/2
+            sage: p.denominator()
+            2
         """
 
         if self.degree() == -1:
             return self.base_ring().one()
-        #This code was in the original algorithm, but seems irrelevant
-        #R = self.base_ring()
-        x = self.list()
+        x = self.coefficients()
         try:
             d = x[0].denominator()
             for y in x:
                 d = d.lcm(y.denominator())
-            #If we return self.parent(d) instead, automatic test
-            #start to fail, ex. "sage/rings/polynomial/complex_roots.py"
             return d
         except(AttributeError):
             return self.base_ring().one()
@@ -5569,8 +5597,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             I*x^3 + 2.0
             sage: f.roots()  # abs tol 1e-14
             [(-1.0911236359717227 + 0.6299605249474374*I, 1), (3.885780586188048e-16 - 1.2599210498948734*I, 1), (1.0911236359717211 + 0.6299605249474363*I, 1)]
-            sage: f(f.roots()[0][0])  # abs tol 1e-13
-            3.3306690738754696e-15 + 1.3704315460216776e-15*I
+            sage: abs(f(f.roots()[0][0]))  # abs tol 1e-13
+            1.1102230246251565e-16
 
         Examples using real root isolation::
 
@@ -7711,21 +7739,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         else:
             return self._new_c(low + high, self._parent)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] += y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] += y[i]
-            x += y[len(x):]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         cdef Polynomial_generic_dense res
         cdef Py_ssize_t check=0, i, min
@@ -7746,21 +7759,6 @@ cdef class Polynomial_generic_dense(Polynomial):
             return res
         else:
             return self._new_c(low + high, self._parent)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        cdef Py_ssize_t check=0, i, min
-        x = (<Polynomial_generic_dense>self).__coeffs
-        y = (<Polynomial_generic_dense>right).__coeffs
-        if len(x) >= len(y):
-            for i from 0 <= i < len(y):
-                x[i] -= y[i]
-        else:
-            for i from 0 <= i < len(x):
-                x[i] -= y[i]
-            x += [-c for c in y[len(x):]]
-        if len(x) == len(y):
-            self.__normalize()
-        return self
 
     cpdef ModuleElement _rmul_(self, RingElement c):
         if len(self.__coeffs) == 0:
@@ -7785,18 +7783,6 @@ cdef class Polynomial_generic_dense(Polynomial):
         # "normalize" checks this anyway...
         res.__normalize()
         return res
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        if len(self.__coeffs) == 0:
-            return self
-        if c._parent is not (<Element>self.__coeffs[0])._parent:
-            c = (<Element>self.__coeffs[0])._parent._coerce_c(c)
-        cdef Py_ssize_t i, deg = len(self.__coeffs)
-        for i from 0 <= i < deg:
-            self.__coeffs[i] *= c
-        if not self.__coeffs[deg-1]:
-            self.__normalize()
-        return self
 
     cpdef constant_coefficient(self):
         """

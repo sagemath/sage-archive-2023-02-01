@@ -2396,6 +2396,12 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(sqrt(2) < SR(oo))
             sage: assert(SR(-oo) < sqrt(2))
             sage: assert(sqrt(2) > SR(-oo))
+
+        Check that :trac:`18360` is fixed::
+
+            sage: f(x) = matrix()
+            sage: bool(f(x) - f(x) == 0)
+            True
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3042,6 +3048,14 @@ cdef class Expression(CommutativeRingElement):
             sage: ex.substitute(a=z, b=z)
             (r1*x2 - r2 - x1)/x3
 
+        TESTS:
+
+        Check that :trac:`18360` is fixed::
+
+            sage: f(x) = matrix()
+            sage: f(x)*1
+            []
+        
         Check that floating point numbers +/- 1.0 are treated
         differently from integers +/- 1 (:trac:`12257`)::
 

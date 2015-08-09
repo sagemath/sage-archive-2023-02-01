@@ -921,6 +921,26 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         return LatticePoset(self.subposet(current_set))
 
+    def maximal_sublattices(self):
+        r"""
+        Return maximal (proper) sublattices of the lattice.
+
+        EXAMPLES::
+
+            sage: L = LatticePoset(( [], [[1,2],[1,17],[1,8],[2,3],[2,22],[2,5],[2,7],[17,22],[17,13],[8,7],[8,13],[3,16],[3,9],[22,16],[22,18],[22,10],[5,18],[5,14],[7,9],[7,14],[7,10],[13,10],[16,6],[16,19],[9,19],[18,6],[18,33],[14,33],[10,19],[10,33],[6,4],[19,4],[33,4]] ))
+            sage: maxs = L.maximal_sublattices()
+            sage: len(maxs)
+            7
+            sage: sorted(maxs[0].list())
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 14, 16, 18, 19, 22, 33]
+        """
+        n = self.cardinality()
+        if n < 2:
+            return []
+        if n == 2:
+            return [self.sublattice([self.bottom()]), self.sublattice([self.top()])]
+        return [self.sublattice([self[x] for x in d]) for d in self._hasse_diagram.maximal_sublattices()]
+
 ############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice

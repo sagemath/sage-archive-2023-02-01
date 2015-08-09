@@ -16,6 +16,8 @@ Dancing Links internal pyx code
 
 include 'sage/ext/interrupt.pxi'
 
+from sage.structure.sage_object cimport rich_to_bool
+
 from libcpp.vector cimport vector
 
 cdef extern from "dancing_links_c.h":
@@ -31,8 +33,17 @@ cdef extern from "ccobject.h":
     void dancing_links_destruct "Destruct<dancing_links>"(dancing_links *mem)
 
 cdef class dancing_linksWrapper:
+    r"""
+    A simple class that implements dancing links.
+
+    The main methods to list the solutions are :meth:`search` and
+    :meth:`get_solution`. You can also use :meth:`number_of_solutions` to count
+    them.
+
+    This class simply wraps a C++ implementation of Carlo Hamalainen.
+    """
     cdef dancing_links _x
-    cdef _rows
+    cdef list _rows
 
     def __init__(self, rows):
         """
@@ -127,16 +138,7 @@ cdef class dancing_linksWrapper:
             sage: X == Y
             0
         """
-
-        cdef int equal
-        equal = left._rows == right._rows
-
-        if op == 2: # ==
-            return equal
-        elif op == 3: # !=
-            return not equal
-        else:
-            return NotImplemented
+        return rich_to_bool(op, cmp(left._rows, right._rows))
 
     def _init_rows(self, rows):
         """
@@ -185,9 +187,10 @@ cdef class dancing_linksWrapper:
 
     def get_solution(self):
         """
-        After calling search(), we can extract a solution
-        from the instance variable self._x.solution, a C++ vector<int>
-        listing the rows that make up the current solution.
+        Return the current solution.
+
+        After a new solution is found using the method :meth:`search` this
+        method return the rows that make up the current solution.
 
         TESTS::
 
@@ -203,8 +206,7 @@ cdef class dancing_linksWrapper:
             [3, 0]
         """
         cdef size_t i
-
-        s = []
+        cdef list s = []
         for i in range(self._x.solution.size()):
             s.append(self._x.solution.at(i))
 
@@ -212,6 +214,11 @@ cdef class dancing_linksWrapper:
 
     def search(self):
         """
+        Search for a new solution.
+
+        Return ``1`` if a new solution is found and ``0`` otherwise. To recover
+        the solution, use the method :meth:`get_solution`.
+
         EXAMPLES::
 
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
@@ -248,7 +255,6 @@ cdef class dancing_linksWrapper:
         x = self._x.search()
         sig_off()
         return x
-
 
     def number_of_solutions(self):
         r"""

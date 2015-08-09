@@ -388,7 +388,7 @@ class Modules(Category_module):
             r"""
             Return the super-analogue category of ``self``.
 
-            INPUT::
+            INPUT:
 
             - ``base_ring`` -- this is ignored
 

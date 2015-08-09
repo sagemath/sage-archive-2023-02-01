@@ -1343,6 +1343,11 @@ class GenericGraph(GenericGraph_pyx):
             ``weight``. Hence, to create a weighted graph, it is enough to add
             this attribute.
 
+        .. NOTE::
+
+            Often, Sage uses its own defined types for integer/floats. These
+            types may not be igraph-compatible (see example below).
+
         EXAMPLES:
 
         Standard conversion::
@@ -1380,6 +1385,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G.igraph_graph(vertex_attrs={'name':G.vertices()}) # optional - python_igraph
             sage: H.vs()['name']                                         # optional - python_igraph
             [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        Sometimes, Sage integer/floats are not compatible with igraph::
+
+            sage: G = Graph([(0,1,2)])                                                    # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs = {'capacity':[e[2] for e in G.edges()]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                                       # optional - python_igraph
+            1.0
+            sage: H = G.igraph_graph(edge_attrs = {'capacity':[float(e[2]) for e in G.edges()]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                                              # optional - python_igraph
+            2.0
 
         TESTS:
 
@@ -5733,12 +5748,19 @@ class GenericGraph(GenericGraph_pyx):
         - ``method`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
-                used.
+              * If ``method = "FF"``, a Python implementation of the
+                Ford-Fulkerson algorithm is used
 
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
+
+              * If ``method = "igraph"``, the igraph implementation of the
+                Goldberg-Tarjan algorithm is used (only available when
+                igraph is installed)
+
+              * If ``method = None`` (default), we use ``LP`` if
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if
+                it is available, ``FF`` if it is not available.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5809,14 +5831,16 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_cut(0,1, method="Divination")
            Traceback (most recent call last):
            ...
-           ValueError: The method argument has to be equal to either "FF" or "LP"
+           ValueError: The method argument has to be equal to "FF", "LP", "igraph", or None
 
-        Same result for both methods::
+        Same result for all three methods::
 
            sage: g = graphs.RandomGNP(20,.3)
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
            sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="LP")
+           True
+           sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="igraph") # optional - python_igraph
            True
 
         Rounded return value when using the LP method::
@@ -5845,7 +5869,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             weight = lambda x: 1
 
-        if method == "FF":
+        if method in ["FF", "igraph", "None"]:
             if value_only:
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
@@ -5872,7 +5896,8 @@ class GenericGraph(GenericGraph_pyx):
             return return_value
 
         if method != "LP":
-            raise ValueError("The method argument has to be equal to either \"FF\" or \"LP\"")
+            raise ValueError("The method argument has to be equal to \"FF\", " +
+                             "\"LP\", \"igraph\", or None")
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
@@ -7655,8 +7680,9 @@ class GenericGraph(GenericGraph_pyx):
                 Goldberg-Tarjan algorithm is used (only available when
                 igraph is installed and ``vertex_bound = False``)
 
-              * If ``method = None`` (default), the Ford-Fulkerson
-                implementation is used iif ``vertex_bound = False``.
+              * If ``method = None`` (default), we use ``LP`` if
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if
+                it is available, ``FF`` if it is not available.
 
         - ``solver`` -- Specify a Linear Program solver to be used.
           If set to ``None``, the default one is used.  function of
@@ -7672,7 +7698,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-           Even though the two different implementations are meant to
+           Even though the three different implementations are meant to
            return the same Flow values, they can not be expected to
            return the same Flow graphs.
 
@@ -7685,13 +7711,13 @@ class GenericGraph(GenericGraph_pyx):
         ``ButterflyGraph`` with parameter `2` ::
 
            sage: g=graphs.PappusGraph()
-           sage: g.flow(1,2)
+           sage: int(g.flow(1,2))
            3
 
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
-           sage: b.flow(('00',1),('00',2))
+           sage: int(b.flow(('00',1),('00',2)))
            1
 
         The flow method can be used to compute a matching in a bipartite graph
@@ -7708,22 +7734,37 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(flow_graph.edges())
             4
 
+        The undirected case::
+
+            sage: g = Graph()
+            sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
+            sage: g.add_edges([(4+i,'t') for i in range(4)])
+            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False)
+            sage: flow_graph.delete_vertices(['s','t'])
+            sage: len(flow_graph.edges())
+            4
+
         TESTS:
 
-        An exception if raised when forcing "FF" with ``vertex_bound = True``::
+        An exception if raised when forcing "FF" or "igraph" with ``vertex_bound = True``::
 
             sage: g = graphs.PetersenGraph()
             sage: g.flow(0,1,vertex_bound = True, method = "FF")
             Traceback (most recent call last):
             ...
-            ValueError: This method does not support both vertex_bound=True and method="FF".
+            ValueError: This method does not support both vertex_bound=True and method='FF'.
+            sage: g.flow(0,1,vertex_bound = True, method = "igraph")
+            Traceback (most recent call last):
+            ...
+            ValueError: This method does not support both vertex_bound=True and method='igraph'.
 
         Or if the method is different from the expected values::
 
             sage: g.flow(0,1, method="Divination")
             Traceback (most recent call last):
             ...
-            ValueError: The method argument has to be equal to either "FF", "LP" or None
+            ValueError: The method argument has to be equal to either "FF", "LP", "igraph", or None
 
         The two methods are indeed returning the same results (possibly with
         some numerical noise, cf. :trac:`12362`)::
@@ -7732,8 +7773,11 @@ class GenericGraph(GenericGraph_pyx):
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
            sage: flow_ff = g.flow(0,1, method="FF")
-           sage: flow_lp = g.flow(0,1,method="LP")
+           sage: flow_lp = g.flow(0,1, method="LP")
            sage: abs(flow_ff-flow_lp) < 0.01
+           True
+           sage: flow_igraph = g.flow(0,1, method="igraph") # optional python_igraph
+           sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
            True
         """
         self._scream_if_not_simple(allow_loops=True)
@@ -7741,32 +7785,84 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("This method does not support both " +
                              "vertex_bound=True and method='" + method + "'.")
 
-        if (method == "FF" or
-            (method is None and not vertex_bound)):
+        if use_edge_labels:
+            from sage.rings.real_mpfr import RR
+            capacity=lambda x: x if x in RR else 1
+        else:
+            capacity=lambda x: 1
+
+        igraph_available = True
+        try:
+            import igraph
+        except ImportError:
+            igraph_available = False
+
+        if method is None:
+            if vertex_bound:
+                method = "LP"
+            elif igraph_available:
+                method = "igraph"
+            else:
+                method = "FF"
+
+        if (method == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (method == 'igraph'):
-            import igraph
-            if use_edge_labels:
-                g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(e[2]) for e in self.edge_iterator()]})
-                maxflow = g_igraph.maxflow(x, y, 'capacity')
-            else:
-                maxflow = self.igraph_graph().maxflow(x,y)
-            return maxflow
+            from sage.functions.other import floor
 
-        if method != "LP" and not method is None:
-            raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
+            if not igraph_available:
+                raise ValueError("The igraph library is not available. " +
+                                 "Please, install it with sage -i igraph " +
+                                 "followed by sage -i python_igraph.")
+            v_to_int = {v:i for i,v in enumerate(self.vertices())}
+            x_int = v_to_int[x]
+            y_int = v_to_int[y]
+            if use_edge_labels:
+                if integer:
+                    g_igraph = self.igraph_graph(edge_attrs={'capacity':[int(floor(capacity(e[2]))) for e in self.edge_iterator()]})
+                else:
+                    g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
+            else:
+                maxflow = self.igraph_graph().maxflow(x_int, y_int)
+
+            if value_only:
+                return maxflow.value
+            else:
+                igraph_flow = iter(maxflow.flow)
+                edge_iter = self.edge_iterator()
+                edges = []
+                if self.is_directed():
+                    for e in self.edge_iterator():
+                        f = next(igraph_flow)
+                        if f != 0:
+                            edges.append((e[0], e[1], f))
+                else:
+                    # If the graph is undirected, the output of igraph is a list
+                    # of weights: a positive weight means that the flow is from
+                    # the vertex with minimum label to the vertex with maximum
+                    # label, a negative weight means the converse.
+                    for e in self.edge_iterator():
+                        v = v_to_int[e[0]]
+                        w = v_to_int[e[1]]
+                        f = next(igraph_flow)
+                        if (f > 0 and v < w) or (f < 0 and v > w):
+                            edges.append((e[0], e[1], abs(f)))
+                        elif f != 0:
+                            edges.append((e[1], e[0], abs(f)))
+
+                from sage.graphs.digraph import DiGraph
+                return [maxflow.value, DiGraph(edges)]
+
+        if method != "LP":
+            raise ValueError("The method argument has to be equal to either " +
+                             "\"FF\", \"LP\", \"igraph\", or None")
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
         flow=p.new_variable(nonnegative=True)
-
-        if use_edge_labels:
-            from sage.rings.real_mpfr import RR
-            capacity=lambda x: x if x in RR else 1
-        else:
-            capacity=lambda x: 1
 
         if g.is_directed():
             # This function return the balance of flow at X

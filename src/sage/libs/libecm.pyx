@@ -17,12 +17,12 @@ EXAMPLES::
 
     sage: from sage.libs.libecm import ecmfactor
     sage: result = ecmfactor(999, 0.00)
-    sage: result[0] == True and result[1] in [27, 37, 999]
+    sage: result[0] and (result[1] in [27, 37, 999])
     True
     sage: result = ecmfactor(999, 0.00, verbose=True)
     Performing one curve with B1=0
     Found factor in step 1: ...
-    sage: result[0] == True and result[1] in [27, 37, 999]
+    sage: result[0] and (result[1] in [27, 37, 999])
     True
     sage: ecmfactor(2^128+1,1000,sigma=227140902)
     (True, 5704689200685129054721, 227140902)
@@ -80,8 +80,8 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
         sage: N = 2^167 - 1
         sage: factor(N)
         2349023 * 79638304766856507377778616296087448490695649
-        sage: ecmfactor(N, 2e5)  # random
-        (True, 2349023, 1473308225)
+        sage: ecmfactor(N, 2e5)
+        (True, 2349023, ...)
 
     If a factor was found, we can reproduce the factorization with the same
     sigma value::
@@ -119,10 +119,10 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
         sage: N = 12^97 - 1
         sage: factor(N)
         11 * 43570062353753446053455610056679740005056966111842089407838902783209959981593077811330507328327968191581
-        sage: ecmfactor(N, 100, verbose=True) # random
+        sage: ecmfactor(N, 100, verbose=True)
         Performing one curve with B1=100
         Found factor in step 1: 11
-        (True, 11, 1123096328)
+        (True, 11, ...)
         sage: ecmfactor(N/11, 100, verbose=True)
         Performing one curve with B1=100
         Found no factor.
@@ -140,8 +140,8 @@ def ecmfactor(number, double B1, verbose=False, sigma=0):
 
     Some special cases::
 
-        sage: ecmfactor(1, 100) # random
-        (True, 1, 2635457271)
+        sage: ecmfactor(1, 100)
+        (True, 1, ...)
         sage: ecmfactor(0, 100)
         Traceback (most recent call last):
         ...

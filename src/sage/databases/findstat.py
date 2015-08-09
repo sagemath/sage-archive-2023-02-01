@@ -162,6 +162,7 @@ Classes and methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -611,8 +612,8 @@ class FindStat(SageObject):
 
         TESTS::
 
-            sage: findstat(41).set_description("")                              # optional -- internet
-            sage: findstat(41).description() == ""                              # optional -- internet
+            sage: findstat(41).set_description("")                              # optional -- internet, indirect doctest
+            sage: findstat(41).description() == ""                              # optional -- internet, indirect doctest
             True
         """
         if id > 0:
@@ -830,7 +831,7 @@ class FindStatStatistic(SageObject):
 
         TESTS::
 
-            sage: findstat(999999)
+            sage: findstat(999999)                                              # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: St999999 is not a FindStat statistic identifier.
@@ -887,7 +888,6 @@ class FindStatStatistic(SageObject):
             sage: collection = FindStatCollection(data[0][0][0])                                                                     # optional -- internet
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values()   # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
-
 
         """
         self._query = "data"
@@ -1490,20 +1490,85 @@ class FindStatCollection(Element):
     r"""
     A FindStat collection.
 
-    .. automethod:: __init__
+    :class:`FindStatCollection` is a class representing a
+    combinatorial collection available in the FindStat database.
+
+    Its main use is to allow easy specification of the combinatorial
+    collection when using :class:`findstat<FindStat>`.  It also
+    provides methods to quickly access its FindStat web page
+    (:meth:`browse`), check whether a particular element is actually
+    in the range considered by FindStat (:meth:`in_range`), etc.
+
+    INPUT:
+
+    One of the following:
+
+    - a string eg. 'Dyck paths' or 'DyckPaths', case-insensitive, or
+
+    - an integer designating the FindStat id of the collection, or
+
+    - a sage object belonging to a collection, or
+
+    - an iterable producing a sage object belonging to a collection.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import FindStatCollection
+        sage: FindStatCollection("Dyck paths")                                  # optional -- internet
+        Cc0005: Dyck paths
+
+        sage: FindStatCollection(5)                                             # optional -- internet
+        Cc0005: Dyck paths
+
+        sage: FindStatCollection(DyckWord([1,0,1,0]))                           # optional -- internet
+        Cc0005: Dyck paths
+
+        sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
+        Cc0005: Dyck paths
+
+    SEEALSO:
+
+    :class:`FindStatCollections`
+
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, entry):
         """
         Retrieve a collection from the database.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection(0)                                         # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find FindStat collection for 0.
         """
         return FindStatCollections()(entry)
 
     def __init__(self, parent, id, c, sageconstructor_overridden):
-        """
-        Initialize the collection.
+        """Initialize the collection.
+
+        This should only be called in
+        :meth:`FindStatCollection._element_constructor_` via
+        `element_class`.
+
+        INPUT:
+
+        - ``parent`` -- :class:`FindStatCollections`.
+
+        - ``id`` -- the FindStat identifier of the collection.
+
+        - ``c`` -- a tuple containing the properties of the
+          collection, such as its name, the corresponding class in
+          sage, and so on.
+
+        - ``sageconstructor_overridden`` -- either ``None`` or an
+          iterable which yields a subset of the elements of the
+          collection.
+
         """
         self._id = id
         (self._name, self._name_plural, self._url_name,
@@ -1766,8 +1831,33 @@ class FindStatCollections(Parent, UniqueRepresentation):
     r"""
     The class of FindStat collections.
 
-    The elements of this class are combinatorial collections
-    currently in FindStat."""
+    The elements of this class are combinatorial collections in
+    FindStat as of August 2015.  If a new collection was added to the
+    web service since then, the dictionary ``_findstat_collections``
+    in this class has to be updated accordingly.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import FindStatCollections
+        sage: sorted(c for c in FindStatCollections())                          # optional -- internet
+        [Cc0001: Permutations,
+         Cc0002: Integer partitions,
+         Cc0005: Dyck paths,
+         Cc0006: Integer compositions,
+         Cc0007: Standard tableaux,
+         Cc0009: Set partitions,
+         Cc0010: Binary trees,
+         Cc0012: Perfect matchings,
+         Cc0013: Cores,
+         Cc0014: Posets,
+         Cc0017: Alternating sign matrices,
+         Cc0018: Gelfand-Tsetlin patterns,
+         Cc0019: Semistandard tableaux,
+         Cc0020: Graphs,
+         Cc0021: Ordered trees,
+         Cc0022: Finite Cartan types,
+         Cc0023: Parking functions]
+    """
 
     # we set up a dict of FindStat collections containing, with key
     # being the FINDSTAT_COLLECTION_IDENTIFIER to tuples, containing in this order:
@@ -1782,7 +1872,19 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # * the (FindStat) string representations of the sage object (would be element_repr)
     # * sage constructors of the FindStat string representation  (would be element_constructor)
 
-    # several fields are initialised with 'None', they are updated upon the first call to this class
+    # when adding a collection, note the following:
+
+    # to recognize a collection given a sage object,
+    # :meth:`_element_constructor_` checks whether the object is an
+    # instance of one of the sage element constructors.
+
+    # sage objects are normalized using the method :meth:`to_string`.
+    # This method should apply to objects produced by
+    # :meth:`first_terms` as well as to objects produced by
+    # :meth:`from_string`.
+
+    # several fields are initialised with 'None', they are updated
+    # upon the first call to this class
     _findstat_collections = {
         17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
              lambda x, l: x.to_matrix().nrows() in l,
@@ -1878,49 +1980,17 @@ class FindStatCollections(Parent, UniqueRepresentation):
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, entry):
-        """Initialize a FindStat collection.
+        """Retrieve a FindStat collection from the database.
 
         INPUT:
 
-        - a string eg. 'Dyck paths' or "DyckPaths", case-insensitve, or
-
-        - an integer designating the FindStat id of the collection, or
-
-        - a sage object belonging to a collection, or
-
-        - an iterable producing a sage object belonging to a collection.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Dyck paths")                              # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(5)                                         # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(DyckWord([1,0,1,0]))                       # optional -- internet
-            Cc0005: Dyck paths
-
-            sage: FindStatCollection(DyckWords(2))                              # optional -- internet
-            Cc0005: Dyck paths
-
-        Objects are normalized using the method :meth:`to_string`.
-        This method should apply to objects produced by
-        :meth:`first_terms` as well as to objects produced by
-        :meth:`from_string`.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Permutations")                            # optional -- internet
-            Cc0001: Permutations
+        see :class:`FindStatCollection`.
 
         TESTS:
 
         Create an object and find its collection::
 
-            sage: from sage.databases.findstat import FindStatCollections
+            sage: from sage.databases.findstat import FindStatCollection, FindStatCollections
             sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in FindStatCollections()]   # optional -- internet
             [Cc0001: Permutations,
              Cc0002: Integer partitions,
@@ -2009,7 +2079,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollections
-            sage: [m for m in FindStatCollections()][0]                                            # optional -- internet
+            sage: [m for m in FindStatCollections()][0]                         # optional -- internet
             Cc0001: Permutations
         """
         for c in self._findstat_collections:
@@ -2022,14 +2092,46 @@ class FindStatMap(Element):
     r"""
     A FindStat map.
 
-    .. automethod:: __init__
+    :class:`FindStatMap` is a class representing a combinatorial
+    map available in the FindStat database.
+
+    The result of a :class:`findstat<FindStat>` query contains a
+    (possibly empty) list of such maps.  This class provides methods
+    to inspect various properties of these maps, in particular
+    :meth:`code`.
+
+    INPUT:
+
+    - a string containing the FindStat name of the map, or an integer
+      representing its FindStat id.
+
+    EXAMPLES::
+
+        sage: from sage.databases.findstat import FindStatMap
+        sage: FindStatMap(71)                                                   # optional -- internet
+        Mp00071: descent composition
+        sage: FindStatMap("descent composition")                                # optional -- internet
+        Mp00071: descent composition
+
+    SEEALSO:
+
+    :class:`FindStatMaps`
+
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, entry):
         """
         Retrieve a map from the database.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap("abcdefgh")                                       # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not find FindStat map for abcdefgh.
         """
         return FindStatMaps()(entry)
 
@@ -2269,7 +2371,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
             sage: TestSuite(M).run()                                            # optional -- internet
         """
         self._findstat_maps = json.load(urlopen(FINDSTAT_URL_DOWNLOADS_MAPS))
-        Parent.__init__(self)
+        Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, entry):
         """Initialize a FindStat map.

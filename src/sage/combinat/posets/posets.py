@@ -2426,7 +2426,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if ordered:
             if not hasattr(elms, '__getitem__'):
-                raise TypeError("ordered=True not combatible with type %s for elms" % type(elms))
+                raise TypeError("ordered=True not compatible with type %s for elms" % type(elms))
             sorted_o = elms
             return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
         else:

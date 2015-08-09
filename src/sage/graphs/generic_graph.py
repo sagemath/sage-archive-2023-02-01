@@ -7651,6 +7651,10 @@ class GenericGraph(GenericGraph_pyx):
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
 
+              * If ``method = "igraph"``, the igraph implementation of the
+                Goldberg-Tarjan algorithm is used (only available when
+                igraph is installed and ``vertex_bound = False``)
+
               * If ``method = None`` (default), the Ford-Fulkerson
                 implementation is used iif ``vertex_bound = False``.
 
@@ -7733,12 +7737,21 @@ class GenericGraph(GenericGraph_pyx):
            True
         """
         self._scream_if_not_simple(allow_loops=True)
-        if vertex_bound and method == "FF":
-            raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
+        if vertex_bound and method in ["FF", "igraph"]:
+            raise ValueError("This method does not support both " +
+                             "vertex_bound=True and method='" + method + "'.")
 
         if (method == "FF" or
             (method is None and not vertex_bound)):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
+        elif (method == 'igraph'):
+            import igraph
+            if use_edge_labels:
+                g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(e[2]) for e in self.edge_iterator()]})
+                maxflow = g_igraph.maxflow(x, y, 'capacity')
+            else:
+                maxflow = self.igraph_graph().maxflow(x,y)
+            return maxflow
 
         if method != "LP" and not method is None:
             raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")

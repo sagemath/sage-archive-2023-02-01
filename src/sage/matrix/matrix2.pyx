@@ -11336,8 +11336,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Ring of integers modulo 6 seems not be a subring of the
-            real or complex numbers
+            ValueError: Could not see Ring of integers modulo 6 as a subring of
+            the real or complex numbers
 
         The base field may not have elements that are comparable to zero.  ::
 
@@ -11346,8 +11346,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Finite Field in a of size 5^4 seems not be a subring of
-            the real or complex numbers
+            ValueError: Could not see Finite Field in a of size 5^4 as a subring
+            of the real or complex numbers
 
         The algebraic closure of the fraction field of the base ring may not be implemented.  ::
 
@@ -11356,8 +11356,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Ring of integers modulo 7 seems not be a subring of the
-            real or complex numbers
+            ValueError: Could not see Ring of integers modulo 7 as a subring of
+            the real or complex numbers
 
         The matrix may not be positive definite.  ::
 
@@ -12530,8 +12530,8 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             sage: A.is_positive_definite()
             Traceback (most recent call last):
             ...
-            ValueError: Finite Field in a of size 5^3 seems not be a subring of
-            the real or complex numbers
+            ValueError: Could not see Finite Field in a of size 5^3 as a subring
+            of the real or complex numbers
 
         AUTHOR:
 
@@ -12551,7 +12551,7 @@ explicitly setting the argument to `True` or `False` will avoid this message."""
             L, d = self._indefinite_factorization('hermitian', check=False)
             real = False
         else:
-            raise ValueError("{} seems not be a subring of the "
+            raise ValueError("Could not see {} as a subring of the "
                     "real or complex numbers".format(R))
 
         if L is False:

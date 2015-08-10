@@ -550,7 +550,7 @@ def is_rationally_isometric(self, other):
     Nentries = N.diagonal()
 
     if self.base_ring() == QQ:
-        return self.signature() == other.signature():
+        if self.signature() == other.signature():
             Rat_Isom_flag = False
 
 
@@ -565,7 +565,7 @@ def is_rationally_isometric(self, other):
             for x in Nentries:
                 Npos+= emb(x) >= 0
 
-            if Npos!=Mpos:
+            if Npos != Mpos:
                 Rat_Isom_flag = False
 
     return Rat_Isom_flag

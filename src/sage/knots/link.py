@@ -66,7 +66,7 @@ class Link(object):
         sage: B = BraidGroup(8)
         sage: L = Link(B([-1, -1, -1, -2,1, -2,3,-2,3]))
         sage: L
-        Knot represented by 9 crossings
+        Link with 1 components represented by 9 crossings
         sage: L = Link(B([1, 2, 1, -2,-1]))
         sage: L
         Link with 2 components represented by 5 crossings
@@ -88,7 +88,7 @@ class Link(object):
 
         sage: L = Link([[[-1, +2, 3, -4, 5, -6, 7, 8, -2, -5, +6, +1, -8, -3, 4, -7]],[-1,-1,-1,-1,+1,+1,-1,+1]])
         sage: L
-        Knot represented by 8 crossings
+        Link with 1 components represented by 8 crossings
 
       For links there may be more than one component and the input is
       as follows::
@@ -114,7 +114,7 @@ class Link(object):
 
         sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
         sage: L
-        Knot represented by 3 crossings
+        Link with 1 components represented by 3 crossings
 
     One of the representations of the Hopf link::
 
@@ -175,7 +175,7 @@ class Link(object):
                 flat = flatten(data[0])
                 a, b = max(flat), min(flat)
                 if 2 * len(data[1]) != len(flat) or set(range(b, a + 1)) - set([0]) != set(flat):
-                    raise ValueError("invalid Input: data is not a valid oriented Gauss code")
+                    raise ValueError("invalid input: data is not a valid oriented Gauss code")
                 self._oriented_gauss_code = data
                 self._pd_code = None
                 self._braid = None
@@ -199,26 +199,31 @@ class Link(object):
         EXAMPLES::
 
             sage: B = BraidGroup(8)
-            sage: L = Link(B([1, 2, 1, 2])) # indirect doctest
+            sage: L = Link(B([1, 2, 1, 2]))
             sage: L
-            Knot represented by 4 crossings
-            sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
-            sage: L
-            Knot represented by 7 crossings
+            Link with 1 components represented by 4 crossings
             sage: L = Link([[[-1, 2], [-3, 4], [1, 3, -4, -2]], [-1, -1, 1, 1]])
             sage: L
             Link with 3 components represented by 4 crossings
         """
-        number_components = self.number_components()
+        number_of_components = self.number_of_components()
         pd_len = len(self.pd_code())
-        if self.is_knot():
-            return 'Knot represented by {} crossings'.format(pd_len)
-        else:
-            return 'Link with {} components represented by {} crossings'.format(number_components, pd_len)
+        return 'Link with {} components represented by {} crossings'.format(number_of_components, pd_len)
 
     def __eq__(self, other):
         """
         Check equality.
+
+        TESTS::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: L2 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: L1 == L2
+            True
+            sage: L3 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
+            sage: L1 == L3
+            False
         """
         if not isinstance(other, self.__class__):
             return False
@@ -233,6 +238,17 @@ class Link(object):
     def __ne__(self, other):
         """
         Check inequality.
+
+        TESTS::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: L2 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: L1 != L2
+            False
+            sage: L3 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
+            sage: L1 != L3
+            True
         """
         return not self.__eq__(other)
 
@@ -310,17 +326,17 @@ class Link(object):
         G.add_vertices([tuple(c) for c in self.seifert_circles()])
         for i,c in enumerate(pd_code):
             if self.orientation()[i] == 1:
-                a  = filter(lambda x: c[1] in x, self.seifert_circles())[0]
-                b  = filter(lambda x: c[0] in x, self.seifert_circles())[0]
+                a  = [x for x in self.seifert_circles() if c[1] in x][0]
+                b  = [x for x in self.seifert_circles() if c[0] in x][0]
                 G.add_edge(tuple(a), tuple(b))
             else:
-                a  = filter(lambda x: c[0] in x, self.seifert_circles())[0]
-                b  = filter(lambda x: c[3] in x, self.seifert_circles())[0]
+                a  = [x for x in self.seifert_circles() if c[0] in x][0]
+                b  = [x for x in self.seifert_circles() if c[3] in x][0]
                 G.add_edge(tuple(a), tuple(b))
         ordered_cycles = G.all_simple_paths(starting_vertices=G.sources(), ending_vertices=G.sinks())[0]
         B = BraidGroup(len(ordered_cycles))
         available_crossings = copy(pd_code)
-        crossing = filter(lambda x: set(ordered_cycles[0]).intersection(set(x)), pd_code)[0]
+        crossing = [x for x in pd_code if set(ordered_cycles[0]).intersection(set(x))][0]
         available_crossings.remove(crossing)
         status = [None for i in ordered_cycles]
         if self.orientation()[pd_code.index(crossing)] == 1:
@@ -878,7 +894,7 @@ class Link(object):
         return A
 
     @cached_method
-    def number_components(self):
+    def number_of_components(self):
         """
         Return the number of connected components of ``self``.
 
@@ -888,14 +904,14 @@ class Link(object):
 
             sage: B = BraidGroup(4)
             sage: L = Link(B([-1, 3, 1, 3]))
-            sage: L.number_components()
+            sage: L.number_of_components()
             4
             sage: B = BraidGroup(8)
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
-            sage: L.number_components()
+            sage: L.number_of_components()
             5
             sage: L = Link(B([1, 2, 1, 2]))
-            sage: L.number_components()
+            sage: L.number_of_components()
             1
         """
         G = Graph()
@@ -923,7 +939,7 @@ class Link(object):
             sage: L.is_knot()
             True
         """
-        return self.number_components() == 1
+        return self.number_of_components() == 1
 
     def genus(self):
         """
@@ -966,7 +982,7 @@ class Link(object):
         for i in s_tmp:
             b = i.Tietze()
             s.append(list(b))
-        t = [Link(B(s[i])).number_components() for i in range(len(s))]
+        t = [Link(B(s[i])).number_of_components() for i in range(len(s))]
         for i, j in enumerate(s):
             if not j:
                 s[i].append(-2)
@@ -1329,7 +1345,7 @@ class Link(object):
         return jones.subs({t: t**(ZZ(-1) / ZZ(4))})
 
     @cached_method
-    def _bracket_(self, t):
+    def _bracket_(self):
         r"""
         Return the Kaufmann bracket polynomial of the diagram.
 

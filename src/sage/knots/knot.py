@@ -60,8 +60,25 @@ class Knot(Link):
         """
         Link.__init__(self, data)
         if check:
-            if self.number_components() != 1:
+            if self.number_of_components() != 1:
                 raise ValueError("the input has more than 1 connected component")
+
+    def __repr__(self):
+        """
+        Return a string representation.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: K = Knot(B([1, 2, 1, 2]))
+            sage: K
+            Knot represented by 4 crossings
+            sage: K = Knot([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
+            sage: K
+            Knot represented by 7 crossings
+        """
+        pd_len = len(self.pd_code())
+        return 'Knot represented by {} crossings'.format(pd_len)
 
     def dt_code(self):
         """

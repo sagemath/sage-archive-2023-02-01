@@ -1,4 +1,5 @@
 import time
+from types import MethodType
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
@@ -56,14 +57,16 @@ class ClusterAlgebraElement(ElementWrapper):
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
     def d_vector(self):
+        n = self.parent().rk()
+        one = self.parent().ambient_field()(1)
         factors = self.lift_to_field().factor()
         initial = []
         non_initial = []
         [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors] 
-        initial = prod(initial+[self.parent().ambient_field()(1)]).numerator()
-        non_initial = prod(non_initial+[self.parent().ambient_field()(1)]).denominator() 
-        v1 = vector(non_initial.exponents()[0][:self.parent().rk()])
-        v2 = vector(initial.exponents()[0][:self.parent().rk()])
+        initial = prod(initial+[one]).numerator()
+        non_initial = prod(non_initial+[one]).denominator() 
+        v1 = vector(non_initial.exponents()[0][:n])
+        v2 = vector(initial.exponents()[0][:n])
         return tuple(v1-v2)
 
     def g_vector(self):
@@ -98,9 +101,6 @@ class ClusterAlgebraSeed(SageObject):
     def F_polynomial(self, j):
         g_vector = tuple(self._G.column(j))
         return self.parent().F_polynomial(g_vector)
-    
-    #maybe this alias sould be removed
-    F = F_polynomial
     
     def cluster_variable(self, j):
         g_vector = tuple(self._G.column(j))
@@ -270,7 +270,12 @@ class ClusterAlgebra(Parent):
         n = B0.ncols()
         m = B0.nrows()
         I = identity_matrix(n)
-        
+       
+        # add methods that are defined only for special cases
+        if n == 2:
+            self.greedy_element = MethodType(greedy_element, self, self.__class__)
+            self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
+ 
         # maybe here scalars can be replaced with just ZZ
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
         self._F_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
@@ -297,6 +302,26 @@ class ClusterAlgebra(Parent):
     def _an_element_(self):
         return self.Seed.cluster_variable(0)
 
+    # Shall we use properties with setters and getters? This is the example
+    # maybe it is not a great idea but it saves on parenthesis and makes quantities immutable at the same time
+    #class C(object):
+    #def __init__(self):
+    #    self._x = None
+
+    #@property
+    #def x(self):
+    #    """I'm the 'x' property."""
+    #    return self._x
+
+    #@x.setter
+    #def x(self, value):
+    #    self._x = value
+
+    #@x.deleter
+    #def x(self):
+    #    del self._x
+
+    #@property
     def rk(self):
         return self._n
                             
@@ -308,9 +333,6 @@ class ClusterAlgebra(Parent):
             # TODO: improve this error message
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
     
-    # maybe this alias could be removed
-    F = F_polynomial
-
     @make_hashable
     @cached_method
     def cluster_variable(self, g_vector):
@@ -354,14 +376,7 @@ class ClusterAlgebra(Parent):
     def retract(self, x):
         return self(x)
 
-    # DESIDERATA: these function would be super cool to have
-    def greedy_element(self, d_vector):
-        pass
-
-    def theta_basis_element(self, g_vector):
-        pass
-
-    # some of these are probably irrealistic
+    # DESIDERATA. Some of these are probably irrealistic
     def upper_cluster_algebra(self):
         pass
 
@@ -370,4 +385,16 @@ class ClusterAlgebra(Parent):
     
     def lower_bound(self):
         pass
+
+#### 
+# Methods that are only defined for special cases
+####
+
+# Greedy elements exist only in rank 2
+def greedy_element(self, d_vector):
+    pass
+
+# At the moment I know only how to compute theta basis in rank 2
+def theta_basis_element(self, g_vector):
+    pass
 

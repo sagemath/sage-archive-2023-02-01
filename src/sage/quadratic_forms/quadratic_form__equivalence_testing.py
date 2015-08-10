@@ -455,79 +455,79 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     else:
         raise TypeError("Oops!  This should not have happened.")
 
-def is_rationally_isometric(self,other):
+def is_rationally_isometric(self, other):
     """
-        Determines if two regular quadratic forms over a number field are isometric.
+    Determines if two regular quadratic forms over a number field are isometric.
 
-        INPUT:
-            a quadratic form
+    INPUT:
+        a quadratic form
 
-        OUTPUT:
-            boolean
+    OUTPUT:
+        boolean
 
-        EXAMPLES::
+    EXAMPLES::
 
-            sage: V=DiagonalQuadraticForm(QQ,[1,1,2])
-            sage: W=DiagonalQuadraticForm(QQ,[2,2,2])
-            sage: V.is_rationally_isometric(W)
-            True
+        sage: V=DiagonalQuadraticForm(QQ,[1,1,2])
+        sage: W=DiagonalQuadraticForm(QQ,[2,2,2])
+        sage: V.is_rationally_isometric(W)
+        True
 
-        ::
+    ::
 
-            sage: K.<a>=NumberField(x^2-3)
-            sage: V=QuadraticForm(K,4,[1,0,0,0,2*a,0,0,a,0,2]);V
-            Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
-            [ 1 0 0 0 ]
-            [ * 2*a 0 0 ]
-            [ * * a 0 ]
-            [ * * * 2 ]
-            sage: W=QuadraticForm(K,4,[1,2*a,4,6,3,10,2,1,2,5]);W
-            Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
-            [ 1 2*a 4 6 ]
-            [ * 3 10 2 ]
-            [ * * 1 2 ]
-            [ * * * 5 ]
-            sage: V.is_rationally_isometric(W)
-            False
+        sage: K.<a>=NumberField(x^2-3)
+        sage: V=QuadraticForm(K,4,[1,0,0,0,2*a,0,0,a,0,2]);V
+        Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
+        [ 1 0 0 0 ]
+        [ * 2*a 0 0 ]
+        [ * * a 0 ]
+        [ * * * 2 ]
+        sage: W=QuadraticForm(K,4,[1,2*a,4,6,3,10,2,1,2,5]);W
+        Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
+        [ 1 2*a 4 6 ]
+        [ * 3 10 2 ]
+        [ * * 1 2 ]
+        [ * * * 5 ]
+        sage: V.is_rationally_isometric(W)
+        False
 
-        ::
+    ::
 
-            sage: K.<a>=NumberField(x^4+2*x+6)
-            sage: V=DiagonalQuadraticForm(K,[a,2,3,2,1]);V
-            Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with coefficients:
-            [ a 0 0 0 0 ]
-            [ * 2 0 0 0 ]
-            [ * * 3 0 0 ]
-            [ * * * 2 0 ]
-            [ * * * * 1 ]
-            sage: W=DiagonalQuadraticForm(K,[a,a,a,2,1]);W
-            Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with   coefficients:
-            [ a 0 0 0 0 ]
-            [ * a 0 0 0 ]
-            [ * * a 0 0 ]
-            [ * * * 2 0 ]
-            [ * * * * 1 ]
-            sage: V.is_rationally_isometric(W)
-            False
+        sage: K.<a>=NumberField(x^4+2*x+6)
+        sage: V=DiagonalQuadraticForm(K,[a,2,3,2,1]);V
+        Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with coefficients:
+        [ a 0 0 0 0 ]
+        [ * 2 0 0 0 ]
+        [ * * 3 0 0 ]
+        [ * * * 2 0 ]
+        [ * * * * 1 ]
+        sage: W=DiagonalQuadraticForm(K,[a,a,a,2,1]);W
+        Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with   coefficients:
+        [ a 0 0 0 0 ]
+        [ * a 0 0 0 ]
+        [ * * a 0 0 ]
+        [ * * * 2 0 ]
+        [ * * * * 1 ]
+        sage: V.is_rationally_isometric(W)
+        False
 
-        ::
+    ::
 
-            sage: K.<a>=NumberField(x^2-3)
-            sage: V=DiagonalQuadraticForm(K,[-1,a,-2*a])
-            sage: W=DiagonalQuadraticForm(K,[-1,-a,2*a])
-            sage: V.is_rationally_isometric(W)
-            True
+        sage: K.<a>=NumberField(x^2-3)
+        sage: V=DiagonalQuadraticForm(K,[-1,a,-2*a])
+        sage: W=DiagonalQuadraticForm(K,[-1,-a,2*a])
+        sage: V.is_rationally_isometric(W)
+        True
 
-        """
+    """
 
     if self.Gram_det() == 0 or other.Gram_det() == 0:
         raise NotImplementedError("This only tests regular forms")
 
-    if self.base_ring()!=other.base_ring():
+    if self.base_ring() != other.base_ring():
         raise TypeError("forms must have the same base ring.")
 
-    M = self.rational_diagonal_form()
-    N = other.rational_diagonal_form()
+    M = self.rational_diagonal_form().Gram_matrix_rational()
+    N = other.rational_diagonal_form().Gram_matrix_rational()
     K = self.base_ring()
 
     L1=self.Gram_det().support()
@@ -536,7 +536,7 @@ def is_rationally_isometric(self,other):
 
     Rat_Isom_flag = True
 
-    if self.dim()!=other.dim():
+    if self.dim() != other.dim():
         Rat_Isom_flag = False
 
     if not ((self.Gram_det()*other.Gram_det()).is_square()):
@@ -546,27 +546,24 @@ def is_rationally_isometric(self,other):
         if self.hasse_invariant(p) != other.hasse_invariant(p):
             Rat_Isom_flag = False
 
-    Mentries = map(lambda(x):M.Gram_matrix_rational()[x][x],range(self.dim()))
-    Nentries = map(lambda(x):N.Gram_matrix_rational()[x][x],range(other.dim()))
+    Mentries = M.diagonal()
+    Nentries = N.diagonal()
 
-    if self.base_ring()==QQ:
-        if self.signature()!=other.signature():
+    if self.base_ring() == QQ:
+        return self.signature() == other.signature():
             Rat_Isom_flag = False
 
+
     else:
-        for i in range(len(K.real_embeddings())):
-            Mentries_emb = map(lambda(x):K.real_embeddings()[i](x),Mentries)
-            Nentries_emb = map(lambda(x):K.real_embeddings()[i](x),Nentries)
+        for emb in K.real_embeddings():
 
             Mpos=0
-            for i in range(self.dim()):
-                if Mentries_emb[i]>=0:
-                    Mpos+=1
+            for x in Mentries:
+                Mpos+= emb(x) >= 0
 
             Npos=0
-            for i in range(other.dim()):
-                if Nentries_emb[i]>=0:
-                    Npos+=1
+            for x in Nentries:
+                Npos+= emb(x) >= 0
 
             if Npos!=Mpos:
                 Rat_Isom_flag = False

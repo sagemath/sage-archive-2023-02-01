@@ -534,24 +534,22 @@ def is_rationally_isometric(self, other):
     L2=other.Gram_det().support()
     L=L1+L2
 
-    Rat_Isom_flag = True
-
     if self.dim() != other.dim():
-        Rat_Isom_flag = False
+        return False
 
     if not ((self.Gram_det()*other.Gram_det()).is_square()):
-        Rat_Isom_flag = False
+        return False
 
     for p in L:
         if self.hasse_invariant(p) != other.hasse_invariant(p):
-            Rat_Isom_flag = False
+            return False
 
     Mentries = M.diagonal()
     Nentries = N.diagonal()
 
     if self.base_ring() == QQ:
-        if self.signature() == other.signature():
-            Rat_Isom_flag = False
+        if self.signature() != other.signature():
+            return False
 
 
     else:
@@ -566,7 +564,7 @@ def is_rationally_isometric(self, other):
                 Npos+= emb(x) >= 0
 
             if Npos != Mpos:
-                Rat_Isom_flag = False
+                return False
 
-    return Rat_Isom_flag
+    return True
 

@@ -36,7 +36,11 @@ ctypedef biseq_s biseq_t[1]
 cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1
 cdef void biseq_dealloc(biseq_t S)
 cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1
+cdef tuple biseq_pickle(biseq_t S)
+cdef bint biseq_unpickle(biseq_t R, tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length) except -1
 cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1
+cdef inline Py_hash_t biseq_hash(biseq_t S)
+cdef inline int biseq_cmp(biseq_t S1, biseq_t S2)
 cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1
 cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
@@ -54,4 +58,4 @@ cdef class BoundedIntegerSequence:
     cpdef list list(self)
     cpdef BoundedIntegerSequence maximal_overlap(self, BoundedIntegerSequence other)
 
-cpdef BoundedIntegerSequence NewBISEQ(tuple data, mp_bitcnt_t itembitsize, mp_size_t length)
+cpdef BoundedIntegerSequence NewBISEQ(tuple bitset_data, mp_bitcnt_t itembitsize, mp_size_t length)

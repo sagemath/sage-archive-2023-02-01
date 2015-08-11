@@ -6,7 +6,7 @@ You can construct the following permutation groups:
 -- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
                    positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+-- AlternatingGroup, $A_n$ of order $n!/2$ (n can also be a list $X$
                    of distinct positive integers, in which case it returns
                    $A_X$)
 
@@ -303,13 +303,13 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: S8 = SymmetricGroup(8)
             sage: S8.index_set()
-            [1, 2, 3, 4, 5, 6, 7]
+            (1, 2, 3, 4, 5, 6, 7)
 
             sage: S = SymmetricGroup([3,1,4,5])
             sage: S.index_set()
-            [3, 1, 4]
+            (3, 1, 4)
         """
-        return self.domain()[:-1]
+        return tuple(self.domain()[:-1])
 
     def __cmp__(self, x):
         """
@@ -345,9 +345,12 @@ class SymmetricGroup(PermutationGroup_symalt):
 
             sage: A = SymmetricGroup([2,3,7]); A.cartan_type()
             ['A', 2]
+
+            sage: A = SymmetricGroup([]); A.cartan_type()
+            ['A', 0]
         """
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A', self.degree() - 1])
+        return CartanType(['A', max(self.degree() - 1,0)])
 
     def simple_reflection(self, i):
         r"""
@@ -535,18 +538,59 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
         return SymmetricGroupConjugacyClass(self, g)
 
-    def algebra(self, base_ring):
+    def algebra(self, base_ring, category=None):
         """
         Return the symmetric group algebra associated to ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- a ring
+        - ``category`` -- a category (default: the category of ``self``)
+
+        If ``self`` is the symmetric group on `1,\ldots,n`, then this
+        is special cased to take advantage of the features in
+        :class:`SymmetricGroupAlgebra`. Otherwise the usual group
+        algebra is returned.
 
         EXAMPLES::
 
             sage: S4 = SymmetricGroup(4)
             sage: S4.algebra(QQ)
             Symmetric group algebra of order 4 over Rational Field
+
+            sage: S3 = SymmetricGroup([1,2,3])
+            sage: A = S3.algebra(QQ); A
+            Symmetric group algebra of order 3 over Rational Field
+            sage: a = S3.an_element(); a
+            (1,2,3)
+            sage: A(a)
+            (1,2,3)
+
+        We illustrate the choice of the category::
+
+            sage: A.category()
+            Join of Category of coxeter group algebras over Rational Field
+                and Category of finite group algebras over Rational Field
+            sage: A = S3.algebra(QQ, category=Semigroups())
+            sage: A.category()
+            Category of finite dimensional semigroup algebras over Rational Field
+
+        In the following case, a usual group algebra is returned:
+
+            sage: S = SymmetricGroup([2,3,5])
+            sage: S.algebra(QQ)
+            Group algebra of Symmetric group of order 3! as a permutation group over Rational Field
+            sage: a = S.an_element(); a
+            (2,3,5)
+            sage: S.algebra(QQ)(a)
+            B[(2,3,5)]
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
-        return SymmetricGroupAlgebra(base_ring, len(self._domain))
+        domain = self.domain()
+        if list(domain) == range(1, len(domain)+1):
+            return SymmetricGroupAlgebra(base_ring, self, category=category)
+        else:
+            return super(SymmetricGroup, self).algebra(base_ring)
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -935,6 +979,44 @@ class KleinFourGroup(PermutationGroup_unique):
         """
         return 'The Klein 4 group of order 4, as a permutation group'
 
+class JankoGroup(PermutationGroup_unique):
+    def __init__(self, n):
+        r"""
+        Janko Groups `J1, J2`, and `J3`.
+        (Note that `J4` is too big to be treated here.)
+
+        INPUT:
+
+        - ``n`` -- an integer among `\{1,2,3\}`.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.Janko(1); G # optional - gap_packages internet
+            Janko group J1 of order 175560 as a permutation group
+
+        TESTS::
+
+            sage: G.category() # optional - gap_packages internet
+            Category of finite permutation groups
+            sage: TestSuite(G).run(skip=["_test_enumerated_set_contains", "_test_enumerated_set_iter_list"]) # optional - gap_packages internet
+        """
+        from sage.interfaces.gap import gap
+        if n not in [1,2,3]:
+            raise ValueError("n must belong to {1,2,3}.")
+        self._n = n
+        gap.load_package("atlasrep")
+        id = 'AtlasGroup("J%s")'%n
+        PermutationGroup_generic.__init__(self, gap_group=id)
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: G = groups.permutation.Janko(1); G # optional - gap_packages internet
+            Janko group J1 of order 175560 as a permutation group
+        """
+        return "Janko group J%s of order %s as a permutation group"%(self._n,self.order())
+
 class QuaternionGroup(DiCyclicGroup):
     r"""
     The quaternion group of order 8.
@@ -1222,15 +1304,18 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
         """
-        The Dihedral group of order $2n$ for any integer $n\geq 1$.
+        The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
-            n -- a positive integer
+
+        - ``n`` -- a positive integer
 
         OUTPUT:
-            -- the dihedral group of order 2*n, as a permutation group
 
-        .. note::
+        The dihedral group of order `2n`, as a permutation group
+
+        .. NOTE::
+
           This group is also available via ``groups.permutation.Dihedral()``.
 
         EXAMPLES::
@@ -1246,7 +1331,8 @@ class DihedralGroup(PermutationGroup_unique):
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
             sage: list(DihedralGroup(5))
-            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
+            [(), (1,5)(2,4), (1,2,3,4,5), (1,4)(2,3), (1,3,5,2,4), (2,5)(3,4),
+            (1,3)(4,5), (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()
@@ -1762,7 +1848,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next(), p.next()) # optional - database_gap
+        sage: (next(p), next(p), next(p), next(p), next(p), next(p), next(p), next(p)) # optional - database_gap
         (Transitive group number 1 of degree 0, Transitive group number 1 of degree 1, Transitive group number 1 of degree 2, Transitive group number 1 of degree 3, Transitive group number 2 of degree 3, Transitive group number 1 of degree 4, Transitive group number 2 of degree 4, Transitive group number 3 of degree 4)
 
     TESTS::
@@ -2142,8 +2228,8 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         +Infinity
 
         sage: p = L.__iter__()            # optional - database_gap
-        sage: (p.next(), p.next(), p.next(), p.next(), # optional - database_gap
-        ...    p.next(), p.next(), p.next(), p.next())
+        sage: (next(p), next(p), next(p), next(p), # optional - database_gap
+        ...    next(p), next(p), next(p), next(p))
         (Trivial group, Trivial group, S(2), A(3), S(3), A(4), S(4), C(5))
 
     TESTS::
@@ -2558,7 +2644,7 @@ class PSL(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSL(2,13)
-            sage: G.ramification_module_decomposition_hurwitz_curve() # random, optional - database_gap
+            sage: G.ramification_module_decomposition_hurwitz_curve() # random, optional - database_gap gap_packages
             [0, 7, 7, 12, 12, 12, 13, 15, 14]
 
         This means, for example, that the trivial representation does not
@@ -2576,7 +2662,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/hurwitz_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_hurwitz("+str(q)+")")
@@ -2606,7 +2692,7 @@ class PSL(PermutationGroup_plg):
         EXAMPLES::
 
             sage: G = PSL(2,7)
-            sage: G.ramification_module_decomposition_modular_curve() # random, optional - database_gap
+            sage: G.ramification_module_decomposition_modular_curve() # random, optional - database_gap gap_packages
             [0, 4, 3, 6, 7, 8]
 
         This means, for example, that the trivial representation does not
@@ -2620,7 +2706,7 @@ class PSL(PermutationGroup_plg):
             raise ValueError("Degree must be 2.")
         F = self.base_ring()
         q = F.order()
-        from sage.misc.misc import SAGE_EXTCODE
+        from sage.env import SAGE_EXTCODE
         gapcode = SAGE_EXTCODE + '/gap/joyner/modular_crv_rr_sp.gap'
         gap.eval('Read("'+gapcode+'")')
         mults = gap.eval("ram_module_X("+str(q)+")")

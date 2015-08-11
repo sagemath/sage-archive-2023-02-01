@@ -288,7 +288,30 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             return result+"Dynkin diagram of rank %s"%self.rank()
         else:
             return result+"%s"%ct._repr_(compact=True)
-            #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
+
+    def _rich_repr_(self, display_manager, **kwds):
+        """
+        Rich Output Magic Method
+
+        Override rich output because :meth:`_repr_` outputs ascii
+        art. The proper fix will be in :trac:`18328`.
+
+        See :mod:`sage.repl.rich_output` for details.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: dm = get_display_manager()
+            sage: E8 = WeylCharacterRing('E8')
+            sage: E8.dynkin_diagram()._rich_repr_(dm)
+            OutputAsciiArt container
+        """
+        OutputAsciiArt = display_manager.types.OutputAsciiArt
+        OutputPlainText = display_manager.types.OutputPlainText
+        if OutputAsciiArt in display_manager.supported_output():
+            return OutputAsciiArt(self._repr_())
+        else:
+            return OutputPlainText(self._repr_())
 
     def _latex_(self, scale=0.5):
         r"""
@@ -526,6 +549,26 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         if self._cartan_type is not None:
             G._cartan_type = self._cartan_type.relabel(relabelling)
         return G
+
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: D = DynkinDiagram(['A',6,2]); D
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: D.subtype([1,2,3])
+            O---O=<=O
+            1   2   3
+            C3
+        """
+        return self.cartan_matrix().subtype(index_set).dynkin_diagram()
 
     def is_finite(self):
         """

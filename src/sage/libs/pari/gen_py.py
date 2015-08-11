@@ -1,3 +1,5 @@
+"Pari objects"
+
 from sage.rings.all import *
 
 def pari(x):

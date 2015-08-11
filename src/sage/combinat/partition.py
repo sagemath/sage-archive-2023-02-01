@@ -89,11 +89,11 @@ one by one to save memory.  Note that when we do something like
 ``for part in Partitions(4)`` this iterator is used in the background::
 
     sage: g = iter(Partitions(4))
-    sage: g.next()
+    sage: next(g)
     [4]
-    sage: g.next()
+    sage: next(g)
     [3, 1]
-    sage: g.next()
+    sage: next(g)
     [2, 2]
     sage: for p in Partitions(4): print p
     [4]
@@ -285,7 +285,6 @@ from sage.libs.flint.arith import number_of_partitions as flint_number_of_partit
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import Element
 from sage.symbolic.ring import var
 
 from sage.misc.lazy_import import lazy_import
@@ -293,7 +292,6 @@ lazy_import('sage.combinat.skew_partition', 'SkewPartition')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.cachefunc import cached_method, cached_function
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -306,7 +304,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialObject, cyclic_permutations_iterator
+from combinat import CombinatorialClass, CombinatorialElement, cyclic_permutations_iterator
 import tableau
 import permutation
 import composition
@@ -316,9 +314,8 @@ from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
-
 from sage.groups.perm_gps.permgroup import PermutationGroup
-
+from sage.graphs.dot2tex_utils import have_dot2tex
 
 PartitionOptions=GlobalOptions(name='partitions',
     doc=r"""
@@ -411,7 +408,7 @@ PartitionOptions=GlobalOptions(name='partitions',
     notation = dict(alt_name='convention')
 )
 
-class Partition(CombinatorialObject, Element):
+class Partition(CombinatorialElement):
     r"""
     A partition `p` of a nonnegative integer `n` is a
     non-increasing list of positive integers (the *parts* of the
@@ -548,8 +545,6 @@ class Partition(CombinatorialObject, Element):
         ...
         ValueError: [0, 7, 3] is not an element of Partitions
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, mu=None, **keyword):
         """
@@ -625,22 +620,33 @@ class Partition(CombinatorialObject, Element):
             ValueError: [3, 1, 7] is not an element of Partitions
         """
         if isinstance(mu, Partition):
-            Element.__init__(self, parent)
             # Since we are (suppose to be) immutable, we can share the underlying data
-            CombinatorialObject.__init__(self, mu._list)
+            CombinatorialElement.__init__(self, parent, mu._list)
             return
 
         elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in xrange(len(mu)-1)) \
                 and mu[-1] in NN):
-            Element.__init__(self, parent)
             if 0 in mu:
                 # strip all trailing zeros
-                CombinatorialObject.__init__(self, mu[:mu.index(0)])
+                CombinatorialElement.__init__(self, parent, mu[:mu.index(0)])
             else:
-                CombinatorialObject.__init__(self, mu)
+                CombinatorialElement.__init__(self, parent, mu)
 
         else:
             raise ValueError("%s is not a valid partition"%repr(mu))
+
+    @cached_method
+    def __hash__(self):
+        r"""
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: P = Partition([4,2,2,1])
+            sage: hash(P) == hash(P)
+            True
+        """
+        return tuple(self._list).__hash__()
 
     def _repr_(self, compact=None):
         r"""
@@ -723,7 +729,7 @@ class Partition(CombinatorialObject, Element):
             [        ****  ***  *    **  *   * ]
             [ *****, *   , ** , *  , * , * , * ]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
     def _repr_list(self):
@@ -1144,9 +1150,9 @@ class Partition(CombinatorialObject, Element):
 
         EXAMPLES::
 
-            sage: Partition([4]).next()
+            sage: next(Partition([4]))
             [3, 1]
-            sage: Partition([1,1,1,1]).next()
+            sage: next(Partition([1,1,1,1]))
             False
         """
         p = self
@@ -1832,7 +1838,7 @@ class Partition(CombinatorialObject, Element):
             sage: p.larger_lex([3,1,1,1,1,1,1,1])
             True
         """
-        return CombinatorialObject.__gt__(self, rhs)
+        return CombinatorialElement.__gt__(self, rhs)
 
     def dominates(self, p2):
         r"""
@@ -2287,10 +2293,11 @@ class Partition(CombinatorialObject, Element):
 
         if row+1>=len(self) or col>=self[row+1]:
             raise ValueError('(row+1, col) must be inside the diagram')
-        g=tableau.Tableau(self.initial_tableau().to_list())
+        g=self.initial_tableau().to_list()
         a=g[row][col]
         g[row][col:]=range(a+col+1,g[row+1][col]+1)
         g[row+1][:col+1]=range(a,a+col+1)
+        g=tableau.Tableau(g)
         g._garnir_cell=cell
         return g
 
@@ -3239,7 +3246,7 @@ class Partition(CombinatorialObject, Element):
         lcors = [[0,p[0]-1]]
         nn = len(p)
         if nn == 1:
-            return map(tuple, lcors)
+            return [tuple(_) for _ in lcors]
 
         lcors_index = 0
         for i in range(1, nn):
@@ -3249,7 +3256,7 @@ class Partition(CombinatorialObject, Element):
                 lcors.append([i,p[i]-1])
                 lcors_index += 1
 
-        return map(tuple, lcors)
+        return [tuple(_) for _ in lcors]
 
     inside_corners = corners
     removable_cells = corners     # for compatibility with partition tuples
@@ -4415,7 +4422,7 @@ class Partition(CombinatorialObject, Element):
             # if we know the total length alloted for each of the paths (sizes), and the number
             # of paths for each component. A multinomial picks the ordering of the components where
             # each step is taken.
-                return prod(path_counts)*factorial(sum(sizes))/prod(map(factorial,sizes))
+                return prod(path_counts) * factorial(sum(sizes)) / prod([factorial(_) for _ in sizes])
 
             sizes = [larger_quotients[i].size()-smaller_quotients[i].size() for i in range(k)]
             path_counts = [larger_quotients[i].dimension(smaller_quotients[i]) for i in range(k)]
@@ -4488,6 +4495,157 @@ class Partition(CombinatorialObject, Element):
         return sum(abs(variable+c) for c in outside_contents)\
                        -sum(abs(variable+c) for c in inside_contents)
 
+    def dual_equivalence_graph(self, directed=False, coloring=None):
+        r"""
+        Return the dual equivalence graph of ``self``.
+
+        Two permutations `p` and `q` in the symmetric group `S_n`
+        differ by an `i`-*elementary dual equivalence (or dual Knuth)
+        relation* (where `i` is an integer with `1 < i < n`) when the
+        following two conditions are satisfied:
+
+        - In the one-line notation of the permutation `p`, the letter
+          `i` does not appear inbetween `i-1` and `i+1`.
+
+        - The permutation `q` is obtained from `p` by switching two
+          of the three letters `i-1, i, i+1` (in its one-line
+          notation) -- namely, the leftmost and the rightmost one
+          in order of their appearance in `p`.
+
+        Notice that this is equivalent to the statement that the
+        permutations `p^{-1}` and `q^{-1}` differ by an elementary
+        Knuth equivalence at positions `i-1, i, i+1`.
+
+        Two standard Young tableaux of shape `\lambda` differ by an
+        `i`-elementary dual equivalence relation (of color `i`), if
+        their reading words differ by an `i`-elementary dual
+        equivalence relation.
+
+        The *dual equivalence graph* of the partition `\lambda` is the
+        edge-colored graph whose vertices are the standard Young
+        tableaux of shape `\lambda`, and whose edges colored by `i` are
+        given by the `i`-elementary dual equivalences.
+
+        INPUT:
+
+        - ``directed`` -- (default: ``False``) whether to have the dual
+          equivalence graph be directed (where we have a directed edge
+          `S \to T` if `i` appears to the left of `i+1` in the
+          reading word of `T`; otherwise we have the directed edge
+          `T \to S`)
+
+        - ``coloring`` -- (optional) a function which sends each
+          integer `i > 1` to a color (as a string, e.g., ``'red'`` or
+          ``'black'``) to be used when visually representing the
+          resulting graph using dot2tex; the default choice is
+          ``2 -> 'red', 3 -> 'blue', 4 -> 'green', 5 -> 'purple',
+          6 -> 'brown', 7 -> 'orange', 8 -> 'yellow', anything greater
+          than 8 -> 'black'``.
+
+        REFERENCES:
+
+        .. [AssafDEG] Sami Assaf. *Dual equivalence graphs and a
+           combinatorial proof of LLT and Macdonald positivity*.
+           (2008). :arxiv:`1005.3759v5`.
+
+        EXAMPLES::
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph()
+            sage: sorted(G.edges())
+            [([[1, 2, 3], [4], [5]], [[1, 2, 4], [3], [5]], 3),
+             ([[1, 2, 4], [3], [5]], [[1, 2, 5], [3], [4]], 4),
+             ([[1, 2, 4], [3], [5]], [[1, 3, 4], [2], [5]], 2),
+             ([[1, 2, 5], [3], [4]], [[1, 3, 5], [2], [4]], 2),
+             ([[1, 3, 4], [2], [5]], [[1, 3, 5], [2], [4]], 4),
+             ([[1, 3, 5], [2], [4]], [[1, 4, 5], [2], [3]], 3)]
+            sage: G = P.dual_equivalence_graph(directed=True)
+            sage: sorted(G.edges())
+            [([[1, 2, 4], [3], [5]], [[1, 2, 3], [4], [5]], 3),
+             ([[1, 2, 5], [3], [4]], [[1, 2, 4], [3], [5]], 4),
+             ([[1, 3, 4], [2], [5]], [[1, 2, 4], [3], [5]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 2, 5], [3], [4]], 2),
+             ([[1, 3, 5], [2], [4]], [[1, 3, 4], [2], [5]], 4),
+             ([[1, 4, 5], [2], [3]], [[1, 3, 5], [2], [4]], 3)]
+
+        TESTS::
+
+            sage: G = Partition([1]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[[1]]]
+            sage: G = Partition([]).dual_equivalence_graph()
+            sage: G.vertices()
+            [[]]
+
+            sage: P = Partition([3,1,1])
+            sage: G = P.dual_equivalence_graph(coloring=lambda x: 'red')
+            sage: G2 = P.dual_equivalence_graph(coloring={2: 'black', 3: 'blue', 4: 'cyan', 5: 'grey'})
+            sage: G is G2
+            False
+            sage: G == G2
+            True
+        """
+        # We do some custom caching to not recreate the graph, but to make
+        #   copies with the desired coloring (i.e., act like a factory).
+        try:
+            if directed:
+                G = self._DDEG.copy(immutable=False)
+            else:
+                G = self._DEG.copy(immutable=False)
+            if have_dot2tex():
+                if coloring is None:
+                    d = {2: 'red', 3: 'blue', 4: 'green', 5: 'purple',
+                         6: 'brown', 7: 'orange', 8: 'yellow'}
+                    def coloring(i):
+                        if i in d:
+                            return d[i]
+                        return 'black'
+                elif isinstance(coloring, dict):
+                    d = coloring
+                    coloring = lambda x: d[x]
+                G.set_latex_options(format="dot2tex",
+                                    edge_labels=True,
+                                    color_by_label=coloring)
+            return G
+        except AttributeError:
+            pass
+
+        T = list(tableau.StandardTableaux(self))
+        n = sum(self)
+        edges = []
+        to_perms = {t: t.reading_word_permutation() for t in T}
+        to_tab = {to_perms[k]: k for k in to_perms}
+        Perm = permutation.Permutations()
+        for t in T:
+            pt = list(to_perms[t])
+            for i in range(2, n):
+                ii = pt.index(i)
+                iip = pt.index(i+1)
+                iim = pt.index(i-1)
+                l = sorted([iim, ii, iip])
+                if l[0] != ii:
+                    continue
+                x = pt[:]
+                x[l[0]], x[l[2]] = x[l[2]], x[l[0]]
+                if ii < iip:
+                    e = [t, to_tab[Perm(x)], i]
+                    edges.append(e)
+                else:
+                    e = [to_tab[Perm(x)], t, i]
+                    edges.append(e)
+
+        if directed:
+            from sage.graphs.digraph import DiGraph
+            G = DiGraph(edges, multiedges=True)
+            G.add_vertices(T) # Add isolated vertices
+            self._DDEG = G.copy(immutable=True)
+        else:
+            from sage.graphs.graph import Graph
+            G = Graph(edges, multiedges=True)
+            G.add_vertices(T) # Add isolated vertices
+            self._DEG = G.copy(immutable=True)
+        return self.dual_equivalence_graph(directed, coloring)
+
 ##############
 # Partitions #
 ##############
@@ -4527,7 +4685,8 @@ class Partitions(UniqueRepresentation, Parent):
       be contained inside the partition `p`.
 
     - ``min_slope=k`` specifies that the partitions have slope at least
-      `k`; the slope is the difference between successive parts.
+      `k`; the slope at position `i` is the difference between the
+      `(i+1)`-th part and the `i`-th part.
 
     - ``parts_in=S`` specifies that the partitions have parts in the set
       `S`, which can be any sequence of pairwise distinct positive
@@ -4652,7 +4811,7 @@ class Partitions(UniqueRepresentation, Parent):
 
     Except for very special cases, counting is done by brute force iteration
     through all the partitions. However the iteration itself has a reasonable
-    complexity (constant memory, constant amortized time), which allow for
+    complexity (see :class:`IntegerListsLex`), which allows for
     manipulating large partitions::
 
         sage: Partitions(1000, max_length=1).list()
@@ -4732,15 +4891,25 @@ class Partitions(UniqueRepresentation, Parent):
     Check that calling ``Partitions`` with ``outer=a`` no longer
     mutates ``a`` (:trac:`16234`)::
 
-        sage: a = [4,2,1,1,1,1,1]
+        sage: a = [4,3,2,1,1,1,1]
         sage: for p in Partitions(8, outer=a, min_slope=-1):
         ....:    print p
-        ....:     
+        [3, 3, 2]
+        [3, 2, 2, 1]
         [3, 2, 1, 1, 1]
+        [2, 2, 2, 1, 1]
         [2, 2, 1, 1, 1, 1]
         [2, 1, 1, 1, 1, 1, 1]
         sage: a
-        [4, 2, 1, 1, 1, 1, 1]
+        [4, 3, 2, 1, 1, 1, 1]
+
+    Check that ``inner`` and ``outer`` indeed accept a partition as
+    argument (:trac:`18423`)::
+
+        sage: P = Partitions(5, inner=Partition([2,1]), outer=Partition([3,2])); P
+        Partitions of the integer 5 satisfying constraints inner=[2, 1], outer=[3, 2]
+        sage: P.list()
+        [[3, 2]]
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4760,6 +4929,12 @@ class Partitions(UniqueRepresentation, Parent):
             sage: P2 = Partitions(int(4))
             sage: P is P2
             True
+
+        Check that :trac:`17898` is fixed::
+
+            sage: P = Partitions(5, min_slope=0)
+            sage: list(P)
+            [[5], [1, 1, 1, 1, 1]]
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
@@ -4804,22 +4979,21 @@ class Partitions(UniqueRepresentation, Parent):
             # max_slope is at most 0, and it is 0 by default
             kwargs['max_slope'] = min(0,kwargs.get('max_slope',0))
 
-            if 'outer' in kwargs:
-                if 'max_length' in kwargs:
-                    kwargs['max_length'] = min(len(kwargs['outer']), kwargs['max_length'])
-                else:
-                    kwargs['max_length'] = len(kwargs['outer'])
+            if kwargs.get('min_slope', -float('inf')) > 0:
+                raise ValueError("the minimum slope must be non-negative")
 
-                kwargs['ceiling'] = kwargs['outer']
+            if 'outer' in kwargs:
+                kwargs['max_length'] = min(len(kwargs['outer']),
+                                           kwargs.get('max_length', infinity))
+
+                kwargs['ceiling'] = tuple(kwargs['outer'])
                 del kwargs['outer']
 
             if 'inner' in kwargs:
                 inner = [x for x in kwargs['inner'] if x > 0]
-                kwargs['floor'] = lambda i: inner[i] if i < len(inner) else 1
-                if 'min_length' in kwargs:
-                    kwargs['min_length'] = max( len(inner), kwargs['min_length'])
-                else:
-                    kwargs['min_length'] = len(inner)
+                kwargs['floor'] = inner
+                kwargs['min_length'] = max(len(inner),
+                                           kwargs.get('min_length',0))
                 del kwargs['inner']
 
             kwargs['element_class'] = Partition
@@ -4920,6 +5094,114 @@ class Partitions(UniqueRepresentation, Parent):
         if isinstance(x, (list, tuple)):
             return len(x) == 0 or (x[-1] in NN and
                                    all(x[i] in NN and x[i] >= x[i+1] for i in xrange(len(x)-1)))
+
+    def subset(self, *args, **kwargs):
+        r"""
+        Return ``self`` if no arguments are given, otherwise raises a
+        ``ValueError``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, starting=[3,1]); P
+            Partitions of the integer 5 starting with [3, 1]
+            sage: P.subset()
+            Partitions of the integer 5 starting with [3, 1]
+            sage: P.subset(ending=[3,1])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid combination of arguments
+        """
+        if len(args) != 0 or len(kwargs) != 0:
+            raise ValueError("Invalid combination of arguments")
+        return self
+
+class Partitions_all(Partitions):
+    """
+    Class of all partitions.
+
+    TESTS::
+
+        sage: TestSuite( sage.combinat.partition.Partitions_all() ).run()
+    """
+
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: P = Partitions()
+            sage: P.category()
+            Category of infinite enumerated sets
+            sage: Partitions().cardinality()
+            +Infinity
+            sage: TestSuite(P).run()
+        """
+        Partitions.__init__(self, is_infinite=True)
+
+    def subset(self, size=None, **kwargs):
+        """
+        Returns the subset of partitions of a given size and additional
+        keyword arguments.
+
+        EXAMPLES::
+
+            sage: P = Partitions()
+            sage: P.subset(4)
+            Partitions of the integer 4
+        """
+        if size is None:
+            return self
+        return Partitions(size, **kwargs)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: Partitions() # indirect doctest
+            Partitions
+        """
+        return "Partitions"
+
+    def __iter__(self):
+        """
+        An iterator for all partitions.
+
+        EXAMPLES::
+
+            sage: p = Partitions()
+            sage: it = p.__iter__()
+            sage: [next(it) for i in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
+        """
+        n = 0
+        while True:
+            for p in ZS1_iterator(n):
+                yield self.element_class(self, p)
+            n += 1
+
+    def __reversed__(self):
+        """
+        A reversed iterator for all partitions.
+
+        This reverse iterates through partitions of fixed `n` and incrementing
+        `n` after reaching the end.
+
+        EXAMPLES::
+
+            sage: p = Partitions()
+            sage: revit = p.__reversed__()
+            sage: [next(revit) for i in range(10)]
+            [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
+        """
+        n = 0
+        while True:
+            for p in reversed(list(ZS1_iterator(n))):
+                yield self.element_class(self, p)
+            n += 1
+
 
     def from_frobenius_coordinates(self, frobenius_coordinates):
         """
@@ -5058,7 +5340,7 @@ class Partitions(UniqueRepresentation, Parent):
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[3],[1,1,1]])
             [11, 5, 5, 3, 2, 2, 2]
 
-        TESTS:
+        TESTS::
 
             sage: Partitions().from_core_and_quotient([2,1], [[2,1],[2,3,1],[1,1,1]])
             Traceback (most recent call last):
@@ -5104,120 +5386,13 @@ class Partitions(UniqueRepresentation, Parent):
         new_w.sort(reverse=True)
         return self.element_class(self, [new_w[i]+i for i in range(len(new_w))])
 
-    def subset(self, *args, **kwargs):
-        r"""
-        Return ``self`` if no arguments are given, otherwise raises a
-        ``ValueError``.
-
-        EXAMPLES::
-
-            sage: P = Partitions(5, starting=[3,1]); P
-            Partitions of the integer 5 starting with [3, 1]
-            sage: P.subset()
-            Partitions of the integer 5 starting with [3, 1]
-            sage: P.subset(ending=[3,1])
-            Traceback (most recent call last):
-            ...
-            ValueError: Invalid combination of arguments
-        """
-        if len(args) != 0 or len(kwargs) != 0:
-            raise ValueError("Invalid combination of arguments")
-        return self
-
-class Partitions_all(Partitions):
-    """
-    Class of all partitions.
-
-    TESTS::
-
-        sage: TestSuite( sage.combinat.partition.Partitions_all() ).run()
-    """
-
-    def __init__(self):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: P = Partitions()
-            sage: P.category()
-            Category of infinite enumerated sets
-            sage: Partitions().cardinality()
-            +Infinity
-            sage: TestSuite(P).run()
-        """
-        Partitions.__init__(self, is_infinite=True)
-
-    def subset(self, size=None, **kwargs):
-        """
-        Returns the subset of partitions of a given size and additional
-        keyword arguments.
-
-        EXAMPLES::
-
-            sage: P = Partitions()
-            sage: P.subset(4)
-            Partitions of the integer 4
-        """
-        if size is None:
-            return self
-        return Partitions(size, **kwargs)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: Partitions() # indirect doctest
-            Partitions
-        """
-        return "Partitions"
-
-    def __iter__(self):
-        """
-        An iterator for all partitions.
-
-        EXAMPLES::
-
-            sage: p = Partitions()
-            sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
-            [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [4], [3, 1], [2, 2]]
-        """
-        n = 0
-        while True:
-            for p in ZS1_iterator(n):
-                yield self.element_class(self, p)
-            n += 1
-
-    def __reversed__(self):
-        """
-        A reversed iterator for all partitions.
-
-        This reverse iterates through partitions of fixed `n` and incrementing
-        `n` after reaching the end.
-
-        EXAMPLES::
-
-            sage: p = Partitions()
-            sage: revit = p.__reversed__()
-            sage: [revit.next() for i in range(10)]
-            [[], [1], [1, 1], [2], [1, 1, 1], [2, 1], [3], [1, 1, 1, 1], [2, 1, 1], [2, 2]]
-        """
-        n = 0
-        while True:
-            for p in reversed(list(ZS1_iterator(n))):
-                yield self.element_class(self, p)
-            n += 1
-
 class Partitions_all_bounded(Partitions):
 
     def __init__(self, k):
         """
         TESTS::
 
-            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run()
+            sage: TestSuite( sage.combinat.partition.Partitions_all_bounded(3) ).run() # long time
         """
         self.k = k
         Partitions.__init__(self, is_infinite=True)
@@ -5262,7 +5437,7 @@ class Partitions_all_bounded(Partitions):
 
             sage: p = Partitions(max_part=3)
             sage: it = p.__iter__()
-            sage: [it.next() for i in range(10)]
+            sage: [next(it) for i in range(10)]
             [[], [1], [2], [1, 1], [3], [2, 1], [1, 1, 1], [3, 1], [2, 2], [2, 1, 1]]
         """
         n = 0
@@ -5480,6 +5655,13 @@ class Partitions_n(Partitions):
             ....:     for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_uniform()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
          - It is a python Implementation of RANDPAR, see [nw]_.  The
@@ -5528,7 +5710,7 @@ class Partitions_n(Partitions):
             res.extend([d]*j)
             n = r
         res.sort(reverse=True)
-        return Partition(res)
+        return self.element_class(self, res)
 
     def random_element_plancherel(self):
         r"""
@@ -5553,6 +5735,13 @@ class Partitions_n(Partitions):
             ...       for Part in map(Partitions, range(10)))
             True
 
+        Check that :trac:`18752` is fixed::
+
+            sage: P = Partitions(5)
+            sage: la = P.random_element_plancherel()
+            sage: la.parent() is P
+            True
+
         ALGORITHM:
 
         - insert by Robinson-Schensted a uniform random permutations of n and
@@ -5564,7 +5753,8 @@ class Partitions_n(Partitions):
 
         - Florent Hivert (2009-11-23)
         """
-        return permutation.Permutations(self.n).random_element().left_tableau().shape()
+        T = permutation.Permutations(self.n).random_element().left_tableau()
+        return self.element_class(self, [len(row) for row in T])
 
     def first(self):
         """
@@ -6113,7 +6303,7 @@ class Partitions_parts_in(Partitions):
 
             sage: P = Partitions(4, parts_in=[2,4])
             sage: it = P._fast_iterator(4, [2,4])
-            sage: it.next()
+            sage: next(it)
             [4]
             sage: type(_)
             <type 'list'>
@@ -6217,7 +6407,7 @@ class Partitions_starting(Partitions):
             sage: Partitions(3, starting=[2,1]).next(Partition([2,1]))
             [1, 1, 1]
         """
-        return part.next()
+        return next(part)
 
 class Partitions_ending(Partitions):
     """
@@ -6314,7 +6504,7 @@ class Partitions_ending(Partitions):
         if part == self._ending:
             return None
         else:
-            return part.next()
+            return next(part)
 
 class PartitionsInBox(Partitions):
     r"""
@@ -6679,6 +6869,7 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
             sage: TestSuite(p).run()
         """
         IntegerListsLex.__init__(self, n, max_slope = 0, max_part=k, floor = [k])
+        self.n = n
         self.k = k
 
     def _repr_(self):

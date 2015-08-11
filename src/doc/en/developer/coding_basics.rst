@@ -152,8 +152,8 @@ Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
     from sage.measure_theory.all import *
 
 
-An Example Is Worth a Thousand Words
-====================================
+Learn by copy/paste
+===================
 
 For all of the conventions discussed here, you can find many examples
 in the Sage library.  Browsing through the code is helpful, but so is
@@ -213,8 +213,9 @@ compatible, that is, less restrictive license (e.g. the BSD license).
 Documentation Strings
 =====================
 
+.. _section-docstring-function:
 
-Docstring Markup With ReST and Sphinx
+The docstring of a function: content
 -------------------------------------
 
 **Every** function must have a docstring that includes the following
@@ -270,11 +271,15 @@ information. You can use the existing functions of Sage as templates.
 
    They should have good coverage of the functionality in question.
 
--  A **SEEALSO** block (optional) with links to related parts of Sage. ::
+-  A **SEEALSO** block (highly recommended) with links to related parts of
+   Sage. This helps users find the features that interests them and discover the
+   new ones. ::
 
        .. SEEALSO::
 
-          :ref:`chapter-sage_manuals_links`
+           :ref:`chapter-sage_manuals_links`,
+           :meth:`sage.somewhere.other_useful_method`,
+           :mod:`sage.some.related.module`.
 
    See :ref:`chapter-sage_manuals_links` for details on how to setup
    link in Sage.
@@ -339,6 +344,16 @@ information. You can use the existing functions of Sage as templates.
 
               sage: have_fresh_beers('Bière de l\'Yvette', algorithm="BaBF") # not implemented
               Enjoy !
+
+- A **PLOT** block to illustrate with pictures the output of a function.
+
+  Generate with Sage code an object ``g`` with a ``.plot`` method, then call
+  ``sphinx_plot(g)``::
+
+      .. PLOT::
+
+          g = graphs.PetersenGraph()
+          sphinx_plot(g)
 
 - A **REFERENCES** block to list related books or papers (optional)
 
@@ -492,20 +507,19 @@ there is not one already. That is, you can do the following::
     sage: sage_getdoc(foo.__init__)     # constructor docstring
     'Construct a Foo.\n'
 
-
-
 .. _section-latex-typeset:
 
 LaTeX Typesetting
 -----------------
 
-In ReST documentation, you use backticks \` to mark LaTeX code to be
-typeset.  In Sage docstrings, you may also use dollar signs instead.
-Thus ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` should produce
-identical output. If you use TeX commands containing backslashes in
-docstrings, then either use double backslashes or place an "r" right
-before the first triple opening quote. For example, both of the
-following are valid::
+In Sage's documentation LaTeX code is allowed and is marked with **backticks or
+dollar signs**:
+
+    ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`.
+
+**Backslashes:** For LaTeX commands containing backslashes, either use double
+backslashes or begin the docstring with a ``r"""`` instead of ``"""``. Both of
+the following are valid::
 
     def cos(x):
         """
@@ -517,8 +531,8 @@ following are valid::
         Return $\sin(x)$.
         """
 
-You can also use the MATH block to format complicated mathematical
-expressions::
+**MATH block:** This is similar to the LaTeX syntax ``\[<math expression>\]`` (or
+``$$<math expression>$$``). For instance::
 
     .. MATH::
 
@@ -526,9 +540,13 @@ expressions::
         \leq
         e \sum_{i=1}^{\infty} a_i
 
-Note that the MATH block is automatically wrapped in a latex math
-environment (i.e. in ``\[ \]`` or ``$$``, etc.). To use aligned equations,
-use the **aligned** environment::
+.. MATH::
+
+    \sum_{i=1}^{\infty} (a_1 a_2 \cdots a_i)^{1/i}
+    \leq
+    e \sum_{i=1}^{\infty} a_i
+
+The **aligned** environment works as it does in LaTeX::
 
     .. MATH::
 
@@ -537,112 +555,147 @@ use the **aligned** environment::
          g(x) & = x^x - f(x - 2)
         \end{aligned}
 
-If you wish to explicitly not wrap the MATH block, make the first line of
-the indented block ``:nowrap:``::
+.. MATH::
+
+    \begin{aligned}
+     f(x) & = x^2 - 1 \\
+     g(x) & = x^x - f(x - 2)
+    \end{aligned}
+
+When building the PDF documentation, everything is translated to LaTeX
+and each MATH block is automatically wrapped in a math environment --
+in particular, it is turned into ``\begin{gather} block
+\end{gather}``.  So if you want to use a LaTeX environment (like
+``align``) which in ordinary LaTeX would not be wrapped like this, you
+must add a **:nowrap:** flag to the MATH mode. See also `Sphinx's
+documentation for math blocks
+<http://sphinx-doc.org/latest/ext/math.html?highlight=nowrap#directive-math>`_. ::
 
     .. MATH::
-        :nowrap:
+       :nowrap:
 
-        This is now plain text so I can do things like $x = 5$.
+       \begin{align}
+          1+...+n &= n(n+1)/2\\
+          &= O(n^2)\\
+       \end{tabular}
 
-.. WARNING::
+.. MATH::
+   :nowrap:
 
-    With or without ``:nowrap:``, the *html* documentation output
-    currently will work if you use environments such as **align**
-    which wrap their contents in math mode. However, ``:nowrap:``
-    is necessary for the *pdf* documentation to build correctly.
+   \begin{align}
+   1+...+n &= n(n+1)/2\\
+   &= O(n^2)\\
+   \end{align}
 
-The Sage LaTeX style is to typeset standard rings and fields like the
-integers and the real numbers using the locally-defined macro
-``\\Bold``, as in ``\\Bold{Z}`` for the integers. This macro is
-defined to be ordinary bold-face ``\\mathbf`` by default, but users
-can switch to blackboard-bold ``\\mathbb`` and back on-the-fly by
-using ``latex.blackboard_bold(True)`` and
-``latex.blackboard_bold(False)``.
+**Readability balance:** in the interactive console, LaTeX formulas contained in
+the documentation are represented by their LaTeX code (with
+backslashes stripped). In this situation ``\\frac{a}{b}`` is less readable than ``a/b``
+or ``a b^{-1}`` (some users may not even know LaTeX code). Make it pleasant for
+everybody as much as you can manage.
 
-The docstring will be available interactively (for the "def point..."
-example above, by typing "point?" at the "sage:" prompt) and also in
-the reference manual. When viewed interactively, LaTeX code has the
-backslashes stripped from it, so "\\cos" will appear as "cos".
+**Commons rings** `(\Bold{Z},\Bold{N},...)`: The Sage LaTeX style is to typeset
+standard rings and fields using the locally-defined macro ``\\Bold``
+(e.g. ``\\Bold{Z}`` gives `\Bold{Z}`).
 
-Because of the dual role of the docstring, you need to strike a
-balance between readability (for interactive help) and using perfect
-LaTeX code (for the reference manual).  For instance, instead of using
-"\\frac{a}{b}", use "a/b" or maybe "a b^{-1}".  Also keep in mind that
-some users of Sage are not familiar with LaTeX; this is another reason
-to avoid complicated LaTeX expressions in docstrings, if at all
-possible: "\\frac{a}{b}" will be obscure to someone who doesn't know
-any LaTeX.
+**Shortcuts** are available which preserve readability, e.g. ``\\ZZ`` (`\ZZ`),
+``\\RR`` (`\RR`), ``\\CC`` (`\CC`), and ``\\QQ`` (`\QQ`). They appear as
+LaTeX-formatted ``\\Bold{Z}`` in the html manual, and as ``Z`` in the
+interactive help. Other examples: ``\\GF{q}`` (`\GF{q}`) and ``\\Zmod{p}``
+(`\Zmod{p}`).
 
-Finally, a few non-standard LaTeX macros are available to help achieve
-this balance, including "\\ZZ", "\\RR", "\\CC", and "\\QQ".  These are
-names of Sage rings, and they are typeset using a single boldface
-character; they allow the use of "\\ZZ" in a docstring, for example,
-which will appear interactively as "ZZ" while being typeset as
-"\\Bold{Z}" in the reference manual.  Other examples are "\\GF" and
-"\\Zmod", each of which takes an argument: "\\GF{q}" is typeset as
-"\\Bold{F}_{q}" and "\\Zmod{n}" is typeset as "\\Bold{Z}/n\\Bold{Z}".
-See the file ``$SAGE_ROOT/src/sage/misc/latex_macros.py`` for a
-full list and for details about how to add more macros.
+See the file ``SAGE_ROOT/src/sage/misc/latex_macros.py`` for a full list and
+for details about how to add more macros.
 
+.. _section-doctest-writing:
 
 Writing Testable Examples
 -------------------------
 
-The code in the examples should pass automatic testing. This means
-that if the above code is in the file ``f.py`` (or ``f.sage``), then
-``sage -t f.py`` should not give any error messages. Testing occurs
-with full Sage preparsing of input within the standard Sage shell
-environment, as described in :ref:`section-preparsing`. **Important:**
-The file ``f.py`` is not imported when running tests unless you have
-arranged that it be imported into your Sage environment, i.e. unless
-its functions are available when you start Sage using the ``sage``
-command. For example, the function ``AA()`` in the file
-``SAGE_ROOT/src/sage/algebras/steenrod/steenrod_algebra.py`` includes
-an EXAMPLES block containing the following::
+The examples from Sage's documentation have a double purpose:
+
+- They provide **illustrations** of the code's usage to the users
+
+- They are **tests** that are checked before each release, helping us avoid
+  new bugs.
+
+All new doctests added to Sage should **pass all tests** (see
+:ref:`chapter-doctesting`), i.e. running ``sage -t your_file.py`` should not
+give any error messages. Below are instructions about how doctests should be
+written.
+
+**What doctests should test:**
+
+- **Interesting examples** of what the function can do. This will be the
+  most helpful to a lost user. It is also the occasion to check famous
+  theorems (just in case)::
+
+    sage: is_prime(6) # 6 is not prime
+    False
+    sage: 2 * 3 # and here is a proof
+    6
+
+- All **meaningful combinations** of input arguments. For example a function may
+  accept an ``algorithm="B"`` argument, and doctests should involve both
+  ``algorithm="A"`` and ``algorithm="B"``.
+
+- **Corner cases:** the code should be able to handle a 0 input, or an empty
+  set, or a null matrix, or a null function, ... All corner cases should be
+  checked, as they are the most likely to be broken, now or in the future. This
+  probably belongs to the TESTS block (see :ref:`section-docstring-function`).
+
+- **Systematic tests** of all small-sized inputs, or tests of **random**
+  instances if possible.
+
+  .. NOTE::
+
+     Note that **TestSuites** are an automatic way to generate some of these
+     tests in specific situations. See
+     ``SAGE_ROOT/src/sage/misc/sage_unittest.py``.
+
+**The syntax:**
+
+- **Environment:** doctests should work if you copy/paste them in Sage's
+  interactive console. For example, the function ``AA()`` in the file
+  ``SAGE_ROOT/src/sage/algebras/steenrod/steenrod_algebra.py`` includes an
+  EXAMPLES block containing the following::
 
     sage: from sage.algebras.steenrod.steenrod_algebra import AA as A
     sage: A()
     mod 2 Steenrod algebra, milnor basis
 
-Sage does not know about the function ``AA()`` by default, so
-it needs to be imported before it is tested. Hence the first line in
-the example.
+  Sage does not know about the function ``AA()`` by default, so it needs to be
+  imported before it is tested. Hence the first line in the example.
 
-When writing documentation, keep the following points in mind:
+- **Preparsing:** As in Sage's console, `4/3` returns `4/3` and not `1` as in
+  Python 2.7. Testing occurs with full Sage preparsing of input within the standard
+  Sage shell environment, as described in :ref:`section-preparsing`.
 
-- All input is preparsed before being passed to Python, e.g. ``2/3``
-  is replaced by ``Integer(2)/Integer(3)``, which evaluates to ``2/3``
-  as a rational instead of the Python int ``0``. For more information
-  on preparsing, see :ref:`section-preparsing`.
-
-- If a test outputs to a file, the file should be a temporary file.
-  Use :func:`tmp_filename` to get a temporary filename, or
-  :func:`tmp_dir` to get a temporary directory.  For example (taken
-  from the file ``SAGE_ROOT/src/sage/plot/graphics.py``)::
+- **Writing files:** If a test outputs to a file, the file should be a temporary
+  file.  Use :func:`tmp_filename` to get a temporary filename, or
+  :func:`tmp_dir` to get a temporary directory. An example from
+  ``SAGE_ROOT/src/sage/plot/graphics.py``)::
 
       sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
 
-- You may write tests that span multiple lines.  The best way to do so
-  is to use the line continuation marker ``....:`` ::
+- **Multiline doctests:** You may write tests that span multiple lines, using
+  the line continuation marker ``....:`` ::
 
       sage: for n in srange(1,10):
       ....:     if n.is_prime():
       ....:         print n,
       2 3 5 7
 
-  If you have a long line of code, you may want to consider adding a
-  backslash to the end of the line, which tells the doctesting
-  framework to join that current line with the next.  This syntax is
-  non-standard so may be removed in a future version of Sage, but in
-  the mean time it can be useful for breaking up large integers across
-  multiple lines::
+- **Split long lines:** You may want to split long lines of code with a
+  backslash. Note: this syntax is non-standard and may be removed in the
+  future::
 
       sage: n = 123456789123456789123456789\
       ....:     123456789123456789123456789
       sage: n.is_prime()
       False
 
+- **Doctests flags:** flags are available to change the behaviour of doctests:
+  see :ref:`section-further_conventions`.
 
 .. _section-further_conventions:
 
@@ -664,8 +717,7 @@ framework. Here is a comprehensive list:
 
   However, most functions generating pseudorandom output do not need this tag
   since the doctesting framework guarantees the state of the pseudorandom number
-  generators (PRNGs) used in Sage for a given doctest (see
-  :ref:`chapter-randomtesting`).
+  generators (PRNGs) used in Sage for a given doctest.
 
   When possible, avoid the problem, e.g.: rather than checking the value of the
   hash in a doctest, one could illustrate successfully using it as a key in a
@@ -766,14 +818,14 @@ framework. Here is a comprehensive list:
        sage: sloane_sequence(60843)       # optional - internet
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
-    instead: it is an alias for ``optional bug``.::
+    instead: it is an alias for ``optional bug``. ::
 
-      The following should yield 4.  See :trac:`2`. ::
+        The following should yield 4.  See :trac:`2`. ::
 
-          sage: 2+2  # optional: bug
-          5
-          sage: 2+2  # known bug
-          5
+            sage: 2+2  # optional: bug
+            5
+            sage: 2+2  # known bug
+            5
 
   .. NOTE::
 
@@ -789,16 +841,28 @@ framework. Here is a comprehensive list:
       - Optional tags are case-insensitive, so you could also write ``optional:
         chOMP``.
 
+- **indirect doctest:** in the docstring of a function ``A(...)``, a line
+  calling ``A`` and in which the name ``A`` does not appear should have this
+  flag. This prevents ``sage --coverage <file>`` from reporting the docstring as
+  "not testing what it should test".
+
+  Use it when testing special functions like ``__repr__``, ``__add__``,
+  etc. Use it also when you test the function by calling ``B`` which
+  internally calls ``A``::
+
+      This is the docstring of an ``__add__`` method. The following
+      example tests it, but ``__add__`` is not written anywhere::
+
+          sage: 1+1 # indirect doctest
+          2
+
 - **32-bit** or **64-bit:** for tests that behave differently on 32-bit or
   64-bit machines. Note that this particular flag is to be applied on the
   **output** lines, not the input lines::
 
-      sage: z = 32
-      sage: z.powermodm_ui(2^32-1, 14)
-      Traceback (most recent call last):                              # 32-bit
-      ...                                                             # 32-bit
-      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
-      8                                                               # 64-bit
+      sage: hash(-920390823904823094890238490238484)
+      -873977844            # 32-bit
+      6874330978542788722   # 64-bit
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of ``todo: not
@@ -921,24 +985,6 @@ see :func:`sage.structure.sage_object.register_unpickle_override`
     **only** be removed from the pickle jar after the corresponding objects
     have been properly deprecated. Any proposal to remove pickles from the
     pickle jar should first be discussed on sage-devel.
-
-
-.. _chapter-randomtesting:
-
-Randomized Testing
-==================
-
-In addition to all the examples in your docstrings, which serve as
-both demonstrations and tests of your code, you should consider
-creating a test suite. Think of this as a program that will run for a
-while and "tries" to crash your code using randomly generated
-input. Your test code should define a class ``Test`` with a
-``random()`` method that runs random tests. These are all assembled
-together later, and each test is run for a certain amount of time on a
-regular basis.
-
-For an example, see the file
-``SAGE_ROOT/src/sage/modular/modsym/tests.py``.
 
 
 Global Options

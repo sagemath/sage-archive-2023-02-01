@@ -135,7 +135,7 @@ class GaloisRepresentation(SageObject):
             sage: rho1 == 42
             False
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return False
         return self.E.is_isomorphic(other.E)
 
@@ -467,8 +467,7 @@ def _maybe_borels(E, L, patience=100):
     E = _over_numberfield(E)
     K = E.base_field()
 
-    L = list(set(L)) # Remove duplicates from L and makes a copy for output
-    L.sort()
+    L = sorted(set(L)) # Remove duplicates from L and makes a copy for output
 
     include_2 = False
     if 2 in L: # c.f. Section 5.3(a) of [Serre72].
@@ -731,7 +730,7 @@ def _semistable_reducible_primes(E):
     last_char = 0 # The residue characteristic of the most recent prime.
 
     while len(precomp) < 2:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         if not P.is_principal():
             continue
@@ -814,7 +813,7 @@ def _semistable_reducible_primes(E):
         # TODO: Is this the best value for this parameter?
 
         while True:
-            P = deg_one_primes.next()
+            P = next(deg_one_primes)
 
             if not P.is_principal():
                 continue
@@ -899,7 +898,7 @@ def _possible_normalizers(E, SA):
     deg_one_primes = K.primes_of_degree_one_iter()
 
     while W.dimension() < V.dimension() - 1:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 
@@ -969,7 +968,7 @@ def _possible_normalizers(E, SA):
     # TODO: Is this the best value for this parameter?
 
     while True:
-        P = deg_one_primes.next()
+        P = next(deg_one_primes)
 
         k = P.residue_field()
 

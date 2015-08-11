@@ -327,7 +327,7 @@ from sage.calculus.calculus import maxima
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import is_Expression
 from sage.functions.other import factorial, binomial
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 
 _done = False
 def _init():
@@ -1225,7 +1225,7 @@ def gen_legendre_P(n,m,x):
         sage: gen_legendre_P(3, 1, t)
         -3/2*(5*t^2 - 1)*sqrt(-t^2 + 1)
         sage: gen_legendre_P(4, 3, t)
-        105*(t^2 - 1)*sqrt(-t^2 + 1)*t
+        105*(t^3 - t)*sqrt(-t^2 + 1)
         sage: gen_legendre_P(7, 3, I).expand()
         -16695*sqrt(2)
         sage: gen_legendre_P(4, 1, 2.5)

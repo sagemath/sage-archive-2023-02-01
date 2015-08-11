@@ -851,7 +851,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return isinstance(self, type(right)) and self.ideal() == right.ideal()
+        return type(self) is type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -1118,7 +1118,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: a = gf.__iter__()
-            sage: a.next()
+            sage: next(a)
             [y^9 - 3*y^6 + 3*y^3 - y - 1, -y^3 + x + 1]
         """
         for x in self.reduced_groebner_bases():
@@ -1690,7 +1690,7 @@ class GroebnerFan(SageObject):
                 allvars = self.ring().gens()
                 truevars = [q for q in allvars if not q in parameters]
                 base_ring = self.ring().base_ring()
-                new_ring = PolynomialRing(base_ring, len(truevars), string.join([str(q) for q in truevars], sep=','))
+                new_ring = PolynomialRing(base_ring, len(truevars), ",".join(str(q) for q in truevars))
                 old_polys = self.ideal().gens()
                 new_polys = []
                 sub = dict([[v,1] for v in parameters])

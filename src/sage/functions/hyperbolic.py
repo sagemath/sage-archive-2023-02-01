@@ -2,7 +2,13 @@
 Hyperbolic Functions
 """
 from sage.symbolic.function import GinacFunction, BuiltinFunction
+from sage.rings.infinity import Infinity
+from sage.symbolic.expression import Expression
+from sage.symbolic.constants import pi, I
+from sage.rings.integer_ring import ZZ
+
 import math
+
 
 class HyperbolicFunction(BuiltinFunction):
     r"""
@@ -32,8 +38,8 @@ class HyperbolicFunction(BuiltinFunction):
 
             sage: from sage.functions.hyperbolic import HyperbolicFunction
             sage: class Barh(HyperbolicFunction):
-            ...  def __init__(self):
-            ...     HyperbolicFunction.__init__(self, 'barh')
+            ....:     def __init__(self):
+            ....:         HyperbolicFunction.__init__(self, 'barh')
             sage: barh = Barh()
             sage: barh(x)
             barh(x)
@@ -48,8 +54,8 @@ class HyperbolicFunction(BuiltinFunction):
 
             sage: from sage.functions.hyperbolic import HyperbolicFunction
             sage: class Fooh(HyperbolicFunction):
-            ...  def __init__(self):
-            ...     HyperbolicFunction.__init__(self, 'fooh',evalf_float=lambda x: 2*x)
+            ....:     def __init__(self):
+            ....:         HyperbolicFunction.__init__(self, 'fooh',evalf_float=lambda x: 2*x)
             sage: fooh = Fooh()
             sage: fooh(float(5))
             10.0
@@ -65,6 +71,7 @@ class HyperbolicFunction(BuiltinFunction):
         if parent is float:
             return self._evalf_float(x)
         return getattr(x, self.name())()
+
 
 class Function_sinh(GinacFunction):
     def __init__(self):
@@ -100,6 +107,7 @@ class Function_sinh(GinacFunction):
         GinacFunction.__init__(self, "sinh", latex_name=r"\sinh")
 
 sinh = Function_sinh()
+
 
 class Function_cosh(GinacFunction):
     def __init__(self):
@@ -163,7 +171,7 @@ class Function_tanh(GinacFunction):
             0.997524731976164 - 0.00279068768100315*I
             sage: ComplexField(100)(tanh(pi + I*e))
             0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
-            sage: CDF(tanh(pi + I*e))  # rel tol 4e-16
+            sage: CDF(tanh(pi + I*e))  # rel tol 2e-15
             0.9975247319761636 - 0.002790687681003147*I
 
         To prevent automatic evaluation, use the ``hold`` parameter::
@@ -186,6 +194,7 @@ class Function_tanh(GinacFunction):
 
 tanh = Function_tanh()
 
+
 class Function_coth(HyperbolicFunction):
     def __init__(self):
         r"""
@@ -207,6 +216,33 @@ class Function_coth(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "coth", latex_name=r"\coth",
                                    evalf_float=lambda x: 1/math.tanh(x))
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: coth(0)
+            +Infinity
+            sage: coth(pi*I)
+            +Infinity
+            sage: coth(pi*I/2)
+            0
+            sage: coth(7*pi*I/2)
+            0
+            sage: coth(8*pi*I/2)
+            +Infinity
+            sage: coth(7.*pi*I/2)
+            coth(3.50000000000000*I*pi)
+        """
+        if x.is_zero():
+            return Infinity
+        if isinstance(x, Expression):
+            y = 2 * x / pi / I
+            if y.is_integer():
+                if ZZ(y) % 2 == 1:
+                    return 0
+                else:
+                    return Infinity
 
     def _eval_numpy_(self, x):
         """
@@ -233,6 +269,7 @@ class Function_coth(HyperbolicFunction):
 
 coth = Function_coth()
 
+
 class Function_sech(HyperbolicFunction):
     def __init__(self):
         r"""
@@ -254,6 +291,33 @@ class Function_sech(HyperbolicFunction):
         """
         HyperbolicFunction.__init__(self, "sech", latex_name=r"{\rm sech}",
                                    evalf_float=lambda x: 1/math.cosh(x))
+
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: sech(0)
+            1
+            sage: sech(pi*I)
+            -1
+            sage: sech(pi*I/2)
+            +Infinity
+            sage: sech(7*pi*I/2)
+            +Infinity
+            sage: sech(8*pi*I/2)
+            1
+            sage: sech(8.*pi*I/2)
+            sech(4.00000000000000*I*pi)
+        """
+        if x.is_zero():
+            return 1
+        if isinstance(x, Expression):
+            y = 2 * x / pi / I
+            if y.is_integer():
+                if ZZ(y) % 2 == 1:
+                    return Infinity
+                else:
+                    return ZZ(-1) ** ZZ(y / 2)
 
     def _eval_numpy_(self, x):
         """
@@ -303,6 +367,31 @@ class Function_csch(HyperbolicFunction):
         HyperbolicFunction.__init__(self, "csch", latex_name=r"{\rm csch}",
                                    evalf_float=lambda x: 1/math.sinh(x))
 
+    def _eval_(self, x):
+        """
+        EXAMPLES::
+
+            sage: csch(0)
+            +Infinity
+            sage: csch(pi*I)
+            +Infinity
+            sage: csch(pi*I/2)
+            -I
+            sage: csch(7*pi*I/2)
+            I
+            sage: csch(7.*pi*I/2)
+            csch(3.50000000000000*I*pi)
+        """
+        if x.is_zero():
+            return Infinity
+        if isinstance(x, Expression):
+            y = 2 * x / pi / I
+            if y.is_integer():
+                if ZZ(y) % 2 == 1:
+                    return ZZ(-1) ** ZZ((y + 1) / 2) * I
+                else:
+                    return Infinity
+
     def _eval_numpy_(self, x):
         """
         EXAMPLES::
@@ -332,6 +421,7 @@ csch = Function_csch()
 ################################
 # Inverse hyperbolic functions #
 ################################
+
 
 class Function_arcsinh(GinacFunction):
     def __init__(self):
@@ -389,6 +479,7 @@ class Function_arcsinh(GinacFunction):
                 conversions=dict(maxima='asinh', sympy='asinh'))
 
 arcsinh = asinh = Function_arcsinh()
+
 
 class Function_arccosh(GinacFunction):
     def __init__(self):
@@ -469,6 +560,7 @@ class Function_arccosh(GinacFunction):
 
 arccosh = acosh = Function_arccosh()
 
+
 class Function_arctanh(GinacFunction):
     def __init__(self):
         r"""
@@ -523,6 +615,7 @@ class Function_arctanh(GinacFunction):
                 conversions=dict(maxima='atanh', sympy='atanh'))
 
 arctanh = atanh = Function_arctanh()
+
 
 class Function_arccoth(HyperbolicFunction):
     def __init__(self):
@@ -584,6 +677,7 @@ class Function_arccoth(HyperbolicFunction):
 
 arccoth = acoth = Function_arccoth()
 
+
 class Function_arcsech(HyperbolicFunction):
     def __init__(self):
         r"""
@@ -633,6 +727,7 @@ class Function_arcsech(HyperbolicFunction):
         return -1/(x * (x+1) * ( (1-x)/(1+x) ).sqrt())
 
 arcsech = asech = Function_arcsech()
+
 
 class Function_arccsch(HyperbolicFunction):
     def __init__(self):

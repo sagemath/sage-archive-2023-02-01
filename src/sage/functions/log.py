@@ -10,7 +10,7 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.constants import e as const_e
 
 from sage.libs.mpmath import utils as mpmath_utils
-from sage.structure.coerce import parent as s_parent
+from sage.structure.all import parent as s_parent
 from sage.symbolic.expression import Expression
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
@@ -374,7 +374,7 @@ class Function_polylog(GinacFunction):
 
         TESTS:
 
-        Check if #8459 is fixed::
+        Check if :trac:`8459` is fixed::
 
             sage: t = maxima(polylog(5,x)).sage(); t
             polylog(5, x)
@@ -626,7 +626,7 @@ class Function_lambert_w(BuiltinFunction):
             sage: parent(lambert_w(Integer(0)))
             Integer Ring
             sage: parent(lambert_w(e))
-            Integer Ring
+            Symbolic Ring
         """
         if not isinstance(z, Expression):
             if n == 0 and z == 0:

@@ -150,7 +150,7 @@ Sage installation (if it exists):
     sage -t  "src/sage/games/sudoku.py"
     **********************************************************************
     File "/home/jdemeyer/sage/sage-6.0/src/sage/games/sudoku.py", line 515:
-        sage: h.solve(algorithm='backtrack').next()
+        sage: next(h.solve(algorithm='backtrack'))
     Exception raised:
         Traceback (most recent call last):
           File "/usr/local/sage/local/bin/ncadoctest.py", line 1231, in run_one_test
@@ -160,8 +160,8 @@ Sage installation (if it exists):
           File "/usr/local/sage/local/bin/ncadoctest.py", line 1172, in run_one_example
             compileflags, 1) in test.globs
           File "<doctest __main__.example_13[4]>", line 1, in <module>
-            h.solve(algorithm='backtrack').next()###line 515:
-        sage: h.solve(algorithm='backtrack').next()
+            next(h.solve(algorithm='backtrack'))###line 515:
+        sage: next(h.solve(algorithm='backtrack'))
           File "/home/jdemeyer/.sage/tmp/sudoku.py", line 607, in solve
             for soln in gen:
           File "/home/jdemeyer/.sage/tmp/sudoku.py", line 719, in backtrack

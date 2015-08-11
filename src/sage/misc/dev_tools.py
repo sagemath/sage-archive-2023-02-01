@@ -75,7 +75,8 @@ def runsnake(command):
 
     """
     import cProfile, os
-    from sage.misc.misc import tmp_filename, get_main_globals
+    from sage.misc.temporary_file import tmp_filename
+    from sage.misc.misc import get_main_globals
     from sage.repl.preparse import preparse
     tmpfile = tmp_filename()
     cProfile.runctx(preparse(command.lstrip().rstrip()), get_main_globals(), locals(), filename=tmpfile)
@@ -456,7 +457,7 @@ def import_statements(*objects, **kwds):
         LookupError: no object named 'EnumeratedSetFromIterator'
         sage: from sage.misc.dev_tools import load_submodules
         sage: load_submodules(sage.sets)
-        load sage.sets.cartesian_product... succeeded
+        load sage.sets.real_set... succeeded
         load sage.sets.set_from_iterator... succeeded
         sage: import_statements('EnumeratedSetFromIterator')
         from sage.sets.set_from_iterator import EnumeratedSetFromIterator

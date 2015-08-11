@@ -50,10 +50,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -364,7 +363,7 @@ cdef class Cache_givaro(SageObject):
         cdef FiniteField_givaroElement to_add
         ########
 
-        if PY_TYPE_CHECK(e, FiniteField_givaroElement):
+        if isinstance(e, FiniteField_givaroElement):
             if e.parent() is self.parent:
                 return e
             if e.parent() == self.parent:
@@ -374,9 +373,9 @@ cdef class Cache_givaro(SageObject):
             else:
                 raise TypeError, "unable to coerce from a finite field other than the prime subfield"
 
-        elif PY_TYPE_CHECK(e, int) or \
-             PY_TYPE_CHECK(e, Integer) or \
-             PY_TYPE_CHECK(e, long) or is_IntegerMod(e):
+        elif isinstance(e, int) or \
+             isinstance(e, Integer) or \
+             isinstance(e, long) or is_IntegerMod(e):
             try:
                 e_int = e
             except OverflowError:
@@ -387,13 +386,13 @@ cdef class Cache_givaro(SageObject):
             e_int = 0
             res = self.objectptr.initi(res,e_int)
 
-        elif PY_TYPE_CHECK(e, float):
+        elif isinstance(e, float):
             res = self.objectptr.initd(res,e)
 
-        elif PY_TYPE_CHECK(e, str):
+        elif isinstance(e, str):
             return self.parent(eval(e.replace("^","**"),self.parent.gens_dict()))
 
-        elif PY_TYPE_CHECK(e, FreeModuleElement):
+        elif isinstance(e, FreeModuleElement):
             if self.parent.vector_space() != e.parent():
                 raise TypeError, "e.parent must match self.vector_space"
             ret = self._zero_element
@@ -404,27 +403,27 @@ cdef class Cache_givaro(SageObject):
                 ret = ret + to_add*self.parent.gen()**i
             return ret
 
-        elif PY_TYPE_CHECK(e, MPolynomial):
+        elif isinstance(e, MPolynomial):
             if e.is_constant():
                 return self.parent(e.constant_coefficient())
             else:
                 raise TypeError, "no coercion defined"
 
-        elif PY_TYPE_CHECK(e, Polynomial):
+        elif isinstance(e, Polynomial):
             if e.is_constant():
                 return self.parent(e.constant_coefficient())
             else:
                 return e.change_ring(self.parent)(self.parent.gen())
 
-        elif PY_TYPE_CHECK(e, Rational):
+        elif isinstance(e, Rational):
             num = e.numer()
             den = e.denom()
             return self.parent(num)/self.parent(den)
 
-        elif PY_TYPE_CHECK(e, gen):
+        elif isinstance(e, gen):
             pass # handle this in next if clause
 
-        elif PY_TYPE_CHECK(e, FiniteFieldElement_pari_ffelt) or PY_TYPE_CHECK(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
             # Reduce to pari
             e = e._pari_()
 
@@ -449,7 +448,7 @@ cdef class Cache_givaro(SageObject):
 
         cdef GEN t
         cdef long c
-        if PY_TYPE_CHECK(e, gen):
+        if isinstance(e, gen):
             pari_catch_sig_on()
             t = (<gen>e).g
             if typ(t) == t_FFELT:
@@ -815,9 +814,9 @@ cdef class FiniteField_givaro_iterator:
 
             sage: k.<a> = GF(3^4)
             sage: i = iter(k) # indirect doctest
-            sage: i.next()
+            sage: next(i)
             0
-            sage: i.next()
+            sage: next(i)
             a
         """
 
@@ -1106,22 +1105,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element )
         return make_FiniteField_givaroElement(self._cache,r)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        """
-        Add two elements inplace.
-
-        EXAMPLES::
-
-            sage: k.<b> = GF(9**2)
-            sage: b^10 + 2*b # indirect doctest
-            2*b^3 + 2*b^2 + 2*b + 1
-        """
-        cdef int r
-        self.element = self._cache.objectptr.add(r, self.element ,
-                                                         (<FiniteField_givaroElement>right).element )
-        return self
-
-
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two elements.
@@ -1139,23 +1122,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
-
-    cpdef RingElement _imul_(self, RingElement right):
-        """
-        Multiply two elements inplace.
-
-        EXAMPLES::
-
-            sage: k.<c> = GF(7**4)
-            sage: 3*c # indirect doctest
-            3*c
-            sage: c*c
-            c^2
-        """
-        cdef int r
-        self.element = self._cache.objectptr.mul(r, self.element,
-                                                         (<FiniteField_givaroElement>right).element)
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -1179,29 +1145,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
 
-    cpdef RingElement _idiv_(self, RingElement right):
-        """
-        Divide two elements inplace
-
-        EXAMPLES::
-
-            sage: k.<g> = GF(2**8)
-            sage: g/g # indirect doctest
-            1
-
-            sage: k(1) / k(0)
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: division by zero in finite field.
-        """
-
-        cdef int r
-        if (<FiniteField_givaroElement>right).element == 0:
-            raise ZeroDivisionError, 'division by zero in finite field.'
-        self.element = self._cache.objectptr.div(r, self.element,
-                                                         (<FiniteField_givaroElement>right).element)
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two elements.
@@ -1218,23 +1161,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         r = self._cache.objectptr.sub(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        """
-        Subtract two elements inplace.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3**4)
-            sage: k(3) - k(1) # indirect doctest
-            2
-            sage: 2*a - a^2
-            2*a^2 + 2*a
-        """
-        cdef int r
-        self.element = self._cache.objectptr.sub(r, self.element,
-                                                         (<FiniteField_givaroElement>right).element)
-        return self
 
     def __neg__(FiniteField_givaroElement self):
         """
@@ -1384,7 +1310,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Comparison of finite field elements is correct or equality
         tests and somewhat random for ``<`` and ``>`` type of
@@ -1676,7 +1602,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             if self.is_zero():
                 raise ArithmeticError("Multiplicative order of 0 not defined.")
             n = (self._cache).order_c() - 1
-            order = 1
+            order = Integer(1)
             for p, e in sage.rings.arith.factor(n):
                 # Determine the power of p that divides the order.
                 a = self**(n/(p**e))
@@ -1791,7 +1717,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             (0, 2, 0, 1)
         """
         #vector(foo) might pass in ZZ
-        if PY_TYPE_CHECK(reverse, Parent):
+        if isinstance(reverse, Parent):
             raise TypeError, "Base field is fixed to prime subfield."
         cdef Cache_givaro cache = self._cache
         k = self.parent()
@@ -1839,7 +1765,7 @@ cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givar
     if cache._has_array:
         return <FiniteField_givaroElement>cache._array[x]
     else:
-        y = PY_NEW(FiniteField_givaroElement)
+        y = FiniteField_givaroElement.__new__(FiniteField_givaroElement)
         y._parent = <Parent> cache.parent
         y._cache = cache
         y.element = x

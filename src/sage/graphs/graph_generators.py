@@ -99,21 +99,25 @@ __append_to_doc(
      "ClebschGraph",
      "CoxeterGraph",
      "DesarguesGraph",
+     "DejterGraph",
      "DoubleStarSnark",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
      "EllinghamHorton78Graph",
      "ErreraGraph",
+     "F26AGraph",
      "FlowerSnark",
      "FolkmanGraph",
      "FosterGraph",
      "FranklinGraph",
      "FruchtGraph",
      "GoldnerHararyGraph",
+     "GossetGraph",
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
+     "HarborthGraph",
      "HarriesGraph",
      "HarriesWongGraph",
      "HeawoodGraph",
@@ -125,7 +129,11 @@ __append_to_doc(
      "HortonGraph",
      "KittellGraph",
      "KrackhardtKiteGraph",
+     "Klein3RegularGraph",
+     "Klein7RegularGraph",
+     "LocalMcLaughlinGraph",
      "LjubljanaGraph",
+     "LivingstoneGraph",
      "M22Graph",
      "MarkstroemGraph",
      "McGeeGraph",
@@ -136,6 +144,7 @@ __append_to_doc(
      "NauruGraph",
      "PappusGraph",
      "PoussinGraph",
+     "PerkelGraph",
      "PetersenGraph",
      "RobertsonGraph",
      "SchlaefliGraph",
@@ -146,6 +155,8 @@ __append_to_doc(
      "SzekeresSnarkGraph",
      "ThomsenGraph",
      "TietzeGraph",
+     "TruncatedIcosidodecahedralGraph",
+     "TruncatedTetrahedralGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -155,7 +166,7 @@ __append_to_doc(
      "WienerArayaGraph"])
 
 __doc__ += """
-*Platonic solids* (ordered ascending by number of vertices)
+**Platonic solids** (ordered ascending by number of vertices)
 """
 
 __append_to_doc(
@@ -179,6 +190,7 @@ __append_to_doc(
      "BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
+     "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
@@ -208,13 +220,15 @@ __append_to_doc(
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
+     "SierpinskiGasketGraph",
      "SymplecticGraph",
+     "strongly_regular_graph",
      "trees",
      "triangulations",
      "WheelGraph"])
 
 __doc__ += """
-*Chessboard Graphs*
+**Chessboard Graphs**
 """
 
 __append_to_doc(
@@ -257,7 +271,8 @@ __append_to_doc(
      "RandomShell",
      "RandomToleranceGraph",
      "RandomTree",
-     "RandomTreePowerlaw"])
+     "RandomTreePowerlaw",
+     "RandomTriangulation"])
 
 __doc__ += """
 **Graphs with a given degree sequence**
@@ -317,6 +332,8 @@ AUTHORS:
 
 - Ed Scheinerman (2010-08-21): added Grotzsch graph and Mycielski graphs
 
+- Ed Scheinerman (2010-11-15): added RandomTriangulation
+
 - Minh Van Nguyen (2010-11-26): added more named graphs
 
 - Keshav Kini (2011-02-16): added Shrikhande and Dyck graphs
@@ -352,6 +369,7 @@ Functions and methods
 
 # import from Sage library
 import graph
+import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
     r"""
@@ -520,7 +538,7 @@ class GraphGenerators():
         45
 
     Generate all bipartite graphs on up to 7 vertices: (see
-    http://oeis.org/classic/A033995)
+    :oeis:`A033995`)
 
     ::
 
@@ -554,7 +572,7 @@ class GraphGenerators():
         sage: len(filter(property, graphs(4)))
         7
 
-    Generate graphs on the fly: (see http://oeis.org/classic/A000088)
+    Generate graphs on the fly: (see :oeis:`A000088`)
 
     ::
 
@@ -568,8 +586,7 @@ class GraphGenerators():
         34
         156
 
-    Generate all simple graphs, allowing loops: (see
-    http://oeis.org/classic/A000666)
+    Generate all simple graphs, allowing loops: (see :oeis:`A000666`)
 
     ::
 
@@ -582,8 +599,7 @@ class GraphGenerators():
         4 90
         5 544
 
-    Generate all graphs with a specified degree sequence (see
-    http://oeis.org/classic/A002851)::
+    Generate all graphs with a specified degree sequence (see :oeis:`A002851`)::
 
         sage: for i in [4,6,8]:  # long time (4s on sage.math, 2012)
         ...       print i, len([g for g in graphs(i, degree_sequence=[3]*i) if g.is_connected()])
@@ -602,7 +618,7 @@ class GraphGenerators():
         10 19
 
     Make sure that the graphs are really independent and the generator
-    survives repeated vertex removal (trac 8458)::
+    survives repeated vertex removal (:trac:`8458`)::
 
         sage: for G in graphs(3):
         ...       G.delete_vertex(0)
@@ -623,7 +639,7 @@ class GraphGenerators():
 ###########################################################################
 
     def __call__(self, vertices=None, property=lambda x: True, augment='edges',
-        size=None, deg_seq=None, degree_sequence=None, loops=False, implementation='c_graph',
+        size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
         Accesses the generator of isomorphism class representatives.
@@ -673,12 +689,6 @@ class GraphGenerators():
         from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
-        if deg_seq is not None:
-            deprecation(11927, "The argument name deg_seq is deprecated. It will be "
-                        "removed in a future release of Sage. So, please use "
-                        "degree_sequence instead.")
-        if degree_sequence is None:
-            degree_sequence=deg_seq
         if degree_sequence is not None:
             if vertices is None:
                 raise NotImplementedError
@@ -798,24 +808,24 @@ class GraphGenerators():
         to contain it.  ::
 
             sage: gen = graphs.nauty_geng("2") # optional nauty
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Graph on 2 vertices
-            sage: gen.next() # optional nauty
+            sage: next(gen) # optional nauty
             Traceback (most recent call last):
             ...
             StopIteration: Exhausted list of graphs from nauty geng
 
         A list of all graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A000088.  ::
+        :oeis:`A000088`.  ::
 
             sage: gen = graphs.nauty_geng("7") # optional nauty
             sage: len(list(gen))  # optional nauty
             1044
 
         A list of just the connected graphs on 7 vertices.  This agrees with
-        Sloane's OEIS sequence A001349.  ::
+        :oeis:`A001349`.  ::
 
             sage: gen = graphs.nauty_geng("7 -c") # optional nauty
             sage: len(list(gen))  # optional nauty
@@ -828,14 +838,14 @@ class GraphGenerators():
         successful initiation.  ::
 
             sage: gen = graphs.nauty_geng("4", debug=True) # optional nauty
-            sage: print gen.next() # optional nauty
-            >A nauty-geng -d0D3 n=4 e=0-6
+            sage: print next(gen) # optional nauty
+            >A geng -d0D3 n=4 e=0-6
         """
         import subprocess
         from sage.misc.package import is_package_installed
         if not is_package_installed("nauty"):
             raise TypeError("the optional nauty package is not installed")
-        sp = subprocess.Popen("nauty-geng {0}".format(options), shell=True,
+        sp = subprocess.Popen("geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
         if debug:
@@ -843,7 +853,7 @@ class GraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
             G = graph.Graph(s[:-1], format='graph6')
@@ -987,7 +997,8 @@ class GraphGenerators():
 
         A generator which will produce the plane graphs as Sage graphs
         with an embedding set. These will be simple graphs: no loops, no
-        multiple edges, no directed edges.
+        multiple edges, no directed edges (unless plantri is asked to give
+        the dual graphs instead).
 
         .. SEEALSO::
 
@@ -1050,15 +1061,29 @@ class GraphGenerators():
 
             while zeroCount < order:
                 c = code_input.read(1)
-                if ord(c)==0:
+                if ord(c) == 0:
                     zeroCount += 1
                 else:
                     g[zeroCount].append(ord(c))
 
-            #construct graph based on g
-            g = {i+1:di for i,di in enumerate(g)}
-            G = graph.Graph(g)
-            G.set_embedding(g)
+            # construct graph based on g
+
+            # first taking care that every edge is given twice
+            edges_g = {i + 1: [j for j in di if j < i + 1]
+                       for i, di in enumerate(g)}
+
+            # then adding half of the loops (if any)
+            has_loops = False
+            for i, di in enumerate(g):
+                Ni = di.count(i + 1)
+                if Ni > 1:
+                    edges_g[i + 1] += [i + 1] * (Ni / 2)
+                    has_loops = True
+            G = graph.Graph(edges_g, loops=has_loops)
+
+            if not(G.has_multiple_edges() or has_loops):
+                embed_g = {i + 1: di for i, di in enumerate(g)}
+                G.set_embedding(embed_g)
             yield(G)
 
     def fullerenes(self, order, ipr=False):
@@ -1100,9 +1125,9 @@ class GraphGenerators():
         Buckminster Fullerene:  ::
 
             sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Graph on 60 vertices
-            sage: gen.next()  # optional buckygen
+            sage: next(gen)  # optional buckygen
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1111,7 +1136,7 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.fullerenes(20)  # optional buckygen
-            sage: g = gen.next()  # optional buckygen
+            sage: g = next(gen)  # optional buckygen
             sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
             True
             sage: g.get_embedding()  # optional buckygen
@@ -1136,6 +1161,7 @@ class GraphGenerators():
              19: [14, 20, 15],
              20: [17, 19, 18]}
             sage: g.plot3d(layout='spring')  # optional buckygen
+            Graphics3d Object
 
         REFERENCE:
 
@@ -1209,9 +1235,9 @@ class GraphGenerators():
         a graph on just 10 vertices:  ::
 
             sage: gen = graphs.fusenes(2)  # optional benzene
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Graph on 10 vertices
-            sage: gen.next()  # optional benzene
+            sage: next(gen)  # optional benzene
             Traceback (most recent call last):
             ...
             StopIteration
@@ -1261,8 +1287,10 @@ class GraphGenerators():
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
 
-    def planar_graphs(self, order, minimum_degree=None, minimum_connectivity=None,
-                      exact_connectivity=False, only_bipartite=False):
+    def planar_graphs(self, order, minimum_degree=None,
+                      minimum_connectivity=None,
+                      exact_connectivity=False, only_bipartite=False,
+                      dual=False):
         r"""
         An iterator over connected planar graphs using the plantri generator.
 
@@ -1302,11 +1330,15 @@ class GraphGenerators():
           graphs will be generated. This option cannot be used for graphs with
           a minimum degree larger than 3.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar graphs with the given
         number of vertices as Sage graphs with an embedding set. These will be
-        simple graphs (no loops, no multiple edges, no directed edges).
+        simple graphs (no loops, no multiple edges, no directed edges)
+        unless the option ``dual=True`` is used.
 
         .. SEEALSO::
 
@@ -1328,6 +1360,17 @@ class GraphGenerators():
             sage: len(list(gen))  # optional plantri
             3
 
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: gen = graphs.planar_graphs(4, dual=True)  # optional plantri
+            sage: [u for u in list(gen)]  # optional plantri
+            [Graph on 4 vertices,
+            Multi-graph on 3 vertices,
+            Multi-graph on 2 vertices,
+            Looped multi-graph on 2 vertices,
+            Looped multi-graph on 1 vertex,
+            Looped multi-graph on 1 vertex]
+
         The cycle of length 4 is the only 2-connected bipartite planar graph
         on 4 vertices::
 
@@ -1345,6 +1388,18 @@ class GraphGenerators():
             [Graph on 1 vertex]
             sage: list(graphs.planar_graphs(1, minimum_degree=1))  # optional plantri
             []
+
+        TESTS:
+
+        The number of edges in a planar graph is equal to the number of edges in
+        its dual::
+
+            sage: planar      = list(graphs.planar_graphs(5,dual=True))  # optional -- plantri
+            sage: dual_planar = list(graphs.planar_graphs(5,dual=False)) # optional -- plantri
+            sage: planar_sizes      = [g.size() for g in planar]         # optional -- plantri
+            sage: dual_planar_sizes = [g.size() for g in dual_planar]    # optional -- plantri
+            sage: planar_sizes == dual_planar_sizes                      # optional -- plantri
+            True
 
         REFERENCE:
 
@@ -1414,11 +1469,13 @@ class GraphGenerators():
                 yield(G)
             return
 
-        command = ('plantri -p{}m{}c{}{} {}'.format('b' if only_bipartite else '',
-                                                    minimum_degree,
-                                                    minimum_connectivity,
-                                                    'x' if exact_connectivity else '',
-                                                    order))
+        cmd = 'plantri -p{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_bipartite else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1429,7 +1486,7 @@ class GraphGenerators():
             yield(G)
 
     def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                     exact_connectivity=False, only_eulerian=False):
+                       exact_connectivity=False, only_eulerian=False, dual=False):
         r"""
         An iterator over connected planar triangulations using the plantri generator.
 
@@ -1464,6 +1521,9 @@ class GraphGenerators():
           triangulations will be generated. This option cannot be used if the
           minimum degree is explicitely set to anything else than 4.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar triangulations with the given
@@ -1495,12 +1555,12 @@ class GraphGenerators():
         graph. ::
 
             sage: gen = graphs.triangulations(6, only_eulerian=True)  # optional plantri
-            sage: g = gen.next()                                      # optional plantri
+            sage: g = next(gen)                                       # optional plantri
             sage: g.is_isomorphic(graphs.OctahedralGraph())           # optional plantri
             True
 
         An overview of the number of 5-connected triangulations on up to 22 vertices. This
-        agrees with Sloane's OEIS sequence A081621::
+        agrees with :oeis:`A081621`::
 
             sage: for i in range(12, 23):                                             # optional plantri
             ....:     L = len(list(graphs.triangulations(i, minimum_connectivity=5))) # optional plantri
@@ -1519,7 +1579,7 @@ class GraphGenerators():
 
         The minimum connectivity can be at most the minimum degree::
 
-            sage: gen = graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5).next()  # optional plantri
+            sage: gen = next(graphs.triangulations(10, minimum_degree=3, minimum_connectivity=5))  # optional plantri
             Traceback (most recent call last):
             ...
             ValueError: Minimum connectivity can be at most the minimum degree.
@@ -1531,6 +1591,16 @@ class GraphGenerators():
             5
             sage: len([g for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, exact_connectivity=True)]) # optional plantri
             1
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.triangulations(9, minimum_degree=4, minimum_connectivity=3, dual=True)]  # optional plantri
+            [14, 14, 14, 14, 14]
+
+        TESTS::
+
+            sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
+            [12, 12]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1583,11 +1653,13 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
-        command = ('plantri -{}m{}c{}{} {}'.format('b' if only_eulerian else '',
-                                                   minimum_degree,
-                                                   minimum_connectivity,
-                                                   'x' if exact_connectivity else '',
-                                                   order))
+        cmd = 'plantri -{}m{}c{}{}{} {}'
+        command = cmd.format('b' if only_eulerian else '',
+                             minimum_degree,
+                             minimum_connectivity,
+                             'x' if exact_connectivity else '',
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1598,7 +1670,7 @@ class GraphGenerators():
             yield(G)
 
     def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
-                        no_nonfacial_quadrangles=False):
+                         no_nonfacial_quadrangles=False, dual=False):
         r"""
         An iterator over planar quadrangulations using the plantri generator.
 
@@ -1629,6 +1701,9 @@ class GraphGenerators():
           quadrangulations with no non-facial quadrangles are generated. This
           option cannot be used if ``minimum_connectivity`` is set to 2.
 
+        - ``dual`` - default: ``False`` - if ``True`` return instead the
+          planar duals of the generated graphs.
+
         OUTPUT:
 
         An iterator which will produce all planar quadrangulations with the given
@@ -1646,16 +1721,16 @@ class GraphGenerators():
         The cube is the only 3-connected planar quadrangulation on 8 vertices::
 
             sage: gen = graphs.quadrangulations(8, minimum_connectivity=3)  # optional plantri
-            sage: g = gen.next()                                            # optional plantri
+            sage: g = next(gen)                                            # optional plantri
             sage: g.is_isomorphic(graphs.CubeGraph(3))                      # optional plantri
             True
-            sage: gen.next()                                                # optional plantri
+            sage: next(gen)                                                # optional plantri
             Traceback (most recent call last):
             ...
             StopIteration
 
         An overview of the number of quadrangulations on up to 12 vertices. This
-        agrees with Sloane's OEIS sequence A113201::
+        agrees with :oeis:`A113201`::
 
             sage: for i in range(4,13):                          # optional plantri
             ....:     L =  len(list(graphs.quadrangulations(i))) # optional plantri
@@ -1675,6 +1750,11 @@ class GraphGenerators():
 
             sage: len([g for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True)])  # optional plantri
             2
+
+        Setting ``dual=True`` gives the planar dual graphs::
+
+            sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
+            [10, 10]
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("plantri"):
@@ -1721,7 +1801,12 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
-        command = ('plantri -qm{}c{} {}'.format(minimum_degree, minimum_connectivity, order))
+
+        cmd = 'plantri -qm{}c{}{} {}'
+        command = cmd.format(minimum_degree,
+                             minimum_connectivity,
+                             'd' if dual else '',
+                             order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1775,6 +1860,7 @@ class GraphGenerators():
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
     CoxeterGraph             = staticmethod(sage.graphs.generators.smallgraphs.CoxeterGraph)
+    DejterGraph              = staticmethod(sage.graphs.generators.smallgraphs.DejterGraph)
     DesarguesGraph           = staticmethod(sage.graphs.generators.smallgraphs.DesarguesGraph)
     DoubleStarSnark          = staticmethod(sage.graphs.generators.smallgraphs.DoubleStarSnark)
     DurerGraph               = staticmethod(sage.graphs.generators.smallgraphs.DurerGraph)
@@ -1782,16 +1868,19 @@ class GraphGenerators():
     EllinghamHorton54Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton54Graph)
     EllinghamHorton78Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton78Graph)
     ErreraGraph              = staticmethod(sage.graphs.generators.smallgraphs.ErreraGraph)
+    F26AGraph                = staticmethod(sage.graphs.generators.smallgraphs.F26AGraph)
     FlowerSnark              = staticmethod(sage.graphs.generators.smallgraphs.FlowerSnark)
     FolkmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(sage.graphs.generators.smallgraphs.FosterGraph)
     FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)
     GoldnerHararyGraph       = staticmethod(sage.graphs.generators.smallgraphs.GoldnerHararyGraph)
+    GossetGraph              = staticmethod(sage.graphs.generators.smallgraphs.GossetGraph)
     GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)
     WellsGraph               = staticmethod(sage.graphs.generators.smallgraphs.WellsGraph)
+    HarborthGraph            = staticmethod(sage.graphs.generators.smallgraphs.HarborthGraph)
     HarriesGraph             = staticmethod(sage.graphs.generators.smallgraphs.HarriesGraph)
     HarriesWongGraph         = staticmethod(sage.graphs.generators.smallgraphs.HarriesWongGraph)
     HeawoodGraph             = staticmethod(sage.graphs.generators.smallgraphs.HeawoodGraph)
@@ -1803,7 +1892,11 @@ class GraphGenerators():
     HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
+    Klein3RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein3RegularGraph)
+    Klein7RegularGraph       = staticmethod(sage.graphs.generators.smallgraphs.Klein7RegularGraph)
+    LocalMcLaughlinGraph     = staticmethod(sage.graphs.generators.smallgraphs.LocalMcLaughlinGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
+    LivingstoneGraph         = staticmethod(sage.graphs.generators.smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(sage.graphs.generators.smallgraphs.MarkstroemGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
@@ -1814,6 +1907,7 @@ class GraphGenerators():
     NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)
     PappusGraph              = staticmethod(sage.graphs.generators.smallgraphs.PappusGraph)
     PoussinGraph             = staticmethod(sage.graphs.generators.smallgraphs.PoussinGraph)
+    PerkelGraph              = staticmethod(sage.graphs.generators.smallgraphs.PerkelGraph)
     PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
     RobertsonGraph           = staticmethod(sage.graphs.generators.smallgraphs.RobertsonGraph)
     SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)
@@ -1825,6 +1919,8 @@ class GraphGenerators():
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     TietzeGraph              = staticmethod(sage.graphs.generators.smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
+    TruncatedIcosidodecahedralGraph = staticmethod(sage.graphs.generators.smallgraphs.TruncatedIcosidodecahedralGraph)
+    TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
@@ -1849,6 +1945,7 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
@@ -1873,7 +1970,9 @@ class GraphGenerators():
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
+    SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
+    strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
@@ -1908,7 +2007,6 @@ class GraphGenerators():
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
-    RandomInterval           = staticmethod(sage.graphs.generators.random.RandomInterval) # deprecated
     RandomIntervalGraph      = staticmethod(sage.graphs.generators.random.RandomIntervalGraph)
     RandomLobster            = staticmethod(sage.graphs.generators.random.RandomLobster)
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)
@@ -1917,6 +2015,7 @@ class GraphGenerators():
     RandomToleranceGraph     = staticmethod(sage.graphs.generators.random.RandomToleranceGraph)
     RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
+    RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
 # World Map

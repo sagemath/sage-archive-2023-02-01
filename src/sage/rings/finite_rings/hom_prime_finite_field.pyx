@@ -1,4 +1,6 @@
 """
+Finite field morphisms for prime fields
+
 Special implementation for prime finite field of:
 
 - embeddings of such field into general finite fields

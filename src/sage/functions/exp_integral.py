@@ -53,7 +53,7 @@ from __future__ import division
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.structure.coerce import parent
+from sage.structure.all import parent
 from sage.libs.mpmath import utils as mpmath_utils
 mpmath_utils_call = mpmath_utils.call # eliminate some overhead in _evalf_
 
@@ -575,7 +575,7 @@ class Function_log_integral_offset(BuiltinFunction):
         -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
         sage: Li(x).integrate(x,2.0,4.5)
         -2.5*log_integral(2) + 5.799321147411334
-        sage: N(f.integrate(x,2.0,3.0))
+        sage: N(f.integrate(x,2.0,3.0))   # abs tol 1e-15
         0.601621785860587
 
     ALGORITHM:
@@ -957,8 +957,8 @@ class Function_cos_integral(BuiltinFunction):
 
             sage: N(cos_integral(1e23)) < 1e-20
             True
-            sage: N(cos_integral(1e-10), digits=30)
-            -22.4486352650389235918737540487
+            sage: N(cos_integral(10^-10), digits=30)
+            -22.4486352650389239795759024568
             sage: cos_integral(ComplexField(100)(I))
             0.83786694098020824089467857943 + 1.5707963267948966192313216916*I
 
@@ -1107,8 +1107,8 @@ class Function_sinh_integral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: N(sinh_integral(1e-10), digits=30)
-            1.00000000000000003643219731550e-10
+            sage: N(sinh_integral(10^-10), digits=30)
+            1.00000000000000000000055555556e-10
             sage: sinh_integral(ComplexField(100)(I))
             0.94608307036718301494135331382*I
 
@@ -1234,8 +1234,8 @@ class Function_cosh_integral(BuiltinFunction):
         """
         EXAMPLES::
 
-            sage: N(cosh_integral(1e-10), digits=30)
-            -22.4486352650389235918737540487
+            sage: N(cosh_integral(10^-10), digits=30)
+            -22.4486352650389239795709024568
             sage: cosh_integral(ComplexField(100)(I))
             0.33740392290096813466264620389 + 1.5707963267948966192313216916*I
 

@@ -22,6 +22,7 @@ Comprehensive Module list
     sage/combinat/all
     sage/combinat/alternating_sign_matrix
     sage/combinat/backtrack
+    sage/combinat/baxter_permutations
     sage/combinat/binary_recurrence_sequences
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
@@ -47,6 +48,7 @@ Comprehensive Module list
     sage/combinat/crystals/__init__
     sage/combinat/crystals/affine
     sage/combinat/crystals/affine_factorization
+    sage/combinat/crystals/affinization
     sage/combinat/crystals/alcove_path
     sage/combinat/crystals/all
     sage/combinat/crystals/catalog
@@ -59,7 +61,9 @@ Comprehensive Module list
     sage/combinat/crystals/fast_crystals
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
+    sage/combinat/crystals/induced_structure
     sage/combinat/crystals/infinity_crystals
+    sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/kirillov_reshetikhin
     sage/combinat/crystals/kyoto_path_model
     sage/combinat/crystals/letters
@@ -75,6 +79,8 @@ Comprehensive Module list
     sage/combinat/designs/__init__
     sage/combinat/designs/all
     sage/combinat/designs/bibd
+    sage/combinat/designs/resolvable_bibd
+    sage/combinat/designs/group_divisible_designs
     sage/combinat/designs/block_design
     sage/combinat/designs/covering_design
     sage/combinat/designs/database
@@ -82,6 +88,7 @@ Comprehensive Module list
     sage/combinat/designs/designs_pyx
     sage/combinat/designs/difference_family
     sage/combinat/designs/difference_matrices
+    sage/combinat/designs/evenly_distributed_sets
     sage/combinat/designs/ext_rep
     sage/combinat/designs/incidence_structures
     sage/combinat/designs/latin_squares
@@ -89,6 +96,7 @@ Comprehensive Module list
     sage/combinat/designs/orthogonal_arrays_build_recursive
     sage/combinat/designs/orthogonal_arrays_find_recursive
     sage/combinat/designs/steiner_quadruple_systems
+    sage/combinat/designs/subhypergraph_search
     sage/combinat/diagram_algebras
     sage/combinat/dict_addition
     sage/combinat/dlx
@@ -102,6 +110,7 @@ Comprehensive Module list
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
+    sage/combinat/free_prelie_algebra
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path
     sage/combinat/gray_codes
@@ -153,6 +162,7 @@ Comprehensive Module list
     sage/combinat/posets/all
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
+    sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
     sage/combinat/posets/poset_examples
@@ -168,6 +178,7 @@ Comprehensive Module list
     sage/combinat/rigged_configurations/__init__
     sage/combinat/rigged_configurations/all
     sage/combinat/rigged_configurations/bij_abstract_class
+    sage/combinat/rigged_configurations/bij_infinity
     sage/combinat/rigged_configurations/bij_type_A
     sage/combinat/rigged_configurations/bij_type_A2_dual
     sage/combinat/rigged_configurations/bij_type_A2_even
@@ -197,6 +208,7 @@ Comprehensive Module list
     sage/combinat/root_system/coxeter_matrix
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
+    sage/combinat/root_system/integrable_representations
     sage/combinat/root_system/non_symmetric_macdonald_polynomials
     sage/combinat/root_system/pieri_factors
     sage/combinat/root_system/plot
@@ -223,6 +235,8 @@ Comprehensive Module list
     sage/combinat/root_system/type_I
     sage/combinat/root_system/type_affine
     sage/combinat/root_system/type_dual
+    sage/combinat/root_system/extended_affine_weyl_group
+    sage/combinat/root_system/fundamental_group
     sage/combinat/root_system/type_folded
     sage/combinat/root_system/type_marked
     sage/combinat/root_system/type_reducible
@@ -231,6 +245,7 @@ Comprehensive Module list
     sage/combinat/root_system/weight_space
     sage/combinat/root_system/weyl_characters
     sage/combinat/root_system/weyl_group
+    sage/combinat/rooted_tree
     sage/combinat/rsk
     sage/combinat/schubert_polynomial
     sage/combinat/set_partition
@@ -257,6 +272,7 @@ Comprehensive Module list
     sage/combinat/sf/sf
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
+    sage/combinat/shard_order
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type

@@ -20,22 +20,17 @@ Pickling test::
     True
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
 from sage.rings.arith import (GCD,
@@ -2692,10 +2687,10 @@ def intersection_of_row_modules_over_ZZ(v):
         sage: v = [a,b,c]
         sage: from sage.algebras.quatalg.quaternion_algebra import intersection_of_row_modules_over_ZZ
         sage: M = intersection_of_row_modules_over_ZZ(v); M
-        [  -2    0    1    1]
-        [  -4    1    1   -3]
-        [  -3 19/2   -1   -4]
-        [   2   -3   -8    4]
+        [    2     0    -1    -1]
+        [   -4     1     1    -3]
+        [    3 -19/2     1     4]
+        [    2    -3    -8     4]
         sage: M2 = a.row_module(ZZ).intersection(b.row_module(ZZ)).intersection(c.row_module(ZZ))
         sage: M.row_module(ZZ) == M2
         True

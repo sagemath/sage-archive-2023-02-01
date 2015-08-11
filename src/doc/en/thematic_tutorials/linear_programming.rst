@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------
@@ -48,10 +46,10 @@ Maximum Matching problem, and a Flow problem.
 Mixed integer linear programming
 --------------------------------
 
-There is a bad news coming along with this definition of linear
-programming: an LP can be solved in polynomial time. This is indeed a
+There are bad news coming along with this definition of linear
+programming: an LP can be solved in polynomial time. This is indeed
 bad news, because this would mean that unless we define LP of
-exponential size, we can not expect LP to solve NP-complete problems,
+exponential size, we cannot expect LP to solve NP-complete problems,
 which would be a disappointment. On a brighter side, it becomes
 NP-complete to solve a linear program if we are allowed to specify
 constraints of a different kind: requiring that some variables be
@@ -135,7 +133,7 @@ Variables
 ^^^^^^^^^
 
 In the previous example, we obtained variables through ``v['x']``, ``v['y']``
-and ``v['z']``. This being said, larger LP/MILP will require us to associate a
+and ``v['z']``. This being said, larger LP/MILP will require us to associate an
 LP variable to many Sage objects, which can be integers, strings, or even the
 vertices and edges of a graph. For example:
 
@@ -186,7 +184,7 @@ method. Alternatively, call the ``set_integer`` and ``set_binary`` methods.
 **Bounds :** If you want your variables to only take nonnegative values, you can
 say so when calling ``new_variable`` with the argument ``nonnegative=True``. If
 you want to set a different upper/lower bound on a variable, add a constraint or
-use the use the ``set_min``, ``set_max`` methods.
+use the ``set_min``, ``set_max`` methods.
 
 Basic linear programs
 ---------------------
@@ -431,7 +429,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()  # rel tol 2e-12
+    sage: p.solve()  # rel tol 2e-11
     2.0
 
 .. image:: media/lp_flot2.png

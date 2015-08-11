@@ -18,13 +18,12 @@ Rings
 #*****************************************************************************
 
 # Ring base classes
-from ring import Ring
+from ring import Ring, Field
 from commutative_ring import CommutativeRing
 from integral_domain import IntegralDomain
 from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
-from field import Field
 
 from commutative_algebra_element import CommutativeAlgebraElement
 
@@ -100,6 +99,7 @@ from qqbar import (AlgebraicRealField, AA,
                    AlgebraicField, QQbar,
                    AlgebraicNumber,
                    number_field_elements_from_algebraics)
+from universal_cyclotomic_field import UniversalCyclotomicField, E
 
 # Intervals
 from real_mpfi import (RealIntervalField,
@@ -135,12 +135,12 @@ from big_oh import O
 from fraction_field import FractionField
 Frac = FractionField
 
-# continued fractions
-from contfrac import continued_fraction, CFF, ContinuedFractionField
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
-    is_pseudoprime, is_pseudoprime_small_power, valuation, \
+    is_pseudoprime, is_pseudoprime_power, is_pseudoprime_small_power, \
     prime_powers, primes_first_n, eratosthenes, primes, \
     next_prime_power, next_probable_prime, next_prime, \
     previous_prime, previous_prime_power, random_prime, \
@@ -152,7 +152,6 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     CRT_vectors, multinomial, multinomial_coefficients, \
     kronecker_symbol, kronecker, legendre_symbol, \
     primitive_root, nth_prime, quadratic_residues, moebius, \
-    farey, continued_fraction_list, convergent, convergents, \
     continuant, number_of_divisors, hilbert_symbol, hilbert_conductor, \
     hilbert_conductor_inverse, falling_factorial, rising_factorial, \
     integer_ceil, integer_floor, \
@@ -161,8 +160,8 @@ from arith import algdep, bernoulli, is_prime, is_prime_power, \
     sort_complex_numbers_for_display, \
     fundamental_discriminant, squarefree_divisors, \
     Sigma, radical, Euler_Phi, binomial_coefficients, jacobi_symbol, \
-    Moebius, Hirzebruch_Jung_continued_fraction_list, dedekind_sum, \
-    prime_factors
+    Moebius, dedekind_sum, \
+    prime_factors, valuation
 
 
 from fast_arith import prime_range
@@ -176,10 +175,13 @@ CIF = ComplexIntervalField()
 
 from misc import composite_field
 
-import tests
-
-# Universal Cyclotomic Field
-from sage.rings.universal_cyclotomic_field.all import *
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')
+
+# continued fractions
+from sage.rings.continued_fraction import (farey, convergents,
+  continued_fraction, continued_fraction_list,
+   Hirzebruch_Jung_continued_fraction_list)
+# and deprecated continued fractions
+from sage.rings.contfrac import (CFF, ContinuedFractionField)

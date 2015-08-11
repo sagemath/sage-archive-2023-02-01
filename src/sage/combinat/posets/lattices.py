@@ -1,5 +1,41 @@
 r"""
 Finite semilattices and lattices
+
+This module implements finite (semi)lattices. It defines:
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
+    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
+    :class:`FiniteLatticePoset` | A class for finite lattices.
+    :meth:`JoinSemilattice` | Construct a join semi-lattice.
+    :meth:`LatticePoset` | Construct a lattice.
+    :meth:`MeetSemilattice` | Construct a meet semi-lattice.
+
+List of (semi)lattice methods
+-----------------------------
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
+    :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -175,9 +211,8 @@ class FiniteMeetSemilattice(FinitePoset):
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
             return self._vertex_to_element(self._hasse_diagram._meet[i,j])
-        L = map(self._element_to_vertex, x)
         m = self.cardinality()-1 # m = top element
-        for i in L:
+        for i in (self._element_to_vertex(_) for _ in x):
             m = self._hasse_diagram._meet[i, m]
         return self._vertex_to_element(m)
 
@@ -339,12 +374,11 @@ class FiniteJoinSemilattice(FinitePoset):
         if y is not None: # Handle basic case fast
             i, j = map(self._element_to_vertex, (x,y))
             return self._vertex_to_element(self._hasse_diagram._join[i,j])
-        L = map(self._element_to_vertex, x)
         j = 0 # j = bottom element
-        for i in L:
+        for i in (self._element_to_vertex(_) for _ in x):
             j = self._hasse_diagram._join[i, j]
         return self._vertex_to_element(j)
-        
+
 
 ####################################################################################
 
@@ -471,7 +505,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
         """
         if self.cardinality() == 0: return True
-        return (self.is_graded() and 
+        return (self.is_graded() and
          self.rank() == len(self.join_irreducibles()) ==
          len(self.meet_irreducibles()))
 
@@ -603,15 +637,32 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
-    def is_modular(self):
+    def is_modular(self, L=None):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.
 
-        A lattice is modular if `x \le b` implies `x \vee (a \wedge b)=
-        (x \vee a) \wedge b` for every `a` and `b`. There are other equivalent
-        definitions, see :wikipedia:`Modular_lattice`.
+        Using the parameter ``L``, this can also be used to check that
+        some subset of elements are all modular.
 
-        See also :meth:`is_upper_semimodular` and :meth:`is_lower_semimodular`.
+        INPUT:
+
+        - ``L`` -- (default: ``None``) a list of elements to check being
+          modular, if ``L`` is ``None``, then this checks the entire lattice
+
+        An element `x` in a lattice `L` is *modular* if `x \leq b` implies
+
+        .. MATH::
+
+            x \vee (a \wedge b) = (x \vee a) \wedge b
+
+        for every `a, b \in L`. We say `L` is modular if `x` is modular
+        for all `x \in L`. There are other equivalent definitions,
+        see :wikipedia:`Modular_lattice`.
+
+        .. SEEALSO::
+
+            :meth:`is_upper_semimodular`, :meth:`is_lower_semimodular`
+            and :meth:`is_modular_element`
 
         EXAMPLES::
 
@@ -630,6 +681,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
             sage: L.is_modular()
             False
+            sage: [L.is_modular([x]) for x in L]
+            [True, True, False, True, True, False, True]
 
         ALGORITHM:
 
@@ -637,12 +690,48 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
+        if L is None:
+            return all(H._rank[a] + H._rank[b] ==
+                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                       for a in range(n) for b in range(a + 1, n))
+
+        L = [self._element_to_vertex_dict[x] for x in L]
         return all(H._rank[a] + H._rank[b] ==
-                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                   for a in range(n) for b in range(a+1, n))
-        return True
+                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                   for a in L for b in range(n))
+
+    def is_modular_element(self, x):
+        r"""
+        Return ``True`` if ``x`` is a modular element and ``False`` otherwise.
+
+        INPUT:
+
+        - ``x`` -- an element of the lattice
+
+        An element `x` in a lattice `L` is *modular* if `x \leq b` implies
+
+        .. MATH::
+
+            x \vee (a \wedge b) = (x \vee a) \wedge b
+
+        for every `a, b \in L`.
+
+        .. SEEALSO::
+
+            :meth:`is_modular` to check modularity for the full lattice or
+            some set of elements
+
+        EXAMPLES::
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_modular()
+            False
+            sage: [L.is_modular_element(x) for x in L]
+            [True, True, False, True, True, False, True]
+        """
+        return self.is_modular([x])
 
     def is_upper_semimodular(self):
         r"""
@@ -653,6 +742,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         covered by `y` and `z`, both `y` and `z` are covered by their join.
 
         See also :meth:`is_modular` and :meth:`is_lower_semimodular`.
+
+        See :wikipedia:`Semimodular_lattice`
 
         EXAMPLES::
 
@@ -678,12 +769,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
         return all(H._rank[a] + H._rank[b] >=
-                   H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
-                   for a in range(n) for b in range(a+1, n))
-        return True
+                   H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                   for a in range(n) for b in range(a + 1, n))
 
     def is_lower_semimodular(self):
         r"""
@@ -694,6 +784,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         `y` and `z`, both `y` and `z` cover their meet.
 
         See also :meth:`is_modular` and :meth:`is_upper_semimodular`.
+
+        See :wikipedia:`Semimodular_lattice`
 
         EXAMPLES::
 
@@ -715,14 +807,121 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         if not self.is_ranked():
             return False
-        H=self._hasse_diagram
-        n=H.order()
+        H = self._hasse_diagram
+        n = H.order()
         return all(H._rank[a] + H._rank[b] <=
                    H._rank[H._meet[a,b]] + H._rank[H._join[a,b]]
                    for a in range(n) for b in range(a+1, n))
+
+    def is_supersolvable(self):
+        """
+        Return ``True`` if ``self`` is a supersolvable lattice and
+        ``False`` otherwise.
+
+        A lattice `L` is *supersolvable* if there exists a maximal chain `C`
+        such that every `x \in C` is a modular element in `L`.
+
+        EXAMPLES::
+
+            sage: L = posets.DiamondPoset(5)
+            sage: L.is_supersolvable()
+            True
+
+            sage: L = posets.PentagonPoset()
+            sage: L.is_supersolvable()
+            False
+
+            sage: L = posets.ChainPoset(6)
+            sage: L.is_supersolvable()
+            True
+
+            sage: L = LatticePoset({1:[2,3],2:[4,5],3:[5,6],4:[7],5:[7],6:[7]})
+            sage: L.is_supersolvable()
+            True
+            sage: L.is_modular()
+            False
+
+            sage: L = LatticePoset({0: [1, 2, 3, 4], 1: [5, 6, 7],
+            ....:                   2: [5, 8, 9], 3: [6, 8, 10], 4: [7, 9, 10],
+            ....:                   5: [11], 6: [11], 7: [11], 8: [11],
+            ....:                   9: [11], 10: [11]})
+            sage: L.is_supersolvable()
+            False
+        """
+        from sage.misc.cachefunc import cached_function
+
+        if not self.is_ranked():
+            return False
+
+        H = self._hasse_diagram
+        height = self.height()
+        n = H.order()
+        cur = H.maximal_elements()[0]
+        next_ = [H.neighbor_in_iterator(cur)]
+
+        @cached_function
+        def is_modular_elt(a):
+            return all(H._rank[a] + H._rank[b] ==
+                       H._rank[H._meet[a, b]] + H._rank[H._join[a, b]]
+                       for b in range(n))
+
+        if not is_modular_elt(cur):
+            return False
+        while len(next_) < height:
+            try:
+                cur = next(next_[-1])
+            except StopIteration:
+                next_.pop()
+                if not next_:
+                    return False
+                continue
+            if is_modular_elt(cur):
+                next_.append(H.neighbor_in_iterator(cur))
         return True
 
-####################################################################################
+    def sublattice(self, elms):
+        r"""
+        Return the smallest sublattice containing elements on the given list.
+
+        INPUT:
+
+        - ``elms`` -- a list of elements of the lattice.
+
+        EXAMPLES::
+
+            sage: L=LatticePoset(( [], [[1,2],[1,17],[1,8],[2,3],[2,22],[2,5],[2,7],[17,22],[17,13],[8,7],[8,13],[3,16],[3,9],[22,16],[22,18],[22,10],[5,18],[5,14],[7,9],[7,14],[7,10],[13,10],[16,6],[16,19],[9,19],[18,6],[18,33],[14,33],[10,19],[10,33],[6,4],[19,4],[33,4]] ))
+            sage: L.sublattice([14, 13, 22]).list()
+            [1, 2, 8, 7, 14, 17, 13, 22, 10, 33]
+
+            sage: L = Posets.BooleanLattice(3)
+            sage: L.sublattice([3,5,6,7])
+            Finite lattice containing 8 elements
+
+        .. NOTE::
+
+            This is very unoptimal algorithm. Better one is described on
+            "Computing the sublattice of a lattice generated by a set of
+            elements" by K. Bertet and M. Morvan. Feel free to implement it.
+        """
+        gens_remaining = set(elms)
+        current_set = set()
+
+        # We add elements one by one in 'current_set'.
+        #
+        # When adding a point g to 'current_set', we add to 'gens_remaning' all
+        # meet/join obtained from g and another point of 'current_set'
+        while gens_remaining:
+            g = gens_remaining.pop()
+            if g in current_set:
+                continue
+            for x in current_set:
+                gens_remaining.add(self.join(x,g))
+                gens_remaining.add(self.meet(x,g))
+            current_set.add(g)
+
+        return LatticePoset(self.subposet(current_set))
+
+############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
 FiniteJoinSemilattice._dual_class = FiniteMeetSemilattice

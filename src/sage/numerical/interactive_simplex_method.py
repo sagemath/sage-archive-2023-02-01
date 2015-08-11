@@ -1,14 +1,18 @@
 r"""
 Interactive Simplex Method
 
-The purpose of this module is to support learning and exploring of the simplex
-method. While it does allow solving Linear Programming Problems (LPPs) in a
-number of ways, it may require explicit (and correct!) description of steps and
-is likely to be much slower than "regular" LP solvers. Therefore, do not
-use this module if all you want is the result. If, however, you want to
+This module, meant for **educational purposes only**, supports learning and
+exploring of the simplex method.
+
+Do you want to solve Linear Programs efficiently? use
+:class:`MixedIntegerLinearProgram` instead.
+
+The methods implemented here allow solving Linear Programming Problems (LPPs) in
+a number of ways, may require explicit (and correct!) description of steps and
+are likely to be much slower than "regular" LP solvers. If, however, you want to
 learn how the simplex method works and see what happens in different situations
-using different strategies, but don't want to deal with tedious arithmetic,
-this module is for you!
+using different strategies, but don't want to deal with tedious arithmetic, this
+module is for you!
 
 Historically it was created to complement the Math 373 course on Mathematical
 Programming and Optimization at the University of Alberta, Edmonton, Canada.
@@ -16,6 +20,8 @@ Programming and Optimization at the University of Alberta, Edmonton, Canada.
 AUTHORS:
 
 - Andrey Novoseltsev (2013-03-16): initial version.
+
+- Matthias Koeppe, Peijun Xiao (2015-07-05): allow different output styles.
 
 EXAMPLES:
 
@@ -38,7 +44,7 @@ in acres, we can construct the following LP problem::
     sage: A = ([1, 1], [3, 1])
     sage: b = (1000, 1500)
     sage: c = (10, 5)
-    sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+    sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
     sage: P
     LP problem (use typeset mode to see details)
 
@@ -49,9 +55,9 @@ you can run these commands with typeset mode on and get
 
     \begin{array}{l}
     \begin{array}{lcrcrcl}
-     \max \!\!\!&\!\!\!  \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B \!\!\! \\
-     \!\!\!&\!\!\!  \!\!\!&\!\!\! C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1000 \\
-     \!\!\!&\!\!\!  \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1500 \\
+     \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+     \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+     \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
     \end{array} \\
     C, B \geq 0
     \end{array}
@@ -63,9 +69,9 @@ Since it has only two variables, we can solve it graphically::
 
 
 The simplex method can be applied only to :class:`problems in standard form
-<LPProblemStandardForm>`, which can be created either directly ::
+<InteractiveLPProblemStandardForm>`, which can be created either directly ::
 
-    sage: LPProblemStandardForm(A, b, c, ["C", "B"])
+    sage: InteractiveLPProblemStandardForm(A, b, c, ["C", "B"])
     LP problem (use typeset mode to see details)
 
 or from an already constructed problem of "general type"::
@@ -79,7 +85,8 @@ the simplex method.
 The simplest way to use the simplex method is::
 
     sage: P.run_simplex_method()
-    '...'
+    %notruncate
+    ...
 
 (This method produces quite long formulas which have been omitted here.)
 But, of course, it is much more fun to do most of the steps by hand. Let's start
@@ -96,10 +103,10 @@ Using typeset mode as recommended, you'll see
     \renewcommand{\arraystretch}{1.5}
     \begin{array}{|rcrcrcr|}
     \hline
-    x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1000 \!\!\!&\!\!\! - \!\!\!&\!\!\!  C \!\!\!&\!\!\! - \!\!\!&\!\!\!  B\\
-    x_{4} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1500 \!\!\!&\!\!\! - \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! - \!\!\!&\!\!\!  B\\
+    x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} B\\
+    x_{4} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} B\\
     \hline
-    z \!\!\!&\!\!\! = \!\!\!&\!\!\! 0 \!\!\!&\!\!\! + \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B\\
+    z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B\\
     \hline
     \end{array}
 
@@ -147,14 +154,17 @@ options::
      for feasible dictionaries with a set entering variable
      or for dual feasible dictionaries
 
-It is also possible to obtain :meth:`feasible sets <LPProblem.feasible_set>`
-and :meth:`final dictionaries <LPProblemStandardForm.final_dictionary>` of
+It is also possible to obtain :meth:`feasible sets <InteractiveLPProblem.feasible_set>`
+and :meth:`final dictionaries <InteractiveLPProblemStandardForm.final_dictionary>` of
 problems, work with :class:`revised dictionaries <LPRevisedDictionary>`,
 and use the dual simplex method!
 
 .. NOTE::
 
     Currently this does not have a display format for the terminal.
+
+Classes and functions
+---------------------
 """
 
 
@@ -168,7 +178,7 @@ and use the dual simplex method!
 #*****************************************************************************
 
 
-import operator, re, sys
+import operator, re
 
 
 from copy import copy
@@ -185,7 +195,6 @@ from sage.misc.all import (LatexExpr,
                            latex,
                            randint,
                            random)
-from sage.misc.latex import EMBEDDED_MODE
 from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
@@ -199,8 +208,7 @@ from sage.symbolic.all import SR
 # LaTeX. We use our own variable as it may be convenient to override it.
 # Hopefully, some day there will be no need in it at all and only "if" parts
 # will have to be left.
-generate_real_LaTeX = not EMBEDDED_MODE
-
+generate_real_LaTeX = False
 
 def _assemble_arrayl(lines, stretch=None):
     r"""
@@ -223,11 +231,13 @@ def _assemble_arrayl(lines, stretch=None):
         ....:     import _assemble_arrayl
         sage: lines = ["1 + 1", "2"]
         sage: print _assemble_arrayl(lines)
+        %notruncate
         \begin{array}{l}
         1 + 1\\
         2
         \end{array}
         sage: print _assemble_arrayl(lines, 1.5)
+        %notruncate
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
         1 + 1\\
@@ -289,7 +299,7 @@ def _latex_product(coefficients, variables,
         sage: var("x, y")
         (x, y)
         sage: print _latex_product([-1, 3], [x, y])
-        - & x & + & 3 y
+        - \mspace{-6mu}&\mspace{-6mu} x \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 3 y
     """
     entries = []
     for c, v in zip(coefficients, variables):
@@ -408,9 +418,145 @@ def variable(R, v):
         raise ValueError("cannot interpret given data as a variable")
 
 
-class LPProblem(SageObject):
+available_styles = {
+    "UAlberta": {
+        "primal decision": "x",
+        "primal slack": "x",
+        "dual decision": "y",
+        "dual slack": "y",
+        "primal objective": "z",
+        "dual objective": "z",
+        "auxiliary objective": "w",
+        },
+    "Vanderbei": {
+        "primal decision": "x",
+        "primal slack": "w",
+        "dual decision": "y",
+        "dual slack": "z",
+        "primal objective": "zeta",
+        "dual objective": "xi",
+        "auxiliary objective": "xi",
+        },
+    }
+
+current_style = 'UAlberta'
+
+def default_variable_name(variable):
+    r"""
+    Return default variable name for the current :func:`style`.
+    
+    INPUT:
+    
+    - ``variable`` - a string describing requested name
+    
+    OUTPUT:
+    
+    - a string with the requested name for current style
+    
+    EXAMPLES::
+    
+        sage: sage.numerical.interactive_simplex_method.default_variable_name("primal slack")
+        'x'
+        sage: sage.numerical.interactive_simplex_method.style('Vanderbei')
+        'Vanderbei'
+        sage: sage.numerical.interactive_simplex_method.default_variable_name("primal slack")
+        'w'
+        sage: sage.numerical.interactive_simplex_method.style('UAlberta')
+        'UAlberta'
+    """
+    return available_styles[current_style][variable]
+
+def style(new_style=None):
+    r"""
+    Set or get the current style of problems and dictionaries.
+
+    INPUT:
+    
+    - ``new_style`` -- a string or ``None`` (default)
+    
+    OUTPUT:
+    
+    - a string with current style (same as ``new_style`` if it was given)
+    
+    If the input is not recognized as a valid style, a ``ValueError`` exception
+    is raised.
+    
+    Currently supported styles are:
+
+    - 'UAlberta' (default):  Follows the style used in the Math 373 course
+      on Mathematical Programming and Optimization at the University of
+      Alberta, Edmonton, Canada; based on Chvatal's book.
+
+      - Objective functions of dictionaries are printed at the bottom.
+      
+      Variable names default to
+
+      - `z` for primal objective
+      
+      - `z` for dual objective
+      
+      - `w` for auxiliary objective
+
+      - `x_1, x_2, \dots, x_n` for primal decision variables
+      
+      - `x_{n+1}, x_{n+2}, \dots, x_{n+m}` for primal slack variables
+
+      - `y_1, y_2, \dots, y_m` for dual decision variables
+      
+      - `y_{m+1}, y_{m+2}, \dots, y_{m+n}` for dual slack variables
+
+    - 'Vanderbei':  Follows the style of Robert Vanderbei's textbook,
+      Linear Programming -- Foundations and Extensions.
+
+      - Objective functions of dictionaries are printed at the top.
+
+      Variable names default to
+
+      - `zeta` for primal objective
+      
+      - `xi` for dual objective
+      
+      - `xi` for auxiliary objective
+
+      - `x_1, x_2, \dots, x_n` for primal decision variables
+      
+      - `w_1, w_2, \dots, w_m` for primal slack variables
+
+      - `y_1, y_2, \dots, y_m` for dual decision variables
+      
+      - `z_1, z_2, \dots, z_n` for dual slack variables
+
+    EXAMPLES::
+
+        sage: sage.numerical.interactive_simplex_method.style()
+        'UAlberta'
+        sage: sage.numerical.interactive_simplex_method.style('Vanderbei')
+        'Vanderbei'
+        sage: sage.numerical.interactive_simplex_method.style('Doesntexist')
+        Traceback (most recent call last):
+        ...
+        ValueError: Style must be one of: UAlberta, Vanderbei
+        sage: sage.numerical.interactive_simplex_method.style('UAlberta')
+        'UAlberta'
+    """
+    global current_style
+    if new_style is not None:
+        if new_style not in available_styles:
+            raise ValueError("Style must be one of: {}".format(
+                             ", ".join(available_styles.keys())))
+        current_style = new_style
+    return current_style
+
+
+class InteractiveLPProblem(SageObject):
     r"""
     Construct an LP (Linear Programming) problem.
+
+    .. NOTE::
+
+        This class is for **educational purposes only**: if you want to solve
+        Linear Programs efficiently, use :class:`MixedIntegerLinearProgram`
+        instead.
 
     This class supports LP problems with "variables on the left" constraints.
 
@@ -436,13 +582,13 @@ class LPProblem(SageObject):
     - ``problem_type`` -- (default: ``"max"``) a string specifying the
       problem type: ``"max"``, ``"min"``, ``"-max"``, or ``"-min"``
 
-    - ``prefix`` -- (default: parameter ``x`` if it was given as a string,
-      string ``"x"`` otherwise) a string giving the base name of automatically
-      created variables in :meth:`standard_form`
-
     - ``base_ring`` -- (default: the fraction field of a common ring for all
       input coefficients) a field to which all input coefficients will be
       converted
+
+    - ``is_primal`` -- (default: ``True``) whether this problem is primal or
+      dual: each problem is of course dual to its own dual, this flag is mostly
+      for internal use and affects default variable names only
 
     EXAMPLES:
 
@@ -452,9 +598,9 @@ class LPProblem(SageObject):
 
         \begin{array}{l}
         \begin{array}{lcrcrcl}
-         \max \!\!\!&\!\!\!  \!\!\!&\!\!\! 10 C \!\!\!&\!\!\! + \!\!\!&\!\!\! 5 B \!\!\! \\
-         \!\!\!&\!\!\!  \!\!\!&\!\!\! C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1000 \\
-         \!\!\!&\!\!\!  \!\!\!&\!\!\! 3 C \!\!\!&\!\!\! + \!\!\!&\!\!\! B \!\!\!&\!\!\! \leq \!\!\!&\!\!\! 1500 \\
+         \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+         \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+         \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
         \end{array} \\
         C, B \geq 0
         \end{array}
@@ -464,16 +610,16 @@ class LPProblem(SageObject):
         sage: A = ([1, 1], [3, 1])
         sage: b = (1000, 1500)
         sage: c = (10, 5)
-        sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+        sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
 
     Same problem, but more explicitly::
 
-        sage: P = LPProblem(A, b, c, ["C", "B"],
+        sage: P = InteractiveLPProblem(A, b, c, ["C", "B"],
         ....:     constraint_type="<=", variable_type=">=")
 
     Even more explicitly::
 
-        sage: P = LPProblem(A, b, c, ["C", "B"], problem_type="max",
+        sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], problem_type="max",
         ....:     constraint_type=["<=", "<="], variable_type=[">=", ">="])
 
     Using the last form you should be able to represent any LP problem, as long
@@ -483,19 +629,19 @@ class LPProblem(SageObject):
 
     def __init__(self, A, b, c, x="x",
                  constraint_type="<=", variable_type="", problem_type="max",
-                 prefix="x", base_ring=None):
+                 base_ring=None, is_primal=True):
         r"""
-        See :class:`LPProblem` for documentation.
+        See :class:`InteractiveLPProblem` for documentation.
 
         TESTS::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: TestSuite(P).run()
         """
-        super(LPProblem, self).__init__()
+        super(InteractiveLPProblem, self).__init__()
         A = matrix(A)
         b = vector(b)
         c = vector(c)
@@ -514,10 +660,9 @@ class LPProblem(SageObject):
         if c.degree() != n:
             raise ValueError("A and c have incompatible dimensions")
         if isinstance(x, str):
-            prefix = x
             x = ["{}{:d}".format(x, i) for i in range(1, n+1)]
         else:
-            x = map(str, x)
+            x = [str(_) for _ in x]
             if len(x) != n:
                 raise ValueError("A and x have incompatible dimensions")
         R = PolynomialRing(base_ring, x, order="neglex")
@@ -553,7 +698,7 @@ class LPProblem(SageObject):
             raise ValueError("unknown problem type")
         self._problem_type = problem_type
 
-        self._prefix = prefix
+        self._is_primal = is_primal
 
     def __eq__(self, other):
         r"""
@@ -565,7 +710,7 @@ class LPProblem(SageObject):
 
         OUTPUT:
 
-        - ``True`` if ``other`` is an :class:`LPProblem` with all details the
+        - ``True`` if ``other`` is an :class:`InteractiveLPProblem` with all details the
           same as ``self``, ``False`` otherwise.
 
         TESTS::
@@ -573,21 +718,20 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
-            sage: P2 = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P2 = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P == P2
             True
-            sage: P3 = LPProblem(A, c, b, ["C", "B"], variable_type=">=")
+            sage: P3 = InteractiveLPProblem(A, c, b, ["C", "B"], variable_type=">=")
             sage: P == P3
             False
         """
-        return (isinstance(other, LPProblem) and
+        return (isinstance(other, InteractiveLPProblem) and
                 self.Abcx() == other.Abcx() and
                 self._problem_type == other._problem_type and
                 self._is_negative == other._is_negative and
                 self._constraint_types == other._constraint_types and
-                self._variable_types == other._variable_types and
-                self._prefix == other._prefix)
+                self._variable_types == other._variable_types)
 
     def _latex_(self):
         r"""
@@ -602,13 +746,13 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: print P._latex_()
-            \begin{array}{l} \setlength{\arraycolsep}{0.125em}
+            \begin{array}{l}
             \begin{array}{lcrcrcl}
-             \max &  & 10 C & + & 5 B\\
-             &  & C & + & B & \leq & 1000 \\
-             &  & 3 C & + & B & \leq & 1500 \\
+             \max \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 10 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 B \mspace{-6mu} \\
+             \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1000 \\
+             \mspace{-6mu}&\mspace{-6mu}  \mspace{-6mu}&\mspace{-6mu} 3 C \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} B \mspace{-6mu}&\mspace{-6mu} \leq \mspace{-6mu}&\mspace{-6mu} 1500 \\
             \end{array} \\
             C, B \geq 0
             \end{array}
@@ -649,7 +793,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: print P._repr_()
             LP problem (use typeset mode to see details)
         """
@@ -676,7 +820,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P._solve()
             ((250, 750), 6250)
         """
@@ -719,7 +863,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.Abcx()
             (
             [1 1]
@@ -745,12 +889,12 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.base_ring()
             Rational Field
 
             sage: c = (10, 5.)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.base_ring()
             Real Field with 53 bits of precision
         """
@@ -769,7 +913,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.constant_terms()
             (1000, 1500)
             sage: P.b()
@@ -790,7 +934,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.constraint_coefficients()
             [1 1]
             [3 1]
@@ -813,7 +957,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.decision_variables()
             (C, B)
             sage: P.x()
@@ -827,30 +971,43 @@ class LPProblem(SageObject):
 
         INPUT:
 
-        - ``y`` -- (default: ``"x"`` if the prefix of ``self`` is ``"y"``,
-          ``"y"`` otherwise) a vector of dual decision variables or a string
-          giving the base name
+        - ``y`` -- (default: depends on :func:`style`)
+          a vector of dual decision variables or a string giving the base name
 
         OUTPUT:
 
-        - an :class:`LPProblem`
+        - an :class:`InteractiveLPProblem`
 
         EXAMPLES::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: DP = P.dual()
             sage: DP.b() == P.c()
             True
             sage: DP.dual(["C", "B"]) == P
             True
+            
+        TESTS::
+        
+            sage: DP.standard_form().objective_name()
+            -z
+            sage: sage.numerical.interactive_simplex_method.style("Vanderbei")
+            'Vanderbei'
+            sage: P.dual().standard_form().objective_name()
+            -xi
+            sage: sage.numerical.interactive_simplex_method.style("UAlberta")
+            'UAlberta'
+            sage: P.dual().standard_form().objective_name()
+            -z
         """
         A, c, b, x = self.Abcx()
         A = A.transpose()
         if y is None:
-            y = "x" if self._prefix == "y" else "y"
+            y = default_variable_name(
+                "dual decision" if self.is_primal() else "primal decision")
         problem_type = "min" if self._problem_type == "max" else "max"
         constraint_type = []
         for vt in self._variable_types:
@@ -874,8 +1031,9 @@ class LPProblem(SageObject):
                 variable_type.append("")
         if self._is_negative:
             problem_type = "-" + problem_type
-        return LPProblem(A, b, c, y,
-                         constraint_type, variable_type, problem_type)
+        return InteractiveLPProblem(A, b, c, y,
+            constraint_type, variable_type, problem_type,
+            is_primal=not self.is_primal())
 
     @cached_method
     def feasible_set(self):
@@ -891,7 +1049,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.feasible_set()
             A 2-dimensional polyhedron in QQ^2
             defined as the convex hull of 4 vertices
@@ -914,8 +1072,8 @@ class LPProblem(SageObject):
             R = QQ
         else:
             R = RDF
-            ieqs = [map(R, ieq) for ieq in ieqs]
-            eqns = [map(R, eqn) for eqn in eqns]
+            ieqs = [[R(_) for _ in ieq] for ieq in ieqs]
+            eqns = [[R(_) for _ in eqn] for eqn in eqns]
         return Polyhedron(ieqs=ieqs, eqns=eqns, base_ring=R)
 
     def is_bounded(self):
@@ -931,7 +1089,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_bounded()
             True
         """
@@ -950,11 +1108,34 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.is_feasible()
             True
         """
         return self._solve()[1] is not None
+
+    def is_primal(self):
+        r"""
+        Check if we consider this problem to be primal or dual.
+        
+        This distinction affects only some automatically chosen variable names.
+
+        OUTPUT:
+
+        - boolean
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1])
+            sage: b = (1000, 1500)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P.is_primal()
+            True
+            sage: P.dual().is_primal()
+            False
+        """
+        return self._is_primal
 
     def n_constraints(self):
         r"""
@@ -969,7 +1150,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.n_constraints()
             2
             sage: P.m()
@@ -990,7 +1171,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.n_variables()
             2
             sage: P.n()
@@ -1011,7 +1192,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.objective_coefficients()
             (10, 5)
             sage: P.c()
@@ -1032,7 +1213,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.optimal_solution()
             (250, 750)
         """
@@ -1052,7 +1233,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: P.optimal_value()
             6250
         """
@@ -1087,7 +1268,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: p = P.plot()
             sage: p.show()
 
@@ -1100,7 +1281,7 @@ class LPProblem(SageObject):
 
         We check that zero objective can be dealt with::
 
-            sage: LPProblem(A, b, (0, 0), ["C", "B"], variable_type=">=").plot()
+            sage: InteractiveLPProblem(A, b, (0, 0), ["C", "B"], variable_type=">=").plot()
             Graphics object consisting of 8 graphics primitives
         """
         FP = self.plot_feasible_set(*args, **kwds)
@@ -1164,7 +1345,7 @@ class LPProblem(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: p = P.plot_feasible_set()
             sage: p.show()
 
@@ -1211,7 +1392,7 @@ class LPProblem(SageObject):
                 ieqs = [[-bi] + list(Ai), [bi+pad*Ai.norm().n()] + list(-Ai)]
             else:
                 continue
-            ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         # Same for variables, but no legend
@@ -1226,7 +1407,7 @@ class LPProblem(SageObject):
                 ieqs = [[0] + list(ni), [pad] + list(-ni)]
             else:
                 continue
-            ieqs = map(lambda ieq: map(QQ, ieq), ieqs)
+            ieqs = [ [QQ(_) for _ in ieq] for ieq in ieqs]
             halfplane = box.intersection(Polyhedron(ieqs=ieqs))
             result += halfplane.render_solid(alpha=alpha, color=color)
         if F.vertices():
@@ -1234,7 +1415,7 @@ class LPProblem(SageObject):
             result += text("$F$", F.center(),
                            fontsize=20, color="black", zorder=5)
         result.set_axes_range(xmin, xmax, ymin, ymax)
-        result.axes_labels(map(lambda xi: "${}$".format(latex(xi)), x))
+        result.axes_labels(["${}$".format(latex(xi)) for xi in x])
         result.legend(True)
         result.set_legend_options(fancybox=True, handlelength=1.5, loc=1,
                                   shadow=True)
@@ -1242,20 +1423,25 @@ class LPProblem(SageObject):
         result.set_aspect_ratio(1)
         return result
 
-    def standard_form(self):
+    def standard_form(self, objective_name=None):
         r"""
         Construct the LP problem in standard form equivalent to ``self``.
+        
+        INPUT:
+        
+        - ``objective_name`` -- a string or a symbolic expression for the
+          objective used in dictionaries, default depends on :func:`style`
 
         OUTPUT:
 
-        - an :class:`LPProblemStandardForm`
+        - an :class:`InteractiveLPProblemStandardForm`
 
         EXAMPLES::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblem(A, b, c, ["C", "B"], variable_type=">=")
+            sage: P = InteractiveLPProblem(A, b, c, ["C", "B"], variable_type=">=")
             sage: DP = P.dual()
             sage: DPSF = DP.standard_form()
             sage: DPSF.b()
@@ -1294,13 +1480,20 @@ class LPProblem(SageObject):
             A = column_matrix(newA)
             c = vector(newc)
             x = newx
+            
+        is_primal = self.is_primal()
+        if objective_name is None:
+            objective_name = default_variable_name(
+                "primal objective" if is_primal else "dual objective")
+        objective_name = SR(objective_name)
         is_negative = self._is_negative
         if self._problem_type == "min":
             is_negative = not is_negative
             c = - c
+            objective_name = - objective_name
         problem_type = "-max" if is_negative else "max"
-        return LPProblemStandardForm(A, b, c, x, problem_type,
-                                     self._prefix, self._prefix + "0")
+        return InteractiveLPProblemStandardForm(A, b, c, x, problem_type,
+            is_primal=is_primal, objective_name=objective_name)
 
     # Aliases for the standard notation
     A = constraint_coefficients
@@ -1311,9 +1504,15 @@ class LPProblem(SageObject):
     n = n_variables
 
 
-class LPProblemStandardForm(LPProblem):
+class InteractiveLPProblemStandardForm(InteractiveLPProblem):
     r"""
     Construct an LP (Linear Programming) problem in standard form.
+
+    .. NOTE::
+
+        This class is for **educational purposes only**: if you want to solve
+        Linear Programs efficiently, use :class:`MixedIntegerLinearProgram`
+        instead.
 
     The used standard form is:
 
@@ -1339,30 +1538,33 @@ class LPProblemStandardForm(LPProblem):
     - ``problem_type`` -- (default: ``"max"``) a string specifying the
       problem type: either ``"max"`` or ``"-max"``
 
-    - ``slack_variables`` -- (default: same as ``x`` parameter, if it was given
-      as a string, otherwise string ``"x"``) a vector of slack variables or
-      a sting giving the base name
+    - ``slack_variables`` -- (default: depends on :func:`style`)
+      a vector of slack variables or a sting giving the base name
 
     - ``auxiliary_variable`` -- (default: same as ``x`` parameter with adjoined
       ``"0"`` if it was given as a string, otherwise ``"x0"``) the auxiliary
       name, expected to be the same as the first decision variable for
       auxiliary problems
 
-    - ``objective`` -- (default: ``"z"``) the objective variable (used for the
-      initial dictionary)
-
     - ``base_ring`` -- (default: the fraction field of a common ring for all
       input coefficients) a field to which all input coefficients will be
       converted
+
+    - ``is_primal`` -- (default: ``True``) whether this problem is primal or
+      dual: each problem is of course dual to its own dual, this flag is mostly
+      for internal use and affects default variable names only
+      
+    - ``objective_name`` -- a string or a symbolic expression for the
+      objective used in dictionaries, default depends on :func:`style`
 
     EXAMPLES::
 
         sage: A = ([1, 1], [3, 1])
         sage: b = (1000, 1500)
         sage: c = (10, 5)
-        sage: P = LPProblemStandardForm(A, b, c)
+        sage: P = InteractiveLPProblemStandardForm(A, b, c)
 
-    Unlike :class:`LPProblem`, this class does not allow you to adjust types of
+    Unlike :class:`InteractiveLPProblem`, this class does not allow you to adjust types of
     constraints (they are always ``"<="``) and variables (they are always
     ``">="``), and the problem type may only be ``"max"`` or ``"-max"``.
     You may give custom names to slack and auxiliary variables, but in
@@ -1375,40 +1577,49 @@ class LPProblemStandardForm(LPProblem):
     """
 
     def __init__(self, A, b, c, x="x", problem_type="max",
-                 slack_variables=None, auxiliary_variable=None, objective="z",
-                 base_ring=None):
+                 slack_variables=None, auxiliary_variable=None,
+                 base_ring=None, is_primal=True, objective_name=None):
         r"""
-        See :class:`StandardFormLPP` for documentation.
+        See :class:`InteractiveLPProblemStandardForm` for documentation.
 
         TESTS::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: TestSuite(P).run()
         """
         if problem_type not in ("max", "-max"):
             raise ValueError("problems in standard form must be of (negative) "
                              "maximization type")
-        super(LPProblemStandardForm, self).__init__(A, b, c, x,
-                                                    problem_type=problem_type,
-                                                    constraint_type="<=",
-                                                    variable_type=">=",
-                                                    base_ring=base_ring)
+        super(InteractiveLPProblemStandardForm, self).__init__(
+            A, b, c, x,
+            problem_type=problem_type,
+            constraint_type="<=",
+            variable_type=">=",
+            base_ring=base_ring,
+            is_primal=is_primal)
         n, m = self.n(), self.m()
         if slack_variables is None:
-           slack_variables = self._prefix
+            slack_variables = default_variable_name(
+                "primal slack" if is_primal else "dual slack")
         if isinstance(slack_variables, str):
+            if style() == "UAlberta":
+                indices = range(n + 1, n + m + 1)
+            if style() == 'Vanderbei':
+                indices = range(1, m + 1)
             slack_variables = ["{}{:d}".format(slack_variables, i)
-                               for i in range(n + 1, n + m + 1)]
+                               for i in indices]
         else:
-            slack_variables = map(str, slack_variables)
+            slack_variables = list(map(str, slack_variables))
             if len(slack_variables) != m:
                 raise ValueError("wrong number of slack variables")
         if auxiliary_variable is None:
-           auxiliary_variable = self._prefix + "0"
-        names = [str(auxiliary_variable)] + map(str, self.x()) + slack_variables
+           auxiliary_variable = x + "0" if isinstance(x, str) else "x0"
+        names = [str(auxiliary_variable)]
+        names.extend(map(str, self.x()))
+        names.extend(slack_variables)
         if names[0] == names[1]:
             names.pop(0)
         R = PolynomialRing(self.base_ring(), names, order="neglex")
@@ -1416,15 +1627,23 @@ class LPProblemStandardForm(LPProblem):
         x = vector(R.gens()[-n-m:-m])
         x.set_immutable()
         self._Abcx = self._Abcx[:-1] + (x, )
-        self._objective = objective
+        if objective_name is None:
+            objective_name = default_variable_name(
+                "primal objective" if is_primal else "dual objective")
+        self._objective_name = SR(objective_name)
 
-    def auxiliary_problem(self):
+    def auxiliary_problem(self, objective_name=None):
         r"""
         Construct the auxiliary problem for ``self``.
+        
+        INPUT:
+
+        - ``objective_name`` -- a string or a symbolic expression for the
+          objective used in dictionaries, default depends on :func:`style`
 
         OUTPUT:
 
-        - an :class:`LP problem in standard form <LPProblemStandardForm>`
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
 
         The auxiliary problem with the auxiliary variable `x_0` is
 
@@ -1444,7 +1663,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: AP = P.auxiliary_problem()
         """
         X = self.coordinate_ring().gens()
@@ -1455,17 +1674,19 @@ class LPProblemStandardForm(LPProblem):
         F = self.base_ring()
         A = column_matrix(F, [-1] * m).augment(self.A())
         c = vector(F, [-1] + [0] * n)
-        return LPProblemStandardForm(A, self.b(), c, X[:-m],
-                                     slack_variables=X[-m:],
-                                     auxiliary_variable=X[0],
-                                     objective="w")
+        if objective_name is None:
+            objective_name = default_variable_name("auxiliary objective")
+        return InteractiveLPProblemStandardForm(
+            A, self.b(), c,
+            X[:-m], slack_variables=X[-m:], auxiliary_variable=X[0],
+            objective_name=objective_name)
 
     def auxiliary_variable(self):
         r"""
         Return the auxiliary variable of ``self``.
 
         Note that the auxiliary variable may or may not be among
-        :meth:`~LPProblem.decision_variables`.
+        :meth:`~InteractiveLPProblem.decision_variables`.
 
         OUTPUT:
 
@@ -1476,7 +1697,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.auxiliary_variable()
             x0
             sage: P.decision_variables()
@@ -1495,8 +1716,8 @@ class LPProblemStandardForm(LPProblem):
 
         OUTPUT:
 
-        - a polynomial ring over the :meth:`~LPProblem.base_ring` of ``self`` in
-          the :meth:`auxiliary_variable`, :meth:`~LPProblem.decision_variables`,
+        - a polynomial ring over the :meth:`~InteractiveLPProblem.base_ring` of ``self`` in
+          the :meth:`auxiliary_variable`, :meth:`~InteractiveLPProblem.decision_variables`,
           and :meth:`slack_variables` with "neglex" order
 
         EXAMPLES::
@@ -1504,7 +1725,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.coordinate_ring()
             Multivariate Polynomial Ring in x0, x1, x2, x3, x4, x5
             over Rational Field
@@ -1541,7 +1762,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary("x1", "x2")
             sage: D.basic_variables()
             (x1, x2)
@@ -1569,7 +1790,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: AP = P.auxiliary_problem()
             sage: D = AP.initial_dictionary()
             sage: D.enter(0)
@@ -1617,9 +1838,9 @@ class LPProblemStandardForm(LPProblem):
                 i = B.index(xj)
                 c -= cj * A[i]
                 v += cj * b[i]
-        B = map(self._R, B)
-        N = map(self._R, N)
-        return LPDictionary(A, b, c, v, B, N, self._objective)
+        B = [self._R(_) for _ in B]
+        N = [self._R(_) for _ in N]
+        return LPDictionary(A, b, c, v, B, N, self.objective_name())
 
     def final_dictionary(self):
         r"""
@@ -1636,7 +1857,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_dictionary()
             sage: D.is_optimal()
             True
@@ -1672,7 +1893,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.final_revised_dictionary()
             sage: D.is_optimal()
             True
@@ -1696,7 +1917,7 @@ class LPProblemStandardForm(LPProblem):
         Construct the initial dictionary of ``self``.
 
         The initial dictionary "defines" :meth:`slack_variables` in terms
-        of the :meth:`~LPProblem.decision_variables`, i.e. it has slack
+        of the :meth:`~InteractiveLPProblem.decision_variables`, i.e. it has slack
         variables as basic ones.
 
         OUTPUT:
@@ -1708,13 +1929,14 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
         """
         A, b, c, x = self.Abcx()
         x = self._R.gens()
         m, n = self.m(), self.n()
-        return LPDictionary(A, b, c, 0, x[-m:], x[-m-n:-m], self._objective)
+        return LPDictionary(A, b, c, 0, x[-m:], x[-m-n:-m],
+                            self.objective_name())
 
     def inject_variables(self, scope=None, verbose=True):
         r"""
@@ -1736,7 +1958,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.inject_variables()
             Defining x0, x1, x2, x3, x4
             sage: 3*x1 + x2
@@ -1748,6 +1970,35 @@ class LPProblemStandardForm(LPProblem):
             self._R.inject_variables(scope, verbose)
         except AttributeError:
             pass
+
+    def objective_name(self):
+        r"""
+        Return the objective name used in dictionaries for this problem.
+        
+        OUTPUT:
+        
+        - a symbolic expression
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.objective_name()
+            z
+            sage: sage.numerical.interactive_simplex_method.style("Vanderbei")
+            'Vanderbei'
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: P.objective_name()
+            zeta
+            sage: sage.numerical.interactive_simplex_method.style("UAlberta")
+            'UAlberta'
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, objective_name="custom")
+            sage: P.objective_name()
+            custom
+        """
+        return self._objective_name
 
     def revised_dictionary(self, *x_B):
         r"""
@@ -1768,7 +2019,7 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary("x1", "x2")
             sage: D.basic_variables()
             (x1, x2)
@@ -1786,7 +2037,7 @@ class LPProblemStandardForm(LPProblem):
 
             sage: A = ([1, 1], [3, 1], [-1,-1])
             sage: b = (1000, 1500, -400)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.initial_dictionary().is_feasible()
             False
             sage: P.revised_dictionary().basic_variables()
@@ -1828,8 +2079,9 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.run_revised_simplex_method()
+            %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
             ...
@@ -1905,29 +2157,29 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.run_simplex_method()  # not tested
 
         You should use the typeset mode as the command above generates long
         `\LaTeX` code::
 
             sage: print P.run_simplex_method()
-            \begin{gather*}
+            %notruncate
             ...
-            \text{The initial dictionary is infeasible, solving auxiliary problem.}\displaybreak[0]\\
+            \text{The initial dictionary is infeasible, solving auxiliary problem.}\\
             ...
-            \text{Entering: $x_{0}$. Leaving: $x_{5}$.}\displaybreak[0]\\
+            \text{Entering: $x_{0}$. Leaving: $x_{5}$.}\\
             ...
-            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\displaybreak[0]\\
+            \text{Entering: $x_{1}$. Leaving: $x_{0}$.}\\
             ...
-            \text{Back to the original problem.}\displaybreak[0]\\
+            \text{Back to the original problem.}\\
             ...
-            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\displaybreak[0]\\
+            \text{Entering: $x_{5}$. Leaving: $x_{4}$.}\\
             ...
-            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\displaybreak[0]\\
+            \text{Entering: $x_{2}$. Leaving: $x_{3}$.}\\
             ...
             \text{The optimal value: $6250$. An optimal solution: $\left(250,\,750\right)$.}
-            \end{gather*}
+            ...
         """
         result = []
         d = self.initial_dictionary()
@@ -2006,10 +2258,10 @@ class LPProblemStandardForm(LPProblem):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: P.slack_variables()
             (x3, x4)
-            sage: P = LPProblemStandardForm(A, b, c, ["C", "B"],
+            sage: P = InteractiveLPProblemStandardForm(A, b, c, ["C", "B"],
             ....:     slack_variables=["L", "F"])
             sage: P.slack_variables()
             (L, F)
@@ -2034,7 +2286,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()    # indirect doctest
         """
         super(LPAbstractDictionary, self).__init__()
@@ -2054,7 +2306,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: print D._repr_()
             LP problem dictionary (use typeset mode to see details)
@@ -2077,7 +2329,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.base_ring()
             Rational Field
@@ -2095,8 +2347,8 @@ class LPAbstractDictionary(SageObject):
         zero all :meth:`~LPDictionary.nonbasic_variables`, in which case
         :meth:`~LPDictionary.basic_variables` have to be equal to
         :meth:`~LPDictionary.constant_terms` in equations.
-        It may refer to values of :meth:`~LPProblem.decision_variables` only or
-        include :meth:`~LPProblemStandardForm.slack_variables` as well.
+        It may refer to values of :meth:`~InteractiveLPProblem.decision_variables` only or
+        include :meth:`~InteractiveLPProblemStandardForm.slack_variables` as well.
 
         INPUT:
 
@@ -2112,7 +2364,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.basic_solution()
             (0, 0)
@@ -2139,9 +2391,9 @@ class LPAbstractDictionary(SageObject):
         OUTPUT:
 
         - a polynomial ring in
-          :meth:`~LPProblemStandardForm.auxiliary_variable`,
-          :meth:`~LPProblem.decision_variables`, and
-          :meth:`~LPProblemStandardForm.slack_variables` of ``self`` over the
+          :meth:`~InteractiveLPProblemStandardForm.auxiliary_variable`,
+          :meth:`~InteractiveLPProblem.decision_variables`, and
+          :meth:`~InteractiveLPProblemStandardForm.slack_variables` of ``self`` over the
           :meth:`base_ring`
 
         EXAMPLES::
@@ -2149,7 +2401,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.coordinate_ring()
             Multivariate Polynomial Ring in x0, x1, x2, x3, x4
@@ -2185,7 +2437,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary(2, 3, 5)
             sage: D.leave(3)
             sage: D.dual_ratios()
@@ -2220,7 +2472,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.enter("x1")
 
@@ -2258,7 +2510,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.is_dual_feasible()
             False
@@ -2282,7 +2534,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.is_feasible()
             True
@@ -2308,7 +2560,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.is_optimal()
             False
@@ -2341,7 +2593,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.leave("x4")
 
@@ -2382,7 +2634,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary(2, 3)
             sage: D.possible_dual_simplex_method_steps()
             [(x3, [x1])]
@@ -2418,7 +2670,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.possible_entering()
             [x1, x2]
@@ -2453,7 +2705,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.enter(1)
             sage: D.possible_leaving()
@@ -2493,7 +2745,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.possible_simplex_method_steps()
             [(x1, [x4]), (x2, [x3])]
@@ -2539,7 +2791,7 @@ class LPAbstractDictionary(SageObject):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.enter(1)
             sage: D.ratios()
@@ -2583,8 +2835,8 @@ class LPDictionary(LPAbstractDictionary):
     - ``basic_variables`` -- a list of basic variables `x_B`
 
     - ``nonbasic_variables`` -- a list of non-basic variables `x_N`
-
-    - ``objective_variable`` -- an objective variable `z`
+    
+    - ``objective_name`` -- a "name" for the objective `z`
 
     OUTPUT:
 
@@ -2593,7 +2845,7 @@ class LPDictionary(LPAbstractDictionary):
     .. NOTE::
 
         This constructor does not check correctness of input, as it is
-        intended to be used internally by :class:`LPProblemStandardForm`.
+        intended to be used internally by :class:`InteractiveLPProblemStandardForm`.
 
     EXAMPLES:
 
@@ -2602,7 +2854,7 @@ class LPDictionary(LPAbstractDictionary):
         sage: A = ([1, 1], [3, 1])
         sage: b = (1000, 1500)
         sage: c = (10, 5)
-        sage: P = LPProblemStandardForm(A, b, c)
+        sage: P = InteractiveLPProblemStandardForm(A, b, c)
         sage: D = P.initial_dictionary()
         sage: D
         LP problem dictionary (use typeset mode to see details)
@@ -2622,11 +2874,12 @@ class LPDictionary(LPAbstractDictionary):
     """
 
     def __init__(self, A, b, c, objective_value,
-                 basic_variables, nonbasic_variables, objective_variable):
+                 basic_variables, nonbasic_variables,
+                 objective_name):
         r"""
         See :class:`LPDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = matrix(QQ, ([1, 1], [3, 1]))
             sage: b = vector(QQ, (1000, 1500))
@@ -2638,13 +2891,13 @@ class LPDictionary(LPAbstractDictionary):
             sage: TestSuite(D).run()
         """
         super(LPDictionary, self).__init__()
-        # We are going to change stuff while LPProblem has immutable data.
+        # We are going to change stuff while InteractiveLPProblem has immutable data.
         A = copy(A)
         b = copy(b)
         c = copy(c)
         B = vector(basic_variables)
         N = vector(nonbasic_variables)
-        self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_variable)]
+        self._AbcvBNz = [A, b, c, objective_value, B, N, SR(objective_name)]
 
     def __eq__(self, other):
         r"""
@@ -2664,7 +2917,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
 
             sage: A = matrix(QQ, ([1, 1], [3, 1]))
@@ -2697,16 +2950,16 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: print D._latex_()
-            \renewcommand{\arraystretch}{1.5} \setlength{\arraycolsep}{0.125em}
+            \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} & = & 1000 & - &  x_{1} & - &  x_{2}\\
-            x_{4} & = & 1500 & - & 3 x_{1} & - &  x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            x_{4} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
             \hline
-            z & = & 0 & + & 10 x_{1} & + & 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
             \end{array}
         """
@@ -2715,17 +2968,23 @@ class LPDictionary(LPAbstractDictionary):
         lines.append(r"\renewcommand{\arraystretch}{1.5}")
         if generate_real_LaTeX:
             lines[-1] += r" \setlength{\arraycolsep}{0.125em}"
-#        else:
-#            lines[-1] += r"\require{color}"
-        lines.append(r"\begin{array}{|rcr%s|}" % ("cr"*len(N)))
-        lines.append(r"\hline")
-        for xi, bi, Ai in zip(B, b, A.rows()):
-            lines.append(_latex_product(-Ai,N, head=[xi, "=", bi],
-                                    drop_plus=False, allow_empty=True) + r"\\")
-        lines.append(r"\hline")
-        lines.append(_latex_product(c, N, head=[z, "=", v],
-                                    drop_plus=False, allow_empty=True) + r"\\")
-        lines.append(r"\hline")
+        relations = [_latex_product(-Ai,N, head=[xi, "=", bi],
+                                    drop_plus=False, allow_empty=True) + r"\\"
+                     for xi, bi, Ai in zip(B, b, A.rows())]
+        objective = _latex_product(c, N, head=[z, "=", v],
+                                   drop_plus=False, allow_empty=True) + r"\\"
+        if style() == "UAlberta":
+            lines.append(r"\begin{array}{|rcr%s|}" % ("cr"*len(N)))
+            lines.append(r"\hline")
+            lines.extend(relations)
+            lines.append(r"\hline")
+            lines.append(objective)
+            lines.append(r"\hline")
+        if style() == "Vanderbei":
+            lines.append(r"\begin{array}{rcr%s}" % ("cr"*len(N)))
+            lines.append(objective)
+            lines.append(r"\hline")
+            lines.extend(relations)
         lines.append(r"\end{array}")
         latex.add_package_to_preamble_if_available("color")
         if self._entering is not None:
@@ -2734,25 +2993,20 @@ class LPDictionary(LPAbstractDictionary):
             for i, line in enumerate(lines):
                 line = line.split("&")
                 if len(line) > 1:
-                    if not generate_real_LaTeX:
-                        line[e] = ("{" + line[e] + "}").replace(r"\\}", r"}\\")
                     line[e] = r"\color{green}" + line[e]
                     lines[i] = "&".join(line)
         if self._leaving is not None:
             # Highlight the leaving variable row
-            l = tuple(B).index(self._leaving) + 3
+            l = tuple(B).index(self._leaving)
+            if style() == "UAlberta":
+               l += 3
+            if style() == "Vanderbei":
+                l += 4
             line = lines[l].split("&")
             for i, term in enumerate(line):
-                if not generate_real_LaTeX:
-                    term = ("{" + term + "}").replace(r"\\}", r"}\\")
                 line[i] = r"\color{red}" + term
             line = "&".join(line)
-            if generate_real_LaTeX:
-                line = line.replace(r"\color{red}\color{green}",
-                                    r"\color{blue}")
-            else:
-                line = line.replace(r"\color{red}{\color{green}",
-                                    r"\color{blue}{")
+            line = line.replace(r"\color{red}\color{green}", r"\color{blue}")
             lines[l] = line
         return  "\n".join(lines)
 
@@ -2775,23 +3029,23 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.ELLUL("x1", "x4")
-            \renewcommand{\arraystretch}{1.5} \setlength{\arraycolsep}{0.125em}
+            \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} & = & 1000 & - &\color{green}  x_{1} & - &  x_{2}\\
-            \color{red}x_{4} &\color{red} = &\color{red} 1500 &\color{red} - &\color{blue} 3 x_{1} &\color{red} - &\color{red}  x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\color{green}\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            \color{red}x_{4} \mspace{-6mu}&\color{red}\mspace{-6mu} = \mspace{-6mu}&\color{red}\mspace{-6mu} 1500 \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{blue}\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{red}\mspace{-6mu} x_{2}\\
             \hline
-            z & = & 0 & + &\color{green} 10 x_{1} & + & 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\color{green}\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
-            \multicolumn{2}{c}{}\\[-3ex]
+            \\
             \hline
-            x_{3} & = & 500 & + & \frac{1}{3} x_{4} & - & \frac{2}{3} x_{2}\\
-            x_{1} & = & 500 & - & \frac{1}{3} x_{4} & - & \frac{1}{3} x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{2}{3} x_{2}\\
+            x_{1} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{2}\\
             \hline
-            z & = & 5000 & - & \frac{10}{3} x_{4} & + & \frac{5}{3} x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 5000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{10}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{5}{3} x_{2}\\
             \hline
             \end{array}
 
@@ -2802,17 +3056,17 @@ class LPDictionary(LPAbstractDictionary):
             \renewcommand{\arraystretch}{1.5}
             \begin{array}{|rcrcrcr|}
             \hline
-            x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 1000 \!\!\!&\!\!\! - \!\!\!&\color{green}{\!\!\!  x_{1} \!\!\!}&\!\!\! - \!\!\!&\!\!\!  x_{2}\\
-            \color{red}{x_{4} \!\!\!}&\color{red}{\!\!\! = \!\!\!}&\color{red}{\!\!\! 1500 \!\!\!}&\color{red}{\!\!\! - \!\!\!}&\color{blue}{{\!\!\! 3 x_{1} \!\!\!}}&\color{red}{\!\!\! - \!\!\!}&\color{red}{\!\!\!  x_{2}}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 1000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\color{green}\mspace{-6mu} x_{1} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} x_{2}\\
+            \color{red}x_{4} \mspace{-6mu}&\color{red}\mspace{-6mu} = \mspace{-6mu}&\color{red}\mspace{-6mu} 1500 \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{blue}\mspace{-6mu} 3 x_{1} \mspace{-6mu}&\color{red}\mspace{-6mu} - \mspace{-6mu}&\color{red}\mspace{-6mu} x_{2}\\
             \hline
-            z \!\!\!&\!\!\! = \!\!\!&\!\!\! 0 \!\!\!&\!\!\! + \!\!\!&\color{green}{\!\!\! 10 x_{1} \!\!\!}&\!\!\! + \!\!\!&\!\!\! 5 x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 0 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\color{green}\mspace{-6mu} 10 x_{1} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} 5 x_{2}\\
             \hline
             \\
             \hline
-            x_{3} \!\!\!&\!\!\! = \!\!\!&\!\!\! 500 \!\!\!&\!\!\! + \!\!\!&\!\!\! \frac{1}{3} x_{4} \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{2}{3} x_{2}\\
-            x_{1} \!\!\!&\!\!\! = \!\!\!&\!\!\! 500 \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{1}{3} x_{4} \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{1}{3} x_{2}\\
+            x_{3} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{2}{3} x_{2}\\
+            x_{1} \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 500 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{1}{3} x_{2}\\
             \hline
-            z \!\!\!&\!\!\! = \!\!\!&\!\!\! 5000 \!\!\!&\!\!\! - \!\!\!&\!\!\! \frac{10}{3} x_{4} \!\!\!&\!\!\! + \!\!\!&\!\!\! \frac{5}{3} x_{2}\\
+            z \mspace{-6mu}&\mspace{-6mu} = \mspace{-6mu}&\mspace{-6mu} 5000 \mspace{-6mu}&\mspace{-6mu} - \mspace{-6mu}&\mspace{-6mu} \frac{10}{3} x_{4} \mspace{-6mu}&\mspace{-6mu} + \mspace{-6mu}&\mspace{-6mu} \frac{5}{3} x_{2}\\
             \hline
             \end{array}
 
@@ -2845,7 +3099,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.basic_variables()
             (x3, x4)
@@ -2865,7 +3119,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.constant_terms()
             (1000, 1500)
@@ -2885,7 +3139,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.enter(1)
             sage: D.entering_coefficients()
@@ -2910,7 +3164,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.dictionary(2, 3)
             sage: D.leave(3)
             sage: D.leaving_coefficients()
@@ -2935,7 +3189,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.nonbasic_variables()
             (x1, x2)
@@ -2955,7 +3209,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.objective_coefficients()
             (10, 5)
@@ -2976,7 +3230,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.objective_value()
             0
@@ -2992,7 +3246,7 @@ class LPDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.objective_value()
             0
@@ -3088,7 +3342,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
     INPUT:
 
     - ``problem`` -- an :class:`LP problem in standard form
-      <LPProblemStandardForm>`
+      <InteractiveLPProblemStandardForm>`
 
     - ``basic_variables`` -- a list of basic variables or their indices
 
@@ -3110,12 +3364,12 @@ class LPRevisedDictionary(LPAbstractDictionary):
         x \geq 0
         \end{array}
 
-    Let `\bar{x}` be the vector of :meth:`~LPProblem.decision_variables` `x`
-    followed by the :meth:`~LPProblemStandardForm.slack_variables`.
-    Let `\bar{c}` be the vector of :meth:`~LPProblem.objective_coefficients` `c`
+    Let `\bar{x}` be the vector of :meth:`~InteractiveLPProblem.decision_variables` `x`
+    followed by the :meth:`~InteractiveLPProblemStandardForm.slack_variables`.
+    Let `\bar{c}` be the vector of :meth:`~InteractiveLPProblem.objective_coefficients` `c`
     followed by zeroes for all slack variables.
     Let `\bar{A} = (A | I)` be the matrix of
-    :meth:`~LPProblem.constraint_coefficients` `A` augmented by the identity
+    :meth:`~InteractiveLPProblem.constraint_coefficients` `A` augmented by the identity
     matrix as columns corresponding to the slack variables. Then the problem
     above can be written as
 
@@ -3155,7 +3409,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         sage: A = ([1, 1], [3, 1])
         sage: b = (1000, 1500)
         sage: c = (10, 5)
-        sage: P = LPProblemStandardForm(A, b, c)
+        sage: P = InteractiveLPProblemStandardForm(A, b, c)
         sage: from sage.numerical.interactive_simplex_method \
         ....:     import LPRevisedDictionary
         sage: D = LPRevisedDictionary(P, [1, 2])
@@ -3176,7 +3430,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         \renewcommand{\arraystretch}{1.500000}
         \begin{array}{l}
         \begin{array}{l|r|rr||r||r}
-        x_B & c_B &  & \!\!\!\!\!\!\!\! B^{-1} & y & B^{-1} b \\
+        x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b \\
         \hline
         x_{1} & 10 & -\frac{1}{2} & \frac{1}{2} & \frac{5}{2} & 250 \\
         x_{2} & 5 & \frac{3}{2} & -\frac{1}{2} & \frac{5}{2} & 750 \\
@@ -3186,6 +3440,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         x_N & x_{3} & x_{4} \\
         \hline
         c_N^T & 0 & 0 \\
+        \hline
         y^T A_N & \frac{5}{2} & \frac{5}{2} \\
         \hline
         c_N^T - y^T A_N & -\frac{5}{2} & -\frac{5}{2} \\
@@ -3202,12 +3457,12 @@ class LPRevisedDictionary(LPAbstractDictionary):
         r"""
         See :class:`LPRevisedDictionary` for documentation.
 
-        TESTS:::
+        TESTS::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: from sage.numerical.interactive_simplex_method \
             ....:     import LPRevisedDictionary
             sage: D = LPRevisedDictionary(P, [1, 2])
@@ -3232,7 +3487,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         OUTPUT:
 
         - ``True`` if ``other`` is an :class:`LPRevisedDictionary` for the same
-          :class:`LPProblemStandardForm` with the same :meth:`basic_variables`,
+          :class:`InteractiveLPProblemStandardForm` with the same :meth:`basic_variables`,
           ``False`` otherwise
 
         TESTS::
@@ -3240,7 +3495,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: from sage.numerical.interactive_simplex_method \
             ....:     import LPRevisedDictionary
             sage: D1 = LPRevisedDictionary(P, [1, 2])
@@ -3270,15 +3525,16 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(3)
             sage: print D._latex_()
+            %notruncate
             \renewcommand{\arraystretch}{1.500000}
             \begin{array}{l}
             \begin{array}{l|r|rr||r||r|r|r}
-            x_B & c_B & \multicolumn{2}{c||}{B^{-1}} & y & B^{-1} b & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
+            x_B & c_B &  & \mspace{-16mu} B^{-1} & y & B^{-1} b & B^{-1} A_{x_{1}} & \hbox{Ratio} \\
             \hline
             \color{red} x_{3} & \color{red} 0 & \color{red} 1 & \color{red} 0 & 0 & \color{red} 1000 & \color{red} 1 & \color{red} 1000 \\
             x_{4} & 0 & 0 & 1 & 0 & 1500 & 3 & 500 \\
@@ -3311,7 +3567,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             headers.append(r"\multicolumn{%d}{c||}{B^{-1}}" % m)
         else:
             headers.extend([""] * (m//2))
-            headers.append(r"\!\!\!\!\!\!\!\! B^{-1}")
+            headers.append(r"\mspace{-16mu} B^{-1}")
             headers.extend([""] * ((m-1)//2))
         headers.extend(["y", "B^{-1} b"])
         if entering is not None:
@@ -3337,25 +3593,20 @@ class LPRevisedDictionary(LPAbstractDictionary):
             if show_ratios:
                 if ratios and ratios[0][1] == x_B[i]:
                     entries.append(ratios.pop(0)[0])
-            terms = map(latex, entries)
+            terms = [latex(_) for _ in entries]
             if leaving is not None and i == l:
                 for j, t in enumerate(terms):
                     if j == m + 2:
                         continue
-                    if not generate_real_LaTeX:
-                        t = "{" + t + "}"
                     terms[j] = r"\color{red} " + t
             lines.append(" & ".join(terms) + r" \\")
         lines.append(r"\end{array}")
         top = "\n".join(lines)
 
         def make_line(header, terms):
-            terms = map(latex, terms)
+            terms = [latex(_) for _ in terms]
             if entering is not None:
-                t = terms[k]
-                if not generate_real_LaTeX:
-                    t = "{" + t + "}"
-                terms[k] = r"\color{green} " + t
+                terms[k] = r"\color{green} " + terms[k]
             lines.append(" & ".join([header] + terms) + r" \\")
 
         lines = []
@@ -3400,7 +3651,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.A(1)
             (1, 3)
@@ -3436,7 +3687,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.A_N()
             [1 1]
@@ -3459,7 +3710,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary(1, 2)
             sage: D.B()
             [1 1]
@@ -3484,7 +3735,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary(1, 2)
             sage: D.B_inverse()
             [-1/2  1/2]
@@ -3513,7 +3764,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(4)
@@ -3549,7 +3800,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(4)
@@ -3574,7 +3825,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
         .. NOTE::
 
             Basic indices are indices of :meth:`basic_variables` in the list of
-            generators of the :meth:`~LPProblemStandardForm.coordinate_ring` of
+            generators of the :meth:`~InteractiveLPProblemStandardForm.coordinate_ring` of
             the :meth:`problem` of ``self``, they may not coincide with the
             indices of variables which are parts of their names. (They will for
             the default indexed names.)
@@ -3588,7 +3839,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.basic_indices()
             [3, 4]
@@ -3609,7 +3860,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.basic_variables()
             (x3, x4)
@@ -3629,7 +3880,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary(1, 2)
             sage: D.c_B()
             (10, 5)
@@ -3659,7 +3910,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.c_N()
             (10, 5)
@@ -3687,7 +3938,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.constant_terms()
             (1000, 1500)
@@ -3707,7 +3958,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1], [-1, -1])
             sage: b = (1000, 1500, -400)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.dictionary()
             LP problem dictionary (use typeset mode to see details)
@@ -3718,7 +3969,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
                          self.objective_value(),
                          self.basic_variables(),
                          self.nonbasic_variables(),
-                         "z")
+                         self.problem().objective_name())
         D._entering = self._entering
         D._leaving = self._leaving
         return D
@@ -3736,7 +3987,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.entering_coefficients()
@@ -3760,7 +4011,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary(2, 3)
             sage: D.leave(3)
             sage: D.leaving_coefficients()
@@ -3780,7 +4031,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
             Non-basic indices are indices of :meth:`nonbasic_variables` in the
             list of generators of the
-            :meth:`~LPProblemStandardForm.coordinate_ring` of the
+            :meth:`~InteractiveLPProblemStandardForm.coordinate_ring` of the
             :meth:`problem` of ``self``, they may not coincide with the indices
             of variables which are parts of their names. (They will for the
             default indexed names.)
@@ -3794,7 +4045,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.nonbasic_indices()
             [1, 2]
@@ -3815,7 +4066,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.nonbasic_variables()
             (x1, x2)
@@ -3839,7 +4090,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.objective_coefficients()
             (10, 5)
@@ -3859,7 +4110,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.objective_value()
             0
@@ -3872,14 +4123,14 @@ class LPRevisedDictionary(LPAbstractDictionary):
 
         OUTPUT:
 
-        - an :class:`LP problem in standard form <LPProblemStandardForm>`
+        - an :class:`LP problem in standard form <InteractiveLPProblemStandardForm>`
 
         EXAMPLES::
 
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.problem() is P
             True
@@ -3895,7 +4146,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.objective_value()
             0
@@ -3926,7 +4177,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: A = ([1, 1], [3, 1])
             sage: b = (1000, 1500)
             sage: c = (10, 5)
-            sage: P = LPProblemStandardForm(A, b, c)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.revised_dictionary()
             sage: D.y()
             (0, 0)
@@ -3937,3 +4188,6 @@ class LPRevisedDictionary(LPAbstractDictionary):
     x_B = basic_variables
     x_N = nonbasic_variables
 
+# DEPRECATION (those two lines should be removed when cleaning #17867)
+LPProblem = InteractiveLPProblem
+LPProblemStandardForm = InteractiveLPProblemStandardForm

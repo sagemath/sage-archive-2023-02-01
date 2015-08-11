@@ -36,3 +36,6 @@ GPL version 2+
 == Special Update/Build Instructions ==
 
 See patches/README.txt for a list of patches.
+
+The current upstream tarball was created from the PARI git repository
+by running "make snapshot".

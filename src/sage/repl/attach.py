@@ -69,6 +69,7 @@ character-by-character::
 #*****************************************************************************
 
 import os
+import six
 import time
 from sage.repl.load import load, load_wrap
 import sage.env
@@ -166,7 +167,7 @@ def load_attach_path(path=None, replace=False):
         sage: attach('test.py')
         Traceback (most recent call last):
         ...
-        IOError: did not find file 'test.py' in load / attach search path
+        IOError: did not find file 'test.py' to load or attach
         sage: load_attach_path(t_dir)
         sage: attach('test.py')
         111
@@ -178,7 +179,7 @@ def load_attach_path(path=None, replace=False):
         sage: load('test.py')
         Traceback (most recent call last):
         ...
-        IOError: did not find file 'test.py' in load / attach search path
+        IOError: did not find file 'test.py' to load or attach
 
     The function returns a reference to the path list::
 
@@ -200,7 +201,7 @@ def load_attach_path(path=None, replace=False):
     if path is None:
         return search_paths
     else:
-        if isinstance(path, basestring):
+        if isinstance(path, six.string_types):
             path = [path]
         if replace:
             search_paths = path
@@ -263,23 +264,11 @@ def attach(*files):
     Attach a file or files to a running instance of Sage and also load
     that file.
 
-    USAGE:
+    INPUT:
 
-    ``attach file1 ...`` - space-separated list of ``.py``, ``.pyx``,
-    and ``.sage`` files, or ``attach('file1', 'file2')`` - filenames as
-    strings, given as arguments to :func:`attach`.
+    - ``files`` -- a list of filenames (strings) to attach.
 
-    :meth:`~sage.repl.load.load` is the same as :func:`attach`, but
-    doesn't automatically reload a file when it changes.
-
-    .. NOTE::
-
-       On the Sage prompt you can also just type ``attach "foo.sage"``
-       as a short-hand for ``attach('foo.sage')``. However this
-       alternate form is not part of the Python language and does not
-       work in Python scripts.
-
-    EFFECT:
+    OUTPUT:
 
     Each file is read in and added to an internal list of watched files.
     The meaning of reading in a file depends on the file type:
@@ -299,14 +288,15 @@ def attach(*files):
     a command, the attached file will be re-read automatically (with no
     intervention on your part).
 
+    .. SEEALSO::
+
+        :meth:`~sage.repl.load.load` is the same as :func:`attach`, but
+        doesn't automatically reload a file when it changes.
+
     EXAMPLES:
 
     You attach a file, e.g., ``foo.sage`` or ``foo.py`` or
     ``foo.pyx``, to a running Sage session by typing::
-
-        sage: attach foo.sage   # or foo.py or foo.pyx or even a URL to such a file (not tested)
-
-    or::
 
         sage: attach('foo.sage')  # not tested
 
@@ -455,7 +445,7 @@ def detach(filename):
         ...
         ValueError: file '/dev/null/foobar.sage' is not attached, see attached_files()
     """
-    if isinstance(filename, basestring):
+    if isinstance(filename, six.string_types):
         filelist = [filename]
     else:
         filelist = [str(x) for x in filename]
@@ -577,6 +567,7 @@ def reload_attached_files_if_modified():
         sage: shell.run_cell('detach({0})'.format(repr(tmp)))
         sage: shell.run_cell('attached_files()')
         []
+        sage: shell.quit()
     """
     for filename, mtime in modified_file_iterator():
         basename = os.path.basename(filename)

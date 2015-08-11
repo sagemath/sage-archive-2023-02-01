@@ -27,10 +27,12 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~Posets.RandomPoset` | Return a random poset on `n` vertices according to a probability `p`.
     :meth:`~Posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
+    :meth:`~Posets.ShardPoset` | Return the shard intersection order.
     :meth:`~Posets.SSTPoset` | Return the poset on semistandard tableaux of shape `s` and largest entry `f` that is ordered by componentwise comparison.
     :meth:`~Posets.SymmetricGroupBruhatIntervalPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
+    :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
 
 Constructions
 -------------
@@ -157,7 +159,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.ChainPoset(0)
             Finite lattice containing 0 elements
@@ -195,7 +197,7 @@ class Posets(object):
 
         TESTS:
 
-        Check that #8422 is solved::
+        Check that :trac:`8422` is solved::
 
             sage: Posets.AntichainPoset(0)
             Finite poset containing 0 elements
@@ -459,15 +461,20 @@ class Posets(object):
     @staticmethod
     def SSTPoset(s,f=None):
         """
-        The poset on semistandard tableaux of shape s and largest entry f that is ordered by componentwise comparison of the entries.
+        The poset on semistandard tableaux of shape ``s`` and largest
+        entry ``f`` that is ordered by componentwise comparison of the
+        entries.
 
         INPUT:
 
         - ``s`` - shape of the tableaux
 
-        - ``f`` - maximum fill number.  This is an optional argument.  If no maximal number is given, it will use the number of cells in the shape.
+        - ``f`` - maximum fill number.  This is an optional
+          argument.  If no maximal number is given, it will use
+          the number of cells in the shape.
 
-        NOTE: This is basic implementation and most certainly not the most efficient.
+        NOTE: This is a basic implementation and most certainly
+        not the most efficient.
 
         EXAMPLES::
 
@@ -490,24 +497,20 @@ class Posets(object):
         def tableaux_is_less_than(a,b):
             atstring = []
             btstring = []
-            c=0
-            for i in range(len(a)):
-                atstring=atstring+a[i]
-            for i in range(len(b)):
-                btstring=btstring+b[i]
+            for i in a:
+                atstring += i
+            for i in b:
+                btstring += i
             for i in range(len(atstring)):
                 if atstring[i] > btstring[i]:
-                    c = c+1
-            if c == 0:
-                return True
-            else:
-                return False
+                    return False
+            return True
         if f is None:
             f=0
-            for i in range(len(s)):
-                f = f+s[i]
-        E = SemistandardTableaux(s,max_entry=f)
-        return Poset((E, tableaux_is_less_than ))
+            for i in s:
+                f += i
+        E = SemistandardTableaux(s, max_entry=f)
+        return Poset((E, tableaux_is_less_than))
 
     @staticmethod
     def SymmetricGroupBruhatOrderPoset(n):
@@ -609,5 +612,14 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+
+    # shard intersection order
+    import sage.combinat.shard_order
+    ShardPoset = staticmethod(sage.combinat.shard_order.shard_poset)
+
+    # Tamari lattices
+    import sage.combinat.tamari_lattices
+    TamariLattice = staticmethod(sage.combinat.tamari_lattices.TamariLattice)
+
 
 posets = Posets

@@ -1,8 +1,9 @@
 r"""
 Projective `n` space over a ring
 
-EXAMPLES: We construct projective space over various rings of
-various dimensions.
+EXAMPLES:
+
+We construct projective space over various rings of various dimensions.
 
 The simplest projective space::
 
@@ -26,17 +27,28 @@ base rings.
     sage: X/CC
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
-The third argument specifies the printing names of the generators
-of the homogenous coordinate ring. Using objgens() you can obtain
-both the space and the generators as ready to use variables.
+The third argument specifies the printing names of the generators of the
+homogenous coordinate ring. Using the method `.objgens()` you can obtain both
+the space and the generators as ready to use variables. ::
+
+    sage: P2, vars = ProjectiveSpace(10, QQ, 't').objgens()
+    sage: vars
+    (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+
+You can alternatively use the special syntax with ``<`` and ``>``.
 
 ::
 
-    sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
+    sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
     sage: P2
     Projective Space of dimension 2 over Rational Field
-    sage: x.parent()
+    sage: P2.coordinate_ring()
     Multivariate Polynomial Ring in x, y, z over Rational Field
+
+The first of the three lines above is just equivalent to the two lines::
+
+    sage: P2 = ProjectiveSpace(2, QQ, 'xyz')
+    sage: x,y,z = P2.gens()
 
 For example, we use `x,y,z` to define the intersection of
 two lines.
@@ -79,6 +91,7 @@ from sage.categories.fields import Fields
 _Fields = Fields()
 
 from sage.categories.homset import Hom
+from sage.categories.number_fields import NumberFields
 
 from sage.misc.all import (latex,
                            prod)
@@ -99,7 +112,6 @@ from sage.schemes.projective.projective_point import (SchemeMorphism_point_proje
 from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
                                                           SchemeMorphism_polynomial_projective_space_field,
                                                           SchemeMorphism_polynomial_projective_space_finite_field)
-
 
 def is_ProjectiveSpace(x):
     r"""
@@ -538,7 +550,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j])
                                         for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 
@@ -918,6 +930,82 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
+    def points_of_bounded_height(self,bound, prec=53):
+        r"""
+        Returns an iterator of the points in self of absolute height of at most the given bound. Bound check
+        is strict for the rational field. Requires self to be projective space over a number field. Uses the
+        Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm].
+
+        INPUT:
+
+        - ``bound`` - a real number
+
+        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+
+        OUTPUT:
+
+        - an iterator of points in self
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: list(P.points_of_bounded_height(5))
+            [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
+            (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
+            (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2,'v'), 2)
+            sage: len(list(P.points_of_bounded_height(1.5)))
+            57
+        """
+        if (is_RationalField(self.base_ring())):
+            ftype = False # stores whether the field is a number field or the rational field
+        elif (self.base_ring() in NumberFields()): # true for rational field as well, so check is_RationalField first
+            ftype = True
+        else:
+            raise NotImplementedError("self must be projective space over a number field.")
+
+        bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
+
+        n = self.dimension_relative()
+        R = self.base_ring()
+        zero = R(0)
+        i = n
+        while not i < 0:
+            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+            yield self(P)
+            if (ftype == False): # if rational field
+                iters = [ R.range_by_height(bound) for _ in range(i) ]
+            else: # if number field
+                iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
+            for x in iters: next(x) # put at zero
+            j = 0
+            while j < i:
+                try:
+                    P[j] = next(iters[j])
+                    yield self(P)
+                    j = 0
+                except StopIteration:
+                    if (ftype == False): # if rational field
+                        iters[j] = R.range_by_height(bound) # reset
+                    else: # if number field
+                        iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
+                    next(iters[j]) # put at zero
+                    P[j] = zero
+                    j += 1
+            i -= 1
+
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):
         """
@@ -1004,16 +1092,16 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1
@@ -1069,17 +1157,17 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
             D.update({self(P):index})
             index+=1
             iters = [ iter(R) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     D.update({self(P):index})
                     index+=1
                     j = 0
                 except StopIteration:
                     iters[j] = iter(R)  # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

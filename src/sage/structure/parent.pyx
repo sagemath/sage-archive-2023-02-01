@@ -94,11 +94,12 @@ This came up in some subtle bug once::
 
 """
 
-cimport element
+from types import MethodType
+from element cimport parent_c
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
-from sage.structure.sage_object import SageObject
+from sage.structure.sage_object cimport SageObject, rich_to_bool
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
                                  is_extension_type)
 from sage.misc.lazy_attribute import lazy_attribute
@@ -115,22 +116,6 @@ from sage.structure.misc cimport AttributeErrorMessage
 cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
 dummy_attribute_error = AttributeError(dummy_error_message)
 
-# TODO: define this once?
-
-cdef object elt_parent = None
-
-cdef inline parent_c(x):
-    if PY_TYPE_CHECK(x, element.Element):
-        return (<element.Element>x)._parent
-#    elif hasattr(x, 'parent'):
-#        return x.parent()
-#    else:
-#        return <object>PY_TYPE(x)
-    else:
-        try:
-            return x.parent()
-        except AttributeError:
-            return <object>PY_TYPE(x)
 
 cdef _record_exception():
     from element import get_coercion_model
@@ -141,7 +126,7 @@ cdef bint is_Integer(x):
     global _Integer
     if _Integer is None:
         from sage.rings.integer import Integer as _Integer
-    return PY_TYPE_CHECK_EXACT(x, _Integer) or PY_TYPE_CHECK_EXACT(x, int)
+    return type(x) is _Integer or type(x) is int
 
 # for override testing
 cdef extern from "descrobject.h":
@@ -196,12 +181,12 @@ def is_Parent(x):
         sage: is_Parent(Primes())
         True
     """
-    return PY_TYPE_CHECK(x, Parent)
+    return isinstance(x, Parent)
 
 cdef bint guess_pass_parent(parent, element_constructor):
-    if PY_TYPE_CHECK(element_constructor, types.MethodType):
+    if isinstance(element_constructor, MethodType):
         return False
-    elif PY_TYPE_CHECK(element_constructor, BuiltinMethodType):
+    elif isinstance(element_constructor, BuiltinMethodType):
         return element_constructor.__self__ is not parent
     else:
         return True
@@ -797,6 +782,7 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_additive_associativity() . . . pass
             running ._test_an_element() . . . pass
             running ._test_associativity() . . . pass
+            running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
             running ._test_characteristic() . . . pass
             running ._test_distributivity() . . . pass
@@ -818,6 +804,7 @@ cdef class Parent(category_object.CategoryObject):
              pass
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
+            running ._test_gcd_vs_xgcd() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -873,6 +860,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_additive_associativity
             _test_an_element
             _test_associativity
+            _test_cardinality
             _test_category
             _test_characteristic
             _test_distributivity
@@ -886,6 +874,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_enumerated_set_iter_list
             _test_eq
             _test_euclidean_degree
+            _test_gcd_vs_xgcd
             _test_not_implemented_methods
             _test_one
             _test_pickling
@@ -1248,6 +1237,37 @@ cdef class Parent(category_object.CategoryObject):
             sage: pi in CDF
             True
 
+        Note that we have
+
+        ::
+
+            sage: 3/2 in RIF
+            True
+
+        because ``3/2`` has an exact representation in ``RIF`` (i.e. can be
+        represented as an interval that contains exactly one value)::
+
+            sage: RIF(3/2).is_exact()
+            True
+
+        On the other hand, we have
+
+        ::
+
+            sage: 2/3 in RIF
+            False
+
+        because ``2/3`` has no exact representation in ``RIF``. Since
+        ``RIF(2/3)`` is a nontrivial interval, it can not be equal to anything
+        (not even itself)::
+
+            sage: RIF(2/3).is_exact()
+            False
+            sage: RIF(2/3).endpoints()
+            (0.666666666666666, 0.666666666666667)
+            sage: RIF(2/3) == RIF(2/3)
+            False
+
         TESTS:
 
         Check that :trac:`13824` is fixed::
@@ -1359,7 +1379,8 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError: since it is infinite, cannot list Integer Ring
 
-        This is the motivation for :trac:`10470` ::
+        Trying to list an infinite vector space raises an error
+        instead of running forever (see :trac:`10470`)::
 
             sage: (QQ^2).list()
             Traceback (most recent call last):
@@ -1407,13 +1428,12 @@ cdef class Parent(category_object.CategoryObject):
             ...
             NotImplementedError
 
-        Asking for ``list(MyIntegers)`` below will never finish without
-        pressing Ctrl-C.  We let it run for 1 second and then interrupt::
+        Asking for ``list(MyIntegers)`` will also raise an exception::
 
-            sage: alarm(1.0); list(MyIntegers)
+            sage: list(MyIntegers)
             Traceback (most recent call last):
             ...
-            AlarmInterrupt
+            NotImplementedError
 
         """
         try:
@@ -1457,7 +1477,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-    cpdef bint _richcmp_helper(left, right, int op) except -2:
+    cpdef bint _richcmp(left, right, int op) except -2:
         """
         Compare left and right.
 
@@ -1468,7 +1488,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         cdef int r
 
-        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent):
+        if not isinstance(right, Parent) or not isinstance(left, Parent):
             # One is not a parent -- use arbitrary ordering
             if (<PyObject*>left) < (<PyObject*>right):
                 r = -1
@@ -1479,23 +1499,25 @@ cdef class Parent(category_object.CategoryObject):
 
         else:
             # Both are parents -- but need *not* have the same type.
-            if HAS_DICTIONARY(left):
-                r = left.__cmp__(right)
-            else:
-                r = left._cmp_(right)
+            r = left._cmp_(right)
 
-        if op == 0:  #<
-            return r  < 0
-        elif op == 2: #==
-            return r == 0
-        elif op == 4: #>
-            return r  > 0
-        elif op == 1: #<=
-            return r <= 0
-        elif op == 3: #!=
-            return r != 0
-        elif op == 5: #>=
-            return r >= 0
+        assert -1 <= r <= 1
+        return rich_to_bool(op, r)
+
+    cpdef int _cmp_(left, right) except -2:
+        # Check for Python class defining __cmp__
+        try:
+            return left.__cmp__(right)
+        except AttributeError:
+            pass
+        # Default: compare by id
+        if left is right:
+            return 0
+        if (<PyObject*>left) < (<PyObject*>right):
+            return -1
+        else:
+            return 1
+
 
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __len__(self):
@@ -1762,11 +1784,11 @@ cdef class Parent(category_object.CategoryObject):
         self._element_constructor = element_constructor
         self._element_init_pass_parent = guess_pass_parent(self, element_constructor)
 
-        if not PY_TYPE_CHECK(coerce_list, list):
+        if not isinstance(coerce_list, list):
             raise ValueError("%s_populate_coercion_lists_: coerce_list is type %s, must be list" % (type(coerce_list), type(self)))
-        if not PY_TYPE_CHECK(action_list, list):
+        if not isinstance(action_list, list):
             raise ValueError("%s_populate_coercion_lists_: action_list is type %s, must be list" % (type(action_list), type(self)))
-        if not PY_TYPE_CHECK(convert_list, list):
+        if not isinstance(convert_list, list):
             raise ValueError("%s_populate_coercion_lists_: convert_list is type %s, must be list" % (type(convert_list), type(self)))
 
         self._initial_coerce_list = copy(coerce_list)
@@ -1861,10 +1883,10 @@ cdef class Parent(category_object.CategoryObject):
             ...
             AssertionError: coercion from Univariate Polynomial Ring in b over Integer Ring to Univariate Polynomial Ring in a over Integer Ring already registered or discovered
         """
-        if PY_TYPE_CHECK(mor, map.Map):
+        if isinstance(mor, map.Map):
             if mor.codomain() is not self:
                 raise ValueError("Map's codomain must be self (%s) is not (%s)" % (self, mor.codomain()))
-        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+        elif isinstance(mor, Parent) or isinstance(mor, type):
             mor = self._generic_convert_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
@@ -1969,7 +1991,7 @@ cdef class Parent(category_object.CategoryObject):
                 raise ValueError("Map's codomain must be self")
             self._convert_from_list.append(mor)
             self._convert_from_hash.set(mor.domain(),mor)
-        elif PY_TYPE_CHECK(mor, Parent) or PY_TYPE_CHECK(mor, type):
+        elif isinstance(mor, Parent) or isinstance(mor, type):
             t = mor
             mor = self._generic_convert_map(mor)
             self._convert_from_list.append(mor)
@@ -2124,11 +2146,11 @@ cdef class Parent(category_object.CategoryObject):
         import coerce_maps
         if self._convert_method_name is not None:
             # handle methods like _integer_
-            if PY_TYPE_CHECK(S, type):
+            if isinstance(S, type):
                 element_constructor = S
-            elif PY_TYPE_CHECK(S, Parent):
+            elif isinstance(S, Parent):
                 element_constructor = (<Parent>S)._element_constructor
-                if not PY_TYPE_CHECK(element_constructor, type):
+                if not isinstance(element_constructor, type):
                     # if element_constructor is not an actual class, get the element class
                     element_constructor = type(S.an_element())
             else:
@@ -2399,7 +2421,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         Precedence for discovering a coercion S -> self goes as follows:
 
-        1. If S has an embedding into T, look for T -> self and return composition
+        1. If S has an embedding into self, return that embedding.
 
         2. If self._coerce_map_from_(S) is NOT exactly one of
 
@@ -2407,10 +2429,13 @@ cdef class Parent(category_object.CategoryObject):
            - DefaultConvertMap_unique
            - NamedConvertMap
 
-           return this map
+           return this map.
 
         3. Traverse the coercion lists looking for another map
            returning the map from step (2) if none is found.
+
+        4. If S has an embedding into some parent T, look for T -> self and
+           return composition.
 
         In the future, multiple paths may be discovered and compared.
 
@@ -2450,14 +2475,55 @@ cdef class Parent(category_object.CategoryObject):
             Conversion map:
             From: Rational Field
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field
+
+        Test that :trac:`17981` is fixed::
+
+            sage: class P(Parent):
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=Sets())
+            ....:     def _coerce_map_from_(self, A):
+            ....:         if A == ZZ:
+            ....:             return lambda x: self.element_class(self, x)
+            ....:         return False
+            ....:     Element=ElementWrapper
+            sage: X = P()
+            sage: X.has_coerce_map_from(ZZ)
+            True
+
+        Check that :trac:`14982` is fixed, and more generally that we discover
+        sensible coercion paths in the presence of embeddings::
+
+            sage: K.<a> = NumberField(x^2+1/2, embedding=CC(0,1))
+            sage: L = NumberField(x^2+2, 'b', embedding=1/a)
+            sage: PolynomialRing(L, 'x').coerce_map_from(L)
+            Polynomial base injection morphism:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2
+            sage: PolynomialRing(K, 'x').coerce_map_from(L)
+            Composite map:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+              Defn:   Generic morphism:
+                      From: Number Field in b with defining polynomial x^2 + 2
+                      To:   Number Field in a with defining polynomial x^2 + 1/2
+                      Defn: b -> -2*a
+                    then
+                      Polynomial base injection morphism:
+                      From: Number Field in a with defining polynomial x^2 + 1/2
+                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+            sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
+            Call morphism:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
+            sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
+            Conversion map:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """
         best_mor = None
-        if PY_TYPE_CHECK(S, Parent) and (<Parent>S)._embedding is not None:
+        if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
-            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
-            if connecting is not None:
-                return (<Parent>S)._embedding.post_compose(connecting)
 
         cdef map.Map mor
         user_provided_mor = self._coerce_map_from_(S)
@@ -2472,16 +2538,16 @@ cdef class Parent(category_object.CategoryObject):
 
             if user_provided_mor is True:
                 mor = self._generic_convert_map(S)
-            elif PY_TYPE_CHECK(user_provided_mor, Map):
+            elif isinstance(user_provided_mor, Map):
                 mor = <map.Map>user_provided_mor
             elif callable(user_provided_mor):
-                mor = CallableConvertMap(user_provided_mor)
+                mor = CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_coerce_map_from_ must return None, a boolean, a callable, or an explicit Map (called on %s, got %s)" % (type(self), type(user_provided_mor)))
 
-            if (PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap) or
-                  PY_TYPE_CHECK_EXACT(mor, DefaultConvertMap_unique) or
-                  PY_TYPE_CHECK_EXACT(mor, NamedConvertMap)) and not mor._force_use:
+            if (type(mor) is DefaultConvertMap or
+                  type(mor) is DefaultConvertMap_unique or
+                  type(mor) is NamedConvertMap) and not mor._force_use:
                 # If there is something better in the list, try to return that instead
                 # This is so, for example, _coerce_map_from_ can return True but still
                 # take advantage of the _populate_coercion_lists_ data.
@@ -2519,7 +2585,13 @@ cdef class Parent(category_object.CategoryObject):
                     if mor_found  >= num_paths:
                         return best_mor
 
-        return best_mor
+        if best_mor is not None:
+            return best_mor
+
+        if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
+            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
+            if connecting is not None:
+                return (<Parent>S)._embedding.post_compose(connecting)
 
     cpdef convert_map_from(self, S):
         """
@@ -2600,7 +2672,7 @@ cdef class Parent(category_object.CategoryObject):
         if mor is not None:
             return mor
 
-        if PY_TYPE_CHECK(S, Parent):
+        if isinstance(S, Parent):
             mor = S._internal_coerce_map_from(self)
             if mor is not None:
                 mor = mor.section()
@@ -2610,24 +2682,13 @@ cdef class Parent(category_object.CategoryObject):
         user_provided_mor = self._convert_map_from_(S)
 
         if user_provided_mor is not None:
-            if PY_TYPE_CHECK(user_provided_mor, map.Map):
+            if isinstance(user_provided_mor, map.Map):
                 return user_provided_mor
             elif callable(user_provided_mor):
                 from coerce_maps import CallableConvertMap
-                return CallableConvertMap(user_provided_mor)
+                return CallableConvertMap(S, self, user_provided_mor)
             else:
                 raise TypeError("_convert_map_from_ must return a map or callable (called on %s, got %s)" % (type(self), type(user_provided_mor)))
-
-        if not PY_TYPE_CHECK(S, type) and not PY_TYPE_CHECK(S, Parent):
-            # Sequences is not a Parent but a category!! As we would like to
-            # consider them as a parent we consider a workaround by using
-            # Set_PythonType from sage.structure.parent
-            from sage.categories.category_types import Sequences
-            from sage.structure.coerce_maps import ListMorphism
-            if isinstance(S, Sequences):
-                from sage.structure.sequence import Sequence_generic
-                SS = Set_PythonType(Sequence_generic)
-                return ListMorphism(SS, self.convert_map_from(list))
 
         mor = self._generic_convert_map(S)
         return mor
@@ -2692,7 +2753,7 @@ cdef class Parent(category_object.CategoryObject):
         from coerce_actions import LeftModuleAction, RightModuleAction
         cdef Parent R
         for action in self._action_list:
-            if PY_TYPE_CHECK(action, Action) and action.operation() is op:
+            if isinstance(action, Action) and action.operation() is op:
                 if self_on_left:
                     if action.left_domain() is not self: continue
                     R = action.right_domain()
@@ -2818,9 +2879,11 @@ cdef class Parent(category_object.CategoryObject):
             ...
             EmptySetError
         """
-        if self.__an_element is None:
-            self.__an_element = self._an_element_()
-        return self.__an_element
+        # _cache_an_element, not _cache__an_element, to prevent a possible
+        # conflict with @cached_method
+        if self._cache_an_element is None:
+            self._cache_an_element = self._an_element_()
+        return self._cache_an_element
 
     def _an_element_(self):
         """
@@ -2917,31 +2980,6 @@ cdef class Parent(category_object.CategoryObject):
         """
         return True
 
-#    cpdef base_extend(self, other, category=None):
-#        """
-#        EXAMPLES:
-#            sage: QQ.base_extend(GF(7))
-#            Traceback (most recent call last):
-#            ...
-#            TypeError: base extension not defined for Rational Field
-#            sage: ZZ.base_extend(GF(7))
-#            Finite Field of size 7
-#        """
-#        # Use the coerce map if a base extend is not defined in the category.
-#        # this is the default implementation.
-#        try:
-#            if category is None:
-#                method = self._categories[0].get_object_method("base_extend") # , self._categories[1:])
-#            else:
-#                method = category.get_object_method("base_extend")
-#            if method is not None:
-#                return method(self)
-#            elif other.has_coerce_map_from(self):
-#                return other
-#            else:
-#                raise TypeError, "base extension not defined for %s" % self
-#        except AttributeError:
-#            raise TypeError, "base extension not defined for %s" % self
 
 ############################################################################
 # Set base class --
@@ -3089,7 +3127,7 @@ cdef class Set_PythonType_class(Set_generic):
             0.333333333333333...
 
         """
-        if PY_TYPE_CHECK(x,self._type):
+        if isinstance(x, self._type):
             return x
         return self._type(x)
 
@@ -3103,7 +3141,7 @@ cdef class Set_PythonType_class(Set_generic):
         """
         return -hash(self._type)
 
-    cpdef int _cmp_(self, other) except -100:
+    cpdef int _cmp_(self, other) except -2:
         """
         Two Python type sets are considered the same if they contain the same
         type.
@@ -3262,8 +3300,8 @@ cdef bint _register_pair(x, y, tag) except -1:
     both = EltPair(x,y,tag)
 
     if both in _coerce_test_dict:
-        xp = type(x) if PY_TYPE_CHECK(x, Parent) else parent_c(x)
-        yp = type(y) if PY_TYPE_CHECK(y, Parent) else parent_c(y)
+        xp = type(x) if isinstance(x, Parent) else parent_c(x)
+        yp = type(y) if isinstance(y, Parent) else parent_c(y)
         raise CoercionException("Infinite loop in action of %s (parent %s) and %s (parent %s)!" % (x, xp, y, yp))
     _coerce_test_dict[both] = True
     return 0

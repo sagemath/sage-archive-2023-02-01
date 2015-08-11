@@ -35,11 +35,10 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.calculus.var import var
 import sage.categories.all
 from sage.rings.all import Integer, gcd, lcm, QQ
 from sage.rings.fraction_field import is_FractionField
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
@@ -70,8 +69,6 @@ class Jack(UniqueRepresentation):
             Jack polynomials with t=1 over Rational Field
         """
         self._sym = Sym
-        if not (t in Sym.base_ring() or var(t) in Sym.base_ring()):
-            raise ValueError("parameter t must be in the base ring")
         self.t = Sym.base_ring()(t)
         self._name_suffix = ""
         if str(t) !='t':
@@ -191,7 +188,7 @@ class Jack(UniqueRepresentation):
             sage: Z([2])^2
             64/45*Z[2, 2] + 16/21*Z[3, 1] + Z[4]
 
-        :::
+        ::
 
             sage: Sym = SymmetricFunctions(QQ['a','b'].fraction_field())
             sage: (a,b) = Sym.base_ring().gens()

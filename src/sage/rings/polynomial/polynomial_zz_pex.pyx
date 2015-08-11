@@ -2,6 +2,7 @@
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
 
 AUTHOR:
+
 - Yann Laigle-Chapuy (2010-01) initial implementation
 """
 
@@ -131,7 +132,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         if isinstance(x, Polynomial):
             x = x.list()
 
-        if PY_TYPE_CHECK(x, list) or PY_TYPE_CHECK(x, tuple):
+        if isinstance(x, list) or isinstance(x, tuple):
             Polynomial.__init__(self, parent, is_gen=is_gen)
             (<Polynomial_template>self)._cparent = get_cparent(parent)
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)
@@ -165,6 +166,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: f[-5:50] == f
             True
         """
+        cdef type t
         cdef ZZ_pE_c c_pE
         cdef Polynomial_template r
         if isinstance(i, slice):
@@ -176,7 +178,8 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             x = (<Polynomial_template>self)._parent.gen()
             v = [self[t] for t from start <= t < stop]
 
-            r = <Polynomial_template>PY_NEW(self.__class__)
+            t = type(self)
+            r = <Polynomial_template>t.__new__(t)
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
@@ -218,7 +221,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         cdef ntl_ZZ_pE d
         cdef Polynomial_ZZ_pEX r
-        r = PY_NEW(Polynomial_ZZ_pEX)
+        r = Polynomial_ZZ_pEX.__new__(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
         r._cparent = (<Polynomial_template>self)._cparent
@@ -248,7 +251,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: SR(p)      #indirect doctest
-            (((y + x)*y + 1)*y + x + 1)*y + x + 1
+            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
             sage: p(2)
             x + 1
             sage: p(y=2)
@@ -382,7 +385,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             raise ValueError("unknown algorithm")
         return res != 0
 
-    cdef int _cmp_c_impl(left,Element right) except -2:
+    cpdef int _cmp_(left,Element right) except -2:
         """
         EXAMPLE::
 
@@ -438,7 +441,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         self._parent._modulus.restore()
         cdef Polynomial_ZZ_pEX r
-        r = PY_NEW(Polynomial_ZZ_pEX)
+        r = Polynomial_ZZ_pEX.__new__(Polynomial_ZZ_pEX)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)
         r._parent = (<Polynomial_template>self)._parent
         r._cparent = (<Polynomial_template>self)._cparent

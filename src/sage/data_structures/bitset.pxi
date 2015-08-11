@@ -25,8 +25,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
+from libc.string cimport strlen
 from sage.libs.gmp.mpn cimport *
 from sage.data_structures.bitset cimport *
 from cython.operator import preincrement as preinc
@@ -288,6 +288,20 @@ cdef inline bint bitset_issuperset(bitset_t a, bitset_t b):
     We assume ``a.limbs >= b.limbs``.
     """
     return bitset_issubset(b, a)
+
+
+cdef inline bint bitset_are_disjoint(bitset_t a, bitset_t b):
+    """
+    Tests whether ``a`` and ``b`` have an empty intersection.
+
+    We assume ``a.limbs <= b.limbs``.
+    """
+    cdef mp_size_t i
+    for i from 0 <= i < a.limbs:
+        if (a.bits[i]&b.bits[i]) != 0:
+            return False
+    return True
+
 
 #############################################################################
 # Bitset Bit Manipulation

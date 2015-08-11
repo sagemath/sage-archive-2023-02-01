@@ -17,11 +17,11 @@ Database of Hilbert Polynomials
 
 
 import bz2, os
-import sage.misc.misc
+from sage.env import SAGE_SHARE
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-dblocation = os.path.join(sage.misc.misc.SAGE_SHARE,'kohel')
+dblocation = os.path.join(SAGE_SHARE, 'kohel')
 
 disc_length = 7
 level_length = 3
@@ -73,15 +73,15 @@ class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):
     EXAMPLES::
 
         sage: db = HilbertClassPolynomialDatabase()
-        sage: db[-4]                 # optional - database_kohel
+        sage: db[-4]                     # optional - database_kohel
         x - 1728
-        sage: db[-7]                 # optional
+        sage: db[-7]                     # optional - database_kohel
         x + 3375
-        sage: f = db[-23]; f         # optional
+        sage: f = db[-23]; f             # optional - database_kohel
         x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
-        sage: f.discriminant().factor()    # optional
+        sage: f.discriminant().factor()  # optional - database_kohel
         -1 * 5^18 * 7^12 * 11^4 * 17^2 * 19^2 * 23
-        sage: db[-23]                      # optional
+        sage: db[-23]                    # optional - database_kohel
         x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
     """
     def __init__(self):

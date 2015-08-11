@@ -81,6 +81,11 @@ if [ "$UNAME" = "SunOS" ]; then
 fi
 
 
+# There is a race condition in the Singular Makefiles, building in
+# parallel sometimes fails (Trac #17774)
+export MAKE="$MAKE -j1"
+
+
 choose_patches()
 {
     cd "$PATCHES" || return $?

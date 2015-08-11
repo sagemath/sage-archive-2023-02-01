@@ -11,7 +11,7 @@ Indexed Generators
 from sage.rings.all import Integer
 
 class IndexedGenerators(object):
-    r"""
+    r"""nodetex
     Abstract base class for parents whose elements consist of generators
     indexed by an arbitrary set.
 
@@ -332,7 +332,7 @@ class IndexedGenerators(object):
               ##
                ####
         """
-        from sage.misc.ascii_art import AsciiArt, ascii_art
+        from sage.typeset.ascii_art import AsciiArt, ascii_art
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m))
         r._baseline = r._h - 1

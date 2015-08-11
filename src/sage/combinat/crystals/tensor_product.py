@@ -33,7 +33,7 @@ import operator
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.structure.parent import Parent
-from sage.structure.element import Element, parent
+from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
 from sage.categories.category import Category
 from sage.categories.classical_crystals import ClassicalCrystals
@@ -41,12 +41,13 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
 from letters import CrystalOfLetters
 from spins import CrystalOfSpins, CrystalOfSpinsMinus, CrystalOfSpinsPlus
 from sage.misc.flatten import flatten
+from sage.structure.element import get_coercion_model
 
 ##############################################################################
 # Until trunc gets implemented in sage.function.other
@@ -89,7 +90,7 @@ class TestParent(UniqueRepresentation, Parent):
         """
         return "A parent for tests"
 
-class ImmutableListWithParent(CombinatorialObject, Element):
+class ImmutableListWithParent(CombinatorialElement):
     r"""
     A class for lists having a parent
 
@@ -112,22 +113,11 @@ class ImmutableListWithParent(CombinatorialObject, Element):
         [3, 2, 1]
         sage: l.set_index(1,4)
         [1, 4, 3]
+
+    TESTS::
+
+        sage: TestSuite(l).run(skip = "_test_category")
     """
-    def __init__(self, parent, list):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.crystals.tensor_product import ImmutableListWithParent, TestParent
-            sage: l = ImmutableListWithParent(TestParent(), [1,2,3])
-            sage: l.parent()
-            A parent for tests
-            sage: parent(l)
-            A parent for tests
-            sage: TestSuite(l).run(skip = "_test_category")
-        """
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, list)
-
     def _repr_(self):
         """
         EXAMPLES::
@@ -634,7 +624,7 @@ class TensorProductOfCrystals(CrystalOfWords):
          Crystal of generalized Young walls of type ['A', 15, 1],
          Crystal of generalized Young walls of type ['A', 15, 1]]
 
-        sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+        sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
         sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
         sage: C = crystals.GeneralizedYoungWalls(2,2*La[2])
         sage: D = crystals.GeneralizedYoungWalls(2,3*La[0]+La[2])
@@ -854,6 +844,31 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
         """
         return self.cartesian_product.cardinality()
 
+    @cached_method
+    def weight_lattice_realization(self):
+        r"""
+        Return the weight lattice realization used to express weights.
+
+        The weight lattice realization is the common parent which all
+        weight lattice realizations of the crystals of ``self`` coerce
+        into.
+
+        EXAMPLES::
+
+            sage: B = crystals.elementary.B(['A',4], 2)
+            sage: B.weight_lattice_realization()
+            Root lattice of the Root system of type ['A', 4]
+            sage: T = crystals.infinity.Tableaux(['A',4])
+            sage: T.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+            sage: TP = crystals.TensorProduct(B, T)
+            sage: TP.weight_lattice_realization()
+            Ambient space of the Root system of type ['A', 4]
+        """
+        cm = get_coercion_model()
+        return cm.common_parent(*[crystal.weight_lattice_realization()
+                                  for crystal in self.crystals])
+
 class TensorProductOfCrystalsElement(ImmutableListWithParent):
     r"""
     A class for elements of tensor products of crystals.
@@ -904,7 +919,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
               3  3  3     2
              -4 -4 -4
         """
-        from sage.misc.ascii_art import ascii_art, AsciiArt
+        from sage.typeset.ascii_art import ascii_art, AsciiArt
         s = ascii_art(self[0])
         s._baseline = s._h // 2
         ret = s
@@ -1043,7 +1058,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',2,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(2,La[0]+La[1])
             sage: T = crystals.TensorProduct(B,B)
             sage: b1 = B.highest_weight_vector().f_string([1,0])
@@ -1100,10 +1115,33 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t = T(b1, b2)
             sage: [[t._sig(i,k) for k in range(1,len(t)+1)] for i in B.index_set()]
             [[0, -1], [0, 0], [0, 1], [1, 2]]
+
+        TESTS:
+
+        Check that :trac:`18469` is fixed::
+
+            sage: E1 = crystals.elementary.B(['A',2], 1)
+            sage: E2 = crystals.elementary.B(['A',2], 2)
+            sage: T = crystals.TensorProduct(E1, E2)
+            sage: x = T(E1.module_generators[0], E2.module_generators[0]); x
+            [0, 0]
+            sage: [[x._sig(i,k) for k in range(1,3)] for i in T.index_set()]
+            [[-inf, 0], [0, -inf]]
+            sage: x.f(1)
+            [-1, 0]
+            sage: x.e(1)
+            [1, 0]
         """
         if k == 1:
             return self[-1].epsilon(i)
-        return self._sig(i, k-1) + self[-k].epsilon(i) - self[-k+1].phi(i)
+        ep = self[-k].epsilon(i)
+        if ep == float("-inf"):
+            return ep
+
+        P = self[-1].parent().weight_lattice_realization()
+        h = P.simple_coroots()
+        wt = sum(P(self[-j].weight()) for j in range(1, k))
+        return ep - P(wt).scalar(h[i])
 
     def e(self,i):
         r"""
@@ -1148,7 +1186,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
+            sage: La = RootSystem(['A',3,1]).weight_lattice(extended=True).fundamental_weights()
             sage: B = crystals.GeneralizedYoungWalls(3,La[0])
             sage: T = crystals.TensorProduct(B,B,B)
             sage: b1 = B.highest_weight_vector().f_string([0,3])
@@ -1824,8 +1862,7 @@ class CrystalOfTableaux(CrystalOfWords):
         # The column canonical tableau, read by columns
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(len(p))])
         if invert:
-            f = lambda x : -x if x == type[1] else x
-            module_generator = map(f, module_generator)
+            module_generator = [(-x if x == type[1] else x) for x in module_generator]
         return self(list=[self.letters(x) for x in module_generator])
 
     def _element_constructor_(self, *args, **options):
@@ -1876,8 +1913,8 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: t
             [[1, 2], [3, 4]]
 
-        Currently inputting the empty tableau as an empty sequence is broken due to a bug in
-        the generic __call__ method (see trac ticket #8648)
+        Currently inputting the empty tableau as an empty sequence is
+        broken due to a bug in the generic __call__ method (see :trac:`8648`).
 
         EXAMPLES::
 
@@ -1908,23 +1945,22 @@ class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
             if isinstance(args[0], Tableau):
                 options['rows'] = args[0]
         if 'list' in options:
-            list = options['list']
+            the_list = options['list']
         elif 'rows' in options:
-            rows=options['rows']
-#            list=Tableau(rows).to_word_by_column()
-            rows=Tableau(rows).conjugate()
-            list=[]
+            rows = options['rows']
+#            the_list=Tableau(rows).to_word_by_column()
+            rows = Tableau(rows).conjugate()
+            the_list = []
             for col in rows:
-                col.reverse()
-                list+=col
+                the_list += reversed(col)
         elif 'columns' in options:
-            columns=options['columns']
-            list=[]
+            columns = options['columns']
+            the_list = []
             for col in columns:
-                list+=col
+                the_list += col
         else:
-            list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, map(parent.letters, list))
+            the_list = [i for i in args]
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, [parent.letters(_) for _ in the_list])
 
     def _repr_(self):
         """

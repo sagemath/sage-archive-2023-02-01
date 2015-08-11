@@ -540,34 +540,42 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         return ClassicalWeylSubgroup(self._domain, prefix=self._prefix)
 
     def bruhat_graph(self, x, y):
-        """
-        The Bruhat graph Gamma(x,y), defined if x <= y in the Bruhat order, has
-        as its vertices the Bruhat interval, {t | x <= t <= y}, and as its
-        edges the pairs u, v such that u = r.v where r is a reflection, that
-        is, a conjugate of a simple reflection.
+        r"""
+        Return the Bruhat graph as a directed graph, with an edge `u \to v`
+        if and only if `u < v` in the Bruhat order, and `u = r \cdot v`.
 
-        Returns the Bruhat graph as a directed graph, with an edge u --> v
-        if and only if u < v in the Bruhat order, and u = r.v.
+        The Bruhat graph `\Gamma(x,y)`, defined if `x \leq y` in the
+        Bruhat order, has as its vertices the Bruhat interval
+        `\{ t | x \leq t \leq y \}`, and as its edges are the pairs
+        `(u, v)` such that `u = r \cdot v` where `r` is a reflection,
+        that is, a conjugate of a simple reflection.
 
-        See:
+        REFERENCES:
 
-        Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar, and
-        rational smoothness of Schubert varieties. Algebraic groups and their
-        generalizations: classical methods (University Park, PA, 1991), 53--61,
-        Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc., Providence, RI, 1994.
+        Carrell, The Bruhat graph of a Coxeter group, a conjecture of Deodhar,
+        and rational smoothness of Schubert varieties. Algebraic groups and
+        their generalizations: classical methods (University Park, PA, 1991),
+        53--61, Proc. Sympos. Pure Math., 56, Part 1, Amer. Math. Soc.,
+        Providence, RI, 1994.
 
         EXAMPLES::
 
-            sage: W = WeylGroup("A3", prefix = "s")
-            sage: [s1,s2,s3] = W.simple_reflections()
-            sage: W.bruhat_graph(s1*s3,s1*s2*s3*s2*s1)
+            sage: W = WeylGroup("A3", prefix="s")
+            sage: s1, s2, s3 = W.simple_reflections()
+            sage: G = W.bruhat_graph(s1*s3, s1*s2*s3*s2*s1); G
             Digraph on 10 vertices
+
+        Check that the graph has the correct number of edges
+        (see :trac:`17744`)::
+
+            sage: len(G.edges())
+            16
         """
         g = self.bruhat_interval(x, y)
-        ref = self.reflections()
+        ref = self.reflections().keys()
         d = {}
-        for x in g:
-            d[x] = [y for y in g if x.length() < y.length() and x*y.inverse() in ref]
+        for u in g:
+            d[u] = [v for v in g if u.length() < v.length() and u*v.inverse() in ref]
         return DiGraph(d)
 
 
@@ -787,7 +795,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
                self._parent   == other._parent   and \
                self.__matrix  == other.__matrix
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 
@@ -798,11 +806,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s[1] == s[2]
             False
         """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
         if self._parent.cartan_type() != other._parent.cartan_type():
             return cmp(self._parent.cartan_type(), other._parent.cartan_type())
         return cmp(self.matrix(), other.matrix())
+
+    __cmp__ = _cmp_
 
     def action(self, v):
         """
@@ -907,6 +915,27 @@ class WeylGroupElement(MatrixGroupElement_gap):
             s = self.action(L.alpha()[i]).is_positive_root()
 
         return s is positive
+
+    def has_left_descent(self,i):
+        """
+        Tests if self has a left descent at position `i`.
+
+        EXAMPLES::
+
+            sage: W = WeylGroup(['A',3])
+            sage: s = W.simple_reflections()
+            sage: [W.one().has_descent(i) for i in W.domain().index_set()]
+            [False, False, False]
+            sage: [s[1].has_descent(i) for i in W.domain().index_set()]
+            [True, False, False]
+            sage: [s[2].has_descent(i) for i in W.domain().index_set()]
+            [False, True, False]
+            sage: [s[3].has_descent(i) for i in W.domain().index_set()]
+            [False, False, True]
+            sage: [s[3].has_descent(i, True) for i in W.domain().index_set()]
+            [True, True, False]
+        """
+        return self.has_descent(i, side = "left")
 
     def apply_simple_reflection(self, i, side = "right"):
         s = self.parent().simple_reflections()

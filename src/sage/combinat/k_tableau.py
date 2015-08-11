@@ -7,7 +7,7 @@ whereas standard strong `k`-tableaux correspond to saturated chains in the stron
 For semistandard tableaux, the notion of weak and strong horizontal strip is necessary.
 More information can be found in [LLMS2006]_ .
 
-    .. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
+.. SEEALSO:: :meth:`sage.combinat.k_tableau.StrongTableau`, :meth:`sage.combinat.k_tableau.WeakTableau`
 
 REFERENCES:
 
@@ -43,7 +43,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.structure.list_clone import ClonableList
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -271,7 +271,7 @@ class WeakTableau_abstract(ClonableList):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     def shape(self):
         r"""
@@ -478,7 +478,7 @@ class WeakTableau_abstract(ClonableList):
                 return x
             return "%s"%x
         if self.parent()._representation in ['core', 'bounded']:
-            t = [[chi(x) for x in row] for row in self._list]
+            t = [[chi(x) for x in row] for row in self]
             from output import tex_from_array
             return tex_from_array(t)
         else:
@@ -738,7 +738,6 @@ class WeakTableau_core(WeakTableau_abstract):
             sage: TestSuite(t).run()
         """
         self.k = parent.k
-        self._list = [r for r in t]
         ClonableList.__init__(self, parent, t)
 
     def _repr_diagram(self):
@@ -821,7 +820,7 @@ class WeakTableau_core(WeakTableau_abstract):
             ...
             ValueError: The tableau is not semistandard!
         """
-        if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self._list,self.k).weight():
+        if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self,self.k).weight():
             raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
         t = SkewTableau(list(self))
         if not t in SemistandardSkewTableaux():
@@ -1016,7 +1015,7 @@ class WeakTableau_core(WeakTableau_abstract):
             raise ValueError("This method only works for straight tableaux!")
         if self.weight() not in Partitions(sum(self.weight())):
             raise ValueError("This method only works for weak tableaux with partition weight!")
-        if self._list == []:
+        if not self:
             return []
         mu = Partition(self.weight()).conjugate()
         already_used = []
@@ -1416,7 +1415,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
         INPUT:
 
         - ``t`` -- weak tableau in `k`-bounded representation; the input is supposed to be
-          a list of lists specifying the rows of the tableau;  ``None`` is allowed as an
+          a list of iterables specifying the rows of the tableau;  ``None`` is allowed as an
           entry for skew weak `k`-tableaux
 
         TESTS::
@@ -1448,10 +1447,9 @@ class WeakTableau_bounded(WeakTableau_abstract):
         """
         k = parent.k
         self.k = k
-        self._list = [r for r in t]
         if parent._outer_shape.conjugate().length() > k:
             raise ValueError("%s is not a %s-bounded tableau"%(t, k))
-        ClonableList.__init__(self, parent, t)
+        ClonableList.__init__(self, parent, [list(r) for r in t])
 
     def _repr_diagram(self):
         r"""
@@ -2143,7 +2141,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: T = WeakTableaux_factorized_permutation(3, [2,1], [1,1,1])
             sage: TestSuite(T).run()
             sage: T = WeakTableaux_factorized_permutation(4, [[6,2,1], [2]], [2,1,1,1])
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         if shape == [] or shape[0] in ZZ:
             shape = (Core(shape, k+1), Core([],k+1))
@@ -2169,7 +2167,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: T = WeakTableaux_factorized_permutation(3, [4,1], [2,2])
             sage: TestSuite(T).run()
             sage: T = WeakTableaux_factorized_permutation(4, [[6,2,1], [2]], [2,1,1,1])
-            sage: TestSuite(T).run()
+            sage: TestSuite(T).run() # long time
         """
         self.k = k
         self._skew = shape[1]!=[]
@@ -2333,7 +2331,7 @@ class StrongTableau(ClonableList):
         self._tableau = T
         ClonableList.__init__(self, parent, T)
 
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, T, k, weight=None):
@@ -2381,7 +2379,7 @@ class StrongTableau(ClonableList):
         """
         if isinstance(T, cls):
             return T
-        outer_shape = Core(map(len, T),k+1)
+        outer_shape = Core([len(t) for t in T], k+1)
         inner_shape = Core([x for x in [row.count(None) for row in T] if x>0], k+1)
         Te = [v for row in T for v in row if v is not None]+[0]
         count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
@@ -2527,8 +2525,8 @@ class StrongTableau(ClonableList):
             True
         """
         T = self.to_standard_list()
-        size = Core(map(len,T), self.k+1).length()
-        inner_size = Core(map(len,[y for y in map(lambda row: [x for x in row if x is None], T) if len(y)>0]),self.k+1).length()
+        size = Core([len(t) for t in T], self.k+1).length()
+        inner_size = Core([y for y in (len([x for x in row if x is None]) for row in T) if y > 0], self.k+1).length()
         if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
@@ -3599,7 +3597,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).to_unmarked_standard_list()
             []
         """
-        return map(lambda x: map(nabs,x), self.to_standard_list())
+        return [[nabs(_) for _ in x] for x in self.to_standard_list()]
 
     def _latex_(self):
         r"""
@@ -3675,8 +3673,8 @@ class StrongTableau(ClonableList):
             []
         """
         rr = sum(self.weight()[:r])
-        rest_tab = [y for y in map(lambda row: [x for x in row if x is None or abs(x)<=rr], self.to_standard_list()) if len(y)>0]
-        new_parent = StrongTableaux( self.k, (Core(map(len, rest_tab), self.k+1), self.inner_shape()), self.weight()[:r] )
+        rest_tab = [y for y in ([x for x in row if x is None or abs(x)<=rr] for row in self.to_standard_list()) if len(y)>0]
+        new_parent = StrongTableaux( self.k, (Core([len(x) for x in rest_tab], self.k+1), self.inner_shape()), self.weight()[:r] )
         return new_parent(rest_tab)
 
     def set_weight( self, mu ):
@@ -4005,7 +4003,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: ST.an_element()
             [[-1, -1, -1]]
         """
-        return self.__iter__().next()
+        return next(self.__iter__())
 
     def outer_shape(self):
         r"""
@@ -4159,7 +4157,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         else:
             for T in cls.standard_unmarked_iterator(k, size-1, outer_shape, inner_shape):
                 for TT in cls.follows_tableau_unsigned_standard(T, k):
-                    if outer_shape is None or Core(outer_shape, k+1).contains(map(len,TT)):
+                    if outer_shape is None or Core(outer_shape, k+1).contains([len(_) for _ in TT]):
                         yield TT
 
     @classmethod
@@ -4301,7 +4299,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: T
             [[None, -10, -4], [4]]
         """
-        innershape = Core(map(len, Tlist), k+1)
+        innershape = Core([len(_) for _ in Tlist], k+1)
         outershape = innershape.affine_symmetric_group_action(tij, transposition=True)
         if outershape.length()==innershape.length()+1:
             for c in SkewPartition([outershape.to_partition(),innershape.to_partition()]).cells():
@@ -4353,7 +4351,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         """
         v = max([0]+[abs(v) for rows in Tlist for v in rows if v is not None])+1
         out = []
-        sh = Core(map(len, Tlist), k+1)
+        sh = Core([len(_) for _ in Tlist], k+1)
         for ga in sh.strong_covers():
             T = copy.deepcopy(Tlist)
             T += [[] for i in range(len(ga)-len(T))]
@@ -4510,32 +4508,43 @@ class StrongTableaux(UniqueRepresentation, Parent):
             []
         """
         LL = list(T)
-        if LL==[] or all(v is None for v in sum(LL,[])):
+        if not LL or all(v is None for v in sum(LL,[])):
             return []
-        marks = [v for row in T for v in row if v is not None and v<0]+[0]
+        marks = [v for row in T for v in row if v is not None and v<0] + [0]
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
-        sh = Core(map(len,T), k+1)
-        for v in range(m,0,-1):
-            for j in range(len(LL[0]),-len(LL)-1,-1):
-                if -v in [LL[i][i+j] for i in range(len(LL)) if len(LL[i])>j+i and i+j>=0]:
-                    for l in range(k):
-                        msh = sh.affine_symmetric_group_action([j-l,j+1],transposition=True)
-                        # my worry here is that the affine symmetric group action might apply an invalid
-                        # transposition but get something of the right length anyway.  How do I test if it is applying
-                        # a valid or invalid transposition?
-                        if msh.length()==sh.length()-1:
-                            # if applying t_{j-l,j+1} reduces the size of the shape by 1
-                            skewcells = SkewPartition([sh.to_partition(),msh.to_partition()]).cells()
-                            valcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]!=j] # values in all the cells except content j
-                            regcells = [LL[c[0]][c[1]] for c in skewcells if c[1]-c[0]==j] # values in the cells with content j
-                            if all(x==v for x in valcells) and regcells==[-v]:
-                                # if all labels that are not content j are v and the label
-                                # with content j = -v
-                                MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in msh.to_partition().cells()] for a in range(len(msh.to_partition()))]
-                                transeq = self.marked_CST_to_transposition_sequence(MM,k)
-                                if not transeq is None:
-                                    return [[j-l, j+1]]+transeq
+        sh = Core([len(_) for _ in T], k+1)
+        j = max([ c-r for r,row in enumerate(LL) for c,val in enumerate(row)
+                  if val == -m ])
+        P = sh.to_partition()
+        for l in range(k):
+            msh = sh.affine_symmetric_group_action([j-l,j+1], transposition=True)
+            mP = msh.to_partition()
+            # my worry here is that the affine symmetric group action might apply an invalid
+            # transposition but get something of the right length anyway.  How do I test if it is applying
+            # a valid or invalid transposition?
+            if msh.length() == sh.length() - 1:
+                # if applying t_{j-l,j+1} reduces the size of the shape by 1
+                valcells = [] # values in all the cells except content j
+                regcells = [] # values in the cells with content j
+                valid = True
+                for (x,y) in SkewPartition([P, mP]).cells():
+                    if y-x != j:
+                        if LL[x][y] != m:
+                            valid = False
+                            break
+                        valcells.append(LL[x][y])
+                    else:
+                        regcells.append(LL[x][y])
+                if valid and regcells == [-m]:
+                    # if all labels that are not content j are v and the label
+                    # with content j = -m
+                    mcells = mP.cells()
+                    MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in mcells]
+                          for a in range(len(mP))]
+                    transeq = self.marked_CST_to_transposition_sequence(MM, k)
+                    if not transeq is None:
+                        return [[j-l, j+1]] + transeq
 
     @classmethod
     def transpositions_to_standard_strong( self, transeq, k, emptyTableau=[] ):

@@ -114,7 +114,7 @@ Breadth first search iterator::
 Elements of given depth iterator::
 
     sage: list(R.elements_of_depth_iterator(9))
-    [[5, 4, 2, 3, 1], [4, 5, 3, 2, 1], [5, 3, 4, 2, 1], [5, 4, 3, 1, 2]]
+    [[5, 3, 4, 2, 1], [4, 5, 3, 2, 1], [5, 4, 2, 3, 1], [5, 4, 3, 1, 2]]
     sage: list(R.elements_of_depth_iterator(10))
     [[5, 4, 3, 2, 1]]
 
@@ -800,7 +800,7 @@ cdef class RecursivelyEnumeratedSet_generic(Parent):
             sage: succ = attrcall("permutohedron_succ")
             sage: R = RecursivelyEnumeratedSet(seeds, succ)
             sage: list(R.naive_search_iterator())
-            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 2, 1], [3, 1, 2]]
+            [[1, 2, 3], [2, 1, 3], [1, 3, 2], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
         """
         cdef set known, todo
         known = set(self._seeds)

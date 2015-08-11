@@ -3,6 +3,7 @@ from libc.stdio cimport FILE
 cdef extern from "gmp.h":
     # GMP's configuration of how many bits are stuffed into a limb
     cdef unsigned int GMP_LIMB_BITS
+    cdef int mp_bits_per_limb
 
     # Underlying typedefs
     ctypedef unsigned long mp_limb_t

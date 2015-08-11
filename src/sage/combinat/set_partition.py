@@ -34,7 +34,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 
@@ -47,6 +47,7 @@ from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from functools import reduce
+
 
 class SetPartition(ClonableArray):
     """
@@ -109,7 +110,7 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
@@ -232,7 +233,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) < map(sorted, y)
+        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
     def __gt__(self, y):
         """
@@ -260,7 +261,7 @@ class SetPartition(ClonableArray):
         """
         if not isinstance(y, SetPartition):
             return False
-        return map(sorted, self) > map(sorted, y)
+        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 
     def __le__(self, y):
         """
@@ -314,7 +315,7 @@ class SetPartition(ClonableArray):
         """
         return self.__eq__(y) or self.__gt__(y)
 
-    def __cmp__(self, y):
+    def _cmp_(self, y):
         """
         Return the result of ``cmp``.
 
@@ -335,6 +336,8 @@ class SetPartition(ClonableArray):
         if self > y:
             return 1
         return 0
+
+    __cmp__ = _cmp_
 
     def __mul__(self, other):
         r"""
@@ -404,7 +407,7 @@ class SetPartition(ClonableArray):
             sage: S([[1,3],[2,4]])
             {{1, 3}, {2, 4}}
         """
-        return '{' + ', '.join(map(lambda x: '{' + repr(sorted(x))[1:-1] + '}', self)) + '}'
+        return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
     def _latex_(self):
         r"""
@@ -540,7 +543,7 @@ class SetPartition(ClonableArray):
             sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
             [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
         """
-        return list(map(list, self))
+        return [list(_) for _ in self]
 
     def apply_permutation(self, p):
         r"""
@@ -578,8 +581,8 @@ class SetPartition(ClonableArray):
         AUTHOR: Florent Hivert
         """
         l = list(self)
-        mins = map(min, l)
-        maxs = map(max, l)
+        mins = [min(_) for _ in l]
+        maxs = [max(_) for _ in l]
 
         for i in range(1, len(l)):
             for j in range(i):
@@ -689,7 +692,7 @@ class SetPartition(ClonableArray):
         """
         if len(self) == 0:
             return self
-        temp = map(list, self)
+        temp = [list(_) for _ in self]
         mins = [min(p) for p in temp]
         over_max = max([max(p) for p in temp]) + 1
         ret = [[] for i in range(len(temp))]
@@ -809,7 +812,7 @@ class SetPartition(ClonableArray):
             sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
-            mins = map(min, sub_parts)
+            mins = [min(_) for _ in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
             temp = [[] for i in range(len(part))]
             while min(mins) != over_max:
@@ -902,7 +905,7 @@ class SetPartition(ClonableArray):
         todo = [self]
         visited = set([self])
         ret = [self]
-        while len(todo) != 0:
+        while todo:
             A = todo.pop()
             for i, part in enumerate(A):
                 for j, other in enumerate(A[i+1:]):
@@ -916,6 +919,30 @@ class SetPartition(ClonableArray):
                             visited.add(next)
                             ret.append(next)
         return ret
+
+    def arcs(self):
+        r"""
+        Return ``self`` as a list of arcs.
+
+        Consider a set partition `X = \{X_1, X_2, \ldots, X_n\}`,
+        then the arcs are the pairs `i - j` such that `i,j \in X_k`
+        for some `k`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.arcs()
+            [(2, 3)]
+            sage: B = SetPartition([[1,3,6,7],[2,5],[4]])
+            sage: B.arcs()
+            [(1, 3), (3, 6), (6, 7), (2, 5)]
+        """
+        arcs = []
+        for p in self:
+            p = sorted(p)
+            for i in range(len(p)-1):
+                arcs.append((p[i], p[i+1]))
+        return arcs
 
 class SetPartitions(Parent, UniqueRepresentation):
     r"""
@@ -1072,7 +1099,7 @@ class SetPartitions(Parent, UniqueRepresentation):
 
             sage: S = SetPartitions(3)
             sage: it = S._iterator_part(Partition([1,1,1]))
-            sage: list(sorted(map(list, it.next())))
+            sage: list(sorted(map(list, next(it))))
             [[1], [2], [3]]
             sage: S21 = SetPartitions(3,Partition([2,1]))
             sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()
@@ -1085,7 +1112,7 @@ class SetPartitions(Parent, UniqueRepresentation):
             if expo[i] != 0:
                 nonzero.append([i, expo[i]])
 
-        taillesblocs = map(lambda x: (x[0])*(x[1]), nonzero)
+        taillesblocs = [(x[0])*(x[1]) for x in nonzero]
 
         blocs = OrderedSetPartitions(self._set, taillesblocs)
 
@@ -1221,7 +1248,7 @@ class SetPartitions_all(SetPartitions):
         EXAMPLES::
 
             sage: it = SetPartitions().__iter__()
-            sage: [it.next() for x in range(10)]
+            sage: [next(it) for x in range(10)]
             [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1}, {2, 3}},
              {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
         """
@@ -1399,15 +1426,50 @@ class SetPartitions_setparts(SetPartitions_set):
         return "Set partitions of %s with sizes in %s"%(Set(self._set), self.parts)
 
     def cardinality(self):
-        """
+        r"""
         Return the cardinality of ``self``.
+
+        This algorithm counts for each block of the partition the
+        number of ways to fill it using values from the set.  Then,
+        for each distinct value `v` of block size, we divide the result by
+        the number of ways to arrange the blocks of size `v` in the
+        set partition.
+
+        For example, if we want to count the number of set partitions
+        of size 13 having [3,3,3,2,2] as underlying partition we
+        compute the number of ways to fill each block of the
+        partition, which is `\binom{13}{3} \binom{10}{3} \binom{7}{3}
+        \binom{4}{2}\binom{2}{2}` and as we have three blocks of size
+        `3` and two blocks of size `2`, we divide the result by
+        `3!2!` which gives us `600600`.
 
         EXAMPLES::
 
             sage: SetPartitions(3, [2,1]).cardinality()
             3
+            sage: SetPartitions(13, Partition([3,3,3,2,2])).cardinality()
+            600600
+
+        TESTS::
+
+            sage: all((len(SetPartitions(size, part)) == SetPartitions(size, part).cardinality() for size in range(8) for part in Partitions(size)))
+            True
+            sage: sum((SetPartitions(13, p).cardinality() for p in Partitions(13))) == SetPartitions(13).cardinality()
+            True
         """
-        return Integer(len(self.list()))
+        from sage.misc.misc_c import prod
+
+        remaining_subset_size = Integer(len(self._set))
+        cardinal = Integer(1)
+        for subset_size in self.parts:
+            cardinal *= remaining_subset_size.binomial(subset_size)
+            remaining_subset_size -= subset_size
+
+        repetitions = (Integer(rep).factorial()
+                       for rep in self.parts.to_exp_dict().values()
+                       if rep != 1)
+        cardinal /= prod(repetitions)
+        return Integer(cardinal)
 
     def __iter__(self):
         """
@@ -1727,6 +1789,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-
-
-

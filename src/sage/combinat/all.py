@@ -1,3 +1,6 @@
+"""
+Combinatorics features that are imported by default in the interpreter namespace
+"""
 from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
@@ -34,6 +37,7 @@ from yang_baxter_graph import YangBaxterGraph
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
+lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK
 from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
@@ -44,7 +48,7 @@ from perfect_matching import PerfectMatching, PerfectMatchings
 
 # Integer lists lex
 
-from integer_list import IntegerListsLex
+from integer_list import IntegerListsLex as IntegerListsLex
 
 #Compositions
 from composition import Composition, Compositions
@@ -82,12 +86,9 @@ from core import Core, Cores
 from tableau import Tableau, SemistandardTableau, StandardTableau, \
         Tableaux, StandardTableaux, SemistandardTableaux
 from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
-from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
+from ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from composition_tableau import CompositionTableau, CompositionTableaux
-#deprecated
-from ribbon import Ribbon, StandardRibbons
-
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
@@ -115,7 +116,10 @@ from ordered_tree import (OrderedTree, OrderedTrees,
                           LabelledOrderedTree, LabelledOrderedTrees)
 from binary_tree import (BinaryTree, BinaryTrees,
                          LabelledBinaryTree, LabelledBinaryTrees)
+
 lazy_import('sage.combinat.interval_posets', ['TamariIntervalPoset', 'TamariIntervalPosets'])
+from rooted_tree import (RootedTree, RootedTrees,
+                         LabelledRootedTree, LabelledRootedTrees)
 
 from combination import Combinations
 from cartesian_product import CartesianProduct

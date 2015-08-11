@@ -227,10 +227,10 @@ def bezier3d(path, **options):
     """
     import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
-    from sage.calculus.calculus import var
+    from sage.symbolic.ring import SR
 
     p0 = vector(path[0][-1])
-    t = var('t')
+    t = SR.var('t')
     if len(path[0]) > 2:
         B = (1-t)**3*vector(path[0][0])+3*t*(1-t)**2*vector(path[0][1])+3*t**2*(1-t)*vector(path[0][-2])+t**3*p0
         G = P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
@@ -674,10 +674,10 @@ def text3d(txt, x_y_z, **kwds):
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
     """
-    (x, y, z) = x_y_z 
+    (x, y, z) = x_y_z
     if 'color' not in kwds and 'rgbcolor' not in kwds:
-        kwds['color'] = (0,0,0)
-    G = Text(txt, **kwds).translate((x,y,z))
+        kwds['color'] = (0, 0, 0)
+    G = Text(txt, **kwds).translate((x, y, z))
     G._set_extra_kwds(kwds)
 
     return G
@@ -1055,7 +1055,7 @@ def point3d(v, size=5, **kwds):
         sage: print point(vector((2,3,4)))
         Graphics3d Object
 
-        sage: c = polytopes.n_cube(3)
+        sage: c = polytopes.hypercube(3)
         sage: v = c.vertices()[0];  v
         A vertex at (-1, -1, -1)
         sage: print point(v)
@@ -1075,8 +1075,28 @@ def point3d(v, size=5, **kwds):
         sage: point3d(numpy.array([[1,2,3], [4,5,6], [7,8,9]]))
         Graphics3d Object
 
+    We check that iterators of points are accepted (:trac:`13890`)::
+
+        sage: point3d(iter([(1,1,2),(2,3,4),(3,5,8)]),size=20,color='red')
+        Graphics3d Object
+
+    TESTS::
+
+        sage: point3d([])
+        Graphics3d Object
     """
-    if len(v) == 3:
+    try:
+        l = len(v)
+    except TypeError:
+        # argument is an iterator
+        v = list(v)
+        l = len(v)
+
+    if l == 0:
+        from sage.plot.plot3d.base import Graphics3d
+        return Graphics3d()
+
+    if l == 3:
         try:
             # check if the first element can be changed to a float
             tmp = RDF(v[0])

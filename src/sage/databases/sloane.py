@@ -85,7 +85,7 @@ Classes and methods
 import bz2, os, re, urllib
 
 from sage.misc.all import verbose
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()
 from sage.misc.superseded import deprecation

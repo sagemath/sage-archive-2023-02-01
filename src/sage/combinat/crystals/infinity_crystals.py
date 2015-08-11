@@ -30,6 +30,8 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 
@@ -273,6 +275,25 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
         """
         return self.element_class(self, *args, **options)
 
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: T._coerce_map_from_(RC)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of rigged configurations of type ['A', 3]
+              To:   The infinity crystal of tableaux of type ['A', 3]
+        """
+        from sage.combinat.rigged_configurations.rc_infinity import InfinityCrystalOfRiggedConfigurations
+        if isinstance(P, InfinityCrystalOfRiggedConfigurations):
+            from sage.combinat.rigged_configurations.bij_infinity import FromRCIsomorphism
+            return FromRCIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfTableaux, self)._coerce_map_from_(P)
+
     class Element(CrystalOfTableauxElement):
         r"""
         Elements in `\mathcal{B}(\infty)` crystal of tableaux.
@@ -490,22 +511,25 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
                 1  1  1  1  1  1  1  1
                 2  2  2  2  4  4  4
                 3  4  4
-                sage: b.reduced_form().pp()
-                *
-                4  4  4
-                4  4
+                sage: b.reduced_form()
+                [['*'], [4, 4, 4], [4, 4]]
             """
-            tab = self.to_tableau()
-            for i in range(len(tab)):
-                j=0
-                while j < len(tab[i]):
-                    if tab[i][j] == i+1:
-                        tab[i].pop(j)
-                        if tab[i] == []:
-                            tab[i].append('*')
+            oldtab = self.to_tableau()
+            newtab = []
+            for i, row in enumerate(oldtab):
+                j = 0
+                row = list(row)
+                while j < len(row):
+                    if row[j] == i+1:
+                        row.pop(j)
+                        if not row:
+                            row.append('*')
                     else:
                         j += 1
-            return tab
+                newtab.append(row)
+            from sage.misc.stopgap import stopgap
+            stopgap("Return value is no longer a Tableau.", 17997)
+            return newtab
 
         def seg(self):
             r"""

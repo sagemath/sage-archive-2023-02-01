@@ -16,7 +16,8 @@ functions.
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
-from sage.misc.functional import sqrt, log
+from sage.misc.functional import log
+from sage.functions.all import sqrt
 from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.rings.rational_field import is_RationalField
 from sage.sets.set import Set
@@ -364,4 +365,3 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
                 return -p*log(p,2)
         p = self.function()
         return sum([ neg_xlog2x(p[x]) for x in p.keys() ])
-

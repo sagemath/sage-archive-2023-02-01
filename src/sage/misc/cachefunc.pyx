@@ -210,11 +210,7 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    def __cmp__(left, right):",
-    ....: "        return (<Element>left)._cmp(right)",
-    ....: "    def __richcmp__(left, right, op):",
-    ....: "        return (<Element>left)._richcmp(right,op)",
-    ....: "    cdef int _cmp_c_impl(left, Element right) except -2:",
+    ....: "    cpdef int _cmp_(left, Element right) except -2:",
     ....: "        return cmp(left.x,right.x)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
@@ -229,11 +225,7 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    def __cmp__(left, right):",
-    ....: "        return (<Element>left)._cmp(right)",
-    ....: "    def __richcmp__(left, right, op):",
-    ....: "        return (<Element>left)._richcmp(right,op)",
-    ....: "    cdef int _cmp_c_impl(left, Element right) except -2:",
+    ....: "    cpdef int _cmp_(left, Element right) except -2:",
     ....: "        return cmp(left.x,right.x)",
     ....: "    def raw_test(self):",
     ....: "        return -self",
@@ -472,10 +464,17 @@ the parent as its first argument::
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from cpython cimport PyObject
+
+cdef extern from "methodobject.h":
+    cdef int METH_NOARGS, METH_O
+    cdef int PyCFunction_GetFlags(object op) except -1
+
 from function_mangling import ArgumentFixer
 import os
 from os.path import relpath,normpath,commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
+from inspect import isfunction
 
 import sage.misc.weak_dict
 from sage.misc.weak_dict import WeakValueDictionary
@@ -790,13 +789,20 @@ cdef class CachedFunction(object):
             sage: type(I.groebner_basis)
             <type 'sage.misc.cachefunc.CachedMethodCaller'>
             sage: os.path.exists(sage_getfile(I.groebner_basis))
-            True        
+            True
 
+        Test that :trac:`18064` is fixed::
+
+            sage: @cached_function
+            ....: def f():
+            ....:     return 3
+            sage: f._sage_doc_()
+            'File: ... (starting at line 1)\n'
         """
         from sage.misc.sageinspect import _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if not doc or _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_SRC, SAGE_LIB
@@ -1110,6 +1116,14 @@ cdef class CachedFunction(object):
         Cache values for a number of inputs.  Do the computation
         in parallel, and only bother to compute values that we
         haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
 
         EXAMPLES::
 
@@ -2021,6 +2035,46 @@ cdef class CachedMethodCaller(CachedFunction):
             pass
         return Caller
 
+    def precompute(self, arglist, num_processes=1):
+        """
+        Cache values for a number of inputs.  Do the computation
+        in parallel, and only bother to compute values that we
+        haven't already cached.
+
+        INPUT:
+
+        - ``arglist`` -- list (or iterables) of arguments for which
+          the method shall be precomputed.
+
+        - ``num_processes`` -- number of processes used by
+          :func:`~sage.parallel.decorate.parallel`
+
+        EXAMPLES::
+
+            sage: class Foo(object):
+            ....:     @cached_method
+            ....:     def f(self, i):
+            ....:         return i^2
+            sage: foo = Foo()
+            sage: foo.f(3)
+            9
+            sage: foo.f(1)
+            1
+            sage: foo.f.precompute(range(2), 2)
+            sage: foo.f.cache
+            {((0,), ()): 0, ((1,), ()): 1, ((3,), ()): 9}
+        """
+        from sage.parallel.decorate import parallel, normalize_input
+        P = parallel(num_processes)(self._instance_call)
+        has_key = self.cache.has_key
+        if self._argument_fixer is None:
+            self.argfix_init()
+        get_key = self._fix_to_pos
+        new = lambda x: not has_key(get_key(*x[0],**x[1]))
+        arglist = filter(new, map(normalize_input, arglist))
+        for ((args,kwargs), val) in P(arglist):
+            self.set_cache(val, *args, **kwargs)
+
 cdef class CachedMethodCallerNoArgs(CachedFunction):
     """
     Utility class that is used by :class:`CachedMethod` to bind a
@@ -2623,18 +2677,22 @@ cdef class CachedMethod(object):
         # Since we have an optimized version for functions that do not accept arguments,
         # we need to analyse the argspec
         f = (<CachedFunction>self._cachedfunc).f
-        if self.nargs==0:
-            args, varargs, keywords, defaults = sage_getargspec(f)
-            if varargs is None and keywords is None and len(args)<=1:
-                self.nargs = 1
-                Caller = CachedMethodCallerNoArgs(inst, f, name=name)
-            else:
-                self.nargs = 2 # don't need the exact number
-                Caller = CachedMethodCaller(self, inst,
-                                            cache=self._get_instance_cache(inst),
-                                            name=name,
-                                            key=self._cachedfunc.key)
-        elif self.nargs==1:
+        if self.nargs == 0:
+            if isinstance(f, object) and not isfunction(f):
+                try:
+                    if METH_NOARGS&PyCFunction_GetFlags(f.__get__(inst,cls)):
+                        self.nargs = 1
+                    else:
+                        self.nargs = 2
+                except:
+                    pass
+            if self.nargs == 0:
+                args, varargs, keywords, defaults = sage_getargspec(f)
+                if varargs is None and keywords is None and len(args)<=1:
+                    self.nargs = 1
+                else:
+                    self.nargs = 2  # don't need the exact number
+        if self.nargs == 1:
             Caller = CachedMethodCallerNoArgs(inst, f, name=name)
         else:
             Caller = CachedMethodCaller(self, inst,

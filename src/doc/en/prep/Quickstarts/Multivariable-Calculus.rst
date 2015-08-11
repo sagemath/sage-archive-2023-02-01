@@ -139,7 +139,7 @@ the integrands.
     sage: t = var('t')
     sage: t_range=(t,tstart,tend)
     sage: def line_integral(integrand):
-    ...       return RR(numerical_integral((integrand).subs(x=r[0], y=r[1],z=r[2]), tstart, tend)[0])
+    ....:     return RR(numerical_integral((integrand).subs(x=r[0], y=r[1],z=r[2]), tstart, tend)[0])
     sage: _ = var('x,y,z,t')
     sage: r_prime = diff(r,t)
     sage: ds=diff(r,t).norm()
@@ -172,23 +172,23 @@ so that backslashes from LaTeX won't cause trouble.
 ::
 
     sage: html.table([
-    ...   [r"Density $\delta(x,y)$", density],
-    ...   [r"Curve $\vec r(t)$",r],
-    ...   [r"$t$ range", t_range],
-    ...   [r"$\vec r'(t)$", r_prime],
-    ...   [r"$ds$, a little bit of arclength", ds],
-    ...   [r"$s$ - arclength", s],
-    ...   [r"Centroid (constant density) $\left(\frac{1}{m}\int x\,ds,\frac{1}{m}\int y\,ds, \frac{1}{m}\int z\,ds\right)$", (centroid_x,centroid_y,centroid_z)],
-    ...   [r"$dm=\delta ds$ - a little bit of mass", dm],
-    ...   [r"$m=\int \delta ds$ - mass", m],
-    ...   [r"average density $\frac{1}{m}\int ds$" , avg_density.n()],
-    ...   [r"$M_{yz}=\int x dm$ - moment about $yz$ plane", moment_about_yz_plane],
-    ...   [r"$M_{xz}=\int y dm$ - moment about $xz$ plane", moment_about_xz_plane],
-    ...   [r"$M_{xy}=\int z dm$ - moment about $xy$ plane", moment_about_xy_plane],
-    ...   [r"Center of mass $\left(\frac1m \int xdm, \frac1m \int ydm, \frac1m \int z dm\right)$", (center_mass_x, center_mass_y, center_mass_z)],
-    ...   [r"$I_x = \int (y^2+z^2) dm$", Ix],[r"$I_y=\int (x^2+z^2) dm$", Iy],[mp(r"$I_z=\int (x^2+y^2)dm$"), Iz],
-    ...   [r"$R_x=\sqrt{I_x/m}$", Rx],[mp(r"$R_y=\sqrt{I_y/m}"), Ry],[mp(r"$R_z=\sqrt{I_z/m}"),Rz]
-    ...   ])
+    ....:     [r"Density $\delta(x,y)$", density],
+    ....:     [r"Curve $\vec r(t)$",r],
+    ....:     [r"$t$ range", t_range],
+    ....:     [r"$\vec r'(t)$", r_prime],
+    ....:     [r"$ds$, a little bit of arclength", ds],
+    ....:     [r"$s$ - arclength", s],
+    ....:     [r"Centroid (constant density) $\left(\frac{1}{m}\int x\,ds,\frac{1}{m}\int y\,ds, \frac{1}{m}\int z\,ds\right)$", (centroid_x,centroid_y,centroid_z)],
+    ....:     [r"$dm=\delta ds$ - a little bit of mass", dm],
+    ....:     [r"$m=\int \delta ds$ - mass", m],
+    ....:     [r"average density $\frac{1}{m}\int ds$" , avg_density.n()],
+    ....:     [r"$M_{yz}=\int x dm$ - moment about $yz$ plane", moment_about_yz_plane],
+    ....:     [r"$M_{xz}=\int y dm$ - moment about $xz$ plane", moment_about_xz_plane],
+    ....:     [r"$M_{xy}=\int z dm$ - moment about $xy$ plane", moment_about_xy_plane],
+    ....:     [r"Center of mass $\left(\frac1m \int xdm, \frac1m \int ydm, \frac1m \int z dm\right)$", (center_mass_x, center_mass_y, center_mass_z)],
+    ....:     [r"$I_x = \int (y^2+z^2) dm$", Ix],[r"$I_y=\int (x^2+z^2) dm$", Iy],[mp(r"$I_z=\int (x^2+y^2)dm$"), Iz],
+    ....:     [r"$R_x=\sqrt{I_x/m}$", Rx],[mp(r"$R_y=\sqrt{I_y/m}"), Ry],[mp(r"$R_z=\sqrt{I_z/m}"),Rz]
+    ....:     ])
 
 Functions of Several Variables
 -------------------------------

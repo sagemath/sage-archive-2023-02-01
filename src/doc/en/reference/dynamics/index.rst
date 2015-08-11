@@ -1,3 +1,5 @@
+.. _sage.dynamics:
+
 Discrete dynamics
 =================
 
@@ -6,9 +8,10 @@ Discrete dynamics
 
    interval_exchanges
    flat_surfaces
+   sage/sandpiles/sandpile
 
 .. SEEALSO::
 
-    - :ref:`sage.combinat.e_one_star`
+    - :mod:`sage.combinat.e_one_star`
 
 .. include:: ../footer.txt

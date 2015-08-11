@@ -85,6 +85,7 @@ Many other functionalities...::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import itertools
+from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.sets.set import Set
@@ -96,30 +97,6 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import Matrix
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import Words_all, Words
-
-class CallableDict(dict):
-    r"""
-    Wrapper of dictionary that makes it callable.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.words.morphism import CallableDict
-        sage: d = CallableDict({1:'one', 2:'zwei', 3:'trois'})
-        sage: d(1), d(2), d(3)
-        ('one', 'zwei', 'trois')
-    """
-    def __call__(self, key):
-        r"""
-        Returns the value with key ``key``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.morphism import CallableDict
-            sage: d = CallableDict({'one': 1, 'zwei': 2, 'trois': 3})
-            sage: d('one'), d('zwei'), d('trois')
-            (1, 2, 3)
-        """
-        return self[key]
 
 def get_cycles(f, domain=None):
     r"""
@@ -709,7 +686,7 @@ class WordMorphism(SageObject):
                     letter = w[0]
             elif hasattr(w, '__iter__'):
                 try:
-                    letter = w.next()
+                    letter = next(w)
                 except StopIteration:
                     return self.codomain()()
             elif w in self._domain.alphabet():
@@ -1249,7 +1226,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism({0:[0],1:[1]}).is_identity()
             True
 
-        We check that #8618 is fixed::
+        We check that :trac:`8618` is fixed::
 
             sage: t = WordMorphism({'a1':['a2'], 'a2':['a1']})
             sage: (t*t).is_identity()
@@ -1569,7 +1546,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->bb,b->aac').is_prolongable(letter='a')
             False
 
-        We check that #8595 is fixed::
+        We check that :trac:`8595` is fixed::
 
             sage: s = WordMorphism({('a', 1) : [('a', 1), ('a', 2)], ('a', 2) : [('a', 1)]})
             sage: s.is_prolongable(('a',1))
@@ -1674,11 +1651,11 @@ class WordMorphism(SageObject):
             ...
             KeyError: 'c'
 
-        We check that #8595 is fixed::
+        We check that :trac:`8595` is fixed::
 
             sage: s = WordMorphism({('a', 1):[('a', 1), ('a', 2)], ('a', 2):[('a', 1)]})
             sage: it = s._fixed_point_iterator(('a',1))
-            sage: it.next()
+            sage: next(it)
             ('a', 1)
 
         This shows that ticket :trac:`13668` has been resolved::
@@ -1963,7 +1940,7 @@ class WordMorphism(SageObject):
         I = itertools.ifilterfalse(FiniteWord_class.is_empty, self.images())
 
         try:
-            letter = I.next()[0]
+            letter = next(I)[0]
         except StopIteration:
             return True
 
@@ -2436,7 +2413,7 @@ class WordMorphism(SageObject):
         S = 0
         orbit_points = dict([(a,[]) for a in alphabet])
         for _ in xrange(n):
-            a = u.next()
+            a = next(u)
             S += canonical_basis_proj[a]
             orbit_points[a].append(S)
 
@@ -2829,7 +2806,7 @@ class WordMorphism(SageObject):
             I = [self.domain().alphabet().rank(letter)]
 
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
@@ -2855,7 +2832,7 @@ class WordMorphism(SageObject):
         if self.is_primitive():
             return self.domain().alphabet().list()
         last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coeffs()
+        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
         while coefs[last_coef] == 0:
             last_coef += 1
         V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)

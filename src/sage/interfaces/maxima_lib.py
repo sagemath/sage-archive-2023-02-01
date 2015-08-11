@@ -66,9 +66,9 @@ which is anyway set to raise an error::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.ring import SR, var
+from sage.symbolic.ring import SR
 
-from sage.libs.ecl import *
+from sage.libs.ecl import EclObject, ecl_eval
 
 from maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
   MaximaAbstractElement, MaximaAbstractFunctionElement,
@@ -141,7 +141,7 @@ ecl_eval("(setf *standard-output* *dev-null*)")
 # keepfloat -- don't automatically convert floats to rationals
 init_code = ['display2d : false', 'domain : complex', 'keepfloat : true',
             'load(to_poly_solve)', 'load(simplify_sum)',
-            'load(abs_integrate)']
+            'load(abs_integrate)', 'load(diag)']
 
 # Turn off the prompt labels, since computing them *very
 # dramatically* slows down the maxima interpret after a while.
@@ -426,7 +426,7 @@ class MaximaLib(MaximaAbstract):
                 statement = line[:ind_dollar]
                 line = line[ind_dollar+1:]
                 if statement:
-                    _ = maxima_eval("#$%s$"%statement)
+                    maxima_eval("#$%s$" % statement)
         if not reformat:
             return result
         return ''.join([x.strip() for x in result.split()])
@@ -729,7 +729,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).simplify_radical()
+            sage: integrate(sqrt(x + sqrt(x)), x).canonicalize_radical()
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
@@ -757,7 +757,7 @@ class MaximaLib(MaximaAbstract):
             all
             sage: g = integrate(f, x); g
             2/3*sqrt(x^3 + 1) - 1/3*log(sqrt(x^3 + 1) + 1) + 1/3*log(sqrt(x^3 + 1) - 1)
-            sage: (f - g.diff(x)).simplify_radical()
+            sage: (f - g.diff(x)).canonicalize_radical()
             0
             sage: maxima('radexpand: true')
             true
@@ -794,7 +794,7 @@ class MaximaLib(MaximaAbstract):
         Check that :trac:`16224` is fixed::
 
             sage: k = var('k')
-            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).simplify_radical()
+            sage: sum(x^(2*k)/factorial(2*k), k, 0, oo).canonicalize_radical()
             cosh(x)
 
         ::
@@ -871,7 +871,7 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_limit(self,expr,v,a,dir=None):
+    def sr_limit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's limits.
 
@@ -936,12 +936,12 @@ class MaximaLib(MaximaAbstract):
 
         """
         try:
-            L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+            L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
             if dir == "plus":
                 L.append(max_plus)
             elif dir == "minus":
                 L.append(max_minus)
-            return max_to_sr(maxima_eval(([max_limit],L)))
+            return max_to_sr(maxima_eval(([max_limit], L)))
         except RuntimeError as error:
             s = str(error)
             if "Is" in s: # Maxima asked for a condition
@@ -949,7 +949,7 @@ class MaximaLib(MaximaAbstract):
             else:
                 raise
 
-    def sr_tlimit(self,expr,v,a,dir=None):
+    def sr_tlimit(self, expr, v, a, dir=None):
         """
         Helper function to wrap calculus use of Maxima's Taylor series limits.
 
@@ -959,13 +959,13 @@ class MaximaLib(MaximaAbstract):
             sage: limit(f, x = I, taylor=True)
             (-I + 1)^I
         """
-        L=[sr_to_max(SR(a)) for a in [expr,v,a]]
+        L = [sr_to_max(SR(aa)) for aa in [expr, v, a]]
         if dir == "plus":
             L.append(max_plus)
         elif dir == "minus":
             L.append(max_minus)
-        return max_to_sr(maxima_eval(([max_tlimit],L)))
-    
+        return max_to_sr(maxima_eval(([max_tlimit], L)))
+
     def _missing_assumption(self,errstr):
         """
         Helper function for unified handling of failed computation because an
@@ -1149,7 +1149,7 @@ import sage.functions.trig
 import sage.functions.log
 import sage.functions.other
 import sage.symbolic.integration.integral
-from sage.symbolic.operators import FDerivativeOperator
+from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 
 car=EclObject("car")
 cdr=EclObject("cdr")
@@ -1166,14 +1166,14 @@ lisp_length=EclObject("length")
 ## Dictionaries for standard operators
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
-    sage.symbolic.expression.operator.add : "MPLUS",
+    add_vararg : "MPLUS",
     sage.symbolic.expression.operator.div : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",
     sage.symbolic.expression.operator.le : "MLEQP",
     sage.symbolic.expression.operator.lt : "MLESSP",
-    sage.symbolic.expression.operator.mul : "MTIMES",
+    mul_vararg : "MTIMES",
     sage.symbolic.expression.operator.ne : "MNOTEQUAL",
     sage.symbolic.expression.operator.neg : "MMINUS",
     sage.symbolic.expression.operator.pow : "MEXPT",
@@ -1192,47 +1192,6 @@ max_op_dict = dict([(sage_op_dict[k],k) for k in sage_op_dict])
 
 
 ## Here we correct the dictionaries for some simple operators
-def add_vararg(*args):
-    r"""
-    Addition of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to add
-
-    OUTPUT: sum of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import add_vararg
-        sage: add_vararg(1,2,3,4,5,6,7)
-        28
-    """
-    S=0
-    for a in args:
-        S=S+a
-    return S
-
-def mul_vararg(*args):
-    r"""
-    Multiplication of a variable number of arguments.
-
-    INPUT:
-
-    - ``args`` - arguments to multiply
-
-    OUTPUT: product of arguments
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.maxima_lib import mul_vararg
-        sage: mul_vararg(9,8,7,6,5,4)
-        60480
-    """
-    P=1
-    for a in args:
-        P=P*a
-    return P
 
 def sage_rat(x,y):
     r"""
@@ -1572,8 +1531,8 @@ def sr_to_max(expr):
                 # temporary variable e.g. `t0` and then evaluate the
                 # derivative f'(t0) symbolically at t0=1. See trac
                 # #12796.
-                temp_args=[var("t%s"%i) for i in range(len(args))]
-                f =sr_to_max(op.function()(*temp_args))
+                temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+                f = sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()
                 deriv_max = [[mdiff],f]
                 for i in set(params):

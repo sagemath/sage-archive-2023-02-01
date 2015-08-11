@@ -34,7 +34,7 @@ Methods
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.misc import prod
+from sage.misc.all import prod
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
@@ -210,7 +210,10 @@ def matching_polynomial(G, complement=True, name=None):
     """
 
     cdef int nverts, nedges, i, j, cur
-    cdef int *edges1, *edges2, *edges_mem, **edges
+    cdef int *edges1
+    cdef int *edges2
+    cdef int *edges_mem
+    cdef int **edges
     cdef fmpz_poly_t pol
 
     if G.has_multiple_edges():
@@ -362,7 +365,10 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
     matching polynomial.
     """
     cdef int i, j, k, edge1, edge2, new_edge1, new_edge2, new_nedges
-    cdef int *edges1, *edges2, *new_edges1, *new_edges2
+    cdef int *edges1
+    cdef int *edges2
+    cdef int *new_edges1
+    cdef int *new_edges2
     cdef fmpz * coeff
 
     if nverts == 3:

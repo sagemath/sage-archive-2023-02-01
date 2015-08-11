@@ -236,7 +236,7 @@ class ParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             sage: (ParkingFunctions())._infinite_cclass_slice(4) == ParkingFunctions(4)
             True
             sage: it = iter(ParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [2, 1], [1, 1, 1], [1, 1, 2], [1, 2, 1]]
          """
         return ParkingFunctions_n(n)
@@ -1568,5 +1568,5 @@ def from_labelled_dyck_word(LDW):
         [2, 1, 4, 1]
     """
     L = [ell for ell in LDW if ell != 0]
-    D = DyckWord(map(lambda x: Integer(not x.is_zero()), LDW))
+    D = DyckWord([Integer(not x.is_zero()) for x in LDW])
     return from_labelling_and_area_sequence(L, D.to_area_sequence())

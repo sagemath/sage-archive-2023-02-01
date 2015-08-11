@@ -75,9 +75,7 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
 cdef extern from "limits.h":
@@ -849,11 +847,6 @@ cdef class LinearFunction(ModuleElement):
         """
         Override the rich comparison.
 
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
-
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
@@ -947,7 +940,7 @@ cdef class LinearFunction(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        # see _cmp_c_impl() if you want to change the hash function
+        # see _cmp_() if you want to change the hash function
         return id(self) % LONG_MAX
 
     def __cmp__(left, right):
@@ -963,7 +956,7 @@ cdef class LinearFunction(ModuleElement):
         """
         return (<Element>left)._cmp(right)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Implement comparison of two linear functions.
 
@@ -1001,7 +994,7 @@ cdef class LinearConstraintsParent_class(Parent):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`. Also, use the
         :func:`LinearConstraintsParent` factory function.
@@ -1190,7 +1183,7 @@ cdef class LinearConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 
@@ -1425,12 +1418,12 @@ cdef class LinearConstraint(Element):
         if not self.is_equation() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def inequalities(self):
         """
@@ -1458,12 +1451,12 @@ cdef class LinearConstraint(Element):
         if not self.is_less_or_equal() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def _repr_(self):
         r"""
@@ -1510,11 +1503,6 @@ cdef class LinearConstraint(Element):
     def __richcmp__(left, right, int op):
         """
         Override the rich comparison.
-
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
 
         EXAMPLES::
 

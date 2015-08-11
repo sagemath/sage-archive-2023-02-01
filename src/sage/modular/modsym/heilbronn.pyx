@@ -58,7 +58,8 @@ cdef struct list:
     int n   # how much memory has been allocated
 
 cdef int* expand(int *v, int n, int new_length) except NULL:
-    cdef int *w, i
+    cdef int *w
+    cdef int i
     w = <int*>  sage_malloc(new_length*sizeof(int))
     if w == <int*> 0:
         return NULL
@@ -548,7 +549,9 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
         R = R.change_ring(QQ)
 
     cdef Py_ssize_t i, j
-    cdef int *a, *b, k
+    cdef int *a
+    cdef int *b
+    cdef int k
 
     cdef Heilbronn H
 
@@ -675,7 +678,9 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
     T = matrix(K, len(indices), len(P1), sparse=False)
 
     cdef Py_ssize_t i, j
-    cdef int *a, *b, k, scalar
+    cdef int *a
+    cdef int *b
+    cdef int k, scalar
 
     cdef Heilbronn H
 
@@ -769,7 +774,9 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
         R = R.change_ring(QQ)
 
     cdef Py_ssize_t i, j
-    cdef int *a, *b, k, scalar
+    cdef int *a
+    cdef int *b
+    cdef int k, scalar
     cdef Heilbronn H
 
     t = sage.misc.misc.verbose("computing non-reduced images of symbol under Hecke operators",
@@ -861,7 +868,8 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
         R = R.change_ring(QQ)
 
     cdef Py_ssize_t j, m, z, w, n, p
-    cdef int *a, *b
+    cdef int *a
+    cdef int *b
 
     n = len(P1)
 

@@ -302,7 +302,7 @@ def Hom(X, Y, category=None, check=True):
 
     Those checks are done with the natural idiom ``X in category``,
     and not ``X.category().is_subcategory(category)`` as it used to be
-    before :trac:16275:` (see :trac:`15801` for a real use case)::
+    before :trac:`16275` (see :trac:`15801` for a real use case)::
 
         sage: class PermissiveCategory(Category):
         ....:     def super_categories(self): return [Objects()]
@@ -426,8 +426,7 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
-        sage: phi = hom(R, QQ, [2])
+        sage: phi = hom(QQ['x'], QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -503,7 +502,7 @@ def end(X, f):
 
     EXAMPLES::
 
-        sage: R, x = PolynomialRing(QQ,'x').objgen()
+        sage: R.<x> = QQ[]
         sage: phi = end(R, [x + 1])
         sage: phi
         Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
@@ -652,7 +651,7 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of vector spaces over Rational Field,
+              Category of vector spaces with basis over quotient fields,
               False))
 
         TESTS::
@@ -685,21 +684,20 @@ class Homset(Set_generic):
 
     def __hash__(self):
         """
+        The hash is obtained from domain, codomain and base.
+
         TESTS::
 
-            sage: hash(Hom(ZZ, QQ))
-            1586601211              # 32-bit
-            8060925370113826043     # 64-bit
-            sage: hash(Hom(QQ, ZZ))
-            1346950701              # 32-bit
-            -6958821237014866387    # 64-bit
+            sage: hash(Hom(ZZ, QQ)) == hash((ZZ, QQ, ZZ))
+            True
+            sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
+            True
 
             sage: E = EllipticCurve('37a')
             sage: H = E(0).parent(); H
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-            sage: hash(H)           # random output
-            -1145411691             # 32-bit
-            -8446824869798451307    # 64-bit
+            sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
+            True
         """
         return hash((self._domain, self._codomain, self.base()))
 
@@ -1169,11 +1167,19 @@ class Homset(Set_generic):
         EXAMPLES::
 
             sage: H = Hom(ZZ^2, ZZ^3); H
-            Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Ambient free module of rank 3 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
+            Set of Morphisms from Ambient free module of rank 2 over
+            the principal ideal domain Integer Ring to Ambient free
+            module of rank 3 over the principal ideal domain Integer
+            Ring in Category of modules with basis over (euclidean
+            domains and infinite enumerated sets)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
-            Set of Morphisms from Ambient free module of rank 3 over the principal ideal domain Integer Ring to Ambient free module of rank 2 over the principal ideal domain Integer Ring in Category of modules with basis over Integer Ring
+            Set of Morphisms from Ambient free module of rank 3 over
+            the principal ideal domain Integer Ring to Ambient free
+            module of rank 2 over the principal ideal domain Integer
+            Ring in Category of modules with basis over (euclidean
+            domains and infinite enumerated sets)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """

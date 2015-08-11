@@ -27,7 +27,6 @@ from sage.combinat.free_module import (CombinatorialFreeModule,
     CombinatorialFreeModuleElement)
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
@@ -38,7 +37,6 @@ from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.rings.all import ZZ
-import math
 import operator
 
 BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',

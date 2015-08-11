@@ -2,11 +2,11 @@ r"""
 (Asymptotic) Growth Groups
 
 This module adds support for (asymptotic) growth groups. Such groups
-is equipped with a partial order: the elements can be seen as
+are equipped with a partial order: the elements can be seen as
 functions and their behavior as the argument(s) get large (tend to
 `\infty`) is compared.
 
-Beside an abstract base class :class:`GenericGrowthGroup`, this module
+Besides an abstract base class :class:`GenericGrowthGroup`, this module
 contains concrete realizations of growth groups. At the moment there
 is
 

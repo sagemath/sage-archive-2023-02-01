@@ -18756,7 +18756,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(h)
             True
             
-        as well as trac:`18613`::
+        as well as :trac:`18613`::
         
             sage: g.is_isomorphic(h, certify=True)
             (True, None)

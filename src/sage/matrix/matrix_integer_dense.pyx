@@ -53,6 +53,8 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from copy import copy
+
 from libc.stdint cimport int64_t
 include "sage/ext/cdefs.pxi"
 
@@ -1678,7 +1680,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         OUTPUT:
 
-        The Hermite normal form (=echelon form over `\ZZ`) of self.
+        The Hermite normal form (=echelon form over `\ZZ`) of self as
+        an immutable matrix.
 
         EXAMPLES::
 
@@ -1791,7 +1794,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         TESTS:
 
-        This example illustrated trac 2398::
+        This example illustrated :trac:`2398`::
 
             sage: a = matrix([(0, 0, 3), (0, -2, 2), (0, 1, 2), (0, -2, 5)])
             sage: a.hermite_form()
@@ -1800,7 +1803,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [0 0 0]
             [0 0 0]
 
-        Check that #12280 is fixed::
+        Check that :trac:`12280` is fixed::
 
             sage: m = matrix([(-2, 1, 9, 2, -8, 1, -3, -1, -4, -1),
             ...               (5, -2, 0, 1, 0, 4, -1, 1, -2, 0),
@@ -1830,14 +1833,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0   0   0 200   0   0]
             [  0   0   0   0   0   0   0   0 200   0]
             [  0   0   0   0   0   0   0   0   0 200]
+            
+        Check that the output is immutable in corner cases, see :trac:`18613`::
+        
+            sage: m = matrix(2, 0)
+            sage: m.echelon_form().is_immutable()
+            True
         """
-        if self._nrows == 0 or self._ncols == 0:
-            self.cache('pivots', ())
-            self.cache('rank', 0)
-            if transformation:
-                return self, self
-            return self
-
         key = 'hnf-%s-%s'%(include_zero_rows,transformation)
         ans = self.fetch(key)
         if ans is not None: return ans
@@ -1861,9 +1863,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
-        rank = None
 
-        if algorithm == "padic":
+        if nr == 0 or nc == 0:
+            pivots = ()
+            H_m = copy(self)
+            U = H_m
+            
+        elif algorithm == "padic":
             import matrix_integer_dense_hnf
             self._init_mpz()
             if transformation:
@@ -1875,9 +1881,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 H_m, pivots = matrix_integer_dense_hnf.hnf(self,
                                    include_zero_rows=include_zero_rows, proof=proof)
-            self.cache('pivots', tuple(pivots))
-            self.cache('rank', len(pivots))
-
 
         elif algorithm == 'pari0':
             if transformation:
@@ -1921,8 +1924,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             except RuntimeError: # HNF may fail if a nxm matrix has rank < m
                 raise ValueError("ntl only computes HNF for square matrices of full rank.")
 
-            rank = w1.nrows()
-
             if include_zero_rows:
                 H_m = self.new_matrix()
             else:
@@ -1943,19 +1944,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         H_m.set_immutable()
         if pivots is None:
             from matrix_integer_dense_hnf import pivots_of_hnf_matrix
-            pivots = tuple(pivots_of_hnf_matrix(H_m))
-            rank = len(pivots)
-        else:
-            pivots = tuple(pivots)
-
+            pivots = pivots_of_hnf_matrix(H_m)
+        pivots = tuple(pivots)
+        rank = len(pivots)
         H_m.cache('pivots', pivots)
         self.cache('pivots', pivots)
-
         H_m.cache('rank', rank)
         self.cache('rank',rank)
-
         H_m.cache('in_echelon_form', True)
-
 
         if transformation:
             U.set_immutable()

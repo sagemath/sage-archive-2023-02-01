@@ -1763,9 +1763,6 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     - ``prefix`` -- (default ``"B"``) a label for the basis elements
 
-    - ``compact_repr`` -- (default ``False``) determines whether compact
-      representation for Brauer diagrams is used. (see :class:`BrauerDiagrams`)
-
     EXAMPLES:
 
     We now define the Brauer algebra of rank `2` with parameter ``x`` over

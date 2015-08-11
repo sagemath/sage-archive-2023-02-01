@@ -623,9 +623,10 @@ cdef class PowComputer_ext(PowComputer_class):
             # values of n the powers are taken from self.small_powers, for large
             # values, the computation dominates the cost of the sig_on()/sig_off().
             mpz_pow_ui(self.temp_m, self.prime.value, n)
+            sig_off()
         return self.temp_m
 
-    cdef ZZ_c* pow_ZZ_tmp(self, long n):
+    cdef ZZ_c* pow_ZZ_tmp(self, long n) except NULL:
         """
         Provides fast access to a ZZ_c* pointing to self.prime^n.
 

@@ -512,7 +512,17 @@ cdef class PowComputer_base(PowComputer_class):
             return self.small_powers[n]
         if n == self.prec_cap:
             return self.top_power
+        if n < 0:
+            raise ValueError("n must be non-negative")
+        # n may exceed self.prec_cap. Very large values can, however, lead to
+        # out-of-memory situations in the following computation. This
+        # sig_on()/sig_off() prevents sage from crashing in such cases.
+        # It does not have a significant impact on performance. For small
+        # values of n the powers are taken from self.small_powers, for large
+        # values, the computation dominates the cost of the sig_on()/sig_off().
+        sig_on()
         mpz_pow_ui(self.temp_m, self.prime.value, n)
+        sig_off()
         return self.temp_m
 
 pow_comp_cache = {}

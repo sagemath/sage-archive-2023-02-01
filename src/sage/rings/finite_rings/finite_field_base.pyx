@@ -1423,28 +1423,25 @@ cdef class FiniteField(Field):
 
     def dual_basis(self, basis=None, check=True):
         r"""
-        Return the dual basis of ``basis``, or the dual basis of the power 
+        Return the dual basis of ``basis``, or the dual basis of the power
         basis if no basis is supplied.
+
+        In particular, if `e = \{e_0, e_1, ..., e_{n-1}\}` is a basis of
+        `\GF{p^n}` as a vector space over `\GF{p}`, then the dual basis of `e`,
+        `d = \{d_0, d_1, ..., d_{n-1}\}`, is another basis such that
+        `\mathrm{Tr}(e_i d_j) = \delta_{i,j}, 0 \leq i,j \leq n-1`, where
+        `\mathrm{Tr}` is the trace function.
 
         INPUT:
 
         - ``basis`` -- (default: ``None``): a basis of the finite field
-          ``self``, `\GF{p^n}`, as a vector space over the base field 
+          ``self``, `\GF{p^n}`, as a vector space over the base field
           `\GF{p}`. Uses the power basis `\{x^i : 0 \leq i \leq n-1\}` as
           input if no basis is supplied, where `x` is the generator of
           ``self``.
 
-        - ``check`` -- (default: ``True``): verifies that ``basis`` is 
+        - ``check`` -- (default: ``True``): verifies that ``basis`` is
           a valid  basis of ``self``.
-
-        OUTPUT:
-        
-        The dual basis of ``basis``. That is, if 
-        `e = \{e_0, e_1, ..., e_{n-1}\}` is a basis of `\GF{p^n}` as a vector
-        space over `\GF{p}`, then the dual basis of `e`,
-        `d = \{d_0, d_1, ..., d_{n-1}\}`, is another basis such that
-        `\mathrm{Tr}(e_i d_j) = \delta_{i,j}, 0 \leq i,j \leq n-1`, where
-        `\mathrm{Tr}` is the trace function.
 
         ALGORITHM:
 
@@ -1453,38 +1450,38 @@ cdef class FiniteField(Field):
 
         Let `e = \{e_0, e_1, ..., e_{n-1}\}` be a basis of `\GF{p^n}` as a
         vector space over `\GF{p}` and `d = \{d_0, d_1, ..., d_{n-1}\}` be the
-        dual basis of `e`. Since `e` is a basis, we can rewrite any 
-        `d_c, 0 \leq c \leq n-1`, as 
+        dual basis of `e`. Since `e` is a basis, we can rewrite any
+        `d_c, 0 \leq c \leq n-1`, as
         `d_c = \beta_0 e_0 + \beta_1 e_1 + ... + \beta_{n-1} e_{n-1}`, for some
         `\beta_0, \beta_1, ..., \beta_{n-1} \in \GF{p}`. Using properties of
         the trace function, we can rewrite the `n` equations of the form
-        `\mathrm{Tr}(e_i d_c) = \delta_{i,c}` and express the result as the 
-        matrix vector product: 
+        `\mathrm{Tr}(e_i d_c) = \delta_{i,c}` and express the result as the
+        matrix vector product:
         `A [\beta_0, \beta_1, ..., \beta_{n-1}] = i_c`, where the `i,j`-th
         element of `A` is `\mathrm{Tr(e_i e_j)}` and `i_c` is the `i`-th
         column of the `n \times n` identity matrix. Since `A` is an invertible
-        matrix, `[\beta_0, \beta_1, ..., \beta_{n-1}] = A^{-1} i_c`, from 
+        matrix, `[\beta_0, \beta_1, ..., \beta_{n-1}] = A^{-1} i_c`, from
         which we can easily calculate `d_c`.
 
         EXAMPLES::
-        
+
             sage: F.<a> = GF(2^4)
             sage: F.dual_basis(basis=None, check=False)
             [a^3 + 1, a^2, a, 1]
 
-        We can test that the dual basis returned satisfies the defining 
-        property of a dual basis: 
+        We can test that the dual basis returned satisfies the defining
+        property of a dual basis:
         `\mathrm{Tr}(e_i d_j) = \delta_{i,j}, 0 \leq i,j \leq n-1` ::
 
             sage: F.<a> = GF(7^4)
-            sage: e = [4*a^3, 2*a^3 + a^2 + 3*a + 5, 
+            sage: e = [4*a^3, 2*a^3 + a^2 + 3*a + 5,
             ....:      3*a^3 + 5*a^2 + 4*a + 2, 2*a^3 + 2*a^2 + 2]
             sage: d = F.dual_basis(e, check=True); d
             [3*a^3 + 4*a^2 + 6*a + 2, a^3 + 6*a + 5,
             3*a^3 + 6*a^2 + 2*a + 5, 5*a^2 + 4*a + 3]
             sage: vals = [[(x * y).trace() for x in e] for y in d]
             sage: matrix(vals) == matrix.identity(4)
-            True    
+            True
 
         We can test that if `d` is the dual basis of `e`, then `e` is the dual
         basis of `d`::
@@ -1503,7 +1500,7 @@ cdef class FiniteField(Field):
             sage: F.dual_basis(d)
             [1, a, a^2, a^3, a^4, a^5, a^6, a^7]
 
-        We cannot calculate the dual basis if ``basis`` is not a valid basis. 
+        We cannot calculate the dual basis if ``basis`` is not a valid basis.
         ::
 
             sage: F.<a> = GF(2^3)
@@ -1518,21 +1515,21 @@ cdef class FiniteField(Field):
             ValueError: value of 'basis' keyword is not a basis
 
         REFERENCES:
-        
+
         .. [FFCSE1987] Robert J. McEliece. Finite Fields for Computer
            Scientists and Engineers. Kluwer Academic Publishers, 1987.
-        
+
         AUTHOR:
 
         - Thomas Gagne (2015-06-16)
         """
         from sage.matrix.constructor import matrix
-        
+
         if basis == None:
             basis = [self.gen()**i for i in range(self.degree())]
             check = False
 
-        if check == True:
+        if check:
             if len(basis) != self.degree():
                 msg = 'basis length should be {0}, not {1}'
                 raise ValueError(msg.format(self.degree(), len(basis)))
@@ -1540,18 +1537,12 @@ cdef class FiniteField(Field):
             vec_reps = [V(b) for b in basis]
             if matrix(vec_reps).is_singular():
                 raise ValueError('value of \'basis\' keyword is not a basis')
-                
-        entries = []
-        for i in range(self.degree()):
-            row = []
-            for j in range(self.degree()):
-                row.append((basis[i] * basis[j]).trace())
-            entries.append(row)
-            
-        B = matrix(self.base(), entries).inverse()
-        db = []
-        for col in B.columns():
-            db.append(sum([col[i] * basis[i] for i in range(self.degree())]))
+
+        entries = [(basis[i] * basis[j]).trace() for i in range(self.degree())
+                    for j in range(self.degree())]
+        B = matrix(self.base_ring(), self.degree(), entries).inverse()
+        db = [sum(map(lambda x: x[0] * x[1], zip(col, basis)))
+              for col in B.columns()]
         return db
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):

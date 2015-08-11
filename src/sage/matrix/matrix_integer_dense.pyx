@@ -53,8 +53,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import copy
-
 from libc.stdint cimport int64_t
 include "sage/ext/cdefs.pxi"
 
@@ -1657,6 +1655,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
           - ``'pari0'`` - use PARI with flag 0
 
+          - ``'pari1'`` - use PARI with flag 1
+
           - ``'pari4'`` - use PARI with flag 4 (use heuristic LLL)
 
           - ``'ntl'`` - use NTL (only works for square matrices of
@@ -1855,25 +1855,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if n <= 10: algorithm = 'pari0'
                 elif n <= 75: algorithm = 'pari'
                 else: algorithm = 'padic'
-
-        cdef bint pari_big = 0
-        if algorithm.startswith('pari'):
-            if self.height().ndigits() > 10000 or n >= 50:
-                pari_big = 1
-
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
 
         if nr == 0 or nc == 0:
             pivots = ()
-            H_m = copy(self)
-            U = H_m
-            
+            H_m = self.new_matrix()
+            U = self.matrix_space(nr, nr).one()
         elif algorithm == "padic":
             import matrix_integer_dense_hnf
             self._init_mpz()
             if transformation:
-                H_m, U, pivots = matrix_integer_dense_hnf.hnf_with_transformation(self, proof=proof)
+                H_m, U = matrix_integer_dense_hnf.hnf_with_transformation(self, proof=proof)
                 if not include_zero_rows:
                     r = H_m.rank()
                     H_m = H_m[:r]
@@ -1881,35 +1874,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 H_m, pivots = matrix_integer_dense_hnf.hnf(self,
                                    include_zero_rows=include_zero_rows, proof=proof)
-
-        elif algorithm == 'pari0':
-            if transformation:
-                raise ValueError("transformation matrix only available with p-adic algorithm")
-            if pari_big:
-                H_m = self._hnf_pari_big(0, include_zero_rows=include_zero_rows)
+        elif transformation:
+            raise ValueError("transformation matrix only available with p-adic algorithm")
+        elif algorithm in ["pari", "pari0", "pari1", "pari4"]:
+            flag = int(algorithm[-1]) if algorithm != "pari" else 1
+            if self.height().ndigits() > 10000 or n >= 50:
+                H_m = self._hnf_pari_big(flag, include_zero_rows=include_zero_rows)
             else:
-                H_m = self._hnf_pari(0, include_zero_rows=include_zero_rows)
-
-        elif algorithm == 'pari':
-            if transformation:
-                raise ValueError("transformation matrix only available with p-adic algorithm")
-            if pari_big:
-                H_m = self._hnf_pari_big(1, include_zero_rows=include_zero_rows)
-            else:
-                H_m = self._hnf_pari(1, include_zero_rows=include_zero_rows)
-
-        elif algorithm == 'pari4':
-            if transformation:
-                raise ValueError("transformation matrix only available with p-adic algorithm")
-            if pari_big:
-                H_m = self._hnf_pari_big(4, include_zero_rows=include_zero_rows)
-            else:
-                H_m = self._hnf_pari(4, include_zero_rows=include_zero_rows)
-
+                H_m = self._hnf_pari(flag, include_zero_rows=include_zero_rows)
         elif algorithm == 'ntl':
-            if transformation:
-                raise ValueError("transformation matrix only available with p-adic algorithm")
-
             if nr != nc:
                 raise ValueError("ntl only computes HNF for square matrices of full rank.")
 
@@ -1936,8 +1909,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 for j from 0 <= j < w1.ncols():
                     H_m[i,j] = w1[nr-i-1,nc-j-1]
 
-        elif algorithm == 'flint':
-            raise NotImplementedError('not yet implemented')
         else:
             raise ValueError("algorithm %r not understood" % algorithm)
 

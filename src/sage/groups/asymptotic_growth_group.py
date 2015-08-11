@@ -1,9 +1,14 @@
 r"""
 (Asymptotic) Growth Groups
 
-This module adds support for (asymptotic) growth groups. Such groups is equipped with a partial order: the elements can be seen as functions and their behavior as the argument(s) get large (tend to `\infty`) is compared.
+This module adds support for (asymptotic) growth groups. Such groups
+are equipped with a partial order: the elements can be seen as
+functions and their behavior as the argument(s) get large (tend to
+`\infty`) is compared.
 
-Beside an abstract base class :class:`GenericGrowthGroup`, this module contains concrete realizations of growth groups. At the moment there is
+Besides an abstract base class :class:`GenericGrowthGroup`, this module
+contains concrete realizations of growth groups. At the moment there
+is
 
 - :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
 
@@ -29,13 +34,17 @@ AUTHORS:
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GenericGrowthGroup(ZZ); G
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
-        GenericGrowthGroup(Integer Ring)
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
+        Growth Group Generic(ZZ)
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
-        x^ZZ
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
+        Growth Group x^ZZ
 
 
 .. NOTE::
@@ -57,8 +66,8 @@ AUTHORS:
 EXAMPLES::
 
     sage: import sage.groups.asymptotic_growth_group as agg
-    sage: G_x = agg.GrowthGroup('x^ZZ'); G_x._repr_long_()
-    'Monomial Growth Group in x over Integer Ring'
+    sage: G_x = agg.GrowthGroup('x^ZZ'); repr(G_x)
+    'Growth Group x^ZZ'
     sage: G_xy = agg.GrowthGroup('x^ZZ * y^ZZ'); G_xy
     Growth Group x^ZZ * y^ZZ
     sage: G_xy.an_element()
@@ -95,9 +104,10 @@ product matters::
 
 import sage
 
-def string_to_parent(s):
+def repr_short_to_parent(s):
     r"""
-    Helper method for the growth group factory.
+    Helper method for the growth group factory, which converts a short
+    representation string to a parent.
 
     INPUT:
 
@@ -107,39 +117,37 @@ def string_to_parent(s):
 
     A parent.
 
-    TESTS::
+    EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.string_to_parent('ZZ')
+        sage: agg.repr_short_to_parent('ZZ')
         Integer Ring
-        sage: agg.string_to_parent('QQ')
+        sage: agg.repr_short_to_parent('QQ')
         Rational Field
-        sage: agg.string_to_parent('SR')
+        sage: agg.repr_short_to_parent('SR')
         Symbolic Ring
 
-    ::
+    TESTS::
 
-        sage: agg.string_to_parent('abcdef')
+        sage: agg.repr_short_to_parent('abcdef')
         Traceback (most recent call last):
         ...
-        ValueError: 'abcdef' cannot be parsed
+        ValueError: Cannot create a parent out of 'abcdef'.
     """
     if s == 'ZZ':
-        from sage.rings.integer_ring import ZZ
-        return ZZ
+        return sage.rings.integer_ring.ZZ
     elif s == 'QQ':
-        from sage.rings.rational_field import QQ
-        return QQ
+        return sage.rings.rational_field.QQ
     elif s == 'SR':
-        from sage.symbolic.ring import SR
-        return SR
+        return sage.symbolic.ring.SR
     else:
-        raise ValueError("'%s' cannot be parsed" % s)
+        raise ValueError("Cannot create a parent out of '%s'." % s)
 
 
-def parent_to_string(P):
+def parent_to_repr_short(P):
     r"""
-    Helper method for short representations.
+    Helper method, which generates a short(er) representation string
+    out of a parent.
 
     INPUT:
 
@@ -149,16 +157,16 @@ def parent_to_string(P):
 
     A string.
 
-    TESTS::
+    EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.parent_to_string(ZZ)
+        sage: agg.parent_to_repr_short(ZZ)
         'ZZ'
-        sage: agg.parent_to_string(QQ)
+        sage: agg.parent_to_repr_short(QQ)
         'QQ'
-        sage: agg.parent_to_string(SR)
+        sage: agg.parent_to_repr_short(SR)
         'SR'
-        sage: agg.parent_to_string(ZZ[x])
+        sage: agg.parent_to_repr_short(ZZ[x])
         '(Univariate Polynomial Ring in x over Integer Ring)'
     """
     if P is sage.rings.integer_ring.ZZ:
@@ -168,7 +176,7 @@ def parent_to_string(P):
     elif P is sage.symbolic.ring.SR:
         return 'SR'
     else:
-        rep = P._repr_()
+        rep = repr(P)
         if ' ' in rep:
             rep = '(' + rep + ')'
         return rep
@@ -378,7 +386,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         sage: g = agg.GenericGrowthElement(G, 42); g
         GenericGrowthElement(42)
         sage: g.parent()
-        GenericGrowthGroup(Integer Ring)
+        Growth Group Generic(ZZ)
         sage: G(raw_element=42) == g
         True
     """
@@ -397,13 +405,13 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         TESTS::
 
             sage: G(raw_element=42).category()
-            Category of elements of GenericGrowthGroup(Integer Ring)
+            Category of elements of Growth Group Generic(ZZ)
 
         ::
 
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: G(raw_element=42).category()
-            Category of elements of GenericGrowthGroup(Integer Ring)
+            Category of elements of Growth Group Generic(ZZ)
 
         ::
 
@@ -770,7 +778,7 @@ class GenericGrowthGroup(
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G = agg.GenericGrowthGroup(ZZ); G
-        GenericGrowthGroup(Integer Ring)
+        Growth Group Generic(ZZ)
 
     .. SEEALSO::
 
@@ -783,7 +791,7 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
-    @sage.misc.superseded.experimental(trac_number=17600)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, category=None):
         r"""
         See :class:`GenericGrowthElement` for more information.
@@ -833,31 +841,9 @@ class GenericGrowthGroup(
                                                  base=base)
 
 
-    def _repr_long_(self):
-        r"""
-        A long (longer than :meth:`._repr_`) representation string
-        for this generic growth group.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.GenericGrowthGroup(ZZ)._repr_long_()
-            'Generic Growth Group over Integer Ring'
-        """
-        return 'Generic Growth Group over %s' % (self.base(),)
-
-
     def _repr_short_(self):
         r"""
-        A short representation string for this abstract growth group.
+        A short representation string of this abstract growth group.
 
         INPUT:
 
@@ -871,12 +857,42 @@ class GenericGrowthGroup(
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.GenericGrowthGroup(QQ)._repr_short_()
-            'GenericGrowthGroup(Rational Field)'
+            'Generic(QQ)'
+            sage: agg.GenericGrowthGroup(QQ)
+            Growth Group Generic(QQ)
         """
-        return 'GenericGrowthGroup(%s)' % (self.base(),)
+        return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
 
-    # the default representation is the short representation:
-    _repr_ = _repr_short_
+
+    def _repr_(self, condense=False):
+        r"""
+        A representations string of this growth group.
+
+        INPUT:
+
+        - ``condense`` -- (default: ``False``) if set, then a shorter
+          output is returned, e.g. the prefix-string ``Growth Group``
+          is not show in this case.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')  # indirect doctest
+            Growth Group x^ZZ
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')  # indirect doctest
+            Growth Group log(x)^QQ
+
+        TESTS::
+
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(condense=True)
+            'log(x)^QQ'
+        """
+        pre = 'Growth Group ' if not condense else ''
+        return '%s%s' % (pre, self._repr_short_())
 
 
     def __hash__(self):
@@ -1297,7 +1313,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b = a^(1/2); b
             x^(7/2)
             sage: b.parent()
-            x^QQ
+            Growth Group x^QQ
             sage: b^12
             x^42
         """
@@ -1372,9 +1388,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: P = agg.MonomialGrowthGroup(ZZ, 'x'); P
-        x^ZZ
+        Growth Group x^ZZ
         sage: agg.MonomialGrowthGroup(ZZ, log(SR.var('y')))
-        log(y)^ZZ
+        Growth Group log(y)^ZZ
 
     .. SEEALSO::
 
@@ -1420,7 +1436,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             cls, base, var, category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17600)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
         For more information see :class:`MonomialGrowthGroup`.
@@ -1429,13 +1445,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.MonomialGrowthGroup(ZZ, 'x')
-            x^ZZ
+            Growth Group x^ZZ
             sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
-            n^QQ
+            Growth Group n^QQ
             sage: agg.MonomialGrowthGroup(ZZ, ZZ['y'].gen())
-            y^ZZ
+            Growth Group y^ZZ
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
-            log(x)^QQ
+            Growth Group log(x)^QQ
 
         TESTS::
 
@@ -1456,10 +1472,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)
 
 
-    def _repr_long_(self):
+    def _repr_short_(self):
         r"""
-        A long (longer than :meth:`._repr_`) representation string
-        for this monomial growth group.
+        A short representation string of this monomial growth group.
 
         INPUT:
 
@@ -1472,32 +1487,12 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: agg.MonomialGrowthGroup(ZZ, 'x')._repr_long_()
-            'Monomial Growth Group in x over Integer Ring'
+            sage: agg.MonomialGrowthGroup(ZZ, 'a')  # indirect doctest
+            Growth Group a^ZZ
+
 
         TESTS::
 
-            sage: agg.MonomialGrowthGroup(QQ, 'v_107')._repr_long_()
-            'Monomial Growth Group in v_107 over Rational Field'
-        """
-        return 'Monomial Growth Group in %s over %s' % (self._var_, self.base())
-
-
-    def _repr_short_(self):
-        r"""
-        A short representation string for this monomial growth group.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.MonomialGrowthGroup(ZZ, 'a')._repr_short_()
             'a^ZZ'
             sage: agg.MonomialGrowthGroup(QQ, 'a')._repr_short_()
@@ -1505,10 +1500,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^(Univariate Polynomial Ring in x over Rational Field)'
         """
-        return '%s^%s' % (self._var_, parent_to_string(self.base()))
-
-    # the default representation is the short representation:
-    _repr_ = _repr_short_
+        return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
 
 
     def __hash__(self):
@@ -1769,13 +1761,14 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         """
         return 1
 
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
-    Factory for asymptotic growth groups.
+    A factory creating asymptotic growth groups.
 
     INPUT:
 
-    - ``rep`` -- a string (short representation of a growth group).
+    - ``specification`` -- a string.
 
     OUTPUT:
 
@@ -1784,10 +1777,10 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     EXAMPLES::
 
         sage: import sage.groups.asymptotic_growth_group as agg
-        sage: agg.GrowthGroup('x^ZZ')._repr_long_()
-        'Monomial Growth Group in x over Integer Ring'
-        sage: agg.GrowthGroup('log(x)^QQ')._repr_long_()
-        'Monomial Growth Group in log(x) over Rational Field'
+        sage: agg.GrowthGroup('x^ZZ')
+        Growth Group x^ZZ
+        sage: agg.GrowthGroup('log(x)^QQ')
+        Growth Group log(x)^QQ
 
     This factory can also be used to construct Cartesian products
     of growth groups::
@@ -1799,7 +1792,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
         Growth Group x^ZZ * log(x)^ZZ * y^QQ
     """
-    def create_key_and_extra_args(self, rep, **kwds):
+    def create_key_and_extra_args(self, specification, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
         determines this object.
@@ -1812,18 +1805,20 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
             Traceback (most recent call last):
             ...
-            ValueError: 'asdf' is not a valid short representation
+            ValueError: 'asdf' is not a valid string describing a growth group.
         """
-        factors = rep.split(' * ')
-        if not all('^' in f for f in factors):
-            raise ValueError("'%s' is not a valid short representation" % rep)
+        factors = tuple(s.strip() for s in specification.split('*'))
+        for f in factors:
+            if '^' not in f:
+                raise ValueError("'%s' is not a valid string describing "
+                                 "a growth group." % (f,))
 
-        return (rep,), kwds
+        return factors, kwds
 
 
-    def create_object(self, version, key, **kwds):
+    def create_object(self, version, factors, **kwds):
         r"""
-        Create a object from the given arguments.
+        Create an object from the given arguments.
 
         TESTS::
 
@@ -1831,41 +1826,43 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             sage: agg.GrowthGroup('as^df')
             Traceback (most recent call last):
             ...
-            ValueError: 'as^df' is not a valid short representation
+            ValueError: 'as^df' is not a valid string describing a growth group.
             sage: agg.GrowthGroup('x^y^z')
             Traceback (most recent call last):
             ...
-            ValueError: Variable names must not include '^'
+            ValueError: Cannot decode x^y^z.
         """
 
-        rep, = key
-        factors_rep = rep.split(' * ')
-        factors = []
+        groups = []
+        for factor in factors:
+            b_and_e = factor.split('^')
+            if len(b_and_e) != 2:
+                raise ValueError('Cannot decode %s.' % (factor,))
+            (b, e) = b_and_e
 
-        for factor in factors_rep:
-            sp = factor.split('^')
-            if len(sp) != 2:
-                raise ValueError("Variable names must not include '^'")
-            (var, base) = sp
             try:
                 # monomial growth group: 'var^base'
-                base = string_to_parent(base)
-                G = MonomialGrowthGroup(base, var, **kwds)
-            except:
-                # exponential growth group: 'base^var'
-                (base, var) = sp
-                try:
-                    base = string_to_parent(base)
-                    # G = ExponentialGrowthGroup(base, var, **kwds)
-                    raise NotImplementedError('Exponential growth groups not '
-                                              'yet implemented')
-                except ValueError:
-                    raise ValueError("'%s' is not a valid short "
-                                     "representation" % factor)
-            factors.append(G)
+                groups.append(
+                    MonomialGrowthGroup(repr_short_to_parent(e), b, **kwds))
+                continue
+            except (TypeError, ValueError):
+                pass
 
-        if len(factors) == 1:
-            return factors[0]
+            raise ValueError("'%s' is not a valid string describing "
+                             "a growth group." % (factor,))
+            # todo: once exponential growth groups are implemented,
+            #       move line above to the bottom of this loop
+
+            try:
+                # exponential growth group: 'base^var'
+                groups.append(
+                    ExponentialGrowthGroup(repr_short_to_parent(b), e, **kwds))
+                continue
+            except (TypeError, ValueError):
+                pass
+
+        if len(groups) == 1:
+            return groups[0]
 
         # otherwise, a cartesian product is created. the growth elements
         # in this products are
@@ -1873,31 +1870,31 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         #   function thereof)
         # - ordered component-wise (for different variables)
 
-        if len(set(factors)) != len(factors):
+        if len(set(groups)) != len(groups):
             raise ValueError('The cartesian product of equal growth '
                              'groups is not supported')
 
-        hom_var_groups = []
-        mon_vars = []
-        for factor in factors:
-            var = factor._var_
-            if not mon_vars or mon_vars[-1] not in var or '(' + mon_vars[-1] + ')' not in var:
-                mon_vars.append(var)
-                hom_var_groups.append([factor])
+        equal_var_groups = []
+        vars = []
+        for group in groups:
+            var = group._var_
+            if not vars or '(' + vars[-1] + ')' not in var:
+                vars.append(var)
+                equal_var_groups.append([group])
             else:
-                hom_var_groups[-1].append(factor)
+                equal_var_groups[-1].append(group)
 
         from sage.categories.cartesian_product import cartesian_product
-        for k in range(len(hom_var_groups)):
-            if len(hom_var_groups[k]) > 1:
-                hom_var_groups[k] = cartesian_product(hom_var_groups[k],
-                                                      order='lex')
+        for k in range(len(equal_var_groups)):
+            if len(equal_var_groups[k]) > 1:
+                equal_var_groups[k] = cartesian_product(equal_var_groups[k],
+                                                        order='lex')
             else:
-                hom_var_groups[k] = hom_var_groups[k][0]
+                equal_var_groups[k] = equal_var_groups[k][0]
 
-        if len(hom_var_groups) == 1:
-            return hom_var_groups[0]
+        if len(equal_var_groups) == 1:
+            return equal_var_groups[0]
 
-        return cartesian_product(hom_var_groups, order='components')
+        return cartesian_product(equal_var_groups, order='components')
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")

@@ -53,6 +53,9 @@ The precise meaning of the result is as follows:
     other `(object, value)` pairs of `s` stored in the database,
     i.e., there is no disagreement of values.
 
+Put differently, if `quality` is not too small it is likely that the
+statistic sent to FindStat equals `s o f_n o ... o f_2 o f_1`.
+
 In the case at hand, the list of maps is empty and the integer
 `quality` equals the number of `(object, value)` pairs passed to
 FindStat.  This means, that the set of `(object, value)` pairs of the
@@ -68,8 +71,8 @@ data sent.  We can now retrieve the description from the database::
 and check the references::
 
     sage: s.references()                                                        # optional -- internet,random
-    0: [MV] combinatorics of orthogonal polynomials (A. de Medicis et X.Viennot, Moments des q-polynomes de Laguerre et la bijection de Foata-Zeilberger, Adv. Appl. Math., 15 (1994), 262-304)
-    1: [SS] R. Simion and D. Stanton. Octabasic Laguerre polynomials and permutation statistics. J. Comput. Appl. Math., ...
+    0: [1] [[MathSciNet:1288802]]
+    1: [2] [[MathSciNet:1418763]]
 
 If you prefer, you can look at this information also in your browser::
 
@@ -161,7 +164,6 @@ Classes and methods
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
@@ -314,26 +316,27 @@ class FindStat(SageObject):
     One of the following:
 
     - an integer or a string representing a valid FindStat identifier
-      (e.g. 45 or 'St000045').  The optional argument ``collection``
-      should be ``None``, the optional arguments ``depth`` and
-      ``max_values`` are ignored.
+      (e.g. 45 or 'St000045').  The keyword argument ``statistic``
+      should be ``None`` (the default), the keyword arguments
+      ``depth`` and ``max_values`` are ignored.
 
     - a list of pairs of the form (object, value), or a dictionary
-      from sage objects to integer values.  The optional argument
-      ``collection`` should be ``None``, the optional arguments
-      ``depth`` and ``max_values`` are passed to the finder.
+      from sage objects to integer values.  The keyword argument
+      ``statistic`` should be ``None`` (the default), the keyword
+      arguments ``depth`` and ``max_values`` are passed to the
+      finder.
 
     - a list of pairs of the form (list of objects, list of values),
       or a single pair of the form (list of objects, list of values).
       In each pair there should be as many objects as values.  The
-      optional argument ``collection`` should be ``None``, the
-      optional arguments ``depth`` and ``max_values`` are passed to
-      the finder.
+      keyword argument ``statistic`` should be ``None`` (the
+      default), the keyword arguments ``depth`` and ``max_values``
+      are passed to the finder.
 
     - a collection and a callable.  The callable is used to generate
       ``max_values`` (object, value) pairs.  The number of terms
       generated may also be controlled by passing an iterable
-      collection, such as Permutations(3).  The optional arguments
+      collection, such as Permutations(3).  The keyword arguments
       ``depth`` and ``max_values`` are passed to the finder.
 
     OUTPUT:
@@ -385,7 +388,7 @@ class FindStat(SageObject):
         sage: p == q                                                            # optional -- internet
         False
 
-    Another possibility is to send a function and a collection.  In
+    Another possibility is to send a collection and a function.  In
     this case, the function is applied to the first few objects of
     the collection::
 
@@ -433,7 +436,7 @@ class FindStat(SageObject):
         self._user_name  = ""
         self._user_email = ""
 
-    def __call__(self, query, statistic=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
+    def __call__(self, query, function=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
         r"""
         Return an instance of a :class:`FindStatStatistic`.
 
@@ -448,6 +451,11 @@ class FindStat(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The depth must be a non-negative integer less than or equal to 5.
+
+            sage: findstat("Permutations", 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The given arguments, Permutations and 1, cannot be used for a FindStat search.
         """
         try:
             depth = int(depth)
@@ -455,7 +463,7 @@ class FindStat(SageObject):
         except:
             raise ValueError("The depth must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
 
-        if statistic is None:
+        if function is None:
             if isinstance(query, str):
                 if re.match('^St[0-9]{6}$', query):
                     return self._statistic_find_by_id_cached(Integer(query[2:].lstrip("0")))
@@ -515,22 +523,22 @@ class FindStat(SageObject):
                 raise ValueError("The given query, %s, cannot be used for a FindStat search." %query)
 
         else:
-            if callable(statistic):
+            if callable(function):
                 if not isinstance(query, FindStatCollection):
                     collection = FindStatCollection(query)
-                first_terms = collection.first_terms(statistic, max_values=max_values)
+                first_terms = collection.first_terms(function, max_values=max_values)
                 data = [([key], [value]) for (key, value) in first_terms]
                 try:
-                    code = inspect.getsource(statistic)
+                    code = inspect.getsource(function)
                 except IOError:
                     _ = verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
                     code = ""
                 return FindStatStatistic(id=0, first_terms=first_terms,
-                                         data=data, function=statistic, code=code,
+                                         data=data, function=function, code=code,
                                          collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
             else:
-                raise ValueError("The given arguments, %s and %s, cannot be used for a FindStat search." %(query, statistic))
+                raise ValueError("The given arguments, %s and %s, cannot be used for a FindStat search." %(query, function))
 
     def __repr__(self):
         r"""
@@ -1552,7 +1560,7 @@ class FindStatCollection(Element):
         """Initialize the collection.
 
         This should only be called in
-        :meth:`FindStatCollection._element_constructor_` via
+        :meth:`FindStatCollections()._element_constructor_` via
         `element_class`.
 
         INPUT:
@@ -1568,6 +1576,12 @@ class FindStatCollection(Element):
         - ``sageconstructor_overridden`` -- either ``None`` or an
           iterable which yields a subset of the elements of the
           collection.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection(5).parent()                                # optional -- internet
+            Set of combinatorial collections used by FindStat
 
         """
         self._id = id
@@ -2136,8 +2150,25 @@ class FindStatMap(Element):
         return FindStatMaps()(entry)
 
     def __init__(self, parent, entry):
-        """
-        Initialize the map.
+        """Initialize the map.
+
+        This should only be called in
+        :meth:`FindStatMaps()._element_constructor_` via
+        `element_class`.
+
+        INPUT:
+
+        - ``parent`` -- :class:`FindStatMaps`.
+
+        - ``entry`` -- a dictionary containing the properties of the
+          map, such as its name, code, and so on.
+
+        TESTS::
+
+            sage: from sage.databases.findstat import FindStatMap
+            sage: FindStatMap(62).parent()                                      # optional -- internet
+            Set of combinatorial maps used by FindStat
+
         """
         self._map = entry
         Element.__init__(self, parent)

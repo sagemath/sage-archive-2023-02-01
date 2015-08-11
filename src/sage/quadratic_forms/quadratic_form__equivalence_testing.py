@@ -526,33 +526,31 @@ def is_rationally_isometric(self, other):
     if self.base_ring() != other.base_ring():
         raise TypeError("forms must have the same base ring.")
 
-    M = self.rational_diagonal_form().Gram_matrix_rational()
-    N = other.rational_diagonal_form().Gram_matrix_rational()
-    K = self.base_ring()
-
-    L1=self.Gram_det().support()
-    L2=other.Gram_det().support()
-    L=L1+L2
-
     if self.dim() != other.dim():
         return False
 
     if not ((self.Gram_det()*other.Gram_det()).is_square()):
         return False
 
-    for p in L:
+    L1=self.Gram_det().support()
+    L2=other.Gram_det().support()
+
+    for p in set().union(L1,L2):
         if self.hasse_invariant(p) != other.hasse_invariant(p):
             return False
-
-    Mentries = M.diagonal()
-    Nentries = N.diagonal()
 
     if self.base_ring() == QQ:
         if self.signature() != other.signature():
             return False
-
-
     else:
+
+        M = self.rational_diagonal_form().Gram_matrix_rational()
+        N = other.rational_diagonal_form().Gram_matrix_rational()
+        K = self.base_ring()
+    
+        Mentries = M.diagonal()
+        Nentries = N.diagonal()
+
         for emb in K.real_embeddings():
 
             Mpos=0

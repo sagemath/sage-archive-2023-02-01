@@ -700,8 +700,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     # Adding the first two trivial columns
     OA.insert(0,[j for i in range(n) for j in range(n)])
     OA.insert(0,[i for i in range(n) for j in range(n)])
-    OA=zip(*OA)
-    OA.sort()
+    OA=sorted(zip(*OA))
 
     # Moves the first three columns to the end
     OA = [list(B[3:]+B[:3]) for B in OA]
@@ -1089,8 +1088,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     #
     # OA1 and resolvable OA2 and OA3
     OA1 = orthogonal_array(k,n1)
-    OA3 = orthogonal_array(k+1,n3)
-    OA3.sort()
+    OA3 = sorted(orthogonal_array(k+1,n3))
     OA3 = [B[1:] for B in OA3]
     OA2 = orthogonal_array(k+1,n2)
     OA2.sort()

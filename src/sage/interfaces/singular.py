@@ -306,37 +306,22 @@ see :trac:`11645`::
     ''
 """
 
-
-
-#We could also do these calculations without using the singular
-#interface (behind the scenes the interface is used by Sage):
-#    sage: x, y = PolynomialRing(RationalField(), 2, names=['x','y']).gens()
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9)
-#    sage: C.genus()
-#    0
-#    sage: C = ProjectivePlaneCurve(y**9 - x**2*(x-1)**9 + x)
-#    sage: C.genus()
-#    40
-
 #*****************************************************************************
 #       Copyright (C) 2005 David Joyner and William Stein
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import os
 import re
 import sys
 import pexpect
+from time import sleep
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -390,7 +375,9 @@ class Singular(Expect):
                         terminal_echo=False,
                         name = 'singular',
                         prompt = prompt,
-                        command = "Singular -t --ticks-per-sec 1000", #no tty and fine grained cputime()
+                        # no tty, fine grained cputime()
+                        # and do not display CTRL-C prompt
+                        command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
                         maxread = maxread,
                         server = server,
                         server_tmpdir = server_tmpdir,
@@ -498,6 +485,43 @@ class Singular(Expect):
             'quit'
         """
         return 'quit'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to Singular. If needed, additional
+        semi-colons are sent until we get back at the prompt.
+
+        TESTS:
+
+        The following works without restarting Singular::
+
+            sage: a = singular(1)
+            sage: _ = singular._expect.sendline('1+')  # unfinished input
+            sage: try:
+            ....:     alarm(0.5)
+            ....:     singular._expect_expr('>')  # interrupt this
+            ....: except KeyboardInterrupt:
+            ....:     pass
+            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
+
+        We can still access a::
+
+            sage: 2*a
+            2
+        """
+        # Work around for Singular bug
+        # http://www.singular.uni-kl.de:8002/trac/ticket/727
+        sleep(0.1)
+
+        E = self._expect
+        E.sendline(chr(3))
+        for i in range(5):
+            try:
+                E.expect_upto(self._prompt, timeout=1.0)
+                return
+            except Exception:
+                pass
+            E.sendline(";")
 
     def _read_in_file_command(self, filename):
         r"""

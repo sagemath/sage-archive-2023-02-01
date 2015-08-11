@@ -242,6 +242,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.transitive_reduction` | Return a transitive reduction of a graph.
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
+    :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
 
 **Plot/embedding-related methods:**
 
@@ -2494,15 +2495,27 @@ class GenericGraph(GenericGraph_pyx):
         """
         return self._backend.multiple_edges(None)
 
-    def allow_multiple_edges(self, new, check=True):
+    def allow_multiple_edges(self, new, check=True, keep_label='any'):
         """
         Changes whether multiple edges are permitted in the (di)graph.
 
         INPUT:
 
-        - ``new`` - boolean.
+        - ``new`` (boolean): if ``True``, the new graph will allow multiple
+          edges.
 
-        EXAMPLES::
+        - ``check`` (boolean): if ``True`` and ``new`` is ``False``, we remove
+          all multiple edges from the graph.
+
+        - ``keep_label`` (``'any','min','max'``): used only if ``new`` is
+          ``False`` and ``check`` is ``True``. If there are multiple edges with
+          different labels, this variable defines which label should be kept:
+          any label (``'any'``), the smallest label (``'min'``), or the largest
+          (``'max'``).
+
+        EXAMPLES:
+
+        The standard behavior with undirected graphs::
 
             sage: G = Graph(multiedges=True,sparse=True); G
             Multi-graph on 0 vertices
@@ -2510,17 +2523,33 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: G.allows_multiple_edges()
             True
-            sage: G.add_edges([(0,1)]*3)
+            sage: G.add_edges([(0,1,1), (0,1,2), (0,1,3)])
             sage: G.has_multiple_edges()
             True
             sage: G.multiple_edges()
-            [(0, 1, None), (0, 1, None), (0, 1, None)]
+            [(0, 1, 1), (0, 1, 2), (0, 1, 3)]
             sage: G.allow_multiple_edges(False); G
             Graph on 2 vertices
             sage: G.has_multiple_edges()
             False
             sage: G.edges()
-            [(0, 1, None)]
+            [(0, 1, 1)]
+
+        If we ask for the minimum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='min')
+            sage: G.edges()
+            [(0, 1, 1)]
+
+        If we ask for the maximum label::
+
+            sage: G = Graph([(0, 1, 1), (0, 1, 2), (0, 1, 3)], multiedges=True,sparse=True)
+            sage: G.allow_multiple_edges(False, keep_label='max')
+            sage: G.edges()
+            [(0, 1, 3)]
+
+        The standard behavior with digraphs::
 
             sage: D = DiGraph(multiedges=True,sparse=True); D
             Multi-digraph on 0 vertices
@@ -2540,15 +2569,28 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        seen = set()
+        seen = dict()
+
+        if not keep_label in ['any','min','max']:
+            raise ValueError("Variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
         if self.allows_multiple_edges() and new is False and check:
             for u,v,l in self.multiple_edges():
-                if (u,v) in seen:
-                    self.delete_edge(u,v,l)
+                if not (u,v) in seen:
+                    # This is the first time we see this edge
+                    seen[(u,v)] = l
                 else:
-                    seen.add((u,v))
+                    # This edge has already been seen: we have to remove
+                    # something from the graph.
+                    oldl = seen[(u,v)]
+                    if ((keep_label=='min' and l<oldl) or (keep_label=='max' and l>oldl)):
+                        # Keep the new edge, delete the old one
+                        self.delete_edge((u,v,oldl))
+                        seen[(u,v)] = l
+                    else:
+                        # Delete the new edge
+                        self.delete_edge((u,v,l))
 
         self._backend.multiple_edges(new)
 
@@ -3301,17 +3343,23 @@ class GenericGraph(GenericGraph_pyx):
             return edges
 
     def min_spanning_tree(self,
-                          weight_function=lambda e: 1,
+                          weight_function=None,
                           algorithm="Kruskal",
                           starting_vertex=None,
                           check=False):
         r"""
         Returns the edges of a minimum spanning tree.
 
+        At the moment, no algorithm for directed graph is implemented: if the
+        graph is directed, a minimum spanning tree of the corresponding
+        undirected graph is returned.
+
         INPUT:
 
         - ``weight_function`` -- A function that takes an edge and returns a
-          numeric weight. Defaults to assigning each edge a weight of 1.
+          numeric weight. If ``None`` (default), the algorithm uses the edge
+          weights, if available, otherwise it assigns weight 1 to each edge (in
+          the latter case, the output can be any spanning tree).
 
         - ``algorithm`` -- The algorithm to use in computing a minimum spanning
           tree of ``G``. The default is to use Kruskal's algorithm. The
@@ -3328,7 +3376,8 @@ class GenericGraph(GenericGraph_pyx):
             implementation.
 
         - ``starting_vertex`` -- The vertex from which to begin the search
-          for a minimum spanning tree.
+          for a minimum spanning tree (available only for ``Prim_fringe`` and
+          ``Prim_edge``).
 
         - ``check`` -- Boolean; default: ``False``. Whether to first perform
           sanity checks on the input graph ``G``. If appropriate, ``check``
@@ -3355,7 +3404,7 @@ class GenericGraph(GenericGraph_pyx):
             4
             sage: weight = lambda e: 1 / ((e[0] + 1) * (e[1] + 1))
             sage: g.min_spanning_tree(weight_function=weight)
-            [(3, 4, None), (2, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g = graphs.PetersenGraph()
             sage: g.allow_multiple_edges(True)
             sage: g.weighted(True)
@@ -3367,14 +3416,67 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.CompleteGraph(5)
             sage: g.min_spanning_tree(algorithm='Prim_edge', starting_vertex=2, weight_function=weight)
-            [(2, 4, None), (3, 4, None), (1, 4, None), (0, 4, None)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
             sage: g.min_spanning_tree(algorithm='Prim_fringe', starting_vertex=2, weight_function=weight)
-            [(2, 4), (4, 3), (4, 1), (4, 0)]
+            [(0, 4, None), (1, 4, None), (2, 4, None), (3, 4, None)]
+
+        NetworkX algorithm::
+
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None)]
+
+        TESTS:
+
+        Check that, if ``weight_function`` is not provided, then edge weights
+        are used::
+
+            sage: g = Graph(weighted=True)
+            sage: g.add_edges([[0,1,1],[1,2,1],[2,0,10]])
+            sage: g.min_spanning_tree()
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge')
+            [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX')
+            [(0, 1, 1), (1, 2, 1)]
+
+        Check that, if ``weight_function`` is provided, it overrides edge
+        weights::
+
+            sage: g = Graph([[0,1,1],[1,2,1],[2,0,10]], weighted=True)
+            sage: weight = lambda e:3-e[0]-e[1]
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_fringe', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Prim_edge', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+
+        If the graph is directed, it is transformed into an undirected graph::
+
+            sage: g = digraphs.Circuit(3)
+            sage: g.min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
+            sage: g.to_undirected().min_spanning_tree(weight_function=weight)
+            [(0, 2, None), (1, 2, None)]
         """
         if algorithm == "Kruskal":
             from spanning_tree import kruskal
-            return kruskal(self, wfunction=weight_function, check=check)
-        elif algorithm == "Prim_fringe":
+            if self.is_directed():
+                return kruskal(self.to_undirected(), wfunction=weight_function, check=check)
+            else:
+                return kruskal(self, wfunction=weight_function, check=check)
+
+        if weight_function is None:
+            if self.weighted():
+                weight_function = lambda e:self.edge_label(e[0], e[1])
+            else:
+                weight_function = lambda e:1
+
+        if algorithm == "Prim_fringe":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
             else:
@@ -3389,7 +3491,8 @@ class GenericGraph(GenericGraph_pyx):
             for i in range(self.order() - 1):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
-                edges.append((fringe_list[u][1], u))
+                x = fringe_list[u][1]
+                edges.append((min(x,u), max(x,u), self.edge_label(x, u)))
                 tree.add(u)
                 fringe_list.pop(u)
                 # update fringe list
@@ -3397,7 +3500,8 @@ class GenericGraph(GenericGraph_pyx):
                     w = weight_function((u, neighbor))
                     if neighbor not in fringe_list or fringe_list[neighbor][0] > w:
                         fringe_list[neighbor] = (w, u)
-            return edges
+            return sorted(edges)
+
         elif algorithm == "Prim_edge":
             if starting_vertex is None:
                 v = next(self.vertex_iterator())
@@ -3428,11 +3532,13 @@ class GenericGraph(GenericGraph_pyx):
                         break
                     else:
                         i += 1
-            return edges
+            return sorted(edges)
+
         elif algorithm == "NetworkX":
             import networkx
             G = networkx.Graph([(u, v, dict(weight=weight_function((u, v)))) for u, v, l in self.edge_iterator()])
-            return list(networkx.mst(G))
+            return sorted([(u,v,self.edge_label(u,v)) if u<v else (v,u,self.edge_label(u,v)) for (u,v) in networkx.minimum_spanning_tree(G).edges()])
+
         else:
             raise NotImplementedError("Minimum Spanning Tree algorithm '%s' is not implemented." % algorithm)
 
@@ -12709,7 +12815,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self)
+                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
 
             v = self.vertices()
         elif not isinstance(v, list):
@@ -14550,10 +14656,22 @@ class GenericGraph(GenericGraph_pyx):
             return G.copy(immutable=True)
         return G
 
-    def to_simple(self):
+    def to_simple(self, to_undirected=True, keep_label='any'):
         """
-        Returns a simple version of itself (i.e., undirected and loops and
-        multiple edges are removed).
+        Returns a simple version of itself.
+
+        In particular, loops and multiple edges are removed, and the graph might
+        optionally be converted to an undirected graph.
+
+        INPUT:
+
+        - ``to_undirected`` - boolean - if ``True``, the graph is also converted
+          to an undirected graph.
+
+        - ``keep_label`` (``'any','min','max'``): if there are multiple edges
+          with different labels, this variable defines which label should be
+          kept: any label (``'any'``), the smallest label (``'min'``), or the
+          largest (``'max'``).
 
         EXAMPLES::
 
@@ -14570,10 +14688,17 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: H.allows_multiple_edges()
             False
+            sage: G.to_simple(to_undirected=False, keep_label='min').edges()
+            [(2, 3, 1), (3, 2, None)]
+            sage: G.to_simple(to_undirected=False, keep_label='max').edges()
+            [(2, 3, 2), (3, 2, None)]
         """
-        g=self.to_undirected()
+        if to_undirected:
+            g=self.to_undirected()
+        else:
+            g=copy(self)
         g.allow_loops(False)
-        g.allow_multiple_edges(False)
+        g.allow_multiple_edges(False, keep_label=keep_label)
         return g
 
     def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
@@ -18435,12 +18560,16 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        -  ``certify`` - if True, then output is `(a, b)`, where `a`
+           is a boolean and `b` is either a map or ``None``.
 
-        -  ``certify`` - if True, then output is (a,b), where a
-           is a boolean and b is either a map or None.
-
-        -  ``edge_labels`` - default False, otherwise allows
+        -  ``edge_labels`` - default ``False``, otherwise allows
            only permutations respecting edge labels.
+           
+        OUTPUT:
+        
+        - either a boolean or, if ``certify`` is ``True``, a tuple consisting
+          of a boolean and a map or ``None``
 
         EXAMPLES:
 
@@ -18626,10 +18755,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
+            
+        as well as :trac:`18613`::
+        
+            sage: g.is_isomorphic(h, certify=True)
+            (True, None)
         """
 
         if self.order() == other.order() == 0:
-            return True
+            return (True, None) if certify else True
 
         if (self.is_directed() != other.is_directed() or self.order() != other.order() or
             self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):
@@ -18893,6 +19027,9 @@ import sage.graphs.distances_all_pairs
 GenericGraph.distances_distribution = types.MethodType(sage.graphs.distances_all_pairs.distances_distribution, None, GenericGraph)
 GenericGraph.wiener_index = types.MethodType(sage.graphs.distances_all_pairs.wiener_index, None, GenericGraph)
 GenericGraph.diameter = types.MethodType(sage.graphs.distances_all_pairs.diameter, None, GenericGraph)
+
+from sage.graphs.base.boost_graph import dominator_tree
+GenericGraph.dominator_tree = types.MethodType(dominator_tree, None, GenericGraph)
 
 # From Python modules
 import sage.graphs.line_graph

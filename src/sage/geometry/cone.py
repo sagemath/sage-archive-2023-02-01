@@ -2786,16 +2786,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1, 0)
             sage: classify_cone_2d(*cone2.rays())
             (3, 2)
-
-        A random (strictly convex) cone is isomorphic to itself. See
-        :trac:`18613` for the ``min_rays`` restriction::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=6, min_rays=1,
-            ....:                 strictly_convex=True)
+            
+        We check that :trac:`18613` is fixed::
+        
+            sage: K = Cone([], ToricLattice(0))
             sage: K.is_isomorphic(K)
             True
-
+            sage: K = Cone([(0,)])
+            sage: K.is_isomorphic(K)
+            True
+            sage: K = Cone([(0,0)])
+            sage: K.is_isomorphic(K)
+            True
         """
         from sage.geometry.fan import Fan
         return Fan([self]).is_isomorphic(Fan([other]))

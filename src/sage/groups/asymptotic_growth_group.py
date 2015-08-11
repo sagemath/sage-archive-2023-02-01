@@ -2,11 +2,11 @@ r"""
 (Asymptotic) Growth Groups
 
 This module adds support for (asymptotic) growth groups. Such groups
-is equipped with a partial order: the elements can be seen as
+are equipped with a partial order: the elements can be seen as
 functions and their behavior as the argument(s) get large (tend to
 `\infty`) is compared.
 
-Beside an abstract base class :class:`GenericGrowthGroup`, this module
+Besides an abstract base class :class:`GenericGrowthGroup`, this module
 contains concrete realizations of growth groups. At the moment there
 is
 
@@ -637,13 +637,15 @@ class GenericGrowthGroup(
         return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
 
 
-    def _repr_(self):
+    def _repr_(self, condense=False):
         r"""
         A representations string of this growth group.
 
         INPUT:
 
-        Nothing.
+        - ``condense`` -- (default: ``False``) if set, then a shorter
+          output is returned, e.g. the prefix-string ``Growth Group``
+          is not show in this case.
 
         OUTPUT:
 
@@ -656,8 +658,14 @@ class GenericGrowthGroup(
             Growth Group x^ZZ
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)')  # indirect doctest
             Growth Group log(x)^QQ
+
+        TESTS::
+
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')._repr_(condense=True)
+            'log(x)^QQ'
         """
-        return 'Growth Group %s' % (self._repr_short_(),)
+        pre = 'Growth Group ' if not condense else ''
+        return '%s%s' % (pre, self._repr_short_())
 
 
     def __hash__(self):

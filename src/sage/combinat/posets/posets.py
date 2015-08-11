@@ -5601,6 +5601,29 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
         return IncidenceAlgebra(R, self, prefix)
 
+    def is_subposet(self, other):
+        r"""
+        Return ``True`` if the poset is a subposet of ``other``, and ``False`` otherwise.
+
+        .. NOTE::
+
+            This method does not check whether the poset is a
+            subposet *isomorphic* to ``other``, but only if ``other``
+            directly contains the poset as an (induced) subposet.
+            For isomorphic subposets see :meth:`has_isomorphic_subposet`.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2, 3]})
+            sage: Q = Poset({1:[2, 4], 2:[3]})
+            sage: P.is_subposet(Q)
+            False
+            sage: R = Poset({0:[1], 1:[3, 4], 3:[5], 4:[2]})
+            sage: P.is_subposet(R)
+            True
+        """
+        return self.hasse_diagram().is_subgraph(other.hasse_diagram().transitive_closure())
+        
 FinitePoset._dual_class = FinitePoset
 
 ##### Posets #####

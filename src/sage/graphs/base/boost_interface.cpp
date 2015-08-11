@@ -12,16 +12,13 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace boost;
-
 typedef int v_index;
 typedef long e_index;
 
 // This struct is the output of the edge connectivity Boost algorithm.
 typedef struct {
     v_index ec; // The edge connectivity
-    vector<v_index> edges; // The edges in a minimum cut, stored as a list of
+    std::vector<v_index> edges; // The edges in a minimum cut, stored as a list of
                        // nodes. For instance, if the minimum cut is
                        // {(1,2),(3,4)}, the output vector will be (1,2,3,4).
 } result_ec;
@@ -30,7 +27,7 @@ typedef struct {
 // This struct is the output of the clustering coefficient Boost algorithm.
 typedef struct {
     double average_clustering_coefficient; // The average clustering coefficient
-    vector<double> clust_of_v;             // The clustering coefficient of each node.
+    std::vector<double> clust_of_v;             // The clustering coefficient of each node.
 } result_cc;
 
 template <class OutEdgeListS, // How neighbors are stored
@@ -54,8 +51,11 @@ class BoostGraph
  * we use vertex properties, and the syntax is (*graph)[v].
 */
 {
-    typedef typename boost::adjacency_list<OutEdgeListS, VertexListS, DirectedS,
-    property<vertex_index_t, v_index>, EdgeProperty, no_property, EdgeListS> adjacency_list;
+private:
+    typedef typename boost::adjacency_list<
+        OutEdgeListS, VertexListS, DirectedS,
+        boost::property<boost::vertex_index_t, v_index>,
+        EdgeProperty, boost::no_property, EdgeListS> adjacency_list;
     typedef typename boost::graph_traits<adjacency_list>::vertex_descriptor vertex_descriptor;
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
@@ -63,12 +63,12 @@ class BoostGraph
 
 public:
     adjacency_list *graph;
-    vector<vertex_descriptor> *vertices;
+    std::vector<vertex_descriptor> *vertices;
     vertex_to_int_map index;
 
     BoostGraph() {
         graph = new adjacency_list();
-        vertices = new vector<vertex_descriptor>();
+        vertices = new std::vector<vertex_descriptor>();
     }
 
     ~BoostGraph() {
@@ -99,7 +99,7 @@ public:
     result_ec edge_connectivity() {
         result_ec to_return;
         edge_container disconnecting_set;
-        back_insert_iterator<edge_container> inserter(disconnecting_set);
+        std::back_insert_iterator<edge_container> inserter(disconnecting_set);
         to_return.ec = boost::edge_connectivity(*graph, inserter);
 
         for (v_index i = 0; i < disconnecting_set.size(); i++) {
@@ -122,9 +122,9 @@ public:
         return to_return;
     }
 
-    vector<v_index> dominator_tree(v_index v) {
-        vector<v_index> fathers(num_verts());
-        vector<vertex_descriptor> fathers_descr(num_verts(),
+    std::vector<v_index> dominator_tree(v_index v) {
+        std::vector<v_index> fathers(num_verts());
+        std::vector<vertex_descriptor> fathers_descr(num_verts(),
                     boost::graph_traits<adjacency_list>::null_vertex());
 
         lengauer_tarjan_dominator_tree(*graph, (*vertices)[v],
@@ -143,9 +143,9 @@ public:
     }
 
     // Works only in undirected graphs!
-    vector<v_index> bandwidth_ordering(bool cuthill) {
-        vector<v_index> to_return;
-        vector<vertex_descriptor> inv_perm(num_vertices(*graph));
+    std::vector<v_index> bandwidth_ordering(bool cuthill) {
+        std::vector<v_index> to_return;
+        std::vector<vertex_descriptor> inv_perm(num_vertices(*graph));
 
         if (cuthill) {
             boost::cuthill_mckee_ordering(*graph, inv_perm.rbegin());
@@ -160,9 +160,9 @@ public:
     }
 
     // This function works only on undirected graphs.
-    vector<v_index> kruskal_min_spanning_tree() {
-        vector<v_index> to_return;
-        std::vector <edge_descriptor> spanning_tree;
+    std::vector<v_index> kruskal_min_spanning_tree() {
+        std::vector<v_index> to_return;
+        std::vector<edge_descriptor> spanning_tree;
         kruskal_minimum_spanning_tree(*graph, std::back_inserter(spanning_tree));
 
         for (unsigned int i = 0; i < spanning_tree.size(); i++) {
@@ -173,9 +173,9 @@ public:
     }
 
     // This function works only on undirected graphs with no parallel edge.
-    vector<v_index> prim_min_spanning_tree() {
-        vector<v_index> to_return;
-        vector<vertex_descriptor> predecessors(num_verts());
+    std::vector<v_index> prim_min_spanning_tree() {
+        std::vector<v_index> to_return;
+        std::vector<vertex_descriptor> predecessors(num_verts());
         prim_minimum_spanning_tree(*graph, make_iterator_property_map(predecessors.begin(), index));
 
         for (unsigned int i = 0; i < predecessors.size(); i++) {

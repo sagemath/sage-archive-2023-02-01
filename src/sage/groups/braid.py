@@ -611,7 +611,7 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return self.parent()._LKB_matrix_(self.Tietze(), variab=variables)
 
-    def TL_matrix(self, drain_size, variab='A', ring=IntegerRing()):
+    def TL_matrix(self, drain_size, variab='A', ring=IntegerRing(), sparse=True):
         """
         Calculate the matrices of the Temperley--Lieb--Jones representation of
         the braidin the basis given by non-intersecting pairings of $(n+d)$ points,
@@ -623,6 +623,9 @@ class Braid(FinitelyPresentedGroupElement):
 
         When $d = n-2$ and the variables are picked appropriately, the resulting
         representation is equivalent to the reduced Burau representation.
+        
+        The parameter ``sparse`` can be set to False if it is expected that the
+        result will not be sparse. We make no attempt at guessing this.
 
         INPUT:
 
@@ -632,6 +635,8 @@ class Braid(FinitelyPresentedGroupElement):
           variable in the entries of the matrices
         - ``ring`` -- ring (default: ``IntegerRing()``); the ring to which the
           coefficients of the polynomial entries belong
+        - ``sparse`` -- boolean (default: ``True``); whether or not the result
+          should be given as a sparse matrix
 
         OUTPUT:
 
@@ -673,7 +678,7 @@ class Braid(FinitelyPresentedGroupElement):
         d = drain_size
         B = BraidGroup(n)
         rep = B.create_TL_rep(d, variab, ring)
-        M = identity_matrix(R, B.dim_of_TL_space(d))
+        M = identity_matrix(R, B.dim_of_TL_space(d), sparse=sparse)
         for i in self.Tietze():
             if i > 0:
                 M = M*rep[i-1]
@@ -1559,7 +1564,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
         R = LaurentPolynomialRing(ring, variab)
         A = R.gens()[0]
         for i in range(1, n):
-            repmatnew = identity_matrix(R, len(basis))
+            repmatnew = identity_matrix(R, len(basis), sparse=True)
             for v in range(len(basis)):
                 newmatentry = auxmat[i-1, v]
                 if newmatentry == v:

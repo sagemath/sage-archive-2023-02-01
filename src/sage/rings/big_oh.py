@@ -69,21 +69,21 @@ def O(*x, **kwds):
     """
     if len(x) > 1:
         if isinstance(x[0], multi_power_series_ring_element.MPowerSeries):
-            return multi_power_series_ring_element.MO(x)
+            return multi_power_series_ring_element.MO(x, **kwds)
     x = x[0]
 
     if isinstance(x, power_series_ring_element.PowerSeries):
-        return x.parent()(0, x.degree())
+        return x.parent()(0, x.degree(), **kwds)
 
     elif isinstance(x, Polynomial):
         if x.parent().ngens() != 1:
             raise NotImplementedError("completion only currently defined for univariate polynomials")
         if not x.is_monomial():
             raise NotImplementedError("completion only currently defined for the maximal ideal (x)")
-        return x.parent().completion(x.parent().gen())(0, x.degree())
+        return x.parent().completion(x.parent().gen())(0, x.degree(), **kwds)
 
     elif isinstance(x, laurent_series_ring_element.LaurentSeries):
-        return laurent_series_ring_element.LaurentSeries(x.parent(), 0).add_bigoh(x.valuation())
+        return laurent_series_ring_element.LaurentSeries(x.parent(), 0).add_bigoh(x.valuation(), **kwds)
 
     elif isinstance(x, (int,long,integer.Integer,rational.Rational)):  # p-adic number
         if x <= 0:
@@ -93,12 +93,12 @@ def O(*x, **kwds):
             raise ArithmeticError("x must be prime power")
         p, r = F[0]
         if r >= 0:
-            return padics_factory.Zp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r)
+            return padics_factory.Zp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r, **kwds)
         else:
-            return padics_factory.Qp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r)
+            return padics_factory.Qp(p, prec = max(r, 20), type = 'capped-rel')(0, absprec = r, **kwds)
 
     elif isinstance(x, padic_generic_element.pAdicGenericElement):
-         return x.parent()(0, absprec = x.valuation())
+         return x.parent()(0, absprec = x.valuation(), **kwds)
     elif hasattr(x, 'O'):
         return x.O(**kwds)
     raise ArithmeticError("O(x) not defined")

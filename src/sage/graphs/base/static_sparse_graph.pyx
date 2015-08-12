@@ -417,6 +417,85 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     sage_free(stack)
 
+cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
+    sig_on()
+    cdef int i,u,v,w, n = g.n, current_index = 0, currentscc = 0
+    cdef int *index = <int *> sage_malloc(n * sizeof(int))
+    cdef int *pred = <int *> sage_malloc(n * sizeof(int))
+    cdef int *lowlink = <int *> sage_malloc(n * sizeof(int))
+    cdef int *dfs_stack = <int *> sage_malloc(n_edges(g) * sizeof(int))
+    cdef int dfs_stack_end
+    cdef int *scc_stack = <int *> sage_malloc(n_edges(g) * sizeof(int))
+    cdef int scc_stack_end
+    cdef short *visited = <short *> sage_calloc(n, sizeof(short))
+    
+    # The variable visited[v] is 0 if the vertex has never been visited, 1 if 
+    # it is an ancestor of the current vertex, 2 otherwise.
+
+    for u in range(n):
+        if visited[u] == 0:
+            # Perform a DFS from u
+            dfs_stack_end = 1
+            dfs_stack[0] = u
+            pred[u] = u
+            
+            while dfs_stack_end > 0:
+                v = dfs_stack[dfs_stack_end - 1]
+                if visited[v] == 0:
+                    # It means that this is the first time we visit v.
+                    visited[v] = 1
+                    index[v] = current_index
+                    lowlink[v] = current_index
+                    current_index = current_index + 1
+                    scc_stack[scc_stack_end] = v
+                    scc_stack_end = scc_stack_end + 1
+                    
+                    for i in range(g.neighbors[v+1]-g.neighbors[v]):
+                        w = g.neighbors[v][i]
+                        if visited[w] == 0:
+                            pred[w] = v
+                            dfs_stack[dfs_stack_end] = w
+                            dfs_stack_end += 1
+                        elif visited[w] == 1:
+                            lowlink[v] = min(lowlink[v], lowlink[w])
+                            
+                elif visited[v] == 1:
+                    # It means that we finished the subtree rooted at v
+                    lowlink[pred[v]] = min(lowlink[pred[v]], lowlink[v])
+                    if lowlink[v] == index[v]:
+                        w = -1
+                        while w != v:
+                            scc_stack_end -= 1
+                            w = scc_stack[scc_stack_end]
+                            scc[w] = currentscc
+                        currentscc += 1
+                    visited[v] = 2
+                    dfs_stack_end -= 1
+                else:
+                    # Vertex v is already in our tree: we ignore it
+                    dfs_stack_end -= 1
+    sage_free(index)
+    sage_free(pred)
+    sage_free(lowlink)
+    sage_free(dfs_stack)
+    sage_free(scc_stack)
+    sage_free(visited)
+    sig_off()
+    return currentscc
+
+def tarjan_strongly_connected_components(G):
+    cdef int * scc = <int*> sage_malloc(g.n * sizeof(int))
+    cdef short_digraph g
+    init_short_digraph(g, G)
+    cdef int nscc = _tarjan_strongly_connected_components(g, scc)
+    return {v:scc[i] for i,v in enumerate(G.vertices())}
+
+def test():
+    for i in range(100000000):
+        import random
+        g = digraphs.RandomDirectedGNM(random.randint(0,50),random.randint(0,200))
+        
+
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):
 
     # Computing the set of vertices that can be reached from v in g

@@ -553,6 +553,22 @@ def is_rationally_isometric(self, other):
         sage: V.is_rationally_isometric(W)
         False
 
+    ::
+
+        sage: K.<a> = NumberField(x^5 - x + 2, 'a')
+        sage: Q = QuadraticForm(K,3,[a,1,0,-a**2,-a**3,-1])
+        sage: m = Q.matrix()
+        sage: for _ in range(5):
+        ....:     t = random_matrix(ZZ,3,algorithm='unimodular')
+        ....:     m2 = t*m*t.transpose()
+        ....:     Q2 = QuadraticForm(K, 3, [m[i,j] / (2 if i==j else 1)
+        ....:                               for i in range(3) for j in range(i,3)])
+        ....:     print Q.is_rationally_isometric(Q2)
+        True
+        True
+        True
+        True
+        True
 
     """
 

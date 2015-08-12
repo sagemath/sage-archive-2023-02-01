@@ -14880,6 +14880,22 @@ class GenericGraph(GenericGraph_pyx):
             ({0: {0: 0, 1: 1, 2: 2}, 1: {1: 0, 2: 1}, 2: {2: 0}},
              {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
 
+        In order to change the default behavior if the graph is disconnected,
+        we can use default values with dictionaries::
+
+            sage: G = 2*graphs.PathGraph(2)
+            sage: d,_ = G.shortest_path_all_pairs()
+            sage: import itertools
+            sage: from sage.rings.infinity import Infinity
+            sage: for u,v in itertools.combinations(G.vertices(),2):
+            ....:     print "dist({}, {}) = {}".format(u,v, d[u].get(v,+Infinity))
+            dist(0, 1) = 1
+            dist(0, 2) = +Infinity
+            dist(0, 3) = +Infinity
+            dist(1, 2) = +Infinity
+            dist(1, 3) = +Infinity
+            dist(2, 3) = 1
+
         TESTS:
 
         Wrong name for ``algorithm``::

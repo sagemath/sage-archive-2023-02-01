@@ -1949,7 +1949,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid.create_key_and_extra_args('exact', G)
             Traceback (most recent call last):
             ...
-            ValueError: a base ring has to be specified
+            ValueError: A base ring has to be specified
         """
         if term not in ['O', 'exact']:
             raise ValueError("%s has to be either 'exact' or 'O'" % term)
@@ -1959,12 +1959,10 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             raise ValueError("%s has to be an asymptotic growth group"
                              % growth_group)
 
-        if term == 'O':
-            if base_ring is not None:
-                raise ValueError("O term monoids do not require a base ring")
-        else:
-            if base_ring is None:
-                raise ValueError("a base ring has to be specified")
+        if term == 'exact' and base_ring is None:
+            raise ValueError("A base ring has to be specified")
+        elif term == 'O':
+            base_ring = None
 
         return (term, growth_group, base_ring), kwds
 

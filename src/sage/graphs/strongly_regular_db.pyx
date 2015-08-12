@@ -349,6 +349,112 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
+def SRG_100_44_18_20():
+    r"""
+    Return a `(100, 44, 18, 20)`-strongly regular graph.
+
+    This graph is built as a Cayley graph, using the construction presented in
+    [JK03]_,
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_100_44_18_20
+        sage: G = SRG_100_44_18_20()              # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (100, 44, 18, 20)
+
+    REFERENCES:
+
+    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+      Switching of edges in strongly regular graphs.
+      I. A family of partial difference sets on 100 vertices,
+      Electronic Journal of Combinatorics 10(1), 2003.
+    """
+    return Graph('~?@cSDAOdouKo|`CB`so\\MCggQeCdXLsJmwCLmRsV@PtM@dJSBO`CFD'+
+           'OvPv?FuWSOYrSodYFX_GsMwaKUWSPeJ[g`VUR`m]]_WIj\\wPa?UjxffqJU_ca'+
+           'ZDjOQgepIs?{CchSoFLoUd@G{cZgf]OwhXGD^SwWk__mm\\ajIXJJfYeF@AfQW'+
+           'mW[CI\\@~XwgGSibBPkKI[JfKGeADMcvdMsOHUvGv_eebYupFR?YY\\jyC\\_G'+
+           'cczVsWwdY?CjRsX}oL[ovRWCQmBFKDUq@DlOKXaaUS?~PQpEZLPPB`eGmmhEji'+
+           'V_EWmk`EniFx@WREOaRtRwSUUwcWex[wb_UVSbCvJnpUuM@wCAbgLuk{\\BOKD'+
+           'fSZQmW\\QSCdd[]HTKKwIARoe]uyDfWqEYZWbytOGxEPrZYC^FD?`cXFkngPcj'+
+           'ARIGaL\\^PffXs@s{WItK_QVMy?iUKDQuO@vucqJ`bbSdD?ZgDBbB]fIGt[bfg'+
+           'OI[DY[_aVyN^OqCwish`CfUZYOUChi{gbCuUx^Rlt[NGM_WIYFfshLV@qRGAAe'+
+           'pKsplgwMUPOQ[UXthrUAW|OqMYtCj}Rsc?pW`c[tw@I[RSeGpW`c]t{RQbxtx?'+
+           'EkuKDTY?mL}\\USPjHb`PS_IazcE_YMAnRcHVhnb}OIHG{IlMO@]dJfkoSoPgt'+
+           ']SaQtYdf}PijY[FcE_`DARpzIdTdN@qQOOqeA^Zc]ki@EJSY\\f?_XjwptcSGp'+
+           'WbRmwMNSS~rquH?Yqr@HOMlifna@UCs[Awq@YJdmb|a_QKc]I[o@xgpA{nuHXY'+
+           'khoyDCO^_@TsvadqqG?`czzDBjiXZJnWOApI[JGE')
+
+def SRG_100_45_20_20():
+    r"""
+    Return a `(100, 45, 20, 20)`-strongly regular graph.
+
+    This graph is built as a Cayley graph, using the construction presented in
+    [JK03]_,
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_100_45_20_20
+        sage: G = SRG_100_45_20_20()              # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (100, 45, 20, 20)
+    """
+    return Graph('~?@cP\\EWhTelX_VGTrsELDemBQwUKt[u]aXlWFX}HX{OdfoC@LDcDhS`'+
+           '~WXLTuE?yMQDMMRoGTKveGVgtpKJOwzovPTF]eiMix]WGYyoLoAtpTnhaWmmT_P'+
+           'M^f?OSQbjOQa?TXGJYKP\\eaGSnm[MeGSln[A}CIufiHJ`Q{hweXEXsnS^A?HBQ'+
+           'kT{QoWElWzYQW[A|Oy]_KY`]g{JQT?\\xATd~VwblGUcn`\\uMc`ZUsOQm[@Aq|'+
+           'KW?M{@Aq|MjXR[a`Edxk}Ce?gPh^Pl_CqDALJnJcCrGSGTkmkAeBPNvbpfeEA@X'+
+           'mrj_ArV@?cvX|pCwvoXL\\U^SqECY@GnirwehsGIKURZQNbtHODOMeuDZFSHSFO'+
+           'ImUFRTaCMBh@^jB`z}cZWG]yGHQVVSrzRBuP@ZQ}WPJLLNPCDdYm_gCQ]]?KJJp'+
+           'AxXvCbMGYCY^Ws{z_PfCDALFu{L[oCXp@ObTlazi_YI@THu{wj@mMR_G@SvXzBc'+
+           'b[Kn_SQhiruVC`wKm_SQjirqutrXaoHJAXLkRoZssGc_UoFVZEk]]a@CkBqGjxO'+
+           'ps]~QILrGo]qGTPqW{eSZePc|COyjiywASREPk{COYxogfP]][G`fCIHrqnJs]f'+
+           'f?KXpA_SwxiHXyUGyD?jJZk]kw`v`WfgD?clm_^opAn?pNOIHjI\\QY[vPuIDPC'+
+           'l_YtdpL[^gi@AH_]oLyaWwI{nqIQE[qKMcbHMHFd{PROrePhoc\\hyQUe^OnRxo'+
+           'aH_SLktu[kKengkPoGDDy?VuwmCEn_kRwKDTWHW|f`ngYogTGM_mP_FoPR{v{Oh'+
+           'gZlKWhQA`Q}xweact{MR`BE')
+
+def SRG_196_91_42_42():
+    r"""
+    Return a `(196,91,42,42)`-strongly regular graph.
+
+    This strongly regular graph is built following the construction provided in
+    Corollary 8.2.27 of [IS06]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_196_91_42_42
+        sage: G = SRG_196_91_42_42()
+        sage: G.is_strongly_regular(parameters=True)
+        (196, 91, 42, 42)
+
+    REFERENCE:
+
+    .. [IS06] Y.J. Ionin, S. Shrikhande,
+      Combinatorics of symmetric designs.
+      Cambridge University Press, 2006.
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+    from sage.graphs.generators.intersection import IntersectionGraph
+    k = 7
+    G = IntegerModRing(91)
+    A = map(G,{0, 10, 27, 28, 31, 43, 50})
+    B = map(G,{0, 11, 20, 25, 49, 55, 57})
+    H = map(G,[13*i for i in range(k)])
+    U = map(frozenset,[[x+z for x in A] for z in G])
+    V = map(frozenset,[[x+z for x in B] for z in G])
+    W = map(frozenset,[[x+z for x in H] for z in G])
+    G = IntersectionGraph(U+V+W)
+
+    # G = G.seidel_switching(U)
+    boundary = G.edge_boundary(U)
+    G.add_edges((x,y) for x in V+W for y in U)
+    G.delete_edges(boundary)
+
+    G.add_edges((-1,x) for x in U)
+    G.relabel()
+    return G
+
 def SRG_280_135_70_60():
     r"""
     Return a strongly regular graph with parameters (280, 135, 70, 60).
@@ -1044,12 +1150,16 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
           '?PDDDw@A_CSRIS_P?GeGpg`@?EOcaJGccbDC_dLAc_pHOe@`ocEGgo@sRo?WRAbAcPc'+
           '?iCiHEKBO_hOiOWpOSGSTBQCUAW_DDIWOqHBO?gghw_?`kOAXH?\\Ds@@@CpIDKOpc@'+
           'OCoeIS_YOgGATGaqAhKGA?cqDOwQKGc?')],
-        ( 77,  16,  0,  4): [M22Graph],
-        (100,  22,  0,  6): [HigmanSimsGraph],
-        (162,  56, 10, 24): [LocalMcLaughlinGraph],
-        (231,  30,  9,  3): [CameronGraph],
-        (275, 112, 30, 56): [McLaughlinGraph],
-        (280, 135, 70, 60): [SRG_280_135_70_60],
+        ( 77,  16,   0,  4): [M22Graph],
+        ( 81,  50,  31, 30): [SRG_81_50_31_30],
+        (100,  22,   0,  6): [HigmanSimsGraph],
+        (100,  44,  18, 20): [SRG_100_44_18_20],
+        (100,  45,  20, 20): [SRG_100_45_20_20],
+        (162,  56,  10, 24): [LocalMcLaughlinGraph],
+        (196,  91,  42, 42): [SRG_196_91_42_42],
+        (231,  30,   9,  3): [CameronGraph],
+        (275, 112,  30, 56): [McLaughlinGraph],
+        (280, 135,  70, 60): [SRG_280_135_70_60],
         (1024, 198, 22, 42): [SRG_1024_198_22_42],
         (243,  20, 199,200): [SRG_243_20_199_200],
         (256,  53,  92, 90): [SRG_256_53_92_90],
@@ -1064,7 +1174,6 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         (729,  60, 433,420): [SRG_729_60_433_420],
         (729,  76, 313,306): [SRG_729_76_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
-        ( 81,  50,  31, 30): [SRG_81_50_31_30],
     }
 
     if params in constructions:

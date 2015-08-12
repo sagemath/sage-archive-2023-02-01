@@ -32,3 +32,6 @@ Website: http://www.usna.edu/CS/qepcadweb/B/QEPCAD.html
 * readline
 * saclib
 
+== Special Update/Build Instructions ==
+
+One might need to set MAKE to "make -j1" fo this to be built successfully. 

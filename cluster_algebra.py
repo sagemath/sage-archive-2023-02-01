@@ -106,6 +106,9 @@ class ClusterAlgebraSeed(SageObject):
         other._path = copy(self._path)
         return other
 
+    def _repr_(self):
+        return "A seed in %s"%str(self.parent())
+
     def parent(self):
         return self._parent
 
@@ -230,9 +233,15 @@ class ClusterAlgebra(Parent):
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, B0, scalars=ZZ):
+    def __init__(self, data, scalars=ZZ):
         # Temporary variables
+        # TODO: right now  we use ClusterQuiver to parse input data. It looks
+        # like a good idea but we should make sure it is.
+        Q = ClusterQuiver(data) 
+        B0 = Q.b_matrix()
         n = B0.ncols()
+        # We use a different m than ClusterSeed and ClusterQuiver: their m is our m-n. 
+        # Should we merge this behaviour? what is the notation in CA I-IV?
         m = B0.nrows()
         I = identity_matrix(n)
 
@@ -241,15 +250,13 @@ class ClusterAlgebra(Parent):
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
-        # TODO: maybe here scalars can be replaced with just ZZ
+        # TODO: maybe here scalars can be replaced with ZZ
         # ambient space for F-polynomials
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
 
         # dictionary of already computed data:
         # index is the g-vector, first entry is the F-polynomial, second entry is path from initial seed
         self._data_dict = dict([ (tuple(v), (self._U(1),[])) for v in I.columns() ])
-
-        self._seed = ClusterAlgebraSeed(B0[:n,:n], I, I, self)
 
         base = LaurentPolynomialRing(scalars, 'x', n)
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
@@ -264,6 +271,7 @@ class ClusterAlgebra(Parent):
         self._B0 = copy(B0)
         self._n = n
         self._m = m
+        self.reset_current_seed()
 
     def _repr_(self):
         return "Cluster Algebra of rank %s"%self.rk
@@ -285,6 +293,14 @@ class ClusterAlgebra(Parent):
         The current seed of ``self``.
         """
         return self._seed
+
+    def reset_current_seed(self):
+        r"""
+        Reset the current seed to be the initial one
+        """
+        n = self.rk
+        I = identity_matrix(n)
+        self._seed = ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
 
     def g_vectors_so_far(self):
         return self._data_dict.keys()

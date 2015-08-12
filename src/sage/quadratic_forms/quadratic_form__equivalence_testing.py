@@ -517,9 +517,9 @@ def is_rationally_isometric(self, other):
         sage: W=DiagonalQuadraticForm(K,[-1,-a,2*a])
         sage: V.is_rationally_isometric(W)
         True
-        
+
     TESTS::
-    
+
         sage: K.<a>=QuadraticField(3)
         sage: V=DiagonalQuadraticForm(K,[1,2])
         sage: W=DiagonalQuadraticForm(K,[1,0])
@@ -527,9 +527,8 @@ def is_rationally_isometric(self, other):
         ...
         NotImplementedError: This only tests regular forms
 
-    
     Forms must have the same base ring otherwise a `TypeError` is raised::
-        
+
         sage: K1.<a> = QuadraticField(5)
         sage: K2.<b> = QuadraticField(7)
         sage: V = DiagonalQuadraticForm(K1,[1,a])
@@ -545,9 +544,9 @@ def is_rationally_isometric(self, other):
         sage: V=DiagonalQuadraticForm(QQ,[1,1,1])
         sage: V.is_rationally_isometric(W)
         False
-    
+
     Forms whose determinants do not differ by a square in the base field are not isometric::
-    
+
         sage: K.<a>=NumberField(x^2-3)
         sage: V=DiagonalQuadraticForm(K,[-1,a,-2*a])
         sage: W=DiagonalQuadraticForm(K,[-1,a,2*a])
@@ -584,7 +583,7 @@ def is_rationally_isometric(self, other):
         M = self.rational_diagonal_form().Gram_matrix_rational()
         N = other.rational_diagonal_form().Gram_matrix_rational()
         K = self.base_ring()
-    
+
         Mentries = M.diagonal()
         Nentries = N.diagonal()
 

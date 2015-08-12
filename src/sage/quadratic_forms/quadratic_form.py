@@ -656,15 +656,13 @@ class QuadraticForm(SageObject):
         r"""
         TESTS::
 
-            sage: hash(QuadraticForm(QQ, 2, [2,1,1]))
-            3014538537          # 32-bit
-            3789701105725617449 # 64-bit
-            sage: hash(QuadraticForm(QuadraticField(2), 2, [2,1,1]))
-            3161685428          # 32-bit
-            6154196802660957620 # 64-bit
-            sage: hash(QuadraticForm(QQ, 2, [1,1,1]))
-            4129537560          # 32-bit
-            2528501582621031960 # 64-bit
+            sage: Q1 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q2 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q3 = QuadraticForm(QuadraticField(2), 2, [1,1,1])
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash(Q3)
+            False
         """
         return hash(self.__base_ring) ^ hash(tuple(self.__coeffs))
 

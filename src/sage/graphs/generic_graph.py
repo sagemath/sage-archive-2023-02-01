@@ -14417,11 +14417,15 @@ class GenericGraph(GenericGraph_pyx):
 
         If we run Dijkstra with negative weights::
 
-            sage: D = DiGraph([(0,1,1),(1,2,-2),(0,2,4)])
+            sage: D = DiGraph([(0,1,2),(1,2,-2),(0,2,1)])
             sage: D.shortest_paths(0, algorithm='Dijkstra_Boost', by_weight=True)
             Traceback (most recent call last):
             ...
             ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
+            sage: D.shortest_paths(0, algorithm='Dijkstra_NetworkX', by_weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ('Contradictory paths found:', 'negative weights?')
         """
         if weight_function is not None:
             by_weight = True
@@ -14609,7 +14613,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph( { 0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: 2} }, sparse=True)
             sage: G.plot(edge_labels=True).show() # long time
             sage: G.shortest_path_lengths(0, by_weight=True)
-            {0: 0, 1: 1, 2: 2, 3: 2, 4: 1}
+            {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}
 
         Using a weight function::
 
@@ -14652,6 +14656,7 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm in ['Dijkstra_Boost', 'Bellman-Ford_Boost'] or (algorithm is None and weight_function is None and by_weight):
             if weight_function is None and not by_weight:
                 weight_function = lambda e:1
+            self.weighted(True)
             from sage.graphs.base.boost_graph import shortest_paths
             return shortest_paths(self, u, weight_function, algorithm)[0]
 

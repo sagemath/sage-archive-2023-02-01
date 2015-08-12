@@ -370,7 +370,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     def _mul_term_(self, term):
         r"""
         Helper method: multiply this asymptotic expression with the
-        asymptotic term ``other``.
+        asymptotic term ``term``.
 
         INPUT:
 

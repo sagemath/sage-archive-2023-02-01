@@ -672,15 +672,16 @@ class Braid(FinitelyPresentedGroupElement):
         n = self.strands()
         d = drain_size
         B = BraidGroup(n)
-        # It is worth noting that making create_TL_rep dynamic seems like it would
-        # provide for faster evaluation. In practice it appears not to, though,
-        # as create_TL_rep is significantly faster than matrix multiplication.
         rep = B.create_TL_rep(d, variab, ring)
         M = identity_matrix(R, B.dim_of_TL_space(d))
         for i in self.Tietze():
             if i > 0:
                 M = M*rep[i-1]
             if i < 0:
+                # Note: calculating the inverse might seem a bit silly at first
+                # glance since it's obtained simply by replacing A by A^(-1).
+                # However, in my testing, doing this calculation actually turns
+                # out to be faster than obtaining the inverse through lookups.
                 M = M*rep[-i-1]**(-1)
         return M
 
@@ -1470,6 +1471,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             tree.extend([1, 0])
         return forest
 
+    @cached_method
     def create_TL_rep(self, drain_size, variab='A', ring=IntegerRing()):
         """
         Calculate the matrices of the Temperley--Lieb--Jones representation of

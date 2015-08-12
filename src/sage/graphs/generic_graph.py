@@ -13029,7 +13029,7 @@ class GenericGraph(GenericGraph_pyx):
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
-          
+
           - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
             (works only with positive weights).
 
@@ -13995,7 +13995,7 @@ class GenericGraph(GenericGraph_pyx):
             if ``by_weight`` is ``False``, ``'Dijkstra_Bid'`` otherwise.
 
           .. NOTE::
-          
+
               If there are negative weights and algorithm is ``None``, the
               result is not reliable. This occurs because, for performance
               reasons, we cannot check whether there are edges with negative
@@ -14043,8 +14043,8 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
             [0, 1, 2, 3]
-            
-        If 
+
+        If
 
         TESTS:
 
@@ -14153,7 +14153,7 @@ class GenericGraph(GenericGraph_pyx):
             if ``by_weight`` is ``False``, ``'Dijkstra_Bid'`` otherwise.
 
           .. NOTE::
-          
+
               If there are negative weights and algorithm is ``None``, the
               result is not reliable. This occurs because, for performance
               reasons, we cannot check whether there are edges with negative
@@ -14210,9 +14210,9 @@ class GenericGraph(GenericGraph_pyx):
             3
             sage: G.shortest_path_length(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
             3
-            
+
         If Dijkstra is used with negative weights, usually it raises an error::
-          
+
             sage: G = DiGraph({0: {1: 1}, 1: {2: 1}, 2: {3: 1}, 3: {4: 2}, 4: {0: -2}}, sparse = True)
             sage: G.shortest_path_length(4, 1, by_weight=True, algorithm=None)
             Traceback (most recent call last):
@@ -14220,9 +14220,9 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: The graph contains an edge with negative weight!
             sage: G.shortest_path_length(4, 1, by_weight=True, algorithm='Bellman-Ford_Boost')
             -1
-            
+
         However, sometimes the result may be wrong, and no error is raised::
-        
+
             sage: G = DiGraph([(0,1,1),(1,2,1),(0,3,1000),(3,4,-3000), (4,2,1000)])
             sage: G.shortest_path_length(0, 2, by_weight=True, algorithm='Bellman-Ford_Boost')
             -1000
@@ -14719,10 +14719,10 @@ class GenericGraph(GenericGraph_pyx):
         paths - it indicates the predecessor ``pred[u][v]`` of `v` in the
         shortest path from `u` to `v`. If the algorithm used is
         ``Johnson_Boost``, predecessors are not computed.
-        
+
         .. NOTE::
-        
-           Only reachable vertices are present in the dictionaries. 
+
+           Only reachable vertices are present in the dictionaries.
 
         .. NOTE::
 
@@ -14862,7 +14862,7 @@ class GenericGraph(GenericGraph_pyx):
             ValueError: The graph contains a negative cycle.
 
         Unreachable vertices are not present in the dictionaries::
-        
+
             sage: g = DiGraph([(0,1,1),(1,2,2)])
             sage: g.shortest_path_all_pairs(algorithm='BFS')
             ({0: {0: 0, 1: 1, 2: 2}, 1: {1: 0, 2: 1}, 2: {2: 0}},
@@ -15009,12 +15009,12 @@ class GenericGraph(GenericGraph_pyx):
         for u in verts:
             du = {u:0}
             pu = {u:None}
-            
+
             if self.is_directed():
                 neighbor = self.neighbor_out_iterator(u)
             else:
                 neighbor = self.neighbor_iterator(u)
-                
+
             for v in neighbor:
                 if by_weight is False:
                     du[v] = 1

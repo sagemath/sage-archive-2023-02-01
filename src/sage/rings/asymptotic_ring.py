@@ -761,15 +761,19 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
-            sage: 3 * x^3
-            3*x^3
-            sage: 3 * x^3 + x
-            3*x^3 + x
-            sage: (3 * x^3) * (5 * x)
-            15*x^4
-            sage: 3 * x^3 + O(x^5)
-            O(x^5)
+            sage: AR = AsymptoticRing('x^ZZ', ZZ)
+            sage: AR(5)
+            5
+            sage: AR(3*x^2)
+            3*x^2
+            sage: x = ZZ['x'].gen(); x.parent()
+            Univariate Polynomial Ring in x over Integer Ring
+            sage: AR(x)
+            x
+            sage: y = ZZ['y'].gen(); AR(y)
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert y to an asymptotic expression.
         """
         if summands is not None:
             if type(data) != int or data != 0:
@@ -799,6 +803,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if data == 0:
             summands = AsymptoticRing._create_empty_summands_()
             return self.element_class(self, summands, simplify=simplify)
+
+        try:
+            summand = self.create_summand('exact', data)
+        except (TypeError, ValueError):
+            pass
+        else:
+            return summand
 
         try:
             coefficient = self.coefficient_ring(data)

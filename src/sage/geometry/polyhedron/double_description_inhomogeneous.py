@@ -439,7 +439,8 @@ class Vrep2Hrep(PivotedInequalities):
             []
         """
         super(Vrep2Hrep, self).__init__(base_ring, dim)
-        assert len(vertices) > 0
+        if rays or lines:
+            assert len(vertices) > 0
         A = self._init_Vrep(vertices, rays, lines)
         DD = Algorithm(A).run()
         self._extract_Hrep(DD)

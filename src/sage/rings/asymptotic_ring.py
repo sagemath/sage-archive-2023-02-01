@@ -1008,11 +1008,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
             123*x^456
         """
         from sage.monoids.asymptotic_term_monoid import TermMonoid
+        TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
         if type == 'O':
-            TM = TermMonoid(type, self.growth_group)
             return self(TM(growth))
         elif type == 'exact':
             if coefficient == 0:
                 return self(coefficient)
-            TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
             return self(TM(growth, coefficient))

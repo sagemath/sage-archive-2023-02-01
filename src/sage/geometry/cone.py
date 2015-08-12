@@ -914,10 +914,9 @@ class IntegralRayCollection(SageObject,
         the original lattice::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8, max_rays = 10)
-            sage: K.dual_lattice().dual() == K.lattice()
+            sage: K = random_cone(max_ambient_dim=8, max_rays=10)
+            sage: K.dual_lattice().dual() is K.lattice()
             True
-
         """
         try:
             return self.lattice().dual()
@@ -1910,9 +1909,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8, max_rays=10)
-            sage: K.dual().dual().is_equivalent(K)
+            sage: K.dual().dual() is K
             True
-
         """
         if "_dual" not in self.__dict__:
             rays = list(self.facet_normals())
@@ -2796,11 +2794,21 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_isomorphic(K)
             True
             sage: K = Cone([(0,0)])
+
+        A random (strictly convex) cone is isomorphic to itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
             sage: K.is_isomorphic(K)
             True
         """
-        from sage.geometry.fan import Fan
-        return Fan([self]).is_isomorphic(Fan([other]))
+        if self.is_strictly_convex() and other.is_strictly_convex():
+            from sage.geometry.fan import Fan
+            return Fan([self]).is_isomorphic(Fan([other]))
+        if self.is_strictly_convex() ^ other.is_strictly_convex():
+            return False
+        raise NotImplementedError("isomorphism check for not strictly convex "
+                                  "cones is not implemented")
 
     def is_simplicial(self):
         r"""
@@ -3988,10 +3996,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         return vector(ZZ, p.get_values(x))
 
-
     def is_solid(self):
         r"""
-        Return whether or not this cone is solid.
+        Check if this cone is solid.
 
         A cone is said to be solid if it has nonempty interior. That
         is, if its extreme rays span the entire ambient space.
@@ -4026,10 +4033,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return (self.dim() == self.lattice_dim())
 
-
     def is_proper(self):
         r"""
-        Return whether or not this cone is proper.
+        Check if this cone is proper.
 
         A cone is said to be proper if it is closed, convex, solid,
         and contains no lines. This cone is assumed to be closed and
@@ -4073,11 +4079,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return (self.is_strictly_convex() and self.is_solid())
 
-
     def is_full_space(self):
         r"""
-        Return whether or not this cone is equal to its ambient vector
-        space.
+        Check if this cone is equal to its ambient vector space.
 
         OUTPUT:
 
@@ -4120,7 +4124,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 min_rays=0, max_rays=None, strictly_convex=None, solid=None):
     r"""
-    Generate a random rational convex polyhedral cone.
+    Generate a random convex rational polyhedral cone.
 
     Lower and upper bounds may be provided for both the dimension of the
     ambient space and the number of generating rays of the cone. If a
@@ -4278,7 +4282,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         sage: set_random_seed()
         sage: L = ToricLattice(5, "L")
         sage: K = random_cone(lattice=L)
-        sage: K.lattice() == L
+        sage: K.lattice() is L
         True
 
     We can also request a strictly convex cone::
@@ -4680,29 +4684,6 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 # Same thing, except when we're given a lattice.
                 max_rays = 2*(lattice.dimension() - 1)
 
-
-    # Now that we've sanity-checked our parameters, we can massage the
-    # min/maxes for (non-)solid cones. It doesn't violate the user's
-    # expectation to fix an "I don't care" parameter.
-    if solid is not None:
-        if solid:
-            # If max_ambient_dim is "I don't care", we can set it so that we
-            # guaranteed to generate a solid cone.
-            if max_rays is not None and max_ambient_dim is None:
-                # We won't make max_ambient_dim less than min_ambient_dim,
-                # since we already checked that
-                # min_ambient_dim <= min_rays = max_ambient_dim.
-                max_ambient_dim = min_rays
-        else:
-            if max_rays is None and max_ambient_dim is not None:
-                # This is an upper limit on the number of rays in a
-                # non-solid cone.
-                max_rays = 2*(max_ambient_dim - 1)
-            if max_rays is None and lattice is not None:
-                # Same thing, except when we're given a lattice.
-                max_rays = 2*(lattice.dimension() - 1)
-
-
     def random_min_max(l,u):
         r"""
         We need to handle two cases for the upper bounds, and we need
@@ -4735,28 +4716,14 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                     K.lattice_dim() > max_ambient_dim):
                 return False
         else:
-            if K.lattice() != lattice:
+            if K.lattice() is not lattice:
                 return False
-
-        if K.nrays() < min_rays:
-            return False
-        if max_rays is not None and K.nrays() > max_rays:
-            return False
-
-        if strictly_convex is not None:
-            if strictly_convex and not K.is_strictly_convex():
-                return False
-            if not strictly_convex and K.is_strictly_convex():
-                return False
-
-        if solid is not None:
-            if solid and not K.is_solid():
-                return False
-            if not solid and K.is_solid():
-                return False
-
-        return True
-
+        return all([
+            K.nrays() >= min_rays,
+            K.nrays() <= max_rays or max_rays is None,
+            K.is_solid() == solid or solid is None,
+            K.is_strictly_convex() == strictly_convex or strictly_convex is None
+            ])
 
     # Now we actually compute the thing. To avoid recursion (and the
     # associated "maximum recustion depth exceeded" error), we loop
@@ -4777,7 +4744,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         # have one generating ray. To avoid such a situation, we start by
         # generating ``r`` rays where ``r`` is the number we want to end
         # up with...
-        rays = [L.random_element() for i in range(0, r)]
+        rays = [L.random_element() for i in range(r)]
 
         # The lattice parameter is required when no rays are given, so
         # we pass it in case ``r == 0`` or ``d == 0`` (or ``d == 1``
@@ -4818,8 +4785,8 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                     from copy import copy
                     rays = map(copy, rays)
 
-                    for idx in range(0, len(rays)):
-                        rays[idx][0] = pm * (rays[idx][0].abs() + 1)
+                    for i, ray in enumerate(rays):
+                        rays[i][0] = pm * (ray[0].abs() + 1)
 
                     K = Cone(rays, lattice=L)
             else:
@@ -4836,6 +4803,4 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
 
         if is_valid(K):
             # Loop if we don't have a valid cone.
-            break
-
-    return K
+            return K

@@ -451,7 +451,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
         """
-        if len(self.summands._shells_) > 1:
+        if len(self.summands) > 1:
             from sage.rings.integer_ring import ZZ
             if power not in ZZ:
                 raise NotImplementedError('Taking the sum %s to the '

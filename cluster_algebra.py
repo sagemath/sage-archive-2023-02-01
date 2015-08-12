@@ -5,22 +5,27 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
 
-#### Helper functions. 
+####
+# Helper functions.
+####
 # These my have to go in a more standard place or just outside this file
 
 # Define decorator to automatically transform vectors and lists to tuples
 # is there not a standard function wrapper we could use instead of this?
+# TODO: this messes up the function signature. In particular ? and ?? do not
+# give the desired results. It is a known issue that is fized in python 3.4!!!!
+# do we ever hope to have sage running on python 3?
 from functools import wraps
 def make_hashable(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         hashable_args = []
         for x in args:
-            try: 
+            try:
                 hashable_args.append(tuple(x))
             except:
                 hashable_args.append(x)
-        
+
         hashable_kwargs = {}
         for x in kwargs:
             try:
@@ -31,8 +36,10 @@ def make_hashable(func):
         return func(*hashable_args, **hashable_kwargs)
     return wrapper
 
-#### Done with helper functions
- 
+####
+# Elements of a cluster algebra
+####
+
 class ClusterAlgebraElement(ElementWrapper):
 
     # this is to store extra information like g-vector: what I am thinking is to
@@ -57,14 +64,14 @@ class ClusterAlgebraElement(ElementWrapper):
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
     def d_vector(self):
-        n = self.parent().rk()
+        n = self.parent().rk
         one = self.parent().ambient_field()(1)
         factors = self.lift_to_field().factor()
         initial = []
         non_initial = []
-        [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors] 
+        [(initial if x[1] > 0 and len(x[0].monomials()) == 1 else non_initial).append(x[0]**x[1]) for x in factors]
         initial = prod(initial+[one]).numerator()
-        non_initial = prod(non_initial+[one]).denominator() 
+        non_initial = prod(non_initial+[one]).denominator()
         v1 = vector(non_initial.exponents()[0][:n])
         v2 = vector(initial.exponents()[0][:n])
         return tuple(v1-v2)
@@ -77,8 +84,12 @@ class ClusterAlgebraElement(ElementWrapper):
         # exchange matrix is not invertible.
         raise NotImplementederror("This should be computed by substitution")
 
+####
+# Seeds
+####
+
 class ClusterAlgebraSeed(SageObject):
-    
+
     def __init__(self, B, C, G, parent):
         self._B = copy(B)
         self._C = copy(C)
@@ -98,10 +109,13 @@ class ClusterAlgebraSeed(SageObject):
     def parent(self):
         return self._parent
 
+    def b_matrix(self):
+        return copy(self._B)
+
     def F_polynomial(self, j):
         g_vector = tuple(self._G.column(j))
         return self.parent().F_polynomial(g_vector)
-    
+
     def cluster_variable(self, j):
         g_vector = tuple(self._G.column(j))
         return self.parent().cluster_variable(g_vector)
@@ -117,51 +131,51 @@ class ClusterAlgebraSeed(SageObject):
 
     def c_matrix(self):
         return copy(self._C)
-        
+
     def mutate(self, k, inplace=True, mutating_F=True):
         if inplace:
             seed = self
         else:
             seed = copy(self)
-        
-        n = self.parent().rk()        
-    
+
+        n = self.parent().rk
+
         if k not in xrange(n):
-            raise ValueError('Cannot mutate in direction' + str(k) + '.')
-        
+            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+
         # find sign of k-th c-vector
         if any(x > 0 for x in seed._C.column(k)):
             eps = +1
         else:
             eps = -1
-        
+
         # store the g-vector to be mutated in case we are mutating also F-polynomials
         old_g_vector = tuple(seed._G.column(k))
- 
+
         # mutate G-matrix
         J = identity_matrix(n)
         for j in xrange(n):
             J[j,k] += max(0, -eps*seed._B[j,k])
         J[k,k] = -1
         seed._G = seed._G*J
- 
+
         # F-polynomials
         if mutating_F:
             g_vector = tuple(seed._G.column(k))
-            if not self.parent()._F_dict.has_key(g_vector):
-                self.parent()._F_dict.setdefault(g_vector, self._mutated_F(k, old_g_vector))
-        
+            if g_vector not in self.parent().g_vectors_so_far():
+                self.parent()._data_dict.setdefault(g_vector, (self._mutated_F(k, old_g_vector),self._path+[k]))
+
         # C-matrix
         J = identity_matrix(n)
         for j in xrange(n):
             J[k,j] += max(0, eps*seed._B[k,j])
         J[k,k] = -1
         seed._C = seed._C*J
-        
+
         # B-matrix
         seed._B.mutate(k)
-            
-        # store mutation path    
+
+        # store mutation path
         if seed._path != [] and seed._path[-1] == k:
             seed._path.pop()
         else:
@@ -174,7 +188,7 @@ class ClusterAlgebraSeed(SageObject):
         alg = self.parent()
         pos = alg._U(1)
         neg = alg._U(1)
-        for j in xrange(alg.rk()):
+        for j in xrange(alg.rk):
             if self._C[j,k] > 0:
                 pos *= alg._U.gen(j)**self._C[j,k]
             else:
@@ -187,12 +201,12 @@ class ClusterAlgebraSeed(SageObject):
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
         seq = iter(sequence)
-        
-        if inplace:  
+
+        if inplace:
             seed = self
         else:
             seed = self.mutate(seq.next(), inplace=False, mutating_F=mutating_F)
-       
+
         for k in seq:
             seed.mutate(k, inplace=True, mutating_F=mutating_F)
 
@@ -202,59 +216,10 @@ class ClusterAlgebraSeed(SageObject):
     def path_form_initial_seed(self):
         return copy(self._path)
 
-    def mutation_class_iter(self, depth=infinity, show_depth=False, return_paths=False, only_sink_source=False):
-        depth_counter = 0
-        n = self.parent().rk()
-        timer = time.time()
-        if return_paths:
-            yield (self,[])
-        else:    
-            yield self
-        cl = Set(self._G.columns())
-        clusters = {}
-        clusters[ cl ] = [ self, range(n), [] ]
-        gets_bigger = True
-        if show_depth:
-            timer2 = time.time()
-            dc = str(depth_counter)
-            dc += ' ' * (5-len(dc))
-            nr = str(len(clusters))
-            nr += ' ' * (10-len(nr))
-            print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
-        while gets_bigger and depth_counter < depth:
-            gets_bigger = False
-            keys = clusters.keys()
-            for key in keys:
-                sd = clusters[key]
-                while sd[1]:
-                    i = sd[1].pop()
-                    if not only_sink_source or all( entry >= 0 for entry in sd[0]._B.row( i ) ) or all( entry <= 0 for entry in sd[0]._B.row( i ) ):
-                        sd2  = sd[0].mutate( i, inplace=False )
-                        cl2 = Set(sd2._G.columns())
-                        if cl2 in clusters:
-                            if i in clusters[cl2][1]:
-                                clusters[cl2][1].remove(i)
-                        else:
-                            gets_bigger = True
-                            if only_sink_source:
-                                orbits = range(n)
-                            else:
-                                orbits = [ index for index in xrange(n) if index > i or sd2._B[index,i] != 0 ]
-                 
-                            clusters[ cl2 ] = [ sd2, orbits, clusters[key][2]+[i] ]
-                            if return_paths:
-                                yield (sd2,clusters[cl2][2])
-                            else:
-                                yield sd2
-            depth_counter += 1
-            if show_depth and gets_bigger:
-                timer2 = time.time()
-                dc = str(depth_counter)
-                dc += ' ' * (5-len(dc))
-                nr = str(len(clusters))
-                nr += ' ' * (10-len(nr))
-                print "Depth: %s found: %s Time: %.2f s"%(dc,nr,timer2-timer)
 
+####
+# Cluster algebras
+####
 
 class ClusterAlgebra(Parent):
     # it would be nice to have inject_variables() to allow the user to
@@ -264,23 +229,27 @@ class ClusterAlgebra(Parent):
     # cluster algebra like ngens() or gens()
 
     Element = ClusterAlgebraElement
- 
+
     def __init__(self, B0, scalars=ZZ):
         # Temporary variables
         n = B0.ncols()
         m = B0.nrows()
         I = identity_matrix(n)
-       
+
         # add methods that are defined only for special cases
         if n == 2:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
- 
-        # maybe here scalars can be replaced with just ZZ
+
+        # TODO: maybe here scalars can be replaced with just ZZ
+        # ambient space for F-polynomials
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
-        self._F_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
-        
-        self.Seed = ClusterAlgebraSeed(B0[:n,:n], I, I, self)
+
+        # dictionary of already computed data:
+        # index is the g-vector, first entry is the F-polynomial, second entry is path from initial seed
+        self._data_dict = dict([ (tuple(v), (self._U(1),[])) for v in I.columns() ])
+
+        self._seed = ClusterAlgebraSeed(B0[:n,:n], I, I, self)
 
         base = LaurentPolynomialRing(scalars, 'x', n)
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
@@ -288,93 +257,115 @@ class ClusterAlgebra(Parent):
 
         self._ambient = LaurentPolynomialRing(scalars, 'x', m)
         self._ambient_field = self._ambient.fraction_field()
-            
-        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)]) 
+
+        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(m)])) for j in xrange(n)])
 
         self._B0 = copy(B0)
         self._n = n
         self._m = m
- 
+
     def _repr_(self):
-        return "Cluster Algebra of rank %s"%self.rk()
+        return "Cluster Algebra of rank %s"%self.rk
 
     def _an_element_(self):
-        return self.Seed.cluster_variable(0)
+        return self.current_seed.cluster_variable(0)
 
-    # Shall we use properties with setters and getters? This is the example
-    # maybe it is not a great idea but it saves on parenthesis and makes quantities immutable at the same time
-    #class C(object):
-    #def __init__(self):
-    #    self._x = None
-
-    #@property
-    #def x(self):
-    #    """I'm the 'x' property."""
-    #    return self._x
-
-    #@x.setter
-    #def x(self, value):
-    #    self._x = value
-
-    #@x.deleter
-    #def x(self):
-    #    del self._x
-
-    #@property
+    @property
     def rk(self):
+        r"""
+        The rank of ``self`` i.e. the number of cluster variables in any seed of
+        ``self``.
+        """
         return self._n
-                            
-    @make_hashable          
+
+    @property
+    def current_seed(self):
+        r"""
+        The current seed of ``self``.
+        """
+        return self._seed
+
+    def g_vectors_so_far(self):
+        return self._data_dict.keys()
+
+    @make_hashable
     def F_polynomial(self, g_vector):
         try:
-            return self._F_dict[g_vector]
+            return self._data_dict[g_vector][0]
         except:
             # TODO: improve this error message
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
-    
+
     @make_hashable
     @cached_method
     def cluster_variable(self, g_vector):
-        if not g_vector in self._F_dict.keys():
+        if not g_vector in self.g_vectors_so_far():
             raise ValueError("This Cluster Variable has not been computed yet.")
-        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk())])
+        g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])
         F_std = self.F_polynomial(g_vector).subs(self._yhat)
         # LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
         F_trop = self.ambient_field()(self.F_polynomial(g_vector).subs(self._y)).denominator()
         return self.retract(g_mon*F_std*F_trop)
 
     @make_hashable
-    def find_cluster_variable(self, g_vector, num_mutations=infinity):
-        # TODO: refactor this to output also the mutation sequence that produces
-        # the variable from self.Seed
-        MCI = self.Seed.mutation_class_iter()
+    def find_cluster_variable(self, g_vector, depth=infinity):
+        r"""
+        Returns the shortest mutation path to obtain the cluster variable with
+        given g-vector from the initial seed
+        """
+        seeds = self.seeds(depth=depth)
         mutation_counter = 0
-        while mutation_counter < num_mutations and g_vector not in self._F_dict.keys():
-            try: 
-                MCI.next()
+        while g_vector not in self.g_vectors_so_far():
+            try:
+                seeds.next()
             except:
-                break
+                raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
             mutation_counter += 1
-        if g_vector in self._F_dict.keys():
-            print "Found after "+str(mutation_counter)+" mutations."
-        else: 
-            raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
+        return copy(self._data_dict[g_vector][1])
 
     def ambient(self):
         return self._ambient
- 
+
     def ambient_field(self):
         return self._ambient_field
- 
+
     def lift_to_field(self, x):
         return self.ambient_field()(1)*x.value
-    
+
     def lift(self, x):
         return x.value
-    
+
     def retract(self, x):
         return self(x)
+
+    def seeds(self, depth=infinity):
+        yield self.current_seed
+        depth_counter = 0
+        n = self.rk
+        cl = Set(self.current_seed.g_matrix().columns())
+        clusters = {}
+        clusters[ cl ] = [ self.current_seed, range(n) ]
+        gets_bigger = True
+        while gets_bigger and depth_counter < depth:
+            gets_bigger = False
+            keys = clusters.keys()
+            for key in keys:
+                sd, directions = clusters[key]
+                while directions:
+                    i = directions.pop()
+                    new_sd  = sd.mutate( i, inplace=False )
+                    new_cl = Set(new_sd.g_matrix().columns())
+                    if new_cl in clusters:
+                        if i in clusters[new_cl][1]:
+                            clusters[new_cl][1].remove(i)
+                    else:
+                        gets_bigger = True
+                        # doublecheck this way of producing directions for the new seed: it is taken almost verbatim fom ClusterSeed
+                        new_directions = [ j for j in xrange(n) if j > i or new_sd.b_matrix()[j,i] != 0 ]
+                        clusters[ new_cl ] = [ new_sd, new_directions ]
+                        yield new_sd
+            depth_counter += 1
 
     # DESIDERATA. Some of these are probably irrealistic
     def upper_cluster_algebra(self):
@@ -382,11 +373,11 @@ class ClusterAlgebra(Parent):
 
     def upper_bound(self):
         pass
-    
+
     def lower_bound(self):
         pass
 
-#### 
+####
 # Methods that are only defined for special cases
 ####
 
@@ -397,4 +388,27 @@ def greedy_element(self, d_vector):
 # At the moment I know only how to compute theta basis in rank 2
 def theta_basis_element(self, g_vector):
     pass
+
+####
+# Scratchpad
+####
+
+# Shall we use properties with setters and getters? This is the example
+# maybe it is not a great idea but it saves on parenthesis and makes quantities immutable at the same time
+#class C(object):
+#def __init__(self):
+#    self._x = None
+
+#@property
+#def x(self):
+#    """I'm the 'x' property."""
+#    return self._x
+
+#@x.setter
+#def x(self, value):
+#    self._x = value
+
+#@x.deleter
+#def x(self):
+#    del self._x
 

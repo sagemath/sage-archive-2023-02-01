@@ -1,7 +1,6 @@
-diff -ur src/sphinx/texinputs/sphinx.sty src.patched/sphinx/texinputs/sphinx.sty
---- src/sphinx/texinputs/sphinx.sty	2014-03-25 14:26:14.000000000 +0200
-+++ src.patched/sphinx/texinputs/sphinx.sty	2014-06-13 13:50:13.014623000 +0100
-@@ -169,7 +169,7 @@
+--- Sphinx-1.2.2/sphinx/texinputs/sphinx.sty.orig	2014-01-12 02:52:54.000000000 +1300
++++ Sphinx-1.2.2/sphinx/texinputs/sphinx.sty	2014-10-19 23:34:18.000000000 +1300
+@@ -167,7 +167,7 @@
    \smallskip%
    % The list environement is needed to control perfectly the vertical
    % space.
@@ -10,7 +9,7 @@ diff -ur src/sphinx/texinputs/sphinx.sty src.patched/sphinx/texinputs/sphinx.sty
    \setlength\parskip{0pt}%
    \setlength\itemsep{0ex}%
    \setlength\topsep{0ex}%
-@@ -183,7 +183,7 @@
+@@ -181,7 +181,7 @@
  \renewcommand{\endVerbatim}{%
      \endOriginalVerbatim%
    \endMakeFramed%

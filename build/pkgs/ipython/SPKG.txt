@@ -35,3 +35,8 @@ ipython-user@scipy.org
 == Dependencies ==
 
  * Python
+
+== Patches ==
+
+* github_pr_5874.patch: https://github.com/ipython/ipython/pull/5874
+

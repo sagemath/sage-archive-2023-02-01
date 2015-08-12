@@ -229,6 +229,84 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         """
         return sum([x.classical_weight() for x in self])
 
+    def lusztig_involution(self):
+        r"""
+        Return the result of the classical Lusztig involution on ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]])
+            sage: li = elt.lusztig_involution(); li
+            [[1, 1, 4]] (X) [[2, 3], [3, 4]]
+            sage: li.parent()
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((1, 3), (2, 2))
+        """
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        P = self.parent()
+        P = TensorProductOfKirillovReshetikhinTableaux(P._cartan_type, reversed(P.dims))
+        return P(*[x.lusztig_involution() for x in reversed(self)])
+
+    def left_split(self):
+        r"""
+        Return the image of ``self`` under the left column splitting map.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]]); elt.pp()
+              1  2 (X)   1  4  4
+              2  3
+            sage: elt.left_split().pp()
+              1 (X)   2 (X)   1  4  4
+              2       3
+        """
+        P = self.parent()
+        if P.dims[0][1] == 1:
+            raise ValueError("cannot split a single column")
+        r,s = P.dims[0]
+        B = [[r,1], [r,s-1]]
+        B.extend(P.dims[1:])
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        TP = TensorProductOfKirillovReshetikhinTableaux(P._cartan_type, B)
+        x = self[0].left_split()
+        return TP(*(list(x) + self[1:]))
+
+    def right_split(self):
+        r"""
+        Return the image of ``self`` under the right column splitting map.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[2,2],[1,3]])
+            sage: elt = KRT(pathlist=[[2,1,3,2],[1,4,4]]); elt.pp()
+              1  2 (X)   1  4  4
+              2  3
+            sage: elt.right_split().pp()
+              1  2 (X)   1  4 (X)   4
+              2  3
+
+        Let `\ast` denote the :meth:`Lusztig involution<lusztig_involution>`,
+        we check that `\ast \circ \mathrm{ls} \circ \ast = \mathrm{rs}`::
+
+            sage: all(x.lusztig_involution().left_split().lusztig_involution() == x.right_split() for x in KRT)
+            True
+        """
+        P = self.parent()
+        if P.dims[-1][1] == 1:
+            raise ValueError("cannot split a single column")
+        r,s = P.dims[-1]
+        B = list(P.dims[:-1])
+        B.append([r, s-1])
+        B.append([r, 1])
+        from sage.combinat.rigged_configurations.tensor_product_kr_tableaux \
+                import TensorProductOfKirillovReshetikhinTableaux
+        TP = TensorProductOfKirillovReshetikhinTableaux(P._cartan_type, B)
+        x = self[-1].right_split()
+        return TP(*(self[:-1] + list(x)))
+
     def to_rigged_configuration(self, display_steps=False):
         r"""
         Perform the bijection from ``self`` to a

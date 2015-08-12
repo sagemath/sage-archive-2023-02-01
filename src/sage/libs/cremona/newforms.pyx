@@ -1,7 +1,6 @@
-from sage.rings.rational import Rational
-from sage.rings.integer cimport Integer
-from sage.schemes import elliptic_curves
-from sage.modular.all import Cusp
+"""
+Modular symbols using eclib newforms
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2008 Tom Boothby <boothby@u.washington.edu>
@@ -12,6 +11,13 @@ from sage.modular.all import Cusp
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
+include "sage/ext/interrupt.pxi"
+
+from sage.libs.gmp.mpq cimport mpq_numref
+from sage.rings.rational_field import QQ
+from sage.rings.rational cimport Rational
+from sage.modular.all import Cusp
 
 cdef class ECModularSymbol:
     """
@@ -27,6 +33,11 @@ cdef class ECModularSymbol:
         sage: [M(1/i) for i in range(1,11)]
         [0, 2, 1, -1, -2, -2, -1, 1, 2, 0]
 
+    The curve is automatically converted to its minimal model::
+
+        sage: E = EllipticCurve([0,0,0,0,1/4])
+        sage: ECModularSymbol(E)
+        Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + y = x^3 over Rational Field
     """
     def __init__(self, E, sign=1):
         """
@@ -44,30 +55,47 @@ cdef class ECModularSymbol:
 
         TESTS:
 
-        This one is from :trac: `8042` (note that Cremona's code is more limited
-        when run on a 32-bit platform, but works fine on 64-bit in this
-        case; see :trac: `8114`).
+        This one is from :trac:`8042`::
 
-        ::
             sage: from sage.libs.cremona.newforms import ECModularSymbol
             sage: E = EllipticCurve('858k2')
             sage: ECModularSymbol(E)
-            Traceback (most recent call last):                           # 32-bit
-            ...                                                          # 32-bit
-            OverflowError: Python int too large to convert to C long     # 32-bit
-            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field         # 64-bit
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 + 16353089*x - 335543012233 over Rational Field
+
+        We allow a-invariants which are larger than 64 bits
+        (:trac:`16977`)::
+
+            sage: E = EllipticCurve([-25194941007454971, -1539281792450963687794218])  # non-minimal model of 21758k3
+            sage: ECModularSymbol(E)  # long time
+            Modular symbol with sign 1 over Rational Field attached to Elliptic Curve defined by y^2 + x*y = x^3 - 19440540900814*x - 32992152521343165084 over Rational Field
+
+        The curve needs to be defined over the rationals::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve(K, [0,0,0,0,1])
+            sage: ECModularSymbol(E)
+            Traceback (most recent call last):
+            ...
+            TypeError: the elliptic curve must have coefficients in the rational numbers
         """
         cdef ZZ_c a1, a2, a3, a4, a6, N
         cdef Curve *C
         cdef Curvedata *CD
         cdef CurveRed *CR
-        cdef int n, t
+        cdef int n
 
-        a1 = new_bigint(int(E.a1()))
-        a2 = new_bigint(int(E.a2()))
-        a3 = new_bigint(int(E.a3()))
-        a4 = new_bigint(int(E.a4()))
-        a6 = new_bigint(int(E.a6()))
+        if E.base_field() is not QQ:
+            raise TypeError("the elliptic curve must have coefficients in the rational numbers")
+
+        E = E.minimal_model()
+        self._E = E
+
+        # The a invariants are rational numbers with denominator 1
+        mpz_to_ZZ(&a1, mpq_numref((<Rational>(E.a1())).value))
+        mpz_to_ZZ(&a2, mpq_numref((<Rational>(E.a2())).value))
+        mpz_to_ZZ(&a3, mpq_numref((<Rational>(E.a3())).value))
+        mpz_to_ZZ(&a4, mpq_numref((<Rational>(E.a4())).value))
+        mpz_to_ZZ(&a6, mpq_numref((<Rational>(E.a6())).value))
 
         sig_on()
         C = new_Curve(a1,a2,a3,a4,a6)
@@ -80,7 +108,6 @@ cdef class ECModularSymbol:
 
         self.nfs = new_newforms(n,0)
         self.nfs.createfromcurve(sign,CR[0])
-        self._E = E
         sig_off()
 
     def __repr__(self):
@@ -138,8 +165,6 @@ cdef class ECModularSymbol:
         """
         cdef rational _r
         cdef rational _s
-        cdef mpz_t *z_n, *z_d
-        cdef ZZ_c *Z_n, *Z_d
         cdef long n, d
 
         r = Cusp(r)

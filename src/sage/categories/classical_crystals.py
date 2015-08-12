@@ -14,6 +14,7 @@ from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.tensor import TensorProductsCategory
 
 class ClassicalCrystals(Category_singleton):
     """
@@ -37,6 +38,7 @@ class ClassicalCrystals(Category_singleton):
         sage: B = ClassicalCrystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -84,44 +86,44 @@ class ClassicalCrystals(Category_singleton):
         """
         return Crystals().example(n)
 
+    def additional_structure(self):
+        r"""
+        Return ``None``.
+
+        Indeed, the category of classical crystals defines no
+        additional structure: it only states that its objects are
+        `U_q(\mathfrak{g})`-crystals, where `\mathfrak{g}` is of
+        finite type.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        EXAMPLES::
+
+            sage: ClassicalCrystals().additional_structure()
+        """
+        return None
+
 
     class ParentMethods:
 
-        @cached_method
         def opposition_automorphism(self):
             r"""
-            Returns the opposition automorphism
-
-            The *opposition automorphism* is the automorphism
-            `i \mapsto i^*` of the vertices Dynkin diagram such that,
-            for `w_0` the longest element of the Weyl group, and any
-            simple root `\alpha_i`, one has `\alpha_{i^*} = -w_0(\alpha_i)`.
-
-            The automorphism is returned as a dictionary.
+            Deprecated in :trac:`15560`. Use the corresponding method in
+            Cartan type.
 
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',5],shape=[1])
                 sage: T.opposition_automorphism()
-                {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
-
-                sage: T = crystals.Tableaux(['D',4],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 4}
-
-                sage: T = crystals.Tableaux(['D',5],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 5, 5: 4}
-
-                sage: T = crystals.Tableaux(['C',4],shape=[1])
-                sage: T.opposition_automorphism()
-                {1: 1, 2: 2, 3: 3, 4: 4}
+                doctest:...: DeprecationWarning: opposition_automorphism is deprecated.
+                Use opposition_automorphism from the Cartan type instead.
+                See http://trac.sagemath.org/15560 for details.
+                Finite family {1: 5, 2: 4, 3: 3, 4: 2, 5: 1}
             """
-            L = self.cartan_type().root_system().root_lattice()
-            W = L.weyl_group()
-            w0 = W.long_element()
-            alpha = L.simple_roots()
-            return dict( (i, (w0.action(alpha[i])).leading_support()) for i in self.index_set() )
+            from sage.misc.superseded import deprecation
+            deprecation(15560, 'opposition_automorphism is deprecated. Use'
+                               ' opposition_automorphism from the Cartan type instead.')
+            return self.cartan_type().opposition_automorphism()
 
         def demazure_character(self, w, f = None):
             r"""
@@ -281,6 +283,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(T).run(verbose = True)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()
@@ -306,6 +309,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(U).run(verbose = True)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()
@@ -356,6 +360,7 @@ class ClassicalCrystals(Category_singleton):
 
                 sage: TestSuite(fb4(1,0,1,0)).run(verbose = True)  # long time (8s on sage.math, 2011)
                 running ._test_an_element() . . . pass
+                running ._test_cardinality() . . . pass
                 running ._test_category() . . . pass
                 running ._test_elements() . . .
                   Running the test suite of self.an_element()
@@ -423,11 +428,14 @@ class ClassicalCrystals(Category_singleton):
 
         def lusztig_involution(self):
             r"""
-            Returns the Lusztig involution on the classical highest weight crystal self.
+            Return the Lusztig involution on the classical highest weight
+            crystal ``self``.
 
-            The Lusztig involution on a finite-dimensional highest weight crystal `B(\lambda)` of highest weight `\lambda`
-            maps the highest weight vector to the lowest weight vector and the Kashiwara operator `f_i` to
-            `e_{i^*}`, where `i^*` is defined as `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
+            The Lusztig involution on a finite-dimensional highest weight
+            crystal `B(\lambda)` of highest weight `\lambda` maps the
+            highest weight vector to the lowest weight vector and the
+            Kashiwara operator `f_i` to `e_{i^*}`, where `i^*` is defined as
+            `\alpha_{i^*} = -w_0(\alpha_i)`. Here `w_0` is the longest element
             of the Weyl group acting on the `i`-th simple root `\alpha_i`.
 
             EXAMPLES::
@@ -452,8 +460,8 @@ class ClassicalCrystals(Category_singleton):
                 [[[[1]], [[-1]]], [[[2]], [[-2]]], [[[3]], [[3]]], [[[-3]], [[-3]]],
                 [[[-2]], [[2]]], [[[-1]], [[1]]]]
 
-                sage: C=CartanType(['E',6])
-                sage: La=C.root_system().weight_lattice().fundamental_weights()
+                sage: C = CartanType(['E',6])
+                sage: La = C.root_system().weight_lattice().fundamental_weights()
                 sage: T = crystals.HighestWeight(La[1])
                 sage: t = T[3]; t
                 [(-4, 2, 5)]
@@ -462,6 +470,22 @@ class ClassicalCrystals(Category_singleton):
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
-            hw = [self.parent().opposition_automorphism()[i] for i in hw]
+            A = self.parent().cartan_type().opposition_automorphism()
+            hw = [A[i] for i in hw]
             return self.to_lowest_weight()[0].e_string(hw)
+
+    class TensorProducts(TensorProductsCategory):
+        """
+        The category of classical crystals constructed by tensor
+        product of classical crystals.
+        """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: ClassicalCrystals().TensorProducts().extra_super_categories()
+                [Category of classical crystals]
+            """
+            return [self.base_category()]
 

@@ -21,9 +21,7 @@ A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
         sage: import gc
         sage: _ = gc.collect()
         sage: A
-        Traceback (most recent call last):
-        ...
-        RuntimeError: This action acted on a set that became garbage collected
+        <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
 
     To avoid garbage collection of the underlying set, it is sufficient to
     create a strong reference to it before the action is created.
@@ -70,7 +68,6 @@ import sage.structure.element
 from weakref import ref
 from sage.misc.constant_function import ConstantFunction
 
-include "sage/ext/stdsage.pxi"
 
 cdef inline category(x):
     try:
@@ -181,9 +178,7 @@ cdef class Action(Functor):
             sage: import gc
             sage: _ = gc.collect()
             sage: A
-            Traceback (most recent call last):
-            ...
-            RuntimeError: This action acted on a set that became garbage collected
+            <repr(<sage.categories.action.Action at 0x...>) failed: RuntimeError: This action acted on a set that became garbage collected>
         """
         S = self.US()
         if S is None:
@@ -423,7 +418,7 @@ cdef class ActionEndomorphism(Morphism):
 
     def __mul__(left, right):
         cdef ActionEndomorphism left_c, right_c
-        if PY_TYPE_CHECK(left, ActionEndomorphism) and PY_TYPE_CHECK(right, ActionEndomorphism):
+        if isinstance(left, ActionEndomorphism) and isinstance(right, ActionEndomorphism):
             left_c = left
             right_c = right
             if left_c._action is right_c._action:

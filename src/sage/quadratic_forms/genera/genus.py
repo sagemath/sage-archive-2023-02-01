@@ -7,7 +7,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.misc.misc as misc
+from sage.misc.all import prod
 from sage.rings.arith import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import IntegerRing
@@ -100,7 +100,7 @@ def is_GlobalGenus(G):
         sym = loc._symbol
         v = sum([ s[0]*s[1] for s in sym ])
         a = D // (p**v)
-        b = Integer(misc.prod([ s[2] for s in sym ]))
+        b = Integer(prod([ s[2] for s in sym ]))
         if p == 2:
             if not is_2_adic_genus(sym):
                 # print "False in is_2_adic_genus(sym)"
@@ -1211,7 +1211,7 @@ class Genus_Symbol_p_adic_ring(object):
             3
         """
         p = self._prime
-        return misc.prod([ p**(s[0]*s[1]) for s in self._symbol ])
+        return prod([ p**(s[0]*s[1]) for s in self._symbol ])
 
 
     def rank(self):
@@ -1619,4 +1619,4 @@ class GenusSymbol_global_ring(object):
 
         """
         r, s = self.signature_pair_of_matrix()
-        return (-1)**s*misc.prod([ G.determinant() for G in self._local_symbols ])
+        return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])

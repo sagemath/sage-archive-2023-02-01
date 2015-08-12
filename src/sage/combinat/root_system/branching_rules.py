@@ -9,8 +9,6 @@ Branching Rules
 #*****************************************************************************
 
 import sage.combinat.root_system.weyl_characters
-from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
 from sage.combinat.root_system.root_system import RootSystem
 from sage.matrix.constructor import matrix
 from sage.misc.flatten import flatten
@@ -18,6 +16,7 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, QQ
+from sage.misc.functional import is_even, is_odd
 
 def branch_weyl_character(chi, R, S, rule="default"):
     r"""
@@ -1034,7 +1033,7 @@ class BranchingRule(SageObject):
             sage: b=branching_rule("F4","B3",rule="levi")*branching_rule("B3","G2",rule="miscellaneous"); b
             composite branching rule F4 => (levi) B3 => (miscellaneous) G2
         """
-        if self._name is "composite":
+        if self._name == "composite":
             ret = "composite branching rule %s => "%self._R._repr_(compact=True)
             for i in range(len(self._intermediate_types)):
                 intt = self._intermediate_types[i]
@@ -1055,7 +1054,7 @@ class BranchingRule(SageObject):
         """
         try:
             return self._f(x)
-        except:
+        except Exception:
             return self._f(x.to_vector())
 
     def __cmp__(self, other):
@@ -1089,18 +1088,24 @@ class BranchingRule(SageObject):
             sage: [A2(f).branch(A2,rule=b1) == A2(f).branch(A2,rule=b2) for f in A2.fundamental_weights()]
             [True, True]
         """
+        c = cmp(type(self), type(other))
+        if c:
+            return c
         Rspace = RootSystem(self._R).ambient_space()
         Rspace_other = RootSystem(other._R).ambient_space()
-        if Rspace != Rspace_other:
-            return cmp(Rspace, Rspace_other)
+        c = cmp(Rspace, Rspace_other)
+        if c:
+            return c
         Sspace = RootSystem(self._S).ambient_space()
         Sspace_other = RootSystem(other._S).ambient_space()
-        if Sspace != Sspace_other:
-            return cmp(Sspace, Sspace_other)
+        c = cmp(Sspace, Sspace_other)
+        if c:
+            return c
         for v in Rspace.fundamental_weights():
-            [a, b] = [Sspace(self(list(v.to_vector()))), Sspace(other(list(v.to_vector())))]
-            if a != b:
-                return cmp(a, b)
+            w = list(v.to_vector())
+            c = cmp(Sspace(self(w)), Sspace(other(w)))
+            if c:
+                return c
         return 0
 
     def __mul__(self, other):
@@ -1284,7 +1289,7 @@ def branching_rule(Rtype, Stype, rule="default"):
         try:
             S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(Stype.split("(")[0],style="coroots")
             chi = S(eval("("+Stype.split("(")[1]))
-        except:
+        except Exception:
             S = sage.combinat.root_system.weyl_characters.WeylCharacterRing(Stype.split(".")[0],style="coroots")
             chi= eval("S."+Stype.split(".")[1])
         return branching_rule_from_plethysm(chi, Rtype)
@@ -1320,8 +1325,8 @@ def branching_rule(Rtype, Stype, rule="default"):
         stor = []
         for i in range(len(Rtypes)):
             l = rule[i]
-            if l is not "omit":
-                if l is "identity":
+            if l != "omit":
+                if l == "identity":
                     rules.append(BranchingRule(Rtypes[i], Rtypes[i], lambda x : x, "identity"))
                 else:
                     rules.append(l)
@@ -1690,9 +1695,9 @@ def branching_rule(Rtype, Stype, rule="default"):
             raise ValueError("Tensor product requires more than one factor")
         if len(stypes) is not 2:
             raise ValueError("Not implemented")
-        if Rtype[0] is 'A':
+        if Rtype[0] == 'A':
             nr = Rtype[1]+1
-        elif Rtype[0] is 'B':
+        elif Rtype[0] == 'B':
             nr = 2*Rtype[1]+1
         elif Rtype[0] in ['C', 'D']:
             nr = 2*Rtype[1]
@@ -1701,9 +1706,9 @@ def branching_rule(Rtype, Stype, rule="default"):
         [s1, s2] = [stypes[i][1] for i in range(2)]
         ns = [s1, s2]
         for i in range(2):
-            if stypes[i][0] is 'A':
+            if stypes[i][0] == 'A':
                 ns[i] = ns[i]+1
-            if stypes[i][0] is 'B':
+            if stypes[i][0] == 'B':
                 ns[i] = 2*ns[i]+1
             if stypes[i][0] in ['C','D']:
                 ns[i] = 2*ns[i]
@@ -1722,18 +1727,18 @@ def branching_rule(Rtype, Stype, rule="default"):
             if not all(t[0] == 'B' for t in stypes):
                 raise ValueError("Rule not found")
         elif Rtype[0] == 'C':
-            if stypes[0][0] in ['B','D'] and stypes[1][0] is 'C':
+            if stypes[0][0] in ['B','D'] and stypes[1][0] == 'C':
                 pass
-            elif stypes[1][0] in ['B','D'] and stypes[0][0] is 'C':
+            elif stypes[1][0] in ['B','D'] and stypes[0][0] == 'C':
                 pass
             else:
                 raise ValueError("Rule not found")
         elif Rtype[0] == 'D':
-            if stypes[0][0] in ['B','D'] and stypes[1][0] is 'D':
+            if stypes[0][0] in ['B','D'] and stypes[1][0] == 'D':
                 pass
-            elif stypes[1][0] is 'B' and stypes[0][0] is 'D':
+            elif stypes[1][0] == 'B' and stypes[0][0] == 'D':
                 pass
-            elif stypes[1][0] is 'C' and stypes[0][0] is 'C':
+            elif stypes[1][0] == 'C' and stypes[0][0] == 'C':
                 pass
             else:
                 raise ValueError("Rule not found")
@@ -1912,7 +1917,7 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
     ct = CartanType(cartan_type)
     if ct[0] not in ["A","B","C","D"]:
         raise ValueError("not implemented for type {}".format(ct[0]))
-    if ct[0] is "A":
+    if ct[0] == "A":
         ret = []
         ml = chi.weight_multiplicities()
         for v in ml:
@@ -1925,13 +1930,13 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
     if ct[0] in ["B","D"]:
         if chi.frobenius_schur_indicator() != 1:
             raise ValueError("character is not orthogonal")
-    if ct[0] is "C":
+    if ct[0] == "C":
         if chi.frobenius_schur_indicator() != -1:
             raise ValueError("character is not symplectic")
-    if ct[0] is "B":
+    if ct[0] == "B":
         if is_even(chi.degree()):
             raise ValueError("degree is not odd")
-    if ct[0] is ["C","D"]:
+    if ct[0] in ["C","D"]:
         if is_odd(chi.degree()):
             raise ValueError("degree is not even")
     ret = []
@@ -1940,7 +1945,7 @@ def branching_rule_from_plethysm(chi, cartan_type, return_matrix = False):
         n = ml[v]
         vec = v.to_vector()
         if all(x==0 for x in vec):
-            if ct[0] is "B":
+            if ct[0] == "B":
                 n = (n-1)/2
             else:
                 n = n/2

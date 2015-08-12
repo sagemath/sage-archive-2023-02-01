@@ -1,8 +1,7 @@
-from category import Category, HomCategory
+from category import Category
 
 from category_types import(
                         Elements,
-                        Sequences,
                         SimplicialComplexes,
                         ChainComplexes,
 )

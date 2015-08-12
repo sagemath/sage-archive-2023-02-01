@@ -168,7 +168,7 @@ class Matlab(Expect):
            122
            505
     """
-    def __init__(self, maxread=100, script_subdirectory="",
+    def __init__(self, maxread=100, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
                         name = 'matlab',
@@ -348,7 +348,7 @@ class MatlabElement(ExpectElement):
         matlab = self.parent()
         entries = matlab.strip_answer(matlab.eval("mat2str({0})".format(self.name())))
         entries = entries.strip()[1:-1].replace(';', ' ')
-        entries = map(R, entries.split(' '))
+        entries = [R(_) for _ in entries.split(' ')]
         nrows, ncols = map(int, str(self.size()).strip().split())
         m = matrix(R, nrows, ncols, entries)
         return m
@@ -359,13 +359,12 @@ class MatlabElement(ExpectElement):
         P.eval('{0}({1},{2}) = {3}'.format(self.name(), i, j, z.name()))
 
 # An instance
-matlab = Matlab(script_subdirectory='user')
+matlab = Matlab()
 
 def reduce_load_Matlab():
     return matlab
 
 
-import os
 def matlab_console():
     """
     This requires that the optional matlab program be installed and in

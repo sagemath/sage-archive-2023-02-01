@@ -180,6 +180,9 @@ class QuotientRingElement(ring_element.RingElement):
         """
         if self.__rep.is_unit():
             return True
+        from sage.categories.fields import Fields
+        if self.parent() in Fields:
+            return not self.is_zero()
         raise NotImplementedError
 
     def _repr_(self):
@@ -268,7 +271,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._add_(b)
             a + b
         """
-        return self.parent()(self.__rep + right.__rep)
+        return self.__class__(self.parent(), self.__rep + right.__rep)
 
     def _sub_(self, right):
         """
@@ -288,7 +291,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._sub_(b)
             a - b
         """
-        return self.parent()(self.__rep - right.__rep)
+        return self.__class__(self.parent(), self.__rep - right.__rep)
 
     def _mul_(self, right):
         """
@@ -310,7 +313,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a._mul_(a)
             -b^2
         """
-        return self.parent()(self.__rep * right.__rep)
+        return self.__class__(self.parent(), self.__rep * right.__rep)
 
     def _div_(self, right):
         """
@@ -537,7 +540,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: -(a+b)
             -a - b
         """
-        return self.parent()(-self.__rep)
+        return self.__class__(self.parent(), -self.__rep)
 
     def __pos__(self):
         """
@@ -576,8 +579,8 @@ class QuotientRingElement(ring_element.RingElement):
         try:
             inv = self.__rep.inverse_mod(self.parent().defining_ideal())
         except NotImplementedError:
-            return self.parent()(1)/self
-        return self.parent()(inv)
+            return self.parent().one()/self
+        return self.__class__(self.parent(), inv)
 
     def __float__(self):
         """
@@ -614,7 +617,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: a.__cmp__(b)
             1
 
-        See :trac:`7797`:
+        See :trac:`7797`::
 
             sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
@@ -622,9 +625,18 @@ class QuotientRingElement(ring_element.RingElement):
             sage: Q.0^4    # indirect doctest
             ybar*zbar*zbar*xbar + ybar*zbar*zbar*ybar + ybar*zbar*zbar*zbar
 
+        The issue from :trac:`8005` was most likely fixed as part of
+        :trac:`9138`::
+
+            sage: F = GF(5)
+            sage: R.<x,y>=F[]
+            sage: I=Ideal(R, [x, y])
+            sage: S.<x1,y1>=QuotientRing(R,I)
+            sage: x1^4
+            0
+
         """
-        #if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
-        #    return 0
+
         # A containment test is not implemented for univariate polynomial
         # ideals. There are cases in which one would not like to add
         # elements of different degrees. The whole quotient stuff relies
@@ -659,7 +671,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: (a+3*a*b+b).lt()
             3*a*b
         """
-        return self.parent()(self.__rep.lt())
+        return self.__class__(self.parent(), self.__rep.lt())
 
     def lm(self):
         """
@@ -682,7 +694,7 @@ class QuotientRingElement(ring_element.RingElement):
             a*b
 
         """
-        return self.parent()(self.__rep.lm())
+        return self.__class__(self.parent(), self.__rep.lm())
 
     def lc(self):
         """
@@ -730,7 +742,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: (a+b).variables()
             (a, b)
         """
-        return tuple([self.parent()(v) for v in self.__rep.variables()])
+        return tuple(self.__class__(self.parent(), v) for v in self.__rep.variables())
 
     def monomials(self):
         """
@@ -751,7 +763,7 @@ class QuotientRingElement(ring_element.RingElement):
             sage: R.zero().monomials()
             []
         """
-        return [self.parent()(m) for m in self.__rep.monomials()]
+        return [self.__class__(self.parent(), m) for m in self.__rep.monomials()]
 
     def _singular_(self, singular=singular_default):
         """
@@ -810,7 +822,7 @@ class QuotientRingElement(ring_element.RingElement):
         """
         g = magma(self.__rep)
         R = magma(self.parent())
-        return '%s!%s'%(R.name(), g._ref())
+        return '{}!{}'.format(R.name(), g._ref())
 
     def reduce(self, G):
         r"""
@@ -839,4 +851,5 @@ class QuotientRingElement(ring_element.RingElement):
             pass
         # reduction w.r.t. the defining ideal is performed in the
         # constructor
-        return self.parent()(self.__rep.reduce(G))
+        return self.__class__(self.parent(), self.__rep.reduce(G))
+

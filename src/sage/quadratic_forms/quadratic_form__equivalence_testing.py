@@ -523,6 +523,7 @@ def is_rationally_isometric(self, other):
         sage: V=DiagonalQuadraticForm(K,[1,2])
         sage: W=DiagonalQuadraticForm(K,[1,0])
         sage: V.is_rationally_isometric(W)
+        Traceback (most recent call last)
         ...
         NotImplementedError: This only tests regular forms
 

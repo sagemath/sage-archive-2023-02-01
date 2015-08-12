@@ -537,9 +537,9 @@ def is_rationally_isometric(self, other):
         Traceback (most recent call last):
         ...
         TypeError: forms must have the same base ring.
-        
+
     Forms which have different dimension are not isometric::
-    
+
         sage: W=DiagonalQuadraticForm(QQ,[1,2])
         sage: V=DiagonalQuadraticForm(QQ,[1,1,1])
         sage: V.is_rationally_isometric(W)

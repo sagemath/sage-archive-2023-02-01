@@ -3302,6 +3302,15 @@ class GraphicsArray(SageObject):
                 self._glist.append(g)
         self._figsize = None
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(graphics_array([])) # random
+            42
+        """
+        return id(self)
+
     def _repr_(self):
         """
         Representation of the graphics array.

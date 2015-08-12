@@ -79,6 +79,16 @@ cdef class Graphics3d(SageObject):
         """
         self._extra_kwds = dict()
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.plot3d.base import Graphics3d
+            sage: hash(Graphics3d()) # random
+            140658972348064
+        """
+        return id(self)
+
     def _repr_(self):
         """
         Return a string representation.

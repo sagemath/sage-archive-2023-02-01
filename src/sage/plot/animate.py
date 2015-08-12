@@ -266,6 +266,15 @@ class Animation(SageObject):
                 new_kwds[name] = getattr(__builtin__, name[1:])(values)
         return new_kwds
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.animate import Animation
+            sage: hash(Animation()) # random
+            140658972348064
+        """
+        return id(self)
 
     def __getitem__(self, i):
         """

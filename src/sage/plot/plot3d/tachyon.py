@@ -379,6 +379,15 @@ class Tachyon(SageObject):
                 raise ValueError('camera_center and look_at coincide')
         else:
             self._viewdir = viewdir
+    
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(Tachyon()) # random
+            140658972348064
+        """
+        return id(self)
 
     def save_image(self, filename=None, *args, **kwds):
         r"""

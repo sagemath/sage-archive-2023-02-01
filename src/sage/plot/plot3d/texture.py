@@ -308,6 +308,16 @@ class Texture_class(SageObject):
             specular = parse_color(specular, color)
         self.specular = specular
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.plot.plot3d.texture import Texture
+            sage: hash(Texture()) # random
+            42
+        """
+        return id(self)
+
     def _repr_(self):
         """
         Gives string representation of the Texture object.

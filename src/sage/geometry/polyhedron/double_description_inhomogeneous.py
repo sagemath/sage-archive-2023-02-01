@@ -199,6 +199,8 @@ class Hrep2Vrep(PivotedInequalities):
             []
         """
         super(Hrep2Vrep, self).__init__(base_ring, dim)
+        inequalities = [list(x) for x in inequalities]
+        equations = [list(x) for x in equations]
         A = self._init_Vrep(inequalities, equations)
         DD = Algorithm(A).run()
         self._extract_Vrep(DD)

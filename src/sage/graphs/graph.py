@@ -938,8 +938,6 @@ class Graph(GenericGraph):
           sage: g
           Graph on 5 vertices
 
-          ::
-
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
@@ -2461,6 +2459,7 @@ class Graph(GenericGraph):
             ...          print "That's not good!"
 
         Asking for an unknown algorithm::
+
             sage: g.is_triangle_free(algorithm='tip top')
             Traceback (most recent call last):
             ...

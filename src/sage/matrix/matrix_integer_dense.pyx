@@ -1834,10 +1834,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0   0   0   0 200   0]
             [  0   0   0   0   0   0   0   0   0 200]
             
-        Check that the output is immutable in corner cases, see :trac:`18613`::
+        Check that the output is correct in corner cases, see :trac:`18613`::
         
             sage: m = matrix(2, 0)
-            sage: m.echelon_form().is_immutable()
+            sage: m.parent()
+            Full MatrixSpace of 2 by 0 dense matrices over Integer Ring
+            sage: H, U = m.echelon_form(transformation=True)
+            sage: H.parent()
+            Full MatrixSpace of 2 by 0 dense matrices over Integer Ring
+            sage: H.is_immutable()
+            True
+            sage: U
+            [1 0]
+            [0 1]
+            sage: H == U * m
+            True
+            sage: H, U = m.echelon_form(transformation=True,
+            ....:                       include_zero_rows=False)
+            sage: H.parent()
+            Full MatrixSpace of 0 by 0 dense matrices over Integer Ring
+            sage: U.parent()
+            Full MatrixSpace of 0 by 2 dense matrices over Integer Ring
+            sage: H == U * m
             True
         """
         key = 'hnf-%s-%s'%(include_zero_rows,transformation)
@@ -1860,8 +1878,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         if nr == 0 or nc == 0:
             pivots = ()
-            H_m = self.new_matrix()
-            U = self.matrix_space(nr, nr).one()
+            if include_zero_rows:
+                H_m = self.new_matrix()
+                U = self.matrix_space(nr, nr).one()
+            else:
+                H_m = self.new_matrix(0, nc)
+                U = self.new_matrix(0, nr)
         elif algorithm == "padic":
             import matrix_integer_dense_hnf
             self._init_mpz()

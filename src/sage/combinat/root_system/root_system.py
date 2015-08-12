@@ -314,6 +314,8 @@ class RootSystem(UniqueRepresentation, SageObject):
             try:
                 self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
             except Exception:
+                print "HELLOOOOOOOOOOOOO! {}".format(self._cartan_type)
+                raise
                 pass
         else:
             self.dual_side = True
@@ -447,6 +449,11 @@ class RootSystem(UniqueRepresentation, SageObject):
             True
             sage: r1 == r2
             False
+
+        Check that they inherit a hash method from ``UniqueRepresentation``::
+
+            sage: hash(r1)  # random
+            42
         """
         if self.__class__ != other.__class__:
             return cmp(self.__class__, other.__class__)

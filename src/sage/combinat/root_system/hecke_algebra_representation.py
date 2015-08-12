@@ -89,6 +89,20 @@ class HeckeAlgebraRepresentation(SageObject):
         self._cartan_type = cartan_type
         self._side = side
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
+            sage: W = SymmetricGroup(3)
+            sage: domain = W.algebra(QQ)
+            sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
+            sage: r = HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
+            sage: hash(r) # random
+            3
+        """
+        return id(self)
+
     def _repr_(self):
         r"""
         EXAMPLES::

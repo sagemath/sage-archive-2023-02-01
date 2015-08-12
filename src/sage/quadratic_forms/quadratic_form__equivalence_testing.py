@@ -13,7 +13,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 from quadratic_form import is_QuadraticForm
-from quadratic_form__local_field_invariants import hasse_invariant
 
 from sage.env import SAGE_LOCAL
 

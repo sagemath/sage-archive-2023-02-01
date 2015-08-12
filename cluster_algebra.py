@@ -153,9 +153,9 @@ class ClusterAlgebraSeed(SageObject):
             eps = -1
 
         # store the g-vector to be mutated in case we are mutating also F-polynomials
-        old_g_vector = tuple(seed._G.column(k))
+        old_g_vector = self.g_vector(k)
 
-        # mutate G-matrix
+        # G-matrix
         J = identity_matrix(n)
         for j in xrange(n):
             J[j,k] += max(0, -eps*seed._B[j,k])
@@ -164,9 +164,9 @@ class ClusterAlgebraSeed(SageObject):
 
         # F-polynomials
         if mutating_F:
-            g_vector = tuple(seed._G.column(k))
+            g_vector = self.g_vector(k)
             if g_vector not in self.parent().g_vectors_so_far():
-                self.parent()._data_dict.setdefault(g_vector, (self._mutated_F(k, old_g_vector),self._path+[k]))
+                self.parent()._data_dict.setdefault( g_vector, (self._mutated_F(k, old_g_vector), self._path+[k]) )
 
         # C-matrix
         J = identity_matrix(n)
@@ -184,6 +184,7 @@ class ClusterAlgebraSeed(SageObject):
         else:
             seed._path.append(k)
 
+        # wrap up
         if not inplace:
             return seed
 
@@ -237,10 +238,10 @@ class ClusterAlgebra(Parent):
         # Temporary variables
         # TODO: right now  we use ClusterQuiver to parse input data. It looks
         # like a good idea but we should make sure it is.
-        Q = ClusterQuiver(data) 
+        Q = ClusterQuiver(data)
         B0 = Q.b_matrix()
         n = B0.ncols()
-        # We use a different m than ClusterSeed and ClusterQuiver: their m is our m-n. 
+        # We use a different m than ClusterSeed and ClusterQuiver: their m is our m-n.
         # Should we merge this behaviour? what is the notation in CA I-IV?
         m = B0.nrows()
         I = identity_matrix(n)
@@ -296,13 +297,16 @@ class ClusterAlgebra(Parent):
 
     def reset_current_seed(self):
         r"""
-        Reset the current seed to be the initial one
+        Reset the current seed to the initial one
         """
         n = self.rk
         I = identity_matrix(n)
         self._seed = ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
 
     def g_vectors_so_far(self):
+        r"""
+        Return the g-vectors of cluster variables encountered so far.
+        """
         return self._data_dict.keys()
 
     @make_hashable
@@ -328,7 +332,9 @@ class ClusterAlgebra(Parent):
     def find_cluster_variable(self, g_vector, depth=infinity):
         r"""
         Returns the shortest mutation path to obtain the cluster variable with
-        given g-vector from the initial seed
+        g-vector ``g_vector`` from the initial seed.
+
+        ``depth``: maximum distance from ``self.current_seed`` to reach.
         """
         seeds = self.seeds(depth=depth)
         mutation_counter = 0
@@ -356,6 +362,10 @@ class ClusterAlgebra(Parent):
         return self(x)
 
     def seeds(self, depth=infinity):
+        r"""
+        Return an iterator producing all seeds of ``self`` up to distance
+        ``depth`` from ``self.current_seed``.
+        """
         yield self.current_seed
         depth_counter = 0
         n = self.rk
@@ -402,6 +412,8 @@ def greedy_element(self, d_vector):
     pass
 
 # At the moment I know only how to compute theta basis in rank 2
+# maybe we should let ClusterAlgebra have this methon for any rank and have a
+# NotImplementedError to encourage someone (read: Greg) to code this
 def theta_basis_element(self, g_vector):
     pass
 

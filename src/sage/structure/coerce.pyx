@@ -1294,6 +1294,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         garbage collection after being involved in binary operations::
 
             sage: import gc
+            sage: gc.collect() #random
+            852
             sage: T=type(GF(2))
             sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
             sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]

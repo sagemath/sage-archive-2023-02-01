@@ -413,14 +413,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             True
             sage: ~P_ZZ.gen() <= P_ZZ.gen()
             True
-
-        TESTS::
-
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G.an_element() <= G.an_element()
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot convert 1.
         """
         from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
@@ -455,34 +447,12 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
-            True
-        """
-        return (self / other).is_le_one()
-
-
-    def is_le_one(self):
-        r"""
-        Abstract method for comparison with one.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES::
-
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: G.gen().is_le_one()
-            False
-            sage: (~G.gen()).is_le_one()
-            True
+            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: e1 = G(raw_element=1); e2 = G(raw_element=2)
+            sage: e1 <= e2  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
         """
         raise NotImplementedError('Only implemented in concrete realizations.')
 
@@ -1062,30 +1032,33 @@ class MonomialGrowthElement(GenericGrowthElement):
         return new_parent(raw_element=new_exponent)
 
 
-    def is_le_one(self):
+    def _le_(self, other):
         r"""
-        Returns if this monomial growth element is at most (less than
-        or equal to) `1`.
+        Return if this :class:`MonomialGrowthElement` is at most
+        (less than or equal to) ``other``.
 
         INPUT:
 
-        Nothing.
+        - ``other`` -- a :class:`MonomialGrowthElement`.
 
         OUTPUT:
 
         A boolean.
 
-        EXAMPLES::
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`MonomialGrowthElement`.
+
+        TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: e1 = P.gen()
-            sage: e1.is_le_one()
-            False
-            sage: (P.one() / P.gen()).is_le_one()
+            sage: P_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P_QQ = agg.MonomialGrowthGroup(QQ, 'x')
+            sage: P_ZZ.gen() <= P_QQ.gen()^2  # indirect doctest
             True
         """
-        return self.exponent <= 0
+        return self.exponent <= other.exponent
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):

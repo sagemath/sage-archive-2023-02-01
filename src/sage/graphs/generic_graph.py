@@ -5869,7 +5869,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             weight = lambda x: 1
 
-        if method in ["FF", "igraph", "None"]:
+        if method in ["FF", "igraph", None]:
             if value_only:
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
@@ -7613,7 +7613,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 return [v for v in self if b_sol[v] == 1]
 
-    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=False, vertex_bound=False, method = None, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
@@ -7652,7 +7652,7 @@ class GenericGraph(GenericGraph_pyx):
             constraint that the flow going through an edge has to be an
             integer.
 
-        - ``use_edge_labels`` -- boolean (default: ``True``)
+        - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
@@ -7717,7 +7717,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
-           sage: int(b.flow(('00',1),('00',2)))
+           sage: int(b.flow(('00',1),('00',2), use_edge_labels = False))
            1
 
         The flow method can be used to compute a matching in a bipartite graph
@@ -7780,27 +7780,21 @@ class GenericGraph(GenericGraph_pyx):
            sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
            True
         """
+        from sage.misc.package import is_package_installed
         self._scream_if_not_simple(allow_loops=True)
         if vertex_bound and method in ["FF", "igraph"]:
             raise ValueError("This method does not support both " +
                              "vertex_bound=True and method='" + method + "'.")
 
         if use_edge_labels:
-            from sage.rings.real_mpfr import RR
-            capacity=lambda x: x if x in RR else 1
+            capacity=lambda x: x
         else:
             capacity=lambda x: 1
-
-        igraph_available = True
-        try:
-            import igraph
-        except ImportError:
-            igraph_available = False
 
         if method is None:
             if vertex_bound:
                 method = "LP"
-            elif igraph_available:
+            elif is_package_installed("python_igraph"):
                 method = "igraph"
             else:
                 method = "FF"
@@ -7808,10 +7802,12 @@ class GenericGraph(GenericGraph_pyx):
         if (method == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (method == 'igraph'):
-            from sage.functions.other import floor
+            from math import floor
 
-            if not igraph_available:
-                raise ValueError("The igraph library is not available. " +
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The igraph library is not available. " +
                                  "Please, install it with sage -i igraph " +
                                  "followed by sage -i python_igraph.")
             v_to_int = {v:i for i,v in enumerate(self.vertices())}
@@ -7819,12 +7815,13 @@ class GenericGraph(GenericGraph_pyx):
             y_int = v_to_int[y]
             if use_edge_labels:
                 if integer:
-                    g_igraph = self.igraph_graph(edge_attrs={'capacity':[int(floor(capacity(e[2]))) for e in self.edge_iterator()]})
+                    g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[int(floor(capacity(e[2]))) for e in self.edge_iterator()]})
                 else:
-                    g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                    g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
                 maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
             else:
-                maxflow = self.igraph_graph().maxflow(x_int, y_int)
+                g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()})
+                maxflow = g_igraph.maxflow(x_int, y_int)
 
             if value_only:
                 return maxflow.value
@@ -7832,24 +7829,23 @@ class GenericGraph(GenericGraph_pyx):
                 igraph_flow = iter(maxflow.flow)
                 edge_iter = self.edge_iterator()
                 edges = []
+                names = g_igraph.vs()['name']
                 if self.is_directed():
-                    for e in self.edge_iterator():
-                        f = next(igraph_flow)
+                    for e in g_igraph.es():
+                        f = maxflow.flow[e.index]
                         if f != 0:
-                            edges.append((e[0], e[1], f))
+                            edges.append((names[e.source], names[e.target], f))
                 else:
                     # If the graph is undirected, the output of igraph is a list
                     # of weights: a positive weight means that the flow is from
                     # the vertex with minimum label to the vertex with maximum
                     # label, a negative weight means the converse.
-                    for e in self.edge_iterator():
-                        v = v_to_int[e[0]]
-                        w = v_to_int[e[1]]
-                        f = next(igraph_flow)
-                        if (f > 0 and v < w) or (f < 0 and v > w):
-                            edges.append((e[0], e[1], abs(f)))
+                    for e in g_igraph.es():
+                        f = maxflow.flow[e.index]
+                        if (f > 0 and e.source < e.target) or (f < 0 and e.source > e.target):
+                            edges.append((names[e.source], names[e.target], abs(f)))
                         elif f != 0:
-                            edges.append((e[1], e[0], abs(f)))
+                            edges.append((names[e.target], names[e.source], abs(f)))
 
                 from sage.graphs.digraph import DiGraph
                 return [maxflow.value, DiGraph(edges)]

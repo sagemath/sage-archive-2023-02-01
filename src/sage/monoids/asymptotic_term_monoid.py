@@ -55,15 +55,15 @@ AUTHORS:
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17600 for details.
-        sage: T = atm.GenericTermMonoid(G)
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17715 for details.
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
         sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17715 for details.
-
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
 """
 
 # *****************************************************************************
@@ -667,7 +667,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     # enable the category framework for elements
     Element = GenericTerm
 
-    @sage.misc.superseded.experimental(trac_number=17715)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, growth_group, category=None):
         r"""
         See :class:`GenericTermMonoid` for more information.
@@ -1406,7 +1406,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = TermWithCoefficient
 
-    @sage.misc.superseded.experimental(trac_number=17715)
+    @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, growth_group, base_ring, category=None):
         r"""
         For more information see :class:`TermWithCoefficientMonoid`.

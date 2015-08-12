@@ -851,8 +851,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
             True
             sage: AR_QQ.has_coerce_map_from(ZZ)
             True
-            sage: 1/2 * x_QQ^2 + 7/8 * x_QQ^3
-            7/8*x^3 + 1/2*x^2
         """
         if self.coefficient_ring.has_coerce_map_from(R):
             return True

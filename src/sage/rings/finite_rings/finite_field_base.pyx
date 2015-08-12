@@ -1426,9 +1426,9 @@ cdef class FiniteField(Field):
         Return the dual basis of ``basis``, or the dual basis of the power
         basis if no basis is supplied.
 
-        In particular, if `e = \{e_0, e_1, ..., e_{n-1}\}` is a basis of
+        If `e = \{e_0, e_1, ..., e_{n-1}\}` is a basis of
         `\GF{p^n}` as a vector space over `\GF{p}`, then the dual basis of `e`,
-        `d = \{d_0, d_1, ..., d_{n-1}\}`, is another basis such that
+        `d = \{d_0, d_1, ..., d_{n-1}\}`, is the unique basis such that
         `\mathrm{Tr}(e_i d_j) = \delta_{i,j}, 0 \leq i,j \leq n-1`, where
         `\mathrm{Tr}` is the trace function.
 
@@ -1441,7 +1441,7 @@ cdef class FiniteField(Field):
           ``self``.
 
         - ``check`` -- (default: ``True``): verifies that ``basis`` is
-          a valid  basis of ``self``.
+          a valid basis of ``self``.
 
         ALGORITHM:
 

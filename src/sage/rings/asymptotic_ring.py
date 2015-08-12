@@ -33,7 +33,7 @@ AUTHORS:
         See http://trac.sagemath.org/17601 for details.
         sage: T = atm.ExactTermMonoid(G, ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See http://trac.sagemath.org/17715 for details.
+        See http://trac.sagemath.org/17601 for details.
         sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
 """
 

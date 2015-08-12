@@ -561,7 +561,7 @@ def is_rationally_isometric(self, other):
         sage: for _ in range(5):
         ....:     t = random_matrix(ZZ,3,algorithm='unimodular')
         ....:     m2 = t*m*t.transpose()
-        ....:     Q2 = QuadraticForm(K, 3, [m[i,j] / (2 if i==j else 1)
+        ....:     Q2 = QuadraticForm(K, 3, [m2[i,j] / (2 if i==j else 1)
         ....:                               for i in range(3) for j in range(i,3)])
         ....:     print Q.is_rationally_isometric(Q2)
         True

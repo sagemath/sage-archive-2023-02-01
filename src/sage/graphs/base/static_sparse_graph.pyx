@@ -138,10 +138,29 @@ Cython functions
     component containing ``v`` in ``g``. The variable ``g_reversed`` is assumed
     to represent the reverse of ``g``.
 
+``_tarjan_strongly_connected_components(short_digraph g, int *scc)``
+
+    Assuming ``scc`` is already allocated and has size at least ``g.n``, this
+    method computes the strongly connected components of ``g``, and outputs in
+    ``scc[v]`` the number of the strongly connected component containing ``v``.
+    It returns the number of strongly connected components.
+
+``_strongly_connected_components_digraph(short_digraph g, int nscc, int *scc, short_digraph output):``
+
+    Assuming ``nscc`` and ``scc`` are the outputs of
+    ``_tarjan_strongly_connected_components`` on ``g``, this routine
+    sets ``output`` to the
+    strongly connected component digraph of ``g``, that is, the vertices of
+    ``output`` are the strongly connected components of ``g`` (numbers are
+    provided by ``scc``), and ``output`` contains an arc ``(C1,C2)`` if ``g``
+    has an arc from a vertex in ``C1`` to a vertex in ``C2``.
+
 What is this module used for ?
 ------------------------------
 
-At the moment, it is only used in the :mod:`sage.graphs.distances_all_pairs` module.
+At the moment, it is used in the :mod:`sage.graphs.distances_all_pairs` module,
+and in the
+:meth:`~sage.graphs.digraph.DiGraph.strongly_connected_components` method.
 
 Python functions
 ----------------
@@ -168,6 +187,8 @@ from libc.stdint cimport INT32_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
+from sage.ext.memory_allocator cimport MemoryAllocator
+from libcpp.vector cimport vector
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
     r"""
@@ -418,83 +439,297 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
     sage_free(stack)
 
 cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
-    sig_on()
-    cdef int i,u,v,w, n = g.n, current_index = 0, currentscc = 0
-    cdef int *index = <int *> sage_malloc(n * sizeof(int))
-    cdef int *pred = <int *> sage_malloc(n * sizeof(int))
-    cdef int *lowlink = <int *> sage_malloc(n * sizeof(int))
-    cdef int *dfs_stack = <int *> sage_malloc(n_edges(g) * sizeof(int))
+    r"""
+    The Tarjan algorithm to compute strongly connected components (SCCs).
+
+    This routine returns the number of SCCs `k` and, stores in ``scc[v]`` an
+    integer between `0` and `k-1`, corresponding to the SCC containing v. SCCs
+    are numbered in reverse topological order, that is, if `(v,w)` is an edge
+    in the graph, ``scc[v] <= scc[w]``.
+
+    The basic idea of the algorithm is this: a depth-first search (DFS) begins
+    from an arbitrary start node (and subsequent DFSes are
+    conducted on any nodes that have not yet been found). As usual with DFSes,
+    the search visits every node of the graph exactly once, declining to revisit
+    any node that has already been explored. Thus, the collection of search
+    trees is a spanning forest of the graph. The strongly connected components
+    are the subtrees of this spanning forest having no edge directed outside the
+    subtree.
+
+    To recover these components, during the DFS, we keep the index of a node,
+    that is, the position in the DFS tree, and the lowlink: as soon as the
+    subtree rooted at `v` has been fully explored, the lowlink of `v` is the
+    smallest index reachable from `v` passing from descendants of `v`. If the
+    subtree rooted at `v` has been fully explored, and the index of `v` equals
+    the lowlink of `v`, that whole subtree is a new SCC.
+    """
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int u,v,w, n = g.n, current_index = 0, currentscc = 0
+    cdef int *index = <int *> mem.malloc(n * sizeof(int))
+    cdef int *pred = <int *> mem.malloc(n * sizeof(int))
+    cdef int *lowlink = <int *> mem.malloc(n * sizeof(int))
+    cdef int *dfs_stack = <int *> mem.malloc((n_edges(g) + 1) * sizeof(int))
     cdef int dfs_stack_end
-    cdef int *scc_stack = <int *> sage_malloc(n_edges(g) * sizeof(int))
-    cdef int scc_stack_end
-    cdef short *visited = <short *> sage_calloc(n, sizeof(short))
-    
-    # The variable visited[v] is 0 if the vertex has never been visited, 1 if 
+    cdef int *scc_stack = <int *> mem.malloc(n * sizeof(int)) # Used to keep track of which nodes are in the "current" SCC
+    cdef bitset_t in_scc_stack
+    cdef uint32_t *p_tmp
+    # Otherwise, bitset_init creates problems
+    if n == 0:
+        return 0
+
+    bitset_init(in_scc_stack, n)
+    bitset_set_first_n(in_scc_stack, 0)
+
+    cdef short *visited = <short *> mem.calloc(n, sizeof(short))
+    # The variable visited[v] is 0 if the vertex has never been visited, 1 if
     # it is an ancestor of the current vertex, 2 otherwise.
 
     for u in range(n):
         if visited[u] == 0:
             # Perform a DFS from u
             dfs_stack_end = 1
+            scc_stack_end = 0
             dfs_stack[0] = u
             pred[u] = u
-            
+
             while dfs_stack_end > 0:
                 v = dfs_stack[dfs_stack_end - 1]
                 if visited[v] == 0:
                     # It means that this is the first time we visit v.
+                    # We set the index and the lowlink to be equal: during the
+                    # algorithm, the lowlink may decrease.
                     visited[v] = 1
                     index[v] = current_index
                     lowlink[v] = current_index
                     current_index = current_index + 1
+                    # We add v to the stack of vertices in the current SCC
                     scc_stack[scc_stack_end] = v
                     scc_stack_end = scc_stack_end + 1
-                    
-                    for i in range(g.neighbors[v+1]-g.neighbors[v]):
-                        w = g.neighbors[v][i]
+                    bitset_add(in_scc_stack, v)
+
+                    # We iterate over all neighbors of v
+                    p_tmp = g.neighbors[v]
+                    while p_tmp<g.neighbors[v+1]:
+                        w = p_tmp[0]
+                        p_tmp += 1
                         if visited[w] == 0:
+                            # Vertex w is added to the DFS stack
                             pred[w] = v
                             dfs_stack[dfs_stack_end] = w
                             dfs_stack_end += 1
-                        elif visited[w] == 1:
+                        elif bitset_in(in_scc_stack, w):
+                            # We update the lowlink of v (later, we will "pass"
+                            # this updated value to all ancestors of v.
                             lowlink[v] = min(lowlink[v], lowlink[w])
-                            
-                elif visited[v] == 1:
-                    # It means that we finished the subtree rooted at v
-                    lowlink[pred[v]] = min(lowlink[pred[v]], lowlink[v])
-                    if lowlink[v] == index[v]:
-                        w = -1
-                        while w != v:
-                            scc_stack_end -= 1
-                            w = scc_stack[scc_stack_end]
-                            scc[w] = currentscc
-                        currentscc += 1
-                    visited[v] = 2
-                    dfs_stack_end -= 1
                 else:
-                    # Vertex v is already in our tree: we ignore it
+                    # The vertex v has already been visited.
                     dfs_stack_end -= 1
-    sage_free(index)
-    sage_free(pred)
-    sage_free(lowlink)
-    sage_free(dfs_stack)
-    sage_free(scc_stack)
-    sage_free(visited)
-    sig_off()
+
+                    if visited[v] == 1:
+                        # It means that we have just processed all the DFS
+                        # subtree rooted at v. Hence, the lowlink of v is the
+                        # final value, and we "pass" this value to the
+                        # predecessor of v.
+                        lowlink[pred[v]] = min(lowlink[pred[v]], lowlink[v])
+
+                        if lowlink[v] == index[v]:
+                            # The DFS subtree rooted at v is a new SCC. We
+                            # recover the SCC from scc_stack.
+                            w = -1
+                            while w != v:
+                                scc_stack_end -= 1
+                                w = scc_stack[scc_stack_end]
+                                bitset_remove(in_scc_stack, w)
+                                scc[w] = currentscc
+                            currentscc += 1
+                        visited[v] = 2
+
+    bitset_free(in_scc_stack)
     return currentscc
 
+
 def tarjan_strongly_connected_components(G):
-    cdef int * scc = <int*> sage_malloc(g.n * sizeof(int))
+    r"""
+    The Tarjan algorithm to compute strongly connected components (SCCs).
+
+    This routine returns a pair ``[nscc, scc]``, where ``nscc`` is the number of
+    SCCs and ``scc`` is a dictionary associating to each vertex ``v`` an
+    integer between ``0`` and ``nscc-1``, corresponding to the SCC containing
+    ``v``. SCCs
+    are numbered in reverse topological order, that is, if ``(v,w)`` is an edge
+    in the graph, ``scc[v] <= scc[w]``.
+
+    The basic idea of the algorithm is this: a depth-first search (DFS) begins
+    from an arbitrary start node (and subsequent DFSes are
+    conducted on any nodes that have not yet been found). As usual with DFSes,
+    the search visits every node of the graph exactly once, declining to revisit
+    any node that has already been explored. Thus, the collection of search
+    trees is a spanning forest of the graph. The strongly connected components
+    correspond to the subtrees of this spanning forest that have no edge
+    directed outside the subtree.
+
+    To recover these components, during the DFS, we keep the index of a node,
+    that is, the position in the DFS tree, and the lowlink: as soon as the
+    subtree rooted at `v` has been fully explored, the lowlink of `v` is the
+    smallest index reachable from `v` passing from descendants of `v`. If the
+    subtree rooted at `v` has been fully explored, and the index of `v` equals
+    the lowlink of `v`, that whole subtree is a new SCC.
+
+    For more information, see the
+    :wikipedia:`Wikipedia article on Tarjan's algorithm <Tarjan's_strongly_connected_components_algorithm>`.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+        sage: tarjan_strongly_connected_components(digraphs.Path(3))
+        [3, {0: 2, 1: 1, 2: 0}]
+
+    TESTS::
+
+        sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+        sage: import random
+        sage: for i in range(100):
+        ....:     n = random.randint(2,20)
+        ....:     m = random.randint(1, n*(n-1))
+        ....:     g = digraphs.RandomDirectedGNM(n,m)
+        ....:     nscc, sccs = tarjan_strongly_connected_components(g)
+        ....:     for v in range(n):
+        ....:         scc_check = g.strongly_connected_component_containing_vertex(v)
+        ....:         for w in range(n):
+        ....:             assert((sccs[w]==sccs[scc_check[0]]) == (w in scc_check))
+    """
+    from sage.graphs.digraph import DiGraph
+    if not isinstance(G, DiGraph):
+        raise ValueError("G must be a DiGraph.")
+    cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph g
     init_short_digraph(g, G)
+    cdef int * scc = <int*> mem.malloc(g.n * sizeof(int))
+    sig_on()
     cdef int nscc = _tarjan_strongly_connected_components(g, scc)
-    return {v:scc[i] for i,v in enumerate(G.vertices())}
+    sig_off()
+    return [nscc, {v:scc[i] for i,v in enumerate(G.vertices())}]
 
-def test():
-    for i in range(100000000):
-        import random
-        g = digraphs.RandomDirectedGNM(random.randint(0,50),random.randint(0,200))
-        
+cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int *scc, short_digraph output):
+    r"""
+    Computes the strongly connected components (SCCs) digraph of `g`.
+
+    The strongly connected components digraph of `g` is a graph having a vertex
+    for each SCC of `g` and an arc from component `C_1` to component `C_2` if
+    and only if there is an arc in `g` from a vertex in `C_1` to a vertex in
+    `C_2`. The strongly connected components digraph is acyclic by definition.
+
+    This routine inputs the graph ``g``, the number of SCCs ``nscc``, and an
+    array containing in position ``v`` the SCC of vertex ``v`` (these values
+    must be already computed). The output is stored in variable ``output``,
+    which should be empty at the beginning.
+    """
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef int v, w, i
+    cdef int tmp = nscc + 1
+    cdef vector[vector[int]] scc_list = vector[vector[int]](nscc, vector[int]())
+    cdef vector[vector[int]] sons = vector[vector[int]](nscc + 1, vector[int]())
+    cdef vector[int].iterator iter
+    cdef bitset_t neighbors
+    cdef long m = 0
+    cdef uint32_t degv
+    cdef uint32_t *p_tmp
+    bitset_init(neighbors, nscc)
+    bitset_set_first_n(neighbors, 0)
+
+    for v in range(nscc):
+        scc_list[v] = vector[int]()
+        sons[v] = vector[int]()
+    sons[nscc] = vector[int]()
+
+    for i in range(g.n):
+        scc_list[scc[i]].push_back(i)
+
+    for v in range(nscc):
+        for i in range(scc_list[v].size()):
+            p_tmp = g.neighbors[scc_list[v][i]]
+            while p_tmp<g.neighbors[scc_list[v][i]+1]:
+                w = <int> scc[p_tmp[0]]
+                p_tmp += 1
+                if bitset_not_in(neighbors, w) and not w == v:
+                    bitset_add(neighbors, w)
+                    sons[v].push_back(w)
+                    m += 1
+        for w in range(sons[v].size()):
+            bitset_remove(neighbors, sons[v][w])
+
+    output.n = nscc
+    output.m = m
+    output.edges = <uint32_t *> sage_malloc(m*sizeof(uint32_t))
+    if output.edges == NULL and output.m != 0:
+        raise ValueError("Problem while allocating memory (edges)")
+    output.neighbors = <uint32_t **> sage_malloc((1+<int>output.n)*sizeof(uint32_t *))
+    if output.neighbors == NULL and output.m != 0:
+        raise ValueError("Problem while allocating memory (neighbors)")
+    output.neighbors[0] = output.edges
+
+    for v in range(1,nscc + 1):
+        degv = sons[v].size()
+        output.neighbors[v] = output.neighbors[v-1] + sons[v-1].size()
+        for i in range(sons[v].size()):
+            output.neighbors[v][i] = sons[v][i]
+
+    bitset_free(neighbors)
+
+def strongly_connected_components_digraph(G):
+    r"""
+    Returns the digraph of the strongly connected components (SCCs).
+
+    This routine is used to test ``_strongly_connected_components_digraph``,
+    but it is not used by the Sage digraph. It outputs a pair ``[g_scc,scc]``,
+    where ``g_scc`` is the SCC digraph of g, ``scc`` is a dictionary associating
+    to each vertex ``v`` the number of the SCC of ``v``, as it appears in
+    ``g_scc``.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
+        sage: strongly_connected_components_digraph(digraphs.Path(3))
+        [Digraph on 3 vertices, {0: 2, 1: 1, 2: 0}]
+
+    TESTS::
+
+        sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
+        sage: import random
+        sage: for i in range(100):
+        ....:     n = random.randint(2,20)
+        ....:     m = random.randint(1, n*(n-1))
+        ....:     g = digraphs.RandomDirectedGNM(n,m)
+        ....:     scc_digraph,sccs = strongly_connected_components_digraph(g)
+        ....:     assert(scc_digraph.is_directed_acyclic())
+        ....:     for e in g.edges():
+        ....:         assert(sccs[e[0]]==sccs[e[1]] or scc_digraph.has_edge(sccs[e[0]],sccs[e[1]]))
+        ....:         assert(sccs[e[0]] >= sccs[e[1]])
+    """
+    from sage.graphs.digraph import DiGraph
+    if not isinstance(G, DiGraph):
+        raise ValueError("G must be a DiGraph.")
+
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef short_digraph g, scc_g
+    init_short_digraph(g, G)
+    cdef int * scc = <int*> mem.malloc(g.n * sizeof(int))
+    cdef int i, j, nscc
+    cdef list edges = []
+
+    sig_on()
+    nscc = _tarjan_strongly_connected_components(g, scc)
+    _strongly_connected_components_digraph(g, nscc, scc, scc_g)
+
+    output = DiGraph(nscc)
+
+    for i in range(scc_g.n):
+        for j in range(scc_g.neighbors[i+1]-scc_g.neighbors[i]):
+            edges.append((i, scc_g.neighbors[i][j]))
+    output.add_edges(edges)
+    sig_off()
+    return [output, {v:scc[i] for i,v in enumerate(G.vertices())}]
+
 
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):
 

@@ -3084,10 +3084,10 @@ class DiGraph(GenericGraph):
             [[0, 1, 2, 3], [4, 5, 6]]
             sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
             sage: D.strongly_connected_components()
-            [[0], [1], [2], [3], [4], [5], [6]]
+            [[3], [2], [1], [0], [6], [5], [4]]
             sage: D.add_edge([2,0])
             sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [4], [5], [6]]
+            [[3], [0, 1, 2], [6], [5], [4]]
 
         TESTS:
 
@@ -3110,19 +3110,16 @@ class DiGraph(GenericGraph):
             ...            print "Oooooch !"                               # long
 
         """
+        from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+        import numpy as np
+        nscc, scc = tarjan_strongly_connected_components(self)
+        filler = np.frompyfunc(lambda x: list(), 1, 1)
+        output = np.empty((nscc), dtype=np.object)
+        filler(output, output)
 
-        try:
-            vertices = set(self.vertices())
-            scc = []
-            while vertices:
-                tmp = self.strongly_connected_component_containing_vertex(next(vertices.__iter__()))
-                vertices.difference_update(set(tmp))
-                scc.append(tmp)
-            return scc
-
-        except AttributeError:
-            import networkx
-            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
+        for v in self.vertices():
+            output[scc[v]].append(v)
+        return output.tolist()
 
     def strongly_connected_component_containing_vertex(self, v):
         """
@@ -3209,7 +3206,7 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
+            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
 
         By default, the labels are discarded, and the result has no
         loops nor multiple edges. If ``keep_labels`` is ``True``, then
@@ -3224,10 +3221,12 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, '0-3'), ({0}, {1, 2}, '0-12'),
-             ({1, 2}, {3}, '1-3'), ({1, 2}, {3}, '2-3'),
-             ({1, 2}, {1, 2}, '1-2'), ({1, 2}, {1, 2}, '2-1')]
-
+            [({0}, {1, 2}, '0-12'),
+             ({0}, {3}, '0-3'),
+             ({1, 2}, {1, 2}, '1-2'),
+             ({1, 2}, {1, 2}, '2-1'),
+             ({1, 2}, {3}, '1-3'),
+             ({1, 2}, {3}, '2-3')]
         """
 
         from sage.sets.set import Set

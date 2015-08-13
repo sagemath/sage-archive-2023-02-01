@@ -616,13 +616,13 @@ class FunctionField_polymod(FunctionField):
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2*y - 1/x)
             sage: M.monic_integral_model()
-            (Function field in z_ defined by x^10 - x^18, Function Field morphism:
-              From: Function field in z_ defined by x^10 - x^18
+            (Function field in z_ defined by z_^10 - x^18, Function Field morphism:
+              From: Function field in z_ defined by z_^10 - x^18
               To:   Function field in z defined by y*z^2 - 1/x
               Defn: z_ |--> x^2*z
                     x |--> x, Function Field morphism:
               From: Function field in z defined by y*z^2 - 1/x
-              To:   Function field in z_ defined by x^10 - x^18
+              To:   Function field in z_ defined by z_^10 - x^18
               Defn: z |--> 1/x^2*z_
                     y |--> 1/x^15*z_^8
                     x |--> x)
@@ -645,13 +645,13 @@ class FunctionField_polymod(FunctionField):
         Unless ``names`` does not match with the current names::
 
             sage: L.monic_integral_model(names=('yy','xx'))
-            (Function field in yy defined by y^2 - xx, Function Field morphism:
-              From: Function field in yy defined by y^2 - xx
+            (Function field in yy defined by yy^2 - xx, Function Field morphism:
+              From: Function field in yy defined by yy^2 - xx
               To:   Function field in y defined by y^2 - x
               Defn: yy |--> y
                     xx |--> x, Function Field morphism:
               From: Function field in y defined by y^2 - x
-              To:   Function field in yy defined by y^2 - xx
+              To:   Function field in yy defined by yy^2 - xx
               Defn: y |--> yy
                     x |--> xx)
 
@@ -1274,14 +1274,14 @@ class FunctionField_polymod(FunctionField):
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2-y)
             sage: M._simple_model()
-            (Function field in v defined by x^4 - x,
+            (Function field in v defined by v^4 - x,
              Function Field morphism:
-              From: Function field in v defined by x^4 - x
+              From: Function field in v defined by v^4 - x
               To:   Function field in z defined by z^2 - y
               Defn: v |--> z,
              Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in v defined by x^4 - x
+              To:   Function field in v defined by v^4 - x
               Defn: z |--> v
                     y |--> v^2)
 
@@ -1293,14 +1293,14 @@ class FunctionField_polymod(FunctionField):
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^2-y)
             sage: M._simple_model()
-            (Function field in v defined by x^4 + x,
+            (Function field in v defined by v^4 + x,
              Function Field morphism:
-              From: Function field in v defined by x^4 + x
+              From: Function field in v defined by v^4 + x
               To:   Function field in z defined by z^2 + y
               Defn: v |--> z,
              Function Field morphism:
               From: Function field in z defined by z^2 + y
-              To:   Function field in v defined by x^4 + x
+              To:   Function field in v defined by v^4 + x
               Defn: z |--> v
                     y |--> v^2)
 
@@ -1313,14 +1313,14 @@ class FunctionField_polymod(FunctionField):
             sage: R.<z> = L[]
             sage: M.<z> = L.extension(z^3-1)
             sage: M._simple_model()
-            (Function field in v defined by x^6 + x*x^4 + x^2*x^2 + x^3 + 1,
+            (Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1,
              Function Field morphism:
-               From: Function field in v defined by x^6 + x*x^4 + x^2*x^2 + x^3 + 1
+               From: Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1
                To:   Function field in z defined by z^3 + 1
                Defn: v |--> z + y,
              Function Field morphism:
                From: Function field in z defined by z^3 + 1
-               To:   Function field in v defined by x^6 + x*x^4 + x^2*x^2 + x^3 + 1
+               To:   Function field in v defined by v^6 + x*v^4 + x^2*v^2 + x^3 + 1
                Defn: z |--> v^4 + x^2
                      y |--> v^4 + v + x^2)
 
@@ -1406,27 +1406,27 @@ class FunctionField_polymod(FunctionField):
         The fields N and M as simple extensions of K::
 
             sage: N.simple_model()
-            (Function field in v defined by x^8 - x,
+            (Function field in v defined by v^8 - x,
              Function Field morphism:
-              From: Function field in v defined by x^8 - x
+              From: Function field in v defined by v^8 - x
               To:   Function field in v defined by v^2 - u
               Defn: v |--> v,
              Function Field morphism:
               From: Function field in v defined by v^2 - u
-              To:   Function field in v defined by x^8 - x
+              To:   Function field in v defined by v^8 - x
               Defn: v |--> v
                     u |--> v^2
                     z |--> v^4
                     x |--> x)
             sage: M.simple_model()
-            (Function field in u defined by x^4 - x,
+            (Function field in u defined by u^4 - x,
              Function Field morphism:
-              From: Function field in u defined by x^4 - x
+              From: Function field in u defined by u^4 - x
               To:   Function field in u defined by u^2 - z
               Defn: u |--> u,
              Function Field morphism:
               From: Function field in u defined by u^2 - z
-              To:   Function field in u defined by x^4 - x
+              To:   Function field in u defined by u^4 - x
               Defn: u |--> u
                     z |--> u^2
                     x |--> x)
@@ -1435,12 +1435,12 @@ class FunctionField_polymod(FunctionField):
         generator of the simple extension::
 
             sage: M.simple_model(name='t')
-            (Function field in t defined by x^4 - x, Function Field morphism:
-              From: Function field in t defined by x^4 - x
+            (Function field in t defined by t^4 - x, Function Field morphism:
+              From: Function field in t defined by t^4 - x
               To:   Function field in u defined by u^2 - z
               Defn: t |--> u, Function Field morphism:
               From: Function field in u defined by u^2 - z
-              To:   Function field in t defined by x^4 - x
+              To:   Function field in t defined by t^4 - x
               Defn: u |--> t
                     z |--> t^2
                     x |--> x)
@@ -1451,14 +1451,14 @@ class FunctionField_polymod(FunctionField):
             sage: L.<y> = K.extension(y^5-x); R.<z> = L[]
             sage: M.<z> = L.extension(z^3-x)
             sage: M.simple_model()
-            (Function field in z defined by x^15 + x*x^12 + x^2*x^9 + 2*x^3*x^6 + 2*x^4*x^3 + 2*x^5 + 2*x^3,
+            (Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3,
              Function Field morphism:
-               From: Function field in z defined by x^15 + x*x^12 + x^2*x^9 + 2*x^3*x^6 + 2*x^4*x^3 + 2*x^5 + 2*x^3
+               From: Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3
                To:   Function field in z defined by z^3 + 2*x
                Defn: z |--> z + y,
              Function Field morphism:
                From: Function field in z defined by z^3 + 2*x
-               To:   Function field in z defined by x^15 + x*x^12 + x^2*x^9 + 2*x^3*x^6 + 2*x^4*x^3 + 2*x^5 + 2*x^3
+               To:   Function field in z defined by z^15 + x*z^12 + x^2*z^9 + 2*x^3*z^6 + 2*x^4*z^3 + 2*x^5 + 2*x^3
                Defn: z |--> 2/x*z^6 + 2*z^3 + z + 2*x
                      y |--> 1/x*z^6 + z^3 + x
                      x |--> x)
@@ -1469,12 +1469,12 @@ class FunctionField_polymod(FunctionField):
             sage: L.<y> = K.extension(y^2-x); R.<z> = L[]
             sage: M.<z> = L.extension(z^2-y)
             sage: M.simple_model()
-            (Function field in z defined by x^4 + x, Function Field morphism:
-               From: Function field in z defined by x^4 + x
+            (Function field in z defined by z^4 + x, Function Field morphism:
+               From: Function field in z defined by z^4 + x
                To:   Function field in z defined by z^2 + y
                Defn: z |--> z, Function Field morphism:
                From: Function field in z defined by z^2 + y
-               To:   Function field in z defined by x^4 + x
+               To:   Function field in z defined by z^4 + x
                Defn: z |--> z
                      y |--> z^2
                      x |--> x)
@@ -1575,42 +1575,42 @@ class FunctionField_polymod(FunctionField):
             sage: M.<z> = L.extension(z^2 - y)
 
             sage: M.change_variable_name('zz')
-            (Function field in zz defined by z^2 - y,
+            (Function field in zz defined by zz^2 - y,
              Function Field morphism:
-              From: Function field in zz defined by z^2 - y
+              From: Function field in zz defined by zz^2 - y
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     y |--> y
                     x |--> x,
              Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - y
+              To:   Function field in zz defined by zz^2 - y
               Defn: z |--> zz
                     y |--> y
                     x |--> x)
             sage: M.change_variable_name(('zz','yy'))
-            (Function field in zz defined by z^2 - yy, Function Field morphism:
-              From: Function field in zz defined by z^2 - yy
+            (Function field in zz defined by zz^2 - yy, Function Field morphism:
+              From: Function field in zz defined by zz^2 - yy
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     yy |--> y
                     x |--> x, Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - yy
+              To:   Function field in zz defined by zz^2 - yy
               Defn: z |--> zz
                     y |--> yy
                     x |--> x)
             sage: M.change_variable_name(('zz','yy','xx'))
-            (Function field in zz defined by z^2 - yy,
+            (Function field in zz defined by zz^2 - yy,
              Function Field morphism:
-              From: Function field in zz defined by z^2 - yy
+              From: Function field in zz defined by zz^2 - yy
               To:   Function field in z defined by z^2 - y
               Defn: zz |--> z
                     yy |--> y
                     xx |--> x,
              Function Field morphism:
               From: Function field in z defined by z^2 - y
-              To:   Function field in zz defined by z^2 - yy
+              To:   Function field in zz defined by zz^2 - yy
               Defn: z |--> zz
                     y |--> yy
                     x |--> xx)

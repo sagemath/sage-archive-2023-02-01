@@ -17,8 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
 from sage.categories.sets_cat import Sets
@@ -107,7 +106,7 @@ cdef class Point(SageObject):
             sage: hash(p[0]) # random
             35822008390213632
         """
-        return id(self._point_configuration) ^ self._index
+        return hash(self._point_configuration) ^ (<long>self._index)
 
     cpdef point_configuration(self):
         r"""
@@ -466,7 +465,6 @@ cdef class PointConfiguration_base(Parent):
         self._pts = tuple([ Point(self, i, proj.column(i), aff.column(i), red.column(i))
                            for i in range(0,n) ])
 
-
     def __hash__(self):
         r"""
         Hash function.
@@ -477,7 +475,7 @@ cdef class PointConfiguration_base(Parent):
             sage: hash(p) # random
             8746748042501
         """
-        return id(self)
+        return hash_by_id(<void *> self)
 
     cpdef reduced_affine_vector_space(self):
         """

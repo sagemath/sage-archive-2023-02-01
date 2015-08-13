@@ -11,6 +11,7 @@ Hecke algebra representations
 import functools
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.misc.fast_method import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
@@ -18,7 +19,7 @@ from sage.combinat.subset import Subsets
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
-class HeckeAlgebraRepresentation(SageObject):
+class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
     r"""
     A representation of an (affine) Hecke algebra given by the action of the `T` generators
 
@@ -64,6 +65,16 @@ class HeckeAlgebraRepresentation(SageObject):
         sage: H.Y()
         Lazy family (...)_{i in Coroot lattice of the Root system of type ['A', 3, 1]}
 
+    TESTS::
+
+        sage: from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
+        sage: W = SymmetricGroup(3)
+        sage: domain = W.algebra(QQ)
+        sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
+        sage: r = HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
+        sage: hash(r) # random
+        3
+
     REFERENCES:
 
     .. [HST2008] F. Hivert, A. Schilling, N. Thiery,
@@ -88,20 +99,6 @@ class HeckeAlgebraRepresentation(SageObject):
         self._q = q
         self._cartan_type = cartan_type
         self._side = side
-
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.root_system.hecke_algebra_representation import HeckeAlgebraRepresentation
-            sage: W = SymmetricGroup(3)
-            sage: domain = W.algebra(QQ)
-            sage: action = lambda x,i: domain.monomial(x.apply_simple_reflection(i, side="right"))
-            sage: r = HeckeAlgebraRepresentation(domain, action, CartanType(["A",2]), 1, -1)
-            sage: hash(r) # random
-            3
-        """
-        return id(self)
 
     def _repr_(self):
         r"""

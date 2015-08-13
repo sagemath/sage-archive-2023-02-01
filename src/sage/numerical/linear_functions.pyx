@@ -78,9 +78,7 @@ See :trac:`12091` ::
 include "sage/ext/interrupt.pxi"
 from cpython.object cimport *
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
@@ -941,7 +939,7 @@ cdef class LinearFunction(ModuleElement):
             sage: d[f] = 3
         """
         # see _cmp_() if you want to change the hash function
-        return id(self) % LONG_MAX
+        return hash_by_id(<void *> self)
 
     def __cmp__(left, right):
         """

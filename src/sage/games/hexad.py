@@ -85,6 +85,7 @@ GF = FiniteField
 from sage.calculus.calculus import SR
 #SR = SymbolicRing()
 
+
 def view_list(L):
     """
     This provides a printout of the lines, crosses and squares of the MINIMOG,
@@ -109,7 +110,6 @@ def view_list(L):
         [0 0 0]
         [1 1 0]
         [1 1 0]
-
     """
     MS = MatrixSpace(QQ,3,3)
     box = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
@@ -119,7 +119,8 @@ def view_list(L):
             A[x] = 1
     return A
 
-def picture_set(A,L):
+
+def picture_set(A, L):
     """
     This is needed in the find_hexad function below.
 
@@ -131,9 +132,9 @@ def picture_set(A,L):
         {5, 7, 8, 9, 10}
         sage: picture_set(M.picture02, M.square[7])
         {2, 3, 5, 8}
-
     """
     return set([A[x] for x in L])
+
 
 class Minimog():
     """
@@ -227,12 +228,13 @@ class Minimog():
         self.tet7 = MS34_GF3([[0,1,0,0],[0,0,0,1],[1,0,1,0]])
         self.tet8 = MS34_GF3([[0,0,1,0],[0,1,0,0],[1,0,0,1]])
         self.tet9 = MS34_GF3([[0,0,0,1],[0,0,1,0],[1,1,0,0]])
-        self.col = [ self.col1, self.col2, self.col3, self.col4]
-        self.tet = [ self.tet1, self.tet2, self.tet3, self.tet4, self.tet5, self.tet6, self.tet7, self.tet8, self.tet9]
+        self.col = [self.col1, self.col2, self.col3, self.col4]
+        self.tet = [self.tet1, self.tet2, self.tet3, self.tet4,
+                    self.tet5, self.tet6, self.tet7, self.tet8, self.tet9]
         # return picture00,picture02,picture21,line,cross,square,col,tet
 
     def __repr__(self):
-        return "Minimog of type %s"%self.type
+        return "Minimog of type %s" % self.type
 
     def __str__(self):
         """
@@ -247,7 +249,8 @@ class Minimog():
             [        4         1         6         7]
 
         """
-        return "Minimog of type %s associated to\n %s"%(self.type,self.minimog)
+        return "Minimog of type %s associated to\n %s" % (self.type,
+                                                          self.minimog)
 
     def _latex_(self):
         """
@@ -265,7 +268,8 @@ class Minimog():
             \end{array}\right)$
         """
         from sage.misc.latex import latex
-        return "Minimog of type %s associated to\n $%s$"%(self.type, latex(self.minimog))
+        return "Minimog of type %s associated to\n $%s$" % (self.type,
+                                                            latex(self.minimog))
 
     def print_kitten(self):
         """
@@ -310,7 +314,7 @@ class Minimog():
         Kitten8 = [' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ']
         Kitten9 = [str(MINIMOG[0][0]),' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',str(MINIMOG[2][1])]
         Kitten = [Kitten1, Kitten2, Kitten3, Kitten4, Kitten5, Kitten6, Kitten7, Kitten8, Kitten9]
-        kitten = "".join(Kitten1)+"\n"+"".join(Kitten2)+"\n"+"".join(Kitten3)+"\n"+"".join(Kitten4)+"\n"+"".join(Kitten5)+"\n"+"".join(Kitten6)+"\n"+"".join(Kitten7)+"\n"+"".join(Kitten8)+"\n"+"".join(Kitten9)
+        kitten = "\n".join("".join(u) for u in Kitten)
         print kitten
 
     def find_hexad0(self, pts):
@@ -340,19 +344,19 @@ class Minimog():
         L = set(pts)
         H = set([MINIMOG[0][2], MINIMOG[2][1], MINIMOG[0][0]])
         for i in range(12):
-            if L <= picture_set(self.picture02,self.line[i]):
-                WHAT = ["line "+str(i),"picture "+str(1)]
-                H = H | picture_set(self.picture02,self.line[i])
-                return list(H),WHAT
-            if L <= picture_set(self.picture21,self.line[i]):
-                WHAT = ["line "+str(i),"picture "+str(0)]
-                H = H | picture_set(self.picture21,self.line[i])
-                return list(H),WHAT
-            if L <= picture_set(self.picture00,self.line[i]):
-                WHAT = ["line "+str(i),"picture "+str(6)]
-                H = H | picture_set(self.picture00,self.line[i])
-                return list(H),WHAT
-        return [],[]
+            if L <= picture_set(self.picture02, self.line[i]):
+                WHAT = ["line " + str(i), "picture " + str(1)]
+                H = H | picture_set(self.picture02, self.line[i])
+                return list(H), WHAT
+            if L <= picture_set(self.picture21, self.line[i]):
+                WHAT = ["line " + str(i), "picture " + str(0)]
+                H = H | picture_set(self.picture21, self.line[i])
+                return list(H), WHAT
+            if L <= picture_set(self.picture00, self.line[i]):
+                WHAT = ["line " + str(i), "picture " + str(6)]
+                H = H | picture_set(self.picture00, self.line[i])
+                return list(H), WHAT
+        return [], []
 
     def find_hexad1(self, pts):
         """
@@ -373,26 +377,26 @@ class Minimog():
             sage: M = Minimog(type="shuffle")
             sage: M.find_hexad1(set([2,3,4,5,8]))
             ([2, 3, 4, 5, 8, 11], ['lines (1, 2)', 'picture 1'])
-
         """
         H = set(pts)
         L = set(pts)
-        linez = [(1,2),(1,3),(2,3),(4,5),(4,6),(5,6),(7,8),(7,9),(8,9),(10,11),(10,12),(11,12)]
+        linez = [(1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6),
+                 (7, 8), (7, 9), (8, 9), (10, 11), (10, 12), (11, 12)]
         for x in linez:
-            x1 = int(x[0]-1)
-            x2 = int(x[1]-1)              ## (recall | is union)
-            if L <= (picture_set(self.picture02,self.line[x1]) | picture_set(self.picture02,self.line[x2])):
-                WHAT = ["lines "+str(x),"picture "+str(1)]
-                H = picture_set(self.picture02,self.line[x1]) | picture_set(self.picture02,self.line[x2])
-                return list(H),WHAT
-            if L <= (picture_set(self.picture21,self.line[x1]) | picture_set(self.picture21,self.line[x2])):
-                WHAT = ["lines "+str(x),"picture "+str(0)]
-                H = picture_set(self.picture21,self.line[x1]) | picture_set(self.picture21,self.line[x2])
-                return list(H),WHAT
-            if L <= (picture_set(self.picture00,self.line[x1]) | picture_set(self.picture00,self.line[x2])):
-                WHAT = ["lines "+str(x),"picture "+str(6)]
-                H = picture_set(self.picture00,self.line[x1]) | picture_set(self.picture00,self.line[x2])
-                return list(H),WHAT
+            x1 = int(x[0] - 1)
+            x2 = int(x[1] - 1)      # (recall | is union)
+            if L <= (picture_set(self.picture02, self.line[x1]) | picture_set(self.picture02,self.line[x2])):
+                WHAT = ["lines " + str(x), "picture " + str(1)]
+                H = picture_set(self.picture02, self.line[x1]) | picture_set(self.picture02,self.line[x2])
+                return list(H), WHAT
+            if L <= (picture_set(self.picture21, self.line[x1]) | picture_set(self.picture21,self.line[x2])):
+                WHAT = ["lines " + str(x), "picture " + str(0)]
+                H = picture_set(self.picture21, self.line[x1]) | picture_set(self.picture21,self.line[x2])
+                return list(H), WHAT
+            if L <= (picture_set(self.picture00, self.line[x1]) | picture_set(self.picture00,self.line[x2])):
+                WHAT = ["lines " + str(x), "picture " + str(6)]
+                H = picture_set(self.picture00, self.line[x1]) | picture_set(self.picture00,self.line[x2])
+                return list(H), WHAT
         return [],[]
 
     def find_hexad2(self, pts, x0):
@@ -426,17 +430,17 @@ class Minimog():
         H = set([x0])
         for i in range(18):
             if (x0 == MINIMOG[2][1] and L <= picture_set(self.picture02,self.cross[i])):
-                WHAT = ["cross "+str(i),"picture "+str(1)]
-                H = H | picture_set(self.picture02,self.cross[i])
-                return list(H),WHAT
+                WHAT = ["cross " + str(i), "picture " + str(1)]
+                H = H | picture_set(self.picture02, self.cross[i])
+                return list(H), WHAT
             if (x0 == MINIMOG[0][2] and L <= picture_set(self.picture21,self.cross[i])):
-                WHAT = ["cross "+str(i),"picture "+str(MINIMOG[0][2])]
-                H = H | picture_set(self.picture21,self.cross[i])
-                return list(H),WHAT
+                WHAT = ["cross " + str(i), "picture " + str(MINIMOG[0][2])]
+                H = H | picture_set(self.picture21, self.cross[i])
+                return list(H), WHAT
             if (x0 == MINIMOG[0][0] and L <= picture_set(self.picture00,self.cross[i])):
-                WHAT = ["cross "+str(i),"picture "+str(6)]
-                H = H | picture_set(self.picture00,self.cross[i])
-                return list(H),WHAT
+                WHAT = ["cross " + str(i), "picture " + str(6)]
+                H = H | picture_set(self.picture00, self.cross[i])
+                return list(H), WHAT
         return [],[]
 
     def find_hexad3(self, pts, x0, x1):
@@ -462,21 +466,21 @@ class Minimog():
         """
         MINIMOG = self.minimog
         L = set(pts)
-        H = set([x0,x1])
+        H = set([x0, x1])
         for i in range(18):
-            if (not (MINIMOG[0][2] in H) and L <= picture_set(self.picture21,self.square[i])):
-                WHAT = ["square "+str(i),"picture "+str(MINIMOG[0][2])]
-                H = H | picture_set(self.picture21,self.square[i])
-                return list(H),WHAT
-            if (not (MINIMOG[2][1] in H) and L <= picture_set(self.picture02,self.square[i])):
-                WHAT = ["square "+str(i),"picture "+str(MINIMOG[2][1])]
-                H = H | picture_set(self.picture02,self.square[i])
-                return list(H),WHAT
-            if (not (MINIMOG[0][0] in H) and L <= picture_set(self.picture00,self.square[i])):
-                WHAT = ["square "+str(i),"picture "+str(MINIMOG[0][0])]
-                H = H | picture_set(self.picture00,self.square[i])
-                return list(H),WHAT
-        return [],[]
+            if (not (MINIMOG[0][2] in H) and L <= picture_set(self.picture21, self.square[i])):
+                WHAT = ["square " + str(i), "picture " + str(MINIMOG[0][2])]
+                H = H | picture_set(self.picture21, self.square[i])
+                return list(H), WHAT
+            if (not (MINIMOG[2][1] in H) and L <= picture_set(self.picture02, self.square[i])):
+                WHAT = ["square " + str(i), "picture " + str(MINIMOG[2][1])]
+                H = H | picture_set(self.picture02, self.square[i])
+                return list(H), WHAT
+            if (not (MINIMOG[0][0] in H) and L <= picture_set(self.picture00, self.square[i])):
+                WHAT = ["square " + str(i), "picture " + str(MINIMOG[0][0])]
+                H = H | picture_set(self.picture00, self.square[i])
+                return list(H), WHAT
+        return [], []
 
     def find_hexad(self, pts):
         r"""
@@ -534,76 +538,76 @@ class Minimog():
         MINIMOG = self.minimog
         L = set(pts)
         LL = L.copy()
-        ## recall & means intersection
+        # recall & means intersection
         L2 = LL & set([MINIMOG[0][2],MINIMOG[2][1],MINIMOG[0][0]])
-        if len(L2) == 3: ## must be type 0 (line + pts at infty)
-            H,WHAT = self.find_hexad0(LL - set([MINIMOG[0][2],MINIMOG[2][1],MINIMOG[0][0]]))
-            return H,WHAT
-        if len(L2) == 2: ## type 0 or 3
+        if len(L2) == 3:  # must be type 0 (line + pts at infty)
+            H, WHAT = self.find_hexad0(LL - set([MINIMOG[0][2],MINIMOG[2][1],MINIMOG[0][0]]))
+            return H, WHAT
+        if len(L2) == 2:  # type 0 or 3
             if (MINIMOG[0][2] in LL and MINIMOG[2][1] in LL):
-                H,WHAT = self.find_hexad3(LL - set([MINIMOG[0][2],MINIMOG[2][1]]),MINIMOG[0][2],MINIMOG[2][1])
+                H, WHAT = self.find_hexad3(LL - set([MINIMOG[0][2],MINIMOG[2][1]]),MINIMOG[0][2],MINIMOG[2][1])
                 if H != []:   # must be type 3
-                    return list(H),WHAT
-                if H == []:   ## could be type 0
-                    H,WHAT = self.find_hexad0(LL - L2)
+                    return list(H), WHAT
+                if H == []:   # could be type 0
+                    H, WHAT = self.find_hexad0(LL - L2)
                     if H != []:   # must be type 0
-                        return list(H),WHAT
+                        return list(H), WHAT
             if (MINIMOG[2][1] in LL and MINIMOG[0][0] in LL):
-                H,WHAT = self.find_hexad3(LL - set([MINIMOG[2][1],MINIMOG[0][0]]),MINIMOG[2][1],MINIMOG[0][0])
+                H, WHAT = self.find_hexad3(LL - set([MINIMOG[2][1],MINIMOG[0][0]]),MINIMOG[2][1],MINIMOG[0][0])
                 if H != []:   # must be type 3
-                    return list(H),WHAT
-                if H == []:  ## could be type 0
-                    H,WHAT = self.find_hexad0(LL - L2)
+                    return list(H), WHAT
+                if H == []:   # could be type 0
+                    H, WHAT = self.find_hexad0(LL - L2)
                     if H != []:   # must be type 0
-                        return list(H),WHAT
+                        return list(H), WHAT
             if (MINIMOG[0][2] in LL and MINIMOG[0][0] in LL):
-                H,WHAT = self.find_hexad3(LL - set([MINIMOG[0][2],MINIMOG[0][0]]),MINIMOG[0][2],MINIMOG[0][0])
+                H, WHAT = self.find_hexad3(LL - set([MINIMOG[0][2],MINIMOG[0][0]]),MINIMOG[0][2],MINIMOG[0][0])
                 if H != []:   # must be type 3
-                    return list(H),WHAT
-                if H == []:  ## could be type 0
-                    H,WHAT = self.find_hexad0(LL - L2)
+                    return list(H), WHAT
+                if H == []:   # could be type 0
+                    H, WHAT = self.find_hexad0(LL - L2)
                     if H != []:   # must be type 0
-                        return list(H),WHAT
+                        return list(H), WHAT
         if len(L2) == 1:
-            H,WHAT = self.find_hexad2(LL - L2,list(L2)[0])
-            if H == []:  ## not a cross in picture at infinity
+            H, WHAT = self.find_hexad2(LL - L2,list(L2)[0])
+            if H == []:   # not a cross in picture at infinity
                 if list(L2)[0] == MINIMOG[2][1]:
-                          L1 = LL - L2
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H != []:
-                              return list(H),WHAT
-                          L1 = LL - L2
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[0][2],MINIMOG[2][1])
-                          if H != []:
-                              return list(H),WHAT
+                    L1 = LL - L2
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[0][0], MINIMOG[2][1])
+                    if H != []:
+                        return list(H), WHAT
+                    L1 = LL - L2
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[0][2], MINIMOG[2][1])
+                    if H != []:
+                        return list(H), WHAT
                 if list(L2)[0] == MINIMOG[0][0]:
-                          L1 = (LL - L2)
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[2][1])
-                          if H != []:
-                              return list(H),WHAT
-                          L1 = (LL - L2)
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H != []:
-                              return list(H),WHAT
+                    L1 = (LL - L2)
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[0][0], MINIMOG[2][1])
+                    if H != []:
+                        return list(H), WHAT
+                    L1 = (LL - L2)
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[0][0], MINIMOG[0][2])
+                    if H != []:
+                        return list(H), WHAT
                 if list(L2)[0] == MINIMOG[0][2]:
-                          L1 = (LL - L2)
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[0][0],MINIMOG[0][2])
-                          if H != []:
-                              return list(H),WHAT
-                          L1 = (LL - L2)
-                          H,WHAT = self.find_hexad3(L1,MINIMOG[2][1],MINIMOG[0][2])
-                          if H != []:
-                              return list(H),WHAT
-            return list(H),WHAT
-            ## a cross in a pic at infty
-        if len(L2) == 0: ## L is either a union of 2 lines or a cross
+                    L1 = (LL - L2)
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[0][0], MINIMOG[0][2])
+                    if H != []:
+                        return list(H), WHAT
+                    L1 = (LL - L2)
+                    H, WHAT = self.find_hexad3(L1, MINIMOG[2][1], MINIMOG[0][2])
+                    if H != []:
+                        return list(H), WHAT
+            return list(H), WHAT
+            # a cross in a pic at infty
+        if len(L2) == 0:  # L is either a union of 2 lines or a cross
             for i in LL:
                 for j in [MINIMOG[0][2],MINIMOG[2][1],MINIMOG[0][0]]:
-                    H,WHAT = self.find_hexad2(LL - set([i]),j)
+                    H, WHAT = self.find_hexad2(LL - set([i]),j)
                     if (H != [] and i in H):
-                        return list(H),WHAT  ## L is in a cross
-            H,WHAT = self.find_hexad1(LL)  ## L is a union of lines
-            return H,WHAT
+                        return list(H), WHAT  # L is in a cross
+            H, WHAT = self.find_hexad1(LL)  # L is a union of lines
+            return H, WHAT
 
     def blackjack_move(self, L0):
         """L is a list of cards of length 6, taken from {0,1,...,11}.
@@ -677,19 +681,19 @@ class Minimog():
         of Combinatorics, 8 (2001)
         http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
         """
-        MINIMOG = self.minimog
+        # MINIMOG = self.minimog
         total = sum(L0)
-        if total <22:
+        if total < 22:
             return "No move possible. Shuffle the deck and redeal."
         L = set(L0)
         for x in L:
-            h,WHAT = self.find_hexad(L - set([x]))
+            h, WHAT = self.find_hexad(L - set([x]))
             if list(L0) == list(h):
                 print "      This is a hexad. \n      There is no winning move, so make a random legal move."
                 return L0
             y = list(set(h) - (L - set([x])))[0]
             #print x,y,h
             if y < x:
-                return str(x) +' --> '+str(y)+". The total went from "+ str(total) +" to "+str(total-x+y)+"."
+                return str(x) + ' --> ' + str(y) + ". The total went from " + str(total) + " to " + str(total - x + y) + "."
         print "This is a hexad. \n There is no winning move, so make a random legal move."
         return L0

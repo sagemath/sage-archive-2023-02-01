@@ -839,6 +839,36 @@ class GenericGrowthGroup(
                 return True
 
 
+    def gens_monomial(self):
+        r"""
+        Return a generator of this growth group, in case one exists.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of this growth group or ``None``.
+
+        .. NOTE::
+
+            This method is only implemented for concrete growth
+            group implementations.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GenericGrowthGroup(ZZ).gens_monomial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for concrete growth group
+            implementations.
+        """
+        raise NotImplementedError("Only implemented for concrete growth group"
+                                  " implementations.")
+
+
 class MonomialGrowthElement(GenericGrowthElement):
     r"""
     An implementation of monomial growth elements.
@@ -1374,9 +1404,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 return True
 
 
-    def gen(self):
+    def gens_monomial(self):
         r"""
-        Return the monomial growth element with exponent `1`.
+        Return a generator of this growth group, in case one exists.
 
         INPUT:
 
@@ -1384,24 +1414,34 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A :class:`MonomialGrowthElement`.
+        An element of this growth group or ``None``.
 
-        EXAMPLES::
+        .. NOTE::
+
+            If a :class:`MonomialGrowthGroup` models a logarithmic
+            growth group (by having a variable name of the form
+            ``log(...)``), ``None`` is returned.
+
+        TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').gen(); e1
+            sage: agg.MonomialGrowthGroup(ZZ, 'x').gens_monomial()
             x
-            sage: e1.exponent == 1
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial() is None
             True
         """
+        if self._var_.startswith('log(') and self._var_.endswith(')'):
+            return None
         return self(raw_element=self.base().one())
+
+    # for simple growth groups, gen is an alias of gens_monomial:
+    gen = gens_monomial
 
 
     def gens(self):
         r"""
         Return a tuple of all generators of this monomial growth
-        group, which is exactly consisting of one element, namely the
-        monomial growth element with exponent `1`.
+        group.
 
         INPUT:
 
@@ -1417,14 +1457,19 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P.gens()
             (x,)
+            sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').gens()
+            ()
         """
-        return (self.gen(),)
+        gen = self.gen()
+        if gen:
+            return (gen,)
+        else:
+            return ()
 
 
     def ngens(self):
         r"""
-        Return the number of generators of this monomial growth group,
-        which is exactly `1`.
+        Return the number of generators of this monomial growth group.
 
         INPUT:
 
@@ -1440,5 +1485,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P.ngens()
             1
+            sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').ngens()
+            0
         """
-        return 1
+        return len(self.gens())

@@ -774,21 +774,18 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.markov_trace().factor()
             A^4 * (A^4 + 1)^-3
         """
-        def qint(i, variab='A', ring=IntegerRing()):
-            R = LaurentPolynomialRing(ring, variab)
-            A = R.gens()[0]
-            return (A**(2*i) - A**(-2*i))/(A**2 - A**(-2))
-
-        def weighted_trace(b, d, variab='A', ring=IntegerRing()):
-            return qint(d+1, variab, ring)*b.TL_matrix(d, variab, ring).trace()
-
         R = LaurentPolynomialRing(ring, variab)
         A = R.gens()[0]
         delta = -A**2 - A**(-2)
         n = self.strands()
         drains = [d for d in range(n+1) if (n+d) % 2 == 0]
-        traces = [weighted_trace(self, d, variab, ring) for d in drains]
-        return sum(traces)/((-delta)**n)
+
+        def weighted_trace(d):
+            quantum_integer = (A**(2*(d+1)) - A**(-2*(d+1)))/(A**2 - A**(-2))
+            return quantum_integer * self.TL_matrix(d, variab, ring).trace()
+
+        traces = [weighted_trace(d) for d in drains]
+        return sum(traces) / (-delta)**n
 
     def jones_polynomial(self, skein_variable=False):
         """
@@ -877,12 +874,12 @@ class Braid(FinitelyPresentedGroupElement):
         ring = IntegerRing()
         R = LaurentPolynomialRing(ring, variab)
         A = R.gens()[0]
-        delta = -A**2 - A**(-2)
+        D = -A**2 - A**(-2)
         n = self.strands()
         exp_sum = self.exponent_sum()
         num_comp = self.components_in_closure()
         trace = self.markov_trace(variab, ring)
-        jones_pol = (-1)**(num_comp-1) * (-delta)**(n-1) * A**(2*exp_sum) * trace
+        jones_pol = (-1)**(num_comp-1) * (-D)**(n-1) * A**(2*exp_sum) * trace
         if skein_variable:
             output_var = SR('A')
             return jones_pol.subs(A=output_var).expand()

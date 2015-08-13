@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Braid groups
 
@@ -46,6 +47,7 @@ AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Volker Braun
+- Søren Fuglede Jørgensen
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.

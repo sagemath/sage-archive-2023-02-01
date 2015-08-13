@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+import six
 import sage.rings.all as rings
 
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
@@ -361,12 +361,12 @@ class EllipticCurveFactory(UniqueFactory):
         A consequence of this is that passing keyword arguments only
         works when constructing an elliptic curve the first time:
 
-            sage: E = EllipticCurve('5077a1', gens=[[1, -1], [-2, 3], [4, -7]])
+            sage: E = EllipticCurve('433a1', gens=[[-1, 1], [3, 4]])
             sage: E.gens()
-            [(-2 : 3 : 1), (1 : -1 : 1), (4 : -7 : 1)]
-            sage: E = EllipticCurve('5077a1', gens=[[-2, 3], [-1, 3], [0, 2]])
+            [(-1 : 1 : 1), (3 : 4 : 1)]
+            sage: E = EllipticCurve('433a1', gens=[[-1, 0], [0, 1]])
             sage: E.gens()
-            [(-2 : 3 : 1), (1 : -1 : 1), (4 : -7 : 1)]
+            [(-1 : 1 : 1), (3 : 4 : 1)]
 
         .. WARNING::
 
@@ -403,7 +403,7 @@ class EllipticCurveFactory(UniqueFactory):
             else:
                 x = coefficients_from_cubic(x, y, morphism=False)
 
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             # Interpret x as a Cremona or LMFDB label.
             from sage.databases.cremona import CremonaDatabase
             x, data = CremonaDatabase().coefficients_and_data(x)
@@ -711,8 +711,7 @@ def coefficients_from_j(j, minimal_twist=True):
         tw = [-1,2,-2,3,-3,6,-6]
         E1 = EllipticCurve([0,0,0,a4,a6])
         Elist = [E1] + [E1.quadratic_twist(t) for t in tw]
-        crv_cmp = lambda E,F: cmp(E.conductor(),F.conductor())
-        Elist.sort(cmp=crv_cmp)
+        Elist.sort(key=lambda E: E.conductor())
         return Sequence(Elist[0].ainvs())
 
     # defaults for all other fields:
@@ -966,7 +965,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
 
     # Construct the morphism
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    P2 = ProjectiveSpace(2, K, names=map(str, R.gens()))
+    P2 = ProjectiveSpace(2, K, names=[str(_) for _ in R.gens()])
     cubic = P2.subscheme(F)
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse

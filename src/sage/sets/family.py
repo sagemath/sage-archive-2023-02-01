@@ -160,7 +160,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f[-5]
         -10
         sage: i = iter(f)
-        sage: i.next(), i.next(), i.next(), i.next(), i.next()
+        sage: next(i), next(i), next(i), next(i), next(i)
         (0, 2, -2, 4, -4)
 
     Note that the ``lazy`` keyword parameter is only needed to force
@@ -696,7 +696,7 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: i = iter(f)
-            sage: i.next()
+            sage: next(i)
             'a'
         """
         return iter(self.values())
@@ -725,7 +725,7 @@ class FiniteFamily(AbstractFamily):
             sage: from sage.sets.family import FiniteFamily
             sage: f = FiniteFamily({3: 'a'})
             sage: f.__getstate__()
-            {'keys': None, 'dictionary': {3: 'a'}}
+            {'dictionary': {3: 'a'}, 'keys': None}
         """
         return {'dictionary': self._dictionary, 'keys': self._keys}
 

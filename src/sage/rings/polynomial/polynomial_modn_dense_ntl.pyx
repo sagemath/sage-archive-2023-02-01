@@ -43,18 +43,17 @@ import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
 from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport have_same_parent_c
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport *, ZZ_p_c
-from sage.libs.ntl.ntl_lzz_p_decl cimport *, zz_p_c
-from sage.libs.ntl.ntl_lzz_pX_decl cimport *, zz_pX_c, zz_pX_Modulus_c
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
+from sage.libs.ntl.ntl_ZZ_p_decl cimport *
+from sage.libs.ntl.ntl_lzz_p_decl cimport *
+from sage.libs.ntl.ntl_lzz_pX_decl cimport *
+from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
 
 def make_element(parent, args):
     return parent(*args)
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 zz_p_max = NTL_SP_BOUND
 
@@ -584,7 +583,16 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     return [root for root in roots if N.gcd(ZZ(self(root))) >= Nbeta]
 
 cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
+    r"""
+    Polynomial on `\ZZ/n\ZZ` implemented via NTL.
 
+    .. automethod:: _add_
+    .. automethod:: _sub_
+    .. automethod:: _lmul_
+    .. automethod:: _rmul_
+    .. automethod:: _mul_
+    .. automethod:: _mul_trunc_
+    """
     def __init__(self, parent, v=None, check=True, is_gen=False, construct=False):
         r"""
         EXAMPLES::
@@ -624,7 +632,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         self.c = ntl.c
 
     cdef Polynomial_dense_modn_ntl_zz _new(self):
-        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>PY_NEW(Polynomial_dense_modn_ntl_zz)
+        cdef Polynomial_dense_modn_ntl_zz y = <Polynomial_dense_modn_ntl_zz>Polynomial_dense_modn_ntl_zz.__new__(Polynomial_dense_modn_ntl_zz)
         y.c = self.c
         y._parent = self._parent
         return y
@@ -740,10 +748,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef Polynomial_dense_modn_ntl_zz _mul_trunc(self, Polynomial_dense_modn_ntl_zz right, long n):
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         r"""
         Return the product of ``self`` and ``right`` truncated to the
-        given length `n`, only return terms of degree less than `n`.
+        given length `n`
 
         EXAMPLES::
 
@@ -752,28 +760,29 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g = x^2 - 8*x + 16
             sage: f*g
             x^3 + 90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 42)
+            sage: f._mul_trunc_(g, 42)
             x^3 + 90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 3)
+            sage: f._mul_trunc_(g, 3)
             90*x^2 + 32*x + 68
-            sage: f._mul_trunc(g, 2)
+            sage: f._mul_trunc_(g, 2)
             32*x + 68
-            sage: f._mul_trunc(g, 1)
+            sage: f._mul_trunc_(g, 1)
             68
-            sage: f._mul_trunc(g, 0)
+            sage: f._mul_trunc_(g, 0)
             0
             sage: f = x^2 - 8*x + 16
-            sage: f._mul_trunc(f, 2)
+            sage: f._mul_trunc_(f, 2)
             44*x + 56
         """
+        cdef Polynomial_dense_modn_ntl_zz op2 = <Polynomial_dense_modn_ntl_zz> right
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(right.x) > 10000
+        cdef bint do_sig = zz_pX_deg(self.x) + zz_pX_deg(op2.x) > 10000
         if do_sig: sig_on()
         self.c.restore_c()
-        if self is right:
+        if self is op2:
             zz_pX_SqrTrunc(r.x, self.x, n)
         else:
-            zz_pX_MulTrunc(r.x, self.x, right.x, n)
+            zz_pX_MulTrunc(r.x, self.x, op2.x, n)
         if do_sig: sig_off()
         return r
 
@@ -862,7 +871,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 zz_pX_power(r.x, self.x, e)
                 if do_sig: sig_off()
         else:
-            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_zz):
+            if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
                 modulus = self.parent()._coerce_(modulus)
             zz_pX_Modulus_construct(mod)
             zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
@@ -920,7 +929,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self // right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
@@ -943,7 +952,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: g * x^4 + r
             x^7 + x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self % right
         cdef Polynomial_dense_modn_ntl_zz numer = <Polynomial_dense_modn_ntl_zz>self
@@ -1160,18 +1169,18 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
         cdef ntl_zz_p fx = ntl_zz_p(0, self.c), x = None
-        if PY_TYPE_CHECK(arg, int):
+        if isinstance(arg, int):
             x = ntl_zz_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Integer):
+        elif isinstance(arg, Integer):
             x = ntl_zz_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Element):
+        elif isinstance(arg, Element):
             if <void *>self._parent._base == <void *>(<Element>arg)._parent: # c++ pointer hack
                 x = ntl_zz_p(arg, self.c)
             else:
                 map = self._parent._base.coerce_map_from((<Element>arg)._parent)
                 if map is not None:
                     x = ntl_zz_p(map(arg), self.c)
-        if <PyObject *>x == <PyObject *>None: # c++ pointer compare error
+        if x is None:
             return Polynomial.__call__(self, *args, **kwds)
         else:
             zz_pX_eval(fx.x, self.x, x.x)
@@ -1202,7 +1211,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
-        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>PY_NEW(Polynomial_dense_modn_ntl_ZZ)
+        cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
         y.c = self.c
         y._parent = self._parent
         return y
@@ -1255,7 +1264,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def _unsafe_mutate(self, n, value):
         self.c.restore_c()
         cdef Integer a
-        if PY_TYPE_CHECK(value, Integer):
+        if isinstance(value, Integer):
             a = <Integer>value
         else:
             a = ZZ(value)
@@ -1316,7 +1325,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if do_sig: sig_off()
         return r
 
-    cpdef Polynomial_dense_modn_ntl_ZZ _mul_trunc(self, Polynomial_dense_modn_ntl_ZZ right, long n):
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n):
         """
         Return the product of ``self`` and ``right`` truncated to the
         given length `n`, only return terms of degree less than `n`.
@@ -1328,28 +1337,29 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g = x^2 - 8*x + 16
             sage: f*g
             x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 42)
+            sage: f._mul_trunc_(g, 42)
             x^3 + 999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 3)
+            sage: f._mul_trunc_(g, 3)
             999999999999999999999999999990*x^2 + 32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 2)
+            sage: f._mul_trunc_(g, 2)
             32*x + 999999999999999999999999999968
-            sage: f._mul_trunc(g, 1)
+            sage: f._mul_trunc_(g, 1)
             999999999999999999999999999968
-            sage: f._mul_trunc(g, 0)
+            sage: f._mul_trunc_(g, 0)
             0
             sage: f = x^2 - 8*x + 16
-            sage: f._mul_trunc(f, 2)
+            sage: f._mul_trunc_(f, 2)
             999999999999999999999999999744*x + 256
         """
+        cdef Polynomial_dense_modn_ntl_ZZ op2 = <Polynomial_dense_modn_ntl_ZZ> right
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        cdef bint do_sig = (ZZ_pX_deg(self.x) + ZZ_pX_deg(right.x)) * self.c.p_bits > 1e5
+        cdef bint do_sig = (ZZ_pX_deg(self.x) + ZZ_pX_deg(op2.x)) * self.c.p_bits > 1e5
         if do_sig: sig_on()
         self.c.restore_c()
-        if self is right:
+        if self is op2:
             ZZ_pX_SqrTrunc(r.x, self.x, n)
         else:
-            ZZ_pX_MulTrunc(r.x, self.x, right.x, n)
+            ZZ_pX_MulTrunc(r.x, self.x, op2.x, n)
         if do_sig: sig_off()
         return r
 
@@ -1424,7 +1434,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 ZZ_pX_power(r.x, self.x, e)
                 if do_sig: sig_off()
         else:
-            if not PY_TYPE_CHECK(modulus, Polynomial_dense_modn_ntl_ZZ):
+            if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
                 modulus = self.parent()._coerce_(modulus)
             ZZ_pX_Modulus_construct(mod)
             ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
@@ -1481,7 +1491,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f - q*g
             x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self // right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
@@ -1504,7 +1514,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: g * (x^4 + x) + r
             x^7 + x + 1
         """
-        if PY_TYPE(self) != PY_TYPE(right) or (<Element>self)._parent is not (<Element>right)._parent:
+        if not have_same_parent_c(self, right):
             self, right = canonical_coercion(self, right)
             return self % right
         cdef Polynomial_dense_modn_ntl_ZZ numer = <Polynomial_dense_modn_ntl_ZZ>self
@@ -1726,16 +1736,16 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             return Polynomial.__call__(self, *args, **kwds)
         arg = args[0]
         cdef ntl_ZZ_p fx = ntl_ZZ_p(0, self.c), x = None
-        if PY_TYPE_CHECK(arg, int) or PY_TYPE_CHECK(arg, Integer):
+        if isinstance(arg, int) or isinstance(arg, Integer):
             x = ntl_ZZ_p(arg, self.c)
-        elif PY_TYPE_CHECK(arg, Element):
+        elif isinstance(arg, Element):
             if <void *>self._parent._base == <void *>(<Element>arg)._parent: # c++ pointer hack
                 x = ntl_ZZ_p(arg, self.c)
             else:
                 map = self._parent._base.coerce_map_from((<Element>arg)._parent)
                 if map is not None:
                     x = ntl_ZZ_p(map(arg), self.c)
-        if <PyObject *>x == <PyObject *>None: # c++ pointer compare error
+        if x is None:
             return Polynomial.__call__(self, *args, **kwds)
         else:
             ZZ_pX_eval(fx.x, self.x, x.x)

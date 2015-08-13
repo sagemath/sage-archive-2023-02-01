@@ -2,7 +2,7 @@ r"""
 Hypergeometric Functions
 
 This module implements manipulation of infinite hypergeometric series
-represented in standard parametric form (as $\,_pF_q$ functions).
+represented in standard parametric form (as `\,_pF_q` functions).
 
 AUTHORS:
 
@@ -86,7 +86,9 @@ Computing terms and series::
 Plotting::
 
     sage: plot(hypergeometric([1, 1], [3, 3, 3], x), x, -30, 30)
+    Graphics object consisting of 1 graphics primitive
     sage: complex_plot(hypergeometric([x], [], 2), (-1, 1), (-1, 1))
+    Graphics object consisting of 1 graphics primitive
 
 Numeric evaluation::
 
@@ -146,7 +148,7 @@ from sage.functions.hyperbolic import cosh, sinh
 from sage.functions.other import erf
 from sage.symbolic.constants import pi
 from sage.symbolic.all import I
-from sage.symbolic.function import BuiltinFunction, is_inexact
+from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.ring import SR
 from sage.structure.element import get_coercion_model
 from sage.misc.latex import latex
@@ -154,11 +156,12 @@ from sage.misc.misc_c import prod
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.symbolic.expression import Expression
 from sage.calculus.functional import derivative
+from functools import reduce
 
 
 def rational_param_as_tuple(x):
-    """
-    Utility function for converting rational pFq parameters to
+    r"""
+    Utility function for converting rational `\,_pF_q` parameters to
     tuples (which mpmath handles more efficiently).
 
     EXAMPLES::
@@ -170,7 +173,6 @@ def rational_param_as_tuple(x):
         3
         sage: rational_param_as_tuple(pi)
         pi
-
     """
     try:
         x = x.pyobject()
@@ -189,8 +191,13 @@ def rational_param_as_tuple(x):
 class Hypergeometric(BuiltinFunction):
     r"""
     Represents a (formal) generalized infinite hypergeometric series. It is
-    defined as `\,{}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z) = \sum_{n=0}^\infty
-    \frac{(a_1)_n\dots(a_p)_n}{(b_1)_n\dots(b_q)_n} \, \frac{z^n}{n!},`
+    defined as
+
+    .. MATH::
+
+        \,_pF_q(a_1, \ldots, a_p; b_1, \ldots, b_q; z)
+        = \sum_{n=0}^{\infty} \frac{(a_1)_n \cdots (a_p)_n}{(b_1)_n
+        \cdots(b_q)_n} \, \frac{z^n}{n!},
 
     where `(x)_n` is the rising factorial.
     """
@@ -232,8 +239,9 @@ class Hypergeometric(BuiltinFunction):
             sage: hypergeometric([x], [], x^2)
             hypergeometric((x,), (), x^2)
     
-        The only simplification that is done automatically is returning 1 if ``z``
-        is 0. For other simplifications use the ``simplify_hypergeometric`` method.
+        The only simplification that is done automatically is returning 1
+        if ``z`` is 0. For other simplifications use the
+        ``simplify_hypergeometric`` method.
         """
         return BuiltinFunction.__call__(self,
                                         SR._force_pyobject(a),
@@ -262,16 +270,42 @@ class Hypergeometric(BuiltinFunction):
             1
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
-            raise ValueError('First two parameters must be of type list.')
-        coercion_model = get_coercion_model()
-        co = reduce(lambda x, y: coercion_model.canonical_coercion(x, y)[0],
-                    a + b + (z,))
-        if is_inexact(co) and not isinstance(co, Expression):
-            from sage.structure.coerce import parent
-            return self._evalf_(a, b, z, parent=parent(co))
+            raise TypeError("The first two parameters must be of type list")
         if not isinstance(z, Expression) and z == 0:  # Expression is excluded
             return Integer(1)                         # to avoid call to Maxima
-        return
+
+    def _evalf_try_(self, a, b, z):
+        """
+        Call :meth:`_evalf_` if one of the arguments is numerical and none
+        of the arguments are symbolic.
+
+        OUTPUT:
+
+        - ``None`` if we didn't succeed to call :meth:`_evalf_` or if
+          the input wasn't suitable for it.
+
+        - otherwise, a numerical value for the function.
+
+        EXAMPLES::
+
+            sage: hypergeometric._evalf_try_((1.0,), (2.0,), 3.0)
+            6.36184564106256
+            sage: hypergeometric._evalf_try_((1.0, 1), (), 3.0)
+            -0.0377593153441588 + 0.750349833788561*I
+            sage: hypergeometric._evalf_try_((1, 1), (), 3)    # exact input
+            sage: hypergeometric._evalf_try_((x,), (), 1.0)    # symbolic
+            sage: hypergeometric._evalf_try_(1.0, 2.0, 3.0)    # not tuples
+        """
+        # We need to override this for hypergeometric functions since
+        # the first 2 arguments are tuples and the generic _evalf_try_
+        # cannot handle that.
+        if not isinstance(a,tuple) or not isinstance(b,tuple):
+            return None
+        args = list(a) + list(b) + [z]
+        if any(self._is_numerical(x) for x in args):
+            if not any(isinstance(x, Expression) for x in args):
+                p = get_coercion_model().common_parent(*args)
+                return self._evalf_(a, b, z, parent=p)
 
     def _evalf_(self, a, b, z, parent, algorithm=None):
         """
@@ -284,7 +318,7 @@ class Hypergeometric(BuiltinFunction):
 
         """
         if not isinstance(a,tuple) or not isinstance(b,tuple):
-            raise ValueError('First two parameters must be of type list.')
+            raise TypeError("The first two parameters must be of type list")
         from mpmath import hyper
         aa = [rational_param_as_tuple(c) for c in a]
         bb = [rational_param_as_tuple(c) for c in b]
@@ -318,12 +352,12 @@ class Hypergeometric(BuiltinFunction):
     class EvaluationMethods:
         def _fast_float_(cls, self, *args):
             """
-            Do not support the old ``fast_float``
+            Do not support the old ``fast_float``.
 
             OUTPUT:
 
             This method raises ``NotImplementedError``; use the newer
-            ``fast_callable`` implementation
+            ``fast_callable`` implementation.
 
             EXAMPLES::
 
@@ -337,12 +371,12 @@ class Hypergeometric(BuiltinFunction):
 
         def _fast_callable_(cls, self, a, b, z, etb):
             """
-            Override the ``fast_callable`` method
+            Override the ``fast_callable`` method.
 
             OUTPUT:
 
             A :class:`~sage.ext.fast_callable.ExpressionCall` representing the
-            hypergeometric function in the expression tree
+            hypergeometric function in the expression tree.
 
             EXAMPLES::
 
@@ -368,7 +402,6 @@ class Hypergeometric(BuiltinFunction):
                 sage: hypergeometric([2, 1, 3], [5, 4],
                 ....:                1/2).sorted_parameters()
                 hypergeometric((1, 2, 3), (4, 5), 1/2)
-
             """
             return hypergeometric(sorted(a), sorted(b), z)
 
@@ -386,7 +419,6 @@ class Hypergeometric(BuiltinFunction):
                 hypergeometric((), (), x)
                 sage: hypergeometric((5, 4), (4, 4), 3).eliminate_parameters()
                 hypergeometric((5,), (4,), 3)
-
             """
             aa = list(a)  # tuples are immutable
             bb = list(b)
@@ -408,7 +440,7 @@ class Hypergeometric(BuiltinFunction):
 
         def is_termwise_finite(cls, self, a, b, z):
             """
-            Determine whether all terms of self are finite. Any infinite
+            Determine whether all terms of ``self`` are finite. Any infinite
             terms or ambiguous terms beyond the first zero, if one exists,
             are ignored.
 
@@ -440,7 +472,6 @@ class Hypergeometric(BuiltinFunction):
                 sage: (hypergeometric([0], [], Infinity)
                 ....:  .is_termwise_finite())  # ambiguous
                 False
-
             """
             if z == 0:
                 return 0 not in b
@@ -456,13 +487,13 @@ class Hypergeometric(BuiltinFunction):
             return True
 
         def is_terminating(cls, self, a, b, z):
-            """
+            r"""
             Determine whether the series represented by self terminates
             after a finite number of terms, i.e. whether any of the
             numerator parameters are nonnegative integers (with no
-            preceding nonnegative denominator parameters), or z = 0.
+            preceding nonnegative denominator parameters), or `z = 0`.
 
-            If terminating, the series represents a polynomial of z.
+            If terminating, the series represents a polynomial of `z`.
 
             EXAMPLES::
 
@@ -472,7 +503,6 @@ class Hypergeometric(BuiltinFunction):
                 True
                 sage: hypergeometric([1, -2], [], x).is_terminating()
                 True
-
             """
             if z == 0:
                 return True
@@ -482,9 +512,9 @@ class Hypergeometric(BuiltinFunction):
             return False
 
         def is_absolutely_convergent(cls, self, a, b, z):
-            """
-            Determine whether self converges absolutely as an infinite series.
-            False is returned if not all terms are finite.
+            r"""
+            Determine whether ``self`` converges absolutely as an infinite
+            series. ``False`` is returned if not all terms are finite.
 
             EXAMPLES:
 
@@ -513,7 +543,7 @@ class Hypergeometric(BuiltinFunction):
                 sage: hypergeometric([1], [], -1).n()  # Sum still exists
                 0.500000000000000
 
-            Degree $p = q+1$ (unit radius of convergence)::
+            Degree `p = q+1` (unit radius of convergence)::
 
                 sage: hypergeometric([2, 3], [4], 6).is_absolutely_convergent()
                 False
@@ -547,7 +577,6 @@ class Hypergeometric(BuiltinFunction):
                 sage: (hypergeometric([1, 2, -3], [4], 1/2)
                 ....:  .is_absolutely_convergent())  # polynomial
                 True
-
             """
             p, q = len(a), len(b)
             if not self.is_termwise_finite():
@@ -566,7 +595,7 @@ class Hypergeometric(BuiltinFunction):
 
         def terms(cls, self, a, b, z, n=None):
             """
-            Generate the terms of self (optionally only n terms).
+            Generate the terms of ``self`` (optionally only ``n`` terms).
 
             EXAMPLES::
 
@@ -576,7 +605,6 @@ class Hypergeometric(BuiltinFunction):
                 [1, -1/6*x]
                 sage: list(hypergeometric([-2, 1], [3, 4], x).terms(0))
                 []
-
             """
             if n is None:
                 n = Infinity
@@ -595,7 +623,7 @@ class Hypergeometric(BuiltinFunction):
                 k += 1
 
         def deflated(cls, self, a, b, z):
-            """
+            r"""
             Rewrite as a linear combination of functions of strictly lower
             degree by eliminating all parameters ``a[i]`` and ``b[j]`` such
             that ``a[i]`` = ``b[i]`` + ``m`` for nonnegative integer ``m``.
@@ -605,7 +633,10 @@ class Hypergeometric(BuiltinFunction):
                 sage: x = hypergeometric([6, 1], [3, 4, 5], 10)
                 sage: y = x.deflated()
                 sage: y
-                1/252*hypergeometric((4,), (7, 8), 10) + 1/12*hypergeometric((3,), (6, 7), 10) + 1/2*hypergeometric((2,), (5, 6), 10) + hypergeometric((1,), (4, 5), 10)
+                1/252*hypergeometric((4,), (7, 8), 10)
+                 + 1/12*hypergeometric((3,), (6, 7), 10)
+                 + 1/2*hypergeometric((2,), (5, 6), 10)
+                 + hypergeometric((1,), (4, 5), 10)
                 sage: x.n(); y.n()
                 2.87893612686782
                 2.87893612686782
@@ -613,11 +644,16 @@ class Hypergeometric(BuiltinFunction):
                 sage: x = hypergeometric([6, 7], [3, 4, 5], 10)
                 sage: y = x.deflated()
                 sage: y
-                25/27216*hypergeometric((), (11,), 10) + 25/648*hypergeometric((), (10,), 10) + 265/504*hypergeometric((), (9,), 10) + 181/63*hypergeometric((), (8,), 10) + 19/3*hypergeometric((), (7,), 10) + 5*hypergeometric((), (6,), 10) + hypergeometric((), (5,), 10)
+                25/27216*hypergeometric((), (11,), 10)
+                 + 25/648*hypergeometric((), (10,), 10)
+                 + 265/504*hypergeometric((), (9,), 10)
+                 + 181/63*hypergeometric((), (8,), 10)
+                 + 19/3*hypergeometric((), (7,), 10)
+                 + 5*hypergeometric((), (6,), 10)
+                 + hypergeometric((), (5,), 10)
                 sage: x.n(); y.n()
                 63.0734110716969
                 63.0734110716969
-
             """
             return sum(map(prod, self._deflated()))
 
@@ -675,10 +711,10 @@ hypergeometric = Hypergeometric()
 
 def closed_form(hyp):
     """
-    Try to evaluate self in closed form using elementary
+    Try to evaluate ``hyp`` in closed form using elementary
     (and other simple) functions.
 
-    It may be necessary to call :meth:`deflated` first to
+    It may be necessary to call :meth:`Hypergeometric.deflated` first to
     find some closed forms.
 
     EXAMPLES::

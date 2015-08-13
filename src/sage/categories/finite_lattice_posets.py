@@ -48,11 +48,11 @@ class FiniteLatticePosets(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+                sage: L = LatticePoset({0:[1,2],1:[3],2:[3,4],3:[5],4:[5]})
                 sage: L.join_irreducibles()
-                [1, 2, 3]
+                [1, 2, 4]
 
-            .. seealso:: :meth:`join_irreducibles_poset`
+            .. seealso:: :meth:`meet_irreducibles`, :meth:`join_irreducibles_poset`
             """
             return [x for x in self if len(self.lower_covers(x)) == 1]
 
@@ -73,6 +73,43 @@ class FiniteLatticePosets(CategoryWithAxiom):
             .. seealso:: :meth:`join_irreducibles`
             """
             return self.subposet(self.join_irreducibles())
+
+        def meet_irreducibles(self):
+            r"""
+            Returns the meet-irreducible elements of this finite lattice.
+
+            A *meet-irreducible element* of ``self`` is an element
+            `x` that is not maximal and that can not be written as
+            the meet of two elements different from `x`.
+
+            EXAMPLES::
+
+                sage: L = LatticePoset({0:[1,2],1:[3],2:[3,4],3:[5],4:[5]})
+                sage: L.meet_irreducibles()
+                [1, 3, 4]
+
+            .. seealso:: :meth:`join_irreducibles`, :meth:`meet_irreducibles_poset`
+            """
+            return [x for x in self if len(self.upper_covers(x)) == 1]
+
+        def meet_irreducibles_poset(self):
+            r"""
+            Returns the poset of join-irreducible elements of this finite lattice.
+
+            A *meet-irreducible element* of ``self`` is an element `x`
+            that is not maximal and can not be written as the meet of two
+            elements different from `x`.
+
+            EXAMPLES::
+
+                sage: L = LatticePoset({0:[1,2,3],1:[4],2:[4],3:[4]})
+                sage: L.join_irreducibles_poset()
+                Finite poset containing 3 elements
+
+            .. seealso:: :meth:`meet_irreducibles`
+            """
+            return self.subposet(self.meet_irreducibles())
+
 
         ##########################################################################
         # Lattice morphisms

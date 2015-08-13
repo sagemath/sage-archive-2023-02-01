@@ -25,10 +25,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.arith import GCD, valuation, is_prime
 
 
-#from sage.misc.functional import ideal          ## TODO: This can probably be removed!
-
-
-
 def find_entry_with_minimal_scale_at_prime(self, p):
     """
     Finds the entry of the quadratic form with minimal scale at the

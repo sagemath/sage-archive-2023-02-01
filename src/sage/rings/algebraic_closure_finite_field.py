@@ -211,19 +211,17 @@ class AlgebraicClosureFiniteFieldElement(FieldElement):
             sage: F.gen(3).change_level(1)
             Traceback (most recent call last):
             ...
-            TypeError: not in prime subfield
+            ValueError: z3 is not in the image of Ring morphism:
+              From: Finite Field of size 3
+              To:   Finite Field in z3 of size 3^3
+              Defn: 1 |--> 1
 
         """
         F = self.parent()
         l = self._level
         m = l.gcd(n)
         xl = self._value
-        if m == 1:
-            # Sections of canonical coercion maps from F_p to other
-            # finite fields of characteristic p are not implemented.
-            xm = F.base_ring()(xl)
-        else:
-            xm = F.inclusion(m, l).section()(xl)
+        xm = F.inclusion(m, l).section()(xl)
         xn = F.inclusion(m, n)(xm)
         return self.__class__(F, xn)
 
@@ -731,7 +729,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         """
         Fn = self._subfield(n)
-        return Fn, Fn.hom((self.gen(n),))
+        return Fn, Fn.hom( (self.gen(n),), check=False)
 
     def inclusion(self, m, n):
         """
@@ -742,9 +740,10 @@ class AlgebraicClosureFiniteField_generic(Field):
 
             sage: F = GF(3).algebraic_closure()
             sage: F.inclusion(1, 2)
-            Ring Coercion morphism:
+            Ring morphism:
               From: Finite Field of size 3
               To:   Finite Field in z2 of size 3^2
+              Defn: 1 |--> 1
             sage: F.inclusion(2, 4)
             Ring morphism:
               From: Finite Field in z2 of size 3^2
@@ -752,10 +751,11 @@ class AlgebraicClosureFiniteField_generic(Field):
               Defn: z2 |--> 2*z4^3 + 2*z4^2 + 1
 
         """
-        if m == 1:
-            return self.base_ring().hom(self._subfield(n))
-        elif m.divides(n):
-            return self._subfield(m).hom((self._get_im_gen(m, n),))
+        if m.divides(n):
+            # check=False is required to avoid "coercion hell": an
+            # infinite loop in checking the morphism involving
+            # polynomial_compiled.pyx on the modulus().
+            return self._subfield(m).hom( (self._get_im_gen(m, n),), check=False)
         else:
             raise ValueError("subfield of degree %s not contained in subfield of degree %s" % (m, n))
 
@@ -893,7 +893,7 @@ class AlgebraicClosureFiniteField_generic(Field):
             sage: for _ in xrange(10):
             ....:     p = R.random_element(degree=randint(2,8))
             ....:     for r in p.roots(K, multiplicities=False):
-            ....:         assert p(r).is_zero()
+            ....:         assert p(r).is_zero(), "r={} is not a root of p={}".format(r,p)
 
         """
         from sage.rings.arith import lcm
@@ -907,18 +907,23 @@ class AlgebraicClosureFiniteField_generic(Field):
 
         new_coeffs = [self.inclusion(c[0].degree(), l)(c[1]) for c in coeffs]
 
+        polys = [(g,m,l,phi) for g,m in P(new_coeffs).factor()]
         roots = []    # a list of pair (root,multiplicity)
-        for g, m in P(new_coeffs).factor():
-            if g.degree() == 1:
+        while polys:
+            g,m,l,phi = polys.pop()
+        
+            if g.degree() == 1: # found a root
                 r = phi(-g.constant_coefficient())
                 roots.append((r,m))
-            else:
+            else: # look at the extension of degree g.degree() which contains at
+                  # least one root of g
                 ll = l * g.degree()
                 psi = self.inclusion(l, ll)
                 FF, pphi = self.subfield(ll)
-                gg = PolynomialRing(FF, 'x')(map(psi, g))
-                for r, _ in gg.roots():  # note: we know that multiplicity is 1
-                    roots.append((pphi(r), m))
+                # note: there is no coercion from the l-th subfield to the ll-th
+                # subfield. The line below does the conversion manually.
+                g = PolynomialRing(FF, 'x')([psi(_) for _ in g])
+                polys.extend((gg,m,ll,pphi) for gg,_ in g.factor())
 
         if multiplicities:
             return roots
@@ -939,7 +944,7 @@ class AlgebraicClosureFiniteField_generic(Field):
 
             sage: for d in xrange(10):
             ....:     p = R.random_element(degree=randint(2,8))
-            ....:     assert p.factor().prod() == p
+            ....:     assert p.factor().prod() == p, "error in the factorization of p={}".format(p)
 
         """
         from sage.structure.factorization import Factorization
@@ -1066,6 +1071,8 @@ class AlgebraicClosureFiniteField_pseudo_conway(AlgebraicClosureFiniteField_gene
 
         """
         p = self.characteristic()
+        if m == 1:
+            return self._subfield(n).one()
         return self._subfield(n).gen() ** ((p**n - 1)//(p**m - 1))
 
 

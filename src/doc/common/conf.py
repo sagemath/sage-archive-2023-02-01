@@ -21,7 +21,31 @@ sys.path.append(get_doc_abspath('common'))
 extensions = ['inventory_builder', 'multidocs',
               'sage_autodoc',  'sphinx.ext.graphviz',
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.todo',
-              'sphinx.ext.extlinks']
+              'sphinx.ext.extlinks', 'matplotlib.sphinxext.plot_directive']
+
+# This code is executed before each ".. PLOT::" directive in the Sphinx
+# documentation. It defines a 'sphinx_plot' function that displays a Sage object
+# through mathplotlib, so that it will be displayed in the HTML doc
+plot_html_show_source_link = False
+plot_pre_code = """
+def sphinx_plot(plot):
+    import matplotlib.image as mpimg
+    from sage.misc.temporary_file import tmp_filename
+    import matplotlib.pyplot as plt
+    if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
+        fn = tmp_filename(ext=".png")
+        plot.plot().save(fn)
+        img = mpimg.imread(fn)
+        plt.imshow(img)
+        plt.margins(0)
+        plt.axis("off")
+        plt.tight_layout(pad=0)
+
+from sage.all_cmdline import *
+"""
+
+plot_html_show_formats = False
+
 # We do *not* fully initialize intersphinx since we call it by hand
 # in find_sage_dangling_links.
 #, 'sphinx.ext.intersphinx']
@@ -101,11 +125,8 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
-# intersphinx_mapping = {'http://docs.python.org/': None}
-#intersphinx_mapping = {'python': ('http://docs.python.org/',
-#                                  'python-inv.txt')}
 intersphinx_mapping = {
-    'http://docs.python.org/': get_doc_abspath('common/python.inv')}
+    'python' : ('https://docs.python.org/', get_doc_abspath('common/python.inv'))}
 
 def set_intersphinx_mappings(app):
     """
@@ -135,12 +156,12 @@ pythonversion = sys.version.split(' ')[0]
 
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
-    'python': ('http://docs.python.org/release/'+pythonversion+'/%s', ''),
+    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
     'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('http://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('http://dx.doi.org/%s', 'doi:'),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
+    'doi': ('https://dx.doi.org/%s', 'doi:'),
     'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
     }
 
@@ -264,7 +285,7 @@ html_split_index = True
 
 # Options for LaTeX output
 # ------------------------
-# See http://sphinx.pocoo.org/config.html#confval-latex_elements
+# See http://sphinx-doc.org/config.html#confval-latex_elements
 latex_elements = {}
 
 # The paper size ('letterpaper' or 'a4paper').
@@ -297,12 +318,100 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{2510}{+}
 \DeclareUnicodeCharacter{2514}{+}
 \DeclareUnicodeCharacter{2518}{+}
-\DeclareUnicodeCharacter{03BC}{\mu}
-\DeclareUnicodeCharacter{03B4}{\delta}
-\DeclareUnicodeCharacter{03B7}{\eta}
-\DeclareUnicodeCharacter{03BB}{\lambda}
-\DeclareUnicodeCharacter{2266}{\le}
+\DeclareUnicodeCharacter{253C}{+}
+
+
+\DeclareUnicodeCharacter{03B1}{\ensuremath{\alpha}}
+\DeclareUnicodeCharacter{03B2}{\ensuremath{\beta}}
+\DeclareUnicodeCharacter{03B3}{\ensuremath{\gamma}}
+\DeclareUnicodeCharacter{0393}{\ensuremath{\Gamma}}
+\DeclareUnicodeCharacter{03B4}{\ensuremath{\delta}}
+\DeclareUnicodeCharacter{0394}{\ensuremath{\Delta}}
+\DeclareUnicodeCharacter{03B5}{\ensuremath{\varepsilon}}
+\DeclareUnicodeCharacter{03B6}{\ensuremath{\zeta}}
+\DeclareUnicodeCharacter{03B7}{\ensuremath{\eta}}
+\DeclareUnicodeCharacter{03B8}{\ensuremath{\vartheta}}
+\DeclareUnicodeCharacter{0398}{\ensuremath{\Theta}}
+\DeclareUnicodeCharacter{03BA}{\ensuremath{\kappa}}
+\DeclareUnicodeCharacter{03BB}{\ensuremath{\lambda}}
+\DeclareUnicodeCharacter{039B}{\ensuremath{\Lambda}}
+\DeclareUnicodeCharacter{00B5}{\ensuremath{\mu}}      % micron sign
+\DeclareUnicodeCharacter{03BC}{\ensuremath{\mu}}
+\DeclareUnicodeCharacter{03BD}{\ensuremath{\nu}}
+\DeclareUnicodeCharacter{03BE}{\ensuremath{\xi}}
+\DeclareUnicodeCharacter{039E}{\ensuremath{\Xi}}
+\DeclareUnicodeCharacter{03B9}{\ensuremath{\iota}}
+\DeclareUnicodeCharacter{03C0}{\ensuremath{\pi}}
+\DeclareUnicodeCharacter{03A0}{\ensuremath{\Pi}}
+\DeclareUnicodeCharacter{03C1}{\ensuremath{\rho}}
+\DeclareUnicodeCharacter{03C3}{\ensuremath{\sigma}}
+\DeclareUnicodeCharacter{03A3}{\ensuremath{\Sigma}}
+\DeclareUnicodeCharacter{03C4}{\ensuremath{\tau}}
+\DeclareUnicodeCharacter{03C6}{\ensuremath{\varphi}}
+\DeclareUnicodeCharacter{03A6}{\ensuremath{\Phi}}
+\DeclareUnicodeCharacter{03C7}{\ensuremath{\chi}}
+\DeclareUnicodeCharacter{03C8}{\ensuremath{\psi}}
+\DeclareUnicodeCharacter{03A8}{\ensuremath{\Psi}}
+\DeclareUnicodeCharacter{03C9}{\ensuremath{\omega}}
+\DeclareUnicodeCharacter{03A9}{\ensuremath{\Omega}}
+\DeclareUnicodeCharacter{03C5}{\ensuremath{\upsilon}}
+\DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
+\DeclareUnicodeCharacter{2113}{\ell}
+
 \DeclareUnicodeCharacter{221A}{\sqrt}
+\DeclareUnicodeCharacter{2264}{\leq}
+\DeclareUnicodeCharacter{2265}{\geq}
+\DeclareUnicodeCharacter{221E}{\infty}
+\DeclareUnicodeCharacter{2211}{\sum}
+\DeclareUnicodeCharacter{2208}{\in}
+\DeclareUnicodeCharacter{2209}{\notin}
+\DeclareUnicodeCharacter{2202}{\partial}
+\DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
+\DeclareUnicodeCharacter{2148}{\id}
+\DeclareUnicodeCharacter{2248}{\approx}
+\DeclareUnicodeCharacter{2260}{\neq}
+\DeclareUnicodeCharacter{00B1}{\pm}
+\DeclareUnicodeCharacter{2A02}{\otimes}
+\DeclareUnicodeCharacter{2A01}{\oplus}
+\DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
+\DeclareUnicodeCharacter{00D7}{\times}
+\DeclareUnicodeCharacter{00B7}{\cdot}
+\DeclareUnicodeCharacter{230A}{\lfloor}
+\DeclareUnicodeCharacter{230B}{\rfloor}
+\DeclareUnicodeCharacter{2308}{\lceil}
+\DeclareUnicodeCharacter{2309}{\rceil}
+\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+
+\newcommand{\sageMexSymbol}[1]
+{{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}
+\DeclareUnicodeCharacter{239B}{\sageMexSymbol{"30}} % parenlefttp
+\DeclareUnicodeCharacter{239C}{\sageMexSymbol{"42}} % parenleftex
+\DeclareUnicodeCharacter{239D}{\sageMexSymbol{"40}} % parenleftbt
+\DeclareUnicodeCharacter{239E}{\sageMexSymbol{"31}} % parenrighttp
+\DeclareUnicodeCharacter{239F}{\sageMexSymbol{"43}} % parenrightex
+\DeclareUnicodeCharacter{23A0}{\sageMexSymbol{"41}} % parenrightbt
+\DeclareUnicodeCharacter{23A1}{\sageMexSymbol{"32}} % bracketlefttp
+\DeclareUnicodeCharacter{23A2}{\sageMexSymbol{"36}} % bracketleftex
+\DeclareUnicodeCharacter{23A3}{\sageMexSymbol{"34}} % bracketleftbt
+\DeclareUnicodeCharacter{23A4}{\sageMexSymbol{"33}} % bracketrighttp
+\DeclareUnicodeCharacter{23A5}{\sageMexSymbol{"37}} % bracketrightex
+\DeclareUnicodeCharacter{23A6}{\sageMexSymbol{"35}} % bracketrightbt
+
+\DeclareUnicodeCharacter{23A7}{\sageMexSymbol{"38}} % curly brace left top
+\DeclareUnicodeCharacter{23A8}{\sageMexSymbol{"3C}} % curly brace left middle
+\DeclareUnicodeCharacter{23A9}{\sageMexSymbol{"3A}} % curly brace left bottom
+\DeclareUnicodeCharacter{23AA}{\sageMexSymbol{"3E}} % curly brace extension
+\DeclareUnicodeCharacter{23AB}{\sageMexSymbol{"39}} % curly brace right top
+\DeclareUnicodeCharacter{23AC}{\sageMexSymbol{"3D}} % curly brace right middle
+\DeclareUnicodeCharacter{23AD}{\sageMexSymbol{"3B}} % curly brace right bottom
+\DeclareUnicodeCharacter{23B0}{\{} % 2-line curly brace left top half  (not in cmex)
+\DeclareUnicodeCharacter{23B1}{\}} % 2-line curly brace right top half (not in cmex)
+
+\DeclareUnicodeCharacter{2320}{\ensuremath{\int}} % top half integral
+\DeclareUnicodeCharacter{2321}{\ensuremath{\int}} % bottom half integral
+\DeclareUnicodeCharacter{23AE}{\ensuremath{\|}} % integral extenison
+
+\DeclareUnicodeCharacter{2571}{/}   % Box drawings light diagonal upper right to lower left
 
 \let\textLaTeX\LaTeX
 \renewcommand*{\LaTeX}{\hbox{\textLaTeX}}

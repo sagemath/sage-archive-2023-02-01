@@ -50,7 +50,8 @@ def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=Fal
 
     """
     cdef PartitionStack *part
-    cdef int *output, *ordering
+    cdef int *output
+    cdef int *ordering
     cdef CGraph G
     cdef GraphStruct GS1 = GraphStruct()
     cdef GraphStruct GS2 = GraphStruct()
@@ -1468,7 +1469,8 @@ cdef iterator *allocate_dg_vert_gen(int degree, int depth):
     Allocates the iterator for generating graphs.
     """
     cdef iterator *dg_vert_gen = <iterator *> sage_malloc(sizeof(iterator))
-    cdef canonical_generator_data *cgd = allocate_cgd(depth, degree), *cgd2
+    cdef canonical_generator_data *cgd = allocate_cgd(depth, degree)
+    cdef canonical_generator_data *cgd2
     if dg_vert_gen is NULL or cgd is NULL:
         sage_free(dg_vert_gen)
         deallocate_cgd(cgd)

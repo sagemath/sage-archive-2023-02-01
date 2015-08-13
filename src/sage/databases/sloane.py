@@ -85,7 +85,7 @@ Classes and methods
 import bz2, os, re, urllib
 
 from sage.misc.all import verbose
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()
 from sage.misc.superseded import deprecation
@@ -186,10 +186,10 @@ class SloaneEncyclopediaClass:
 
         INPUT:
 
-        - ``oeis_url`` - string (default: "http://www.research.att.com...")
+        - ``oeis_url`` - string (default: "http://oeis.org...")
           The URL of the stripped.gz encyclopedia file.
 
-        - ``names_url`` - string (default: "http://www.research.att.com...")
+        - ``names_url`` - string (default: "http://oeis.org...")
           The URL of the names.gz encyclopedia file.  If you do not want to
           download this file, set names_url=None.
 

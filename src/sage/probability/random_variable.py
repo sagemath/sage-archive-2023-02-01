@@ -16,7 +16,8 @@ functions.
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
-from sage.misc.functional import sqrt, log
+from sage.misc.functional import log
+from sage.functions.all import sqrt
 from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.rings.rational_field import is_RationalField
 from sage.sets.set import Set
@@ -315,11 +316,9 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
             sage: X.set()
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
             sage: X.entropy()
-                   1.9997253418
+            1.999725341796875
 
-        A probability space can be defined on any list of elements.
-
-        EXAMPLES::
+        A probability space can be defined on any list of elements::
 
             sage: AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
             sage: S = [ AZ[i] for i in range(26) ]
@@ -328,7 +327,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
             sage: X
             Discrete probability space defined by {'A': 1/2, 'C': 1/4, 'B': 1/4}
             sage: X.entropy()
-                   1.5
+            1.5
         """
         if codomain is None:
             codomain = RealField()
@@ -366,4 +365,3 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
                 return -p*log(p,2)
         p = self.function()
         return sum([ neg_xlog2x(p[x]) for x in p.keys() ])
-

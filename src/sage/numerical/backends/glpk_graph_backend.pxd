@@ -1,9 +1,4 @@
-
-include 'sage/ext/stdsage.pxi'
-
-
 cdef extern from *:
-    ctypedef double* const_double_ptr "const double*"
     ctypedef char * const_char_ptr "const char*"
 
 cdef extern from "float.h":
@@ -119,7 +114,7 @@ cdef class GLPKGraphBackend(object):
     cdef int t
     cpdef int write_maxflow(self, char *fname) except -1
     cpdef double maxflow_ffalg(self, u = ?, v = ?) except -1
-    cpdef double cpp(self) except -1
+    cpdef double cpp(self)
 
 
 

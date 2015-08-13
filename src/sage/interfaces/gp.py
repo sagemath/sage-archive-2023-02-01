@@ -24,7 +24,7 @@ PARI interpreter)::
 
     sage: E = gp.ellinit([1,2,3,4,5])
     sage: E.ellglobalred()
-    [10351, [1, -1, 0, -1], 1]
+    [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
     sage: E.ellan(20)
     [1, 1, 0, -1, -3, 0, -1, -3, -3, -3, -1, 0, 1, -1, 0, -1, 5, -3, 4, 3]
 
@@ -113,7 +113,7 @@ Test error recovery::
     PARI/GP ERROR:
       ***   at top-level: sage[...]=1/0
       ***                          ^--
-      *** _/_: division by zero
+      *** _/_: impossible inverse in gdiv: 0.
 
 AUTHORS:
 
@@ -165,6 +165,7 @@ class Gp(Expect):
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int, default random) -- random number generator seed for pari
 
         EXAMPLES::
 
@@ -176,7 +177,8 @@ class Gp(Expect):
                  logfile=None,
                  server=None,
                  server_tmpdir=None,
-                 init_list_length=1024):
+                 init_list_length=1024,
+                 seed=None):
         """
         Initialization of this PARI gp interpreter.
 
@@ -190,6 +192,7 @@ class Gp(Expect):
         - ``server`` -- name of remote server
         - ``server_tmpdir`` -- name of temporary directory on remote server
         - ``init_list_length`` (int, default 1024) -- length of initial list of local variables.
+        - ``seed`` (int,default random nonzero 31 bit integer) -- value of random seed
 
         EXAMPLES::
 
@@ -199,7 +202,8 @@ class Gp(Expect):
         Expect.__init__(self,
                         name = 'pari',
                         prompt = '\\? ',
-                        command = "gp --emacs --quiet --stacksize %s"%stacksize,
+                        # --fast so the system gprc isn't read (we configure below)
+                        command = "gp --fast --emacs --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
                         server=server,
                         server_tmpdir=server_tmpdir,
@@ -211,7 +215,43 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
+        self._seed = seed
 
+    def set_seed(self, seed=None):
+        """
+        Sets the seed for gp interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gp()
+            sage: g.set_seed(1)
+            1
+            sage: [g.random() for i in range(5)]
+            [1546275796, 879788114, 1745191708, 771966234, 1247963869]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("setrand(%d)" % seed)
+        self._seed = seed
+        return seed
+
+    def _start(self, alt_message=None, block_during_init=True):
+        Expect._start(self, alt_message, block_during_init)
+        # disable timer
+        self._eval_line('default(timer,0);')
+        # disable the break loop, otherwise gp will seem to hang on errors
+        self._eval_line('default(breakloop,0);')
+        # list of directories where gp will look for scripts (only current working directory)
+        self._eval_line('default(path,".");')
+        # location of elldata, seadata, galdata
+        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
+        # executable for gp ?? help
+        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        # logfile disabled since Expect already logs
+        self._eval_line('default(log,0);')
+        # set random seed
+        self.set_seed(self._seed)
 
     def _repr_(self):
         """
@@ -322,9 +362,16 @@ class Gp(Expect):
 
     get_real_precision = get_precision
 
-    def set_precision(self, prec=None):
+    def set_precision(self, prec):
         """
-        Sets the PARI precision (in decimal digits) for real computations, and returns the old value.
+        Sets the PARI precision (in decimal digits) for real
+        computations, and returns the old value.
+
+        .. NOTE::
+
+            PARI/GP rounds up precisions to the nearest machine word,
+            so the result of :meth:`get_precision` is not always the
+            same as the last value inputted to :meth:`set_precision`.
 
         EXAMPLES::
 
@@ -332,9 +379,9 @@ class Gp(Expect):
             28              # 32-bit
             38              # 64-bit
             sage: gp.get_precision()
-            53
+            57
             sage: gp.set_precision(old_prec)
-            53
+            57
             sage: gp.get_precision()
             28              # 32-bit
             38              # 64-bit
@@ -436,25 +483,23 @@ class Gp(Expect):
             return m - t
         return m
 
-    def set_default(self, var=None, value=None):
+    def set_default(self, var, value):
         """
         Set a PARI gp configuration variable, and return the old value.
 
         INPUT:
 
-        - ``var`` (string, default None) -- the name of a PARI gp
+        - ``var`` (string) -- the name of a PARI gp
           configuration variable.  (See ``gp.default()`` for a list.)
         - ``value`` -- the value to set the variable to.
 
         EXAMPLES::
 
-            sage: old_prec = gp.set_default('realprecision',100); old_prec
-            28              # 32-bit
-            38              # 64-bit
+            sage: old_prec = gp.set_default('realprecision', 110)
             sage: gp.get_default('realprecision')
-            100
-            sage: gp.set_default('realprecision',old_prec)
-            100
+            115
+            sage: gp.set_default('realprecision', old_prec)
+            115
             sage: gp.get_default('realprecision')
             28              # 32-bit
             38              # 64-bit
@@ -463,13 +508,13 @@ class Gp(Expect):
         self._eval_line('default(%s,%s)'%(var,value))
         return old
 
-    def get_default(self, var=None):
+    def get_default(self, var):
         """
         Return the current value of a PARI gp configuration variable.
 
         INPUT:
 
-        - ``var`` (string, default None) -- the name of a PARI gp
+        - ``var`` (string) -- the name of a PARI gp
           configuration variable.  (See ``gp.default()`` for a list.)
 
         OUTPUT:
@@ -598,25 +643,22 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
-    def quit(self, verbose=False, timeout=0.25):
+    def _reset_expect(self):
         """
-        Terminate the GP process.
+        Reset state of the GP interface.
 
         EXAMPLES::
 
             sage: a = gp('10'); a
             10
-            sage: gp.quit()
+            sage: gp.quit()  # indirect doctest
             sage: a
-            Traceback (most recent call last):
-            ...
-            ValueError: The pari session in which this object was defined is no longer running.
-            sage: gp(pi)
-            3.1415926535897932384626433832795028842    # 64-bit
-            3.141592653589793238462643383              # 32-bit
+            <repr(<sage.interfaces.gp.GpElement at 0x...>) failed: ValueError: The pari session in which this object was defined is no longer running.>
+            sage: gp("30!")
+            265252859812191058636308480000000
         """
         self.__var_store_len = 0
-        Expect.quit(self, verbose=verbose, timeout=timeout)
+        Expect._reset_expect(self)
 
     def console(self):
         """
@@ -808,17 +850,38 @@ class GpElement(ExpectElement):
 
         sage: E = gp('ellinit([1,2,3,4,5])')
         sage: loads(dumps(E)) == E
+        True
+        sage: x = gp.Pi()/3
+        sage: loads(dumps(x)) == x
         False
-        sage: loads(E.dumps())
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, 1.390370006883364885531598814 - 1.068749776356193066159263548*I, 3.109648242324380328550149122 + 1.009741959000000000000000000 E-28*I, 1.554824121162190164275074561 + 1.064374745210273756943885994*I, 2.971915267817909670771647951] # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, 1.3903700068833648855315988135906792497 - 1.0687497763561930661592635474375038788*I, 3.1096482423243803285501491221965830079 + 2.3509887016445750160000000000000000000 E-38*I, 1.5548241211621901642750745610982915040 + 1.0643747452102737569438859937299427442*I, 2.9719152678179096707716479509361896060] # 64-bit
-        sage: E
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, 1.390370006883364885531598814 - 1.068749776356193066159263548*I, 3.109648242324380328550149122 + 1.009741959 E-28*I, 1.554824121162190164275074561 + 1.064374745210273756943885994*I, 2.971915267817909670771647951] # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, 1.3903700068833648855315988135906792497 - 1.0687497763561930661592635474375038788*I, 3.1096482423243803285501491221965830079 + 2.350988701644575016 E-38*I, 1.5548241211621901642750745610982915040 + 1.0643747452102737569438859937299427442*I, 2.9719152678179096707716479509361896060]  # 64-bit
+        sage: x
+        1.047197551196597746154214461            # 32-bit
+        1.0471975511965977461542144610931676281  # 64-bit
+        sage: loads(dumps(x))
+        1.047197551196597746154214461            # 32-bit
+        1.0471975511965977461542144610931676281  # 64-bit
 
     The two elliptic curves look the same, but internally the floating
     point numbers are slightly different.
     """
+    def _reduce(self):
+        """
+        Return the string representation of self, for pickling.
+
+        Because the internal representation of a gp element is richer
+        than the corresponding sage object, we use the string representation
+        for pickling.
+
+        EXAMPLES::
+
+            sage: E = gp('ellinit([1,2,3,4,5])')
+            sage: loads(dumps(E)) == E # indirect doctest
+            True
+            sage: gp(E.sage()) == E
+            False
+
+        """
+        return repr(self)
 
     def _sage_(self):
         """
@@ -845,6 +908,20 @@ class GpElement(ExpectElement):
             True
         """
         return pari(str(self)).python()
+
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gp('"abc"').is_string()
+            True
+            sage: gp('[1,2,3]').is_string()
+            False
+
+        """
+        return repr(self.type())=='t_STR'
 
     def __long__(self):
         """
@@ -916,7 +993,7 @@ class GpElement(ExpectElement):
         EXAMPLES::
 
             sage: CDF(gp(pi+I*e))
-            3.14159265359 + 2.71828182846*I
+            3.141592653589793 + 2.718281828459045*I
         """
         # Retrieving values from another computer algebra system is
         # slow anyway, right?
@@ -991,11 +1068,8 @@ def is_GpElement(x):
     """
     return isinstance(x, GpElement)
 
-from sage.env import DOT_SAGE, SAGE_ETC
+from sage.env import DOT_SAGE
 import os
-
-# Set GPRC environment variable to $SAGE_ETC/gprc.expect
-os.environ["GPRC"] = os.path.join(SAGE_ETC, 'gprc.expect')
 
 # An instance
 gp = Gp(logfile=os.path.join(DOT_SAGE,'gp-expect.log')) # useful for debugging!

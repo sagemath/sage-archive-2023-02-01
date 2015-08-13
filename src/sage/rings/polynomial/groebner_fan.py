@@ -851,7 +851,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return isinstance(self, type(right)) and self.ideal() == right.ideal()
+        return type(self) is type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -1118,7 +1118,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: gf = R.ideal([x^3-y,y^3-x-1]).groebner_fan()
             sage: a = gf.__iter__()
-            sage: a.next()
+            sage: next(a)
             [y^9 - 3*y^6 + 3*y^3 - y - 1, -y^3 + x + 1]
         """
         for x in self.reduced_groebner_bases():
@@ -1482,7 +1482,13 @@ class GroebnerFan(SageObject):
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: G = R.ideal([y^3 - x^2, y^2 - 13*x]).groebner_fan()
             sage: G._gfan_stats()
-            {'Number of reduced Groebner bases': 3, 'Number of variables': 2, 'Maximal number of terms in Groebner basis': 6, 'Minimal total degree of a Groebner basis': 2, 'Maximal total degree of a Groebner basis': 4, 'Maximal number of polynomials in Groebner basis': 3, 'Dimension of homogeneity space': 0}
+            {'Dimension of homogeneity space': 0,
+             'Maximal number of polynomials in Groebner basis': 3,
+             'Maximal number of terms in Groebner basis': 6,
+             'Maximal total degree of a Groebner basis': 4,
+             'Minimal total degree of a Groebner basis': 2,
+             'Number of reduced Groebner bases': 3,
+             'Number of variables': 2}
         """
         try:
             return self.__stats
@@ -1684,7 +1690,7 @@ class GroebnerFan(SageObject):
                 allvars = self.ring().gens()
                 truevars = [q for q in allvars if not q in parameters]
                 base_ring = self.ring().base_ring()
-                new_ring = PolynomialRing(base_ring, len(truevars), string.join([str(q) for q in truevars], sep=','))
+                new_ring = PolynomialRing(base_ring, len(truevars), ",".join(str(q) for q in truevars))
                 old_polys = self.ideal().gens()
                 new_polys = []
                 sub = dict([[v,1] for v in parameters])

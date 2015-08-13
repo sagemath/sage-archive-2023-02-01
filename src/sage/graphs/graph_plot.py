@@ -1,4 +1,4 @@
-"""
+r"""
 Graph Plotting
 
 *(For LaTeX drawings of graphs, see the* :mod:`~sage.graphs.graph_latex` *module.)*
@@ -15,7 +15,7 @@ the special graph constructors, which you get using ``graphs.[tab]``, the
 positions are preset. For example, consider the Petersen graph with default node
 positioning vs. the Petersen graph constructed by this database::
 
-    sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
+    sage: petersen_spring = Graph(':I`ES@obGkqegW~')
     sage: petersen_spring.show() # long time
     sage: petersen_database = graphs.PetersenGraph()
     sage: petersen_database.show() # long time
@@ -28,69 +28,16 @@ the spring-layout algorithm.
 
 Here is the list of options accepted by
 :meth:`~sage.graphs.generic_graph.GenericGraph.plot` and the constructor of
-:class:`GraphPlot`.
+:class:`GraphPlot`. Those two functions also accept all options of
+:meth:`sage.plot.graphics.Graphics.show`.
 
 .. csv-table::
     :class: contentstable
     :widths: 30, 70
     :delim: |
 
-"""
+{PLOT_OPTIONS_TABLE}
 
-layout_options =   {
-                    'layout': 'A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph\'s current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).',
-                    'iterations': 'The number of times to execute the spring layout algorithm.',
-                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
-                    'spring': 'Use spring layout to finalize the current layout.',
-                    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout=\'tree\'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout=\'tree\'``',
-                    'tree_orientation': 'The direction of tree branches -- \'up\', \'down\', \'left\' or \'right\'.',
-                    'save_pos': 'Whether or not to save the computed position for the graph.',
-                    'dim': 'The dimension of the layout -- 2 or 3.',
-                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
-                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
-                    }
-
-graphplot_options = layout_options.copy()
-
-graphplot_options.update(
-                   {'pos': 'The position dictionary of vertices',
-                    'vertex_labels': 'Whether or not to draw vertex labels.',
-                    'vertex_colors': 'Dictionary of vertex coloring : each '
-                        'key is a color recognizable by matplotlib, and each '
-                        'corresponding entry is a list of vertices. '
-                        'If a vertex is not listed, it looks invisible on '
-                        'the resulting plot (it does not get drawn).',
-                    'vertex_size': 'The size to draw the vertices.',
-                    'vertex_shape': 'The shape to draw the vertices. '
-                        'Currently unavailable for Multi-edged DiGraphs.',
-                    'edge_labels': 'Whether or not to draw edge labels.',
-                    'edge_style': 'The linestyle of the edges. It should be '
-                        'one of "solid", "dashed", "dotted", dashdot", or '
-                        '"-", "--", ":", "-.", respectively. '
-                        'This currently only works for directed graphs, '
-                        'since we pass off the undirected graph to networkx.',
-                    'edge_color': 'The default color for edges.',
-                    'edge_colors': 'a dictionary specifying edge colors: each '
-                        'key is a color recognized by matplotlib, and each '
-                        'entry is a list of edges.',
-                    'color_by_label': 'Whether to color the edges according '
-                        'to their labels. This also accepts a function or '
-                        'dictionary mapping labels to colors.',
-                    'partition': 'A partition of the vertex set. If specified, '
-                        'plot will show each cell in a different color. '
-                        'vertex_colors takes precedence.',
-                    'loop_size': 'The radius of the smallest loop.',
-                    'dist': 'The distance between multiedges.',
-                    'max_dist': 'The max distance range to allow multiedges.',
-                    'talk': 'Whether to display the vertices in talk mode '
-                        '(larger and white).',
-                    'graph_border': 'Whether or not to draw a frame around the graph.'})
-
-for key, value in graphplot_options.iteritems():
-    __doc__ += "    ``"+str(key)+"`` | "+str(value)+"\n"
-
-
-__doc__ += """
 **Default options**
 
 This module defines two dictionaries containing default options for the
@@ -98,7 +45,6 @@ This module defines two dictionaries containing default options for the
 :meth:`~sage.graphs.generic_graph.GenericGraph.show` methods. These two dictionaries are
 ``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
 ``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
-
 
 Obviously, these values are overruled when arguments are given explicitly.
 
@@ -150,6 +96,61 @@ Methods and classes
 .. autofunction:: _circle_embedding
 .. autofunction:: _line_embedding
 """
+
+layout_options =   {
+                    'layout': 'A layout algorithm -- one of : "acyclic", "circular" (plots the graph with vertices evenly distributed on a circle), "ranked", "graphviz", "planar", "spring" (traditional spring layout, using the graph\'s current positions as initial positions), or "tree" (the tree will be plotted in levels, depending on minimum distance for the root).',
+                    'iterations': 'The number of times to execute the spring layout algorithm.',
+                    'heights': 'A dictionary mapping heights to the list of vertices at this height.',
+                    'spring': 'Use spring layout to finalize the current layout.',
+                    'tree_root': 'A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout=\'tree\'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout=\'tree\'``',
+                    'tree_orientation': 'The direction of tree branches -- \'up\', \'down\', \'left\' or \'right\'.',
+                    'save_pos': 'Whether or not to save the computed position for the graph.',
+                    'dim': 'The dimension of the layout -- 2 or 3.',
+                    'prog': 'Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".',
+                    'by_component': 'Whether to do the spring layout by connected component -- a boolean.',
+                    }
+
+graphplot_options = layout_options.copy()
+
+graphplot_options.update(
+                   {'pos': 'The position dictionary of vertices',
+                    'vertex_labels': 'Whether or not to draw vertex labels.',
+                    'vertex_colors': 'Dictionary of vertex coloring : each '
+                        'key is a color recognizable by matplotlib, and each '
+                        'corresponding entry is a list of vertices. '
+                        'If a vertex is not listed, it looks invisible on '
+                        'the resulting plot (it does not get drawn).',
+                    'vertex_size': 'The size to draw the vertices.',
+                    'vertex_shape': 'The shape to draw the vertices. '
+                        'Currently unavailable for Multi-edged DiGraphs.',
+                    'edge_labels': 'Whether or not to draw edge labels.',
+                    'edge_style': 'The linestyle of the edges. It should be '
+                        'one of "solid", "dashed", "dotted", dashdot", or '
+                        '"-", "--", ":", "-.", respectively. '
+                        'This currently only works for directed graphs, '
+                        'since we pass off the undirected graph to networkx.',
+                    'edge_color': 'The default color for edges.',
+                    'edge_colors': 'a dictionary specifying edge colors: each '
+                        'key is a color recognized by matplotlib, and each '
+                        'entry is a list of edges.',
+                    'color_by_label': 'Whether to color the edges according '
+                        'to their labels. This also accepts a function or '
+                        'dictionary mapping labels to colors.',
+                    'partition': 'A partition of the vertex set. If specified, '
+                        'plot will show each cell in a different color. '
+                        'vertex_colors takes precedence.',
+                    'loop_size': 'The radius of the smallest loop.',
+                    'dist': 'The distance between multiedges.',
+                    'max_dist': 'The max distance range to allow multiedges.',
+                    'talk': 'Whether to display the vertices in talk mode '
+                        '(larger and white).',
+                    'graph_border': 'Whether or not to draw a frame around the graph.'})
+
+_PLOT_OPTIONS_TABLE = ""
+for key, value in graphplot_options.iteritems():
+    _PLOT_OPTIONS_TABLE += "    ``"+str(key)+"`` | "+str(value)+"\n"
+__doc__ = __doc__.format(PLOT_OPTIONS_TABLE=_PLOT_OPTIONS_TABLE)
+
 
 #*****************************************************************************
 #      Copyright (C) 2009   Emily Kirkman
@@ -288,6 +289,7 @@ class GraphPlot(SageObject):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.plot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]})
+            Graphics object consisting of 14 graphics primitives
 
         TESTS:
 
@@ -299,11 +301,11 @@ class GraphPlot(SageObject):
             sage: g = graphs.FruchtGraph()
             sage: gp = g.graphplot()
             sage: set(map(type, flatten(gp._pos.values())))
-            set([<type 'float'>])
+            {<type 'float'>}
             sage: g = graphs.BullGraph()
             sage: gp = g.graphplot(save_pos=True)
             sage: set(map(type, flatten(gp._pos.values())))
-            set([<type 'float'>])
+            {<type 'float'>}
 
         """
         self._pos = self._graph.layout(**self._options)
@@ -325,8 +327,10 @@ class GraphPlot(SageObject):
             sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_vertices(talk=True)
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
             sage: GP.set_vertices(vertex_colors='pink', vertex_shape='^')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
         """
         # Handle base vertex options
         voptions = {}
@@ -352,17 +356,6 @@ class GraphPlot(SageObject):
                 vertex_colors = {}
                 for i in range(l):
                     vertex_colors[R[i]] = partition[i]
-            elif len(self._graph._boundary) != 0:
-                vertex_colors = {}
-                bdy_verts = []
-                int_verts = []
-                for v in self._graph.vertex_iterator():
-                    if v in self._graph._boundary:
-                        bdy_verts.append(v)
-                    else:
-                        int_verts.append(v)
-                vertex_colors['#fec7b8'] = int_verts
-                vertex_colors['#b3e8ff'] = bdy_verts
             elif not vertex_colors:
                 vertex_colors='#fec7b8'
         else:
@@ -438,8 +431,10 @@ class GraphPlot(SageObject):
             sage: GP = g.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
+            Graphics object consisting of 22 graphics primitives
 
             sage: d = DiGraph({}, loops=True, multiedges=True, sparse=True)
             sage: d.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -447,8 +442,10 @@ class GraphPlot(SageObject):
             sage: GP = d.graphplot(vertex_size=100, edge_labels=True, color_by_label=True, edge_style='dashed')
             sage: GP.set_edges(edge_style='solid')
             sage: GP.plot()
+            Graphics object consisting of 24 graphics primitives
             sage: GP.set_edges(edge_color='black')
             sage: GP.plot()
+            Graphics object consisting of 24 graphics primitives
 
         TESTS::
 
@@ -759,7 +756,7 @@ class GraphPlot(SageObject):
 
         The options for plotting also work with directed graphs::
 
-            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []}, implementation='networkx' )
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []})
             sage: for u,v,l in D.edges():
             ...    D.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
             sage: D.graphplot(edge_labels=True, layout='circular').show()
@@ -804,6 +801,7 @@ class GraphPlot(SageObject):
             sage: pos = {0:[0.0, 1.5], 1:[-0.8, 0.3], 2:[-0.6, -0.8], 3:[0.6, -0.8], 4:[0.8, 0.3]}
             sage: g = Graph({0:[1], 1:[2], 2:[3], 3:[4], 4:[0]})
             sage: g.graphplot(pos=pos, layout='spring', iterations=0).plot()
+            Graphics object consisting of 11 graphics primitives
 
             sage: G = Graph()
             sage: P = G.graphplot().plot()
@@ -819,12 +817,14 @@ class GraphPlot(SageObject):
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
+            Graphics object consisting of 14 graphics primitives
 
         ::
 
             sage: T = list(graphs.trees(7))
             sage: t = T[3]
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}).plot()
+            Graphics object consisting of 14 graphics primitives
             sage: t.set_edge_label(0,1,-7)
             sage: t.set_edge_label(0,5,3)
             sage: t.set_edge_label(0,5,99)
@@ -833,6 +833,7 @@ class GraphPlot(SageObject):
             sage: t.set_edge_label(2,6,3/2)
             sage: t.set_edge_label(0,4,66)
             sage: t.graphplot(heights={0:[0], 1:[4,5,1], 2:[2], 3:[3,6]}, edge_labels=True).plot()
+            Graphics object consisting of 20 graphics primitives
 
         ::
 
@@ -855,15 +856,18 @@ class GraphPlot(SageObject):
             ...     D.add_edge((i,i+1,'a'))
             ...     D.add_edge((i,i-1,'b'))
             sage: D.graphplot(edge_labels=True,edge_colors=D._color_by_label()).plot()
+            Graphics object consisting of 34 graphics primitives
 
             sage: g = Graph({}, loops=True, multiedges=True, sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
+            Graphics object consisting of 22 graphics primitives
 
         The ``edge_style`` option may be provided in the short format too::
 
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='--').plot()
+            Graphics object consisting of 22 graphics primitives
 
         TESTS:
 
@@ -871,6 +875,7 @@ class GraphPlot(SageObject):
 
             sage: g = Graph({})
             sage: g.plot(title='empty graph', axes=True)
+            Graphics object consisting of 0 graphics primitives
 
         Check for invalid inputs::
 
@@ -879,6 +884,14 @@ class GraphPlot(SageObject):
             ...
             ValueError: Invalid input 'egabrag=garbage'
 
+        Make sure that no graphics primitive is clipped::
+
+            sage: tadpole = Graph({0:[0,1]}).plot()
+            sage: bbox = tadpole.get_minmax_data()
+            sage: for part in tadpole:
+            ....:      part_bbox = part.get_minmax_data()
+            ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
+            ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
         """
         G = Graphics()
         options = self._options.copy()
@@ -897,7 +910,6 @@ class GraphPlot(SageObject):
                 for item in comp:
                     G += item
 
-        G.set_axes_range(*(self._graph._layout_bounding_box(self._pos)))
         if self._options['graph_border']:
             xmin = G.xmin()
             xmax = G.xmax()
@@ -910,7 +922,6 @@ class GraphPlot(SageObject):
             G += border
         G.set_aspect_ratio(1)
         G.axes(False)
-        G._extra_kwds['axes_pad']=.05
         return G
 
     def layout_tree(self,root,orientation):

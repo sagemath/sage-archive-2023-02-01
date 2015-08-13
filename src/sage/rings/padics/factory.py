@@ -1991,7 +1991,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
         q = Integer(q)
         F = q.factor()
         if len(F) != 1:
-            raise ValueError, "q must be a prime power"
+            raise ValueError("q must be a prime power")
     else:
         F = q
         q = F[0][0]**F[0][1]
@@ -2277,7 +2277,7 @@ class pAdicExtension_class(UniqueFactory):
             # the information needed to shift right with full precision from the premodulus.
             if is_Expression(premodulus):
                 # Here we assume that the output of coeffs is sorted in increasing order by exponent:
-                coeffs = premodulus.coeffs()
+                coeffs = premodulus.coefficients()
                 preseed = premodulus / coeffs[-1][0]
                 preseed -= preseed.variables()[0]**coeffs[-1][1]
                 preseed /= base.prime() # here we assume that the base is unramified over Qp

@@ -456,12 +456,12 @@ def SRG_100_44_18_20():
     Return a `(100, 44, 18, 20)`-strongly regular graph.
 
     This graph is built as a Cayley graph, using the construction for `\Delta_1`
-    with group `H_3` presented in [JK03]_.
+    with group `H_3` presented in Table 8.1 of [JK03]_
 
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_100_44_18_20
-        sage: G = SRG_100_44_18_20()              # long time
+        sage: G = SRG_100_44_18_20()                 # long time
         sage: G.is_strongly_regular(parameters=True) # long time
         (100, 44, 18, 20)
 
@@ -492,7 +492,7 @@ def SRG_100_45_20_20():
     Return a `(100, 45, 20, 20)`-strongly regular graph.
 
     This graph is built as a Cayley graph, using the construction for `\Gamma_3`
-    with group `H_3` presented in [JK03]_.
+    with group `H_3` presented in Table 8.1 of [JK03]_.
 
     EXAMPLE::
 

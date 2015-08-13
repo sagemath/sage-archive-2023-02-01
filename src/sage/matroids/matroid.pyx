@@ -6104,12 +6104,12 @@ cdef class Matroid(SageObject):
 
     cpdef partition(self):
         r"""
-        Returns a minimum number of disjoint bases that covers the groundset.
+        Returns a minimum number of disjoint independent sets that covers the 
+        groundset.
 
         OUTPUT:
 
-        A list of disjoint bases that covers the goundset. Each base is 
-        represented as a set.
+        A list of disjoint independent sets that covers the goundset.
 
         EXAMPLES::
 

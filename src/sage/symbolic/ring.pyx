@@ -588,10 +588,10 @@ cdef class SymbolicRing(CommutativeRing):
             if latex_name is not None:
                 symb.set_texname(latex_name)
             if domain is not None:
-                symb.set_domain(sage_domain_to_ginac(domain))
+                symb.set_domain(sage_domain_to_ginac_domain(domain))
             GEx_construct_symbol(&e._gobj, symb)
             if domain is not None:
-                sage_domain_to_maxima(e, domain)
+                send_sage_domain_to_maxima(e, domain)
 
             return e
 
@@ -603,12 +603,12 @@ cdef class SymbolicRing(CommutativeRing):
             if name is None: # Check if we need a temporary anonymous new symbol
                 symb = ginac_new_symbol()
                 if domain is not None:
-                    symb.set_domain(sage_domain_to_ginac(domain))
+                    symb.set_domain(sage_domain_to_ginac_domain(domain))
             else:
                 if latex_name is None:
                     latex_name = latex_variable_name(name)
                 if domain is not None:
-                    ginac_domain = sage_domain_to_ginac(domain)
+                    ginac_domain = sage_domain_to_ginac_domain(domain)
                 else:
                     ginac_domain = domain_complex
                 symb = ginac_symbol(name, latex_name, ginac_domain)
@@ -616,7 +616,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             GEx_construct_symbol(&e._gobj, symb)
             if domain is not None:
-                sage_domain_to_maxima(e, domain)
+                send_sage_domain_to_maxima(e, domain)
 
         return e
 
@@ -799,7 +799,7 @@ cdef class SymbolicRing(CommutativeRing):
 
 SR = SymbolicRing()
 
-cdef unsigned sage_domain_to_ginac(object domain) except -1:
+cdef unsigned sage_domain_to_ginac_domain(object domain) except -1:
     """
     TESTS::
 
@@ -820,7 +820,7 @@ cdef unsigned sage_domain_to_ginac(object domain) except -1:
     else:
         raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
-cdef sage_domain_to_maxima(Expression v, object domain) except +:
+cdef send_sage_domain_to_maxima(Expression v, object domain) except +:
     from sage.symbolic.assumptions import assume
     # convert the domain argument to something easy to parse
     if domain is RR or domain == 'real':

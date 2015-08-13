@@ -23,6 +23,7 @@ AUTHORS:
 - Daniel Krenn (2015-05-29): initial version and review
 - Daniel Krenn (2015-06-02): cartesian products
 - Benjamin Hackl (2015-07): growth group factory
+- Benjamin Hackl (2015-08): exponential growth group, initial version
 
 .. WARNING::
 
@@ -45,6 +46,12 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ
+        sage: G = agg.ExponentialGrowthGroup(QQ, 'x'); G
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
+        Growth Group QQ^x
 
 
 .. NOTE::
@@ -1797,6 +1804,564 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return len(self.gens())
 
 
+
+class ExponentialGrowthElement(GenericGrowthElement):
+    r"""
+    An implementation of exponential growth elements.
+
+    INPUT:
+
+    - ``parent`` -- an :class:`ExponentialGrowthGroup`.
+
+    - ``raw_element`` -- an element from the base ring of the parent.
+
+      This ``raw_element`` is the base of the created exponential
+      growth element.
+
+    An exponential growth element represents a term of the type
+    `\operatorname{base}^{\operatorname{variable}}`. The multiplication
+    corresponds to the multiplication of the bases.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: P = agg.GrowthGroup('ZZ^x')
+        sage: e1 = P(1); e1
+        1
+        sage: e2 = P(raw_element=2); e2
+        2^x
+        sage: e1 == e2
+        False
+        sage: P.le(e1, e2)
+        True
+        sage: P.le(e1, P(1)) and P.le(P(1), e2)
+        True
+    """
+
+    @property
+    def base(self):
+        r"""
+        The base of this exponential growth element.
+
+        EXAMPLES:
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: P(42^x).base
+            42
+        """
+        return self._raw_element_
+
+
+    def _repr_(self):
+        r"""
+        A representation string for this exponential growth element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('QQ^x')
+            sage: P(1)._repr_()
+            '1'
+            sage: P(5^x)  # indirect doctest
+            5^x
+            sage: P((1/2)^x)  # indirect doctest
+            (1/2)^x
+
+        TESTS::
+
+            sage: P((-1)^x)  # indirect doctest
+            (-1)^x
+        """
+        from sage.rings.integer_ring import ZZ
+
+        if self.base == 1:
+            return '1'
+        elif self.base in ZZ and self.base > 0 or str(self.base).startswith('sqrt'):
+            return str(self.base) + '^' + self.parent()._var_
+        else:
+            return '(' + str(self.base) + ')^' + self.parent()._var_
+
+
+    def _mul_(self, other):
+        r"""
+        Multiply this exponential growth element with another.
+
+        INPUT:
+
+        - ``other`` -- a :class:`ExponentialGrowthElement`
+
+        OUTPUT:
+
+        The product as a :class:`ExponentialGrowthElement`.
+
+        .. NOTE::
+
+            Two exponential growth elements are multiplied by
+            multiplying their bases.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: a = P(2^x)
+            sage: b = P(3^x)
+            sage: c = a._mul_(b); c
+            6^x
+            sage: c == a * b
+            True
+            sage: a * b * a  # indirect doctest
+            12^x
+        """
+        return self.parent()(raw_element=self.base * other.base)
+
+
+    def __invert__(self):
+        r"""
+        Return the multiplicative inverse of this exponential growth element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        The multiplicative inverse as a :class:`ExponentialGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: e1 = P(raw_element=2)
+            sage: e2 = e1.__invert__(); e2
+            (1/2)^x
+            sage: e2 == ~e1
+            True
+        """
+        new_base = 1 / self.base
+        try:
+            return self.parent()(raw_element=new_base)
+        except (ValueError, TypeError):
+            new_parent = ExponentialGrowthGroup(new_base.parent(),
+                                                self.parent()._var_)
+            return new_parent(raw_element=new_base)
+
+
+    def __pow__(self, power):
+        r"""
+        Takes this growth element to the given ``power``.
+
+        INPUT:
+
+        - ``power`` -- a number. This can anything that is valid to be
+          on the right hand side of ``*`` with an elements of the
+          parent's base.
+
+        OUTPUT:
+
+        The result of this exponentiation a :class:`ExponentialGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: a = P(7^x); a
+            7^x
+            sage: b = a^(1/2); b
+            sqrt(7)^x
+            sage: b.parent()
+            Growth Group SR^x
+            sage: b^12
+            117649^x
+        """
+        new_base = self.base ** power
+        try:
+            return self.parent()(raw_element=new_base)
+        except (ValueError, TypeError):
+            pass
+
+        new_parent = ExponentialGrowthGroup(new_base.parent(),
+                                            self.parent()._var_)
+        return new_parent(raw_element=new_base)
+
+
+    def _le_(self, other):
+        r"""
+        Return if this :class:`ExponentialGrowthElement` is at most
+        (less than or equal to) ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`ExponentialGrowthElement`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function compares two instances of
+            :class:`ExponentialGrowthElement`.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P_ZZ = agg.GrowthGroup('ZZ^x')
+            sage: P_SR = agg.GrowthGroup('SR^x')
+            sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
+            True
+        """
+        return bool(abs(self.base) <= abs(other.base))
+
+
+class ExponentialGrowthGroup(GenericGrowthGroup):
+    r"""
+    A growth group dealing with expressions involving a fixed
+    variable/symbol as the exponent.
+
+    The elements :class:`ExponentialGrowthElement` of this group
+    represent exponential functions with bases from a fixed base
+    ring; the group law is the multiplication.
+
+    INPUT:
+
+    - ``base`` -- one of SageMath's parents, out of which the elements
+      get their data (``raw_element``).
+
+      As exponential expressions are represented by this group,
+      the elements in ``base`` are the bases of these exponentials.
+
+    - ``var`` -- an object.
+
+      The string representation of ``var`` acts as an exponent of the
+      elements represented by this group.
+
+    - ``category`` -- (default: ``None``) the category of the newly
+      created growth group. It has to be a subcategory of ``Join of
+      Category of groups and Category of posets``. This is also the
+      default category if ``None`` is specified.
+
+    EXAMPLES::
+
+        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: P = agg.ExponentialGrowthGroup(QQ, 'x'); P
+        Growth Group QQ^x
+
+    .. SEEALSO::
+
+        :class:`GenericGrowthGroup`
+    """
+
+    # enable the category framework for elements
+    Element = ExponentialGrowthElement
+
+
+    @staticmethod
+    def __classcall__(cls, base, var, category=None):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation.
+
+        For more information see :class:`ExponentialGrowthGroup`.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P1 = agg.ExponentialGrowthGroup(QQ, 'x')
+            sage: P2 = agg.ExponentialGrowthGroup(QQ, ZZ['x'].gen())
+            sage: P3 = agg.ExponentialGrowthGroup(QQ, SR.var('x'))
+            sage: P1 is P2 and P2 is P3
+            True
+            sage: P4 = agg.ExponentialGrowthGroup(QQ, buffer('xylophone', 0, 1))
+            sage: P1 is P4
+            True
+            sage: P5 = agg.ExponentialGrowthGroup(QQ, 'x ')
+            sage: P1 is P5
+            True
+        """
+        var = str(var).strip()
+        return super(ExponentialGrowthGroup, cls).__classcall__(
+            cls, base, var, category)
+
+
+    @sage.misc.superseded.experimental(trac_number=17601)
+    def __init__(self, base, var, category):
+        r"""
+        For more information see :class:`ExponentialGrowthGroup`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.ExponentialGrowthGroup(QQ, 'x')
+            Growth Group QQ^x
+            sage: agg.ExponentialGrowthGroup(SR, ZZ['y'].gen())
+            Growth Group SR^y
+
+        TESTS::
+
+            sage: agg.ExponentialGrowthGroup('x', ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: x is not a valid base
+        """
+        if not var:
+            raise ValueError('Empty var is not allowed.')
+        if var[0] in '0123456789=+-*/^%':
+            # This restriction is mainly for optical reasons on the
+            # representation. Feel free to relax this if needed.
+            raise ValueError("The variable name '%s' is inappropriate." %
+                             (var,))
+        self._var_ = var
+
+        super(ExponentialGrowthGroup, self).__init__(category=category, base=base)
+
+
+    def _repr_short_(self):
+        r"""
+        A short representation string of this exponential growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.ExponentialGrowthGroup(QQ, 'a')  # indirect doctest
+            Growth Group QQ^a
+
+
+        TESTS::
+
+            sage: agg.ExponentialGrowthGroup(QQ, 'a')._repr_short_()
+            'QQ^a'
+            sage: agg.ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
+            '(Univariate Polynomial Ring in x over Rational Field)^a'
+        """
+        return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
+
+
+    def __hash__(self):
+        r"""
+        Return the hash of this group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.ExponentialGrowthGroup(ZZ, 'x')
+            sage: hash(P)  # random
+            -1234567890123456789
+        """
+        return hash((super(ExponentialGrowthGroup, self).__hash__(), self._var_))
+
+
+    def _convert_(self, data):
+        r"""
+        Converts given ``data`` to something the constructor of the
+        element class accepts (``raw_element``).
+
+        INPUT:
+
+        - ``data`` -- an object.
+
+        OUTPUT:
+
+        An element of the base ring or ``None`` (when no such element
+        can be constructed).
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.ExponentialGrowthGroup(ZZ, 'x')
+            sage: P._convert_('icecream') is None
+            True
+            sage: P(1)  # indirect doctest
+            1
+            sage: P('2^x')  # indirect doctest
+            2^x
+
+        ::
+
+            sage: P(2^x)  # indirect doctest
+            2^x
+            sage: P((-333)^x)  # indirect doctest
+            (-333)^x
+
+        ::
+
+            sage: P('7^x')
+            7^x
+            sage: P('(-2)^x')
+            (-2)^x
+
+        ::
+
+            sage: P = agg.GrowthGroup('SR^x')
+            sage: P(sqrt(3)^x)
+            sqrt(3)^x
+            sage: P((3^(1/3))^x)
+            (3^(1/3))^x
+        """
+        if data == 1 or data == '1':
+            return self.base().one()
+
+        try:
+            P = data.parent()
+        except AttributeError:
+            import re
+            if self._var_ not in str(data):
+                return  # this has to end here
+
+            elif str(data).endswith('^' + self._var_):
+                return self.base()(str(data).replace('^' + self._var_, '')
+                                   .replace('(', '').replace(')', ''))
+            else:
+                return  # end of parsing
+
+
+        from sage.symbolic.ring import SR
+        import operator
+        from sage.symbolic.operators import mul_vararg
+        if P is SR:
+            if data.operator() == operator.pow:
+                base, exponent = data.operands()
+                if str(exponent) == self._var_:
+                    return base
+                elif exponent.operator() == mul_vararg:
+                    return base ** (exponent / SR(self._var_))
+
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return if ``S`` coerces into this growth group.
+
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P_x_ZZ = agg.GrowthGroup('ZZ^x')
+            sage: P_x_QQ = agg.GrowthGroup('QQ^x')
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            False
+            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            True
+            sage: P_y_ZZ = agg.GrowthGroup('ZZ^y')
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            False
+            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            False
+            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            False
+            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            False
+        """
+        if super(ExponentialGrowthGroup, self)._coerce_map_from_(S):
+            if self._var_ == S._var_:
+                return True
+
+
+    def gens_monomial(self):
+        r"""
+        Return a tuple containing generators of this growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple containing elements of this growth group.
+
+        .. NOTE::
+
+            A :class:`ExponentialGrowthGroup` has no generators,
+            thus an empty tuple is returned.
+
+        TESTS::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: agg.GrowthGroup('ZZ^x').gens_monomial()
+            ()
+        """
+        return ()
+
+    # for exponential growth groups, gens_monomial is an alias of gens:
+    gens = gens_monomial
+
+
+    def gen(self, n=0):
+        r"""
+        Return the `n`-th generator of this growth group.
+
+        INPUT:
+
+        - ``n`` -- default: `0`.
+
+        OUTPUT:
+
+        A generator of this growth group.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('QQ^x')
+            sage: P.gen()
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth Group QQ^x has no generators.
+        """
+        raise ValueError("%s has no generators." % (self,))
+
+    def ngens(self):
+        r"""
+        Return the number of generators of this exponential
+        growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A Python integer.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.GrowthGroup('QQ^x')
+            sage: P.ngens()
+            0
+        """
+        return len(self.gens())
+
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
@@ -1883,11 +2448,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             except (TypeError, ValueError):
                 pass
 
-            raise ValueError("'%s' is not a valid string describing "
-                             "a growth group." % (factor,))
-            # todo: once exponential growth groups are implemented,
-            #       move line above to the bottom of this loop
-
             try:
                 # exponential growth group: 'base^var'
                 groups.append(
@@ -1895,6 +2455,9 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                 continue
             except (TypeError, ValueError):
                 pass
+
+            raise ValueError("'%s' is not a valid string describing "
+                             "a growth group." % (factor,))
 
         if len(groups) == 1:
             return groups[0]

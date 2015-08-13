@@ -1,7 +1,7 @@
 r"""
 Hexads in S(5,6,12)
 
-This module completes a 5-element subset of as 12-set X
+This module completes a 5-element subset of a 12-set X
 into a hexad in a Steiner system S(5,6,12) using Curtis and
 Conway's "kitten method".  The labeling is either the
 "modulo 11" labeling or the "shuffle" labeling.
@@ -32,13 +32,13 @@ This picture is the kitten in the "shuffle" labeling::
 
 The corresponding MINIMOG is::
 
-                  _________________
-                  |  6  |  3  |  0  |  9  |
-                  |---|---|---|---|
-                  |  5  |  2  |  7  | 10  |
-                  |---|---|---|---|
-                  |  4  |  1  |  8  | 11  |
-                  |___|____|___|____|
+             +-----+-----+-----+-----+
+             |  6  |  3  |  0  |  9  |
+             +-----+-----+-----+-----+
+             |  5  |  2  |  7  | 10  |
+             +-----+-----+-----+-----+
+             |  4  |  1  |  8  | 11  |
+             +-----+-----+-----+-----+
 
 which is specified by the global variable "minimog_shuffle".
 See the docstrings for find_hexad and blackjack_move for
@@ -50,21 +50,20 @@ David Joyner (2006-05)
 
 REFERENCES:
 
-R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu group `M_{12}`,
-and the kitten, in *Computational group theory*, ed. M. Atkinson,
-Academic Press, 1984.
+.. [Cur84] R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu
+   group `M_{12}`, and the kitten, in *Computational group theory*,
+   ed. M. Atkinson, Academic Press, 1984.
 
-J. Conway, Hexacode and tetracode - MINIMOG and MOG, in *Computational
-group theory*, ed. M. Atkinson, Academic Press, 1984.
+.. [Con84] J. Conway, Hexacode and tetracode - MINIMOG and MOG,
+   in *Computational group theory*, ed. M. Atkinson, Academic Press, 1984.
 
-J. Conway and N. Sloane, *Lexicographic codes: error-correcting codes from
-game theory*, IEEE Trans. Infor. Theory 32 (1986) 337-348.
+.. [ConSlo86] J. Conway and N. Sloane, *Lexicographic codes: error-correcting
+   codes from game theory*, IEEE Trans. Infor. Theory 32 (1986) 337-348.
 
-J. Kahane and A. Ryba, The hexad game, *Electronic Journal of Combinatorics*, 8 (2001)
-http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
+.. [KahRyb01] J. Kahane and A. Ryba, The hexad game, *Electronic Journal of
+   Combinatorics*, 8 (2001) http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
 
 Some details are also online at:  http://www.permutationpuzzles.org/hexad/
-
 """
 #*****************************************************************************
 #       Copyright (C) 2005 David Joyner <wdjoyner@gmail.com>
@@ -525,15 +524,7 @@ class Minimog():
 
         David Joyner (2006-05)
 
-        REFERENCES:
-
-        R. Curtis, The Steiner system `S(5,6,12)`, the Mathieu group `M_{12}`,
-        and the kitten, in *Computational group theory*, ed. M. Atkinson,
-        Academic Press, 1984.
-
-        J. Conway, Hexacode and tetracode - MINIMOG and MOG, in *Computational
-        group theory*, ed. M. Atkinson, Academic Press, 1984.
-
+        REFERENCES: [Cur84]_,  [Con84]_
         """
         MINIMOG = self.minimog
         L = set(pts)
@@ -610,7 +601,8 @@ class Minimog():
             return H, WHAT
 
     def blackjack_move(self, L0):
-        """L is a list of cards of length 6, taken from {0,1,...,11}.
+        """
+        L is a list of cards of length 6, taken from {0,1,...,11}.
 
         MATHEMATICAL BLACKJACK
 
@@ -645,24 +637,24 @@ class Minimog():
             sage: M.blackjack_move([0,2,4,6,7,11])
             '4 --> 3. The total went from 30 to 29.'
 
-        Is this really a hexad?
+        Is this really a hexad? ::
 
             sage: M.find_hexad([11,2,3,6,7])
             ([0, 2, 3, 6, 7, 11], ['square 9', 'picture 1'])
 
-        So, yes it is, but here is further confirmation:
+        So, yes it is, but here is further confirmation::
 
             sage: M.blackjack_move([0,2,3,6,7,11])
             This is a hexad.
             There is no winning move, so make a random legal move.
             [0, 2, 3, 6, 7, 11]
 
-        Now, suppose player 2 replaced the 11 by a 9. Your next move:
+        Now, suppose player 2 replaced the 11 by a 9. Your next move::
 
             sage: M.blackjack_move([0,2,3,6,7,9])
             '7 --> 1. The total went from 27 to 21.'
 
-        You have now won. Sage will even tell you so:
+        You have now won. Sage will even tell you so::
 
             sage: M.blackjack_move([0,2,3,6,1,9])
             'No move possible. Shuffle the deck and redeal.'
@@ -671,17 +663,8 @@ class Minimog():
 
         David Joyner (2006-05)
 
-        REFERENCES:
-
-        J. Conway and N. Sloane, "Lexicographic codes:
-        error-correcting codes from game theory," IEEE
-        Trans. Infor. Theory32(1986)337-348.
-
-        J. Kahane and A. Ryba, "The hexad game," Electronic Journal
-        of Combinatorics, 8 (2001)
-        http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
+        REFERENCES: [ConSlo86]_, [KahRyb01]_
         """
-        # MINIMOG = self.minimog
         total = sum(L0)
         if total < 22:
             return "No move possible. Shuffle the deck and redeal."

@@ -328,6 +328,108 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 from sage.graphs.generators.families import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
+def is_RSHCD(int v,int k,int l,int mu):
+    r"""
+    Test whether some RSHCD graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see :func:`SRG_from_RSHCD`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_RSHCD
+        sage: t = is_RSHCD(64,27,10,12); t
+        [<built-in function SRG_from_RSHCD>, 64, 27, 10, 12]
+        sage: g = t[0](*t[1:]); g
+        Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 27, 10, 12)
+
+    """
+    if SRG_from_RSHCD(v,k,l,mu,existence=True):
+        return [SRG_from_RSHCD,v,k,l,mu]
+
+def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
+    r"""
+    Return a `(v,k,l,mu)`-strongly regular graph from a RSHCD
+
+    This construction appears in 8.D of [BvL84]_. For more information, see
+    :func:`~sage.combinat.matrices.hadamard_matrix.regular_symmetric_hadamard_matrix_with_constant_diagonal`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    - ``existence`` (boolean) -- whether to return a graph or to test if Sage
+      can build such a graph.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
+        sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
+        False
+        sage: SRG_from_RSHCD(784, 377, 180, 182, existence=True)
+        True
+        sage: SRG_from_RSHCD(144, 65, 28, 30)
+        Graph on 144 vertices
+
+    TESTS::
+
+        sage: SRG_from_RSHCD(784, 0, 14, 38)
+        Traceback (most recent call last):
+        ...
+        ValueError: I do not know how to build a (784, 0, 14, 38)-SRG from a RSHCD
+
+    REFERENCES:
+
+    .. [BvL84] A. Brouwer, J van Lint,
+      Strongly regular graphs and partial geometries,
+      Enumeration and design,
+      (Waterloo, Ont., 1982) (1984): 85-122.
+      http://oai.cwi.nl/oai/asset/1817/1817A.pdf
+    """
+    from sage.combinat.matrices.hadamard_matrix import regular_symmetric_hadamard_matrix_with_constant_diagonal
+    sgn = lambda x: 1 if x>=0 else -1
+    n = v
+    a = (n-4*mu)//2
+    e = 2*k - n + 1 + a
+    t = abs(a//2)
+
+    if (e**2 == 1              and
+        k == (n-1-a+e)/2       and
+        l == (n-2*a)/4 - (1-e) and
+        mu== (n-2*a)/4         and
+        regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e,existence=True)):
+        if existence:
+            return True
+        from sage.matrix.constructor import identity_matrix as I
+        from sage.matrix.constructor import ones_matrix     as J
+
+        H = regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e)
+        if list(H.column(0)[1:]).count(1) == k:
+            H = -H
+        G = Graph((J(n)-I(n)-H+H[0,0]*I(n))/2,loops=False,multiedges=False,format="adjacency_matrix")
+        if check:
+            assert G.is_strongly_regular(parameters=True) == (v,k,l,mu)
+        return G
+
+    if existence:
+        return False
+    raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -1186,7 +1288,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
-                      is_orthogonal_polar]
+                      is_orthogonal_polar,
+                      is_RSHCD]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

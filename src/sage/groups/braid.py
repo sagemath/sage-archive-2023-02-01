@@ -674,8 +674,25 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B([4,5,4]).TL_matrix(d) == B([5,4,5]).TL_matrix(d)
             True
 
+        An element of the kernel of the Burau representation, following
+        [Big99]_::
+
+            sage: B = BraidGroup(6)
+            sage: psi1 = B([4, -5, -2, 1])
+            sage: psi2 = B([-4, 5, 5, 2, -1, -1])
+            sage: w1 = psi1^(-1) * B([3]) * psi1
+            sage: w2 = psi2^(-1) * B([3]) * psi2
+            sage: (w1 * w2 * w1^(-1) * w2^(-1)).TL_matrix(4)
+            [1 0 0 0 0]
+            [0 1 0 0 0]
+            [0 0 1 0 0]
+            [0 0 0 1 0]
+            [0 0 0 0 1]
+
         REFERENCES:
 
+        .. [Big99] Stephen J. Bigelow. The Burau representation is not faithful
+                   for n = 5. Geom. Topol., 3:397–404, 1999.
         .. [Jon] Vaughan Jones. The Jones Polynomial.
                  https://math.berkeley.edu/~vfr/jones.pdf
         """

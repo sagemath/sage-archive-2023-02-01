@@ -29,10 +29,14 @@ AUTHORS:
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: import sage.monoids.asymptotic_term_monoid as atm
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: T = atm.ExactTermMonoid(G, ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
 """

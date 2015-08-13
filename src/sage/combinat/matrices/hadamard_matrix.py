@@ -333,7 +333,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     `M` is a regular symmetric Hadamard matrix with constant diagonal
     `\delta\in\{-1,+1\}` and row values all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
-    [BH11]_.
+    [BH12]_.
 
     INPUT:
 

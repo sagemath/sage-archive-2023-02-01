@@ -121,7 +121,11 @@ def temperley_lieb_diagrams(k):
         [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
     """
     B = brauer_diagrams(k)
-    return [i for i in B if is_planar(i)]
+    T = []
+    for i in B:
+        if is_planar(i) == True:
+            T.append(i)
+    return T
 
 def planar_diagrams(k):
     r"""
@@ -144,7 +148,11 @@ def planar_diagrams(k):
          {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     A = partition_diagrams(k)
-    return [i for i in A if is_planar(i)]
+    P = []
+    for i in A:
+        if is_planar(i) == True:
+            P.append(i)
+    return P
 
 def ideal_diagrams(k):
     r"""
@@ -165,7 +173,11 @@ def ideal_diagrams(k):
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}}, {{-2, 1, 2}, {-1}}, {{-2, 2}, {-1}, {1}}]
     """
     A = partition_diagrams(k)
-    return [i for i in A if propagating_number(i) < k]
+    I = []
+    for i in A:
+        if propagating_number(i) < k:
+            I.append(i)
+    return I
 
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""

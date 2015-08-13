@@ -167,8 +167,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     also compute with logarithmic terms (simply by constructing the
     appropriate growth group)::
 
-        sage: R_log.<xl> = AsymptoticRing('log(x)^QQ', QQ)
-        sage: (O(xl) + xl^3)^4
+        sage: R_log = AsymptoticRing('log(x)^QQ', QQ)
+        sage: lx = R_log(log(SR.var('x')))
+        sage: (O(lx) + lx^3)^4
         log(x)^12 + O(log(x)^10)
     """
     def __init__(self, parent, summands, simplify=True):
@@ -578,7 +579,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         sage: R.<x> = AsymptoticRing('x^ZZ', QQ); R
         Asymptotic Ring <x^ZZ> over Rational Field
-        sage: R_log.<lx> = AsymptoticRing('log(x)^ZZ', QQ); R_log
+        sage: R_log = AsymptoticRing('log(x)^ZZ', QQ); R_log
         Asymptotic Ring <log(x)^ZZ> over Rational Field
 
     According to the conventions for parents, uniqueness is ensured::

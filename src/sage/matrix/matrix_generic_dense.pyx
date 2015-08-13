@@ -2,6 +2,7 @@
 Dense Matrices over a general ring
 """
 include "sage/ext/interrupt.pxi"
+cimport cython
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *
@@ -253,6 +254,9 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             A.subdivide(*self.subdivisions())
         return A
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    @cython.overflowcheck(False)
     def _multiply_classical(left, matrix.Matrix _right):
         """
         Multiply the matrices left and right using the classical
@@ -316,7 +320,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 z = zero
                 m = i*snc
                 for k in range(snc):
-                    z = z._add_(left._entries[m+k]._mul_(right._entries[k*nc+j]))
+                    z += left._entries[m+k]._mul_(right._entries[k*nc+j])
                 v[p] = z
                 p += 1
 

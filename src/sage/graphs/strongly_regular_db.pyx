@@ -1292,7 +1292,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         Traceback (most recent call last):
         ...
         EmptySetError: Andries Brouwer's database reports that no (324, 57, 0,
-        12)-strongly regular graph exists.Comments: <a
+        12)-strongly regular graph exists. Comments: <a
         href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> and <a
         href="srgtabrefs.html#KaskiOstergard07">Kaski & stergrd</a>
 
@@ -1431,7 +1431,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             if existence:
                 return False
             raise EmptySetError("Andries Brouwer's database reports that no "+
-                                str((v,k,l,mu))+"-strongly regular graph exists."+
+                                str((v,k,l,mu))+"-strongly regular graph exists. "+
                                 "Comments: "+brouwer_data['comments'].encode('ascii','ignore'))
 
         if brouwer_data['status'] == 'open':

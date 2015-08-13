@@ -218,7 +218,8 @@ class YangBaxterGraph_generic(SageObject):
             1028420699          # 32-bit
             7656306018247013467 # 64-bit
         """
-        # TODO: this is ugly by unavoidable
+        # TODO: this is ugly but unavoidable: the Yang Baxter graphs are being
+        # used in containers but are mutable.
         return hash(self._digraph.copy(immutable=True))
 
     def __eq__(self, other):

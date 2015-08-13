@@ -314,8 +314,6 @@ class RootSystem(UniqueRepresentation, SageObject):
             try:
                 self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
             except Exception:
-                print "HELLOOOOOOOOOOOOO! {}".format(self._cartan_type)
-                raise
                 pass
         else:
             self.dual_side = True

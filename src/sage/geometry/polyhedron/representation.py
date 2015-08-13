@@ -89,8 +89,9 @@ class PolyhedronRepresentation(SageObject):
             4686581268940269811  # 64-bit
         """
         # TODO: ideally the argument self._vector of self should be immutable.
-        # It is not because it might be reused (see e.g.
-        # Hrepresentation._set_data below)
+        # So that we could change the line below by hash(self._vector). The
+        # mutability is kept because this argument might be reused (see e.g.
+        # Hrepresentation._set_data below).
         return hash(tuple(self._vector))
 
     def __cmp__(self, other):

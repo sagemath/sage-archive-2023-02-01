@@ -858,12 +858,18 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
             sage: RC.cardinality()
             100
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
-            sage: RC.cardinality()
-            5130
+            sage: len(RC.list())
+            100
+
             sage: RC = RiggedConfigurations(['E', 7, 1], [[1,1]])
             sage: RC.cardinality()
             134
+            sage: len(RC.list())
+            134
+
+            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
+            sage: RC.cardinality()
+            5130
         """
         CWLR = self.cartan_type().classical().root_system().ambient_space()
         return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)

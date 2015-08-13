@@ -333,7 +333,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
     `M` is a regular symmetric Hadamard matrix with constant diagonal
     `\delta\in\{-1,+1\}` and row values all equal to `\delta \epsilon
     \sqrt(n)`. For more information, see [HX10]_ or 10.5.1 in
-    [BrouwerSpectra11]_.
+    [BH11]_.
 
     INPUT:
 
@@ -377,9 +377,9 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     REFERENCE:
 
-    .. [BrouwerSpectra11] A. Brouwer and W. Haemers,
+    .. [BH12] A. Brouwer and W. Haemers,
       Spectra of graphs,
-      Springer, 2011.
+      Springer, 2012.
 
     .. [HX10] W. Haemers and Q. Xiang,
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,

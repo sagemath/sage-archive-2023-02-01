@@ -1446,7 +1446,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a generator of this growth group, in case one exists.
+        Return a tuple containing generators of this growth group.
 
         INPUT:
 
@@ -1454,34 +1454,31 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        An element of this growth group or ``None``.
+        A tuple containing elements of this growth group.
 
         .. NOTE::
 
             If a :class:`MonomialGrowthGroup` models a logarithmic
             growth group (by having a variable name of the form
-            ``log(...)``), ``None`` is returned.
+            ``log(...)``), an empty tuple is returned.
 
         TESTS::
 
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: agg.MonomialGrowthGroup(ZZ, 'x').gens_monomial()
-            x
-            sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial() is None
-            True
+            (x,)
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial()
+            ()
         """
         if self._var_.startswith('log(') and self._var_.endswith(')'):
-            return None
-        return self(raw_element=self.base().one())
-
-    # for simple growth groups, gen is an alias of gens_monomial:
-    gen = gens_monomial
+            return ()
+        return (self(raw_element=self.base().one()),)
 
 
     def gens(self):
         r"""
         Return a tuple of all generators of this monomial growth
-        group.
+        group, even if the growth group is logarithmic.
 
         INPUT:
 
@@ -1489,7 +1486,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A tuple whose entries are :class:`MonomialGrowthElement`.
+        A tuple whose entries are instances of
+        :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -1498,14 +1496,31 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P.gens()
             (x,)
             sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').gens()
-            ()
+            (log(x),)
         """
-        gen = self.gen()
-        if gen:
-            return (gen,)
-        else:
-            return ()
+        return (self(raw_element=self.base().one()),)
 
+
+    def gen(self, n=0):
+        r"""
+        Return the `n`-th generator of this growth group.
+
+        INPUT:
+
+        - ``n`` -- default: `0`.
+
+        OUTPUT:
+
+        A :class:`MonomialGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P.gen()
+            x
+        """
+        return self.gens()[n]
 
     def ngens(self):
         r"""
@@ -1526,7 +1541,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P.ngens()
             1
             sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').ngens()
-            0
+            1
         """
         return len(self.gens())
 

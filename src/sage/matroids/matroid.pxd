@@ -168,6 +168,7 @@ cdef class Matroid(SageObject):
     cpdef intersection(self, other, weights=*)
     cpdef _intersection(self, other, weights)
     cpdef _intersection_augmentation(self, other, weights, Y)
+    cpdef partition(self)
 
     # invariants
     cpdef _internal(self, B)

@@ -7,13 +7,13 @@ cdef class SumMatroid(Matroid):
     cpdef _rank(self, X)
 
 cdef class PartitionMatroid(Matroid):
-    cdef list p
+    cdef dict p
     cdef frozenset _groundset
     cpdef groundset(self)
     cpdef _rank(self, X)
 
 cdef class UnionMatroid(Matroid):
-    cdef list inputs
+    cdef list matroids
     cdef frozenset _groundset
     cpdef groundset(self)
     cpdef _rank(self, X)

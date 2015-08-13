@@ -455,8 +455,8 @@ def SRG_100_44_18_20():
     r"""
     Return a `(100, 44, 18, 20)`-strongly regular graph.
 
-    This graph is built as a Cayley graph, using the construction presented in
-    [JK03]_,
+    This graph is built as a Cayley graph, using the construction for `\Delta_1`
+    with group `H_3` presented in [JK03]_.
 
     EXAMPLE::
 
@@ -491,8 +491,8 @@ def SRG_100_45_20_20():
     r"""
     Return a `(100, 45, 20, 20)`-strongly regular graph.
 
-    This graph is built as a Cayley graph, using the construction presented in
-    [JK03]_,
+    This graph is built as a Cayley graph, using the construction for `\Gamma_3`
+    with group `H_3` presented in [JK03]_.
 
     EXAMPLE::
 

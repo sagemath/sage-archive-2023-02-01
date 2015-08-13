@@ -1326,16 +1326,16 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertex_attrs`` (dictionary) - a dictionary where the key is a string
           (the attribute name), and the value is an iterable containing in
-          position i the label of the ith vertex (see
-          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
+          position i the label of the ith vertex returned by :meth:`vertices`
+          (see http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
           more information).
 
         - ``edge_attrs`` (dictionary) - a dictionary where the key is a string
           (the attribute name), and the value is an iterable containing in
           position i the label of the ith edge in the list outputted by
-          ``self.edges()`` (see
-          http://igraph.org/python/doc/igraph.Graph-class.html#__init__
-          for more information).
+          :meth:`edges_iterator` (see
+          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
+          information).
 
         .. NOTE::
 
@@ -7788,6 +7788,7 @@ class GenericGraph(GenericGraph_pyx):
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
             if integer:
+                from math import floor
                 capacity=lambda x: floor(x) if x in RR else 1
             else:
                 capacity=lambda x: x if x in RR else 1
@@ -7805,7 +7806,6 @@ class GenericGraph(GenericGraph_pyx):
         if (method == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (method == 'igraph'):
-            from math import floor
 
             try:
                 import igraph
@@ -7813,28 +7813,27 @@ class GenericGraph(GenericGraph_pyx):
                 raise ImportError("The igraph library is not available. " +
                                  "Please, install it with sage -i igraph " +
                                  "followed by sage -i python_igraph.")
-            v_to_int = {v:i for i,v in enumerate(self.vertices())}
-            x_int = v_to_int[x]
-            y_int = v_to_int[y]
+            vertices = self.vertices()
+            x_int = vertices.index(x)
+            y_int = vertices.index(y)
             if use_edge_labels:
-                g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
                 maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
             else:
-                g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()})
+                g_igraph = self.igraph_graph()
                 maxflow = g_igraph.maxflow(x_int, y_int)
 
             if value_only:
                 return maxflow.value
             else:
+                from sage.graphs.digraph import DiGraph
                 igraph_flow = iter(maxflow.flow)
-                edge_iter = self.edge_iterator()
-                edges = []
-                names = g_igraph.vs()['name']
+                flow_digraph = DiGraph()
                 if self.is_directed():
                     for e in g_igraph.es():
                         f = maxflow.flow[e.index]
                         if f != 0:
-                            edges.append((names[e.source], names[e.target], f))
+                            flow_digraph.add_edge(e.source, e.target, f)
                 else:
                     # If the graph is undirected, the output of igraph is a list
                     # of weights: a positive weight means that the flow is from
@@ -7843,12 +7842,11 @@ class GenericGraph(GenericGraph_pyx):
                     for e in g_igraph.es():
                         f = maxflow.flow[e.index]
                         if (f > 0 and e.source < e.target) or (f < 0 and e.source > e.target):
-                            edges.append((names[e.source], names[e.target], abs(f)))
+                            flow_digraph.add_edge(e.source, e.target, abs(f))
                         elif f != 0:
-                            edges.append((names[e.target], names[e.source], abs(f)))
-
-                from sage.graphs.digraph import DiGraph
-                return [maxflow.value, DiGraph(edges)]
+                            flow_digraph.add_edge(e.target, e.source, abs(f))
+                flow_digraph.relabel({i:vertices[i] for i in flow_digraph})
+                return [maxflow.value, flow_digraph]
 
         if method != "LP":
             raise ValueError("The method argument has to be equal to either " +

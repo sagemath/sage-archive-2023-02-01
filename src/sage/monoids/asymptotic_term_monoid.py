@@ -1535,6 +1535,13 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: T(x)
             Asymptotic Term with coefficient 1 and growth x
+
+        ::
+
+            sage: G_log = agg.GrowthGroup('log(x)^ZZ')
+            sage: T_log = atm.TermWithCoefficientMonoid(G_log, ZZ)
+            sage: T_log(log(x))
+            Asymptotic Term with coefficient 1 and growth log(x)
         """
         if type(data) == self.element_class and data.parent() == self:
             return data
@@ -1553,11 +1560,12 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                 import operator
                 from sage.symbolic.operators import mul_vararg
                 if P is SR:
-                    if data.operator() == mul_vararg:
+                    op = data.operator()
+                    if op == mul_vararg:
                         data, coef_tmp = data.operands()
                         data = self.growth_group(data)
-                    elif data.operator() == operator.pow or \
-                            data.operator() is None:
+                    elif op in (operator.pow, None) or\
+                            isinstance(op, sage.functions.log.Function_log):
                         coef_tmp = 1
                         data = self.growth_group(data)
                 else:

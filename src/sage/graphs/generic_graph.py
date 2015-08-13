@@ -19479,12 +19479,16 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        -  ``certify`` - if True, then output is `(a, b)`, where `a`
+           is a boolean and `b` is either a map or ``None``.
 
-        -  ``certify`` - if True, then output is (a,b), where a
-           is a boolean and b is either a map or None.
-
-        -  ``edge_labels`` - default False, otherwise allows
+        -  ``edge_labels`` - default ``False``, otherwise allows
            only permutations respecting edge labels.
+           
+        OUTPUT:
+        
+        - either a boolean or, if ``certify`` is ``True``, a tuple consisting
+          of a boolean and a map or ``None``
 
         EXAMPLES:
 
@@ -19670,10 +19674,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
+            
+        as well as :trac:`18613`::
+        
+            sage: g.is_isomorphic(h, certify=True)
+            (True, None)
         """
 
         if self.order() == other.order() == 0:
-            return True
+            return (True, None) if certify else True
 
         if (self.is_directed() != other.is_directed() or self.order() != other.order() or
             self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):

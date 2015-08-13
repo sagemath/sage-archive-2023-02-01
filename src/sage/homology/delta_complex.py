@@ -479,7 +479,7 @@ class DeltaComplex(GenericCellComplex):
         TESTS::
 
             sage: hash(delta_complexes.Sphere(2))
-            3505125070           # 32-bit
+            -789842226           # 32-bit
             -5090854238868998450 # 64-bit
             sage: hash(delta_complexes.Sphere(4))
             376965290           # 32-bit

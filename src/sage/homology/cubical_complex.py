@@ -833,7 +833,7 @@ class CubicalComplex(GenericCellComplex):
             2025268965           # 32-bit
             6535457225869567717  # 64-bit
             sage: hash(I1.product(I1))
-            4177112485           # 32-bit
+            -117854811           # 32-bit
             -1640877824464540251 # 64-bit
         """
         return hash(frozenset(self._facets))

@@ -739,7 +739,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         Traceback (most recent call last):
         ...
         ValueError: Dijkstra algorithm does not work with negative weights. Please, use Bellman-Ford.
-        
+
     Wrong starting vartex::
 
         sage: shortest_paths(g, [])
@@ -762,7 +762,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     cdef BoostVecWeightedDiGraphU g_boost_dir
     cdef BoostVecWeightedGraph g_boost_und
     cdef result_distances result
-    
+
     if start not in v_to_int.keys():
         raise ValueError("The starting vertex " + str(start) + " is not in " +
                          "the graph.")
@@ -837,7 +837,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     from sage.rings.real_mpfr import RealNumber, RR
     if correct_type == RealNumber:
         correct_type = RR
-    
+
     import sys
     for v in range(g.num_verts()):
         if result.distances[v] != sys.float_info.max:
@@ -918,7 +918,7 @@ cpdef johnson_shortest_paths(g, weight_function = None):
         raise ValueError("The input g must be a Sage Graph or DiGraph.")
     elif g.num_edges() == 0:
         from sage.rings.infinity import Infinity
-        return [{v:{v:0} for v in g.vertices()}, {v:{v:None} for v in g.vertices()}]
+        return {v:{v:0} for v in g.vertices()}
     # These variables are automatically deleted when the function terminates.
     cdef dict v_to_int = {v:i for i,v in enumerate(g.vertices())}
     cdef dict int_to_v = {i:v for i,v in enumerate(g.vertices())}

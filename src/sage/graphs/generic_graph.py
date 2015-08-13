@@ -14103,6 +14103,7 @@ class GenericGraph(GenericGraph_pyx):
                 G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
             else:
                 G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            G.add_nodes_from(self.vertices())
             return networkx.bidirectional_dijkstra(G, u, v)[1]
         elif algorithm=="BFS_Bid":
             return self._backend.shortest_path(u,v)
@@ -14462,6 +14463,7 @@ class GenericGraph(GenericGraph_pyx):
                     G = networkx.DiGraph(self.edges(labels=False))
                 else:
                     G = networkx.Graph(self.edges(labels=False))
+            G.add_nodes_from(self.vertices())
             return networkx.single_source_dijkstra_path(G, u)
 
         elif algorithm in ['Dijkstra_Boost','Bellman-Ford_Boost',None]:
@@ -14968,8 +14970,8 @@ class GenericGraph(GenericGraph_pyx):
             return floyd_warshall(self, distances = True)
 
         elif algorithm == "Johnson_Boost":
-            if by_weight and weight_function is None:
-                weight_function = lambda e:e[2]
+            if not by_weight:
+                weight_function = lambda e:1
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             return [johnson_shortest_paths(self, weight_function), None]
 

@@ -628,10 +628,21 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR2.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR1 is AR2
             True
+
+        The bracket notation can only be used if the growth group
+        has a generator::
+
+            sage: AR.<lx> = AsymptoticRing('log(x)^ZZ', ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth Group log(x)^ZZ does not have a generator.
         """
         if isinstance(growth_group, str):
             from sage.groups.asymptotic_growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
+
+        if names is not None and not growth_group.gens_monomial():
+            raise ValueError("%s does not have a generator." % (growth_group,))
 
         return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
                                                         coefficient_ring,

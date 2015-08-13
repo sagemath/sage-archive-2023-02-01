@@ -606,8 +606,7 @@ class Minimog():
             return H,WHAT
 
     def blackjack_move(self, L0):
-        """
-        L is a list of cards of length 6, taken from {0,1,...,11}.
+        """L is a list of cards of length 6, taken from {0,1,...,11}.
 
         MATHEMATICAL BLACKJACK
 
@@ -632,7 +631,6 @@ class Minimog():
 
         Proposition (Ryba, Conway)   For this Steiner system, the winning strategy is to choose a
         move which is a hexad from this system.
-
 
         EXAMPLES::
 
@@ -665,15 +663,19 @@ class Minimog():
             sage: M.blackjack_move([0,2,3,6,1,9])
             'No move possible. Shuffle the deck and redeal.'
 
-        AUTHOR::
-            David Joyner (2006-05)
+        AUTHOR:
 
-        REFERENCES::
-            J. Conway and N. Sloane, "Lexicographic codes: error-correcting codes from
-            game theory,'' IEEE Trans. Infor. Theory32(1986)337-348.
-            J. Kahane and A. Ryba, "The hexad game,'' Electronic Journal of Combinatorics, 8 (2001)
-            http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
+        David Joyner (2006-05)
 
+        REFERENCES:
+
+        J. Conway and N. Sloane, "Lexicographic codes:
+        error-correcting codes from game theory," IEEE
+        Trans. Infor. Theory32(1986)337-348.
+
+        J. Kahane and A. Ryba, "The hexad game," Electronic Journal
+        of Combinatorics, 8 (2001)
+        http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
         """
         MINIMOG = self.minimog
         total = sum(L0)
@@ -691,6 +693,3 @@ class Minimog():
                 return str(x) +' --> '+str(y)+". The total went from "+ str(total) +" to "+str(total-x+y)+"."
         print "This is a hexad. \n There is no winning move, so make a random legal move."
         return L0
-
-
-

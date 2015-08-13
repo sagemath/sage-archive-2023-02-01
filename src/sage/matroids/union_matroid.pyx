@@ -1,5 +1,5 @@
 from matroid cimport Matroid
-cdef class UnionMatroid(Matroid):
+cdef class MatroidUnion(Matroid):
     r"""
     Matroid Union.
 
@@ -14,7 +14,7 @@ cdef class UnionMatroid(Matroid):
 
     OUTPUT:
 
-    A ``UnionMatroid`` instance, it's a matroid union of all matroids in ``matroids``.
+    A ``MatroidUnion`` instance, it's a matroid union of all matroids in ``matroids``.
     """
     def __init__(self, matroids):
         """
@@ -23,7 +23,7 @@ cdef class UnionMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: UnionMatroid([matroids.Uniform(2,4),matroids.Uniform(5,8)])
+            sage: MatroidUnion([matroids.Uniform(2,4),matroids.Uniform(5,8)])
             Matroid of rank 7 on 8 elements as matroid union of
             Matroid of rank 2 on 4 elements with circuit-closures
             {2: {{0, 1, 2, 3}}}
@@ -49,7 +49,7 @@ cdef class UnionMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: M = UnionMatroid([matroids.Uniform(2,4),matroids.Uniform(5,8)])
+            sage: M = MatroidUnion([matroids.Uniform(2,4),matroids.Uniform(5,8)])
             sage: sorted(M.groundset())
             [0, 1, 2, 3, 4, 5, 6, 7]
         """
@@ -73,7 +73,7 @@ cdef class UnionMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: M = SumMatroid([matroids.Uniform(2,4),matroids.Uniform(2,4)])
+            sage: M = MatroidSum([matroids.Uniform(2,4),matroids.Uniform(2,4)])
             sage: M._rank([(0,0),(1,0)])
             2
             sage: M._rank([(0,0),(0,1),(0,2),(1,0),(1,1)])
@@ -87,7 +87,7 @@ cdef class UnionMatroid(Matroid):
         summands = []
         for e in self.matroids:
             summands.append(e.delete(e.groundset()-X))
-        sum_matroid = SumMatroid(summands)
+        sum_matroid = MatroidSum(summands)
         d = {}
         for (i,x) in sum_matroid.groundset():
             if not x in d:
@@ -103,7 +103,7 @@ cdef class UnionMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: UnionMatroid([matroids.Uniform(2,4),matroids.Uniform(5,8)])
+            sage: MatroidUnion([matroids.Uniform(2,4),matroids.Uniform(5,8)])
             Matroid of rank 7 on 8 elements as matroid union of
             Matroid of rank 2 on 4 elements with circuit-closures
             {2: {{0, 1, 2, 3}}}
@@ -115,7 +115,7 @@ cdef class UnionMatroid(Matroid):
             S = S + M._repr_() +"\n"
         return S[:-1]
 
-cdef class SumMatroid(Matroid):
+cdef class MatroidSum(Matroid):
     r"""
     Matroid Sum.
 
@@ -128,7 +128,7 @@ cdef class SumMatroid(Matroid):
 
     OUTPUT:
 
-    A ``SumMatroid`` instance, it's a matroid sum of all matroids in ``matroids``.
+    A ``MatroidSum`` instance, it's a matroid sum of all matroids in ``matroids``.
     """
     def __init__(self, summands):
         """
@@ -137,7 +137,7 @@ cdef class SumMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: SumMatroid([matroids.Uniform(2,4),matroids.Uniform(5,8)])
+            sage: MatroidSum([matroids.Uniform(2,4),matroids.Uniform(5,8)])
             Matroid of rank 7 on 12 elements as matroid sum of
             Matroid of rank 2 on 4 elements with circuit-closures
             {2: {{0, 1, 2, 3}}}
@@ -158,7 +158,7 @@ cdef class SumMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: SumMatroid([matroids.Uniform(2,4),matroids.Uniform(2,4)])
+            sage: MatroidSum([matroids.Uniform(2,4),matroids.Uniform(2,4)])
             Matroid of rank 4 on 8 elements as matroid sum of
             Matroid of rank 2 on 4 elements with circuit-closures
             {2: {{0, 1, 2, 3}}}
@@ -183,7 +183,7 @@ cdef class SumMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: M = SumMatroid([matroids.Uniform(2,4),matroids.Uniform(2,4)])
+            sage: M = MatroidSum([matroids.Uniform(2,4),matroids.Uniform(2,4)])
             sage: sorted(M.groundset())
             [(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3)]
         """
@@ -207,7 +207,7 @@ cdef class SumMatroid(Matroid):
         EXAMPLES::
 
             sage: from sage.matroids.union_matroid import *
-            sage: M = SumMatroid([matroids.Uniform(2,4),matroids.Uniform(2,4)])
+            sage: M = MatroidSum([matroids.Uniform(2,4),matroids.Uniform(2,4)])
             sage: M._rank([(0,0),(1,0)])
             2
             sage: M._rank([(0,0),(0,1),(0,2),(1,0),(1,1)])

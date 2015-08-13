@@ -6130,14 +6130,14 @@ cdef class Matroid(SageObject):
         and a partition matroid. It's known the direct method doesn't gain
         much advantage over matroid intersection. [Cunningham86]
         """
-        from sage.matroids.union_matroid import SumMatroid, PartitionMatroid
+        from sage.matroids.union_matroid import MatroidSum, PartitionMatroid
         if self.loops():
             raise ValueError("Cannot partition matroids with loops.")
         n = self.size()
         r = self.rank()
         k = -(-n/r)
         p = PartitionMatroid([[(i,x) for i in range(k)] for x in self.groundset()])
-        X = SumMatroid([self]*k).intersection(p)
+        X = MatroidSum([self]*k).intersection(p)
         partition = {}
         for (i,x) in X:
             if not i in partition:

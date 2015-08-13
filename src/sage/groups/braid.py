@@ -619,15 +619,15 @@ class Braid(FinitelyPresentedGroupElement):
         representation of the braid in a certain basis.
         
         The basis is given by non-intersecting pairings of $(n+d)$ points,
-        where $n$ is the number of strands, and $d$ is given by
+        where `n` is the number of strands, and `d` is given by
         ``drain_size``, and the pairings satisfy certain rules. See
         ``BraidGroup_class.TL_basis_with_drain()`` for details.
 
         We use the convention that the eigenvalues of the standard generators
-        are $1$ and $-A^4$, where $A$ is the generator of the Laurent
+        are `1` and `-A^4`, where `A` is the generator of the Laurent
         polynomial ring.
 
-        When $d = n-2$ and the variables are picked appropriately, the
+        When `d = n - 2` and the variables are picked appropriately, the
         resulting representation is equivalent to the reduced Burau
         representation.
         
@@ -652,7 +652,7 @@ class Braid(FinitelyPresentedGroupElement):
 
         EXAMPLES:
 
-        Let us calculate a few examples for $B_4$ with $d = 0$::
+        Let us calculate a few examples for `B_4` with `d = 0`::
 
             sage: B = BraidGroup(4)
             sage: b = B([1, 2, -3])
@@ -753,7 +753,7 @@ class Braid(FinitelyPresentedGroupElement):
         
         The normalisation is so that in the underlying braid group
         representation, the eigenvalues of the standard generators of the braid
-        group are $1$ and $-A^4$.
+        group are `1` and `-A^4`.
 
         INPUT:
 
@@ -791,7 +791,7 @@ class Braid(FinitelyPresentedGroupElement):
         """
         Return the Jones polynomial of the trace closure of the braid.
         
-        The normalization is so that the unknot has Jones polynomial $1$. If
+        The normalization is so that the unknot has Jones polynomial `1`. If
         ``skein_variable`` is True, give the result in terms of a variable
         ``'A'`` so that the result agrees with the conventions of [Lic]_ (which
         in particular differs slightly from the conventions used otherwise in
@@ -1365,8 +1365,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES:
 
-        Calculation of the dimension of the representation of $B_8$
-        corresponding to having $2$ drains::
+        Calculation of the dimension of the representation of `B_8`
+        corresponding to having `2` drains::
 
             sage: B = BraidGroup(8)
             sage: B.dim_of_TL_space(2)
@@ -1404,19 +1404,19 @@ class BraidGroup_class(FinitelyPresentedGroup):
         Return a basis of a summand of the Temperley--Lieb--Jones
         representation.
         
-        The basis elements are given by non-intersecting pairings of $n+d$
-        points in a square with $n$ points marked 'on the top' and $d$ points
+        The basis elements are given by non-intersecting pairings of `n+d`
+        points in a square with `n` points marked 'on the top' and `d` points
         'on the bottom' so that every bottom point is paired with a top point.
-        Here, $n$ is the number of strands of the braid group, and $d$ is
+        Here, `n` is the number of strands of the braid group, and `d` is
         specified by ``drain_size``.
 
         A basis element is specified as a list of integers obtained by
         considering the pairings as obtained as the 'highest term' of trivalent
         trees marked by Jones--Wenzl projectors (see e.g. [Wan]_). In practice,
         this is a list of non-negative integers whose first element is
-        ``drain_size``, whose last element is $0$, and satisfying that
-        consecutive integers have difference $1$. Moreover, the length of each
-        basis element is $n+1$.
+        ``drain_size``, whose last element is `0`, and satisfying that
+        consecutive integers have difference `1`. Moreover, the length of each
+        basis element is `n+1`.
 
         Given these rules, the list of lists is constructed recursively in the
         natural way.
@@ -1432,8 +1432,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES:
 
-        We calculate the basis for the appropriate vector space for $B_5$ when
-        $d = 3$::
+        We calculate the basis for the appropriate vector space for `B_5` when
+        `d = 3`::
 
             sage: B = BraidGroup(5)
             sage: B.TL_basis_with_drain(3)
@@ -1499,20 +1499,20 @@ class BraidGroup_class(FinitelyPresentedGroup):
         Return representation matrices of the Temperley--Lieb--Jones
         representation of standard braid group generators.
         
-        The basis is given by non-intersecting pairings of $(n+d)$ points,
-        where $n$ is the number of strands, and $d$ is given by ``drain_size``,
+        The basis is given by non-intersecting pairings of `(n+d)` points,
+        where `n` is the number of strands, and `d` is given by ``drain_size``,
         and the pairings satisfy certain rules. See
         ``BraidGroup_class.TL_basis_with_drain()`` for details. This basis has
         the useful property that all resulting entries can be regarded as
         Laurent polynomials.
 
         We use the convention that the eigenvalues of the standard generators
-        are $1$ and $-A^4$, where $A$ is the generator of the Laurent
+        are `1` and `-A^4`, where `A` is the generator of the Laurent
         polynomial ring.
 
-        When $d = n-2$ and the variables are picked appropriately, the
+        When `d = n - 2` and the variables are picked appropriately, the
         resulting representation is equivalent to the reduced Burau
-        representation. When $d = n$, the resulting representation is trivial
+        representation. When `d = n`, the resulting representation is trivial
         and 1-dimensional.
 
         Store the result of the calculation as part of the braid group.

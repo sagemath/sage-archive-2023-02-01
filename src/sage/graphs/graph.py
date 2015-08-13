@@ -6610,7 +6610,7 @@ class Graph(GenericGraph):
         On the other hand, such a tree has lost nothing of the initial
         graph connectedness::
 
-            sage: all([ t.flow(u,v,use_edge_labels=True) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ])
+            sage: all([ t.flow(u,v) == g.flow(u,v) for u,v in Subsets( g.vertices(), 2 ) ])
             True
 
         Just to make sure, we can check that the same is true for two vertices
@@ -6618,7 +6618,7 @@ class Graph(GenericGraph):
 
             sage: g = graphs.RandomGNP(20,.3)
             sage: t = g.gomory_hu_tree()
-            sage: g.flow(0,1) == t.flow(0,1,use_edge_labels=True)
+            sage: g.flow(0,1) == t.flow(0,1)
             True
 
         And also the min cut::

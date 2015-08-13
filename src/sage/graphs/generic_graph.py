@@ -7613,7 +7613,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 return [v for v in self if b_sol[v] == 1]
 
-    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=False, vertex_bound=False, method = None, solver=None, verbose=0):
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
@@ -7646,7 +7646,7 @@ class GenericGraph(GenericGraph_pyx):
             has the flow using it as a label, the edges without flow being
             omitted).
 
-        - ``integer`` -- boolean (default: ``False``)
+        - ``integer`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes an optimal solution under the
             constraint that the flow going through an edge has to be an
@@ -7717,7 +7717,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
-           sage: int(b.flow(('00',1),('00',2), use_edge_labels = False))
+           sage: int(b.flow(('00',1),('00',2)))
            1
 
         The flow method can be used to compute a matching in a bipartite graph
@@ -7785,9 +7785,12 @@ class GenericGraph(GenericGraph_pyx):
         if vertex_bound and method in ["FF", "igraph"]:
             raise ValueError("This method does not support both " +
                              "vertex_bound=True and method='" + method + "'.")
-
         if use_edge_labels:
-            capacity=lambda x: x
+            from sage.rings.real_mpfr import RR
+            if integer:
+                capacity=lambda x: floor(x) if x in RR else 1
+            else:
+                capacity=lambda x: x if x in RR else 1
         else:
             capacity=lambda x: 1
 
@@ -7814,10 +7817,7 @@ class GenericGraph(GenericGraph_pyx):
             x_int = v_to_int[x]
             y_int = v_to_int[y]
             if use_edge_labels:
-                if integer:
-                    g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[int(floor(capacity(e[2]))) for e in self.edge_iterator()]})
-                else:
-                    g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()}, edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
                 maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
             else:
                 g_igraph = self.igraph_graph(vertex_attrs={'name':self.vertices()})

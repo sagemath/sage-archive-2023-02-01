@@ -826,7 +826,7 @@ class Braid(FinitelyPresentedGroupElement):
         OUTPUT:
 
         Jones polynomial of the closure as an element in the symbolic ring,
-        in the variable ``'A'``or ``'t'`` depending on the value
+        in the variable ``'A'`` or ``'t'`` depending on the value
         of ``skein_variable``. Might have fractional powers if
         ``skein_variable`` is False and the closure of the braid is not a knot.
 

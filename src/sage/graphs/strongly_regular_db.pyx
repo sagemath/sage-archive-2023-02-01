@@ -647,7 +647,7 @@ def strongly_regular_from_two_weight_code(L):
     G.relabel()
     return G
 
-def SRG_256_87_138_132():
+def SRG_256_187_138_132():
     r"""
     Return a `(256, 187, 138, 132)`-strongly regular graph.
 
@@ -662,8 +662,8 @@ def SRG_256_87_138_132():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_87_138_132
-        sage: G = SRG_256_87_138_132()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_187_138_132
+        sage: G = SRG_256_187_138_132()
         sage: G.is_strongly_regular(parameters=True)
         (256, 187, 138, 132)
     """
@@ -707,7 +707,7 @@ def SRG_729_532_391_380():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_60_433_420():
+def SRG_729_560_433_420():
     r"""
     Return a `(729, 560, 433, 420)`-strongly regular graph.
 
@@ -722,8 +722,8 @@ def SRG_729_60_433_420():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_60_433_420
-        sage: G = SRG_729_60_433_420()               # long time
+        sage: from sage.graphs.strongly_regular_db import SRG_729_560_433_420
+        sage: G = SRG_729_560_433_420()               # long time
         sage: G.is_strongly_regular(parameters=True) # long time
         (729, 560, 433, 420)
     """
@@ -736,7 +736,7 @@ def SRG_729_60_433_420():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_16_523_506():
+def SRG_729_616_523_506():
     r"""
     Return a `(729, 616, 523, 506)`-strongly regular graph.
 
@@ -751,8 +751,8 @@ def SRG_729_16_523_506():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_16_523_506
-        sage: G = SRG_729_16_523_506()               # not tested (3s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_616_523_506
+        sage: G = SRG_729_616_523_506()              # not tested (3s)
         sage: G.is_strongly_regular(parameters=True) # not tested (3s)
         (729, 616, 523, 506)
     """
@@ -792,7 +792,7 @@ def SRG_625_364_213_210():
     M = Matrix(GF(5),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_625_16_279_272():
+def SRG_625_416_279_272():
     r"""
     Return a `(625, 416, 279, 272)`-strongly regular graph.
 
@@ -807,8 +807,8 @@ def SRG_625_16_279_272():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_625_16_279_272
-        sage: G = SRG_625_16_279_272()               # long time
+        sage: from sage.graphs.strongly_regular_db import SRG_625_416_279_272
+        sage: G = SRG_625_416_279_272()               # long time
         sage: G.is_strongly_regular(parameters=True) # long time
         (625, 416, 279, 272)
     """
@@ -819,7 +819,7 @@ def SRG_625_16_279_272():
     M = Matrix(GF(5),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_243_20_199_200():
+def SRG_243_220_199_200():
     r"""
     Return a `(243, 220, 199, 200)`-strongly regular graph.
 
@@ -834,8 +834,8 @@ def SRG_243_20_199_200():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_243_20_199_200
-        sage: G = SRG_243_20_199_200()
+        sage: from sage.graphs.strongly_regular_db import SRG_243_220_199_200
+        sage: G = SRG_243_220_199_200()
         sage: G.is_strongly_regular(parameters=True)
         (243, 220, 199, 200)
     """
@@ -847,7 +847,7 @@ def SRG_243_20_199_200():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_76_313_306():
+def SRG_729_476_313_306():
     r"""
     Return a `(729, 476, 313, 306)`-strongly regular graph.
 
@@ -862,8 +862,8 @@ def SRG_729_76_313_306():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_76_313_306
-        sage: G = SRG_729_76_313_306()               # not tested (5s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_476_313_306
+        sage: G = SRG_729_476_313_306()               # not tested (5s)
         sage: G.is_strongly_regular(parameters=True) # not tested (5s)
         (729, 476, 313, 306)
     """
@@ -876,7 +876,7 @@ def SRG_729_76_313_306():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_20_243_240():
+def SRG_729_420_243_240():
     r"""
     Return a `(729, 420, 243, 240)`-strongly regular graph.
 
@@ -891,8 +891,8 @@ def SRG_729_20_243_240():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_20_243_240
-        sage: G = SRG_729_20_243_240()               # not tested (5s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_420_243_240
+        sage: G = SRG_729_420_243_240()               # not tested (5s)
         sage: G.is_strongly_regular(parameters=True) # not tested (5s)
         (729, 420, 243, 240)
     """
@@ -911,9 +911,9 @@ def SRG_729_20_243_240():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_1024_198_22_42():
+def SRG_1024_825_668_650():
     r"""
-    Return a `(1024, 198, 22, 42)`-strongly regular graph.
+    Return a `(1024, 825, 668, 650)`-strongly regular graph.
 
     This graph is built from a projective binary `[198,10]` code with weights
     `96, 112`, obtained from Eric Chen's `database of two-weight codes
@@ -926,10 +926,10 @@ def SRG_1024_198_22_42():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_1024_198_22_42
-        sage: G = SRG_1024_198_22_42()               # not tested (13s)
-        sage: G.is_strongly_regular(parameters=True) # not tested (13s)
-        (1024, 198, 22, 42)
+        sage: from sage.graphs.strongly_regular_db import SRG_1024_825_668_650
+        sage: G = SRG_1024_825_668_650()               # not tested (13s)
+        sage: G.is_strongly_regular(parameters=True)   # not tested (13s)
+        (1024, 825, 668, 650)
     """
     x=("1000000000111111101010000100011001111101101010010010011110001101111001101100111000111101010101110011"+
        "11110010100111101001001100111101011110111100101101110100111100011111011011100111110010100110110000",
@@ -954,9 +954,9 @@ def SRG_1024_198_22_42():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_512_38_374_378():
+def SRG_512_73_12_10():
     r"""
-    Return a `(512, 438, 374, 378)`-strongly regular graph.
+    Return a `(512, 73, 12, 10)`-strongly regular graph.
 
     This graph is built from a projective binary `[219,9]` code with weights
     `96, 112`, obtained from Eric Chen's `database of two-weight codes
@@ -969,10 +969,10 @@ def SRG_512_38_374_378():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_512_38_374_378
-        sage: G = SRG_512_38_374_378()               # not tested (3s)
+        sage: from sage.graphs.strongly_regular_db import SRG_512_73_12_10
+        sage: G = SRG_512_73_12_10()                 # not tested (3s)
         sage: G.is_strongly_regular(parameters=True) # not tested (3s)
-        (512, 438, 374, 378)
+        (512, 73, 12, 10)
     """
     x=("10100011001110100010100010010000100100001011110010001010011000000001101011110011001001000010011110111011111"+
        "0001001010110110110111001100111100011011101000000110101110001010100011110011111111110111010100101011000101111111",
@@ -995,7 +995,7 @@ def SRG_512_38_374_378():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_512_19_106_84():
+def SRG_512_219_106_84():
     r"""
     Return a `(512, 219, 106, 84)`-strongly regular graph.
 
@@ -1010,8 +1010,8 @@ def SRG_512_19_106_84():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_512_19_106_84
-        sage: G = SRG_512_19_106_84()
+        sage: from sage.graphs.strongly_regular_db import SRG_512_219_106_84
+        sage: G = SRG_512_219_106_84()
         sage: G.is_strongly_regular(parameters=True)
         (512, 219, 106, 84)
     """
@@ -1027,7 +1027,7 @@ def SRG_512_19_106_84():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_256_53_92_90():
+def SRG_256_153_92_90():
     r"""
     Return a `(256, 153, 92, 90)`-strongly regular graph.
 
@@ -1042,8 +1042,8 @@ def SRG_256_53_92_90():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_53_92_90
-        sage: G = SRG_256_53_92_90()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_153_92_90
+        sage: G = SRG_256_153_92_90()
         sage: G.is_strongly_regular(parameters=True)
         (256, 153, 92, 90)
     """
@@ -1057,7 +1057,7 @@ def SRG_256_53_92_90():
     M = Matrix(K,[map(K,l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_256_70_114_110():
+def SRG_256_170_114_110():
     r"""
     Return a `(256, 170, 114, 110)`-strongly regular graph.
 
@@ -1072,8 +1072,8 @@ def SRG_256_70_114_110():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_70_114_110
-        sage: G = SRG_256_70_114_110()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_170_114_110
+        sage: G = SRG_256_170_114_110()
         sage: G.is_strongly_regular(parameters=True)
         (256, 170, 114, 110)
     """
@@ -1297,7 +1297,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         Traceback (most recent call last):
         ...
         EmptySetError: Andries Brouwer's database reports that no (324, 57, 0,
-        12)-strongly regular graph exists.Comments: <a
+        12)-strongly regular graph exists. Comments: <a
         href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> and <a
         href="srgtabrefs.html#KaskiOstergard07">Kaski & stergrd</a>
 
@@ -1373,28 +1373,28 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         (100,  22,   0,  6): [HigmanSimsGraph],
         (100,  44,  18, 20): [SRG_100_44_18_20],
         (100,  45,  20, 20): [SRG_100_45_20_20],
-        (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (120,  63,  30, 36): [SRG_120_63_30_36],
         (126,  25,   8,  4): [SRG_126_25_8_4],
+        (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (231,  30,   9,  3): [CameronGraph],
+        (243, 220, 199,200): [SRG_243_220_199_200],
+        (256, 170, 114,110): [SRG_256_170_114_110],
+        (256, 187, 138,132): [SRG_256_187_138_132],
+        (256, 153,  92, 90): [SRG_256_153_92_90],
         (275, 112,  30, 56): [McLaughlinGraph],
         (280, 135,  70, 60): [SRG_280_135_70_60],
-        (1024, 198, 22, 42): [SRG_1024_198_22_42],
-        (243,  20, 199,200): [SRG_243_20_199_200],
-        (256,  53,  92, 90): [SRG_256_53_92_90],
-        (256,  70, 114,110): [SRG_256_70_114_110],
-        (256,  87, 138,132): [SRG_256_87_138_132],
-        (512,  19, 106, 84): [SRG_512_19_106_84],
-        (512,  38, 374,378): [SRG_512_38_374_378],
-        (625,  16, 279,272): [SRG_625_16_279_272],
+        (512, 219, 106, 84): [SRG_512_219_106_84],
+        (512,  73,  12, 10): [SRG_512_73_12_10],
+        (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],
-        (729,  16, 523,506): [SRG_729_16_523_506],
-        (729,  20, 243,240): [SRG_729_20_243_240],
-        (729,  60, 433,420): [SRG_729_60_433_420],
-        (729,  76, 313,306): [SRG_729_76_313_306],
+        (729, 616, 523,506): [SRG_729_616_523_506],
+        (729, 420, 243,240): [SRG_729_420_243_240],
+        (729, 560, 433,420): [SRG_729_560_433_420],
+        (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
+        (1024,825, 668,650): [SRG_1024_825_668_650],
     }
 
     if params in constructions:
@@ -1436,7 +1436,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             if existence:
                 return False
             raise EmptySetError("Andries Brouwer's database reports that no "+
-                                str((v,k,l,mu))+"-strongly regular graph exists."+
+                                str((v,k,l,mu))+"-strongly regular graph exists. "+
                                 "Comments: "+brouwer_data['comments'].encode('ascii','ignore'))
 
         if brouwer_data['status'] == 'open':

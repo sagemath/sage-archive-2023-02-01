@@ -94,18 +94,20 @@ from ell_field import EllipticCurve_field
 import ell_point
 import sage.matrix.all as matrix
 from sage.rings.ring import Ring
-from sage.rings.arith import gcd, prime_divisors
+from sage.rings.arith import gcd, prime_divisors, primes
 from sage.misc.all import prod
 import ell_torsion
 from ell_generic import is_EllipticCurve
 
 from gp_simon import simon_two_descent
 from constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, ZZ, QQ, RealField
+from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, RDF, GF, prime_range
 import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
 from sage.rings.arith import valuation
+from sage.matrix.all import matrix
+from sage.modules.all import vector
 
 import gal_reps_number_field
 
@@ -3552,3 +3554,411 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return D.is_square()
         raise ValueError("Error in has_rational_cm: %s is not an extension field of %s"
                          % (field,self.base_field()))
+
+
+    def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False, reg_bound=None, reg=None, debug=False):
+       r"""
+       Given a list of K-rational points on E, compute the saturation in
+       E(K) of the subgroup they generate.
+
+       INPUT:
+
+
+       -  ``points (list)`` - list of points on E
+
+       -  ``verbose (bool)`` - (default: False), if True, give
+          verbose output
+
+       -  ``max_prime (int)`` - (default: 0), saturation is
+          performed for all primes up to max_prime. If max_prime==0,
+          perform saturation at *all* primes, i.e., compute the true
+          saturation.
+
+       -  ``odd_primes_only (bool)`` - (default: False), only do saturation
+          at odd primes
+
+       The following two inputs are optional, and may be provided to speed
+       up the computation.
+
+       -  ``reg_bound (real)`` - (default: None), lower bound in the
+          regulator E(K), if known
+
+       -  ``reg (real)`` - (default: None), regulator of the span of points,
+          if known
+
+       - ``debug (int)`` - (default: 0), used for debugging and testing
+
+
+       OUTPUT:
+
+
+       -  ``saturation (list)`` - points that form a basis for
+          the saturation
+
+       -  ``index (int)`` - the index of the group generated
+          by points in their saturation
+
+       -  ``regulator (real with default precision or None)`` -
+          regulator of saturated points
+
+       EXAMPLES::
+
+           sage: K.<i> = QuadraticField(-1)
+           sage: E = EllipticCurve('389a')
+           sage: P,Q = E.gens()
+           sage: EK = E.change_ring(K)
+
+           sage: EK.saturation([2*P], max_prime=2)
+           ([(-1 : 1 : 1)], 2, 0.686667083306)
+           sage: EK.saturation([12*P], max_prime=2)
+           ([(26/361 : -5720/6859 : 1)], 4, 6.18000374975)
+           sage: EK.saturation([12*P], reg_bound=0.1)
+           ([(-1 : 1 : 1)], 12, 0.686667083306)
+
+           sage: EK.saturation([2*P, Q], max_prime=2)
+           ([(-1 : 1 : 1), (0 : -1 : 1)], 2, 0.152460177943)
+           sage: EK.saturation([P+Q, P-Q], reg_bound=.1, debug=2)
+           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
+           sage: EK.saturation([P+Q, 17*Q], reg_bound=0.1)
+           ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943)
+
+           sage: P, Q, R = EK.gens()
+           sage: print P, Q, R
+           (-1 : 1 : 1) (0 : -1 : 1) (i - 2 : -i - 3 : 1)
+           sage: EK.saturation([P+Q, Q+R, R+P], reg_bound=0.1)
+           ([(4 : 8 : 1), (-1/25*i + 18/25 : -69/125*i - 58/125 : 1), (841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1)], 2, 0.103174443217)
+           sage: EK.saturation([26*R], reg_bound=0.1)
+           ([(i - 2 : -i - 3 : 1)], 26, 1.06438645309)
+
+       Another number field::
+
+           sage: E = EllipticCurve('389a')
+           sage: P, Q = E.gens()
+           sage: K.<a> = NumberField(x^3-x+1)
+           sage: EK = E.change_ring(K)
+           sage: EK.saturation([P+Q, P-Q], reg_bound=0.1)
+           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
+           sage: EK.saturation([3*P, P+5*Q], reg_bound=0.1)
+           ([(-1 : 1 : 1), (4 : 8 : 1)], 15, 0.152460177943)
+
+       A different curve::
+
+           sage: K.<a> = QuadraticField(3)
+           sage: E = EllipticCurve('37a')
+           sage: EK = EllipticCurve('37a').change_ring(K)
+           sage: P, Q = EK.gens()
+           sage: EK.saturation([3*P-Q, 3*P+Q], reg_bound=.01)
+           ([(1/2*a : 1/4*a - 3/4 : 1), (0 : -1 : 1)], 6, 0.0317814530726)
+
+       The points must be linearly independent::
+
+           sage: EK.saturation([2*P, 3*Q, P-Q])
+           Traceback (most recent call last):
+           ...
+           ValueError: points not linearly independent
+
+       Degenerate case::
+
+           sage: EK.saturation([])
+           ([], 1, 1.00000000000000)
+
+       ALGORITHM:
+
+           For rank 1 subgroups, simply do trial divison up to the maximal
+           prime divisor. For higher rank subgroups, perform trial divison
+           on all linear combinations for small primes, and look for
+           projections $E(K) \rightarrow \oplus E(k) \otimes \FF_p$ which 
+           are either full rank or provide p-divisble linear combinations, 
+           where the $k$ here are residue fields of $K$.
+
+       TESTS::
+
+           sage: K.<i> = QuadraticField(-1)
+           sage: E = EllipticCurve('389a')
+           sage: P,Q = E.gens()
+           sage: EK = E.change_ring(K)
+
+           sage: EK.saturation([P+Q, P-Q], reg_bound=.1, debug=2)
+           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
+           sage: EK.saturation([5*P+6*Q, 5*P-3*Q], reg_bound=.1)
+           ([(-1696464703914542290/25600964182280974369 : -145311084734320503143074826065/129534210658407920857712927153 : 1), (4 : 8 : 1)], 45, 0.152460177943)
+           sage: EK.saturation([5*P+6*Q, 5*P-3*Q], reg_bound=.1, debug=2)
+           ([(-1696464703914542290/25600964182280974369 : -145311084734320503143074826065/129534210658407920857712927153 : 1), (4 : 8 : 1)], 45, 0.152460177943)
+           """
+       # This code does a lot of residue field construction and elliptic curve
+       # group structure computations, and would benifit immensly if those
+       # were sped up. 
+       full_saturation = max_prime == 0
+       span = [self(P) for P in points]
+       n = len(span)
+
+       if len(span) == 0:
+           return span, ZZ(1), RR(1)
+
+       if reg is None:
+           mat = matrix(RDF, n)
+           heights = [P.height() for P in span]
+           for i in range(n):
+               for j in range(n):
+                   if i == j:
+                       mat[i,j] = heights[i]
+                   else:
+                       mat[i,j] = mat[j,i] = ((span[i] + span[j]).height() - heights[i] - heights[j])/2
+           reg = mat.det()
+           if reg / min(heights) < 1e-6:
+               raise ValueError, "points not linearly independent"
+
+       if full_saturation:
+           if reg_bound is None:
+               # TODO: Hmm... verify this for rank > 1
+               reg_bound = self.height_function().min(.1, 5) ** n
+           bound = (reg/reg_bound).sqrt()
+           prime_list = prime_range(bound.ceil() + 1)
+           if verbose:
+               print "Testing primes up to", prime_list[-1]
+       else:
+           prime_list = prime_range(max_prime+1)
+       if odd_primes_only and 2 in prime_list:
+           prime_list.remove(2)
+
+       index = ZZ(1)
+
+       if len(span) == 1:
+           # Rank one, trial division.
+           P = span[0]
+           for p in prime_list:
+               if full_saturation and p > bound / index:
+                   break
+               division_points = P.division_points(p)
+               while division_points:
+                   if verbose:
+                       print "    divisible by", p
+                   P = division_points[0]
+                   index *= p
+                   division_points = P.division_points(p)
+           return [P], index, reg / index**2
+
+       else:
+
+           # For small enough primes, attempt trial division on all
+           # (normalized) linear combinations.
+           small_primes = [p for p in prime_list if p==2 or p**n < 100]
+           from sage.groups.generic import multiples
+           if small_primes and debug < 2:
+               if verbose:
+                   print "Trial divison for", small_primes
+               max_small_prime = max(small_primes)
+               while True:
+                   found_divisor = False
+                   lin_combs = {(0,) * n: self(0)}
+                   for i, P in reversed(list(enumerate(span))):
+                       mults = multiples(P, max_small_prime)
+                       for key, val in lin_combs.items():
+                           is_first = sum(key) == 0
+                           lin_comb = list(key)
+                           for j, jP in enumerate(mults):
+                               if j == 0: continue
+                               lin_comb[i] = j
+                               lin_combs[tuple(lin_comb)] = val + jP
+                               if is_first: break # The *last* non-zero entry is always 1.
+
+                   for p in small_primes:
+                       for v in GF(p)**n:
+                           if v == 0: continue
+                           if v[v.nonzero_positions()[-1]] != 1: continue
+                           divisors = lin_combs[tuple(v)].division_points(p)
+                           if divisors:
+                               if verbose:
+                                   print "    divisible by", p
+                               span[v.nonzero_positions()[-1]] = divisors[0]
+                               found_divisor = True
+                               index *= p
+                               if full_saturation:
+                                   prime_list = [p for p in prime_list if p <= bound/index]
+                                   small_primes = [p for p in small_primes if p in prime_list]
+                               break
+                       if found_divisor:
+                           # recompute lin_combs
+                           break
+
+                   if not found_divisor:
+                       # went through lin_combs for all p, exit main while loop
+                       if verbose:
+                           print "    saturated at", small_primes
+                       for p in small_primes:
+                           prime_list.remove(p)
+                       break
+
+           # Now compute maps E(K) \oplus F_p -> E(F_q) \oplus F_p.
+           # Perhaps this could be done in parallel with the code above. 
+           K = self.base_ring()
+           D = self.discriminant()
+           all_projections = dict((p, ([], [], set())) for p in prime_list)
+
+           # First define two utility functions.
+           def projection(Ek, p):
+               """
+               Project span onto distinct copies of E(k) \otimes \F_p.
+               """
+               G = Ek.abelian_group() # cached!
+               invs = G.invariants()
+               gens = G.gens()
+               c = invs[0]
+               g = gens[0]
+               if len(invs) == 1:
+                   cc = c
+               else:
+                   cc = c // invs[1]
+               if not p.divides(cc):
+                   return None
+               cofactor = c // p
+               gg = cofactor * g
+               logs = {}
+               print("p = %s" % p)
+               print("gg = %s with order %s" % (gg,gg.order()))
+               for j, jgg in enumerate(multiples(gg, p)):
+                   logs[jgg] = j
+               print("logs: %s" % logs)
+               v = []
+               for P in span:
+                   try:
+                       Pk = Ek(P)
+                   except ZeroDivisionError:
+                       Pk = Ek(0)
+                   pt = cofactor*Pk
+                   print("looking up %s" % pt)
+                   print("log is %s" % logs[pt])
+                   v.append(logs[cofactor * Pk])
+               return vector(GF(p), v)
+
+           def verify_independence(p):
+               """
+               Verifies that there are no mod p linear dependancies coming
+               from the projections down to each E(k).
+               """
+               index = 1
+               projections, proj_primes, faux_combs = all_projections[p]
+               if len(projections) < n:
+                   return 1
+
+               m = matrix(projections).transpose()
+               if m.rank() == n:
+                   prime_list.remove(p)
+                   del all_projections[p]
+                   if verbose:
+                       if len(prime_list) < 10:
+                           prime_list_str = str(prime_list)
+                       else:
+                           prime_list_str = str(prime_list[:5] + ["..."] + prime_list[-3:])
+                       print "saturated at", p, "(remaining %s)" % prime_list_str
+                   return 1
+
+               for v in m.left_kernel().gens():
+                   v.set_immutable()
+                   if v in faux_combs:
+                       continue
+                   faux_combs.add(v)
+                   Q = sum(int(a)*P for a, P in zip(v, span))
+                   divisors = Q.division_points(p)
+                   if divisors:
+                       if verbose:
+                           print "    divisible by", p
+                       replaced = v.nonzero_positions()[-1]
+                       v /= v[replaced] # normalize
+                       Q = sum(int(a)*P for a, P in zip(v, span) if a)
+                       span[replaced] = Q.division_points(p)[0]
+                       # We have to fix all the other projections...
+                       for other_p, (proj, proj_primes, faux_combs) in all_projections.items():
+                           faux_combs.clear()
+                           if other_p == p:
+                               proj = []
+                               for pp in proj_primes:
+                                   proj.append(projection(self.reduction(pp), p))
+                           else:
+                               inv_p = 1/GF(other_p)(p)
+                               for other_v in proj:
+                                   other_v[replaced] = inv_p * sum(int(a)*b for a,b in zip(v, other_v))
+                       return p * verify_independence(p)
+
+               return 1
+
+           # Now we enter the actual loop.
+           proj_count = 0
+           curve_count = 0
+           for rat_p in primes(3, 1e9):
+               for pp, e in K.factor(rat_p):
+                   if not prime_list:
+                       if verbose:
+                           print "searched up to p =", rat_p, ", %s curves (%s used)" % (curve_count, proj_count)
+                       return span, index, reg / index**2
+                   if pp.divides(D):
+                       continue
+                   if verbose > 1:
+                       print "rat_p", rat_p, "prime_list", prime_list, "count %s (%s)" % (curve_count, proj_count)
+                   Ek = self.reduction(pp)
+                   curve_count += 1
+                   for p in prime_list:
+                       v = projection(Ek, p)
+                       if v is not None:
+                           proj_count += 1
+                           projections, proj_primes, faux_combs = all_projections[p]
+                           projections.append(v)
+                           proj_primes.append(pp)
+                           old_index = index
+                           index *= verify_independence(p)
+                           if full_saturation and index != old_index:
+                               for p in prime_list[:]:
+                                   if p > bound / index:
+                                       del all_projections[p]
+                                       prime_list.remove(p)
+
+    def gens(self, **kwds):
+        """
+        Compute and return generators for the Mordell-Weil group E(K)
+        *modulo* torsion. Only implemented for K quadratic, E defined over Q.  
+        Any keyword arguments are passed on to E(Q).gens().
+ 
+        EXAMPLES::
+ 
+            sage: E = EllipticCurve('37a')
+            sage: E.change_ring(QuadraticField(-1, 'i')).gens()
+            [(0 : -1 : 1)]
+            sage: E.change_ring(QuadraticField(3, 'i')).gens()
+            [(0 : -1 : 1), (-i + 2 : 2*i - 4 : 1)]
+ 
+            sage: K.<a> = QuadraticField(-7)
+            sage: EllipticCurve('11a').change_ring(K).gens()
+            [(-6 : -11/2*a - 1/2 : 1)]
+            sage: EllipticCurve('389a').change_ring(K).gens()
+            [(-1 : 1 : 1), (0 : -1 : 1), (1/8*a + 5/8 : -5/16*a - 9/16 : 1)]
+ 
+            sage: E = EllipticCurve([1, a])
+            sage: E.gens()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if not kwds:
+            try:
+                return list(self.__gens)
+            except AttributeError:
+                pass
+ 
+        K = self.base_ring()
+        if K.absolute_degree() == 2:
+            try:
+                E = self.change_ring(QQ)
+            except TypeError:
+                pass
+            else:
+                ED = E.quadratic_twist(K.disc())
+                E_gens = E.gens(**kwds)
+                ED_gens = ED.gens(**kwds)
+                phi = ED.change_ring(K).isomorphism_to(E)
+                EK_span = [self(P) for P in E_gens] + [phi(P) for P in ED_gens]
+                gens = self.saturation(EK_span, max_prime=2)[0]
+                if not kwds:
+                    self.__gens = gens
+                    return gens
+                    raise NotImplementedError
+

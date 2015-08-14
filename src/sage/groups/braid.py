@@ -1560,6 +1560,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
         standard generators.
 
         EXAMPLES::
+
             sage: B = BraidGroup(4)
             sage: B.TL_representation(0)
             [

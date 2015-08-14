@@ -335,6 +335,37 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
 
 
+    def gens_monomial(self):
+        r"""
+        Return a tuple containing generators of this growth group.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple containing elements of this growth group.
+
+        .. NOTE:
+
+            This method calls the ``gens_monomial()`` method on the
+            individual factors of this cartesian product and
+            concatenates the respective outputs.
+
+        EXAMPLES::
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
+            sage: G.gens_monomial()
+            (x, y)
+        """
+        t = ()
+        for factor in self.cartesian_factors():
+            t = t + factor.gens_monomial()
+        return t
+
+
     class Element(CartesianProductPosets.Element):
         def _repr_(self):
             r"""

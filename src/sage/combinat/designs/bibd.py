@@ -1311,8 +1311,8 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             sage: print len(a3), 1 + 2*r
             15 17
             sage: sa3 = set(a3)
-            sage: set(len(sa3.intersection(b)) for b in B.blocks())
-            {0, 1, 2, 3}
+            sage: set(len(sa3.intersection(b)) for b in B.blocks()) == set([0,3])
+            False
             sage: B.trace(a3).is_t_design(3)
             False
 

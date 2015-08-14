@@ -206,6 +206,8 @@ class DiGraph(GenericGraph):
 
        #.  A NetworkX digraph
 
+       #.  An igraph Graph (see http://igraph.org/python/)
+
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
@@ -251,6 +253,8 @@ class DiGraph(GenericGraph):
                behaviour can be overruled by setting the keyword
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
+
+       -  ``igraph`` - data must be an igraph directed Graph.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -395,6 +399,31 @@ class DiGraph(GenericGraph):
             sage: DiGraph(g)
             Digraph on 5 vertices
 
+    #. An igraph directed Graph (see also
+       :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
+
+           sage: import igraph                                  # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True) # optional - python_igraph
+           sage: DiGraph(g)                                     # optional - python_igraph
+           Digraph on 3 vertices
+
+       If ``vertex_labels`` is ``True``, the names of the vertices are given by
+       the vertex attribute ``'name'``, if available::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
+           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           ['a', 'b', 'c']
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
+           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           [0, 1, 2]
+
+       If the igraph Graph has edge attributes, they are used as edge labels::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
+           sage: DiGraph(g).edges()                                                                            # optional - python_igraph
+           [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
+
+
     TESTS::
 
         sage: DiGraph({0:[1,2,3], 2:[4]}).edges()
@@ -433,7 +462,6 @@ class DiGraph(GenericGraph):
         True
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
-
     """
     _directed = True
 
@@ -525,12 +553,20 @@ class DiGraph(GenericGraph):
             sage: copy(g) is g    # copy is mutable again
             False
 
-        TESTS::
+        Unknown input format::
 
             sage: DiGraph(4,format="HeyHeyHey")
             Traceback (most recent call last):
             ...
             ValueError: Unknown input format 'HeyHeyHey'
+
+        Sage DiGraph from igraph undirected graph::
+
+            sage: import igraph           # optional - python_igraph
+            sage: DiGraph(igraph.Graph()) # optional - python_igraph
+            Traceback (most recent call last):
+            ...
+            ValueError: A *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor.
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -604,6 +640,17 @@ class DiGraph(GenericGraph):
                 format = 'NX'
             elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 format = 'NX'
+        if (format is None          and
+            hasattr(data, 'vcount') and
+            hasattr(data, 'get_edgelist')):
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The data seems to be a igraph object, but "+
+                                  "igraph is not installed in Sage. To install "+
+                                  "it, run 'sage -i python_igraph'")
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -841,6 +888,19 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            if not data.is_directed():
+                raise ValueError("A *directed* igraph graph was expected. To "+
+                                 "build an undirected graph, call the Graph "
+                                 "constructor.")
+
+            self.add_vertices(range(data.vcount()))
+            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+
+            if vertex_labels and 'name' in data.vertex_attributes():
+                vs = data.vs()
+                self.relabel({v:vs[v]['name'] for v in self})
+
         elif format == 'int':
             if weighted   is None: weighted   = False
             self.allow_loops(True if loops else False,check=False)

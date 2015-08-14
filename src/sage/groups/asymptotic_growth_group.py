@@ -254,45 +254,43 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         if data == 1:
             return self.one()
 
+        if data is None:
+            raise ValueError('%s cannot be converted.' % (data,))
+
         if isinstance(data, list):
             try:
                 obj = super(CartesianProductGrowthGroups,
                             self)._element_constructor_(data)
                 return obj
             except ValueError:
-                factors = self.cartesian_factors()
-                one = self.one().value
-                for k in range(len(data)):
-                    for l in range(len(factors)):
-                        try:
-                            conv_data = factors[l](data[k])
-                            data[k] = self([one[j] if j != l else conv_data
-                                            for j in range(len(one))])
-                            break
-                        except (ValueError, TypeError):
-                            continue
-                return self.prod(data)
-
+                return self.prod(self(elem) for elem in data)
 
         if hasattr(data, 'parent'):
-            if data.parent() is self:
+            P = data.parent()
+            if P is self:
                 return data
 
-            elif data.parent() is sage.symbolic.ring.SR:
+            elif P is sage.symbolic.ring.SR:
                 import operator
                 from sage.symbolic.operators import mul_vararg
                 op = data.operator()
                 if op == operator.pow or data.is_symbol() \
                         or isinstance(op, sage.functions.log.Function_log):
-                    return self([data])
+                    return self(self._convert_to_factor_(data))
                 elif op == mul_vararg:
                     return self(data.operands())
             # room for other parents (e.g. polynomial ring et al.)
 
-        # final attempt: try to parse the representation string
-        else:
-            str_lst = str(data).replace(' ', '').split('*')
-            return self(str_lst)
+        # try to convert the input to one of the factors
+        data_conv = self._convert_to_factor_(data)
+        if data_conv is not None:
+            factors = self.cartesian_factors()
+            return self([data_conv if factor == data_conv.parent() else 1 for
+                         factor in factors])
+
+        # final attempt: try parsing the representation string
+        str_lst = str(data).replace(' ', '').split('*')
+        return self(str_lst)
 
 
     def _repr_(self):
@@ -340,6 +338,40 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
             'x^QQ * log(x)^ZZ'
         """
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
+
+
+    def _convert_to_factor_(self, data):
+        r"""
+        Helper method. Try to convert some input ``data`` to an
+        element of one of the cartesian factors of this product.
+
+        INPUT:
+
+        - ``data`` -- some input to be converted.
+
+        OUTPUT:
+
+        An element of an cartesian factor of this product,
+        or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.groups.asymptotic_growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * log(x)^QQ * y^QQ')
+            sage: e1 = G._convert_to_factor_(x^2)
+            sage: (e1, e1.parent())
+            (x^2, Growth Group x^ZZ * log(x)^QQ)
+            sage: G._convert_to_factor_('asdf') is None
+            True
+        """
+        for factor in self.cartesian_factors():
+            try:
+                if hasattr(factor, '_convert_to_factor_'):
+                    return factor(factor._convert_to_factor_(data))
+                return factor(data)
+            except (ValueError, TypeError):
+                continue
+
 
 
     def gens_monomial(self):

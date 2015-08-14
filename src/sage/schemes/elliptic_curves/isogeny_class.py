@@ -620,10 +620,21 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
             sage: isogs = C.isogenies()
             sage: [((i,j),isogs[i][j].degree()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), 3), ((2, 1), 2), ((3, 0), 2), ((3, 2), 3)]
+            [((0, 1), 3),
+            ((0, 3), 2),
+            ((1, 0), 3),
+            ((1, 2), 2),
+            ((2, 1), 2),
+            ((2, 3), 3),
+            ((3, 0), 2),
+            ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
             [((0, 1), (1/9*x^3 - 12)/x^2),
+            ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
+            ((1, 0), (x^3 + 4)/x^2),
+            ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
             ((2, 1), (-1/2*i*x^2 + x)/(x + 3/2*i)),
+            ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
             ((3, 0), (-1/2*i*x^2 - x - 4*i)/(x - 5/2*i)),
             ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
 
@@ -819,8 +830,9 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         mat = MatrixSpace(ZZ,ncurves)(0)
         self._maps = [[0]*ncurves for i in range(ncurves)]
         for i,j,l,phi in tuples:
-            mat[perm[i],perm[j]] = l
-            self._maps[perm[i]][perm[j]] = phi
+            if phi!=0:
+                mat[perm[i],perm[j]] = l
+                self._maps[perm[i]][perm[j]] = phi
         self._mat = fill_isogeny_matrix(mat)
         if verbose:
             print "Matrix = %s" % self._mat

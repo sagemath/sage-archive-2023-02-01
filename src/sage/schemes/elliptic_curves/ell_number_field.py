@@ -2641,10 +2641,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: isogs = C.isogenies()
             sage: [((i,j),isogs[i][j].degree()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
-            [((0, 1), 3), ((2, 1), 2), ((3, 0), 2), ((3, 2), 3)]
+            [((0, 1), 3),
+            ((0, 3), 2),
+            ((1, 0), 3),
+            ((1, 2), 2),
+            ((2, 1), 2),
+            ((2, 3), 3),
+            ((3, 0), 2),
+            ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
             [((0, 1), (1/9*x^3 - 12)/x^2),
+            ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
+            ((1, 0), (x^3 + 4)/x^2),
+            ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
             ((2, 1), (-1/2*i*x^2 + x)/(x + 3/2*i)),
+            ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
             ((3, 0), (-1/2*i*x^2 - x - 4*i)/(x - 5/2*i)),
             ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
 

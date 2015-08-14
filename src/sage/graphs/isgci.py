@@ -184,7 +184,7 @@ Predefined classes
 
    * - Interval
 
-     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomInterval`,
+     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`,
        :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`,
        :meth:`~sage.graphs.generic_graph.GenericGraph.is_interval`
 

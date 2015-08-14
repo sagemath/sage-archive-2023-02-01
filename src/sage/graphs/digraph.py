@@ -2969,8 +2969,7 @@ class DiGraph(GenericGraph):
     ### Visualization
 
     def layout_acyclic(self, rankdir="up", **options):
-        """
-        Return a ranked layout so that all edges point upward.
+        """Return a ranked layout so that all edges point upward.
 
         To this end, the heights of the vertices are set according to the level
         set decomposition of the graph (see :meth:`.level_sets`).
@@ -2979,7 +2978,7 @@ class DiGraph(GenericGraph):
         available (see :meth:`.layout_graphviz`), and using a spring
         layout with fixed vertical placement of the vertices otherwise
         (see :meth:`.layout_acyclic_dummy` and
-        :meth:`~GenericGraph.ranked_layout`).
+        :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`).
 
         Non acyclic graphs are partially supported by ``graphviz``, which then
         chooses some edges to point down.
@@ -2988,8 +2987,9 @@ class DiGraph(GenericGraph):
 
         - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
           which direction the edges should point toward
-        - ``**options`` -- passed down to :meth:`layout_ranked` or
-          :meth:`layout_graphviz`
+        - ``**options`` -- passed down to
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked` or
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 
         EXAMPLES::
 
@@ -3014,6 +3014,7 @@ class DiGraph(GenericGraph):
             sage: pos = H.layout_acyclic(rankdir='left')
             sage: pos[1][0] < pos[0][0] - .5
             True
+
         """
         if have_dot2tex():
             return self.layout_graphviz(rankdir=rankdir, **options)
@@ -3026,16 +3027,17 @@ class DiGraph(GenericGraph):
 
         To this end, the heights of the vertices are set according to
         the level set decomposition of the graph (see
-        :meth:`.level_sets`). This is achieved by a spring layout with
+        :meth:`level_sets`). This is achieved by a spring layout with
         fixed vertical placement of the vertices otherwise (see
-        :meth:`.layout_acyclic_dummy` and
-        :meth:`~GenericGraph.ranked_layout`).
+        :meth:`layout_acyclic_dummy` and
+        :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`).
 
         INPUT:
 
         - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
           which direction the edges should point toward
-        - ``**options`` -- passed down to :meth:`layout_ranked`
+        - ``**options`` -- passed down to
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`
 
         EXAMPLES::
 
@@ -3057,6 +3059,7 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: `self` should be an acyclic graph
+
         """
         if heights is None:
             if not self.is_directed_acyclic():

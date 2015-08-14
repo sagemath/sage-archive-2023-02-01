@@ -135,7 +135,7 @@ class HasseDiagram(DiGraph):
             sage: H.cover_relations()
             [(0, 2), (0, 3), (1, 3), (1, 4), (2, 5), (3, 5), (4, 5)]
         """
-        return [c for c in self.cover_relations_iterator()]
+        return list(self.cover_relations_iterator())
 
     def is_lequal(self, i, j):
         """
@@ -424,8 +424,8 @@ class HasseDiagram(DiGraph):
             sage: I == set(H.interval(2,7))
             True
         """
-        return [z for z in range(self.order())[x:y+1] if
-                self.is_lequal(x,z) and self.is_lequal(z,y)]
+        return [z for z in range(x, y+1) if
+                self.is_lequal(x, z) and self.is_lequal(z, y)]
 
     closed_interval = interval
 
@@ -865,8 +865,8 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
-        H = self.reverse()
-        return sorted(list(H.depth_first_search(elements)))
+        return sorted(list(
+            self.depth_first_search(elements, neighbors=self.neighbors_in)))
 
     def principal_order_ideal(self, i):
         """

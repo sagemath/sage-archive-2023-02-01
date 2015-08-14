@@ -461,6 +461,29 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
+cdef H_3_cayley_graph(L):
+    r"""
+    return the `L`-Cayley graph of the group `H_3` from Prop. 12 in [JK03]_.
+
+    INPUT:
+
+    - the list of words for the generating set in the format ["abc",...,"xyz"] for
+      a,b,...,z being integers between 0 and 4.
+
+    """
+    from sage.groups.free_group import FreeGroup
+    from sage.groups.finitely_presented import FinitelyPresentedGroup
+    G = FreeGroup('x,y,z')
+    x,y,z = G.gens()
+    rels = (x**5,y**5,z**4,x*y*x**(-1)*y**(-1),z*x*z**(-1)*x**(-2),z*y*z**(-1)*y**(-2))
+    G = FinitelyPresentedGroup(G,rels)
+    x,y,z = G.gens()
+    H = G.as_permutation_group()
+    L = map(lambda x:map(int,x),L)
+    x,y,z=(H.gen(0),H.gen(1),H.gen(2))
+    L = [H(x**xx*y**yy*z**zz) for xx,yy,zz in L]
+    return Graph(H.cayley_graph(generators=L, simple=True))
+
 def SRG_100_44_18_20():
     r"""
     Return a `(100, 44, 18, 20)`-strongly regular graph.
@@ -482,20 +505,11 @@ def SRG_100_44_18_20():
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
     """
-    return Graph('~?@cSDAOdouKo|`CB`so\\MCggQeCdXLsJmwCLmRsV@PtM@dJSBO`CFD'+
-           'OvPv?FuWSOYrSodYFX_GsMwaKUWSPeJ[g`VUR`m]]_WIj\\wPa?UjxffqJU_ca'+
-           'ZDjOQgepIs?{CchSoFLoUd@G{cZgf]OwhXGD^SwWk__mm\\ajIXJJfYeF@AfQW'+
-           'mW[CI\\@~XwgGSibBPkKI[JfKGeADMcvdMsOHUvGv_eebYupFR?YY\\jyC\\_G'+
-           'cczVsWwdY?CjRsX}oL[ovRWCQmBFKDUq@DlOKXaaUS?~PQpEZLPPB`eGmmhEji'+
-           'V_EWmk`EniFx@WREOaRtRwSUUwcWex[wb_UVSbCvJnpUuM@wCAbgLuk{\\BOKD'+
-           'fSZQmW\\QSCdd[]HTKKwIARoe]uyDfWqEYZWbytOGxEPrZYC^FD?`cXFkngPcj'+
-           'ARIGaL\\^PffXs@s{WItK_QVMy?iUKDQuO@vucqJ`bbSdD?ZgDBbB]fIGt[bfg'+
-           'OI[DY[_aVyN^OqCwish`CfUZYOUChi{gbCuUx^Rlt[NGM_WIYFfshLV@qRGAAe'+
-           'pKsplgwMUPOQ[UXthrUAW|OqMYtCj}Rsc?pW`c[tw@I[RSeGpW`c]t{RQbxtx?'+
-           'EkuKDTY?mL}\\USPjHb`PS_IazcE_YMAnRcHVhnb}OIHG{IlMO@]dJfkoSoPgt'+
-           ']SaQtYdf}PijY[FcE_`DARpzIdTdN@qQOOqeA^Zc]ki@EJSY\\f?_XjwptcSGp'+
-           'WbRmwMNSS~rquH?Yqr@HOMlifna@UCs[Awq@YJdmb|a_QKc]I[o@xgpA{nuHXY'+
-           'khoyDCO^_@TsvadqqG?`czzDBjiXZJnWOApI[JGE')
+    return H_3_cayley_graph(["100","110","130","140","200","230","240","300",
+             "310","320","400","410","420","440","041","111","221","231","241",
+             "321","331","401","421","441","002","042","112","122","142","212",
+             "232","242","322","342","033","113","143","223","303","333","343",
+             "413","433","443"])
 
 def SRG_100_45_20_20():
     r"""
@@ -511,20 +525,11 @@ def SRG_100_45_20_20():
         sage: G.is_strongly_regular(parameters=True) # long time
         (100, 45, 20, 20)
     """
-    return Graph('~?@cP\\EWhTelX_VGTrsELDemBQwUKt[u]aXlWFX}HX{OdfoC@LDcDhS`'+
-           '~WXLTuE?yMQDMMRoGTKveGVgtpKJOwzovPTF]eiMix]WGYyoLoAtpTnhaWmmT_P'+
-           'M^f?OSQbjOQa?TXGJYKP\\eaGSnm[MeGSln[A}CIufiHJ`Q{hweXEXsnS^A?HBQ'+
-           'kT{QoWElWzYQW[A|Oy]_KY`]g{JQT?\\xATd~VwblGUcn`\\uMc`ZUsOQm[@Aq|'+
-           'KW?M{@Aq|MjXR[a`Edxk}Ce?gPh^Pl_CqDALJnJcCrGSGTkmkAeBPNvbpfeEA@X'+
-           'mrj_ArV@?cvX|pCwvoXL\\U^SqECY@GnirwehsGIKURZQNbtHODOMeuDZFSHSFO'+
-           'ImUFRTaCMBh@^jB`z}cZWG]yGHQVVSrzRBuP@ZQ}WPJLLNPCDdYm_gCQ]]?KJJp'+
-           'AxXvCbMGYCY^Ws{z_PfCDALFu{L[oCXp@ObTlazi_YI@THu{wj@mMR_G@SvXzBc'+
-           'b[Kn_SQhiruVC`wKm_SQjirqutrXaoHJAXLkRoZssGc_UoFVZEk]]a@CkBqGjxO'+
-           'ps]~QILrGo]qGTPqW{eSZePc|COyjiywASREPk{COYxogfP]][G`fCIHrqnJs]f'+
-           'f?KXpA_SwxiHXyUGyD?jJZk]kw`v`WfgD?clm_^opAn?pNOIHjI\\QY[vPuIDPC'+
-           'l_YtdpL[^gi@AH_]oLyaWwI{nqIQE[qKMcbHMHFd{PROrePhoc\\hyQUe^OnRxo'+
-           'aH_SLktu[kKengkPoGDDy?VuwmCEn_kRwKDTWHW|f`ngYogTGM_mP_FoPR{v{Oh'+
-           'gZlKWhQA`Q}xweact{MR`BE')
+    return H_3_cayley_graph(["120","140","200","210","201","401","411","321",
+             "002","012","022","042","303","403","013","413","240","031","102",
+             "323","300","231","132","133","310","141","142","233","340","241",
+             "202","333","410","341","222","433","430","441","242","302","312",
+             "322","332","442","143"])
 
 def SRG_196_91_42_42():
     r"""

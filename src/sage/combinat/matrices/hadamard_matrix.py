@@ -475,10 +475,11 @@ def _helper_payley_matrix(n):
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value
-    `M_{i,j}` is equal to `\chi(x_i-x_j)`.
+    `M_{i,j}` is equal to `\chi(x_i-x_j)`. Note that `n` must be an odd prime power.
 
     The elements `x_1,...,x_n` are ordered in such a way that the matrix is
-    symmetric with respect to its second diagonal.
+    symmetric with respect to its second diagonal. The matrix is symmetric if
+    n==4k+1, and skew-symmetric if n=4k-1.
 
     INPUT:
 

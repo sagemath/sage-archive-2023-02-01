@@ -1062,11 +1062,25 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: Input is ambigous: x as well as raw_element=42 are specified
+
+        ::
+
+            sage: x = agg.GrowthGroup('x^ZZ')(raw_element=1)
+            sage: G_y = agg.GrowthGroup('y^ZZ')
+            sage: G_y(x)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert x.
         """
         if raw_element is None:
             if type(data) == self.element_class and data.parent() == self:
                 return data
             elif isinstance(data, GenericGrowthElement):
+                try:
+                    if self._var_ != data.parent()._var_:
+                        raise ValueError('Cannot convert %s.' % (data,))
+                except AttributeError:
+                    pass
                 raw_element = data._raw_element_
             elif type(data) == int and data == 0:
                 raise ValueError('No input specified. Cannot continue.')

@@ -245,6 +245,11 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
             sage: G = GrowthGroup('x^ZZ * y^ZZ')
             sage: G('x'), G('y')
             (x, y)
+
+        ::
+
+            sage: G_log(log(x))
+            log(x)
         """
         if data == 1:
             return self.one()
@@ -276,9 +281,11 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
             elif data.parent() is sage.symbolic.ring.SR:
                 import operator
                 from sage.symbolic.operators import mul_vararg
-                if data.operator() == operator.pow or data.is_symbol():
+                op = data.operator()
+                if op == operator.pow or data.is_symbol() \
+                        or isinstance(op, sage.functions.log.Function_log):
                     return self([data])
-                elif data.operator() == mul_vararg:
+                elif op == mul_vararg:
                     return self(data.operands())
             # room for other parents (e.g. polynomial ring et al.)
 

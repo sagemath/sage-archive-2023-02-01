@@ -4,35 +4,7 @@ Incidence structures (i.e. hypergraphs, i.e. set systems)
 An incidence structure is specified by a list of points, blocks, or an incidence
 matrix ([1]_, [2]_). :class:`IncidenceStructure` instances have the following methods:
 
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
-
-    :meth:`~IncidenceStructure.ground_set` | Return the ground set (i.e the list of points).
-    :meth:`~IncidenceStructure.num_points` | Return the size of the ground set.
-    :meth:`~IncidenceStructure.num_blocks` | Return the number of blocks.
-    :meth:`~IncidenceStructure.blocks` | Return the list of blocks.
-    :meth:`~IncidenceStructure.block_sizes` | Return the set of block sizes.
-    :meth:`~IncidenceStructure.degree` | Return the degree of a point `p`
-    :meth:`~IncidenceStructure.degrees` | Return the degree of all sets of given size, or the degree of all points.
-    :meth:`~IncidenceStructure.is_connected` | Test whether the design is connected.
-    :meth:`~IncidenceStructure.is_simple` | Test whether this design is simple (i.e. no repeated block).
-    :meth:`~IncidenceStructure.incidence_matrix` | Return the incidence matrix `A` of the design
-    :meth:`~IncidenceStructure.incidence_graph` | Return the incidence graph of the design
-    :meth:`~IncidenceStructure.packing` | Return a maximum packing
-    :meth:`~IncidenceStructure.relabel` | Relabel the ground set
-    :meth:`~IncidenceStructure.is_resolvable` | Test whether the hypergraph is resolvable
-    :meth:`~IncidenceStructure.is_t_design` | Test whether ``self`` is a `t-(v,k,l)` design.
-    :meth:`~IncidenceStructure.dual` | Return the dual design.
-    :meth:`~IncidenceStructure.automorphism_group` | Return the automorphism group
-    :meth:`~IncidenceStructure.canonical_label` | Return a canonical label for the incidence structure.
-    :meth:`~IncidenceStructure.is_isomorphic` | Return whether the two incidence structures are isomorphic.
-    :meth:`~IncidenceStructure.isomorphic_substructures_iterator` | Iterates over all copies of ``H2`` contained in ``self``
-    :meth:`~IncidenceStructure.edge_coloring` | Return an optimal edge coloring`
-    :meth:`~IncidenceStructure.copy` | Return a copy of the incidence structure.
-    :meth:`~IncidenceStructure.induced_substructure` | Return the substructure induced by a set of points.
-    :meth:`~IncidenceStructure.trace` | Return the trace of a set of point
+{METHODS_OF_IncidenceStructure}
 
 REFERENCES:
 
@@ -962,6 +934,106 @@ class IncidenceStructure(object):
             else:
                 return d
 
+    def is_regular(self,r=None):
+        r"""
+        Test whether the incidence structure is `r`-regular.
+
+        An incidence structure is said to be `r`-regular if all its points are
+        incident with exactly `r` blocks.
+
+        INPUT:
+
+        - ``r`` (integer)
+
+        OUTPUT:
+
+        If ``r`` is defined, a boolean is returned. If ``r`` is set to ``None``
+        (default), the method returns either ``False`` or the integer ``r`` such
+        that the incidence structure is `r`-regular.
+
+        .. WARNING::
+
+            In case of `0`-regular incidence structure, beware that ``if not
+            H.is_regular()`` is a satisfied condition.
+
+        EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular()
+            3
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular(r=3)
+            True
+            sage: designs.balanced_incomplete_block_design(7,3).is_regular(r=4)
+            False
+
+        TESTS::
+
+            sage: IncidenceStructure([]).is_regular()
+            Traceback (most recent call last):
+            ...
+            ValueError: This incidence structure has no points.
+        """
+        if self.num_points() == 0:
+            raise ValueError("This incidence structure has no points.")
+        count = [0]*self.num_points()
+        for b in self._blocks:
+            for x in b:
+                count[x] += 1
+        count = set(count)
+        if len(count) != 1:
+            return False
+        elif r is None:
+            return count.pop()
+        else:
+            return count.pop() == r
+
+    def is_uniform(self,k=None):
+        r"""
+        Test whether the incidence structure is `k`-uniform
+
+        An incidence structure is said to be `k`-uniform if all its blocks have
+        size `k`.
+
+        INPUT:
+
+        - ``k`` (integer)
+
+        OUTPUT:
+
+        If ``k`` is defined, a boolean is returned. If ``k`` is set to ``None``
+        (default), the method returns either ``False`` or the integer ``k`` such
+        that the incidence structure is `r`-regular.
+
+        .. WARNING::
+
+            In case of `0`-uniform incidence structure, beware that ``if not
+            H.is_uniform()`` is a satisfied condition.
+
+        EXAMPLES::
+
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform()
+            3
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform(k=3)
+            True
+            sage: designs.balanced_incomplete_block_design(7,3).is_uniform(k=4)
+            False
+
+        TESTS::
+
+            sage: IncidenceStructure([]).is_regular()
+            Traceback (most recent call last):
+            ...
+            ValueError: This incidence structure has no points.
+        """
+        if self.num_blocks() == 0:
+            raise ValueError("This incidence structure has no blocks.")
+        sizes = set(self.block_sizes())
+        if len(sizes) != 1:
+            return False
+        elif k is None:
+            return sizes.pop()
+        else:
+            return sizes.pop() == k
+
     def is_connected(self):
         r"""
         Test whether the design is connected.
@@ -1074,6 +1146,78 @@ class IncidenceStructure(object):
         from sage.graphs.bipartite_graph import BipartiteGraph
         A = self.incidence_matrix()
         return BipartiteGraph(A)
+
+    def complement(self,uniform=False):
+        r"""
+        Return the complement of the incidence structure.
+
+        Two different definitions of "complement" are made available, according
+        to the value of ``uniform``.
+
+        INPUT:
+
+        - ``uniform`` (boolean) --
+
+          - if set to ``False`` (default), returns the incidence structure whose
+            blocks are the complements of all blocks of the incidence structure.
+
+          - If set to ``True`` and the incidence structure is `k`-uniform,
+            returns the incidence structure whose blocks are all `k`-sets of the
+            ground set that do not appear in ``self``.
+
+        EXAMPLES:
+
+        The complement of a
+        :class:`~sage.combinat.designs.bibd.BalancedIncompleteBlockDesign` is
+        also a `2`-design::
+
+            sage: bibd = designs.balanced_incomplete_block_design(13,4)
+            sage: bibd.is_t_design(return_parameters=True)
+            (True, (2, 13, 4, 1))
+            sage: bibd.complement().is_t_design(return_parameters=True)
+            (True, (2, 13, 9, 6))
+
+        The "uniform" complement of a graph is a graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: G = IncidenceStructure(g.edges(labels=False))
+            sage: H = G.complement(uniform=True)
+            sage: h = Graph(H.blocks())
+            sage: g == h
+            False
+            sage: g == h.complement()
+            True
+
+        TESTS::
+
+            sage: bibd.relabel({i:str(i) for i in bibd.ground_set()})
+            sage: bibd.complement().ground_set()
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+        """
+        if uniform:
+            k = self.is_uniform()
+            if k is False:
+                raise ValueError("The incidence structure is not uniform.")
+
+            blocks     = []
+            num_blocks = self.num_blocks()
+            i = 0
+            from itertools import combinations
+            for B in combinations(range(self.num_points()),k):
+                B = list(B)
+                while i<num_blocks and self._blocks[i] < B:
+                    i += 1
+                if i<num_blocks and self._blocks[i] == B:
+                    i += 1
+                    continue
+                blocks.append(B)
+            I = IncidenceStructure(blocks,copy=False)
+        else:
+            X = set(range(self.num_points()))
+            I = IncidenceStructure([X.difference(B) for B in self._blocks])
+
+        I.relabel({i:self._points[i] for i in range(self.num_points())})
+        return I
 
     def relabel(self, perm=None, inplace=True):
         r"""
@@ -1200,7 +1344,6 @@ class IncidenceStructure(object):
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
-          Only useful when ``algorithm == "LP"``.
 
         EXAMPLE::
 
@@ -1786,6 +1929,99 @@ class IncidenceStructure(object):
             deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
             return self.incidence_graph().is_connected()
 
+    def coloring(self, k=None, solver=None, verbose=0):
+        r"""
+        Compute a (weak) `k`-coloring of the hypergraph
+
+        A weak coloring of a hypergraph `\mathcal H` is an assignment of colors
+        to its vertices such that no set is monochromatic.
+
+        INPUT:
+
+        - ``k`` (integer) -- compute a coloring with `k` colors if an integer is
+          provided, otherwise returns an optimal coloring (i.e. with the minimum
+          possible number of colors).
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
+          of the class
+          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- non-negative integer (default: ``0``). Set the level
+          of verbosity you want from the linear program solver. Since the
+          problem is `NP`-complete, its solving may take some time depending on
+          the graph. A value of 0 means that there will be no message printed by
+          the solver.
+
+        EXAMPLES:
+
+        The Fano plane has chromatic number 3::
+
+            sage: len(designs.steiner_triple_system(7).coloring())
+            3
+
+        One admissible 3-coloring::
+
+            sage: designs.steiner_triple_system(7).coloring() # not tested - architecture-dependent
+            [[0, 2, 5, 1], [4, 3], [6]]
+
+        The chromatic number of a graph is equal to the chromatic number of its
+        2-uniform corresponding hypergraph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: H = IncidenceStructure(g.edges(labels=False))
+            sage: len(g.coloring())
+            3
+            sage: len(H.coloring())
+            3
+        """
+        if k is None:
+            for k in range(self.num_points()+1):
+                try:
+                    return self.coloring(k)
+                except ValueError:
+                    pass
+
+        if k == 0:
+            if self.num_points():
+                raise ValueError("Only empty hypergraphs are 0-chromatic")
+            return []
+        elif any(len(x) == 1 for x in self._blocks):
+            raise RuntimeError("No coloring can be defined "
+                               "when there is a set of size 1")
+        elif k == 1:
+            if any(x for x in self._blocks):
+                raise ValueError("This hypergraph contains a set. "
+                                 "It is not 1-chromatic")
+            return [self.ground_set()]
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram(solver=solver)
+        b = p.new_variable(binary=True)
+
+        for x in range(self.num_points()):
+            p.add_constraint(p.sum(b[x,i] for i in range(k)) == 1)
+
+        for s in self._blocks:
+            for i in range(k):
+                p.add_constraint(p.sum(b[x,i] for x in s) <= len(s)-1)
+
+        try:
+            p.solve(log=verbose)
+        except MIPSolverException:
+            raise ValueError("This hypergraph is not {}-colorable".format(k))
+
+        col = [[] for i in range(k)]
+
+        for (x,i),v in p.get_values(b).iteritems():
+            if v:
+                col[i].append(self._points[x])
+
+        return col
+
     def edge_coloring(self):
         r"""
         Compute a proper edge-coloring.
@@ -1939,3 +2175,6 @@ class IncidenceStructure(object):
 
         tex += "\\end{tikzpicture}"
         return tex
+
+from sage.misc.rest_index_of_methods import gen_rest_table_index
+__doc__ = __doc__.format(METHODS_OF_IncidenceStructure=gen_rest_table_index(IncidenceStructure))

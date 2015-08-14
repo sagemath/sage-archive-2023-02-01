@@ -10,9 +10,11 @@ Bialgebras with basis
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.categories.tensor import tensor
 
 class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
-    """
+    r"""
     The category of bialgebras with a distinguished basis.
 
     EXAMPLES::
@@ -32,7 +34,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ParentMethods:
 
         def convolution_product(self, *maps):
-            """
+            r"""
             Return the convolution product (a map) of the given maps.
 
             INPUT:
@@ -116,7 +118,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  3*m{{1}, {2}, {3}} + 3*m{{1}, {2, 3}} + 3*m{{1, 3}, {2}}]
 
             Compute the convolution product of the antipode with itself and the
-            identity map on group algebra of the symmetric group:
+            identity map on group algebra of the symmetric group::
 
                 sage: G = SymmetricGroup(3)
                 sage: QG = GroupAlgebra(G, QQ)
@@ -137,7 +139,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     class ElementMethods:
 
         def adams_operator(self, n):
-            """
+            r"""
             Compute the `n`-th convolution power of the identity morphism `Id`
             on ``self``.
 
@@ -206,7 +208,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return self.convolution_product([T] * n)
 
         def convolution_product(self, *maps):
-            """
+            r"""
             Return the image of ``self`` under the convolution product (map) of
             the maps.
 
@@ -445,6 +447,9 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             elif n==1:
                 return self.coproduct()
             else:
+                from sage.functions.all import floor, ceil
+                from sage.rings.all import Integer
+
                 # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
                 fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
                 def split(a,b): return tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])

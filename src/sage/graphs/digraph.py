@@ -3073,54 +3073,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-    def strongly_connected_components(self):
-        """
-        Returns the list of strongly connected components.
-
-        EXAMPLES::
-
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.connected_components()
-            [[0, 1, 2, 3], [4, 5, 6]]
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.strongly_connected_components()
-            [[3], [2], [1], [0], [6], [5], [4]]
-            sage: D.add_edge([2,0])
-            sage: D.strongly_connected_components()
-            [[3], [0, 1, 2], [6], [5], [4]]
-
-        TESTS:
-
-        Checking against NetworkX, and another of Sage's implementations::
-
-            sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components
-            sage: import networkx
-            sage: for i in range(100):                                     # long
-            ...        g = digraphs.RandomDirectedGNP(100,.05)             # long
-            ...        h = g.networkx_graph()                              # long
-            ...        scc1 = g.strongly_connected_components()            # long
-            ...        scc2 = networkx.strongly_connected_components(h)    # long
-            ...        scc3 = strongly_connected_components(g)             # long
-            ...        s1 = Set(map(Set,scc1))                             # long
-            ...        s2 = Set(map(Set,scc2))                             # long
-            ...        s3 = Set(map(Set,scc3))                             # long
-            ...        if s1 != s2:                                        # long
-            ...            print "Ooch !"                                  # long
-            ...        if s1 != s3:                                        # long
-            ...            print "Oooooch !"                               # long
-
-        """
-        from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
-        import numpy as np
-        nscc, scc = tarjan_strongly_connected_components(self)
-        filler = np.frompyfunc(lambda x: list(), 1, 1)
-        output = np.empty((nscc), dtype=np.object)
-        filler(output, output)
-
-        for v in self.vertices():
-            output[scc[v]].append(v)
-        return output.tolist()
-
     def strongly_connected_component_containing_vertex(self, v):
         """
         Returns the strongly connected component containing a given vertex
@@ -3578,3 +3530,6 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
+
+from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)

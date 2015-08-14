@@ -471,15 +471,8 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
     cdef int *dfs_stack = <int *> mem.malloc((n_edges(g) + 1) * sizeof(int))
     cdef int dfs_stack_end
     cdef int *scc_stack = <int *> mem.malloc(n * sizeof(int)) # Used to keep track of which nodes are in the "current" SCC
-    cdef bitset_t in_scc_stack
+    cdef short *in_scc_stack = <short *> mem.calloc(n, sizeof(short))
     cdef uint32_t *p_tmp
-    # Otherwise, bitset_init creates problems
-    if n == 0:
-        return 0
-
-    bitset_init(in_scc_stack, n)
-    bitset_set_first_n(in_scc_stack, 0)
-
     cdef short *visited = <short *> mem.calloc(n, sizeof(short))
     # The variable visited[v] is 0 if the vertex has never been visited, 1 if
     # it is an ancestor of the current vertex, 2 otherwise.
@@ -505,7 +498,7 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
                     # We add v to the stack of vertices in the current SCC
                     scc_stack[scc_stack_end] = v
                     scc_stack_end = scc_stack_end + 1
-                    bitset_add(in_scc_stack, v)
+                    in_scc_stack[v] = 1
 
                     # We iterate over all neighbors of v
                     p_tmp = g.neighbors[v]
@@ -517,7 +510,7 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
                             pred[w] = v
                             dfs_stack[dfs_stack_end] = w
                             dfs_stack_end += 1
-                        elif bitset_in(in_scc_stack, w):
+                        elif in_scc_stack[w]:
                             # We update the lowlink of v (later, we will "pass"
                             # this updated value to all ancestors of v.
                             lowlink[v] = min(lowlink[v], lowlink[w])
@@ -539,12 +532,11 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
                             while w != v:
                                 scc_stack_end -= 1
                                 w = scc_stack[scc_stack_end]
-                                bitset_remove(in_scc_stack, w)
+                                in_scc_stack[w] = 0
                                 scc[w] = currentscc
                             currentscc += 1
                         visited[v] = 2
 
-    bitset_free(in_scc_stack)
     return currentscc
 
 
@@ -582,33 +574,63 @@ def tarjan_strongly_connected_components(G):
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: tarjan_strongly_connected_components(digraphs.Path(3))
-        [3, {0: 2, 1: 1, 2: 0}]
+        [[2], [1], [0]]
+        sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+        sage: D.connected_components()
+        [[0, 1, 2, 3], [4, 5, 6]]
+        sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+        sage: D.strongly_connected_components()
+        [[3], [2], [1], [0], [6], [5], [4]]
+        sage: D.add_edge([2,0])
+        sage: D.strongly_connected_components()
+        [[3], [0, 1, 2], [6], [5], [4]]
 
-    TESTS::
+    TESTS:
+
+    Checking that the result is correct::
 
         sage: from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
         sage: import random
-        sage: for i in range(100):
+        sage: for i in range(100):                                     # long
         ....:     n = random.randint(2,20)
         ....:     m = random.randint(1, n*(n-1))
         ....:     g = digraphs.RandomDirectedGNM(n,m)
-        ....:     nscc, sccs = tarjan_strongly_connected_components(g)
-        ....:     for v in range(n):
-        ....:         scc_check = g.strongly_connected_component_containing_vertex(v)
-        ....:         for w in range(n):
-        ....:             assert((sccs[w]==sccs[scc_check[0]]) == (w in scc_check))
+        ....:     sccs = tarjan_strongly_connected_components(g)
+        ....:     for scc in sccs:
+        ....:         scc_check = g.strongly_connected_component_containing_vertex(scc[0])
+        ....:         assert(sorted(scc) == sorted(scc_check))
+
+    Checking against NetworkX::
+
+        sage: import networkx
+        sage: for i in range(100):                                     # long
+        ...        g = digraphs.RandomDirectedGNP(100,.05)
+        ...        h = g.networkx_graph()
+        ...        scc1 = g.strongly_connected_components()
+        ...        scc2 = networkx.strongly_connected_components(h)
+        ...        s1 = Set(map(Set,scc1))
+        ...        s2 = Set(map(Set,scc2))
+        ...        if s1 != s2:
+        ...            print "Ooch !"
     """
     from sage.graphs.digraph import DiGraph
+
     if not isinstance(G, DiGraph):
         raise ValueError("G must be a DiGraph.")
+
+    sig_on()
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph g
     init_short_digraph(g, G)
     cdef int * scc = <int*> mem.malloc(g.n * sizeof(int))
-    sig_on()
     cdef int nscc = _tarjan_strongly_connected_components(g, scc)
+
+    d = {i:list() for i in range(nscc)}
+
+    for i,v in enumerate(G.vertices()):
+        d[scc[i]].append(v)
     sig_off()
-    return [nscc, {v:scc[i] for i,v in enumerate(G.vertices())}]
+    return [d[i] for i in range(nscc)]
 
 cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int *scc, short_digraph output):
     r"""
@@ -630,12 +652,10 @@ cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int 
     cdef vector[vector[int]] scc_list = vector[vector[int]](nscc, vector[int]())
     cdef vector[vector[int]] sons = vector[vector[int]](nscc + 1, vector[int]())
     cdef vector[int].iterator iter
-    cdef bitset_t neighbors
+    cdef short *neighbors = <short *> mem.calloc(nscc, sizeof(short))
     cdef long m = 0
     cdef uint32_t degv
     cdef uint32_t *p_tmp
-    bitset_init(neighbors, nscc)
-    bitset_set_first_n(neighbors, 0)
 
     for v in range(nscc):
         scc_list[v] = vector[int]()
@@ -651,12 +671,12 @@ cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int 
             while p_tmp<g.neighbors[scc_list[v][i]+1]:
                 w = <int> scc[p_tmp[0]]
                 p_tmp += 1
-                if bitset_not_in(neighbors, w) and not w == v:
-                    bitset_add(neighbors, w)
+                if neighbors[w] == 0 and not w == v:
+                    neighbors[w] = 1
                     sons[v].push_back(w)
                     m += 1
         for w in range(sons[v].size()):
-            bitset_remove(neighbors, sons[v][w])
+            neighbors[sons[v][w]] = 0
 
     output.n = nscc
     output.m = m
@@ -673,8 +693,6 @@ cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int 
         output.neighbors[v] = output.neighbors[v-1] + sons[v-1].size()
         for i in range(sons[v].size()):
             output.neighbors[v][i] = sons[v][i]
-
-    bitset_free(neighbors)
 
 def strongly_connected_components_digraph(G):
     r"""
@@ -751,70 +769,6 @@ cdef void free_short_digraph(short_digraph g):
 
     if g.edge_labels != NULL:
         cpython.Py_XDECREF(g.edge_labels)
-
-def strongly_connected_components(G):
-    r"""
-    Returns the strongly connected components of the given DiGraph.
-
-    INPUT:
-
-    - ``G`` -- a DiGraph.
-
-    .. NOTE::
-
-        This method has been written as an attempt to solve the slowness
-        reported in :trac:`12235`. It is not the one used by
-        :meth:`sage.graphs.digraph.DiGraph.strongly_connected_components` as
-        saving some time on the computation of the strongly connected components
-        is not worth copying the whole graph, but it is a nice way to test this
-        module's functions. It is also tested in the doctest or
-        :meth:`sage.graphs.digraph.DiGraph.strongly_connected_components`.
-
-    EXAMPLE::
-
-        sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components
-        sage: g = digraphs.ButterflyGraph(2)
-        sage: strongly_connected_components(g)
-        [[('00', 0)], [('00', 1)], [('00', 2)], [('01', 0)], [('01', 1)], [('01', 2)],
-        [('10', 0)], [('10', 1)], [('10', 2)], [('11', 0)], [('11', 1)], [('11', 2)]]
-    """
-
-    if G.order() == 0:
-        return [[]]
-
-    # To compute the connected component containing a given vertex v, we take
-    # the intersection of the set of vertices that can be reached from v in G
-    # and the set of vertices that can be reached from v in G reversed.
-    #
-    # That's all that happens here.
-
-    cdef list answer = []
-    cdef list vertices = G.vertices()
-    cdef short_digraph g, gr
-
-    init_short_digraph(g, G)
-    init_reverse(gr, g)
-
-    cdef bitset_t seen
-    bitset_init(seen, g.n)
-    bitset_set_first_n(seen, 0)
-
-    cdef bitset_t scc
-    bitset_init(scc, g.n)
-    bitset_set_first_n(scc, 0)
-
-    cdef int v
-    while bitset_len(seen) < g.n:
-        v = bitset_first_in_complement(seen)
-        strongly_connected_component_containing_vertex(g, gr, v, scc)
-        answer.append([vertices[i] for i in bitset_list(scc)])
-        bitset_union(seen, seen, scc)
-
-    bitset_free(seen)
-    bitset_free(scc)
-    free_short_digraph(g)
-    free_short_digraph(gr)
-    return answer
 
 def triangles_count(G):
     r"""

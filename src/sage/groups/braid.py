@@ -701,7 +701,7 @@ class Braid(FinitelyPresentedGroupElement):
         n = self.strands()
         d = drain_size
         B = BraidGroup(n)
-        rep = B.create_TL_rep(d, variab, ring)
+        rep = B.TL_representation(d, variab, ring)
         M = identity_matrix(R, B.dim_of_TL_space(d), sparse=sparse)
         for i in self.Tietze():
             if i > 0:
@@ -1522,7 +1522,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
         return forest
 
     @cached_method
-    def create_TL_rep(self, drain_size, variab='A', ring=IntegerRing()):
+    def TL_representation(self, drain_size, variab='A', ring=IntegerRing()):
         """
         Return representation matrices of the Temperley--Lieb--Jones
         representation of standard braid group generators.
@@ -1561,18 +1561,18 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES::
             sage: B = BraidGroup(4)
-            sage: B.create_TL_rep(0)
+            sage: B.TL_representation(0)
             [
             [   1    0]  [-A^4  A^2]  [   1    0]
             [ A^2 -A^4], [   0    1], [ A^2 -A^4]
             ]
-            sage: B.create_TL_rep(0, ring=GF(2))
+            sage: B.TL_representation(0, ring=GF(2))
             [
             [  1   0]  [A^4 A^2]  [  1   0]
             [A^2 A^4], [  0   1], [A^2 A^4]
             ]
             sage: B = BraidGroup(8)
-            sage: B.create_TL_rep(8)
+            sage: B.TL_representation(8)
             [[1], [1], [1], [1], [1], [1], [1]]
         """
         n = self.strands()

@@ -1333,7 +1333,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``edge_attrs`` (dictionary) - a dictionary where the key is a string
           (the attribute name), and the value is an iterable containing in
           position i the label of the ith edge in the list outputted by
-          :meth:`edges_iterator` (see
+          :meth:`edge_iterator` (see
           http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
           information).
 

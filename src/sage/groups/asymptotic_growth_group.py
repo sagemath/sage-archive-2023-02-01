@@ -366,6 +366,9 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
             sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
+            sage: G = agg.GrowthGroup('QQ^x * x^ZZ * log(y)^ZZ * QQ^z')
+            sage: G.gens_monomial()
+            (x,)
         """
         t = ()
         for factor in self.cartesian_factors():

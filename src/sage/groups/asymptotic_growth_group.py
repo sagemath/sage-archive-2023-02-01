@@ -67,8 +67,11 @@ AUTHORS:
     This also enables us to construct *logarithmic growth groups*,
     e.g. ``log(x)^ZZ``.
 
-    This notation will also be extended to *Exponential growth
-    groups*.
+    Exponential growth groups, i.e. growth groups representing
+    elements of the form `\operatorname{base}^\operatorname{variable}`
+    are denoted as ``base^variable``. For example, ``QQ^x`` denotes
+    the multiplicative group of exponential expressions `q^x`, where
+    `q \in \mathbb{Q}^{\times}`.
 
 EXAMPLES::
 
@@ -96,6 +99,17 @@ product matters::
 
     sage: agg.GrowthGroup('x^ZZ * y^ZZ') is agg.GrowthGroup('y^ZZ * x^ZZ')
     False
+
+With the help of the short notation, even complicated growth groups
+can be constructed easily::
+
+    sage: G = agg.GrowthGroup('QQ^x * x^ZZ * log(x)^QQ * y^QQ')
+    sage: G.an_element()
+    (1/2)^x * x * log(x)^(1/2) * y^(1/2)
+    sage: (x, y) = var('x y')
+    sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
+    10^x * x^(-5) * log(x) * y^(5/6)
+
 """
 
 #*****************************************************************************
@@ -214,6 +228,12 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
         x^(1/2) * log(x) * y^(1/2)
+
+    ::
+
+        sage: G = agg.GrowthGroup('QQ^x * x^ZZ * y^ZZ * log(y)^QQ * QQ^z')
+        sage: G.an_element()
+        (1/2)^x * x * y * log(y)^(1/2) * (1/2)^z
 
     .. SEEALSO:
 
@@ -2429,6 +2449,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         Growth Group x^ZZ * log(x)^ZZ
         sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
         Growth Group x^ZZ * log(x)^ZZ * y^QQ
+        sage: agg.GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
+        Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
     """
     def create_key_and_extra_args(self, specification, **kwds):
         r"""

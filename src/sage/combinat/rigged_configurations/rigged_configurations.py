@@ -491,9 +491,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             <BLANKLINE>
             sage: next(g)
             <BLANKLINE>
-            (/)
+            0[ ]0
             <BLANKLINE>
-            -1[ ]-1
+            0[ ]0
             <BLANKLINE>
             (/)
             <BLANKLINE>

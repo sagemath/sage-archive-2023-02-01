@@ -1474,6 +1474,10 @@ class BraidGroup_class(FinitelyPresentedGroup):
                  ISBN 978-0-8218-4930-9
         """
         def fill_out_forest(forest, treesize):
+            # The basis elements are built recursively using this function,
+            # which takes a collection of partial basis elements, given in
+            # terms of trivalent trees (i.e. a 'forest') and extends each of
+            # the trees by one branch.
             if len(forest) == 0:
                 raise ValueError("Forest has to start with a tree")
             if forest[0][0]+treesize % 2 == 0:
@@ -1485,7 +1489,10 @@ class BraidGroup_class(FinitelyPresentedGroup):
                     newtreeup = list(tree)
                     newtreedown = list(tree)
                     newforest.remove(tree)  # Cut down the original tree
-                    # Add two greater trees, admissibly
+                    # Add two greater trees, admissibly. We need to check two
+                    # things to ensure that the tree will eventually define a
+                    # basis elements: that its 'colour' is not too large, and
+                    # that it is positive.
                     if tree[-1] < treesize - len(tree) + 1:
                         newtreeup.append(tree[-1] + 1)
                         newforest.append(newtreeup)
@@ -1504,7 +1511,11 @@ class BraidGroup_class(FinitelyPresentedGroup):
             raise ValueError("Number of drains must not exceed number of strands")
         if (n+d) % 2 == 1:
             raise ValueError("Parity of strands and drains must agree")
-        basis = [[d]]  # Let's start out with no elements and recursively fill out
+        
+        # We can now start the process: all we know is that our basis elements
+        # have a drain size of d, so we use fill_out_forest to build all basis
+        # elements out of this
+        basis = [[d]]
         forest = fill_out_forest(basis, n-1)
         for tree in forest:
             tree.extend([1, 0])
@@ -1567,11 +1578,22 @@ class BraidGroup_class(FinitelyPresentedGroup):
         n = self.strands()
         d = drain_size
         basis = self.TL_basis_with_drain(d)
+        # We first create an auxilliary matrix which essentially keeps track
+        # of the actions of cups/caps pairs on basis elements. That is, we
+        # essentially calculate the action of the TL-algebra generators e_i
+        # on the algebra itself: the action of e_i on one of our basis
+        # diagrams is itself a basis diagram, and auxmat will store the index
+        # of this new basis diagram.
+        #
+        # In some cases, the new diagram will connect two bottom points which
+        # we explicitly disallow (as such a diagram is not one of our basis
+        # elements). In this case, the corresponding auxmat entry will be -1.
         auxmat = matrix(n-1, len(basis))
-        for i in range(1, n):
-            for v in range(len(basis)):
+        for i in range(1, n):  # For each of the e_i
+            for v in range(len(basis)):  # For each basis element
                 tree = basis[v]
                 if tree[i-1] < tree[i] and tree[i+1] < tree[i]:
+                    # Here, for instance, we've created an unknot.
                     auxmat[i-1, v] = v
                 if tree[i-1] > tree[i] and tree[i+1] > tree[i]:
                     newtree = list(tree)
@@ -1599,14 +1621,17 @@ class BraidGroup_class(FinitelyPresentedGroup):
                         auxmat[i-1, v] = basis.index(newtree)
                     else:
                         auxmat[i-1, v] = -1
-        repmat = []
+        # The action is of the sigma_i is given in terms of the actions of the
+        # e_i which we found above. Our choice of normalisation means that
+        # \sigma_i acts by the identity + A**2 e_i.
+        repmat = []  # The list which will store the actions of sigma_i
         R = LaurentPolynomialRing(ring, variab)
         A = R.gens()[0]
-        for i in range(1, n):
+        for i in range(1, n):  # For each \sigma_i
             repmatnew = identity_matrix(R, len(basis), sparse=True)
             for v in range(len(basis)):
                 newmatentry = auxmat[i-1, v]
-                if newmatentry == v:
+                if newmatentry == v:  # Did we create an unknot?
                     repmatnew[v, v] = -A**4
                 elif newmatentry >= 0:
                     repmatnew[newmatentry, v] = A**2

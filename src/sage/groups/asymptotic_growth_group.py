@@ -2206,6 +2206,10 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             2^x
             sage: P((-333)^x)  # indirect doctest
             (-333)^x
+            sage: P(0)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot convert 0.
 
         ::
 

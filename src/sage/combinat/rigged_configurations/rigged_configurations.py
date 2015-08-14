@@ -489,7 +489,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             <BLANKLINE>
             (/)
             <BLANKLINE>
-            sage: next(g)
+            sage: next(g) # random
             <BLANKLINE>
             0[ ]0
             <BLANKLINE>

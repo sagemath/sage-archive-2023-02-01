@@ -111,8 +111,8 @@ class GaloisGroup_v1(SageObject):
             PARI group [6, -1, 2, "S3"] of degree 3
             sage: P = H.permutation_group(); P  # optional - database_gap
             Transitive group number 2 of degree 3
-            sage: list(P)                       # optional
-            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+            sage: list(P)                       # optional - database_gap
+            [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
         """
         return self.__group
 
@@ -190,7 +190,9 @@ class GaloisGroup_v2(PermutationGroup_generic):
         g = self._pari_gc.galoisinit()
         self._pari_data = g
 
-        PermutationGroup_generic.__init__(self, sorted(g[6]))
+        # Sort the vector of permutations using cmp() to avoid errors
+        # from using comparison operators on non-scalar PARI objects.
+        PermutationGroup_generic.__init__(self, sorted(g[6], cmp=cmp))
 
         # PARI computes all the elements of self anyway, so we might as well store them
         self._elts = sorted([self(x, check=False) for x in g[5]])
@@ -404,10 +406,12 @@ class GaloisGroup_v2(PermutationGroup_generic):
 
         EXAMPLE::
 
-            sage: L = CyclotomicField(7)
+            sage: L.<z> = CyclotomicField(7)
             sage: G = L.galois_group()
-            sage: G.complex_conjugation()
-            (1,6)(2,3)(4,5)
+            sage: conj = G.complex_conjugation(); conj
+            (1,4)(2,5)(3,6)
+            sage: conj(z)
+            -z^5 - z^4 - z^3 - z^2 - z - 1
 
         An example where the field is not CM, so complex conjugation really
         depends on the choice of embedding::
@@ -558,9 +562,23 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
             sage: G = NumberField(x^3 - x - 1, 'a').galois_closure('b').galois_group()
             sage: GaloisGroup_subgroup( G, [ G(1), G([(1,2,3),(4,5,6)]), G([(1,3,2),(4,6,5)])])
             Subgroup [(), (1,2,3)(4,5,6), (1,3,2)(4,6,5)] of Galois group of Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+
+        TESTS:
+
+        Check that :trac:`17664` is fixed::
+
+            sage: L.<c> = QuadraticField(-1)
+            sage: P = L.primes_above(5)[0]
+            sage: G = L.galois_group()
+            sage: H = G.decomposition_group(P)
+            sage: H.domain()
+            {1, 2}
+            sage: G.artin_symbol(P)
+            ()
         """
         #XXX: This should be fixed so that this can use GaloisGroup_v2.__init__
-        PermutationGroup_generic.__init__(self, elts, canonicalize = True)
+        PermutationGroup_generic.__init__(self, elts, canonicalize=True,
+                                          domain=ambient.domain())
         self._ambient = ambient
         self._number_field = ambient.number_field()
         self._galois_closure = ambient._galois_closure
@@ -631,7 +649,6 @@ class GaloisGroupElement(PermutationGroupElement):
         sage: G[4](G[4](G[4](v)))
         1/18*y^4
     """
-
     @cached_method
     def as_hom(self):
         r"""
@@ -685,21 +702,6 @@ class GaloisGroupElement(PermutationGroupElement):
         gens = self.parent().number_field().ring_of_integers().ring_generators()
         w = [ (self(g) - g).valuation(P) for g in gens]
         return min(w)
-
-    def __cmp__(self, other):
-        r"""
-        Compare self to other. For some bizarre reason, if you just let it
-        inherit the cmp routine from PermutationGroupElement, cmp(x, y) works
-        but sorting lists doesn't.
-
-        TEST::
-
-            sage: K.<a> = NumberField(x^6 + 40*x^3 + 1372);G = K.galois_group()
-            sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
-            [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
-        """
-        return PermutationGroupElement.__cmp__(self, other)
-
 
 
 # For unpickling purposes we rebind GaloisGroup as GaloisGroup_v1.

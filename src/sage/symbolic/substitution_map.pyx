@@ -17,8 +17,6 @@ back to Python.
 ########################################################################
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 
 from ginac cimport *
@@ -85,7 +83,7 @@ cdef SubstitutionMap new_SubstitutionMap_from_GExMap(const GExMap& smap):
         SubsMap
     """
     cdef SubstitutionMap result
-    result = <SubstitutionMap>PY_NEW(SubstitutionMap)
+    result = <SubstitutionMap>SubstitutionMap.__new__(SubstitutionMap)
     GEx_construct_exmap(&result._gmapobj, smap)
     return result
 

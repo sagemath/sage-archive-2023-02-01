@@ -30,3 +30,4 @@ FLINT is licensed GPL v2+.
 
 === Patches ===
   * test_empty_string.patch: fix test for empty string in Makefile.in.
+  * ntl62.patch: do not include multiple times NTL headers.

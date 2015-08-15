@@ -25,7 +25,7 @@ import sage.libs.pari.all as pari
 import sage.rings.ring as ring
 import ring_element
 
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.fast_methods import Singleton
 
 class Pari(ring_element.RingElement):
     """
@@ -157,7 +157,7 @@ class Pari(ring_element.RingElement):
         return int(self.__x)
 
 
-class PariRing(UniqueRepresentation, ring.Ring):
+class PariRing(Singleton, ring.Ring):
     """
     EXAMPLES:
         sage: R = PariRing(); R
@@ -166,6 +166,7 @@ class PariRing(UniqueRepresentation, ring.Ring):
         True
     """
     Element = Pari
+
     def __init__(self):
         ring.Ring.__init__(self, self)
     def __repr__(self):

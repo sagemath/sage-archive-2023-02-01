@@ -44,6 +44,7 @@ done
 echo "Configuring libGAP..."
 ./configure --disable-static \
     CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" \
+    --libdir="$SAGE_LOCAL/lib" \
     --with-gap_system_arch="$GAParch_system" \
     --with-sage="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then

@@ -1,4 +1,4 @@
-"""
+r"""
 External Representations of Block Designs
 
 The "ext_rep" module is an API to the abstract tree represented by
@@ -14,10 +14,16 @@ REFERENCES:
 .. [D2009] P. Dobcsanyi et al. DesignTheory.org
    http://designtheory.org/database/
 
-TODO: The XML data from the designtheory.org database contains a wealth
-of information about things like automorphism groups, transitivity,
-cycle type representatives, etc, but none of this data is made
-available through the current implementation.
+.. TODO::
+
+    The XML data from the designtheory.org database contains a wealth of
+    information about things like automorphism groups, transitivity, cycle type
+    representatives, etc, but none of this data is made available through the
+    current implementation.
+
+Functions
+---------
+
 """
 
 ###########################################################################
@@ -39,7 +45,7 @@ import re
 import os.path
 import gzip
 import bz2
-from sage.misc.misc import tmp_filename
+from sage.misc.all import tmp_filename
 import urllib2
 import sys
 
@@ -684,7 +690,7 @@ class XTree(object):
 
     def __getattr__(self, attr):
         """
-        Returns the data for the first attribute with name attr.
+        Return the data for the first attribute with name attr.
 
         EXAMPLES::
 
@@ -761,7 +767,7 @@ class XTree(object):
 
     def __len__(self):
         """
-        Returns the length of the current node.
+        Return the length of the current node.
 
         EXAMPLES::
 
@@ -997,7 +1003,7 @@ class XTreeProcessor(object):
 
 def designs_from_XML(fname):
     """
-    Returns a list of designs contained in an XML file fname. The list
+    Return a list of designs contained in an XML file fname. The list
     contains tuples of the form (v, bs) where v is the number of points of
     the design and bs is the list of blocks.
 
@@ -1032,7 +1038,7 @@ def designs_from_XML(fname):
 
 def designs_from_XML_url(url):
     """
-    Returns a list of designs contained in an XML file named by a URL.
+    Return a list of designs contained in an XML file named by a URL.
     The list contains tuples of the form (v, bs) where v is the number
     of points of the design and bs is the list of blocks.
 

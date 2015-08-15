@@ -64,6 +64,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -248,7 +249,9 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of algebras with basis over Rational Field, Category of Cartesian products of algebras over Rational Field, Category of Cartesian products of modules with basis over Rational Field]
+                [Category of algebras with basis over Rational Field,
+                 Category of Cartesian products of algebras over Rational Field,
+                 Category of Cartesian products of vector spaces with basis over Rational Field]
             """
             return [self.base_category()]
 
@@ -320,7 +323,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).TensorProducts().super_categories()
                 [Category of algebras with basis over Rational Field,
                  Category of tensor products of algebras over Rational Field,
-                 Category of tensor products of modules with basis over Rational Field]
+                 Category of tensor products of vector spaces with basis over Rational Field]
             """
             return [self.base_category()]
 

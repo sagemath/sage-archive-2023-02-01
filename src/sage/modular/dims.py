@@ -44,7 +44,7 @@ classes.
 from sage.rings.arith import (factor, is_prime,
                               valuation, kronecker_symbol, gcd, euler_phi, lcm)
 
-from sage.misc.misc import mul
+from sage.misc.all import prod as mul
 from sage.rings.all import Mod, Integer, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
 import dirichlet

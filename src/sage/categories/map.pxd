@@ -15,6 +15,7 @@ cdef class Map(Element):
     cdef public domain    # will be either a weakref or a constant map
     cdef public codomain  # will be a constant map
     cdef Parent _codomain # for accessing the codomain directly
+    cdef object _category_for  # category in which this is a morphism
 
     cdef public _repr_type_str
 

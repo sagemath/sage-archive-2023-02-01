@@ -1,7 +1,18 @@
 r"""
 Common Digraphs
 
-Generators for common digraphs.
+All digraphs in Sage can be built through the ``digraphs`` object. In order to
+build a circuit on 15 elements, one can do::
+
+    sage: g = digraphs.Circuit(15)
+
+To get a circulant graph on 10 vertices in which a vertex `i` has `i+2` and
+`i+3` as outneighbors::
+
+    sage: p = digraphs.Circulant(10,[2,3])
+
+More interestingly, one can get the list of all digraphs that Sage knows how to
+build by typing ``digraphs.`` in Sage and then hitting tab.
 
 .. csv-table::
     :class: contentstable
@@ -262,14 +273,14 @@ class DiGraphGenerators():
         if vertices=='strings':
             if n>=31:
                 raise NotImplementedError("vertices='strings' is only valid for n<=30.")
-            from sage.graphs.generic_graph_pyx import binary
+            from sage.graphs.generic_graph_pyx import int_to_binary_string
             butterfly = {}
             for v in xrange(2**n):
                 for i in range(n):
                     w = v
                     w ^= (1 << i)   # push 1 to the left by i and xor with w
-                    bv = binary(v)
-                    bw = binary(w)
+                    bv = int_to_binary_string(v)
+                    bw = int_to_binary_string(w)
                     # pad and reverse the strings
                     padded_bv = ('0'*(n-len(bv))+bv)[::-1]
                     padded_bw = ('0'*(n-len(bw))+bw)[::-1]
@@ -464,7 +475,7 @@ class DiGraphGenerators():
 
         nauty_input +=  " "+str(n) +" "
 
-        sp = subprocess.Popen("nauty-gentourng {0}".format(nauty_input), shell=True,
+        sp = subprocess.Popen("gentourng {0}".format(nauty_input), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)
 
@@ -474,7 +485,7 @@ class DiGraphGenerators():
         gen = sp.stdout
         while True:
             try:
-                s = gen.next()
+                s = next(gen)
             except StopIteration:
                 raise StopIteration("Exhausted list of graphs from nauty geng")
 
@@ -818,7 +829,19 @@ class DiGraphGenerators():
 
             sage: K = digraphs.Kautz(2, 3)
             sage: K.is_isomorphic(digraphs.ImaseItoh(12, 2), certify = True)
-            (True, {'201': 5, '120': 9, '202': 4, '212': 7, '210': 6, '010': 0, '121': 8, '012': 1, '021': 2, '020': 3, '102': 10, '101': 11})
+            (True,
+             {'010': 0,
+              '012': 1,
+              '020': 3,
+              '021': 2,
+              '101': 11,
+              '102': 10,
+              '120': 9,
+              '121': 8,
+              '201': 5,
+              '202': 4,
+              '210': 6,
+              '212': 7})
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
             sage: K.edges()
@@ -890,7 +913,6 @@ class DiGraphGenerators():
 
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
-
 
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """

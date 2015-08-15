@@ -196,8 +196,8 @@
                                  informativeTextWithFormat:@"For some reason the Sage server failed to start.  "
                               "Please check the log for clues, and have that information handy when asking for help."];
             [alert setAlertStyle:NSWarningAlertStyle];
-            NSModalResponse resp = [alert runModal];
-            if (resp == NSModalResponseOK) {
+            NSInteger resp = [alert runModal];
+            if (resp == NSAlertDefaultReturn) {
                 // View Log
                 [self viewSageLog:self];
             } else {
@@ -359,11 +359,11 @@ You can change it later in Preferences."];
                           "Please drag Sage.app to your hard-drive and run it from there, "
                           "or choose a different executable in Preferences."];
         [alert setAlertStyle:NSWarningAlertStyle];
-        NSModalResponse resp = [alert runModal];
-        if (resp == NSModalResponseOK) {// Quit
+        NSInteger resp = [alert runModal];
+        if (resp == NSAlertDefaultReturn) {// Quit
             NSLog(@"Quitting after a read-only Sage warning.");
             [NSApp terminate:self];
-        } else if ( resp == NSModalResponseCancel ) { // Continue
+        } else if ( resp == NSAlertAlternateReturn) { // Continue
             NSLog(@"Preferences after a read-only Sage warning.");
             [self showPreferences:self];
         } else {

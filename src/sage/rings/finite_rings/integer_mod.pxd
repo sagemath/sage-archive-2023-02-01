@@ -1,5 +1,4 @@
-include "sage/ext/cdefs.pxi"
-
+from sage.libs.gmp.types cimport *
 from sage.rings.finite_rings.stdint cimport *
 from sage.rings.finite_rings.element_base cimport FiniteRingElement
 from sage.rings.integer cimport Integer
@@ -23,7 +22,6 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value
-    cdef mpz_t* get_value(IntegerMod_gmp self)
     cdef IntegerMod_gmp _new_c(self)
     cdef shift(IntegerMod_gmp self, long k)
 

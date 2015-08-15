@@ -16,4 +16,10 @@ void assume(ex rel) {
 void assume(ex x, char* flag_desc) {
 }
 
+void forget(ex rel) {
+}
+
+void forget(ex x, char* flag_desc) {
+}
+
 } // namespace GiNaC

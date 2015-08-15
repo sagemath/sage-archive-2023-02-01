@@ -1381,6 +1381,18 @@ cdef class CPLEXBackend(GenericBackend):
         cdef double doublev
         cdef char * strv
 
+        # Specific action for setting log file
+        cdef FILE *ff
+        if name == "logfile":
+            if value is None:
+                raise ValueError("A filename must be specified to set the logfile.")
+            ff = fopen(value, "a")
+            if not ff:
+                raise ValueError("Unable to append file {}.".format(value))
+            if CPXsetlogfile(self.env, ff)!=0: # return 0 if successful
+                raise ValueError("Unable to set parameter 'logfile' to '{}'.".format(value))
+            return
+
         # If the name has to be translated to a CPLEX parameter ID
         if name == "timelimit":
             name = "CPX_PARAM_TILIM"

@@ -110,7 +110,7 @@ from sage.interfaces.all import maxima
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.misc.misc import SAGE_SHARE
+from sage.env import SAGE_SHARE
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -518,8 +518,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         .. NOTE::
 
-            Two lattice polytopes are if they have the same vertices listed in
-            the same order.
+            Two lattice polytopes are equal if they have the same vertices 
+            listed in the same order.
 
         TESTS::
 
@@ -683,7 +683,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             self._vertices = PointCollection((p0, ), N)
         elif self._dim == self.ambient_dim():
             if compute_vertices:
-                points = map(N, read_palp_matrix(self.poly_x("v")).columns())
+                points = [N(_) for _ in read_palp_matrix(self.poly_x("v")).columns()]
                 for point in points:
                     point.set_immutable()
                 self._vertices = PointCollection(points, N)
@@ -772,7 +772,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         else:
             sp = self._sublattice_polytope
             N = self.dual_lattice()
-            normals = map(N, sp.facet_normals() * self._dual_embedding_matrix)
+            normals = [N(_) for _ in sp.facet_normals() * self._dual_embedding_matrix]
             for n in normals:
                 n.set_immutable()
             self._facet_normals = PointCollection(normals, N)
@@ -1294,7 +1294,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         # facet is described by the 5th equation."
         # The next line sorts 0-dimensional faces to make these enumerations
         # more transparent.
-        self._faces[0].sort(cmp = lambda x,y: cmp(x._vertices[0], y._vertices[0]))
+        self._faces[0].sort(key=lambda x: x._vertices[0])
         self._faces.set_immutable()
 
     def _read_nef_partitions(self, data):
@@ -2532,7 +2532,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         if algorithm == "palp":
             vertices = vertices.columns()
         M = self.lattice()
-        vertices = map(M, vertices)
+        vertices = [M(_) for _ in vertices]
         for v in vertices:
             v.set_immutable()
         vertices = PointCollection(vertices, M)
@@ -2688,12 +2688,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
              [(), ()],
              [(2,3), (2,3)]]
             sage: PM_max.automorphisms_of_rows_and_columns()
-            [((), ()),
-            ((2,3), (2,3)),
-             ((1,2), (1,2)),
-             ((1,2,3), (1,2,3)),
-             ((1,3,2), (1,3,2)),
-             ((1,3), (1,3))]
+            [((), ()), ((2,3), (2,3)), ((1,2), (1,2)),
+             ((1,3,2), (1,3,2)), ((1,2,3), (1,2,3)), ((1,3), (1,3))]
             sage: PMs = [i._palp_PM_max(check=True)
             ....:        for i in ReflexivePolytopes(2)] # long time
             sage: all(len(i) == len(j.automorphisms_of_rows_and_columns())
@@ -3075,6 +3071,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: c.plot3d()
+            Graphics3d Object
 
         Plot without facets and points, shown without the frame::
 
@@ -3083,16 +3080,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Plot with facets of different colors::
 
             sage: c.plot3d(facet_colors=rainbow(c.nfacets(), 'rgbtuple'))
+            Graphics3d Object
 
         It is also possible to plot lower dimensional polytops in 3D (let's
         also change labels of vertices)::
 
             sage: lattice_polytope.cross_polytope(2).plot3d(vlabels=["A", "B", "C", "D"])
+            Graphics3d Object
 
         TESTS::
 
             sage: p = LatticePolytope([[0,0,0],[0,1,1],[1,0,1],[1,1,0]])
             sage: p.plot3d()
+            Graphics3d Object
         """
         dim = self.dim()
         amb_dim = self.ambient_dim()
@@ -3160,6 +3160,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 pplot += text3d(i+self.nvertices(), bc+index_shift*(p-bc), rgbcolor=pindex_color)
         return pplot
 
+    def polyhedron(self):
+        r"""
+        Return the Polyhedron object determined by this polytope's vertices.
+        
+        EXAMPLES::
+        
+            sage: o = lattice_polytope.cross_polytope(2)
+            sage: o.polyhedron()
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        return Polyhedron(vertices=[list(v) for v in self._vertices])        
+    
     def show3d(self):
         """
         Show a 3d picture of the polytope with default settings and without axes or frame.
@@ -3307,7 +3320,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 points = self._embed(read_palp_matrix(
                             self.poly_x("p", reduce_dimension=True))).columns()
                 M = self.lattice()
-                points = map(M, points)
+                points = [M(_) for _ in points]
                 for point in points:
                     point.set_immutable()
                 self._points = PointCollection(points, M)
@@ -5002,7 +5015,7 @@ def _palp_canonical_order(V, PM_max, permutations):
     Vs = [(V.column_matrix().with_permuted_columns(k).hermite_form(), k) 
           for k in permutations]
     Vmin = min(Vs, key=lambda x:x[0])
-    vertices = map(V.module(), Vmin[0].columns())
+    vertices = [V.module()(_) for _ in Vmin[0].columns()]
     for v in vertices:
         v.set_immutable()
     return (PointCollection(vertices, V.module()), Vmin[1])
@@ -5335,7 +5348,7 @@ def all_points(polytopes):
             raise RuntimeError("Cannot read points of a polytope!"
                                                         +"\nPolytope: %s" % p)
         M = p.lattice()
-        points = map(M, points.columns())
+        points = [M(_) for _ in points.columns()]
         for point in points:
             point.set_immutable()
         p._points = PointCollection(points, M)
@@ -5881,7 +5894,7 @@ def read_palp_matrix(data, permutation=False):
     if permutation:
         last_piece = first_line[-1]
         last_piece = last_piece.split('=')
-        if last_piece[0] <> 'perm':
+        if last_piece[0] != 'perm':
             raise ValueError('PALP did not return a permutation.')
         p = _palp_convert_permutation(last_piece[1])
         return (mat, p)

@@ -128,7 +128,7 @@ class IndexedMonoidElement(MonoidElement):
             F *F *F *F
              0  1  3  4
         """
-        from sage.misc.ascii_art import AsciiArt, ascii_art, empty_ascii_art
+        from sage.typeset.ascii_art import AsciiArt, ascii_art, empty_ascii_art
 
         if not self._monomial:
             return AsciiArt(["1"])
@@ -538,7 +538,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         v = self._monomial.items()
         try:
             v.sort(cmp = print_options['generator_cmp'])
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 
@@ -734,7 +734,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
             [F[0], F[1], F[-1]]
         """
         it = iter(self._indices)
-        return tuple(self.gen(it.next()) for i in range(n))
+        return tuple(self.gen(next(it)) for i in range(n))
 
     def _element_constructor_(self, x=None):
         """
@@ -781,7 +781,7 @@ class IndexedMonoid(Parent, IndexedGenerators, UniqueRepresentation):
         try:
             g = iter(self._indices)
             for c in range(1,4):
-                x *= self.gen(g.next()) ** c
+                x *= self.gen(next(g)) ** c
         except Exception:
             pass
         return x

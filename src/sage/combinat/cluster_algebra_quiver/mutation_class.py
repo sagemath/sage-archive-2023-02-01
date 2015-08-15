@@ -175,8 +175,8 @@ def _dg_canonical_form( dg, n, m ):
     for v in iso.keys():
         if v >= n+m:
             del iso[v]
-            v1,v2,label1 = dg._backend.iterator_in_edges([v],True).next()
-            w1,w2,label2 = dg._backend.iterator_out_edges([v],True).next()
+            v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
+            w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
             dg._backend.del_edge(v1,v2,label1,True)
             dg._backend.del_edge(w1,w2,label2,True)
             dg._backend.del_vertex(v)
@@ -210,9 +210,9 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
         sage: from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         sage: dg = ClusterQuiver(['A',[1,2],1]).digraph()
         sage: itt = _mutation_class_iter(dg, 3,0)
-        sage: itt.next()[0].edges()
+        sage: next(itt)[0].edges()
         [(0, 1, (1, -1)), (0, 2, (1, -1)), (1, 2, (1, -1))]
-        sage: itt.next()[0].edges()
+        sage: next(itt)[0].edges()
         [(0, 2, (1, -1)), (1, 0, (2, -2)), (2, 1, (1, -1))]
     """
     timer = time.time()

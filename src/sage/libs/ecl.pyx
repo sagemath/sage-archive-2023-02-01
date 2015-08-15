@@ -43,8 +43,8 @@ cdef extern from "eclsig.h":
     cdef Sigaction ecl_sigint_handler
     cdef Sigaction ecl_sigbus_handler
     cdef Sigaction ecl_sigsegv_handler
-    cdef mpz_t* ecl_mpz_from_bignum(cl_object obj)
-    cdef cl_object ecl_bignum_from_mpz(mpz_t* num)
+    cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
+    cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
 cdef cl_object string_to_object(char * s):
     return ecl_read_from_cstring(s)
@@ -319,27 +319,29 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.tests.interrupt import *
+        sage: from sage.ext.interrupt.tests import *
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
-        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
         sage: interrupt_after_delay(1000)
         sage: inf_loop()
         Traceback (most recent call last):
         ...
         RuntimeError: ECL says: Console interrupt.
     """
+    cdef cl_object s
     ecl_sig_on()
     cl_funcall(2,safe_eval_clobj,form)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
-    cdef cl_object l
+    cdef cl_object l, s
     l = cl_cons(func,cl_cons(arg,Cnil));
 
     ecl_sig_on()
@@ -347,17 +349,20 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
     else:
         return ecl_values(0)
 
 cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
+    cdef cl_object s
     ecl_sig_on()
     cl_funcall(3,safe_apply_clobj,func,args)
     ecl_sig_off()
 
     if ecl_nvalues > 1:
-        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(ecl_values(1))
+        s = si_coerce_to_base_string(ecl_values(1))
+        raise RuntimeError, "ECL says: "+ecl_base_string_pointer_safe(s)
     else:
         return ecl_values(0)
 
@@ -407,10 +412,11 @@ def print_objects():
         HELLO
     """
 
-    cdef cl_object c
+    cdef cl_object c, s
     c = list_of_objects
     while True:
-        print ecl_base_string_pointer_safe(cl_write_to_string(1,cl_car(c)))
+        s = si_coerce_to_base_string(cl_write_to_string(1,cl_car(c)))
+        print ecl_base_string_pointer_safe(s)
         c=cl_cadr(c)
         if c == Cnil:
             break
@@ -451,7 +457,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
         else:
-            return ecl_bignum_from_mpz( (<Integer>pyobj).get_value() )
+            return ecl_bignum_from_mpz( (<Integer>pyobj).value )
     elif isinstance(pyobj,Rational):
         return ecl_make_ratio(
                 python_to_ecl( (<Rational>pyobj).numerator()  ),
@@ -485,6 +491,7 @@ cdef cl_object python_to_ecl(pyobj) except NULL:
         raise TypeError,"Unimplemented type for python_to_ecl"
 
 cdef ecl_to_python(cl_object o):
+    cdef cl_object s
     cdef Integer N
     # conversions from an ecl object to a python object.
 
@@ -519,7 +526,8 @@ cdef ecl_to_python(cl_object o):
                 return tuple(L)
         return L
     else:
-        return ecl_base_string_pointer_safe(cl_write_to_string(1,o))
+        s = si_coerce_to_base_string(cl_write_to_string(1,o))
+        return ecl_base_string_pointer_safe(s)
 
 #Maxima's BFLOAT multiprecision float type can be read with:
 #def bfloat_to_python(e):
@@ -590,7 +598,7 @@ cdef class EclObject:
         sage: EclObject([1,2,EclObject([3])])
         <ECL: (1 2 (3))>
 
-    Calling an EclObject translates into the appropriate LISP ``apply'',
+    Calling an EclObject translates into the appropriate LISP ``apply``,
     where the argument is transformed into an EclObject itself, so one can
     flexibly apply LISP functions::
 
@@ -735,7 +743,7 @@ cdef class EclObject:
 
         """
         cdef cl_object s
-        s = cl_write_to_string(1,self.obj)
+        s = si_coerce_to_base_string(cl_write_to_string(1,self.obj))
         return ecl_base_string_pointer_safe(s)
 
     def __hash__(self):
@@ -820,20 +828,7 @@ cdef class EclObject:
         #and does not have generic routines for doing that.
         #we could dispatch based on type here, but that seems
         #inappropriate for an *interface*.
-        raise NotImplementedError,"EclObjects can only be compared for equality"
-
-        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-        #    raise TypeError,"Can only compare EclObjects"
-        #if op == 0: # "<"
-        #    pass
-        #elif op == 1: # "<="
-        #    pass
-        #elif op == 4: # ">"
-        #    pass
-        #elif op == 5: # ">="
-        #    pass
-        #else:
-        #    raise ValueError,"richcmp received operation code %d"%op
+        raise NotImplementedError("EclObjects can only be compared for equality")
 
     def __iter__(self):
         r"""
@@ -1283,13 +1278,13 @@ cdef class EclListIterator:
 
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
-            sage: I.next()
+            sage: next(I)
             <ECL: 1>
-            sage: I.next()
+            sage: next(I)
             <ECL: 2>
-            sage: I.next()
+            sage: next(I)
             <ECL: 3>
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             StopIteration

@@ -34,8 +34,8 @@ AUTHORS:
 
 import weakref
 from sage.rings.infinity import infinity
+from sage.libs.gmp.mpz cimport *
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
@@ -142,7 +142,7 @@ cdef class PowComputer_class(SageObject):
             9
         """
         cdef Integer ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.pow_mpz_t_tmp(n)[0])
+        mpz_set(ans.value, self.pow_mpz_t_tmp(n))
         return ans
 
     def pow_Integer_Integer(self, n):
@@ -181,9 +181,9 @@ cdef class PowComputer_class(SageObject):
                 raise ValueError, "result too big"
             return self.pow_Integer(mpz_get_ui(_n.value))
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
-        Provides fast access to an mpz_t* pointing to self.prime^n.
+        Provides fast access to an ``mpz_srcptr`` pointing to self.prime^n.
 
         The location pointed to depends on the underlying
         representation.  In no circumstances should you mpz_clear the
@@ -231,7 +231,7 @@ cdef class PowComputer_class(SageObject):
         if m < 0 or n < 0:
             raise ValueError, "m, n must be non-negative"
         cdef Integer ans = PY_NEW(Integer)
-        mpz_mul(ans.value, self.pow_mpz_t_tmp(mpz_get_ui((<Integer>m).value))[0], self.pow_mpz_t_tmp(mpz_get_ui((<Integer>n).value))[0])
+        mpz_mul(ans.value, self.pow_mpz_t_tmp(mpz_get_ui((<Integer>m).value)), self.pow_mpz_t_tmp(mpz_get_ui((<Integer>n).value)))
         return ans
 
     def _pow_mpz_t_tmp_test(self, n):
@@ -261,12 +261,12 @@ cdef class PowComputer_class(SageObject):
         """
         cdef Integer _n = Integer(n)
         cdef Integer ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_ui(_n.value))[0])
+        mpz_set(ans.value, self.pow_mpz_t_tmp(mpz_get_ui(_n.value)))
         return ans
 
-    cdef mpz_t* pow_mpz_t_top(self):
+    cdef mpz_srcptr pow_mpz_t_top(self):
         """
-        Returns a pointer to self.prime^self.prec_cap as an mpz_t*.
+        Returns a pointer to self.prime^self.prec_cap as an ``mpz_srcptr``.
 
         EXAMPLES::
 
@@ -290,7 +290,7 @@ cdef class PowComputer_class(SageObject):
             59049
         """
         cdef Integer ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.pow_mpz_t_top()[0])
+        mpz_set(ans.value, self.pow_mpz_t_top())
         return ans
 
     def __repr__(self):
@@ -371,7 +371,7 @@ cdef class PowComputer_class(SageObject):
         """
         cdef Integer ans
         ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.pow_mpz_t_top()[0])
+        mpz_set(ans.value, self.pow_mpz_t_top())
         return ans
 
     def __call__(self, n):
@@ -398,7 +398,7 @@ cdef class PowComputer_class(SageObject):
         cdef mpz_t tmp
         if n is infinity:
             return Integer(0)
-        if not PY_TYPE_CHECK(n, Integer):
+        if not isinstance(n, Integer):
             _n = Integer(n)
         else:
             _n = <Integer>n
@@ -479,9 +479,9 @@ cdef class PowComputer_base(PowComputer_class):
         """
         return PowComputer, (self.prime, self.cache_limit, self.prec_cap, self.in_field)
 
-    cdef mpz_t* pow_mpz_t_top(self):
+    cdef mpz_srcptr pow_mpz_t_top(self):
         """
-        Returns a pointer to self.prime^self.prec_cap as an mpz_t*.
+        Returns a pointer to self.prime^self.prec_cap as an ``mpz_srcptr``.
 
         EXAMPLES::
 
@@ -489,9 +489,9 @@ cdef class PowComputer_base(PowComputer_class):
             sage: PC._pow_mpz_t_top_test() #indirect doctest
             59049
         """
-        return &self.top_power
+        return self.top_power
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, long n):
         """
         Computes self.prime^n.
 
@@ -502,11 +502,11 @@ cdef class PowComputer_base(PowComputer_class):
             81
         """
         if n <= self.cache_limit:
-            return &(self.small_powers[n])
+            return self.small_powers[n]
         if n == self.prec_cap:
-            return &(self.top_power)
+            return self.top_power
         mpz_pow_ui(self.temp_m, self.prime.value, n)
-        return &(self.temp_m)
+        return self.temp_m
 
 pow_comp_cache = {}
 cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec_cap, in_field):
@@ -564,11 +564,11 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
         sage: PC(-1)
         1/3
     """
-    if not PY_TYPE_CHECK(m, Integer):
+    if not isinstance(m, Integer):
         m = Integer(m)
-    if not PY_TYPE_CHECK(cache_limit, Integer):
+    if not isinstance(cache_limit, Integer):
         cache_limit = Integer(cache_limit)
-    if not PY_TYPE_CHECK(prec_cap, Integer):
+    if not isinstance(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
     return PowComputer_c(m, cache_limit, prec_cap, in_field)
 

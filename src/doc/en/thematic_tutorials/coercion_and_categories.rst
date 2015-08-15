@@ -5,6 +5,10 @@
 =================================================
 How to implement new algebraic structures in Sage
 =================================================
+
+.. contents::
+   :depth: 3
+
 --------------------------------------
 Sage's category and coercion framework
 --------------------------------------
@@ -15,12 +19,7 @@ Sage's category and coercion framework
     <simon.king@uni-jena.de>
     © 2011/2013
 
-.. toctree::
-   :maxdepth: 2
-
 .. linkall
-
-
 
 The aim of this tutorial is to explain how one can benefit from Sage's
 category framework and coercion model when implementing new algebraic
@@ -105,27 +104,84 @@ it makes sense to build on top of the base class
 This base class provides a lot more methods than a general parent::
 
     sage: [p for p in dir(Field) if p not in dir(Parent)]
-    ['__div__', '__fraction_field', '__ideal_monoid', '__iter__',
-     '__pow__', '__rdiv__', '__rpow__', '__rxor__', '__xor__',
-     '_an_element', '_an_element_c', '_an_element_impl', '_coerce_',
-     '_coerce_c', '_coerce_impl', '_coerce_self', '_coerce_try',
-     '_default_category', '_gens', '_gens_dict',
-     '_has_coerce_map_from', '_ideal_class_', '_latex_names', '_list',
-     '_one_element', '_pseudo_fraction_field',
-     '_random_nonzero_element', '_richcmp', '_unit_ideal',
-     '_zero_element', '_zero_ideal', 'algebraic_closure',
-     'base_extend', 'cardinality', 'class_group', 'coerce_map_from_c',
-     'coerce_map_from_impl', 'content', 'divides', 'extension',
-     'fraction_field', 'frobenius_endomorphism', 'gcd', 'gen', 'gens',
-     'get_action_c', 'get_action_impl', 'has_coerce_map_from_c',
-     'has_coerce_map_from_impl', 'ideal', 'ideal_monoid',
-     'integral_closure', 'is_commutative', 'is_field', 'is_finite',
-     'is_integral_domain', 'is_integrally_closed', 'is_noetherian',
-     'is_prime_field', 'is_ring', 'is_subring',
-     'krull_dimension', 'list', 'ngens', 'one', 'one_element',
-     'order', 'prime_subfield', 'principal_ideal', 'quo', 'quotient',
-     'quotient_ring', 'random_element', 'unit_ideal', 'zero',
-     'zero_element', 'zero_ideal', 'zeta', 'zeta_order']
+    ['__div__',
+     '__fraction_field',
+     '__ideal_monoid',
+     '__iter__',
+     '__pow__',
+     '__rdiv__',
+     '__rpow__',
+     '__rxor__',
+     '__xor__',
+     '_an_element',
+     '_an_element_c',
+     '_an_element_impl',
+     '_coerce_',
+     '_coerce_c',
+     '_coerce_impl',
+     '_coerce_self',
+     '_coerce_try',
+     '_default_category',
+     '_gcd_univariate_polynomial',
+     '_gens',
+     '_has_coerce_map_from',
+     '_ideal_class_',
+     '_latex_names',
+     '_list',
+     '_one_element',
+     '_pseudo_fraction_field',
+     '_random_nonzero_element',
+     '_unit_ideal',
+     '_xgcd_univariate_polynomial',
+     '_zero_element',
+     '_zero_ideal',
+     'algebraic_closure',
+     'base_extend',
+     'cardinality',
+     'class_group',
+     'coerce_map_from_c',
+     'coerce_map_from_impl',
+     'content',
+     'divides',
+     'epsilon',
+     'extension',
+     'fraction_field',
+     'frobenius_endomorphism',
+     'gcd',
+     'gen',
+     'gens',
+     'get_action_c',
+     'get_action_impl',
+     'has_coerce_map_from_c',
+     'has_coerce_map_from_impl',
+     'ideal',
+     'ideal_monoid',
+     'integral_closure',
+     'is_commutative',
+     'is_field',
+     'is_finite',
+     'is_integral_domain',
+     'is_integrally_closed',
+     'is_noetherian',
+     'is_prime_field',
+     'is_ring',
+     'is_subring',
+     'krull_dimension',
+     'list',
+     'ngens',
+     'one',
+     'order',
+     'prime_subfield',
+     'principal_ideal',
+     'quo',
+     'quotient',
+     'quotient_ring',
+     'random_element',
+     'unit_ideal',
+     'zero',
+     'zero_ideal',
+     'zeta',
+     'zeta_order']
 
 The following is a very basic implementation of fraction fields, that needs to
 be complemented later.
@@ -255,10 +311,15 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- In the single underscore methods and in ``__cmp__``, we can assume that
-  *both arguments belong to the same parent*. This is one benefit of the
-  coercion model. Note that ``__cmp__`` should be provided, since otherwise
-  comparison does not work in the way expected in Python::
+- Comparisons can be implemented using ``_cmp_``. This automatically
+  makes the relational operators like ``==`` and ``<`` work. In order
+  to support the Python ``cmp()`` function, it is safest to define both
+  ``_cmp_`` and ``__cmp__`` (because ``__cmp__`` is not inherited if
+  other comparison operators or ``__hash__`` are defined). Of course you
+  can just do ``__cmp__ = _cmp_``.
+
+  Note that ``_cmp_`` should be provided, since otherwise comparison
+  does not work::
 
       sage: class Foo(sage.structure.element.Element):
       ....:  def __init__(self, parent, x):
@@ -270,7 +331,11 @@ considerations:
       sage: cmp(a,b)
       Traceback (most recent call last):
       ...
-      NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
+      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+
+- In the single underscore methods, we can assume that
+  *both arguments belong to the same parent*.
+  This is one benefit of the coercion model.
 
 - When constructing new elements as the result of arithmetic operations, we do
   not directly name our class, but we use ``self.__class__``. Later, this will
@@ -282,7 +347,7 @@ This gives rise to the following code::
     ....:     def __init__(self, parent,n,d=None):
     ....:         B = parent.base()
     ....:         if d is None:
-    ....:             d = B.one_element()
+    ....:             d = B.one()
     ....:         if n not in B or d not in B:
     ....:             raise ValueError("Numerator and denominator must be elements of %s"%B)
     ....:         # Numerator and denominator should not just be "in" B,
@@ -304,8 +369,9 @@ This gives rise to the following code::
     ....:         return self.d
     ....:     def _repr_(self):
     ....:         return "(%s):(%s)"%(self.n,self.d)
-    ....:     def __cmp__(self, other):
+    ....:     def _cmp_(self, other):
     ....:         return cmp(self.n*other.denominator(), other.numerator()*self.d)
+    ....:     __cmp__ = _cmp_
     ....:     def _add_(self, other):
     ....:         C = self.__class__
     ....:         D = self.d*other.denominator()
@@ -403,9 +469,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    57
+    58
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    81
+    86
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -551,7 +617,7 @@ does not work, yet::
 .. end of output
 
 The reason is that the ``sum`` method starts with the return value of
-``P.zero_element()``, which defaults to ``P(0)``\---but the conversion of
+``P.zero()``, which defaults to ``P(0)``\---but the conversion of
 integers into ``P`` is not implemented, yet.
 
 Implementing the category framework for the elements
@@ -584,9 +650,9 @@ This little change provides several benefits:
       sage: P(1), P(2,3)
       ((1):(1), (2):(3))
 
-- There is a method ``zero_element`` returning the expected result::
+- There is a method ``zero`` returning the expected result::
 
-      sage: P.zero_element()
+      sage: P.zero()
       (0):(1)
 
 - The ``sum`` method mentioned above suddenly works::
@@ -611,7 +677,7 @@ both ``MyElement`` defined above and of ``P.category().element_class``::
     sage: P.element_class
     <class '__main__.MyFrac_with_category.element_class'>
     sage: type(P.element_class)
-    <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+    <class 'sage.structure.dynamic_class.DynamicInheritComparisonMetaclass'>
     sage: issubclass(P.element_class, MyElement)
     True
     sage: issubclass(P.element_class,P.category().element_class)
@@ -637,9 +703,9 @@ In particular, these elements are instances of that new dynamic class::
     them as instances of ``self.__class__`` in the arithmetic methods of
     ``MyElement``.
 
-``P.zero_element()`` defaults to returning ``P(0)`` and thus returns an
+``P.zero()`` defaults to returning ``P(0)`` and thus returns an
 instance of ``P.element_class``. Since ``P.sum([...])`` starts the summation with
-``P.zero_element()`` and the class of the sum only depends on the first
+``P.zero()`` and the class of the sum only depends on the first
 summand, by our implementation, we have::
 
     sage: type(a)
@@ -1095,7 +1161,7 @@ In particular, the construction functors can be composed::
 
     sage: Poly*Fract
     Poly[x](FractionField(...))
-    sage: (Poly*Fract)(ZZ) is QQ[x]
+    sage: (Poly*Fract)(ZZ) is QQ['x']
     True
 
 .. end of output
@@ -1478,6 +1544,7 @@ Here are the tests that form the test suite of quotient fields::
     ['_test_additive_associativity',
      '_test_an_element',
      '_test_associativity',
+     '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
      '_test_distributivity',
@@ -1486,9 +1553,13 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_symmetric',
      '_test_elements_eq_transitive',
      '_test_elements_neq',
+     '_test_euclidean_degree',
+     '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
+     '_test_quo_rem',
      '_test_some_elements',
-     '_test_zero']
+     '_test_zero',
+     '_test_zero_divisors']
 
 .. end of output
 
@@ -1517,6 +1588,7 @@ Let us see what tests are actually performed::
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
@@ -1534,12 +1606,16 @@ Let us see what tests are actually performed::
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1681,6 +1757,7 @@ interesting.
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
@@ -1699,12 +1776,16 @@ interesting.
     running ._test_elements_eq_transitive() . . . pass
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
+    running ._test_euclidean_degree() . . . pass
+    running ._test_gcd_vs_xgcd() . . . pass
     running ._test_not_implemented_methods() . . . pass
     running ._test_one() . . . pass
     running ._test_pickling() . . . pass
     running ._test_prod() . . . pass
+    running ._test_quo_rem() . . . pass
     running ._test_some_elements() . . . pass
     running ._test_zero() . . . pass
+    running ._test_zero_divisors() . . . pass
 
 .. end of output
 
@@ -1738,7 +1819,7 @@ Appendix: The complete code
             B = parent.base()
             if d is None:
                 # The default denominator is one
-                d = B.one_element()
+                d = B.one()
             # verify that both numerator and denominator belong to the base
             if n not in B or d not in B:
                 raise ValueError("Numerator and denominator must be elements of %s"%B)
@@ -1772,8 +1853,13 @@ Appendix: The complete code
         # into the same parent, which is a fraction field. Hence, we
         # are allowed to use the denominator() and numerator() methods
         # on the second argument.
-        def __cmp__(self, other):
+        def _cmp_(self, other):
             return cmp(self.n*other.denominator(), other.numerator()*self.d)
+
+        # Support for cmp() (in this example, we don't define __hash__
+        # so this is not strictly needed)
+        __cmp__ = _cmp_
+
         # Arithmetic methods, single underscore. We can assume that both
         # arguments are coerced into the same parent.
         # We return instances of self.__class__, because self.__class__ will

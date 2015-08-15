@@ -168,7 +168,7 @@ def GO(n, R, e=0, var='a'):
     The general orthogonal group of given degree, base ring, and
     choice of invariant form.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: GO( 3, GF(7))
         General Orthogonal Group of degree 3 over Finite Field of size 7

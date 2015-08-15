@@ -148,7 +148,7 @@ Conversion to Maxima::
 
 """
 
-
+from sage.rings.polynomial.all import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.structure.factorization import Factorization
 
@@ -157,7 +157,7 @@ cimport matrix
 
 cdef maxima
 
-from sage.calculus.calculus import symbolic_expression_from_maxima_string, var_cmp, maxima
+from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
 cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
     def _new_c(self):
@@ -210,7 +210,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
-            abs(sqrt(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
+            sqrt(abs(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
             sage: abs(abs(delta)).n() < 1e-10
             True
 
@@ -361,9 +361,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
         In this example we take the symbolic answer and make it
         numerical at the end::
 
-            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)
-            [346.557487298 661.734590934]
-            [354.500673715 677.424782765]
+            sage: exp(matrix(SR, [[1.2, 5.6], [3,4]])).change_ring(RDF)  # rel tol 1e-15
+            [ 346.5574872980695  661.7345909344504]
+            [354.50067371488416  677.4247827652946]
 
         Another example involving the reversed identity matrix, which
         we clumsily create::
@@ -427,6 +427,11 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
             sage: Matrix(SR, [[sqrt(x), x],[1,x]]).charpoly().list()
             [x^(3/2) - x, -x - sqrt(x), 1]
+
+        Test that :trac:`13711` is fixed::
+
+            sage: matrix([[sqrt(2), -1], [pi, e^2]]).charpoly()
+            x^2 + (-sqrt(2) - e^2)*x + pi + sqrt(2)*e^2
         """
         cache_key = 'charpoly'
         cp = self.fetch(cache_key)
@@ -450,6 +455,39 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
         self.cache(cache_key, cp)
         return cp
+
+    def minpoly(self, var='x'):
+        """
+        Return the minimal polynomial of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Matrix.identity(SR, 2)
+            sage: M.minpoly()
+            x - 1
+
+            sage: t = var('t')
+            sage: m = matrix(2, [1, 2, 4, t])
+            sage: m.minimal_polynomial()
+            x^2 + (-t - 1)*x + t - 8
+
+        TESTS:
+
+        Check that the variable `x` can occur in the matrix::
+
+            sage: m = matrix([[x]])
+            sage: m.minimal_polynomial('y')
+            y - x
+
+        """
+        mp = self.fetch('minpoly')
+        if mp is None:
+            mp = self._maxima_lib_().jordan().minimalPoly().expand()
+            d = mp.hipow('x')
+            mp = [mp.coeff('x', i) for i in xrange(0, d + 1)]
+            mp = PolynomialRing(self.base_ring(), 'x')(mp)
+            self.cache('minpoly', mp)
+        return mp.change_variable_name(var)
 
     def fcp(self, var='x'):
         """
@@ -588,9 +626,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: m.variables()
             (a, b, c, x, y)
         """
-        vars = list(set(sum([op.variables() for op in self.list()], ())))
-        vars.sort(var_cmp)
-        return tuple(vars)
+        vars = set(sum([op.variables() for op in self.list()], ()))
+        return tuple(sorted(vars, key=repr))
 
     def arguments(self):
         """

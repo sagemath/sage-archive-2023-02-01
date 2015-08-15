@@ -10,8 +10,10 @@ Evaluating a String in Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import absolute_import
+import six
 from copy import copy
-import preparser
+import sage.repl.preparse as preparser
 
 def sage_eval(source, locals=None, cmds='', preparse=True):
     r"""
@@ -177,7 +179,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
             locals = copy(source[2])
         source = source[1]
 
-    if not isinstance(source, basestring):
+    if not isinstance(source, six.string_types):
         raise TypeError("source must be a string.")
 
     if locals is None:
@@ -193,7 +195,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
             source = preparser.preparse(source)
 
     if len(cmds):
-        exec cmd_seq in sage.all.__dict__, locals
+        exec(cmd_seq, sage.all.__dict__, locals)
         return locals['_sage_eval_returnval_']
     else:
         return eval(source, sage.all.__dict__, locals)

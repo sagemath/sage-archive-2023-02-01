@@ -15,7 +15,7 @@ from sage.rings.integer_ring import ZZ
 from sage.misc.functional import is_odd
 
 from sage.libs.pari.all import pari
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.arith import factor, gcd, prime_to_m_part, CRT_vectors
 from sage.rings.arith import hilbert_symbol, kronecker_symbol
 

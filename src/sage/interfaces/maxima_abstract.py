@@ -48,9 +48,12 @@ and library interfaces to Maxima.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re, sys, subprocess
+import os
+import re
+import sys
+import subprocess
 
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 from sage.misc.multireplace import multiple_replace
@@ -165,10 +168,7 @@ class MaximaAbstract(Interface):
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             res = p.stdout.read()
-            # ecl-10.2 : 3 lines
-            # ecl-10.4 : 5 lines
-            # ecl-11.1 : 4 lines fancy a tango?
-            # We now get 4 lines of commented verbosity
+            # We get 4 lines of commented verbosity
             # every time Maxima starts, so we need to get rid of them
             for _ in range(4):
                 res = res[res.find('\n')+1:]
@@ -244,11 +244,12 @@ class MaximaAbstract(Interface):
 
         EXAMPLES::
 
-            sage: maxima.demo('array') # not tested
-            batching /opt/sage/local/share/maxima/5.16.3/demo/array.dem
+            sage: maxima.demo('cf') # not tested
+            read and interpret file: .../local/share/maxima/5.34.1/demo/cf.dem
 
-        At the _ prompt, type ';' followed by enter to get next demo
-        subscrmap : true _
+            At the '_' prompt, type ';' and <enter> to get next demonstration.
+            frac1:cf([1,2,3,4])
+            ...
         """
         # Should this be implemented without launching a new Maxima session
         # i.e. using eval_line ?
@@ -368,8 +369,8 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.console()             # not tested (since we can't)
-            Maxima 5.13.0 http://maxima.sourceforge.net
-            Using Lisp CLISP 2.41 (2006-10-13)
+            Maxima 5.34.1 http://maxima.sourceforge.net
+            Using Lisp ECL 13.5.1
             Distributed under the GNU Public License. See the file COPYING.
             Dedicated to the memory of William Schelter.
             This is a development version of Maxima. The function bug_report()
@@ -420,7 +421,7 @@ class MaximaAbstract(Interface):
         EXAMPLES::
 
             sage: maxima.version()
-            '5.33.0'
+            '5.35.1'
         """
         return maxima_version()
 
@@ -795,8 +796,8 @@ class MaximaAbstract(Interface):
 
         Here is a torus::
 
-            sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
-            sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])   # not tested
+            sage: _ = maxima.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")
+            sage: maxima.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])  # not tested
 
         Here is a Mobius strip::
 
@@ -963,18 +964,19 @@ class MaximaAbstract(Interface):
             sage: u.parent()
             Number Field in a with defining polynomial x^2 - 13
         """
-        from sage.rings.all import QuadraticField, Integer
+        from sage.rings.all import Integer
+        from sage.rings.number_field.number_field import QuadraticField
         # Take square-free part so sqrt(n) doesn't get simplified
         # further by maxima
         # (The original version of this function would yield wrong answers if
         # n is not squarefree.)
         n = Integer(n).squarefree_part()
         if n < 1:
-            raise ValueError("n (=%s) must be >= 1"%n)
-        s = repr(self('qunit(%s)'%n)).lower()
+            raise ValueError("n (=%s) must be >= 1" % n)
+        s = repr(self('qunit(%s)' % n)).lower()
         r = re.compile('sqrt\(.*\)')
-        s = r.sub('a', s)
         a = QuadraticField(n, 'a').gen()
+        s = r.sub('a', s)
         return eval(s)
 
     def plot_list(self, ptsx, ptsy, options=None):
@@ -1212,7 +1214,7 @@ class MaximaAbstractElement(InterfaceElement):
             [  1   y y^2]
             [  1 1/2 1/4]
 
-        Check if #7661 is fixed::
+        Check if :trac:`7661` is fixed::
 
             sage: var('delta')
             delta
@@ -1320,7 +1322,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: CDF(maxima('sqrt(2)+1'))
-            2.41421356237
+            2.414213562373095
         """
         return C(self._sage_())
 
@@ -1337,7 +1339,7 @@ class MaximaAbstractElement(InterfaceElement):
         EXAMPLES::
 
             sage: RDF(maxima('sqrt(2)+1'))
-            2.41421356237
+            2.414213562373095
         """
         return R(self._sage_())
 
@@ -1753,7 +1755,7 @@ class MaximaAbstractElement(InterfaceElement):
             sage: y,d = var('y,d')
             sage: f = function('f')
             sage: latex(maxima(derivative(f(x*y), x)))
-            \left(\left.{{{\it \partial}}\over{{\it \partial}\,{\it t_0}}}\,f  \left({\it t_0}\right)\right|_{\left[ {\it t_0}=x\,y \right] }  \right)\,{\it y}
+            \left(\left.{{{\it \partial}}\over{{\it \partial}\,  {\it t_0}}}\,f\left({\it t_0}\right)  \right|_{\left[ {\it t_0}={\it x}\,  {\it y} \right] }\right)\,{\it y}
             sage: latex(maxima(derivative(f(x,y,d), d,x,x,y)))
             {{{\it \partial}^4}\over{{\it \partial}\,{\it d}\,  {\it \partial}\,{\it x}^2\,{\it \partial}\,  {\it y}}}\,f\left({\it x} ,  {\it y} , {\it d}\right)
             sage: latex(maxima(d/(d-2)))
@@ -2349,7 +2351,7 @@ def maxima_version():
 
         sage: from sage.interfaces.maxima_abstract import maxima_version
         sage: maxima_version()
-        '5.33.0'
+        '5.35.1'
     """
     return os.popen('maxima --version').read().split()[-1]
 
@@ -2361,7 +2363,7 @@ def maxima_console():
 
         sage: from sage.interfaces.maxima_abstract import maxima_console
         sage: maxima_console()                    # not tested
-        Maxima 5.29.1 http://maxima.sourceforge.net
+        Maxima 5.34.1 http://maxima.sourceforge.net
         ...
     """
     os.system('maxima')

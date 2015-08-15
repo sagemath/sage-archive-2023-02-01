@@ -1691,7 +1691,7 @@ class FunctionField_polymod(FunctionField):
         4.1 in Chapter VIII of [Lang2002]_.)
         The algorithm reduces to this case with :meth:`monic_integral_model`.
 
-        REFERENCES::
+        REFERENCES:
 
         .. [Lang2002] Serge Lang. Algebra. Springer, 2002.
 

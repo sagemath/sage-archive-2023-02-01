@@ -630,13 +630,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             ((3, 2), 3)]
             sage: [((i,j),isogs[i][j].x_rational_map()) for i in range(4) for j in range(4) if isogs[i][j]!=0]
             [((0, 1), (1/9*x^3 - 12)/x^2),
-            ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
-            ((1, 0), (x^3 + 4)/x^2),
-            ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
-            ((2, 1), (-1/2*i*x^2 + x)/(x + 3/2*i)),
-            ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
-            ((3, 0), (-1/2*i*x^2 - x - 4*i)/(x - 5/2*i)),
-            ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
+             ((0, 3), (-1/2*i*x^2 + i*x - 12*i)/(x - 3)),
+             ((1, 0), (x^3 + 4)/x^2),
+             ((1, 2), (-1/2*i*x^2 - i*x - 2*i)/(x + 1)),
+             ((2, 1), (1/2*i*x^2 - x)/(x + 3/2*i)),
+             ((2, 3), (x^3 + 4*i*x^2 - 10*x - 10*i)/(x^2 + 4*i*x - 4)),
+             ((3, 0), (1/2*i*x^2 + x + 4*i)/(x - 5/2*i)),
+             ((3, 2), (1/9*x^3 - 4/3*i*x^2 - 34/3*x + 226/9*i)/(x^2 - 8*i*x - 16))]
 
             sage: K.<i> = QuadraticField(-1)
             sage: E = EllipticCurve([1+i, -i, i, 1, 0])
@@ -681,7 +681,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [(0, 0, 0, -25762110*c^2 - 67447215, -154360009760*c^2 - 404119737340),
             (0, 0, 0, 130763490*c^2 + 342343485, 1391590873420*c^3 + 3643232206680*c)]
             sage: C.isogenies()[0][1]
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (-1391590873420*c^3-3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-25762110*c^2-67447215)*x + (-154360009760*c^2-404119737340) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1 to Elliptic Curve defined by y^2 = x^3 + (130763490*c^2+342343485)*x + (1391590873420*c^3+3643232206680*c) over Number Field in c with defining polynomial x^4 + 3*x^2 + 1
 
         TESTS::
 
@@ -740,6 +740,19 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             [3 1 2 6]
             [6 2 1 3]
             [2 6 3 1]
+
+        TESTS:
+
+        Check that :trac:`15890` is fixed (codomains of reverse isogenies were wrong)::
+
+            sage: K.<i> = NumberField(x^2+1)
+            sage: E = EllipticCurve([1, i + 1, 1, -72*i + 8, 95*i + 146])
+            sage: C = E.isogeny_class()
+            sage: curves = C.curves
+            sage: isos = C.isogenies()
+            sage: isos[0][3].codomain() == curves[3]
+            True
+
         """
         from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
@@ -761,7 +774,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         curves = [E]
         ncurves = 1
         degs = []
-        # tuples (i,j,l,phi) where curve i is l-isogenous to curve j
+        # tuples (i,j,l,phi) where curve i is l-isogenous to curve j via phi
         tuples = []
 
         def add_tup(t):
@@ -802,8 +815,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 E2 = phi.codomain()
                 d = phi.degree()
                 js = [j for j,E3 in enumerate(curves) if E2.is_isomorphic(E3)]
-                if js: # seen codomain already
-                    add_tup([i,js[0],d,phi])
+                if js: # seen codomain already -- up to isomorphism
+                    j = js[0]
+                    if phi.codomain()!=curves[j]:
+                        iso = E2.isomorphism_to(curves[j])
+                        phi.set_post_isomorphism(iso)
+                    assert phi.domain()==curves[i] and phi.codomain()==curves[j]
+                    add_tup([i,j,d,phi])
                 else:
                     curves.append(E2)
                     if verbose:

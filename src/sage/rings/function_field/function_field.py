@@ -1049,11 +1049,11 @@ class FunctionField_polymod(FunctionField):
 
         An endofunction on this function field.
 
-        REFERENCES::
+        REFERENCES:
 
         .. [GT1996] Gianni, P., & Trager, B. (1996). Square-free algorithms in
-        positive characteristic. Applicable Algebra in Engineering,
-        Communication and Computing, 7(1), 1-14.
+           positive characteristic. Applicable Algebra in Engineering,
+           Communication and Computing, 7(1), 1-14.
 
         EXAMPLES::
 
@@ -1075,7 +1075,7 @@ class FunctionField_polymod(FunctionField):
             2/x*y
 
         Currently the functionality for finding a separable model is not
-        implemented (see :trac:`16562`, :trac:`16564`)
+        implemented (see :trac:`16562`, :trac:`16564`)::
 
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^3 - x)
@@ -1618,13 +1618,6 @@ class RationalFunctionField(FunctionField):
         OUTPUT:
 
         An endofunction on this function field.
-
-        REFERENCES:
-
-        ..  [GT1996]
-            Gianni, P., & Trager, B. (1996). Square-free algorithms in
-            positive characteristic. Applicable Algebra in Engineering,
-            Communication and Computing, 7(1), 1-14.
 
         EXAMPLES::
 

@@ -1080,11 +1080,10 @@ class FunctionField_polymod(FunctionField):
 
         If this field is a separable extension of another function field `F`,
         then Proposition 11 of [GT1996]_ describes how to compute the unique
-        extension of a derivation on `F` to this field; we apply this algorithm
-        to the generator of the space of derivations on `F`.
-        If this field has not been generated as a separable extension, then we
-        find an isomorphic field which is a separable extension of a rational
-        function field, see :meth:`separable_model`.
+        extension of a derivation on `F` to this field; we apply the formula
+        described there to the generator of the space of derivations on `F`.
+        The general inseparable case is not implemented yet (see :trac:`16562`,
+        :trac:`16564`.)`
 
         OUTPUT:
 

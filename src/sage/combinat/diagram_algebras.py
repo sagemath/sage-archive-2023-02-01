@@ -63,7 +63,7 @@ BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
     """,
     display=dict(default="normal",
                    description='Specifies how the Brauer diagrams should be printed',
-                   values=dict(normal="Using the normal reprensetation",
+                   values=dict(normal="Using the normal representation",
                                compact="Using the compact representation"),
                    case_sensitive=False),
 )

@@ -324,6 +324,36 @@ class FunctionField(Field):
             return True
         return False
 
+    def _test_derivation(self, **options):
+        r"""
+        Test the correctness of the derivations of this function field.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: TestSuite(K).run() # indirect doctest
+
+        """
+        tester = self._tester(**options)
+        S = tester.some_elements()
+        K = self.constant_base_field().some_elements()
+        try:
+            d = self.derivation()
+        except NotImplementedError:
+            return # some function fields no not implement derivation() yet
+        from sage.combinat.cartesian_product import CartesianProduct
+        # Leibniz's law
+        for x,y in tester.some_elements(CartesianProduct(S, S)):
+            tester.assert_(d(x*y) == x*d(y) + d(x)*y)
+        # Linearity
+        for x,y in tester.some_elements(CartesianProduct(S, S)):
+            tester.assert_(d(x+y) == d(x) + d(y))
+        for c,x in tester.some_elements(CartesianProduct(K, S)):
+            tester.assert_(d(c*x) == c*d(x))
+        # Constants map to zero
+        for c in tester.some_elements(K):
+            tester.assert_(d(c) == 0)
+
 class FunctionField_polymod(FunctionField):
     """
     A function field defined by a univariate polynomial, as an
@@ -1073,6 +1103,13 @@ class FunctionField_polymod(FunctionField):
             0
             sage: d(y)
             2/x*y
+
+        Derivations are linear and satisfy Leibniz's law::
+
+            sage: d(x+y) == d(x) + d(y)
+            True
+            sage: d(x*y) == x*d(y) + y*d(x)
+            True
 
         Currently the functionality for finding a separable model is not
         implemented (see :trac:`16562`, :trac:`16564`)::

@@ -104,9 +104,64 @@ class AutomorphismField(TensorField):
         a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv
          + (-1/8*u - 1/8*v + 1/4) d/dv*du + (1/8*u + 1/8*v + 3/4) d/dv*dv
 
+    Equivalently, one can use the power minus one to get the inverse::
+
+        sage: ia is a^(-1)
+        True
+
+    or the operator ``~``::
+
+        sage: ia is ~a
+        True
+
     """
     def __init__(self, vector_field_module, name=None, latex_name=None,
                  is_identity=False):
+        r"""
+        Construct a field of tangent-space automorphisms on a
+        non-parallelizable manifold.
+
+        TESTS:
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``AutomorphismField``, to fit with the category framework::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: XM = M.vector_field_module()
+            sage: GL = XM.general_linear_group()
+            sage: a = GL.element_class(XM, name='a'); a
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+            sage: a[c_xy.frame(), :] = [[1+x^2, 0], [0, 1+y^2]]
+            sage: a.add_comp_by_continuation(c_uv.frame(), U.intersection(V), c_uv)
+            sage: TestSuite(a).run(skip='_test_pickling')
+
+        Construction of the identity field::
+
+            sage: b = GL.element_class(XM, is_identity=True); b
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: TestSuite(b).run(skip='_test_pickling')
+
+        Construction with ``DiffManifold.automorphism_field``::
+
+            sage: a1 = M.automorphism_field(name='a'); a1
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+
+        .. TODO::
+
+            fix _test_pickling (in the superclass TensorField)
+
+        """
         if is_identity:
             if name is None:
                 name = 'Id'
@@ -128,7 +183,20 @@ class AutomorphismField(TensorField):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: a = M.automorphism_field(name='a')
+            sage: a._repr_()
+            'Field of tangent-space automorphisms a on the 2-dimensional differentiable manifold M'
+            sage: repr(a)  # indirect doctest
+            'Field of tangent-space automorphisms a on the 2-dimensional differentiable manifold M'
+            sage: a  # indirect doctest
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+
         """
         description = "Field of tangent-space "
         if self._is_identity:
@@ -142,6 +210,13 @@ class AutomorphismField(TensorField):
     def _init_derived(self):
         r"""
         Initialize the derived quantities
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: a = M.automorphism_field(name='a')
+            sage: a._init_derived()
+
         """
         TensorField._init_derived(self)
         self._inverse = None  # inverse not set yet
@@ -149,6 +224,13 @@ class AutomorphismField(TensorField):
     def _del_derived(self):
         r"""
         Delete the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: a = M.automorphism_field(name='a')
+            sage: a._del_derived()
+
         """
         # First delete the derived quantities pertaining to the mother class:
         TensorField._del_derived(self)
@@ -159,8 +241,80 @@ class AutomorphismField(TensorField):
         r"""
         Redefinition of
         :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.__call__`
-        to allow for a proper
-        treatment of the identity map and of the call with a single argument
+        to allow for a proper treatment of the identity map and of the call
+        with a single argument
+
+        TESTS:
+
+        Field of identity maps on the 2-sphere::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: w = M.vector_field(name='w')
+            sage: w[e_xy, :] = [3, 1]
+            sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: z = M.one_form(name='z')
+            sage: z[e_xy, :] = [-y, x]
+            sage: z.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: Id = M.tangent_identity_field()
+            sage: s = Id(w); s
+            Vector field w on the 2-dimensional differentiable manifold M
+            sage: s == w
+            True
+            sage: s = Id(z, w); s
+            Scalar field z(w) on the 2-dimensional differentiable manifold M
+            sage: s == z(w)
+            True
+
+        Field of automorphisms on the 2-sphere::
+
+            sage: a = M.automorphism_field(name='a')
+            sage: a[e_xy, :] = [[-1, 0], [0, 1]]
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+
+        Call with a single argument::
+
+            sage: s = a(w); s
+            Vector field a(w) on the 2-dimensional differentiable manifold M
+            sage: s.display(e_xy)
+            a(w) = -3 d/dx + d/dy
+            sage: s.display(e_uv)
+            a(w) = (3*u^2 - 2*u*v - 3*v^2) d/du + (u^2 + 6*u*v - v^2) d/dv
+            sage: s.restrict(U) == a.restrict(U)(w.restrict(U))
+            True
+            sage: s.restrict(V) == a.restrict(V)(w.restrict(V))
+            True
+            sage: s.restrict(U) == a(w.restrict(U))
+            True
+            sage: s.restrict(U) == a.restrict(U)(w)
+            True
+
+        Call with two arguments::
+
+            sage: s = a(z, w); s
+            Scalar field a(z,w) on the 2-dimensional differentiable manifold M
+            sage: s.display()
+            a(z,w): M --> R
+            on U: (x, y) |--> x + 3*y
+            on V: (u, v) |--> (u + 3*v)/(u^2 + v^2)
+            sage: s.restrict(U) == a.restrict(U)(z.restrict(U), w.restrict(U))
+            True
+            sage: s.restrict(V) == a.restrict(V)(z.restrict(V), w.restrict(V))
+            True
+            sage: s.restrict(U) == a(z.restrict(U), w.restrict(U))
+            True
+            sage: s.restrict(U) == a(z, w.restrict(U))
+            True
+
         """
         if self._is_identity:
             if len(arg) == 1:
@@ -182,7 +336,24 @@ class AutomorphismField(TensorField):
                 raise TypeError("wrong number of arguments")
         # Generic case
         if len(arg) == 1:
-            raise NotImplementedError("__call__  with 1 arg not implemented yet")
+            # The field of automorphisms acting on a vector field:
+            vector = arg[0]
+            if vector._tensor_type != (1,0):
+                raise TypeError("the argument must be a vector field")
+            dom = self._domain.intersection(vector._domain)
+            vector_dom = vector.restrict(dom)
+            if dom != self._domain:
+                return self.restrict(dom)(vector_dom)
+            resu = dom.vector_field()
+            if self._name is not None and vector._name is not None:
+                resu._name = self._name + "(" + vector._name + ")"
+            if self._latex_name is not None and vector._latex_name is not None:
+                resu._latex_name = self._latex_name + r"\left(" + \
+                                   vector._latex_name + r"\right)"
+            for sdom, automorph in self._restrictions.items():
+                resu._restrictions[sdom] = automorph(vector_dom.restrict(sdom))
+            return resu
+        # Case of 2 arguments:
         return TensorField.__call__(self, *arg)
 
 
@@ -276,6 +447,44 @@ class AutomorphismField(TensorField):
         - the automorphism resulting from the composition of ``other`` and
         ``self.``
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[e_xy, :] = [[-1, 0], [0, 1]]
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: b = M.automorphism_field(name='b')
+            sage: b[e_uv, :] = [[1, 0], [0, -2]]
+            sage: b.add_comp_by_continuation(e_xy, U.intersection(V), c_xy)
+            sage: s = a._mul_(b); s
+            Field of tangent-space automorphisms on the 2-dimensional
+             differentiable manifold M
+            sage: s.display(e_xy)
+            -(x^4 - 10*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dx*dx
+             - 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dx*dy
+             + 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dy*dx
+             - 2*(x^4 - 4*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dy*dy
+            sage: s.display(e_uv)
+            -(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
+             + 8*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
+             - 4*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
+            - 2*(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            sage: w = M.vector_field(name='w')
+            sage: w[e_xy, :] = [3, 1]
+            sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: s(w) == a(b(w))
+            True
+
         """
         # No need for consistency check since self and other are guaranted
         # to have the same parent. In particular, they are defined on the same
@@ -304,8 +513,34 @@ class AutomorphismField(TensorField):
         so that * dispatches either to automorphism composition or to the
         tensor product.
 
-        EXAMPLES:
+        TESTS::
 
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[e_xy, :] = [[-1, 0], [0, 1]]
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: b = M.automorphism_field(name='b')
+            sage: b[e_uv, :] = [[1, 0], [0, -2]]
+            sage: b.add_comp_by_continuation(e_xy, U.intersection(V), c_xy)
+            sage: w = M.vector_field(name='w')
+            sage: w[e_xy, :] = [3, 1]
+            sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: s = a.__mul__(b); s  # automorphism composition
+            Field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
+            sage: s(w) == a(b(w))
+            True
+            sage: s = a.__mul__(w); s  # tensor product
+            Tensor field of type (2,1) on the 2-dimensional differentiable manifold M
 
         """
         if isinstance(other, AutomorphismField):
@@ -320,7 +555,31 @@ class AutomorphismField(TensorField):
 
         TESTS::
 
-        """
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[e_xy, :] = [[-1, 0], [0, 1]]
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: b = M.automorphism_field(name='b')
+            sage: b[e_uv, :] = [[1, 0], [0, -2]]
+            sage: b.add_comp_by_continuation(e_xy, U.intersection(V), c_xy)
+            sage: a.__imul__(b)
+            Field of tangent-space automorphisms on the 2-dimensional differentiable manifold M
+            sage: s = a*b
+            sage: a *= b
+            sage: a == s
+            True
+
+       """
         return self.__mul__(other)
 
     def restrict(self, subdomain, dest_map=None):
@@ -496,18 +755,33 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         [1 0]
         [0 1]
 
+    Equivalently, one can use the power minus one to get the inverse::
+
+        sage: inv is rot^(-1)
+        True
+
+    or the operator ``~``::
+
+        sage: inv is ~rot
+        True
+
     """
     def __init__(self, vector_field_module, name=None, latex_name=None,
                  is_identity=False):
         r"""
         Construct a field of tangent-space automorphisms.
 
-        TESTS::
+        TESTS:
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``AutomorphismFieldParal``, to fit with the category framework::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')
-            sage: X.<x,y> = M.chart()
-            sage: a = M.automorphism_field(name='a') ; a
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: GL = XM.general_linear_group()
+            sage: a = GL.element_class(XM, name='a'); a
             Field of tangent-space automorphisms a on the 2-dimensional
              differentiable manifold M
             sage: a[:] = [[1+x^2, x*y], [0, 1+y^2]]
@@ -517,6 +791,16 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: a.parent() is M.automorphism_field_group()
             True
             sage: TestSuite(a).run()
+
+        Construction of the field of identity maps::
+
+            sage: b = GL.element_class(XM, is_identity=True); b
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: b[:]
+            [1 0]
+            [0 1]
+            sage: TestSuite(b).run()
 
         """
         FreeModuleAutomorphism.__init__(self, vector_field_module,
@@ -531,7 +815,21 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field(name='a')
+            sage: a._repr_()
+            'Field of tangent-space automorphisms a on the 2-dimensional differentiable manifold M'
+            sage: repr(a)  # indirect doctest
+            'Field of tangent-space automorphisms a on the 2-dimensional differentiable manifold M'
+            sage: a  # indirect doctest
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+
         """
         description = "Field of tangent-space "
         if self._is_identity:
@@ -544,12 +842,19 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     def _del_derived(self, del_restrictions=True):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         INPUT:
 
-        - ``del_restrictions`` -- (default: True) determines whether the
+        - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field(name='a')
+            sage: a._del_derived()
 
         """
         # Delete the derived quantities pertaining to the mother classes:
@@ -560,7 +865,38 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         r"""
         Redefinition of
         :meth:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism.__call__`
-        to allow for domain treatment
+        to allow for domain treatment.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[:] = [[0, 1], [-1, 0]]
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = [-y, x]
+            sage: z = M.one_form(name='z')
+            sage: z[:] = [1+y^2, x*y]
+            sage: s = a.__call__(v); s
+            Vector field a(v) on the 2-dimensional differentiable manifold M
+            sage: s.display()
+            a(v) = x d/dx + y d/dy
+            sage: s = a.__call__(z, v); s
+            Scalar field a(z,v) on the 2-dimensional differentiable manifold M
+            sage: s.display()
+            a(z,v): M --> R
+               (x, y) |--> 2*x*y^2 + x
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: s = a.__call__(v.restrict(U)); s
+            Vector field a(v) on the Open subset U of the 2-dimensional
+             differentiable manifold M
+            sage: s = a.__call__(z.restrict(U), v); s
+            Scalar field a(z,v) on the Open subset U of the 2-dimensional
+             differentiable manifold M
+            sage: s.display()
+            a(z,v): U --> R
+               (x, y) |--> 2*x*y^2 + x
+
         """
         if len(arg) == 1:
             # the automorphism acting as such (map of a vector field to a
@@ -585,6 +921,27 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     def __invert__(self):
         r"""
         Return the inverse automorphism.
+
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[:] = [[0, 2], [-1, 0]]
+            sage: b = a.inverse(); b
+            Field of tangent-space automorphisms a^(-1) on the 2-dimensional
+             differentiable manifold M
+            sage: b[:]
+            [  0  -1]
+            [1/2   0]
+            sage: a[:]
+            [ 0  2]
+            [-1  0]
+            sage: b == a^(-1)
+            True
+            sage: b == ~a
+            True
+
         """
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import Components

@@ -163,6 +163,10 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             sage: G = AutomorphismFieldGroup(M.vector_field_module()) ; G
             General linear group of the Module X(M) of vector fields on the
              2-dimensional differentiable manifold M
+            sage: TestSuite(G).run(skip='_test_elements')
+
+        NB: _test_elements does not pass due to the failure of _test_pickling
+            in TensorField
 
         """
         if not isinstance(vector_field_module, VectorFieldModule):
@@ -183,7 +187,31 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of
-          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:  intersection_name='W', restrictions1= x>0,
+            ....:  restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: G = M.automorphism_field_group()
+            sage: a = G._element_constructor(name='a'); a
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+            sage: a = G._element_constructor(1); a
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: a = G._element_constructor(comp=[[1+x^2, 0], [0, 1+y^2]],
+            ....:                            frame=c_xy.frame(), name='a'); a
+            Field of tangent-space automorphisms a on the 2-dimensional
+             differentiable manifold M
+            sage: a.display(c_xy.frame())
+            a = (x^2 + 1) d/dx*dx + (y^2 + 1) d/dy*dy
 
         """
         if comp == 1:
@@ -204,7 +232,23 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         - instance of
           :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
 
-        EXAMPLES:
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:  intersection_name='W', restrictions1= x>0,
+            ....:  restrictions2= u+v>0)
+            sage: inv = transf.inverse()
+            sage: G = M.automorphism_field_group()
+            sage: G._an_element_()
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: G.an_element()  # indirect doctest
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
 
         """
         return self.one() #!# not terrible...
@@ -237,9 +281,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             sage: V = M.open_subset('V') # complement of the South pole
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                                 intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                                 restrictions2= u^2+v^2!=0)
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: G = M.automorphism_field_group()
             sage: G.one()
@@ -262,15 +306,35 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLE:
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: G = M.automorphism_field_group()
+            sage: G._repr_()
+            'General linear group of the Module X(M) of vector fields on the
+             2-dimensional differentiable manifold M'
+            sage: repr(G)  # indirect doctest
+            'General linear group of the Module X(M) of vector fields on the
+             2-dimensional differentiable manifold M'
+            sage: G  # indirect doctest
+            General linear group of the Module X(M) of vector fields on the
+             2-dimensional differentiable manifold M
+
         """
         return "General linear group of the {}".format(self._vmodule)
 
     def _latex_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a LaTeX representation of ``self``.
 
-        EXAMPLE:
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: G = M.automorphism_field_group()
+            sage: G._latex_()
+            \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
+            sage: latex(G)  # indirect doctest
+            \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
 
         """
         from sage.misc.latex import latex
@@ -298,9 +362,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             sage: V = M.open_subset('V') # complement of the South pole
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
-            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                                 intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                                 restrictions2= u^2+v^2!=0)
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: G = M.automorphism_field_group()
             sage: G.base_module()
@@ -540,9 +604,10 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
 
         TEST::
 
+            sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M') ; M
             2-dimensional differentiable manifold M
-            sage: X.<x,y> = M.chart()
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: from sage.manifolds.differentiable.automorphismfield_group \
             ....:                            import AutomorphismFieldParalGroup
             sage: G = AutomorphismFieldParalGroup(M.vector_field_module()) ; G

@@ -784,6 +784,19 @@ class CoordFrame(VectorFrame):
 
     """
     def __init__(self, chart):
+        r"""
+        Construct a coordinate frame.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.differentiable.vectorframe import CoordFrame
+            sage: e = CoordFrame(X); e
+            Coordinate frame (M, (d/dx,d/dy))
+            sage: TestSuite(e).run()
+
+        """
         from sage.misc.latex import latex
         from sage.manifolds.differentiable.chart import DiffChart
         if not isinstance(chart, DiffChart):
@@ -817,6 +830,19 @@ class CoordFrame(VectorFrame):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e = X.frame()
+            sage: e._repr_()
+            'Coordinate frame (M, (d/dx,d/dy))'
+            sage: repr(e)  # indirect doctest
+            'Coordinate frame (M, (d/dx,d/dy))'
+            sage: e  # indirect doctest
+            Coordinate frame (M, (d/dx,d/dy))
+
         """
         return "Coordinate frame " + self._name
 
@@ -829,6 +855,14 @@ class CoordFrame(VectorFrame):
         - instance of :class:`CoordCoFrame` representing the dual of
           ``self``
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e = X.frame()
+            sage: e._init_dual_basis()
+            Coordinate coframe (M, (dx,dy))
+
         """
         return CoordCoFrame(self)
 
@@ -837,6 +871,18 @@ class CoordFrame(VectorFrame):
     def chart(self):
         r"""
         Return the chart defining this coordinate frame.
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: e = X.frame()
+            sage: e.chart()
+            Chart (M, (x, y))
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: e.restrict(U).chart()
+            Chart (U, (x, y))
+
         """
         return self._chart
 
@@ -958,6 +1004,19 @@ class CoFrame(FreeModuleCoBasis):
 
     """
     def __init__(self, frame, symbol, latex_symbol=None):
+        r"""
+        Construct a coframe, dual to a given vector frame.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: from sage.manifolds.differentiable.vectorframe import CoFrame
+            sage: f = CoFrame(e, 'f'); f
+            Coframe (M, (f^0,f^1))
+            sage: TestSuite(f).run()
+
+        """
         self._domain = frame._domain
         self._manifold = self._domain._manifold
         FreeModuleCoBasis.__init__(self, frame, symbol,
@@ -979,6 +1038,19 @@ class CoFrame(FreeModuleCoBasis):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: f = e.coframe()
+            sage: f._repr_()
+            'Coframe (M, (e^0,e^1))'
+            sage: repr(f)  # indirect doctest
+            'Coframe (M, (e^0,e^1))'
+            sage: f  # indirect doctest
+            Coframe (M, (e^0,e^1))
+
         """
         return "Coframe " + self._name
 
@@ -1046,6 +1118,19 @@ class CoordCoFrame(CoFrame):
 
     """
     def __init__(self, coord_frame):
+        r"""
+        Construct a coordinate coframe.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: from sage.manifolds.differentiable.vectorframe import CoordCoFrame
+            sage: f = CoordCoFrame(X.frame()); f
+            Coordinate coframe (M, (dx,dy))
+            sage: TestSuite(f).run()
+
+        """
         from sage.misc.latex import latex
         if not isinstance(coord_frame, CoordFrame):
             raise TypeError("The first argument must be a coordinate frame.")
@@ -1066,5 +1151,18 @@ class CoordCoFrame(CoFrame):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.frame().coframe()
+            sage: f._repr_()
+            'Coordinate coframe (M, (dx,dy))'
+            sage: repr(f)  # indirect doctest
+            'Coordinate coframe (M, (dx,dy))'
+            sage: f  # indirect doctest
+            Coordinate coframe (M, (dx,dy))
+
         """
         return "Coordinate coframe " + self._name

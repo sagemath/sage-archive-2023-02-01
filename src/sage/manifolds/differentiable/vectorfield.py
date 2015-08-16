@@ -179,7 +179,9 @@ class VectorField(TensorField):
 
         TESTS:
 
-        Construction with ``parent.element_class``::
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``VectorField``, to fit with the category framework::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
@@ -204,7 +206,7 @@ class VectorField(TensorField):
 
         .. TODO::
 
-            fix _test_pickling
+            fix _test_pickling (in the superclass TensorField)
 
         """
         TensorField.__init__(self, vector_field_module, (1,0), name=name,
@@ -513,7 +515,9 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         TESTS:
 
-        Construction via ``parent.element_class``::
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``VectorFieldParal``, to fit with the category framework::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')

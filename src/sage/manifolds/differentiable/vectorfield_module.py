@@ -190,8 +190,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     def __init__(self, domain, dest_map=None):
         r"""
-        Construct the module of vector fields on a non-parallelizable
-        differentiable manifold.
+        Construct the module of vector fields taking values on a (a priori)
+        non-parallelizable differentiable manifold.
 
         TESTS::
 
@@ -306,8 +306,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             Vector field on the 2-dimensional differentiable manifold M
 
         """
-        resu = self.element_class(self)
-        return resu
+        return self.element_class(self)
 
     def _coerce_map_from_(self, other):
         r"""

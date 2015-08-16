@@ -14,7 +14,7 @@ parallelizable. Accordingly, two classes are devoted to tensor field modules:
 
 AUTHORS:
 
-- Eric Gourgoulhon, Michal Bejger (2014): initial version
+- Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 
 REFERENCES:
 
@@ -223,6 +223,31 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     Element = TensorField
 
     def __init__(self, vector_field_module, tensor_type):
+        r"""
+        Construct a module of tensor fields taking values on a (a priori) not
+        parallelizable differentiable manifold.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: XM = M.vector_field_module()
+            sage: from sage.manifolds.differentiable.tensorfield_module import TensorFieldModule
+            sage: T21 = TensorFieldModule(XM, (2,1)); T21
+            Module T^(2,1)(M) of type-(2,1) tensors fields on the 2-dimensional
+             differentiable manifold M
+            sage: T21 is M.tensor_field_module((2,1))
+            True
+            sage: TestSuite(T21).run()
+
+        """
         domain = vector_field_module._domain
         dest_map = vector_field_module._dest_map
         kcon = tensor_type[0]
@@ -256,6 +281,20 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                               latex_name=None, sym=None, antisym=None):
         r"""
         Construct a tensor field.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.declare_union(U,V)
+            sage: T20 = M.tensor_field_module((2,0))
+            sage: t = T20._element_constructor_(comp=[[1+x, 2], [x*y, 3-y]], name='t'); t
+            Tensor field t of type (2,0) on the 2-dimensional differentiable manifold M
+            sage: t.display(c_xy.frame())
+            t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx + (-y + 3) d/dy*d/dy
+            sage: T20._element_constructor_(0) is T20.zero()
+            True
 
         """
         if comp == 0:
@@ -320,14 +359,38 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unamed) tensor field.
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.declare_union(U,V)
+            sage: T31 = M.tensor_field_module((3,1))
+            sage: T31._an_element_()
+            Tensor field of type (3,1) on the 2-dimensional differentiable manifold M
+
         """
-        resu = self.element_class(self._vmodule, self._tensor_type)
-        #!# a zero element is returned
-        return resu
+        return self.element_class(self._vmodule, self._tensor_type)
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent.
+        Determine whether coercion to ``self`` exists from other parent.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U')
+            sage: T02 = M.tensor_field_module((0,2))
+            sage: T02U = U.tensor_field_module((0,2))
+            sage: T02U._coerce_map_from_(T02)
+            True
+            sage: T02._coerce_map_from_(T02U)
+            False
+            sage: T02._coerce_map_from_(M.diff_form_module(2))
+            True
+            sage: T11 = M.tensor_field_module((1,1))
+            sage: T11._coerce_map_from_(M.automorphism_field_group())
+            True
 
         """
         from sage.manifolds.differentiable.diff_form_module import \
@@ -353,7 +416,19 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._repr_()
+            'Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional differentiable manifold M'
+            sage: repr(T13)  # indirect doctest
+            'Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional differentiable manifold M'
+            sage: T13  # indirect doctest
+            Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional
+             differentiable manifold M
 
         """
         description = "Module "
@@ -372,6 +447,16 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     def _latex_(self):
         r"""
         Return a LaTeX representation of ``self``.
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._latex_()
+            '\\mathcal{T}^{(1,3)}\\left(M\\right)'
+            sage: latex(T13)  # indirect doctest
+            \mathcal{T}^{(1,3)}\left(M\right)
+
         """
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
@@ -380,7 +465,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     def base_module(self):
         r"""
-        Return the vector field module on which ``self`` is constructed.
+        Return the vector field module on which the tensor module is
+        constructed.
 
         OUTPUT:
 
@@ -388,19 +474,41 @@ class TensorFieldModule(UniqueRepresentation, Parent):
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
           representing the module on which the tensor module is defined.
 
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13.base_module()
+            Module X(M) of vector fields on the 2-dimensional differentiable manifold M
+            sage: T13.base_module() is M.vector_field_module()
+            True
+            sage: T13.base_module().base_ring()
+            Algebra of differentiable scalar fields on the 2-dimensional
+             differentiable manifold M
+
         """
         return self._vmodule
 
     def tensor_type(self):
         r"""
-        Return the tensor type of ``self``.
+        Return the tensor type of the tensor field module.
 
         OUTPUT:
 
-        - pair `(k,l)` such that ``self`` is the module of tensor fields of
-          type `(k,l)`
+        - pair `(k,l)` of non-negative integers such that the tensor fields
+          belonging to this module are of type `(k,l)`
 
-        """
+        EXAMPLES::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13.tensor_type()
+            (1, 3)
+            sage: T20 = M.tensor_field_module((2,0))
+            sage: T20.tensor_type()
+            (2, 0)
+
+            """
         return self._tensor_type
 
 #******************************************************************************
@@ -547,6 +655,25 @@ class TensorFieldFreeModule(TensorFreeModule):
     Element = TensorFieldParal
 
     def __init__(self, vector_field_module, tensor_type):
+        r"""
+        Construct a module of tensor fields taking values on a
+        parallelizable differentiable manifold.
+
+        TESTS::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
+            sage: T12 = TensorFieldFreeModule(XM, (1,2)); T12
+            Free module T^(1,2)(M) of type-(1,2) tensors fields on the
+             2-dimensional differentiable manifold M
+            sage: T12 is M.tensor_field_module((1,2))
+            True
+            sage: TestSuite(T12).run()
+
+        """
         domain = vector_field_module._domain
         dest_map = vector_field_module._dest_map
         kcon = tensor_type[0]
@@ -572,6 +699,22 @@ class TensorFieldFreeModule(TensorFreeModule):
                               latex_name=None, sym=None, antisym=None):
         r"""
         Construct a tensor field.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: T12 = M.tensor_field_module((1,2))
+            sage: t = T12._element_constructor_(comp=[[[x,-y], [2,y]],
+            ....:   [[1+x,y^2], [x^2,3]], [[x*y, 1-x], [y^2, x]]], name='t'); t
+            Tensor field t of type (1,2) on the 2-dimensional differentiable
+             manifold M
+            sage: t.display()
+            t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
+             + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
+             + 3 d/dy*dy*dy
+            sage: T12._element_constructor_(0) is T12.zero()
+            True
 
         """
         if comp == 0:
@@ -629,6 +772,23 @@ class TensorFieldFreeModule(TensorFreeModule):
         r"""
         Determine whether coercion to ``self`` exists from other parent.
 
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: T02 = M.tensor_field_module((0,2))
+            sage: T02U = U.tensor_field_module((0,2))
+            sage: T02U._coerce_map_from_(T02)
+            True
+            sage: T02._coerce_map_from_(T02U)
+            False
+            sage: T02._coerce_map_from_(M.diff_form_module(2))
+            True
+            sage: T11 = M.tensor_field_module((1,1))
+            sage: T11._coerce_map_from_(M.automorphism_field_group())
+            True
+
         """
         from sage.manifolds.differentiable.diff_form_module import \
                                                              DiffFormFreeModule
@@ -654,6 +814,19 @@ class TensorFieldFreeModule(TensorFreeModule):
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: T12 = M.tensor_field_module((1,2))
+            sage: T12._repr_()
+            'Free module T^(1,2)(M) of type-(1,2) tensors fields on the 2-dimensional differentiable manifold M'
+            sage: repr(T12)  # indirect doctest
+            'Free module T^(1,2)(M) of type-(1,2) tensors fields on the 2-dimensional differentiable manifold M'
+            sage: T12  # indirect doctest
+            Free module T^(1,2)(M) of type-(1,2) tensors fields on the
+             2-dimensional differentiable manifold M
 
         """
         description = "Free module "

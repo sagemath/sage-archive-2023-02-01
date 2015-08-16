@@ -202,14 +202,14 @@ class make_flat_inserter
 		}
 		ex handle_factor(const ex &x, const ex &coeff)
 		{
-			if (is_a<numeric>(coeff) and coeff.is_zero())
+			if (is_exactly_a<numeric>(coeff) and coeff.is_zero())
 				return coeff;
 			if (!do_renaming)
 				return x;
 			exvector dummies_of_factor;
-			if (is_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(1)))
+			if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(1)))
 				dummies_of_factor = get_all_dummy_indices_safely(x);
-			else if (is_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(2)))
+			else if (is_exactly_a<numeric>(coeff) && coeff.is_equal(GiNaC::numeric(2)))
 				dummies_of_factor = x.get_free_indices();
 			else
 				return x;

@@ -360,7 +360,7 @@ ex basic::coeff(const ex & s, int n) const
 ex basic::collect(const ex & s, bool distributed) const
 {
 	ex x;
-	if (is_a<lst>(s)) {
+	if (is_exactly_a<lst>(s)) {
 
 		// List of objects specified
 		if (s.nops() == 0)
@@ -371,7 +371,7 @@ ex basic::collect(const ex & s, bool distributed) const
 		else if (distributed) {
 
 			x = this->expand();
-			if (! is_a<add>(x))
+			if (! is_exactly_a<add>(x))
 				return x; 
 			const lst& l(ex_to<lst>(s));
 

@@ -228,7 +228,7 @@ ex & ex::operator[](size_t i)
 /** Left hand side of relational expression. */
 ex ex::lhs() const
 {
-	if (!is_a<relational>(*this))
+	if (!is_exactly_a<relational>(*this))
 		throw std::runtime_error("ex::lhs(): not a relation");
 	return bp->op(0);
 }
@@ -236,7 +236,7 @@ ex ex::lhs() const
 /** Right hand side of relational expression. */
 ex ex::rhs() const
 {
-	if (!is_a<relational>(*this))
+	if (!is_exactly_a<relational>(*this))
 		throw std::runtime_error("ex::rhs(): not a relation");
 	return bp->op(1);
 }
@@ -244,7 +244,7 @@ ex ex::rhs() const
 /** Check whether expression is a polynomial. */
 bool ex::is_polynomial(const ex & vars) const
 {
-	if (is_a<lst>(vars)) {
+	if (is_exactly_a<lst>(vars)) {
 		const lst & varlst = ex_to<lst>(vars);
 		for (const auto & elem : varlst)
 			if (!bp->is_polynomial(elem))
@@ -272,7 +272,7 @@ bool ex::is_zero_matrix() const
 		return  true;
 	else {
 		ex e = evalm();
-		return is_a<matrix>(e) && ex_to<matrix>(e).is_zero_matrix();
+		return is_exactly_a<matrix>(e) && ex_to<matrix>(e).is_zero_matrix();
 	}
 }
 
@@ -296,7 +296,7 @@ bool ex::is_integer_pmone() const
 size_t ex::nsymbols() const
 {
 	int res = 0;
-	if (is_a<symbol>(*this)) {
+	if (is_exactly_a<symbol>(*this)) {
 		res=1;
 	} else {
 		for (size_t i=0; i < nops(); i++)

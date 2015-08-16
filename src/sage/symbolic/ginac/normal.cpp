@@ -93,7 +93,7 @@ static struct _stat_print {
  *  @return "false" if no symbol was found, "true" otherwise */
 static bool get_first_symbol(const ex &e, ex &x)
 {
-	if (is_a<symbol>(e)) {
+	if (is_exactly_a<symbol>(e)) {
 		x = e;
 		return true;
 	} else if (is_exactly_a<add>(e) || is_exactly_a<mul>(e)) {
@@ -168,7 +168,7 @@ static void add_symbol(const ex &s, sym_desc_vec &v)
 // Collect all symbols of an expression (used internally by get_symbol_stats())
 static void collect_symbols(const ex &e, sym_desc_vec &v)
 {
-	if (is_a<symbol>(e)) {
+	if (is_exactly_a<symbol>(e)) {
 		add_symbol(e, v);
 	} else if (is_exactly_a<add>(e) || is_exactly_a<mul>(e)) {
 		for (size_t i=0; i<e.nops(); i++)
@@ -241,7 +241,7 @@ static numeric lcmcoeff(const ex &e, const numeric &l)
 			c *= lcmcoeff(e.op(i), *_num1_p);
 		return lcm(c, l);
 	} else if (is_exactly_a<power>(e)) {
-		if (is_a<symbol>(e.op(0)))
+		if (is_exactly_a<symbol>(e.op(0)))
 			return l;
 		else
 			return pow(lcmcoeff(e.op(0), l), ex_to<numeric>(e.op(1)));
@@ -286,7 +286,7 @@ static ex multiply_lcm(const ex &e, const numeric &lcm)
 			v.push_back(multiply_lcm(e.op(i), lcm));
 		return (new add(v))->setflag(status_flags::dynallocated);
 	} else if (is_exactly_a<power>(e)) {
-		if (is_a<symbol>(e.op(0)))
+		if (is_exactly_a<symbol>(e.op(0)))
 			return e * lcm;
 		else
 			return pow(multiply_lcm(e.op(0), lcm.power(ex_to<numeric>(e.op(1)).inverse())), e.op(1));
@@ -1567,7 +1567,7 @@ factored_b:
 	}
 #endif
 
-	if (is_a<symbol>(aex)) {
+	if (is_exactly_a<symbol>(aex)) {
 		if (! bex.subs(aex==_ex0, subs_options::no_pattern).is_zero()) {
 			if (ca)
 				*ca = a;
@@ -1577,7 +1577,7 @@ factored_b:
 		}
 	}
 
-	if (is_a<symbol>(bex)) {
+	if (is_exactly_a<symbol>(bex)) {
 		if (! aex.subs(bex==_ex0, subs_options::no_pattern).is_zero()) {
 			if (ca)
 				*ca = a;
@@ -1790,7 +1790,7 @@ static exvector sqrfree_yun(const ex &a, const symbol &x)
 ex sqrfree(const ex &a, const lst &l)
 {
 	if (is_exactly_a<numeric>(a) ||     // algorithm does not trap a==0
-	    is_a<symbol>(a))        // shortcut
+	    is_exactly_a<symbol>(a))        // shortcut
 		return a;
 
 	// If no lst of variables to factorize in was specified we have to
@@ -1807,7 +1807,7 @@ ex sqrfree(const ex &a, const lst &l)
 	}
 
 	// Find the symbol to factor in at this stage
-	if (!is_a<symbol>(args.op(0)))
+	if (!is_exactly_a<symbol>(args.op(0)))
 		throw (std::runtime_error("sqrfree(): invalid factorization variable"));
 	const symbol &x = ex_to<symbol>(args.op(0));
 
@@ -2563,7 +2563,7 @@ static ex find_common_factor(const ex & e, ex & factor, exmap & repl)
 		for (size_t i=0; i<num; i++) {
 			ex x = e.op(i).to_polynomial(repl);
 
-			if (is_exactly_a<add>(x) || is_exactly_a<mul>(x) || is_a<power>(x)) {
+			if (is_exactly_a<add>(x) || is_exactly_a<mul>(x) || is_exactly_a<power>(x)) {
 				ex f = 1;
 				x = find_common_factor(x, f, repl);
 				x *= f;

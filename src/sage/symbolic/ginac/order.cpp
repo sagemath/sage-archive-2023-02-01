@@ -332,7 +332,7 @@ int print_order::compare_mul_power(const mul &lh, const power &rh) const
 	double lh_deg = lh.total_degree();
 	double rh_deg = 1;
 	numeric rh_exp;
-	if (is_a<numeric>(rh.exponent)) {
+	if (is_exactly_a<numeric>(rh.exponent)) {
 		rh_deg = numeric_to_double(ex_to<numeric>(rh.exponent));
 	}
 	if (rh_deg != lh_deg)
@@ -564,7 +564,7 @@ int print_order::compare_power_symbol(const power &lh,
 	int cmpval;
 
 	// We are in an add object
-	if (is_a<numeric>(lh.exponent)) {
+	if (is_exactly_a<numeric>(lh.exponent)) {
 		double lh_deg = numeric_to_double(ex_to<numeric>(lh.exponent));
 		if (lh_deg != 1)
 			return lh_deg < 1 ? -1 : 1;
@@ -601,10 +601,10 @@ int print_order::compare_same_type_power(const power &lh, const power &rh) const
 
 	double lh_deg = 1;
 	double rh_deg = 1;
-	if (is_a<numeric>(lh.exponent)) {
+	if (is_exactly_a<numeric>(lh.exponent)) {
 		lh_deg = numeric_to_double(ex_to<numeric>(lh.exponent));
 	}
-	if (is_a<numeric>(rh.exponent)) {
+	if (is_exactly_a<numeric>(rh.exponent)) {
 		rh_deg = numeric_to_double(ex_to<numeric>(rh.exponent));
 	}
 	if (rh_deg != lh_deg)
@@ -614,7 +614,7 @@ int print_order::compare_same_type_power(const power &lh, const power &rh) const
 	if (cmpval != 0)
 		return cmpval;
 
-	if (is_a<numeric>(lh.exponent) && is_a<numeric>(rh.exponent))
+	if (is_exactly_a<numeric>(lh.exponent) && is_exactly_a<numeric>(rh.exponent))
 		return 0;
 	return compare(lh.exponent, rh.exponent);
 }

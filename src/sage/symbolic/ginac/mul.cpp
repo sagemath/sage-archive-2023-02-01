@@ -729,7 +729,7 @@ ex mul::eval(int level) const
 		numeric oc = *_num1_p;
 		bool something_changed = false;
 		while (i!=last) {
-			if (likely(! (is_a<add>(i->rest) && i->coeff.is_integer_one()))) {
+			if (likely(! (is_exactly_a<add>(i->rest) && i->coeff.is_integer_one()))) {
 				// power::eval has such a rule, no need to handle powers here
 				++i;
 				continue;
@@ -825,7 +825,7 @@ ex mul::eval_exponentials() const
 	}
 
 	ex new_exp = exp(exp_arg);
-	if (is_a<numeric>(new_exp))
+	if (is_exactly_a<numeric>(new_exp))
 		oc = oc.mul(ex_to<numeric>(new_exp));
 	else
 		s.push_back(expair(new_exp, _ex1));
@@ -907,7 +907,7 @@ ex mul::evalm() const
 {
 	// numeric*matrix
 	if (seq.size() == 1 && seq[0].coeff.is_equal(_ex1)
-	 && is_a<matrix>(seq[0].rest))
+	 && is_exactly_a<matrix>(seq[0].rest))
 		return ex_to<matrix>(seq[0].rest).mul(ex_to<numeric>(overall_coeff));
 
 	// Evaluate children first, look whether there are any matrices at all
@@ -922,7 +922,7 @@ ex mul::evalm() const
         for (const auto & elem : seq) {
 		const ex &m = recombine_pair_to_ex(elem).evalm();
 		s.push_back(split_ex_to_pair(m));
-		if (is_a<matrix>(m)) {
+		if (is_exactly_a<matrix>(m)) {
 			have_matrix = true;
 			the_matrix = s.end() - 1;
 		}
@@ -1040,7 +1040,7 @@ bool mul::has(const ex & pattern, unsigned options) const
 {
 	if(!(options&has_options::algebraic))
 		return basic::has(pattern,options);
-	if(is_a<mul>(pattern)) {
+	if(is_exactly_a<mul>(pattern)) {
 		lst repls;
 		int nummatches = std::numeric_limits<int>::max();
 		std::vector<bool> subsed(nops(), false);
@@ -1361,7 +1361,7 @@ ex mul::expand(unsigned options) const
 	// trivial case: expanding the monomial (~ 30% of all calls)
         bool all_intsym = true;
         for (const auto & elem : seq) 
-                if (not is_a<symbol>(elem.rest) or not elem.coeff.info(info_flags::integer))
+                if (not is_exactly_a<symbol>(elem.rest) or not elem.coeff.info(info_flags::integer))
                 {
                         all_intsym = false;
                         break;

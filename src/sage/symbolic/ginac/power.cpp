@@ -201,7 +201,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 
 		if (!(-exponent).is_integer_one()) {
     		        c.s << "^{";
-			bool exp_parenthesis = is_a<power>(exponent);
+			bool exp_parenthesis = is_exactly_a<power>(exponent);
 			if (exp_parenthesis)
 				c.s << "\\left(";
 			exponent.print(c, 0);
@@ -258,7 +258,7 @@ void power::do_print_csrc(const print_csrc & c, unsigned level) const
 
 	// Integer powers of symbols are printed in a special, optimized way
 	if (exponent.info(info_flags::integer)
-	 && (is_a<symbol>(basis) || is_a<constant>(basis))) {
+	 && (is_exactly_a<symbol>(basis) || is_exactly_a<constant>(basis))) {
 		int exp = ex_to<numeric>(exponent).to_int();
 		if (exp > 0)
 			c.s << '(';
@@ -487,7 +487,7 @@ ex power::eval(int level) const
 	}
 
 	// ^(\infty, x)
-	if (is_a<infinity>(ebasis)) {
+	if (is_exactly_a<infinity>(ebasis)) {
 		const infinity & basis_inf = ex_to<infinity>(ebasis);
 		if (eexponent.nsymbols()>0)
 			throw(std::domain_error("power::eval(): pow(Infinity, f(x)) is not defined."));
@@ -506,7 +506,7 @@ ex power::eval(int level) const
 	}
 
 	// ^(x, \infty)
-	if (is_a<infinity>(eexponent)) {
+	if (is_exactly_a<infinity>(eexponent)) {
 		const infinity & exp_inf = ex_to<infinity>(eexponent);
 		if (exp_inf.is_unsigned_infinity())
 			throw(std::domain_error("power::eval(): pow(x, unsigned_infinity) is not defined."));
@@ -722,7 +722,7 @@ ex power::eval(int level) const
 		// ^(nc,c1) -> ncmul(nc,nc,...) (c1 positive integer, unless nc is a matrix)
 		if (ebasis.return_type() != return_types::commutative &&
                     num_exponent.is_pos_integer() &&
-                    !is_a<matrix>(ebasis)) {
+                    !is_exactly_a<matrix>(ebasis)) {
 			return ncmul(exvector(num_exponent.to_int(), ebasis), true);
 		}
 	}

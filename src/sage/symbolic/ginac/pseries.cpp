@@ -70,8 +70,8 @@ pseries::pseries() : inherited(&pseries::tinfo_static) { }
  *  @return newly constructed pseries */
 pseries::pseries(const ex &rel_, epvector ops_) : basic(&pseries::tinfo_static), seq(std::move(ops_))
 {
-	GINAC_ASSERT(is_a<relational>(rel_));
-	GINAC_ASSERT(is_a<symbol>(rel_.lhs()));
+	GINAC_ASSERT(is_exactly_a<relational>(rel_));
+	GINAC_ASSERT(is_exactly_a<symbol>(rel_.lhs()));
 	point = rel_.rhs();
 	var = rel_.lhs();
 }
@@ -228,7 +228,7 @@ void pseries::do_print_python_repr(const print_python_repr & c, unsigned level) 
 
 int pseries::compare_same_type(const basic & other) const
 {
-	GINAC_ASSERT(is_a<pseries>(other));
+	GINAC_ASSERT(is_exactly_a<pseries>(other));
 	const pseries &o = static_cast<const pseries &>(other);
 	
 	// first compare the lengths of the series...
@@ -659,7 +659,7 @@ ex symbol::series(const relational & r, int order, unsigned options) const
 {
 	epvector seq;
 	const ex point = r.rhs();
-	GINAC_ASSERT(is_a<symbol>(r.lhs()));
+	GINAC_ASSERT(is_exactly_a<symbol>(r.lhs()));
 
 	if (this->is_equal_same_type(ex_to<symbol>(r.lhs()))) {
 		if (order > 0 && !point.is_zero())
@@ -859,7 +859,7 @@ ex mul::series(const relational & r, int order, unsigned options) const
 {
 	pseries acc; // Series accumulator
 
-	GINAC_ASSERT(is_a<symbol>(r.lhs()));
+	GINAC_ASSERT(is_exactly_a<symbol>(r.lhs()));
 	const ex& sym = r.lhs();
 		
 	// holds ldegrees of the series of individual factors
@@ -1108,12 +1108,12 @@ ex power::series(const relational & r, int order, unsigned options) const
 
 	// Is the expression of type something^(-int)?
 	if (!must_expand_basis && !exponent.info(info_flags::negint)
-	 && (!is_a<add>(basis) || !is_a<numeric>(exponent)))
+	 && (!is_exactly_a<add>(basis) || !is_exactly_a<numeric>(exponent)))
 		return basic::series(r, order, options);
 
 	// Is the expression of type 0^something?
 	if (!must_expand_basis && !basis.subs(r, subs_options::no_pattern).is_zero()
-	 && (!is_a<add>(basis) || !is_a<numeric>(exponent)))
+	 && (!is_exactly_a<add>(basis) || !is_exactly_a<numeric>(exponent)))
 		return basic::series(r, order, options);
 
 	// Singularity encountered, is the basis equal to (var - point)?
@@ -1129,7 +1129,7 @@ ex power::series(const relational & r, int order, unsigned options) const
 	// No, expand basis into series
 
 	numeric numexp;
-	if (is_a<numeric>(exponent)) {
+	if (is_exactly_a<numeric>(exponent)) {
 		numexp = ex_to<numeric>(exponent);
 	} else {
 		numexp = 0;
@@ -1169,7 +1169,7 @@ ex power::series(const relational & r, int order, unsigned options) const
 ex pseries::series(const relational & r, int order, unsigned options) const
 {
 	const ex p = r.rhs();
-	GINAC_ASSERT(is_a<symbol>(r.lhs()));
+	GINAC_ASSERT(is_exactly_a<symbol>(r.lhs()));
 	const symbol &s = ex_to<symbol>(r.lhs());
 	
 	if (var.is_equal(s) && point.is_equal(p)) {
@@ -1261,9 +1261,9 @@ ex ex::series(const ex & r, int order, unsigned options) const
 	ex e;
 	relational rel_;
 	
-	if (is_a<relational>(r))
+	if (is_exactly_a<relational>(r))
 		rel_ = ex_to<relational>(r);
-	else if (is_a<symbol>(r))
+	else if (is_exactly_a<symbol>(r))
 		rel_ = relational(r,_ex0);
 	else
 		throw (std::logic_error("ex::series(): expansion point has unknown type"));

@@ -76,7 +76,7 @@ DEFAULT_UNARCHIVE(wildcard)
 
 int wildcard::compare_same_type(const basic & other) const
 {
-	GINAC_ASSERT(is_a<wildcard>(other));
+	GINAC_ASSERT(is_exactly_a<wildcard>(other));
 	const wildcard &o = static_cast<const wildcard &>(other);
 
 	if (label == o.label)
@@ -127,7 +127,7 @@ bool wildcard::match(const ex & pattern, lst & repl_lst) const
 
 bool haswild(const ex & x)
 {
-	if (is_a<wildcard>(x))
+	if (is_exactly_a<wildcard>(x))
 		return true;
 	for (size_t i=0; i<x.nops(); ++i)
 		if (haswild(x.op(i)))

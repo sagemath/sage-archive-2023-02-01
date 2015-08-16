@@ -328,7 +328,7 @@ ex expairseq::map(map_function &f) const
 		return thisexpairseq(std::move(v), default_overall_coeff(), true);
 	else {
 		ex newcoeff = f(overall_coeff);
-		if(is_a<numeric>(newcoeff))
+		if(is_exactly_a<numeric>(newcoeff))
 			return thisexpairseq(std::move(v), newcoeff, true);
 		else {
 			v->push_back(split_ex_to_pair(newcoeff));
@@ -833,7 +833,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 				construct_from_2_ex_via_exvector(lh,rh);
 			} else {
 #endif // EXPAIRSEQ_USE_HASHTAB
-				if (is_a<mul>(lh) && lh.info(info_flags::has_indices) && 
+				if (is_exactly_a<mul>(lh) && lh.info(info_flags::has_indices) && 
 					rh.info(info_flags::has_indices)) {
 					ex newrh=rename_dummy_indices_uniquely(lh, rh);
 					construct_from_2_expairseq(ex_to<expairseq>(lh),
@@ -898,7 +898,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			expair p2 = split_ex_to_pair(rh);
 
 			int cmpval = p1.rest.compare(p2.rest);
-			if (cmpval==0 && unlikely(!is_a<infinity>(p1.rest))) {
+			if (cmpval==0 && unlikely(!is_exactly_a<infinity>(p1.rest))) {
 				p1.coeff = ex_to<numeric>(p1.coeff).add_dyn(ex_to<numeric>(p2.coeff));
 				if (!ex_to<numeric>(p1.coeff).is_zero()) {
 
@@ -941,7 +941,7 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 		if (cmpval==0) {
 			// infinity evaluation is handled in the eval() method
 			// do not let infinities cancel each other here
-			if (unlikely(is_a<infinity>(first1->rest))) {
+			if (unlikely(is_exactly_a<infinity>(first1->rest))) {
 				seq.push_back(*first1);
 				seq.push_back(*first2);
 			} else {
@@ -997,7 +997,7 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 	expair p = split_ex_to_pair(e);
 	// infinity evaluation is handled in eval()
 	// do not let infinities cancel each other here
-	if (unlikely(is_a<infinity>(p.rest))) {
+	if (unlikely(is_exactly_a<infinity>(p.rest))) {
 		seq.push_back(p);
 		seq.insert(seq.end(), first, last);
 		return;
@@ -1101,7 +1101,7 @@ void expairseq::make_flat(const exvector &v, bool do_hold)
 				++nexpairseqs;
 				noperands += ex_to<expairseq>(elem).seq.size();
 			}
-			if (is_a<mul>(*this) && (!do_idx_rename) &&
+			if (is_exactly_a<mul>(*this) && (!do_idx_rename) &&
 					elem.info(info_flags::has_indices))
 				do_idx_rename = true;
 		}
@@ -1146,7 +1146,7 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 			++nexpairseqs;
 			noperands += ex_to<expairseq>(elem.rest).seq.size();
 		}
-		if ((!really_need_rename_inds) && is_a<mul>(*this) &&
+		if ((!really_need_rename_inds) && is_exactly_a<mul>(*this) &&
 				elem.rest.info(info_flags::has_indices))
 			really_need_rename_inds = true;
 	}
@@ -1211,7 +1211,7 @@ void expairseq::combine_same_terms_sorted_seq()
 	bool must_copy = false;
 	while (itin2!=last) {
 		if (itin1->rest.compare(itin2->rest)==0 &&
-				unlikely(!is_a<infinity>(itin1->rest))) {
+				unlikely(!is_exactly_a<infinity>(itin1->rest))) {
 			itin1->coeff = ex_to<numeric>(itin1->coeff).
                                 add_dyn(ex_to<numeric>(itin2->coeff));
 			if (expair_needs_further_processing(itin1))

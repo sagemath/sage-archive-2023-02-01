@@ -26,13 +26,12 @@ all-build: all-toolchain
 	$(MAKE) all-sage
 
 
-# Make the 4 preliminary build phases:
-# prereq, base, toolchain, toolchain-deps.
+# Make the 3 preliminary build phases:
+# base, toolchain, toolchain-deps.
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
 all-toolchain:
-	$(MAKE) $(INST)/prereq
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
 	$(MAKE) toolchain-deps
@@ -85,18 +84,6 @@ $(STARTED): $(STANDARD_PACKAGES)
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
 base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
-
-$(INST)/prereq: ../../configure
-	@cd ../..; rm -f config.log; ln -s logs/pkgs/config.log config.log; \
-	./configure $$PREREQ_OPTIONS || ( \
-		if [ "x$$SAGE_PORT" = x ]; then \
-			echo "If you would like to try to build Sage anyway (to help porting),"; \
-			echo "export the variable 'SAGE_PORT' to something non-empty."; \
-			exit 1; \
-		else \
-			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
-		fi; )
-	touch $@
 
 ###############################################################################
 # Building normal packages

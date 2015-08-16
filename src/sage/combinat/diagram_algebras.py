@@ -1213,6 +1213,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         self._k = k
         self._base_diagrams = diagrams
         category = Algebras(base_ring).FiniteDimensional().WithBasis().or_subcategory(category)
+        KSS = SymmetricGroupAlgebra(base_ring, k)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 

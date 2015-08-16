@@ -840,19 +840,29 @@ cdef class CPLEXBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLE:
+
+        A simple maximization problem::
+
+            sage: p = MixedIntegerLinearProgram(solver='CPLEX')      # optional - CPLEX
+            sage: x = p.new_variable(integer=True, nonnegative=True) # optional - CPLEX
+            sage: p.add_constraint(2*x[0] + 3*x[1], max = 6)         # optional - CPLEX
+            sage: p.add_constraint(3*x[0] + 2*x[1], max = 6)         # optional - CPLEX
+            sage: p.set_objective(x[0] + x[1] + 7)                   # optional - CPLEX
+            sage: p.solve()                                          # optional - CPLEX
+            9.0
+
+        A problem without feasible solution::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
-            sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
-            sage: p.add_linear_constraints(5, 0, None)                     # optional - CPLEX
-            sage: p.add_col(range(5), range(5))                   # optional - CPLEX
-            sage: p.solve()                                       # optional - CPLEX
-            0
-            sage: p.objective_coefficient(0,1)                      # optional - CPLEX
-            sage: p.solve()                                       # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")                               # optional - CPLEX
+            sage: p.add_linear_constraints(5, 0, None)                           # optional - CPLEX
+            sage: p.add_col(range(5), range(5))                                  # optional - CPLEX
+            sage: p.objective_coefficient(0,1)                                   # optional - CPLEX
+            sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            MIPSolverException: 'CPLEX: The primal has no feasible solution'
         """
         cdef int status
         cdef int ptype

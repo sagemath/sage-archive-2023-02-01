@@ -1389,18 +1389,18 @@ cdef class CPLEXBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")           # optional - CPLEX
-            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+            sage: p.solver_parameter("logfile")              # optional - CPLEX
             ''
-            sage: p.solver_parameter("LogFile", '/dev/null') # optional - CPLEX
-            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+            sage: p.solver_parameter("logfile", '/dev/null') # optional - CPLEX
+            sage: p.solver_parameter("logfile")              # optional - CPLEX
             '/dev/null'
 
         Disable the logfile::
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
-            sage: p.solver_parameter("LogFile", '')        # optional - CPLEX
-            sage: p.solver_parameter("LogFile")            # optional - CPLEX
+            sage: p.solver_parameter("logfile", '')        # optional - CPLEX
+            sage: p.solver_parameter("logfile")            # optional - CPLEX
             ''
 
         """

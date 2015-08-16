@@ -32,7 +32,7 @@ to discourage confusion. Although Sage packages are packed using tar
 and/or bzip2, note that ``.spkg`` files contain control information
 (installation scripts and metadata) that are necessary for building
 and installing them.  When you compile Sage from a source distribution
-(or when you run ``sage -i <pkg>`` or ``sage -f <pkg>``), the file
+(or when you run ``sage -p <pkg>``), the file
 ``SAGE_ROOT/build/bin/sage-spkg`` takes care of the unpacking,
 compilation, and installation of Sage packages for you. You can type::
 
@@ -309,7 +309,7 @@ refereed.  Do not post the spkg itself to the trac server: you only
 need to provide a link to your spkg.  If your spkg gets a positive
 review, it might be included into the core Sage library, or it might
 become an optional download from the Sage website, so anybody can
-automatically install it by typing ``sage -i mypackage-version.spkg``.
+automatically install it by typing ``sage -p mypackage-version.spkg``.
 
 .. note::
 

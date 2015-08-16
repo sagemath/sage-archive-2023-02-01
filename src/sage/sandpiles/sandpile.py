@@ -260,7 +260,7 @@ Distribution of avalanche sizes::
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
     sage: show(p+t,axes_labels=['log(N)','log(D(N))'])
 
-    Working with sandpile divisors::
+Working with sandpile divisors::
 
     sage: S = sandpiles.Complete(4)
     sage: D = SandpileDivisor(S, [0,0,0,5])
@@ -309,7 +309,6 @@ Distribution of avalanche sizes::
     (0, 1, 2, 3)
     sage: D.weierstrass_rank_seq(0)
     (2, 1, 0, 0, 0, -1)
-
 """
 
 #*****************************************************************************

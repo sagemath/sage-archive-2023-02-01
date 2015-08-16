@@ -461,7 +461,7 @@ cdef eigenvalues(int v,int k,int l,int mu):
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
-cdef H_3_cayley_graph(L):
+def _H_3_cayley_graph(L):
     r"""
     return the `L`-Cayley graph of the group `H_3` from Prop. 12 in [JK03]_.
 
@@ -470,6 +470,11 @@ cdef H_3_cayley_graph(L):
     - the list of words for the generating set in the format ["abc",...,"xyz"] for
       a,b,...,z being integers between 0 and 4.
 
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import _H_3_cayley_graph
+        sage: _H_3_cayley_graph(["100","110","130","140","200","230","240","300"])
+        Graph on 100 vertices
     """
     from sage.groups.free_group import FreeGroup
     from sage.groups.finitely_presented import FinitelyPresentedGroup
@@ -505,7 +510,7 @@ def SRG_100_44_18_20():
       I. A family of partial difference sets on 100 vertices,
       Electronic Journal of Combinatorics 10(1), 2003.
     """
-    return H_3_cayley_graph(["100","110","130","140","200","230","240","300",
+    return _H_3_cayley_graph(["100","110","130","140","200","230","240","300",
              "310","320","400","410","420","440","041","111","221","231","241",
              "321","331","401","421","441","002","042","112","122","142","212",
              "232","242","322","342","033","113","143","223","303","333","343",
@@ -525,7 +530,7 @@ def SRG_100_45_20_20():
         sage: G.is_strongly_regular(parameters=True) # long time
         (100, 45, 20, 20)
     """
-    return H_3_cayley_graph(["120","140","200","210","201","401","411","321",
+    return _H_3_cayley_graph(["120","140","200","210","201","401","411","321",
              "002","012","022","042","303","403","013","413","240","031","102",
              "323","300","231","132","133","310","141","142","233","340","241",
              "202","333","410","341","222","433","430","441","242","302","312",

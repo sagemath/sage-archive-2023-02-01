@@ -27,6 +27,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
+        sage: from sage.numerical.mip import MixedIntegerLinearProgram      # optional - CPLEX
         sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
         """
 
@@ -1382,13 +1383,20 @@ cdef class CPLEXBackend(GenericBackend):
 
         Set the logfile (no log file by default)::
 
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "CPLEX")           # optional - CPLEX
             sage: p.solver_parameter("LogFile")              # optional - CPLEX
             ''
             sage: p.solver_parameter("LogFile", '/dev/null') # optional - CPLEX
             sage: p.solver_parameter("LogFile")              # optional - CPLEX
             '/dev/null'
-            sage: p.solver_parameter("LogFile", '')          # optional - CPLEX -- disable recording log to file
-            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+
+        Disable the logfile::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
+            sage: p.solver_parameter("LogFile", '')        # optional - CPLEX
+            sage: p.solver_parameter("LogFile")            # optional - CPLEX
             ''
 
         """

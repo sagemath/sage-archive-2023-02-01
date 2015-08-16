@@ -52,11 +52,22 @@ that arithmetic with a tower of 3 fields is fully supported::
     sage: M.base_field().base_field()
     Rational function field in x over Finite Field in a of size 5^2
 
+It is also possible to work with function fields over an imperfect base field::
+
+    sage: N.<u> = FunctionField(K)
+
+Function field extensions can be inseparable::
+
+    sage: R.<v> = K[]
+    sage: O.<v> = K.extension(v^5 - x)
+
 TESTS::
 
     sage: TestSuite(K).run()
     sage: TestSuite(L).run()  # long time (8s on sage.math, 2012)
     sage: TestSuite(M).run()  # long time (52s on sage.math, 2012)
+    sage: TestSuite(N).run()  # long time
+    sage: TestSuite(O).run()  # long time
 
 The following two test suites do not pass ``_test_elements`` yet since
 ``R.an_element()`` has a ``_test_category`` method wich it should not have.

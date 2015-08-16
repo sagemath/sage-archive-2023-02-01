@@ -56,6 +56,7 @@ BrauerDiagramOptions = GlobalOptions(name='Brauer diagram',
         sage: BA = BrauerAlgebra(2, q)
         sage: E = BA([[1,2],[-1,-2]])
         sage: E
+        B{{-2, -1}, {1, 2}}
         sage: BrauerAlgebra.global_options(display="compact")
         sage: E
         B[12/12;]

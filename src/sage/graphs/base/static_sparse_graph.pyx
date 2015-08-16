@@ -138,17 +138,17 @@ Cython functions
     component containing ``v`` in ``g``. The variable ``g_reversed`` is assumed
     to represent the reverse of ``g``.
 
-``_tarjan_strongly_connected_components(short_digraph g, int *scc)``
+``tarjan_strongly_connected_components_C(short_digraph g, int *scc)``
 
     Assuming ``scc`` is already allocated and has size at least ``g.n``, this
     method computes the strongly connected components of ``g``, and outputs in
     ``scc[v]`` the number of the strongly connected component containing ``v``.
     It returns the number of strongly connected components.
 
-``_strongly_connected_components_digraph(short_digraph g, int nscc, int *scc, short_digraph output):``
+``strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):``
 
     Assuming ``nscc`` and ``scc`` are the outputs of
-    ``_tarjan_strongly_connected_components`` on ``g``, this routine
+    ``tarjan_strongly_connected_components_C`` on ``g``, this routine
     sets ``output`` to the
     strongly connected component digraph of ``g``, that is, the vertices of
     ``output`` are the strongly connected components of ``g`` (numbers are
@@ -438,7 +438,7 @@ cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except 
 
     sage_free(stack)
 
-cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
+cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
     r"""
     The Tarjan algorithm to compute strongly connected components (SCCs).
 
@@ -478,7 +478,7 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
     # it is an ancestor of the current vertex, 2 otherwise.
 
     for u in range(n):
-        if visited[u] == 0:
+        if not visited[u]:
             # Perform a DFS from u
             dfs_stack_end = 1
             scc_stack_end = 0
@@ -487,7 +487,7 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
 
             while dfs_stack_end > 0:
                 v = dfs_stack[dfs_stack_end - 1]
-                if visited[v] == 0:
+                if not visited[v]:
                     # It means that this is the first time we visit v.
                     # We set the index and the lowlink to be equal: during the
                     # algorithm, the lowlink may decrease.
@@ -505,7 +505,7 @@ cdef int _tarjan_strongly_connected_components(short_digraph g, int *scc):
                     while p_tmp<g.neighbors[v+1]:
                         w = p_tmp[0]
                         p_tmp += 1
-                        if visited[w] == 0:
+                        if not visited[w]:
                             # Vertex w is added to the DFS stack
                             pred[w] = v
                             dfs_stack[dfs_stack_end] = w
@@ -584,6 +584,9 @@ def tarjan_strongly_connected_components(G):
         sage: D.add_edge([2,0])
         sage: D.strongly_connected_components()
         [[3], [0, 1, 2], [6], [5], [4]]
+        sage: D = DiGraph([('a','b'), ('b','c'), ('c', 'd'), ('d', 'b'), ('c', 'e')])
+        sage: D.strongly_connected_components()
+        [['e'], ['b', 'c', 'd'], ['a']]
 
     TESTS:
 
@@ -623,16 +626,16 @@ def tarjan_strongly_connected_components(G):
     cdef short_digraph g
     init_short_digraph(g, G)
     cdef int * scc = <int*> mem.malloc(g.n * sizeof(int))
-    cdef int nscc = _tarjan_strongly_connected_components(g, scc)
-
-    d = {i:list() for i in range(nscc)}
-
+    cdef int nscc = tarjan_strongly_connected_components_C(g, scc)
+    cdef int i
+    cdef list output = list(list() for i in range(nscc)) # We cannot use [] here
+    
     for i,v in enumerate(G.vertices()):
-        d[scc[i]].append(v)
+        output[scc[i]].append(v)
     sig_off()
-    return [d[i] for i in range(nscc)]
+    return output
 
-cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int *scc, short_digraph output):
+cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int *scc, short_digraph output):
     r"""
     Computes the strongly connected components (SCCs) digraph of `g`.
 
@@ -671,7 +674,7 @@ cdef void _strongly_connected_components_digraph(short_digraph g, int nscc, int 
             while p_tmp<g.neighbors[scc_list[v][i]+1]:
                 w = <int> scc[p_tmp[0]]
                 p_tmp += 1
-                if neighbors[w] == 0 and not w == v:
+                if not (neighbors[w] or w == v):
                     neighbors[w] = 1
                     sons[v].push_back(w)
                     m += 1
@@ -698,7 +701,7 @@ def strongly_connected_components_digraph(G):
     r"""
     Returns the digraph of the strongly connected components (SCCs).
 
-    This routine is used to test ``_strongly_connected_components_digraph``,
+    This routine is used to test ``strongly_connected_components_digraph_C``,
     but it is not used by the Sage digraph. It outputs a pair ``[g_scc,scc]``,
     where ``g_scc`` is the SCC digraph of g, ``scc`` is a dictionary associating
     to each vertex ``v`` the number of the SCC of ``v``, as it appears in
@@ -708,7 +711,7 @@ def strongly_connected_components_digraph(G):
 
         sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
         sage: strongly_connected_components_digraph(digraphs.Path(3))
-        [Digraph on 3 vertices, {0: 2, 1: 1, 2: 0}]
+        (Digraph on 3 vertices, {0: 2, 1: 1, 2: 0})
 
     TESTS::
 
@@ -736,8 +739,8 @@ def strongly_connected_components_digraph(G):
     cdef list edges = []
 
     sig_on()
-    nscc = _tarjan_strongly_connected_components(g, scc)
-    _strongly_connected_components_digraph(g, nscc, scc, scc_g)
+    nscc = tarjan_strongly_connected_components_C(g, scc)
+    strongly_connected_components_digraph_C(g, nscc, scc, scc_g)
 
     output = DiGraph(nscc)
 
@@ -746,7 +749,7 @@ def strongly_connected_components_digraph(G):
             edges.append((i, scc_g.neighbors[i][j]))
     output.add_edges(edges)
     sig_off()
-    return [output, {v:scc[i] for i,v in enumerate(G.vertices())}]
+    return output, {v:scc[i] for i,v in enumerate(G.vertices())}
 
 
 cdef strongly_connected_component_containing_vertex(short_digraph g, short_digraph g_reversed, int v, bitset_t scc):

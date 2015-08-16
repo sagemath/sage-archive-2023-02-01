@@ -1037,19 +1037,17 @@ class IntegralRayCollection(SageObject,
         """
         return self._rays if not args else self._rays(*args)
 
-
     def codim(self):
         r"""
-        Compute the codimension of this collection of rays.
+        Return the codimension of ``self``.
 
-        The codimension of a collection of rays is the difference between
-        the dimension of the ambient space and the dimension of the
-        subspace spanned by those rays.
+        The codimension of a collection of rays (of a cone/fan) is the
+        difference between the dimension of the ambient space and the
+        dimension of the subspace spanned by those rays (of the cone/fan).
 
         OUTPUT:
 
-        A nonnegative integer representing the codimension of this
-        collection of rays.
+        A nonnegative integer representing the codimension of ``self``.
 
         .. SEEALSO::
 
@@ -1113,7 +1111,7 @@ class IntegralRayCollection(SageObject,
             sage: c = K.codim()
             sage: c in ZZ
             True
-            sage: (0 <= c) and (c <= K.lattice_dim())
+            sage: 0 <= c <= K.lattice_dim()
             True
 
         A solid cone should have codimension zero::
@@ -1129,7 +1127,6 @@ class IntegralRayCollection(SageObject,
             sage: K = random_cone(max_ambient_dim = 8)
             sage: K.codim() == K.dual().lineality()
             True
-
         """
         return (self.lattice_dim() - self.dim())
 

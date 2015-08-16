@@ -32,8 +32,10 @@ void infoflagbase::init_index()
 
 bool infoflagbase::get(unsigned flag) const
 {
-        if (flag > info_flags::relation)
+        if (flag > info_flags::indefinite)
                 throw(std::runtime_error("requested wrong info flag"));
+        if (flag > info_flags::relation)
+                return false;
         return bits[index[flag]];
 }
 

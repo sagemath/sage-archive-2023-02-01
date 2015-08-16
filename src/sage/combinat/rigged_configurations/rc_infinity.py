@@ -26,6 +26,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
@@ -194,6 +195,26 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
         elif isinstance(lst, list) and bool(lst) and isinstance(lst[0], RiggedPartition):
             lst = [p._clone() for p in lst] # Make a deep copy
         return self.element_class(self, lst, **options)
+
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: RC._coerce_map_from_(T)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of tableaux of type ['A', 3]
+              To:   The infinity crystal of rigged configurations of type ['A', 3]
+        """
+        if self.cartan_type().is_finite():
+            from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux
+            if isinstance(P, InfinityCrystalOfTableaux):
+                from sage.combinat.rigged_configurations.bij_infinity import FromTableauIsomorphism
+                return FromTableauIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfRiggedConfigurations, self)._coerce_map_from_(P)
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""

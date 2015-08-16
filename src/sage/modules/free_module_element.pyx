@@ -1022,6 +1022,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return hash of this vector.  Only mutable vectors are hashable.
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1382,6 +1383,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         is mutable).
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1684,17 +1686,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
             sage: w > v
             False
-        """
-        cdef Py_ssize_t i
-        cdef int c
-        for i in range(left._degree):
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
         TESTS::
 
             sage: F.<y> = PolynomialRing(QQ, 'y')
@@ -1705,7 +1697,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
         """
-        return (<Element>left)._richcmp(right, op)
+        cdef Py_ssize_t i
+        cdef int c
+        for i in range(left._degree):
+            c = cmp(left[i], right[i])
+            if c: return c
+        return 0
 
     def __getitem__(self, i):
         """
@@ -3797,6 +3794,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         sage: v = (QQ['x']^3).0
         sage: loads(dumps(v)) == v
         True
+
+    ::
+
+        sage: v = vector([1,2/3,pi])
+        sage: v == v
+        True
+
+    ::
+
+        sage: v = vector(RR, [1,2/3,pi])
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
     """
     cdef _new_c(self, object v):
         """
@@ -4024,29 +4034,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._mul_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi])
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector(RR, [1,2/3,pi])
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
     def __reduce__(self):
         """
         EXAMPLES::
@@ -4233,7 +4220,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     A generic sparse free module element is a dictionary with keys ints
     i and entries in the base ring.
 
-    EXAMPLES:
+    TESTS::
+
+        sage: v = vector([1,2/3,pi], sparse=True)
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
 
     Pickling works::
 
@@ -4565,30 +4557,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         b = [(-x,y) for x, y in b]
 
         return cmp(a, b)
-
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
 
     def iteritems(self):
         """

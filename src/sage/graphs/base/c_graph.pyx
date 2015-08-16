@@ -3030,7 +3030,7 @@ cdef class Search_iterator:
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
             <generator object breadth_first_search at ...
-            sage: g.breadth_first_search(0).next()
+            sage: next(g.breadth_first_search(0))
             0
         """
         cdef int v_int

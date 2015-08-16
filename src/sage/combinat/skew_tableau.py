@@ -25,8 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 import copy
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
@@ -68,7 +67,7 @@ class SkewTableau(ClonableList):
         sage: SkewTableau(expr=[[1,1],[[5],[3,4],[1,2]]])
         [[None, 1, 2], [None, 3, 4], [5]]
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None):

@@ -656,12 +656,16 @@ class TensorProductOfCrystals(CrystalOfWords):
 
             sage: C = crystals.Letters(['A',2])
             sage: T = crystals.TensorProduct(C, C)
-            sage: T2 = crystals.TensorProduct(C, C)
+            sage: T2 = crystals.TensorProduct(C, C, cartan_type=['A',2])
             sage: T is T2
             True
             sage: T.category()
             Category of tensor products of classical crystals
 
+            sage: T3 = crystals.TensorProduct(C, C, C)
+            sage: T3p = crystals.TensorProduct(T, C)
+            sage: T3 is T3p
+            True
             sage: B1 = crystals.TensorProduct(T, C)
             sage: B2 = crystals.TensorProduct(C, T)
             sage: B3 = crystals.TensorProduct(C, C, C)
@@ -734,6 +738,11 @@ class TensorProductOfCrystals(CrystalOfWords):
 class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
     """
     Tensor product of crystals with a generating set.
+
+    .. TODO::
+
+        Deprecate this class in favor of using
+        :meth:`~sage.categories.crystals.Crystals.ParentMethods.subcrystal`.
     """
     def __init__(self, crystals, generators, cartan_type):
         """
@@ -770,6 +779,10 @@ class TensorProductOfCrystalsWithGenerators(TensorProductOfCrystals):
 class FullTensorProductOfCrystals(TensorProductOfCrystals):
     """
     Full tensor product of crystals.
+
+    .. TODO::
+
+        Merge this into :class:`TensorProductOfCrystals`.
     """
     def __init__(self, crystals, **options):
         """

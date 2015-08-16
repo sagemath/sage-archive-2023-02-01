@@ -376,7 +376,8 @@ cdef class CPLEXBackend(GenericBackend):
         Constants in the objective function are respected::
 
             sage: p = MixedIntegerLinearProgram(solver='CPLEX') # optional - CPLEX
-            sage: x,y = p[0], p[1]                              # optional - CPLEX
+            sage: var = p.new_variable(nonnegative=True)        # optional - CPLEX
+            sage: x,y = var[0], var[1]                          # optional - CPLEX
             sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - CPLEX
             sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - CPLEX
             sage: p.set_objective(x + y + 7)                    # optional - CPLEX
@@ -438,7 +439,8 @@ cdef class CPLEXBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='CPLEX')# optional - CPLEX
-            sage: x,y = p[0], p[1]                             # optional - CPLEX
+            sage: var = p.new_variable(nonnegative=True)       # optional - CPLEX
+            sage: x,y = var[0], var[1]                         # optional - CPLEX
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - CPLEX
             sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - CPLEX
             sage: p.set_objective(x + y + 7)                   # optional - CPLEX
@@ -1207,7 +1209,8 @@ cdef class CPLEXBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="CPLEX") # optional - CPLEX
-            sage: x = P["x"]                                    # optional - CPLEX
+            sage: var = P.new_variable(nonnegative=False)       # optional - CPLEX
+            sage: x = var["x"]                                  # optional - CPLEX
             sage: P.set_max(x, 0)                               # optional - CPLEX
             sage: P.get_max(x)                                  # optional - CPLEX
             0.0
@@ -1258,7 +1261,8 @@ cdef class CPLEXBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="CPLEX") # optional - CPLEX
-            sage: x = P["x"]                                    # optional - CPLEX
+            sage: var = P.new_variable(nonnegative=False)       # optional - CPLEX
+            sage: x = var["x"]                                  # optional - CPLEX
             sage: P.set_min(x, 5)                               # optional - CPLEX
             sage: P.set_min(x, 0)                               # optional - CPLEX
             sage: P.get_min(x)                                  # optional - CPLEX
@@ -1336,7 +1340,7 @@ cdef class CPLEXBackend(GenericBackend):
 
             sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = MixedIntegerLinearProgram(solver = "CPLEX")        # optional - CPLEX
-            sage: b = p.new_variable()                         # optional - CPLEX
+            sage: b = p.new_variable(nonnegative=True)         # optional - CPLEX
             sage: p.add_constraint(b[1] + b[2] <= 6)           # optional - CPLEX
             sage: p.set_objective(b[1] + b[2])                 # optional - CPLEX
             sage: copy(p).solve()                              # optional - CPLEX

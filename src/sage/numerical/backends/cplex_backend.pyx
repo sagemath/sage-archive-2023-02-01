@@ -1383,7 +1383,7 @@ cdef class CPLEXBackend(GenericBackend):
         .. NOTE::
 
            The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+           :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`
 
         EXAMPLE:
 
@@ -1413,6 +1413,25 @@ cdef class CPLEXBackend(GenericBackend):
             sage: p.solver_parameter("logfile")            # optional - CPLEX
             ''
 
+        TEST:
+
+        Print the logfile's content (through :class:`MixedIntegerLinearProgram`)::
+
+            sage: filename = tmp_filename(ext='.txt')                  # optional - CPLEX
+            sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
+            sage: b = p.new_variable(binary=True)                      # optional - CPLEX
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - CPLEX
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - CPLEX
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - CPLEX
+            sage: p.solver_parameter("logfile", filename)              # optional - CPLEX
+            sage: p.solve()                                            # optional - CPLEX
+            2.0
+            sage: with open(filename,'r') as f:                        # optional - CPLEX
+            ....:     print f.read()                                   # optional - CPLEX
+            Found incumbent of value ...
+            Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
+            ...
+            Elapsed time = ... sec. (... ticks, tree = ... MB, solutions = ...)
         """
         cdef int intv
         cdef double doublev

@@ -4120,10 +4120,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return self.linear_subspace() == self.lattice().vector_space()
 
-
     def lineality(self):
         r"""
-        Compute the lineality of this cone.
+        Return the lineality of this cone.
 
         The lineality of a cone is the dimension of the largest linear
         subspace contained in that cone.
@@ -4182,7 +4181,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: l = K.lineality()
             sage: l in ZZ
             True
-            sage: (0 <= l) and (l <= K.lattice_dim())
+            sage: 0 <= l <= K.lattice_dim()
             True
 
         A strictly convex cone should have lineality zero::
@@ -4191,7 +4190,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim = 8, strictly_convex = True)
             sage: K.lineality()
             0
-
         """
         return self.linear_subspace().dimension()
 

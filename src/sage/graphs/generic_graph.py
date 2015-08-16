@@ -13952,7 +13952,8 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``vert`` is a vertex, the closeness centrality of that vertex.
         Otherwise, a dictionary associating to each vertex in ``vert`` its
-        closeness centrality.
+        closeness centrality. If a vertex has degree 0, its closeness
+        centrality is not defined, and the vertex is not included in the output.
 
         .. SEEALSO::
 
@@ -13987,12 +13988,12 @@ class GenericGraph(GenericGraph_pyx):
 
         Weighted::
 
-            sage: D = digraphs.Path(4)
+            sage: D = graphs.GridGraph([2,2])
             sage: weight_function = lambda e:10
-            sage: D.centrality_closeness([0,1,2])                                  # tol abs 1e-12
-            {0: 0.5, 1: 0.4444444444444444, 2: 0.3333333333333333}
-            sage: D.centrality_closeness([0,1,2], weight_function=weight_function) # tol abs 1e-12
-            {0: 0.05, 1: 0.04444444444444444, 2: 0.03333333333333333}
+            sage: D.centrality_closeness([(0,0),(0,1)])                          # tol abs 1e-12
+            {(0, 0): 0.75, (0, 1): 0.75}
+            sage: D.centrality_closeness((0,0), weight_function=weight_function) # tol abs 1e-12
+            0.075
 
         TESTS:
 
@@ -14010,9 +14011,10 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
             ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
-            ....:     c = [c1,c2,c3,c4]
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
             ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices()]) < 1e-12)
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
 
         Directed graphs::
 
@@ -14028,9 +14030,10 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
             ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
             ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
-            ....:     c = [c1,c2,c3,c4]
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
             ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices()]) < 1e-12)
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.out_degree(v) != 0]) < 1e-12)
 
         Weighted graphs::
 
@@ -14046,23 +14049,24 @@ class GenericGraph(GenericGraph_pyx):
             ....:     c2 = g.centrality_closeness(by_weight=True, algorithm='Dijkstra_Boost')
             ....:     c3 = g.centrality_closeness(by_weight=True, algorithm='Floyd-Warshall-Python')
             ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
             ....:     c = [c1,c2,c3,c4]
             ....:     for (ci,cj) in itertools.combinations(c, 2):
-            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices()]) < 1e-12)
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
         """
         if weight_function is not None:
             by_weight=True
         elif by_weight:
             weight_function = lambda e:e[2]
 
-        if vert is None:
-            v_iter = iter(self.vertices())
+        onlyone = False
+        if vert in self.vertices():
+            v_iter = iter([vert])
+            onlyone = True
+        elif vert is None:
+            v_iter = self.vertex_iterator()
         else:
-            try:
-                v_iter = iter(vert)
-            except TypeError:
-                v_iter = [v_iter]
-                v_iter = iter(vert)
+            v_iter = iter(vert)
 
         if algorithm is None:
             if not by_weight:
@@ -14093,28 +14097,36 @@ class GenericGraph(GenericGraph_pyx):
             G.add_nodes_from(self.vertices())
 
             if vert is None:
-                closeness = networkx.closeness_centrality(G, None,
+                closeness = networkx.closeness_centrality(G,vert,
                                                           distance = 'weight'
                                                           if by_weight
                                                           else None)
-                for v in self.vertices():
-                    if v not in closeness:
-                        closeness[v] = 0
-                return closeness
+                return {v:c for v,c in closeness.iteritems() if c != 0}
             closeness = {}
+            degree = self.out_degree if self.is_directed else self.degree
             for x in v_iter:
-                closeness[x] = networkx.closeness_centrality(G, x,
+                if degree(x) != 0:
+                    closeness[x] = networkx.closeness_centrality(G, x,
                                                              distance = 'weight'
                                                              if by_weight
                                                              else None)
-            return closeness
+            if onlyone:
+                return closeness[v_iter]
+            else:
+                return closeness
+        elif algorithm=="Johnson_Boost":
+            from sage.graphs.base.boost_graph import johnson_closeness_centrality
+            self.weighted(by_weight)
+            closeness = johnson_closeness_centrality(self, weight_function)
+            if onlyone:
+                return closeness[vert]
+            else:
+                return {v: closeness[v] for v in v_iter if v in closeness}
         else:
-            from sage.rings.infinity import Infinity
             closeness = dict()
             distances = None
             if algorithm in ["Floyd-Warshall-Cython",
-                             "Floyd-Warshall-Python",
-                             "Johnson_Boost"]:
+                             "Floyd-Warshall-Python"]:
                 distances = self.shortest_path_all_pairs(by_weight,algorithm,
                                                          weight_function,
                                                          check_weight)[0]
@@ -14129,12 +14141,14 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     closeness[v] = float(len(distv) - 1) * (len(distv) - 1) / (float(sum(distv.values())) * (self.num_verts() - 1))
                 except ZeroDivisionError:
-                    closeness[v] = 0
-            if vert is not None and len(vert) == 1:
-                return closeness[vert[0]]
+                    if onlyone:
+                        import sys
+                        return -sys.float_info.max
+                    pass
+            if onlyone:
+                return closeness[vert]
             else:
                 return closeness
-
 
     ### Paths
 
@@ -14433,8 +14447,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
             [0, 1, 2, 3]
-
-        If
 
         TESTS:
 

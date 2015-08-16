@@ -33,7 +33,7 @@ cdef class SatSolver:
 
         INPUT:
 
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 
@@ -226,3 +226,55 @@ cdef class SatSolver:
         """
         return ["gens"]
 
+def SAT(solver=None):
+    r"""
+    Return a :class:`SatSolver` instance.
+
+    Through this class, one can define and solve `SAT
+    <https://en.wikipedia.org/wiki/Boolean_satisfiability_problem>`__ problems.
+
+    INPUT:
+
+    - ``solver`` (string) -- select a solver. Admissible values are:
+
+        - ``"cryptominisat"`` -- note that the cryptominisat package must be
+          installed.
+
+        - ``"LP"`` -- use :class:`~sage.sat.solvers.sat_lp.SatLP` to solve the
+          SAT instance.
+
+        - ``None`` (default) -- use CryptoMiniSat if available, and a LP solver
+          otherwise.
+
+    EXAMPLE::
+
+        sage: SAT(solver="LP")
+        an ILP-based SAT Solver
+
+    TESTS::
+
+        sage: SAT(solver="Wouhouuuuuu")
+        Traceback (most recent call last):
+        ...
+        ValueError: Solver 'Wouhouuuuuu' is not available
+
+    Forcing CryptoMiniSat::
+
+        sage: SAT(solver="cryptominisat") # optional - cryptominisat
+        CryptoMiniSat
+        #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
+
+    """
+    from sage.misc.package import is_package_installed
+    if (solver == 'cryptominisat' or
+        (solver is None and is_package_installed('cryptominisat'))):
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+        except ImportError:
+            raise ImportError("To enable this feature, run 'sage -i cryptominisat'.")
+        return CryptoMiniSat()
+    elif (solver == "LP" or solver is None):
+        from sat_lp import SatLP
+        return SatLP()
+    else:
+        raise ValueError("Solver '{}' is not available".format(solver))

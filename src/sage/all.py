@@ -106,6 +106,7 @@ from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
+from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *

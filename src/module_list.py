@@ -1622,6 +1622,9 @@ ext_modules = [
     Extension('sage.sat.solvers.satsolver',
               sources = ['sage/sat/solvers/satsolver.pyx']),
 
+    Extension('sage.sat.solvers.sat_lp',
+              sources = ['sage/sat/solvers/sat_lp.pyx']),
+
     ################################
     ##
     ## sage.schemes

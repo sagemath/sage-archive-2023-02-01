@@ -44,6 +44,7 @@ cdef class CPLEXBackend(GenericBackend):
             self.set_sense(-1)
 
         self.obj_constant_term = 0.0
+        self._logfilename = ''
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -1369,29 +1370,48 @@ cdef class CPLEXBackend(GenericBackend):
            The list of available parameters is available at
            :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
 
-        EXAMPLE::
+        EXAMPLE:
+
+        Set a computation time limit::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
             sage: p.solver_parameter("timelimit", 60)      # optional - CPLEX
             sage: p.solver_parameter("timelimit")          # optional - CPLEX
             60.0
+
+        Set the logfile (no log file by default)::
+
+            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+            ''
+            sage: p.solver_parameter("LogFile", '/dev/null') # optional - CPLEX
+            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+            '/dev/null'
+            sage: p.solver_parameter("LogFile", '')          # optional - CPLEX -- disable recording log to file
+            sage: p.solver_parameter("LogFile")              # optional - CPLEX
+            ''
+
         """
         cdef int intv
         cdef double doublev
         cdef char * strv
 
-        # Specific action for setting log file
+        # Specific action for log file
         cdef FILE *ff
-        if name == "logfile":
-            if value is None:
-                raise ValueError("A filename must be specified to set the logfile.")
-            ff = fopen(value, "a")
-            if not ff:
-                raise ValueError("Unable to append file {}.".format(value))
-            if CPXsetlogfile(self.env, ff)!=0: # return 0 if successful
-                raise ValueError("Unable to set parameter 'logfile' to '{}'.".format(value))
+        if name.lower() == "logfile":
+            if value is None: # Return logfile name
+                return self._logfilename
+            elif not value:   # Close current logfile and disable logs
+                check( CPXsetlogfile(self.env, NULL) )
+                self._logfilename = ''
+            else:             # Set log file to logfilename
+                ff = fopen(value, "a")
+                if not ff:
+                    raise ValueError("Unable to append file {}.".format(value))
+                check( CPXsetlogfile(self.env, ff) )
+                self._logfilename = value
             return
+
 
         # If the name has to be translated to a CPLEX parameter ID
         if name == "timelimit":

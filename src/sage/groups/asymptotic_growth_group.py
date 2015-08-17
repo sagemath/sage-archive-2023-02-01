@@ -674,9 +674,12 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ);
-            sage: G.an_element()  # indirect doctest
+            sage: agg.GenericGrowthGroup(ZZ).an_element()  # indirect doctest
             GenericGrowthElement(1)
+            sage: agg.MonomialGrowthGroup(ZZ, 'z').an_element()  # indirect doctest
+            z
+            sage: agg.MonomialGrowthGroup(QQ, 'log(z)').an_element()  # indirect doctest
+            log(z)^(1/2)
         """
         return self.element_class(self, self.base().an_element())
 

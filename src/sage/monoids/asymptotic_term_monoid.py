@@ -80,6 +80,38 @@ AUTHORS:
 import sage
 
 
+def product_diagonal(A, B):
+    r"""
+    Return an iterator over the product of `A` and `B` which iterates
+    along the diagonal.
+
+    INPUT:
+
+    - ``A`` and ``B`` -- iterables (over a finite number of elements)
+
+    OUTPUT:
+
+    An iterator over `(a,b)` for `a \in A` and `b \in B`.
+
+    EXAMPLES::
+
+        sage: from sage.monoids.asymptotic_term_monoid import product_diagonal
+        sage: tuple(product_diagonal(srange(2), srange(2)))
+        ((0, 0), (0, 1), (1, 0), (1, 1))
+        sage: tuple(product_diagonal(srange(4), srange(2)))
+        ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
+        sage: tuple(product_diagonal(srange(2), srange(3)))
+        ((0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2))
+        sage: tuple(''.join(p) for p in product_diagonal('abc', 'xyz'))
+        ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
+    """
+    A = tuple(A)
+    B = tuple(B)
+    return iter((A[i], B[s-i])
+                for s in range(len(A)+len(B)-1)
+                for i in range(min(len(A), s+1)) if s-i < len(B))
+
+
 def absorption(left, right):
     r"""
     Helper method used by

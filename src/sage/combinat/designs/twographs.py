@@ -20,14 +20,7 @@ in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
 triples, constrution of descendant graphs, regularity checking, and other
-things such as constructing the complement two-graph.
-
-REFERENCES:
-
-.. [BH12] A. E. Brouwer, W. H. Haemers, 
-  Spectra of Graphs,
-  Springer, 2012
-  http://dx.doi.org/10.1007/978-1-4614-1939-6
+things such as constructing the complement two-graph, cf. [BH12]_. 
 
 AUTHORS:
 

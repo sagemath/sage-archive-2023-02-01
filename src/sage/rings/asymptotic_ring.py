@@ -129,7 +129,7 @@ Of course, we can perform the usual ring operations `+` and `*`::
     27*z^3 + 54*z^2 + 36*z + 8
 
 In addition to that, special powers---our growth group ``z^QQ`` allows
-the exponents to be out of `QQ`---can also be computed::
+the exponents to be out of `\mathbb{Q}`---can also be computed::
 
     sage: (z^(5/2) + z^(1/7)) * z^(-1/5)
     z^(23/10) + z^(-2/35)

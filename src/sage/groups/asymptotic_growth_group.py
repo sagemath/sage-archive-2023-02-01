@@ -684,7 +684,7 @@ class GenericGrowthGroup(
         return self.element_class(self, self.base().an_element())
 
 
-    def some_elements(self, stop=100):
+    def some_elements(self):
         r"""
         Return some elements of this growth group.
 
@@ -692,9 +692,7 @@ class GenericGrowthGroup(
 
         INPUT:
 
-        - ``stop`` -- (default: ``100``) an integer or ``None``. This
-          is passed on to :meth:`itertools.islice` and limits the
-          number of elements.
+        Nothing.
 
         OUTPUT:
 
@@ -712,10 +710,8 @@ class GenericGrowthGroup(
              z^(2/3), z^(-2/3), z^(3/2), z^(-3/2),
              z^(4/5), z^(-4/5), z^(5/4), z^(-5/4), ...)
         """
-        from itertools import islice
-        return islice(iter(self.element_class(self, e)
-                           for e in self.base().some_elements()),
-                      stop)
+        return iter(self.element_class(self, e)
+                    for e in self.base().some_elements())
 
 
     def le(self, left, right):

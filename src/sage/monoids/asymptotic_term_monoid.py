@@ -920,7 +920,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         return self(self.growth_group.an_element())
 
 
-    def some_elements(self, stop=100):
+    def some_elements(self):
         r"""
         Return some elements of this term monoid.
 
@@ -928,9 +928,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         INPUT:
 
-        - ``stop`` -- (default: ``100``) an integer or ``None``. This
-          is passed on to :meth:`itertools.islice` and limits the
-          number of elements.
+        Nothing.
 
         OUTPUT:
 
@@ -944,9 +942,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: tuple(atm.OTermMonoid(G).some_elements())
             (O(1), O(x), O(1/x), O(x^2), O(x^(-2)), O(x^3), ...)
         """
-        from itertools import islice
-        return islice(iter(self(g) for g in self.growth_group.some_elements()),
-                      stop)
+        return iter(self(g) for g in self.growth_group.some_elements())
 
 
     def le(self, left, right):
@@ -1708,7 +1704,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                     self.base_ring.an_element())
 
 
-    def some_elements(self, stop=100):
+    def some_elements(self):
         r"""
         Return some elements of this term with coefficient monoid.
 
@@ -1716,9 +1712,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         INPUT:
 
-        - ``stop`` -- (default: ``100``) an integer or ``None``. This
-          is passed on to :meth:`itertools.islice` and limits the
-          number of elements.
+        Nothing.
 
         OUTPUT:
 
@@ -1726,28 +1720,19 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES:
 
+            sage: from itertools import islice
             sage: import sage.groups.asymptotic_growth_group as agg
             sage: import sage.monoids.asymptotic_term_monoid as atm
             sage: G = agg.GrowthGroup('z^QQ')
             sage: T = atm.ExactTermMonoid(G, ZZ)
-            sage: tuple(T.some_elements(stop=10))
+            sage: tuple(islice(T.some_elements(), 10))
             (z^(1/2), -z^(1/2), z^(-1/2), 2*z^(1/2), -z^(-1/2),
              z^2, -2*z^(1/2), 2*z^(-1/2), -z^2, z^(-2))
 
-        TESTS::
-
-            sage: len(tuple(T.some_elements()))
-            100
-            sage: len(tuple(T.some_elements(stop=None)))
-            9900
-            sage: len(tuple(T.some_elements(stop=42)))
-            42
         """
-        from itertools import islice
-        return islice(iter(self(g, c) for g, c in product_diagonal(
+        return iter(self(g, c) for g, c in product_diagonal(
             self.growth_group.some_elements(),
-            iter(c for c in self.base_ring.some_elements() if c != 0))),
-                      stop)
+            iter(c for c in self.base_ring.some_elements() if c != 0)))
 
 
 class ExactTerm(TermWithCoefficient):

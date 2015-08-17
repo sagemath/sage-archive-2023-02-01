@@ -1067,7 +1067,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return -self(E.an_element())**3 + self(O.an_element())
 
 
-    def some_elements(self, stop=100):
+    def some_elements(self):
         r"""
         Return some elements of this term monoid.
 
@@ -1075,9 +1075,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         INPUT:
 
-        - ``stop`` -- (default: ``100``) an integer or ``None``. This
-          is passed on to :meth:`itertools.islice` and limits the
-          number of elements.
+        Nothing.
 
         OUTPUT:
 
@@ -1085,8 +1083,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES:
 
+            sage: from itertools import islice
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
-            sage: tuple(A.some_elements(stop=10))
+            sage: tuple(islice(A.some_elements(), 10))
             (-z^(3/2) + O(z^(1/2)),
              -z^(3/2) + O(z^(-1/2)),
              z^(3/2) + O(z^(1/2)),
@@ -1098,15 +1097,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
              O(z^(-1/2)),
              -8*z^(3/2) + O(z^(1/2)))
         """
-        from itertools import islice
         from sage.monoids.asymptotic_term_monoid import product_diagonal
         from sage.monoids.asymptotic_term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
-        return islice(iter(-self(e)**3 + self(o)
-                           for e, o in product_diagonal(
-                                   E.some_elements(), O.some_elements())),
-                      stop)
+        return iter(-self(e)**3 + self(o)
+                    for e, o in product_diagonal(
+                            E.some_elements(), O.some_elements()))
 
 
     def gens(self):

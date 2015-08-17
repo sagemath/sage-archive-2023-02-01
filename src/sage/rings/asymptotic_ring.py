@@ -296,6 +296,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         sage: lx = R_log(log(SR.var('x')))
         sage: (O(lx) + lx^3)^4
         log(x)^12 + O(log(x)^10)
+
+    .. SEEALSO::
+
+        :mod:`sage.groups.asymptotic_growth_group`,
+        :mod:`sage.monoids.asymptotic_term_monoid`,
+        :mod:`sage.data_structures.mutable_poset`
     """
     def __init__(self, parent, summands, simplify=True):
         r"""
@@ -332,6 +338,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr = 7 * x^12 + x^5 + O(x^3)
             sage: expr.summands
             poset(O(x^3), x^5, 7*x^12)
+
+        .. SEEALSO::
+
+            :class:`sage.data_structures.mutable_poset.MutablePoset`
         """
         return self._summands_
 
@@ -635,6 +645,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot build O(0).
+
+        .. SEEALSO::
+
+            :func:`sage.rings.power_series_ring.PowerSeriesRing`,
+            :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`
         """
         if not self:
             raise ValueError('Cannot build O(%s).' % (self,))
@@ -828,6 +843,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.growth_group
             Growth Group x^ZZ
+
+        .. SEEALSO::
+
+            :mod:`sage.groups.asymptotic_growth_group`
         """
         return self._growth_group_
 

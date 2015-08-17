@@ -1009,8 +1009,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         .. NOTE::
 
-            This method calls the factory
-            :class:`~sage.monoids.asymptotic_term_monoid.TermMonoid`
+            This method calls the factory :class:`TermMonoid
+            <sage.monoids.asymptotic_term_monoid.TermMonoidFactory>`
             with the appropriate arguments.
 
         EXAMPLES::

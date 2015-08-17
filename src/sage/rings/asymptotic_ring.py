@@ -1214,7 +1214,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             This method calls the factory :class:`TermMonoid
             <sage.monoids.asymptotic_term_monoid.TermMonoidFactory>`
-            with the appropriate arguments.'exact
+            with the appropriate arguments.
 
         EXAMPLES::
 

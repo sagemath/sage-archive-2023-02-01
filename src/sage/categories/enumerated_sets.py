@@ -474,7 +474,7 @@ class EnumeratedSets(Category_singleton):
         @cached_method
         def _an_element_from_iterator(self):
             """
-            Returns the first element of ``self`` returned by :meth:`__iter__`
+            Return the first element of ``self`` returned by :meth:`__iter__`
 
             If ``self`` is empty, the exception
             :class:`~sage.categories.sets_cat.EmptySetError` is raised instead.
@@ -511,7 +511,7 @@ class EnumeratedSets(Category_singleton):
         #FIXME: use combinatorial_class_from_iterator once class_from_iterator.patch is in
         def _some_elements_from_iterator(self):
             """
-            Returns some elements in ``self``.
+            Return some elements in ``self``.
 
             See :class:`TestSuite` for a typical use case.
 

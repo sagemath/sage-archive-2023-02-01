@@ -13889,11 +13889,20 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the closeness centrality of all vertices in variable ``vert``.
 
-        In a connected graph, the closeness centrality of a vertex `v` is equal
+        In a (strongly) connected graph, the closeness centrality of a vertex
+        `v` is equal
         to the inverse of the average distance between `v` and other vertices.
         If the graph is disconnected, the closeness centrality of `v` is
-        multiplied by the fraction of reachable vertices in the graph, so that
-        central vertices can reach many other vertices [OLJ14]_.
+        multiplied by the fraction of reachable vertices in the graph:
+        this way, central vertices should also reach several other vertices
+        in the graph [OLJ14]_. In formulas,
+
+        .. MATH::
+        
+            c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n}
+
+        where `R(v)` is the set of vertices reachable from `v`, and
+        `r(v)` is the cardinality of `R(v)`.
 
         'Closeness
         centrality may be defined as the total graph-theoretic distance of
@@ -13952,7 +13961,7 @@ class GenericGraph(GenericGraph_pyx):
 
         If ``vert`` is a vertex, the closeness centrality of that vertex.
         Otherwise, a dictionary associating to each vertex in ``vert`` its
-        closeness centrality. If a vertex has degree 0, its closeness
+        closeness centrality. If a vertex has (out)degree 0, its closeness
         centrality is not defined, and the vertex is not included in the output.
 
         .. SEEALSO::
@@ -13973,7 +13982,7 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        Standard::
+        Standard examples::
 
             sage: (graphs.ChvatalGraph()).centrality_closeness()
             {0: 0.61111111111111..., 1: 0.61111111111111..., 2: 0.61111111111111..., 3: 0.61111111111111..., 4: 0.61111111111111..., 5: 0.61111111111111..., 6: 0.61111111111111..., 7: 0.61111111111111..., 8: 0.61111111111111..., 9: 0.61111111111111..., 10: 0.61111111111111..., 11: 0.61111111111111...}
@@ -13985,8 +13994,33 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.show(figsize=[2,2])
             sage: D.centrality_closeness()
             {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
+        
+        In a (strongly) connected (di)graph, the closeness centrality of `v`
+        is inverse of the average distance between `v` and all other vertices::
+        
+            sage: g = graphs.PathGraph(5)
+            sage: g.centrality_closeness(0)
+            0.4
+            sage: dist = g.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            sage: d = g.to_directed()
+            sage: d.centrality_closeness(0)
+            0.4
+            sage: dist = d.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            
+        If a vertex has (out)degree 0, its closeness centrality is not defined::
+        
+            sage: g = Graph(5)
+            sage: g.centrality_closeness()
+            {}
+            sage: print g.centrality_closeness(0)
+            None
+        
 
-        Weighted::
+        Weighted graphs::
 
             sage: D = graphs.GridGraph([2,2])
             sage: weight_function = lambda e:10
@@ -14111,7 +14145,7 @@ class GenericGraph(GenericGraph_pyx):
                                                              if by_weight
                                                              else None)
             if onlyone:
-                return closeness[v_iter]
+                return closeness.get(vert, None)
             else:
                 return closeness
         elif algorithm=="Johnson_Boost":
@@ -14119,7 +14153,7 @@ class GenericGraph(GenericGraph_pyx):
             self.weighted(by_weight)
             closeness = johnson_closeness_centrality(self, weight_function)
             if onlyone:
-                return closeness[vert]
+                return closeness.get(vert, None)
             else:
                 return {v: closeness[v] for v in v_iter if v in closeness}
         else:
@@ -14141,12 +14175,9 @@ class GenericGraph(GenericGraph_pyx):
                 try:
                     closeness[v] = float(len(distv) - 1) * (len(distv) - 1) / (float(sum(distv.values())) * (self.num_verts() - 1))
                 except ZeroDivisionError:
-                    if onlyone:
-                        import sys
-                        return -sys.float_info.max
                     pass
             if onlyone:
-                return closeness[vert]
+                return closeness.get(vert, None)
             else:
                 return closeness
 

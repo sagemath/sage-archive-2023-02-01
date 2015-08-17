@@ -17,6 +17,14 @@ by Sage. Help us if you know any.
     `Andries E. Brouwer <http://www.win.tue.nl/~aeb/>`__ directly, in order to
     have a unique and updated source of information.
 
+REFERENCE:
+
+.. [vLintBrouwer84] A. Brouwer, J. van Lint,
+  Strongly regular graphs and partial geometries,
+  Enumeration and design (Waterloo, Ont., 1982)
+  (1984): 85-122. APA,
+  http://www.win.tue.nl/~aeb/preprints/srgsurvey.pdf
+
 Functions
 ---------
 """
@@ -40,6 +48,8 @@ from libc.math cimport sqrt
 from sage.matrix.constructor import Matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
+from sage.rings.sum_of_squares cimport two_squares_c
+from libc.stdint cimport uint_fast32_t
 
 cdef dict _brouwer_database = None
 
@@ -865,6 +875,59 @@ def SRG_256_70_114_110():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_120_63_30_36():
+    r"""
+    Return a `(120,63,30,36)`-strongly regular graph
+
+    It is the distance-2 graph of :meth:`JohnsonGraph(10,3)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_120_63_30_36
+        sage: G =  SRG_120_63_30_36()
+        sage: G.is_strongly_regular(parameters=True)
+        (120, 63, 30, 36)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(10,3).distance_graph([2])
+
+def SRG_126_25_8_4():
+    r"""
+    Return a `(126,25,8,4)`-strongly regular graph
+
+    It is the distance-(1 or 4) graph of :meth:`JohnsonGraph(9,4)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_126_25_8_4
+        sage: G =  SRG_126_25_8_4()
+        sage: G.is_strongly_regular(parameters=True)
+        (126, 25, 8, 4)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(9,4).distance_graph([1,4])
+
+def SRG_175_72_20_36():
+    r"""
+    Return a `(175,72,20,36)`-strongly regular graph
+
+    This graph is obtained from the line graph of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
+    two vertices to be adjacent if their distance in the line graph is exactly
+    two yields the strongly regular graph. For more information, see
+    http://www.win.tue.nl/~aeb/graphs/McL.html.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_175_72_20_36
+        sage: G = SRG_175_72_20_36()
+        sage: G.is_strongly_regular(parameters=True)
+        (175, 72, 20, 36)
+    """
+    return HoffmanSingletonGraph().line_graph().distance_graph([2])
+
 def SRG_81_50_31_30():
     r"""
     Return a `(81, 50, 31, 30)`-strongly regular graph.
@@ -900,23 +963,67 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     - ``v,k,l,mu`` (integers)
     """
-    cdef int lambda_r, lambda_s,l1,l2,K2,D,F,e
+    cdef int r,s,f,g
+    cdef uint_fast32_t tmp[2]
+
     if (v<0 or k<=0 or l<0 or mu<0 or
         k>=v-1 or l>=k or mu>=k or
         v-2*k+mu-2 < 0 or # lambda of complement graph >=0
-        v-2*k+l    < 0 or # mu of complement graph >=0
+        v-2*k+l    < 0 or # μ of complement graph >=0
         mu*(v-k-1) != k*(k-l-1)):
         return False
 
-    if (v-1)*(mu-l)-2*k == 0: # conference
-        return True
+    # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
+    # [vLintBrouwer84]
+    if (v-1)*(mu-l)-2*k == 0:
+        return two_squares_c(v,tmp)
 
-    r,s = eigenvalues(v,k,l,mu)
-    if r is None:
+    rr,ss = eigenvalues(v,k,l,mu)
+    if rr is None:
         return False
+    r,s = rr,ss
 
     # 1.3.1 of [Distance-regular graphs]
+    # "Integrality condition"
     if ((s+1)*(k-s)*k) % (mu*(s-r)):
+        return False
+
+    # Theorem 21.3 of [WilsonACourse] or
+    # 3.B of [vLintBrouwer84]
+    # (Krein conditions)
+    if ((r+1)*(k+r+2*r*s) > (k+r)*(s+1)**2 or
+        (s+1)*(k+s+2*r*s) > (k+s)*(r+1)**2):
+        return False
+
+    # multiplicity of eigenvalues 'r,s' (f=lambda_r, g=lambda_s)
+    #
+    # They are integers (checked by the 'integrality condition').
+    f = -k*(s+1)*(k-s)/((k+r*s)*(r-s))
+    g =  k*(r+1)*(k-r)/((k+r*s)*(r-s))
+
+    # 3.C of [vLintBrouwer84]
+    # (Absolute bound)
+    if (2*v > f*(f+3) or
+        2*v > g*(g+3)):
+        return False
+
+    # 3.D of [vLintBrouwer84]
+    # (Claw bound)
+    if (mu != s**2    and
+        mu != s*(s+1) and
+        2*(r+1) > s*(s+1)*(mu+1)):
+        return False
+
+    # 3.E of [vLintBrouwer84]
+    # (the Case μ=1)
+    if mu == 1:
+        if (   k  % (l+1) or
+            (v*k) % ((l+1)*(l+2))):
+            return False
+
+    # 3.F of [vLintBrouwer84]
+    # (the Case μ=2)
+    if mu == 2 and 2*k < l*(l+3) and k%(l+1):
         return False
 
     return True
@@ -967,7 +1074,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         sage: graphs.strongly_regular_graph(5,5,5,5)
         Traceback (most recent call last):
         ...
-        ValueError: There exists no (5, 5, 5, 5)-strongly regular graph (basic arithmetic checks)
+        ValueError: There exists no (5, 5, 5, 5)-strongly regular graph
 
     An set of parameters proved in a paper to be infeasible::
 
@@ -1012,6 +1119,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         Traceback (most recent call last):
         ...
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
+
+    Test the Claw bound (see 3.D of [vLintBrouwer84]_):
+
+        sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
+        False
     """
     load_brouwer_database()
     if mu == -1:
@@ -1023,8 +1135,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     if not seems_feasible(v,k,l,mu):
         if existence:
             return False
-        raise ValueError("There exists no "+str(params)+"-strongly regular graph "+
-                         "(basic arithmetic checks)")
+        raise ValueError("There exists no "+str(params)+"-strongly regular graph")
 
     constructions = {
         ( 27,  16, 10,  8): [SchlaefliGraph],
@@ -1047,6 +1158,9 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         ( 77,  16,  0,  4): [M22Graph],
         (100,  22,  0,  6): [HigmanSimsGraph],
         (162,  56, 10, 24): [LocalMcLaughlinGraph],
+        (120,  63, 30, 36): [SRG_120_63_30_36],
+        (126,  25,  8,  4): [SRG_126_25_8_4],
+        (175,  72, 20, 36): [SRG_175_72_20_36],
         (231,  30,  9,  3): [CameronGraph],
         (275, 112, 30, 56): [McLaughlinGraph],
         (280, 135, 70, 60): [SRG_280_135_70_60],
@@ -1134,10 +1248,8 @@ def apparently_feasible_parameters(int n):
     r"""
     Return a list of parameters `(v,k,\lambda,\mu)` which are a-priori feasible.
 
-    Only basic arithmetic checks are performed on the parameters that this
-    function return. Those that it does not return are infeasible for elementary
-    reasons. Note that some of those that it returns may also be infeasible for
-    more involved reasons.
+    Note that some of those that it returns may also be infeasible for more
+    involved reasons.
 
     INPUT:
 
@@ -1166,9 +1278,10 @@ def apparently_feasible_parameters(int n):
         sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
         True
 
-    But that becomes wrong for `v<30`::
+    But that becomes wrong for `v<60` (because of the non-existence of a
+    `(49,16,3,6)`-strongly regular graph)::
 
-        sage: small_feasible = apparently_feasible_parameters(30)
+        sage: small_feasible = apparently_feasible_parameters(60)
         sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
         False
 
@@ -1217,7 +1330,20 @@ def _check_database():
     """
     global _brouwer_database
     load_brouwer_database()
-    assert apparently_feasible_parameters(1301) == set(_brouwer_database)
+
+    # Check that all parameters detected as infeasible are actually infeasible
+    # in Brouwer's database, for a test that was implemented.
+    for params in set(_brouwer_database).difference(apparently_feasible_parameters(1301)):
+        if _brouwer_database[params]['status'] != "impossible":
+            raise RuntimeError("Brouwer's db does not seem to know that {} in unfeasible".format(params))
+        comment = _brouwer_database[params]['comments']
+        if ('Krein'    in comment or
+            'Absolute' in comment or
+            'Conf'     in comment or
+            'mu=1'     in comment or
+            '&mu;=2'   in comment):
+            continue
+        raise RuntimeError("We detected that {} was unfeasible, but maybe we should not have".format(params))
 
     # We empty the global database, to be sure that strongly_regular_graph does
     # not use its data to answer.

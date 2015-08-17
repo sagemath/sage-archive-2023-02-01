@@ -2745,6 +2745,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (1, 0)
             sage: classify_cone_2d(*cone2.rays())
             (3, 2)
+            
+        We check that :trac:`18613` is fixed::
+        
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.is_isomorphic(K)
+            True
+            sage: K = Cone([(0,)])
+            sage: K.is_isomorphic(K)
+            True
+            sage: K = Cone([(0,0)])
+            sage: K.is_isomorphic(K)
+            True
         """
         from sage.geometry.fan import Fan
         return Fan([self]).is_isomorphic(Fan([other]))

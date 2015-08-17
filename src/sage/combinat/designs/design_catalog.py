@@ -105,6 +105,8 @@ BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
 
 from orthogonal_arrays import OAMainFunctions as orthogonal_arrays
 
+from twographs import (TwoGraph, is_twograph)
+
 # When this deprecated function is removed, remove the handling of k=None in the
 # function orthogonal_arrays.orthogonal_array()
 deprecated_callable_import(17034,

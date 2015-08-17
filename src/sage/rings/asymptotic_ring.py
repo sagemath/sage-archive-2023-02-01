@@ -1,21 +1,54 @@
 r"""
 Asymptotic Ring
 
-This module implements the central classes for computing with
-asymptotic expressions. It provides the following two classes:
+This module implements a ring (called :class:`AsymptoticRing`) for
+computations with :class:`asymptotic expressions
+<AsymptoticExpression>`.
 
-- :class:`AsymptoticExpression` -- this class essentially represents
-  a sum of asymptotic terms (see
-  :mod:`Asymptotic Terms <~sage.monoids.asymptotic_term_monoid>`).
+Definition
+==========
 
-- :class:`AsymptoticRing` -- parent structure for
-  :class:`AsymptoticExpression`.
+An asymptotic expression is a sum; its summands are the following:
 
-AUTHORS:
+- Exact terms `c\cdot g` with a coefficent `c` and an element `g` of
+  an :ref:`growth group <asymptotic_ring_growth>`.
 
-- Benjamin Hackl (2015-06): initial version
-- Benjamin Hackl (2015-07): improvement user interface (short notation)
+- `O`-terms `O(g)` (see :wikipedia:`Big_O_notation`) for some
+  :mod:`growth group element <sage.groups.asymptotic_growth_group>`
+  `g` (:ref:`see below <asymptotic_ring_growth>`).
 
+Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
+
+.. _asymptotic_ring_growth:
+
+Growth Elements
+---------------
+
+The elements of a :mod:`growth group
+<sage.groups.asymptotic_growth_group>` are equipped with a partial
+ordering and usually contains a variable. Examples are (among many
+other possibilities)
+
+- elements of the form `z^q` for some integer or rational `q` (growth
+  groups ``z^ZZ`` or ``z^QQ``),
+
+- elements of the form `log(z)^q` for some integer or rational `q` (growth
+  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
+
+- elements of the form `a^z` for some
+  rational `a` (growth group ``QQ^z``), or
+
+- more sophisticated constructions like products `x^r log(x)^s \cdot
+  a^y \cdot y^q` (this corresponds to an element of the growth group
+  ``x^QQ * \log(x)^ZZ * QQ^y * y^QQ``).
+
+The ordering in all these examples is the growth as `x`, `y`, or `z`
+(independently) tend to `\infty`. For elements only using the
+variable `z` this means, `g_1 \leq g_2` if
+
+.. MATH::
+
+    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
 
 .. WARNING::
 
@@ -39,6 +72,107 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
+
+.. _asymptotic_ring_intro:
+
+Introductory Examples
+=====================
+
+First, we construct the following (very simple) asymptotic ring in the variable `z`::
+
+    sage: A.<z> = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ); A
+    Asymptotic Ring <z^QQ> over Integer Ring
+
+A typical element of this ring is
+
+::
+
+    sage: A.an_element()  # not tested
+    -z^(3/2) + O(z^(1/2))
+
+This element consists of two summands: the exact term with coefficient
+`-1` and growth `x^{3/2}` and the `O`-term `O(x^{1/2})`. Note that the
+growth of `x^{3/2}` is larger than the growth of `x^{1/2}` as
+`x\to\infty`, thus this expression cannot be simplified (which would
+be done automatically, see below).
+
+Next, we construct a more sophisticated asymptotic ring in the
+variables `x` and `y` by
+
+::
+
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+
+Again, we can look at a typical element::
+
+    sage: B.an_element()  # not tested
+
+Arithemtical Operations
+-----------------------
+
+With the asymptotic rings constructed above (or more precisely with
+their elements) we can do a lot of different arithmetical
+calculations.
+
+We start our calculations in the ring
+
+::
+
+    sage: A
+    Asymptotic Ring <z^QQ> over Integer Ring
+
+Of course, we can perform the usual ring operations `+` and `*`::
+
+    sage: z^2 + 3*z*(1 - z)
+    -2*z^2 + 3*z
+    sage: (3*z + 2)^3
+    27*z^3 + 54*z^2 + 36*z + 8
+
+In addition to that, special powers---our growth group ``z^QQ`` allows
+the exponents to be out of `QQ`---can also be computed::
+
+    sage: (z^(5/2) + z^(1/7)) * z^(-1/5)
+    z^(23/10) + z^(-2/35)
+
+The central concepts of computations with asymptotic expressions is
+that the `O`-notation can be used. For example, we have
+
+::
+
+    sage: z^3 + z^2 + z + O(z^2)
+    z^3 + O(z^2)
+
+and more advanced
+
+::
+
+    sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
+    4*z^6 + O(z^5)
+
+.. TODO::
+
+   inversions
+
+.. TODO::
+
+    arithmetic in the ring
+
+    ::
+
+        sage: B  # not tested
+
+More Examples
+=============
+
+.. TODO::
+
+    write more examples
+
+AUTHORS:
+
+- Benjamin Hackl (2015-06): initial version
+- Benjamin Hackl (2015-07): improvement user interface (short notation)
+- Daniel Krenn (2015-08): various improvents, review; documentation
 """
 
 # *****************************************************************************
@@ -71,35 +205,25 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     EXAMPLES:
 
-    There are several ways to create an asymptotic expression. First,
-    we construct the corresponding rings/parents::
+    There are several ways to create asymptotic expressions; usually this is done by using the corresponding rings/parents::
 
-        sage: R_x.<x> = AsymptoticRing('x^QQ', QQ)
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: G = agg.GrowthGroup('y^ZZ')
-        sage: R_y = AsymptoticRing(G, ZZ); y = R_y.gen()
+        sage: R_x.<x> = AsymptoticRing('x^QQ', QQ); R_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: R_y.<y> = AsymptoticRing('y^ZZ', ZZ); R_y
+        Asymptotic Ring <y^ZZ> over Integer Ring
 
     At this point, `x` and `y` are already asymptotic expressions::
 
-        sage: (x, y)
-        (x, y)
-        sage: isinstance(x, sage.rings.asymptotic_ring.AsymptoticExpression)
-        True
         sage: type(x)
         <class 'sage.rings.asymptotic_ring.AsymptoticRing_with_category.element_class'>
 
-    The usual ring operations can be performed::
+    The usual ring operations, but allowing rational exponents (growth
+    group ``x^QQ``) can be performed::
 
-        sage: x^2 + 3*(x - x^2)
-        -2*x^2 + 3*x
-        sage: (3*x + 2)^3
-        27*x^3 + 54*x^2 + 36*x + 8
-
-    In addition to that, special powers (determined by the base ring
-    of the growth group) can also be computed::
-
-        sage: (x^(5/2) + x^(1/7)) * x^(-1/5)
-        x^(23/10) + x^(-2/35)
+        sage: x^2 + 3*(x - x^(2/5))
+        x^2 + 3*x - 3*x^(2/5)
+        sage: (3*x^(1/3) + 2)^3
+        27*x + 54*x^(2/3) + 36*x^(1/3) + 8
 
     One of the central ideas behind computing with asymptotic
     expressions is that the `O`-notation (see
@@ -521,13 +645,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 class AsymptoticRing(sage.rings.ring.Ring,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    Parent for asymptotic expressions.
+    A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
 
     INPUT:
 
-    - ``growth_group`` -- a partially ordered group (e.g. an instance
-      of :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`),
-      or a string describing such a growth group.
+    - ``growth_group`` -- either a partially ordered group (see
+      :mod:`~sage.groups.asymptotic_growth_group`) or a string
+      describing such a growth group (see
+      :class:`~sage.groups.asymptotic_growth_group.GrowthGroupFactory`).
 
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
@@ -539,49 +664,43 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     EXAMPLES:
 
-    We begin with the explicit construction of an asymptotic ring,
-    i.e. by explicitly specifying the underlying growth group::
+    We begin with the construction of an asymptotic ring in various
+    ways. First, we simply pass a string specifying the underlying
+    growth group::
+
+        sage: R1_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R1_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: x
+        x
+
+    This is equivalent to the following code, which explicitly
+    specifies the underlying growth group::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G_QQ = agg.GrowthGroup('x^QQ')
-        sage: R_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R_x
+        sage: R2_x.<x> = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R2_x
         Asymptotic Ring <x^QQ> over Rational Field
 
-    Note that the coefficient ring of the asymptotic ring and the
+    Of course, the coefficient ring of the asymptotic ring and the
     base ring of the underlying growth group do not need to
     coincide::
 
-        sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
+        sage: R_ZZ_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=ZZ); R_ZZ_x
         Asymptotic Ring <x^QQ> over Integer Ring
 
-    As mentioned above, the short notation for growth groups can also
-    be used to specify the underlying growth group. For now,
-    representation strings of the form ``"variable^base"`` are
-    allowed, where ``variable`` is some string, and ``base`` is
-    either ``ZZ`` (for `\mathbb{Z}`), ``QQ`` (for `\mathbb{Q}`),
-    or ``SR`` (for the symbolic ring). These strings correspond to
-    monomial growth groups (see
-    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)::
+    Note, we can also create and use logarithmic growth groups::
 
-        sage: R2_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R2_x
-        Asymptotic Ring <x^QQ> over Rational Field
-
-    Alternatively, the preparser allows us to write::
-
-        sage: R3_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
-        Asymptotic Ring <x^QQ> over Rational Field
-
-    Note that this allows us to create logarithmic and polynomial
-    growth groups::
-
-        sage: R.<x> = AsymptoticRing('x^ZZ', QQ); R
-        Asymptotic Ring <x^ZZ> over Rational Field
         sage: R_log = AsymptoticRing('log(x)^ZZ', QQ); R_log
         Asymptotic Ring <log(x)^ZZ> over Rational Field
 
+    Other growth groups are available. See :mod:`~sage.rings.asymptotic_ring` for
+    a lot more examples.
+
+    Below there are some technical details.
+
     According to the conventions for parents, uniqueness is ensured::
 
-        sage: R_x is R2_x is R3_x
+        sage: R1_x is R2_x
         True
 
     Furthermore, the coercion framework is also involved. Coercion
@@ -589,14 +708,21 @@ class AsymptoticRing(sage.rings.ring.Ring,
     underlying growth groups and coefficient rings are chosen
     appropriately)::
 
-        sage: R_x.has_coerce_map_from(R_ZZ_x)
+        sage: R1_x.has_coerce_map_from(R_ZZ_x)
         True
 
     Additionally, for the sake of convenience, the coefficient ring
     also coerces into the asymptotic ring (representing constant
     quantities)::
 
-        sage: R_x.has_coerce_map_from(QQ)
+        sage: R1_x.has_coerce_map_from(QQ)
+        True
+
+    TESTS::
+
+        sage: R3_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: R1_x is R2_x is R3_x
         True
     """
     # enable the category framework for elements
@@ -1000,8 +1126,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         .. NOTE::
 
-            This method calls the factory
-            :class:`~sage.monoids.asymptotic_term_monoid.TermMonoid`
+            This method calls the factory :class:`TermMonoid
+            <sage.monoids.asymptotic_term_monoid.TermMonoidFactory>`
             with the appropriate arguments.
 
         EXAMPLES::

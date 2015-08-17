@@ -4120,6 +4120,80 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return self.linear_subspace() == self.lattice().vector_space()
 
+    def lineality(self):
+        r"""
+        Return the lineality of this cone.
+
+        The lineality of a cone is the dimension of the largest linear
+        subspace contained in that cone.
+
+        OUTPUT:
+
+        A nonnegative integer; the dimension of the largest subspace
+        contained within this cone.
+
+        REFERENCES:
+
+        .. [Rockafellar] R.T. Rockafellar. Convex Analysis. Princeton
+           University Press, Princeton, 1970.
+
+        EXAMPLES:
+
+        The lineality of the nonnegative orthant is zero, since it clearly
+        contains no lines::
+
+            sage: K = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: K.lineality()
+            0
+
+        However, if we add another ray so that the entire `x`-axis belongs
+        to the cone, then the resulting cone will have lineality one::
+
+            sage: K = Cone([(1,0,0), (-1,0,0), (0,1,0), (0,0,1)])
+            sage: K.lineality()
+            1
+
+        If our cone is all of `\mathbb{R}^{2}`, then its lineality is equal
+        to the dimension of the ambient space (i.e. two)::
+
+            sage: K = Cone([(1,0), (-1,0), (0,1), (0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: K.lineality()
+            2
+            sage: K.lattice_dim()
+            2
+
+        Per the definition, the lineality of the trivial cone in a trivial
+        space is zero::
+
+            sage: K = Cone([], lattice=ToricLattice(0))
+            sage: K.lineality()
+            0
+
+        TESTS:
+
+        The lineality of a cone should be an integer between zero and the
+        dimension of the ambient space, inclusive::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: l = K.lineality()
+            sage: l in ZZ
+            True
+            sage: 0 <= l <= K.lattice_dim()
+            True
+
+        A strictly convex cone should have lineality zero::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8, strictly_convex = True)
+            sage: K.lineality()
+            0
+        """
+        return self.linear_subspace().dimension()
+
+
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 min_rays=0, max_rays=None, strictly_convex=None, solid=None):

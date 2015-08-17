@@ -588,8 +588,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: a._pari_polynomial('c')
             c
         """
-        f = pari(self._coefficients()).Polrev()
-        return f.change_variable_name(name)
+        return pari(self._coefficients()).Polrev(name)
 
     def _pari_(self, name='y'):
         r"""

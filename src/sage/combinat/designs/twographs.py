@@ -58,7 +58,11 @@ from sage.misc.functional import is_odd, is_even
 
 class TwoGraph(IncidenceStructure):
     """
-    two-graphs class
+    Two-graphs class.
+
+    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family 
+    `T \subset \binom {[n]}{3}` of `3`-sets, such that any
+    `4`-set `S\subset [n]` of size four contains an even number of elements of `T`. 
 
     """
     def is_regular_twograph(self, alpha=False, check=False):
@@ -66,6 +70,11 @@ class TwoGraph(IncidenceStructure):
         returns True if ``self`` is a regular twograph, i.e. a 2-design:
         each pair of elements of ``self.ground_set()`` is contained in
         exactly ``alpha`` triples.
+
+        INPUT:
+
+            - ``alpha`` -- (optional, default is False) return the value of ``alpha``, if possible.
+            - ``check`` -- (optional, default is False), check that we actually have a two-graph.
 
         EXAMPLES::
 
@@ -94,9 +103,10 @@ class TwoGraph(IncidenceStructure):
         """
         the descendant graph at ``v``
 
-        The switching class of graphs corresponding to ``self`` contains a graph
-        ``D`` with ``v`` its own connected component; removing ``v`` from ``D``, one obtains
-        the descendant graph of ``self`` at ``v``.
+        The :mod:`switching class of graphs <sage.combinat.designs.twograph>`
+        corresponding to ``self`` contains a graph ``D`` with ``v`` its own connected
+        component; removing ``v`` from ``D``, one obtains the descendant graph of
+        ``self`` at ``v``, which is constructed by this method.
 
         INPUT:
 
@@ -135,10 +145,7 @@ class TwoGraph(IncidenceStructure):
         """
         return super(TwoGraph, self).complement(uniform=True)
 
-"""
-Functions
----------
-"""
+
 def is_twograph(T):
     """
     True if the incidence system is a two-graph

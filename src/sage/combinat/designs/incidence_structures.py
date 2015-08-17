@@ -1929,6 +1929,99 @@ class IncidenceStructure(object):
             deprecation(16553, "block_design_checker(type='connected') is deprecated, please use .is_connected() instead")
             return self.incidence_graph().is_connected()
 
+    def coloring(self, k=None, solver=None, verbose=0):
+        r"""
+        Compute a (weak) `k`-coloring of the hypergraph
+
+        A weak coloring of a hypergraph `\mathcal H` is an assignment of colors
+        to its vertices such that no set is monochromatic.
+
+        INPUT:
+
+        - ``k`` (integer) -- compute a coloring with `k` colors if an integer is
+          provided, otherwise returns an optimal coloring (i.e. with the minimum
+          possible number of colors).
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method
+          :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
+          of the class
+          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- non-negative integer (default: ``0``). Set the level
+          of verbosity you want from the linear program solver. Since the
+          problem is `NP`-complete, its solving may take some time depending on
+          the graph. A value of 0 means that there will be no message printed by
+          the solver.
+
+        EXAMPLES:
+
+        The Fano plane has chromatic number 3::
+
+            sage: len(designs.steiner_triple_system(7).coloring())
+            3
+
+        One admissible 3-coloring::
+
+            sage: designs.steiner_triple_system(7).coloring() # not tested - architecture-dependent
+            [[0, 2, 5, 1], [4, 3], [6]]
+
+        The chromatic number of a graph is equal to the chromatic number of its
+        2-uniform corresponding hypergraph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: H = IncidenceStructure(g.edges(labels=False))
+            sage: len(g.coloring())
+            3
+            sage: len(H.coloring())
+            3
+        """
+        if k is None:
+            for k in range(self.num_points()+1):
+                try:
+                    return self.coloring(k)
+                except ValueError:
+                    pass
+
+        if k == 0:
+            if self.num_points():
+                raise ValueError("Only empty hypergraphs are 0-chromatic")
+            return []
+        elif any(len(x) == 1 for x in self._blocks):
+            raise RuntimeError("No coloring can be defined "
+                               "when there is a set of size 1")
+        elif k == 1:
+            if any(x for x in self._blocks):
+                raise ValueError("This hypergraph contains a set. "
+                                 "It is not 1-chromatic")
+            return [self.ground_set()]
+
+        from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
+        p = MixedIntegerLinearProgram(solver=solver)
+        b = p.new_variable(binary=True)
+
+        for x in range(self.num_points()):
+            p.add_constraint(p.sum(b[x,i] for i in range(k)) == 1)
+
+        for s in self._blocks:
+            for i in range(k):
+                p.add_constraint(p.sum(b[x,i] for x in s) <= len(s)-1)
+
+        try:
+            p.solve(log=verbose)
+        except MIPSolverException:
+            raise ValueError("This hypergraph is not {}-colorable".format(k))
+
+        col = [[] for i in range(k)]
+
+        for (x,i),v in p.get_values(b).iteritems():
+            if v:
+                col[i].append(self._points[x])
+
+        return col
+
     def edge_coloring(self):
         r"""
         Compute a proper edge-coloring.

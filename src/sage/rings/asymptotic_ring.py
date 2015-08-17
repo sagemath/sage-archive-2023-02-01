@@ -496,10 +496,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(MG, ZZ)
-            sage: x = AR.create_summand('exact', growth=x)
+            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: O(x)
             O(x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
@@ -656,9 +653,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: R1 = AsymptoticRing(G, ZZ); R1
+            sage: R1 = AsymptoticRing('x^ZZ', ZZ); R1
             Asymptotic Ring <x^ZZ> over Integer Ring
             sage: R2.<x> = AsymptoticRing('x^QQ', QQ); R2
             Asymptotic Ring <x^QQ> over Rational Field
@@ -667,7 +662,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         ::
 
-            sage: R3 = AsymptoticRing(G)
+            sage: R3 = AsymptoticRing('x^ZZ')
             Traceback (most recent call last):
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
@@ -703,9 +698,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.growth_group
             Growth Group x^ZZ
         """
@@ -719,9 +712,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.coefficient_ring
             Integer Ring
         """
@@ -1015,9 +1006,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: R = AsymptoticRing(G, ZZ)
+            sage: R = AsymptoticRing('x^ZZ', ZZ)
             sage: R.create_summand('O', growth=x^2)
             O(x^2)
             sage: R.create_summand('exact', growth=x^456, coefficient=123)

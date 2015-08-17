@@ -93,8 +93,8 @@ cdef class Matrix(matrix1.Matrix):
             [ 1 -1]
 
         The parent of the newly created matrix might be different from the
-        initial one. It depends on what the method ``.subs`` does on coefficient
-        (see :trac:`19045`)::
+        initial one. It depends on what the method ``.subs`` does on
+        coefficients (see :trac:`19045`)::
 
             sage: x = polygen(ZZ)
             sage: m = matrix([[x]])

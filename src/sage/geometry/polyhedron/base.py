@@ -2732,6 +2732,17 @@ class Polyhedron_base(Element):
             A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
             sage: _.Vrepresentation()
             (A vertex at (1/2, 1/2),)
+
+        TESTS:
+
+        Check that :trac:`19012` is fixed::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: P = Polyhedron([[0,0],[0,a],[1,1]])
+            sage: Q = Polyhedron(ieqs=[[-1,a,1]])
+            sage: P.intersection(Q)
+            A 2-dimensional polyhedron in (Number Field in a with defining
+            polynomial x^2 - 5)^2 defined as the convex hull of 4 vertices
         """
         new_ieqs = self.inequalities() + other.inequalities()
         new_eqns = self.equations() + other.equations()

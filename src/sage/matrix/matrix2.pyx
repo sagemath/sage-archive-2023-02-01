@@ -73,8 +73,10 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.solve_right(B)
 
-    def subs(self, in_dict=None, **kwds):
+    def subs(self, *args, **kwds):
         """
+        Substitute values to the variables in that matrix.
+
         EXAMPLES::
 
             sage: var('a,b,d,e')
@@ -86,9 +88,26 @@ cdef class Matrix(matrix1.Matrix):
             sage: m.subs(a=b, b=d)
             [b d]
             [d e]
+            sage: m.subs({a: 3, b:2, d:1, e:-1})
+            [ 3  2]
+            [ 1 -1]
+
+        The parent of the newly created matrix might be different from the
+        initial one. It depends on what the method ``.subs`` does on coefficient
+        (see :trac:`19045`)::
+
+            sage: x = polygen(ZZ)
+            sage: m = matrix([[x]])
+            sage: m2 = m.subs(x=2)
+            sage: m2.parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Integer Ring
+            sage: m1 = m.subs(x=RDF(1))
+            sage: m1.parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Real Double Field
         """
-        v = [a.subs(in_dict, **kwds) for a in self.list()]
-        return self.new_matrix(self.nrows(), self.ncols(), v)
+        from sage.matrix.constructor import matrix
+        return matrix([a.subs(*args, **kwds) for a in self.list()],
+                        nrows=self._nrows, ncols=self._ncols)
 
     def solve_left(self, B, check=True):
         """

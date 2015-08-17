@@ -338,7 +338,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def __nonzero__(self):
         r"""
-        Return if this asymptotic expression is not identially zero.
+        Return if this asymptotic expression is not identically zero.
 
         INPUT:
 

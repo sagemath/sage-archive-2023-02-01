@@ -5,9 +5,9 @@ A two-graph on `n` points is a family `T \subset \binom {[n]}{3}`
 of `3`-sets, such that any `4`-set `S\subset [n]` of size four
 contains an even number of elements of `T`. Any graph `([n],E)` 
 gives rise to a two-graph 
-`T(E)=\{t \in \binom {[n]}{3} : | \binom {t}{2} \cap E | odd \}`, 
+`T(E)=\{t \in \binom {[n]}{3} : \left| \binom {t}{2} \cap E \right|\ odd \}`,
 and any two graphs with the same two-graph can be obtained one
-from the other by :meth:`Seidel switching <sage.graphs.Graph.seidel_switching>`.
+from the other by :meth:`Seidel switching <Graph.seidel_switching>`.
 This defines an equivalence relation on the graphs on `[n]`, 
 called Seidel switching equivalence.
 Conversely, given a two-graph `T`, one can construct a graph
@@ -57,12 +57,12 @@ from itertools import combinations
 from sage.misc.functional import is_odd, is_even
 
 class TwoGraph(IncidenceStructure):
-    """
+    r"""
     Two-graphs class.
 
-    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family 
+    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family
     `T \subset \binom {[n]}{3}` of `3`-sets, such that any
-    `4`-set `S\subset [n]` of size four contains an even number of elements of `T`. 
+    `4`-set `S\subset [n]` of size four contains an even number of elements of `T`.
 
     """
     def is_regular_twograph(self, alpha=False, check=False):
@@ -90,6 +90,7 @@ class TwoGraph(IncidenceStructure):
             False
         """
         if check:
+           from sage.combinat.designs.twographs import is_twograph
            if not is_twograph(self):
                if alpha:
                    return False, 0
@@ -103,7 +104,7 @@ class TwoGraph(IncidenceStructure):
         """
         the descendant graph at ``v``
 
-        The :mod:`switching class of graphs <sage.combinat.designs.twograph>`
+        The :mod:`switching class of graphs <sage.combinat.designs.twographs>`
         corresponding to ``self`` contains a graph ``D`` with ``v`` its own connected
         component; removing ``v`` from ``D``, one obtains the descendant graph of
         ``self`` at ``v``, which is constructed by this method.
@@ -140,6 +141,7 @@ class TwoGraph(IncidenceStructure):
 
         TESTS::
 
+            sage: from sage.combinat.designs.twographs import is_twograph
             sage: is_twograph(pc)
             True
         """
@@ -152,6 +154,7 @@ def is_twograph(T):
 
     EXAMPLES::
 
+        sage: from sage.combinat.designs.twographs import is_twograph
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True

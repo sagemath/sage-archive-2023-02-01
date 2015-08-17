@@ -632,7 +632,7 @@ class Graph(GenericGraph):
 
       #.  A Sage adjacency matrix or incidence matrix
 
-      #.  A Sage Seidel adjacency matrix
+      #.  A Sage :meth:`Seidel adjacency matrix <seidel_adjacency_matrix>`
 
       #.  A pygraphviz graph
 
@@ -684,7 +684,7 @@ class Graph(GenericGraph):
 
        -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
           with 0s on the  diagonal, and the other entries -1 or 1, 
-          M[i,j]=-1 indicating that (i,j) is an edge, otherwise M[i,j]=1.
+          `M[i,j]=-1` indicating that {i,j} is an edge, otherwise `M[i,j]=1`.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
           column C for each edge, where if C represents {i, j}, C[i] is -1
@@ -5012,15 +5012,13 @@ class Graph(GenericGraph):
         """
         Returns the Seidel adjacency matrix of self.
 
-        Returns the Seidel adjacency matrix of the graph. 
-        For `A` the (ordinary) adjacency matrix of ``self``, 
-        i.e. :meth:`GenericGraph.adjacency_matrix`, 
-        `I` the identity matrix, and `J` the all-1 matrix 
-        is given by `J-I-2A`. It is closely related to twographs, 
-        see :meth:`twograph`.
+        Returns `J-I-2A`, for `A` the (ordinary)
+        :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
+        `I` the identity matrix, and `J` the all-1 matrix.
+        It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either the change_ring function or the matrix
+        desired, use either :meth:`sage.matrix.change_ring` method or :func:`matrix`
         function.
 
         INPUT:
@@ -5076,11 +5074,11 @@ class Graph(GenericGraph):
         return H
 
     def twograph(self):
-        """
+        r"""
         Returns the two-graph of self
 
-        Returns the two-graph with the triples
-        `T=\{t \in \binom {V}{3} : | \binom {t}{2} \cap E | odd \}`
+        Returns the :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` with the triples
+        `T=\{t \in \binom {V}{3} : \left| \binom {t}{2} \cap E \right| odd \}`
         where `V` and `E` are vertices and edges of self, respectively.
 
 
@@ -5109,7 +5107,7 @@ class Graph(GenericGraph):
         """
         Returns the descendant graph w.r.t. vertex v of two-graph of self
 
-        self.twograph().descendant(v) without constructing the intermediate two-graph.
+        :meth:`sage.combinat.designs.twographs.TwoGraph.descendant(v)` of :meth:`twograph()`, without constructing the intermediate two-graph.
 
         EXAMPLES:
  
@@ -5131,10 +5129,10 @@ class Graph(GenericGraph):
         Nv = self.neighbors(v)
         NonNv = filter(lambda x: not x in Nv and x != v, self.vertices())
         return Graph([Nv+NonNv, lambda i, j: 
-                        (i in NonNv and j in NonNv    and     i in self.neighbors(j)) or
-                        (i in Nv    and j in Nv       and     i in self.neighbors(j)) or
-                        (i in Nv    and j in NonNv    and not i in self.neighbors(j)) or
-                        (j in Nv    and i in NonNv    and not i in self.neighbors(j))])
+                        (i in NonNv and j in NonNv    and     self.has_edge(i,j)) or
+                        (i in Nv    and j in Nv       and     self.has_edge(i,j)) or
+                        (i in Nv    and j in NonNv    and not self.has_edge(i,j)) or
+                        (j in Nv    and i in NonNv    and not self.has_edge(i,j))])
 
     ### Visualization
 

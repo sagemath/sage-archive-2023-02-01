@@ -482,8 +482,7 @@ def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
         (279, 150, 85, 75)
     """
     cdef int b, k, s
-    from sage.misc.functional import is_even
-    if k0 != 2*mu0 or is_even(v0):
+    if k0 != 2*mu0 or v0 % 2 == 0:
         return
     b = v0+1+4*mu0
     D = sqrt(b**2-16*v0*mu0)

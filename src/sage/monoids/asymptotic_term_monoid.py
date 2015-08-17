@@ -104,12 +104,96 @@ def product_diagonal(A, B):
         ((0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2))
         sage: tuple(''.join(p) for p in product_diagonal('abc', 'xyz'))
         ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
+
+    TESTS:
+
+    Check that all pairs are returned::
+
+        sage: all(len(tuple(product_diagonal(srange(m), srange(n)))) == m*n
+        ....:     for m in srange(5) for n in srange(5))
+        True
+
+    Check that everthing is loaded in the correct order::
+
+        sage: def it(s, n):
+        ....:     for i in srange(n):
+        ....:         print '%s loads item number %s' % (s, i)
+        ....:         yield i
+        sage: for p in product_diagonal(it('A', 2), it('B', 2)):
+        ....:     print p
+        A loads item number 0
+        B loads item number 0
+        (0, 0)
+        B loads item number 1
+        (0, 1)
+        A loads item number 1
+        (1, 0)
+        (1, 1)
+        sage: for p in product_diagonal(it('A', 3), it('B', 2)):
+        ....:     print p
+        A loads item number 0
+        B loads item number 0
+        (0, 0)
+        B loads item number 1
+        (0, 1)
+        A loads item number 1
+        (1, 0)
+        (1, 1)
+        A loads item number 2
+        (2, 0)
+        (2, 1)
+        sage: for p in product_diagonal(it('A', 2), it('B', 4)):
+        ....:     print p
+        A loads item number 0
+        B loads item number 0
+        (0, 0)
+        B loads item number 1
+        (0, 1)
+        A loads item number 1
+        (1, 0)
+        B loads item number 2
+        (0, 2)
+        (1, 1)
+        B loads item number 3
+        (0, 3)
+        (1, 2)
+        (1, 3)
     """
-    A = tuple(A)
-    B = tuple(B)
-    return iter((A[i], B[s-i])
-                for s in range(len(A)+len(B)-1)
-                for i in range(min(len(A), s+1)) if s-i < len(B))
+    # when writing this code I thought the solution would be shorter...
+
+    class iter_as_list(list):
+        def __init__(self, iterable):
+            self.it = iter(iterable)
+            self.newdata = True
+        def __getitem__(self, i):
+            self.newdata = False
+            try:
+                while len(self) <= i:
+                    self.append(next(self.it))
+                    self.newdata = True
+            except StopIteration:
+                raise
+            return list.__getitem__(self, i)
+
+    from itertools import count
+    A = iter_as_list(A)
+    B = iter_as_list(B)
+    for s in count():
+        for i in range(s+1):
+            stopped = False
+            try:
+                a = A[i]
+            except StopIteration:
+                stopped = True
+            try:
+                b = B[s-i]
+            except StopIteration:
+                stopped = True
+            if stopped:
+                continue
+            yield a, b
+        if not A.newdata and not B.newdata and s >= len(A) + len(B):
+            return
 
 
 def absorption(left, right):

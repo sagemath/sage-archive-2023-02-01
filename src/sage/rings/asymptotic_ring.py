@@ -10,7 +10,7 @@ Definition
 
 An asymptotic expression is a sum; its summands are the following:
 
-- Exact terms `c\cdot g` with a coefficent `c` and an element `g` of
+- Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
   an :ref:`growth group <asymptotic_ring_growth>`.
 
 - `O`-terms `O(g)` (see :wikipedia:`Big_O_notation`) for some
@@ -205,7 +205,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     EXAMPLES:
 
-    There are several ways to create asymptotic expressions; usually this is done by using the corresponding rings/parents::
+    There are several ways to create asymptotic expressions; usually
+    this is done by using the corresponding rings/parents::
 
         sage: R_x.<x> = AsymptoticRing('x^QQ', QQ); R_x
         Asymptotic Ring <x^QQ> over Rational Field

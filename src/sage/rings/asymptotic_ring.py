@@ -71,35 +71,25 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     EXAMPLES:
 
-    There are several ways to create an asymptotic expression. First,
-    we construct the corresponding rings/parents::
+    There are several ways to create asymptotic expressions; usually this is done by using the corresponding rings/parents::
 
-        sage: R_x.<x> = AsymptoticRing('x^QQ', QQ)
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: G = agg.GrowthGroup('y^ZZ')
-        sage: R_y = AsymptoticRing(G, ZZ); y = R_y.gen()
+        sage: R_x.<x> = AsymptoticRing('x^QQ', QQ); R_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: R_y.<y> = AsymptoticRing('y^ZZ', ZZ); R_y
+        Asymptotic Ring <y^ZZ> over Integer Ring
 
     At this point, `x` and `y` are already asymptotic expressions::
 
-        sage: (x, y)
-        (x, y)
-        sage: isinstance(x, sage.rings.asymptotic_ring.AsymptoticExpression)
-        True
         sage: type(x)
         <class 'sage.rings.asymptotic_ring.AsymptoticRing_with_category.element_class'>
 
-    The usual ring operations can be performed::
+    The usual ring operations, but allowing rational exponents (growth
+    group ``x^QQ``) can be performed::
 
-        sage: x^2 + 3*(x - x^2)
-        -2*x^2 + 3*x
-        sage: (3*x + 2)^3
-        27*x^3 + 54*x^2 + 36*x + 8
-
-    In addition to that, special powers (determined by the base ring
-    of the growth group) can also be computed::
-
-        sage: (x^(5/2) + x^(1/7)) * x^(-1/5)
-        x^(23/10) + x^(-2/35)
+        sage: x^2 + 3*(x - x^(2/5))
+        x^2 + 3*x - 3*x^(2/5)
+        sage: (3*x^(1/3) + 2)^3
+        27*x + 54*x^(2/3) + 36*x^(1/3) + 8
 
     One of the central ideas behind computing with asymptotic
     expressions is that the `O`-notation (see

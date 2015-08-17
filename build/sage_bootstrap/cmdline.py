@@ -141,8 +141,9 @@ class SagePkgApplication(CmdlineSubcommands):
             print('Did you mean: {0}?'.format(', '.join(name[1] for name in names)))
         else:
             print('There is no package similar to {0}'.format(incorrect_name))
+            print('You can find further packages at http://old.files.sagemath.org/spkg/archive/')
 
-            
+
 class SageDownloadFileApplication(object):    
     """
     USAGE:

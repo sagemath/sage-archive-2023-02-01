@@ -188,6 +188,7 @@ from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
 from sage.ext.memory_allocator cimport MemoryAllocator
+from sage.ext.memory cimport check_allocarray
 from libcpp.vector cimport vector
 
 cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
@@ -686,20 +687,14 @@ cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int
     output.n = nscc
     output.m = m
 
+    output.neighbors = <uint32_t **> check_allocarray((1+<int>output.n), sizeof(uint32_t *))
+
     if m == 0:
         output.edges = NULL
-        output.neighbors = <uint32_t **> sage_malloc((1+<int>output.n)*sizeof(uint32_t *))
-        if output.neighbors == NULL:
-            raise ValueError("Problem while allocating memory (neighbors)")
         for v in range(1,nscc + 1):
             output.neighbors[v] = NULL
 
-    output.edges = <uint32_t *> sage_malloc(m*sizeof(uint32_t))
-    if output.edges == NULL:
-        raise ValueError("Problem while allocating memory (edges)")
-    output.neighbors = <uint32_t **> sage_malloc((1+<int>output.n)*sizeof(uint32_t *))
-    if output.neighbors == NULL:
-        raise ValueError("Problem while allocating memory (neighbors)")
+    output.edges = <uint32_t *> check_allocarray(m, sizeof(uint32_t))
     output.neighbors[0] = output.edges
 
     for v in range(1,nscc + 1):

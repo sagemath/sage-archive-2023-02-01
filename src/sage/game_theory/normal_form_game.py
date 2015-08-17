@@ -2,10 +2,20 @@ r"""
 Normal form games with N players.
 
 This module implements a class for normal form games (strategic form games)
-[NN2007]_. At present 3 algorithms are implemented to compute equilibria
-of these games (``'lrs'`` - interfaced with the 'lrslib' library, ``'LCP'`` interfaced
-with the 'gambit' library and support enumeration built in Sage). The architecture
-for the class is based on the gambit architecture to ensure an easy transition
+[NN2007]_. At present the following algorithms are implemented to compute equilibria
+of these games:
+
+ * ``'enumeration'`` - An implementation of the support enumeration algorithm built in Sage.
+
+ * ``'lcp'`` - An interface with the 'gambit' solver's implementation of the Lemke-Howson algorithm.
+
+ * ``'lp-*'`` - A built-in Sage implementation (with a gambit alternative) of a zero-sum game solver
+   using Linear Programming. Note, ``'*'`` should be replaced with either ``'gambit'`` or any valid
+   MILP solver such as ``'PPL'`` or ``'GLPK'`` etc.
+
+ * ``'lrs'`` - A solver interfacing with the 'lrslib' library.
+
+The architecture for the class is based on the gambit architecture to ensure an easy transition
 between gambit and Sage.  At present the algorithms for the computation of equilibria
 only solve 2 player games.
 
@@ -201,7 +211,13 @@ time spent in prison)::
     sage: prisoners_dilemma.obtain_nash(algorithm='enumeration', maximization=False)
     [[(0, 1), (0, 1)]]
 
-When obtaining Nash equilibrium there are 3 algorithms currently available:
+When obtaining Nash equilibrium the following algorithms are currently available:
+
+* ``'lp-*'``: A solver for constant-sum 2 player games using linear programming. This contructs a
+  `:mod:MixedIntegerLinearProgram <sage.numerical.MILP>` using the solver which was passed in as
+  part of the algorithm string to solve the linear programming representation of the game, for
+  instance, ``'lp-glpk'`` would make use of the ``GLPK`` solver, while ``'lp-gambit'`` would make
+  use of the gambit implementation of this method.
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
   algorithm uses the optional 'lrslib' package. To install it type ``sage -i
@@ -223,11 +239,15 @@ When obtaining Nash equilibrium there are 3 algorithms currently available:
   algorithm described in [NN2007]_ and a pruning component described
   in [SLB2008]_.
 
-Below we show how the three algorithms are called::
+Below we show how the these algorithms are called::
 
     sage: matching_pennies.obtain_nash(algorithm='lrs')  # optional - lrslib
     [[(1/2, 1/2), (1/2, 1/2)]]
     sage: matching_pennies.obtain_nash(algorithm='LCP')  # optional - gambit
+    [[(0.5, 0.5), (0.5, 0.5)]]
+    sage: matching_pennies.obtain_nash(algorithm='lp-PPL')
+    [[(1/2, 1/2), (1/2, 1/2)]]
+    sage: matching_pennies.obtain_nash(algorithm='lp-gambit')
     [[(0.5, 0.5), (0.5, 0.5)]]
     sage: matching_pennies.obtain_nash(algorithm='enumeration')
     [[(1/2, 1/2), (1/2, 1/2)]]
@@ -236,8 +256,9 @@ Note that if no algorithm argument is passed then the default will be
 selected according to the following order (if the corresponding package is
 installed):
 
-1. ``'lrs'`` (requires 'lrslib')
-2. ``'enumeration'``
+1. ``lp-GLPK`` (if the game is constant-sum)
+2. ``'lrs'`` (requires 'lrslib')
+3. ``'enumeration'``
 
 Here is a game being constructed using gambit syntax (note that a
 ``NormalFormGame`` object acts like a dictionary with pure strategy tuples as

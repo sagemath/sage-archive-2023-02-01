@@ -684,6 +684,40 @@ class GenericGrowthGroup(
         return self.element_class(self, self.base().an_element())
 
 
+    def some_elements(self, stop=100):
+        r"""
+        Return some elements of this growth group.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        - ``stop`` -- (default: ``100``) an integer or ``None``. This
+          is passed on to :meth:`itertools.islice` and limits the
+          number of elements.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES:
+
+            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: tuple(agg.MonomialGrowthGroup(ZZ, 'z').some_elements())
+            (1, z, 1/z, z^2, z^(-2), z^3, z^(-3),
+             z^4, z^(-4), z^5, z^(-5), ...)
+            sage: tuple(agg.MonomialGrowthGroup(QQ, 'z').some_elements())
+            (z^(1/2), z^(-1/2), z^2, z^(-2),
+             1, z, 1/z, z^42,
+             z^(2/3), z^(-2/3), z^(3/2), z^(-3/2),
+             z^(4/5), z^(-4/5), z^(5/4), z^(-5/4), ...)
+        """
+        from itertools import islice
+        return islice(iter(self.element_class(self, e)
+                           for e in self.base().some_elements()),
+                      stop)
+
+
     def le(self, left, right):
         r"""
         Return if the growth of ``left`` is at most (less than or

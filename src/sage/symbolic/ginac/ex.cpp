@@ -29,6 +29,8 @@
 #include "matrix.h"
 #include "power.h"
 #include "lst.h"
+#include "function.h"
+#include "symbol.h"
 #include "relational.h"
 #include "utils.h"
 
@@ -291,6 +293,18 @@ bool ex::is_integer_pmone() const
     numeric num = ex_to<numeric>(*this);
     return ((num.is_integer()) &&
             (num.is_equal(*_num1_p) || num.is_equal(*_num_1_p)));
+}
+
+void ex::set_domain(unsigned d)
+{
+        if (is_exactly_a<symbol>(*this)) {
+                symbol &s = dynamic_cast<symbol&>(*bp);
+                s.set_domain(d);
+        }
+        else if (is_exactly_a<function>(*this)) {
+                function &f = dynamic_cast<function&>(*bp);
+                f.set_domain(d);
+        }
 }
 
 size_t ex::nsymbols() const

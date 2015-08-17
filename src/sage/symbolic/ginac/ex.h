@@ -221,6 +221,9 @@ public:
 	ex simplify_indexed(unsigned options = 0) const;
 	ex simplify_indexed(const scalar_products & sp, unsigned options = 0) const;
 
+	// domains
+	void set_domain(unsigned d);
+
 	// comparison
 	int compare(const ex & other) const;
 	bool is_equal(const ex & other) const;

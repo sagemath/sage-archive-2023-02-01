@@ -1672,6 +1672,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Asymptotic Term with coefficient 1 and growth x
             sage: atm.ExactTermMonoid(G, ZZ).an_element()  # indirect doctest
             x
+            sage: atm.ExactTermMonoid(G, QQ).an_element()  # indirect doctest
+            1/2*x
         """
         return self(self.growth_group.an_element(),
                     self.base_ring.an_element())

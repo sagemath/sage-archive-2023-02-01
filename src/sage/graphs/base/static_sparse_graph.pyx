@@ -478,64 +478,66 @@ cdef int tarjan_strongly_connected_components_C(short_digraph g, int *scc):
     # it is an ancestor of the current vertex, 2 otherwise.
 
     for u in range(n):
-        if not visited[u]:
-            # Perform a DFS from u
-            dfs_stack_end = 1
-            scc_stack_end = 0
-            dfs_stack[0] = u
-            pred[u] = u
+        if visited[u]:
+            continue
 
-            while dfs_stack_end > 0:
-                v = dfs_stack[dfs_stack_end - 1]
-                if not visited[v]:
-                    # It means that this is the first time we visit v.
-                    # We set the index and the lowlink to be equal: during the
-                    # algorithm, the lowlink may decrease.
-                    visited[v] = 1
-                    index[v] = current_index
-                    lowlink[v] = current_index
-                    current_index = current_index + 1
-                    # We add v to the stack of vertices in the current SCC
-                    scc_stack[scc_stack_end] = v
-                    scc_stack_end = scc_stack_end + 1
-                    in_scc_stack[v] = 1
+        # Perform a DFS from u
+        dfs_stack_end = 1
+        scc_stack_end = 0
+        dfs_stack[0] = u
+        pred[u] = u
 
-                    # We iterate over all neighbors of v
-                    p_tmp = g.neighbors[v]
-                    while p_tmp<g.neighbors[v+1]:
-                        w = p_tmp[0]
-                        p_tmp += 1
-                        if not visited[w]:
-                            # Vertex w is added to the DFS stack
-                            pred[w] = v
-                            dfs_stack[dfs_stack_end] = w
-                            dfs_stack_end += 1
-                        elif in_scc_stack[w]:
-                            # We update the lowlink of v (later, we will "pass"
-                            # this updated value to all ancestors of v.
-                            lowlink[v] = min(lowlink[v], lowlink[w])
-                else:
-                    # The vertex v has already been visited.
-                    dfs_stack_end -= 1
+        while dfs_stack_end > 0:
+            v = dfs_stack[dfs_stack_end - 1]
+            if not visited[v]:
+                # It means that this is the first time we visit v.
+                # We set the index and the lowlink to be equal: during the
+                # algorithm, the lowlink may decrease.
+                visited[v] = 1
+                index[v] = current_index
+                lowlink[v] = current_index
+                current_index = current_index + 1
+                # We add v to the stack of vertices in the current SCC
+                scc_stack[scc_stack_end] = v
+                scc_stack_end = scc_stack_end + 1
+                in_scc_stack[v] = 1
 
-                    if visited[v] == 1:
-                        # It means that we have just processed all the DFS
-                        # subtree rooted at v. Hence, the lowlink of v is the
-                        # final value, and we "pass" this value to the
-                        # predecessor of v.
-                        lowlink[pred[v]] = min(lowlink[pred[v]], lowlink[v])
+                # We iterate over all neighbors of v
+                p_tmp = g.neighbors[v]
+                while p_tmp<g.neighbors[v+1]:
+                    w = p_tmp[0]
+                    p_tmp += 1
+                    if not visited[w]:
+                        # Vertex w is added to the DFS stack
+                        pred[w] = v
+                        dfs_stack[dfs_stack_end] = w
+                        dfs_stack_end += 1
+                    elif in_scc_stack[w]:
+                        # We update the lowlink of v (later, we will "pass"
+                        # this updated value to all ancestors of v.
+                        lowlink[v] = min(lowlink[v], lowlink[w])
+            else:
+                # The vertex v has already been visited.
+                dfs_stack_end -= 1
 
-                        if lowlink[v] == index[v]:
-                            # The DFS subtree rooted at v is a new SCC. We
-                            # recover the SCC from scc_stack.
-                            w = -1
-                            while w != v:
-                                scc_stack_end -= 1
-                                w = scc_stack[scc_stack_end]
-                                in_scc_stack[w] = 0
-                                scc[w] = currentscc
-                            currentscc += 1
-                        visited[v] = 2
+                if visited[v] == 1:
+                    # It means that we have just processed all the DFS
+                    # subtree rooted at v. Hence, the lowlink of v is the
+                    # final value, and we "pass" this value to the
+                    # predecessor of v.
+                    lowlink[pred[v]] = min(lowlink[pred[v]], lowlink[v])
+
+                    if lowlink[v] == index[v]:
+                        # The DFS subtree rooted at v is a new SCC. We
+                        # recover the SCC from scc_stack.
+                        w = -1
+                        while w != v:
+                            scc_stack_end -= 1
+                            w = scc_stack[scc_stack_end]
+                            in_scc_stack[w] = 0
+                            scc[w] = currentscc
+                        currentscc += 1
+                    visited[v] = 2
 
     return currentscc
 
@@ -629,7 +631,7 @@ def tarjan_strongly_connected_components(G):
     cdef int nscc = tarjan_strongly_connected_components_C(g, scc)
     cdef int i
     cdef list output = list(list() for i in range(nscc)) # We cannot use [] here
-    
+
     for i,v in enumerate(G.vertices()):
         output[scc[i]].append(v)
     sig_off()
@@ -683,11 +685,20 @@ cdef void strongly_connected_components_digraph_C(short_digraph g, int nscc, int
 
     output.n = nscc
     output.m = m
+
+    if m == 0:
+        output.edges = NULL
+        output.neighbors = <uint32_t **> sage_malloc((1+<int>output.n)*sizeof(uint32_t *))
+        if output.neighbors == NULL:
+            raise ValueError("Problem while allocating memory (neighbors)")
+        for v in range(1,nscc + 1):
+            output.neighbors[v] = NULL
+
     output.edges = <uint32_t *> sage_malloc(m*sizeof(uint32_t))
-    if output.edges == NULL and output.m != 0:
+    if output.edges == NULL:
         raise ValueError("Problem while allocating memory (edges)")
     output.neighbors = <uint32_t **> sage_malloc((1+<int>output.n)*sizeof(uint32_t *))
-    if output.neighbors == NULL and output.m != 0:
+    if output.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
     output.neighbors[0] = output.edges
 
@@ -712,6 +723,8 @@ def strongly_connected_components_digraph(G):
         sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components_digraph
         sage: strongly_connected_components_digraph(digraphs.Path(3))
         (Digraph on 3 vertices, {0: 2, 1: 1, 2: 0})
+        sage: strongly_connected_components_digraph(DiGraph(4))
+        (Digraph on 4 vertices, {0: 0, 1: 1, 2: 2, 3: 3})
 
     TESTS::
 

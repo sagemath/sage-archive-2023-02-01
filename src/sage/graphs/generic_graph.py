@@ -13899,7 +13899,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. MATH::
         
-            c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n}
+            c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
 
         where `R(v)` is the set of vertices reachable from `v`, and
         `r(v)` is the cardinality of `R(v)`.

@@ -77,6 +77,9 @@ cdef class Matrix(matrix1.Matrix):
         """
         Substitute values to the variables in that matrix.
 
+        All the arguments are transmitted unchanged to the method ``subs`` of
+        the coefficients.
+
         EXAMPLES::
 
             sage: var('a,b,d,e')
@@ -104,10 +107,21 @@ cdef class Matrix(matrix1.Matrix):
             sage: m1 = m.subs(x=RDF(1))
             sage: m1.parent()
             Full MatrixSpace of 1 by 1 dense matrices over Real Double Field
+
+        However, sparse matrices remain sparse::
+
+            sage: m = matrix({(3,2): -x, (59,38): x^2+2}, nrows=1000, ncols=1000)
+            sage: m1 = m.subs(x=1)
+            sage: m1.is_sparse()
+            True
         """
         from sage.matrix.constructor import matrix
-        return matrix([a.subs(*args, **kwds) for a in self.list()],
-                        nrows=self._nrows, ncols=self._ncols)
+        if self.is_sparse():
+            return matrix({ij: self[ij].subs(*args, **kwds) for ij in self.nonzero_positions()},
+                    nrows=self._nrows, ncols=self._ncols, sparse=True)
+        else:
+            return matrix([a.subs(*args, **kwds) for a in self.list()],
+                        nrows=self._nrows, ncols=self._ncols, sparse=False)
 
     def solve_left(self, B, check=True):
         """

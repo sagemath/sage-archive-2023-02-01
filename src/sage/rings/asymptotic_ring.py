@@ -1,21 +1,54 @@
 r"""
 Asymptotic Ring
 
-This module implements the central classes for computing with
-asymptotic expressions. It provides the following two classes:
+This module implements a ring (called :class:`AsymptoticRing`) for
+computations with :class:`asymptotic expressions
+<AsymptoticExpression>`.
 
-- :class:`AsymptoticExpression` -- this class essentially represents
-  a sum of asymptotic terms (see
-  :mod:`Asymptotic Terms <~sage.monoids.asymptotic_term_monoid>`).
+Definition
+==========
 
-- :class:`AsymptoticRing` -- parent structure for
-  :class:`AsymptoticExpression`.
+An asymptotic expression is a sum; its summands are the following:
 
-AUTHORS:
+- Exact terms `c\cdot g` with a coefficent `c` and an element `g` of
+  an :ref:`growth group <asymptotic_ring_growth>`.
 
-- Benjamin Hackl (2015-06): initial version
-- Benjamin Hackl (2015-07): improvement user interface (short notation)
+- `O`-terms `O(g)` (see :wikipedia:`Big_O_notation`) for some
+  :mod:`growth group element <sage.groups.asymptotic_growth_group>`
+  `g` (:ref:`see below <asymptotic_ring_growth>`).
 
+Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
+
+.. _asymptotic_ring_growth:
+
+Growth Elements
+---------------
+
+The elements of a :mod:`growth group
+<sage.groups.asymptotic_growth_group>` are equipped with a partial
+ordering and usually contains a variable. Examples are (among many
+other possibilities)
+
+- elements of the form `z^q` for some integer or rational `q` (growth
+  groups ``z^ZZ`` or ``z^QQ``),
+
+- elements of the form `log(z)^q` for some integer or rational `q` (growth
+  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
+
+- elements of the form `a^z` for some
+  rational `a` (growth group ``QQ^z``), or
+
+- more sophisticated constructions like products `x^r log(x)^s \cdot
+  a^y \cdot y^q` (this corresponds to an element of the growth group
+  ``x^QQ * \log(x)^ZZ * QQ^y * y^QQ``).
+
+The ordering in all these examples is the growth as `x`, `y`, or `z`
+(independently) tend to `\infty`. For elements only using the
+variable `z` this means, `g_1 \leq g_2` if
+
+.. MATH::
+
+    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
 
 .. WARNING::
 
@@ -39,6 +72,107 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: R.<x> = AsymptoticRing('x^ZZ', ZZ)
+
+.. _asymptotic_ring_intro:
+
+Introductory Examples
+=====================
+
+First, we construct the following (very simple) asymptotic ring in the variable `z`::
+
+    sage: A.<z> = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ); A
+    Asymptotic Ring <z^QQ> over Integer Ring
+
+A typical element of this ring is
+
+::
+
+    sage: A.an_element()  # not tested
+    -z^(3/2) + O(z^(1/2))
+
+This element consists of two summands: the exact term with coefficient
+`-1` and growth `x^{3/2}` and the `O`-term `O(x^{1/2})`. Note that the
+growth of `x^{3/2}` is larger than the growth of `x^{1/2}` as
+`x\to\infty`, thus this expression cannot be simplified (which would
+be done automatically, see below).
+
+Next, we construct a more sophisticated asymptotic ring in the
+variables `x` and `y` by
+
+::
+
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+
+Again, we can look at a typical element::
+
+    sage: B.an_element()  # not tested
+
+Arithemtical Operations
+-----------------------
+
+With the asymptotic rings constructed above (or more precisely with
+their elements) we can do a lot of different arithmetical
+calculations.
+
+We start our calculations in the ring
+
+::
+
+    sage: A
+    Asymptotic Ring <z^QQ> over Integer Ring
+
+Of course, we can perform the usual ring operations `+` and `*`::
+
+    sage: z^2 + 3*z*(1 - z)
+    -2*z^2 + 3*z
+    sage: (3*z + 2)^3
+    27*z^3 + 54*z^2 + 36*z + 8
+
+In addition to that, special powers---our growth group ``z^QQ`` allows
+the exponents to be out of `QQ`---can also be computed::
+
+    sage: (z^(5/2) + z^(1/7)) * z^(-1/5)
+    z^(23/10) + z^(-2/35)
+
+The central concepts of computations with asymptotic expressions is
+that the `O`-notation can be used. For example, we have
+
+::
+
+    sage: z^3 + z^2 + z + O(z^2)
+    z^3 + O(z^2)
+
+and more advanced
+
+::
+
+    sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
+    4*z^6 + O(z^5)
+
+.. TODO::
+
+   inversions
+
+.. TODO::
+
+    arithmetic in the ring
+
+    ::
+
+        sage: B  # not tested
+
+More Examples
+=============
+
+.. TODO::
+
+    write more examples
+
+AUTHORS:
+
+- Benjamin Hackl (2015-06): initial version
+- Benjamin Hackl (2015-07): improvement user interface (short notation)
+- Daniel Krenn (2015-08): various improvents, review; documentation
 """
 
 # *****************************************************************************

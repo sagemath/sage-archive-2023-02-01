@@ -524,13 +524,14 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 class AsymptoticRing(sage.rings.ring.Ring,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    Parent for asymptotic expressions.
+    A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
 
     INPUT:
 
-    - ``growth_group`` -- a partially ordered group (e.g. an instance
-      of :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`),
-      or a string describing such a growth group.
+    - ``growth_group`` -- either a partially ordered group (see
+      :mod:`~sage.groups.asymptotic_growth_group`) or a string
+      describing such a growth group (see
+      :class:`~sage.groups.asymptotic_growth_group.GrowthGroupFactory`).
 
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
@@ -542,49 +543,43 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     EXAMPLES:
 
-    We begin with the explicit construction of an asymptotic ring,
-    i.e. by explicitly specifying the underlying growth group::
+    We begin with the construction of an asymptotic ring in various
+    ways. First, we simply pass a string specifying the underlying
+    growth group::
+
+        sage: R1_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R1_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: x
+        x
+
+    This is equivalent to the following code, which explicitly
+    specifies the underlying growth group::
 
         sage: import sage.groups.asymptotic_growth_group as agg
         sage: G_QQ = agg.GrowthGroup('x^QQ')
-        sage: R_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R_x
+        sage: R2_x.<x> = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R2_x
         Asymptotic Ring <x^QQ> over Rational Field
 
-    Note that the coefficient ring of the asymptotic ring and the
+    Of course, the coefficient ring of the asymptotic ring and the
     base ring of the underlying growth group do not need to
     coincide::
 
-        sage: R_ZZ_x = AsymptoticRing(growth_group=G_QQ, coefficient_ring=ZZ); R_ZZ_x
+        sage: R_ZZ_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=ZZ); R_ZZ_x
         Asymptotic Ring <x^QQ> over Integer Ring
 
-    As mentioned above, the short notation for growth groups can also
-    be used to specify the underlying growth group. For now,
-    representation strings of the form ``"variable^base"`` are
-    allowed, where ``variable`` is some string, and ``base`` is
-    either ``ZZ`` (for `\mathbb{Z}`), ``QQ`` (for `\mathbb{Q}`),
-    or ``SR`` (for the symbolic ring). These strings correspond to
-    monomial growth groups (see
-    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)::
+    Note, we can also create and use logarithmic growth groups::
 
-        sage: R2_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R2_x
-        Asymptotic Ring <x^QQ> over Rational Field
-
-    Alternatively, the preparser allows us to write::
-
-        sage: R3_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
-        Asymptotic Ring <x^QQ> over Rational Field
-
-    Note that this allows us to create logarithmic and polynomial
-    growth groups::
-
-        sage: R.<x> = AsymptoticRing('x^ZZ', QQ); R
-        Asymptotic Ring <x^ZZ> over Rational Field
         sage: R_log = AsymptoticRing('log(x)^ZZ', QQ); R_log
         Asymptotic Ring <log(x)^ZZ> over Rational Field
 
+    Other growth groups are available. See :mod:`~sage.rings.asymptotic_ring` for
+    a lot more examples.
+
+    Below there are some technical details.
+
     According to the conventions for parents, uniqueness is ensured::
 
-        sage: R_x is R2_x is R3_x
+        sage: R1_x is R2_x
         True
 
     Furthermore, the coercion framework is also involved. Coercion
@@ -592,14 +587,21 @@ class AsymptoticRing(sage.rings.ring.Ring,
     underlying growth groups and coefficient rings are chosen
     appropriately)::
 
-        sage: R_x.has_coerce_map_from(R_ZZ_x)
+        sage: R1_x.has_coerce_map_from(R_ZZ_x)
         True
 
     Additionally, for the sake of convenience, the coefficient ring
     also coerces into the asymptotic ring (representing constant
     quantities)::
 
-        sage: R_x.has_coerce_map_from(QQ)
+        sage: R1_x.has_coerce_map_from(QQ)
+        True
+
+    TESTS::
+
+        sage: R3_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
+        Asymptotic Ring <x^QQ> over Rational Field
+        sage: R1_x is R2_x is R3_x
         True
     """
     # enable the category framework for elements

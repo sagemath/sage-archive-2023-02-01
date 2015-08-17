@@ -10,7 +10,7 @@ Definition
 
 An asymptotic expression is a sum; its summands are the following:
 
-- Exact terms `c\cdot g` with a coefficent `c` and an element `g` of
+- Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
   an :ref:`growth group <asymptotic_ring_growth>`.
 
 - `O`-terms `O(g)` (see :wikipedia:`Big_O_notation`) for some
@@ -129,7 +129,7 @@ Of course, we can perform the usual ring operations `+` and `*`::
     27*z^3 + 54*z^2 + 36*z + 8
 
 In addition to that, special powers---our growth group ``z^QQ`` allows
-the exponents to be out of `QQ`---can also be computed::
+the exponents to be out of `\mathbb{Q}`---can also be computed::
 
     sage: (z^(5/2) + z^(1/7)) * z^(-1/5)
     z^(23/10) + z^(-2/35)
@@ -205,7 +205,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     EXAMPLES:
 
-    There are several ways to create asymptotic expressions; usually this is done by using the corresponding rings/parents::
+    There are several ways to create asymptotic expressions; usually
+    this is done by using the corresponding rings/parents::
 
         sage: R_x.<x> = AsymptoticRing('x^QQ', QQ); R_x
         Asymptotic Ring <x^QQ> over Rational Field
@@ -295,6 +296,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         sage: lx = R_log(log(SR.var('x')))
         sage: (O(lx) + lx^3)^4
         log(x)^12 + O(log(x)^10)
+
+    .. SEEALSO::
+
+        :mod:`sage.groups.asymptotic_growth_group`,
+        :mod:`sage.monoids.asymptotic_term_monoid`,
+        :mod:`sage.data_structures.mutable_poset`
     """
     def __init__(self, parent, summands, simplify=True):
         r"""
@@ -331,13 +338,17 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr = 7 * x^12 + x^5 + O(x^3)
             sage: expr.summands
             poset(O(x^3), x^5, 7*x^12)
+
+        .. SEEALSO::
+
+            :class:`sage.data_structures.mutable_poset.MutablePoset`
         """
         return self._summands_
 
 
     def __nonzero__(self):
         r"""
-        Return if this asymptotic expression is not identially zero.
+        Return if this asymptotic expression is not identically zero.
 
         INPUT:
 
@@ -620,10 +631,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(MG, ZZ)
-            sage: x = AR.create_summand('exact', growth=x)
+            sage: AR.<x> = AsymptoticRing('x^ZZ', ZZ)
             sage: O(x)
             O(x)
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
@@ -637,6 +645,11 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             Traceback (most recent call last):
             ...
             ValueError: Cannot build O(0).
+
+        .. SEEALSO::
+
+            :func:`sage.rings.power_series_ring.PowerSeriesRing`,
+            :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`
         """
         if not self:
             raise ValueError('Cannot build O(%s).' % (self,))
@@ -782,9 +795,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: R1 = AsymptoticRing(G, ZZ); R1
+            sage: R1 = AsymptoticRing('x^ZZ', ZZ); R1
             Asymptotic Ring <x^ZZ> over Integer Ring
             sage: R2.<x> = AsymptoticRing('x^QQ', QQ); R2
             Asymptotic Ring <x^QQ> over Rational Field
@@ -793,7 +804,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         ::
 
-            sage: R3 = AsymptoticRing(G)
+            sage: R3 = AsymptoticRing('x^ZZ')
             Traceback (most recent call last):
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
@@ -829,11 +840,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.growth_group
             Growth Group x^ZZ
+
+        .. SEEALSO::
+
+            :mod:`sage.groups.asymptotic_growth_group`
         """
         return self._growth_group_
 
@@ -845,9 +858,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.coefficient_ring
             Integer Ring
         """
@@ -1207,9 +1218,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: R = AsymptoticRing(G, ZZ)
+            sage: R = AsymptoticRing('x^ZZ', ZZ)
             sage: R.create_summand('O', growth=x^2)
             O(x^2)
             sage: R.create_summand('exact', growth=x^456, coefficient=123)

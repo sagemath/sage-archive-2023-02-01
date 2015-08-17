@@ -2611,7 +2611,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.dimension()
             3
             sage: L = P.dimension(certificate=True)
-            sage: L # not tested -- architecture-dependent
+            sage: L # random -- architecture-dependent
             [[0, 2, 4, 5, 1, 3, 6], [2, 5, 0, 1, 3, 4, 6], [0, 1, 2, 3, 5, 6, 4]]
             sage: Poset( (L[0], lambda x, y: all(l.index(x) < l.index(y) for l in L)) ) == P
             True
@@ -2647,7 +2647,7 @@ class FinitePoset(UniqueRepresentation, Parent):
            http://link.springer.com/article/10.1023%2FA%3A1006429830221
         """
         if self.cardinality() == 0:
-            return [] if certificate else Integer(0)
+            return [] if certificate else 0
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         P = Poset(self._hasse_diagram) # work on an int-labelled poset

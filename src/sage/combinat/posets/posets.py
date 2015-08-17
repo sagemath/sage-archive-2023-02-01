@@ -1939,7 +1939,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().relations_number()
             0
         """
-        return Integer(sum(1 for x in self.relations_iterator()))
+        return sum(1 for x in self.relations_iterator())
 
     # three useful aliases
     intervals = relations
@@ -2577,12 +2577,6 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            Minimal set of linear extensions is not unique, only their
-            number is. Return value for ``certificate=True`` is
-            architecture-dependent.
-
-        .. NOTE::
-
             The speed of this function greatly improves when more efficient
             MILP solvers (e.g. Gurobi, CPLEX) are installed. See
             :class:`MixedIntegerLinearProgram` for more information.
@@ -2641,7 +2635,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().dimension()
             0
-            sage: Poset().dimension(certificate=1)
+            sage: Poset().dimension(certificate=True)
             []
 
         References:
@@ -2736,7 +2730,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         if certificate:
             return [[self._list[i] for i in l]
                     for l in linear_extensions]
-        return Integer(k)
+        return k
 
     def rank_function(self):
         r"""
@@ -2818,7 +2812,7 @@ class FinitePoset(UniqueRepresentation, Parent):
              ('4321', 6)]
         """
         if element is None:
-            return Integer(len(self.level_sets())-1)
+            return len(self.level_sets())-1
         elif self.is_ranked():
             return self.rank_function()(element)
         else:
@@ -4299,8 +4293,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         if direction == 'antichain':
             return [self._vertex_to_element(i) for i,x in enumerate(state)
                         if x == 0 and all(state[j] == 1 for j in hd.upper_covers_iterator(i))]
-        else:  # direction is assumed to be 'down'
-            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
+        if direction != 'down':
+            raise ValueError("direction must be 'up', 'down' or 'antichain'")
+        return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
     def order_filter(self,elements):
         """

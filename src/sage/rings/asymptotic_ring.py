@@ -13,9 +13,10 @@ An asymptotic expression is a sum; its summands are the following:
 - Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
   an :ref:`growth group <asymptotic_ring_growth>`.
 
-- `O`-terms `O(g)` (see :wikipedia:`Big_O_notation`) for some
-  :mod:`growth group element <sage.groups.asymptotic_growth_group>`
-  `g` (:ref:`see below <asymptotic_ring_growth>`).
+- `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
+  also called *Bachmann--Landau notation*) for some :mod:`growth group
+  element <sage.groups.asymptotic_growth_group>` `g` (:ref:`see below
+  <asymptotic_ring_growth>`).
 
 Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
 

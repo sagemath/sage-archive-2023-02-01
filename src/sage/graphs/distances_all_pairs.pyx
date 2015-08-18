@@ -688,10 +688,7 @@ def distances_and_predecessors_all_pairs(G):
 
         for i in range(n):
 
-            if c_distances[i] == <unsigned short> -1:
-                t_distance[int_to_vertex[i]] = Infinity
-                t_predecessor[int_to_vertex[i]] = None
-            else:
+            if c_distances[i] != <unsigned short> -1:
                 t_distance[int_to_vertex[i]] = c_distances[i]
                 t_predecessor[int_to_vertex[i]] = int_to_vertex[c_predecessor[i]]
 
@@ -1303,11 +1300,12 @@ def diameter(G, method='iFUB', source=None):
 
     EXAMPLES::
 
+        sage: from sage.graphs.distances_all_pairs import diameter
         sage: G = graphs.PetersenGraph()
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         2
         sage: G = Graph( { 0 : [], 1 : [], 2 : [1] } )
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         +Infinity
 
 
@@ -1315,21 +1313,21 @@ def diameter(G, method='iFUB', source=None):
     never be negative, we define it to be zero::
 
         sage: G = graphs.EmptyGraph()
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         0
 
     Comparison of exact methods::
 
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
-        sage: d1 = G.diameter(method='standard')
-        sage: d2 = G.diameter(method='iFUB')
-        sage: d3 = G.diameter(method='iFUB', source=G.random_vertex())
+        sage: d1 = diameter(G, method='standard')
+        sage: d2 = diameter(G, method='iFUB')
+        sage: d3 = diameter(G, method='iFUB', source=G.random_vertex())
         sage: if d1!=d2 or d1!=d3: print "Something goes wrong!"
 
     Comparison of lower bound methods::
 
-        sage: lb2 = G.diameter(method='2sweep')
-        sage: lbm = G.diameter(method='multi-sweep')
+        sage: lb2 = diameter(G, method='2sweep')
+        sage: lbm = diameter(G, method='multi-sweep')
         sage: if not (lb2<=lbm and lbm<=d3): print "Something goes wrong!"
 
     TEST:
@@ -1337,7 +1335,7 @@ def diameter(G, method='iFUB', source=None):
     This was causing a segfault. Fixed in :trac:`17873` ::
 
         sage: G = graphs.PathGraph(1)
-        sage: G.diameter(method='iFUB')
+        sage: diameter(G, method='iFUB')
         0
     """
     cdef int n = G.order()
@@ -1721,18 +1719,19 @@ def floyd_warshall(gg, paths = True, distances = False):
     if paths: d_prec = {}
     if distances: d_dist = {}
     for v_int in gverts:
-        if paths: tmp_prec = {}
-        if distances: tmp_dist = {}
         v = cgb.vertex_label(v_int)
+        if paths: tmp_prec = {v:None}
+        if distances: tmp_dist = {v:0}
         dv = dist[v_int]
         for u_int in gverts:
             u = cgb.vertex_label(u_int)
-            if paths:
-                tmp_prec[u] = (None if v == u
-                               else cgb.vertex_label(prec[v_int][u_int]))
-            if distances:
-                tmp_dist[u] = (dv[u_int] if (dv[u_int] != <unsigned short> -1)
-                               else Infinity)
+            if v != u and dv[u_int] !=  <unsigned short> -1:
+                if paths:
+                    tmp_prec[u] = cgb.vertex_label(prec[v_int][u_int])
+                
+                if distances:
+                    tmp_dist[u] = dv[u_int]
+
         if paths: d_prec[v] = tmp_prec
         if distances: d_dist[v] = tmp_dist
 

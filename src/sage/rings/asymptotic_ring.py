@@ -301,7 +301,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         :mod:`sage.groups.asymptotic_growth_group`,
         :mod:`sage.monoids.asymptotic_term_monoid`,
-        :mod:`sage.data_structures.mutable_poset`
+        :mod:`sage.data_structures.mutable_poset`.
     """
     def __init__(self, parent, summands, simplify=True):
         r"""
@@ -649,7 +649,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         .. SEEALSO::
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
-            :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`
+            :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
         """
         if not self:
             raise ValueError('Cannot build O(%s).' % (self,))

@@ -66,23 +66,25 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         R = parent.base_ring()
         zero = R.zero()
 
-        # if entries is a list we affect it to self._entries otherwise it must
-        # be scalar and the list will be created later
+        # determine if entries is a list or a scalar
         if entries is None:
             entries = zero
             is_list = False
-            coerce = False
         elif parent_c(entries) is R:
             is_list = False
-            coerce = False
         elif type(entries) is list:
+            # here we do a strong type checing as we potentially do not want to
+            # copy entries and assign directly to self._entries
             self._entries = entries
             is_list = True
         elif isinstance(entries, (list,tuple)):
+            # it is needed to check for list here as for example Sequence
+            # inherits from it but fails the strong type checking above
             self._entries = list(entries)
             is_list = True
             copy = False
         else:
+            # not sure what entries is at this point... try scalar first
             try:
                 entries = R(entries)
                 is_list = False
@@ -94,9 +96,10 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 except TypeError:
                     raise TypeError("entries must be coercible to a list or the base ring")
 
+        # now affect self._entries
         if is_list:
             if len(self._entries) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
+                raise TypeError("entries has wrong length")
 
             if coerce:
                 self._entries = [R(x) for x in self._entries]
@@ -110,7 +113,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 for i in range(self._nrows):
                     self._entries[i*self._ncols + i] = entries
 
-    cdef Matrix_generic_dense _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
+    cdef Matrix_generic_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
         Return a new dense matrix with no entries set!
         """
@@ -248,7 +251,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             IndexError: polynomials are immutable
         """
         cdef Matrix_generic_dense A
-        A = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        A = self._new(self._nrows, self._ncols)
         A._entries = self._entries[:]
         if self._subdivisions is not None:
             A.subdivide(*self.subdivisions())
@@ -324,7 +327,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 v[p] = z
                 p += 1
 
-        cdef Matrix_generic_dense A = left._new_uninitialized_matrix(nr, nc)
+        cdef Matrix_generic_dense A = left._new(nr, nc)
         A._entries = v
         return A
 

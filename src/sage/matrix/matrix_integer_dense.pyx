@@ -711,7 +711,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * cdef _add_
     # x * cdef _sub_
     # x * cdef _mul_
-    # x * cdef _cmp_c_impl
+    # x * cpdef _cmp_
     # x * __neg__
     # x * __invert__  -> SEE LEVEL 3 FUNCTIONALITIES
     # x * __copy__
@@ -1082,7 +1082,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         r"""
         Compares self with right, examining entries in lexicographic (row
         major) ordering.
@@ -3346,24 +3346,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Rank
 
-    def rank(self, algorithm = 'modp'):
+    def rank(self, algorithm='modp'):
         """
         Return the rank of this matrix.
 
+        INPUT:
+
+        - ``algorithm`` -- either ``'modp'`` (default) or ``'flint'``
+          or ``'linbox'``
+
         OUTPUT:
 
+        - a nonnegative integer -- the rank
 
-        -  ``nonnegative integer`` - the rank
+        .. NOTE::
 
-        -  ``algorithm`` - either ``'modp'`` (default) or ``'flint'`` or ``'linbox'``
+            The rank is cached.
 
-        .. note::
+        ALGORITHM:
 
-           The rank is cached.
-
-        ALGORITHM: If set to ``'modp'``, first check if the matrix has maximum possible rank by
-        working modulo one random prime. If not call LinBox's rank
-        function.
+        If set to ``'modp'``, first check if the matrix has maximum
+        possible rank by working modulo one random prime. If not, call
+        LinBox's rank function.
 
         EXAMPLES::
 
@@ -3379,15 +3383,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: a.rank()
             2
 
-        Here's a bigger example - the rank is of course still 2::
+        Here is a bigger example - the rank is of course still 2::
 
             sage: a = matrix(ZZ,100,[1..100^2]); a.rank()
             2
-        """
-        r = self.fetch('rank')
-        if not r is None: return r
 
-        if algorithm == 'flint' or (self._nrows <= 6 and self._ncols <= 6 and self.height().ndigits() <= 100):
+        TESTS::
+
+            sage: a.rank(algorithm='funky')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be one of 'modp', 'flint' or 'linbox'
+        """
+        if algorithm not in ['modp', 'flint', 'linbox']:
+            raise ValueError("algorithm must be one of 'modp', 'flint' "
+                             "or 'linbox'")
+
+        r = self.fetch('rank')
+        if not r is None:
+            return r
+
+        if algorithm == 'flint' or (self._nrows <= 6 and self._ncols <= 6
+                                    and self.height().ndigits() <= 100):
             r = fmpz_mat_rank(self._matrix)
             self.cache('rank', r)
             return r
@@ -3397,7 +3414,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if r == self._nrows or r == self._ncols:
                 self.cache('rank', r)
                 return r
-        # Algorithm is 'linbox' or detecting full rank didn't work -- use LinBox's general algorithm.
+        # Algorithm is 'linbox' or detecting full rank didn't work --
+        # use LinBox's general algorithm.
         r = self._rank_linbox()
         self.cache('rank', r)
         return r

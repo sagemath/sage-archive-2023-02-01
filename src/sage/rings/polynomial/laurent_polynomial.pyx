@@ -1,7 +1,6 @@
 r"""
 Elements of Laurent polynomial rings
 """
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer import Integer
 from sage.structure.element import is_Element, coerce_binop
@@ -912,7 +911,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element right_r) except -2:
+    cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of ``self`` and ``right_r``.
 
@@ -2035,7 +2034,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         ans._poly = self._poly.__floordiv__((<LaurentPolynomial_mpair>right)._poly)
         return ans
 
-    cdef int _cmp_c_impl(self, Element right) except -2:
+    cpdef int _cmp_(self, Element right) except -2:
         """
         EXAMPLES::
 

@@ -128,7 +128,6 @@ Kapitel :ref:`sec-custom-generation` dargestellt.
 Der interne ``pretty_print()`` Befehl zeigt die Konvertierung von Sage
 Objekten in HTML Code der MathJax nutzt im Notebook.  ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))

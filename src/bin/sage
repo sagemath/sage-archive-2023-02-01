@@ -43,7 +43,7 @@ usage() {
     echo "                           --help - show all testing options"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
     exit 0
@@ -136,7 +136,7 @@ usage_advanced() {
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
 
     echo
@@ -635,7 +635,7 @@ fi
 
 build_sage() {
     maybe_sage_location
-    sage-build "$@" || exit $?
+    ( cd "$SAGE_SRC" && $MAKE ) || exit $?
 }
 
 if [[ "$1" =~ ^--notebook=.* || "$1" =~ ^-n=.* || "$1" =~ ^-notebook=.* ]] ; then
@@ -674,14 +674,12 @@ if [ "$1" = '-grepdoc' -o "$1" = "--grepdoc" -o "$1" = "-search_doc" -o "$1" = "
 fi
 
 if [ "$1" = '-b' ]; then
-    shift
-    time build_sage "$@"
+    time build_sage
     exit $?
 fi
 
 if [ "$1" = '-br' -o "$1" = "--br" ]; then
-    shift
-    build_sage "$@"
+    build_sage
     interactive_sage
 fi
 
@@ -691,9 +689,8 @@ if [ "$1" = '-r' ]; then
 fi
 
 if [ "$1" = '-ba' -o "$1" = '-ba-force' -o "$1" = '--ba-force' ]; then
-    shift
     ( cd "$SAGE_SRC" && make clean )
-    build_sage "$@"
+    build_sage
     exit $?
 fi
 
@@ -707,6 +704,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     fi
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
         exec sage-runtests -p "$@"
@@ -723,6 +721,7 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
     shift
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
@@ -730,6 +729,7 @@ if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
     SAGE_BANNER="no"
     sage_setup
+    export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 

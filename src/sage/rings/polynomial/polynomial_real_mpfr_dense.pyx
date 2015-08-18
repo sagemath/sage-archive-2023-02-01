@@ -1,5 +1,25 @@
 r"""
 Dense univariate polynomials over `\RR`, implemented using MPFR
+
+TESTS:
+
+Check that operations with numpy elements work well (see :trac:`18076` and
+:trac:`8426`)::
+
+    sage: import numpy
+    sage: x = polygen(RR)
+    sage: x * numpy.int32('1')
+    x
+    sage: numpy.int32('1') * x
+    x
+    sage: x * numpy.int64('1')
+    x
+    sage: numpy.int64('1') * x
+    x
+    sage: x * numpy.float32('1.5')
+    1.50000000000000*x
+    sage: numpy.float32('1.5') * x
+    1.50000000000000*x
 """
 
 include "sage/ext/stdsage.pxi"

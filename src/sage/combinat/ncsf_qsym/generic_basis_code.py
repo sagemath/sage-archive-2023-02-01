@@ -28,7 +28,8 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
-from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
+from sage.categories.modules_with_basis import ModulesWithBasis
+from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.combinat.composition import Compositions, Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
@@ -1028,11 +1029,8 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
             sage: f(Psi[3, 1, 2])
             -Phi[3, 1, 2]
             sage: f.__class__
-            <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism'>
-            sage: TestSuite(f).run(skip=['_test_nonzero_equal']) # known issue; see ModuleMorphismByLinearity.__init__
-            Failure in _test_category:
-            ...
-            The following tests failed: _test_category
+            <class 'sage.combinat.ncsf_qsym.generic_basis_code.AlgebraMorphism_with_category'>
+            sage: TestSuite(f).run(skip=['_test_nonzero_equal'])
         """
         assert position == 0
         assert codomain is not None

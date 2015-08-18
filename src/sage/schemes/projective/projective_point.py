@@ -46,6 +46,7 @@ from sage.rings.morphism       import RingHomomorphism_im_gens
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all     import Qp
+from sage.rings.qqbar          import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring  import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.rings.real_double    import RDF
@@ -120,7 +121,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         It is possible to avoid the possibly time consuming checks, but be careful!!
 
             sage: P = ProjectiveSpace(3, QQ)
-            sage: P.point([0,0,0,0],check=False)
+            sage: P.point([0,0,0,0],check = False)
             (0 : 0 : 0 : 0)
 
         ::
@@ -739,7 +740,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(P,P)
             sage: f=H([x^2+y^2,y^2])
-            sage: P.point([1,2],False).orbit(f,4,check=False)
+            sage: P.point([1,2],False).orbit(f,4,check = False)
             [(1 : 2), (5 : 4), (41 : 16), (1937 : 256), (3817505 : 65536)]
         """
         if (isinstance(N,(list,tuple))==False):
@@ -834,7 +835,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: print f.green_function(P([2,1]), K.ideal(7), N=7)
             0.48647753726382832627633818586
             sage: print f.green_function(P([w,1]), K.ideal(17), error_bound=0.001)
-            -0.70761163353747779889947530309
+            -0.70691993106090157426711999977
 
         .. TODO:: Implement general p-adic extensions so that the flip trick can be used
              for number fields.
@@ -849,6 +850,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         if not BR in NumberFields():
             raise NotImplementedError("Must be over a NumberField or a NumberField Order")
+        if not BR.is_absolute():
+            raise TypeError("Must be an absolute field")
 
         #For QQ the 'flip-trick' works better over RR or Qp
         if isinstance(v, (NumberFieldFractionalIdeal, RingHomomorphism_im_gens)):
@@ -862,10 +865,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             raise ValueError("Invalid valuation (=%s) entered."%v)
 
         #Coerce all polynomials in F into polynomials with coefficients in K
-        F = G.change_ring(K, False)
+        F = G.change_ring(K, check = False)
         d = F.degree()
         dim = F.codomain().ambient_space().dimension_relative()
-        P = self.change_ring(K, False)
+        P = self.change_ring(K, check = False)
 
         if err is not None:
             err = R(err)
@@ -906,13 +909,15 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                             h = max([c.local_height(v, prec=prec) for c in poly.coefficients()])
                         if h > maxh:
                             maxh=h
+            if maxh == 0:
+                maxh = 1  #avoid division by 0
             if isinstance(v, RingHomomorphism_im_gens): #archimedean
                 L = R(Res / ((dim + 1) * binomial(dim + D - d, D - d) * maxh)).log().abs()
             else: #non-archimedean
-                L = R(1 / maxh).log().abs()
+                L = R(Res / maxh).log().abs()
             C = max([U, L])
             if C != 0:
-                N = R(C/(err)).log(d).abs().ceil()
+                N = R(C/(err*(d-1))).log(d).abs().ceil()
             else: #we just need log||P||_v
                 N=1
 
@@ -957,7 +962,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
     def canonical_height(self, F, **kwds):
         r"""
         Evaluates the (absolute) canonical height of ``self`` with respect to ``F``. Must be over number field
-        or order of a number field. Specify either the number of terms of the series to evaluate or
+        or order of a number field or ``QQbar``. Specify either the number of terms of the series to evaluate or
         the error bound required.
 
         ALGORITHM:
@@ -978,9 +983,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - ``error_bound`` - a positive real number
 
-        OUTPUT:
-
-        - a real number
+        OUTPUT: a real number
 
         EXAMPLES::
 
@@ -1012,22 +1015,43 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f.canonical_height(Q, badprimes=[2,3,5], prec=200)
             2.7054056208276961889784303469356774912979228770208655455481
         """
-        bad_primes = kwds.pop("badprimes", None)
+        bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
 
         if not K in _NumberFields:
-            raise NotImplementedError("Must be over a NumberField or a NumberField Order")
+            if not K is QQbar:
+                raise NotImplementedError("Must be over a NumberField or a NumberField Order or QQbar")
+            else:
+                #since this an absolute hieght, we can compute the height of a QQbar point
+                #by choosing any number field it is defined over.
+                P = self._number_field_from_algebraics()
+                K = P.codomain().base_ring()
+                f = F._number_field_from_algebraics()
+                if K == QQ:
+                    K = f.base_ring()
+                    P = P.change_ring(K)
+                elif f.base_ring() == QQ:
+                    f = f.change_ring(K)
+                else:
+                    K, phi, psi, b = K.composite_fields(f.base_ring(), both_maps=True)[0]
+                    P = P.change_ring(K, embedding=phi)
+                    f = f.change_ring(K, embedding=psi)
+        else:
+            if not K.is_absolute():
+                raise TypeError("Must be an absolute field")
+            P = self
+            f = F
 
         if bad_primes is None:
             bad_primes = []
-            for b in self:
+            for b in P:
                 if K == QQ:
                     bad_primes += b.denominator().prime_factors()
                 else:
                     bad_primes += b.denominator_ideal().prime_factors()
-            bad_primes += K(F.resultant()).support()
+            bad_primes += K(f.resultant()).support()
             bad_primes = list(set(bad_primes))
 
         emb = K.places(prec=prec)
@@ -1036,6 +1060,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             error_bound /= num_places
         R = RealField(prec)
         h = R(0)
+
+        ##update the keyword dictionary for use in green_function
+        kwds.update({"badprimes": bad_primes})
+        kwds.update({"error_bound": error_bound})
 
         # Archimedean local heights
         # :: WARNING: If places is fed the default Sage precision of 53 bits,
@@ -1046,7 +1074,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 dv = R(1)
             else:
                 dv = R(2)
-            h += dv*self.green_function(F, v, **kwds)       #arch Green function
+            h += dv*P.green_function(f, v, **kwds)       #arch Green function
 
         # Non-Archimedean local heights
         for v in bad_primes:
@@ -1054,12 +1082,12 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 dv = R(1)
             else:
                 dv = R(v.residue_class_degree() * v.absolute_ramification_index())
-            h += dv * self.green_function(F, v, **kwds)  #non-arch Green functions
+            h += dv * P.green_function(f, v, **kwds)  #non-arch Green functions
         return h
 
     def global_height(self, prec=None):
         r"""
-        Returns the logarithmic height of the points.
+        Returns the absolute logarithmic height of the point ``self``.
 
         INPUT:
 
@@ -1072,31 +1100,41 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: Q=P.point([4,4,1/30])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: Q = P.point([4,4,1/30])
             sage: Q.global_height()
             4.78749174278205
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: Q=P([4,1,30])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: Q = P([4,1,30])
             sage: Q.global_height()
             3.40119738166216
 
         ::
 
-            sage: R.<x>=PolynomialRing(QQ)
-            sage: k.<w>=NumberField(x^2+5)
-            sage: A=ProjectiveSpace(k,2,'z')
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: k.<w> = NumberField(x^2+5)
+            sage: A = ProjectiveSpace(k,2,'z')
             sage: A([3,5*w+1,1]).global_height(prec=100)
             2.4181409534757389986565376694
 
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: Q = P([QQbar(sqrt(3)),QQbar(sqrt(-2)),1])
+            sage: Q.global_height()
+            0.549306144334055
         """
-        if self.domain().base_ring() in _NumberFields or is_NumberFieldOrder(self.domain().base_ring()):
-            return(max([self[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
+        K = self.codomain().base_ring()
+        if K in _NumberFields or is_NumberFieldOrder(K):
+            P = self
+        elif K is QQbar:
+            P = self._number_field_from_algebraics()
         else:
-            raise TypeError("Must be over a Numberfield or a Numberfield Order")
+            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar")
+        return(max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)]))
 
     def local_height(self, v, prec=None):
         r"""
@@ -1198,6 +1236,168 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             [ 0  0 -2]
         """
         return(f.multiplier(self,n,check))
+
+
+    def is_preperiodic(self, f, err = 0.1, return_period=False):
+        r"""
+        Determine if the point ``self`` is preperiodic with respect to the map ``f``, i.e.,
+        if ``self`` has a finite forward orbit by ``f``. This is only implemented for
+        projective space (not subschemes). There are two optional keyword arguments:
+        ``error_bound`` sets the error_bound used in the canonical height computation
+        and ``return_period`` a boolean which controls if the period is returned if the
+        point is preperiodic. If ``return_period`` is ``True`` and the ``self`` is not
+        preperiodic, then `(0,0)` is returned for the period.
+
+        ALGORITHM:
+
+        We know that a point is preperiodic if and only if it has canonical height zero. However,
+        we can only compute the canonical height up to numerical precision. This function first computes
+        the canonical height of the point to the given error bound. If it is larger than that error bound,
+        then it must not be preperiodic. If it is less than the error bound, then we expect preperiodic. In
+        this case we begin computing the orbit stopping if either we determine the orbit is finite, or
+        the height of the point is large enough that it must be wandering. We can determine the height
+        cutoff by computing the height difference constant, i.e., the bound between the height and
+        the canonical height of a point (which depends only on the map and not the point itself).
+        If the height of the point is larger than the difference bound, then the canonical height
+        cannot be zero so the point cannot be preperiodic.
+
+        INPUT:
+
+        - ``f`` -- an endomorphism of ``self.codomain()``
+
+        kwds:
+
+        - ``error_bound`` -- a positive real number (optional - default: 0.1)
+
+        - ``return_period`` -- boolean (optional - default: ``False``)
+
+
+        OUTPUT:
+
+        - boolean - ``True`` if preperiodic
+
+        - if return_period is ``True``, then ``(0,0)`` if wandering, and ``(m,n)``
+            if preperiod ``m`` and period ``n``
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^3-3*x*y^2, y^3])
+            sage: Q = P(-1,1)
+            sage: Q.is_preperiodic(f)
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = End(P)
+            sage: f = H([x^2-29/16*y^2, y^2])
+            sage: Q = P(1,4)
+            sage: Q.is_preperiodic(f, return_period=True)
+            (1, 3)
+            sage: Q = P(1,1)
+            sage: Q.is_preperiodic(f, return_period=True)
+            (0, 0)
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^2+1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: H = End(P)
+            sage: f = H([x^5 + 5/4*x*y^4, y^5])
+            sage: Q = P([-1/2*a+1/2, 1])
+            sage: Q.is_preperiodic(f)
+            True
+            sage: Q = P([a, 1])
+            sage: Q.is_preperiodic(f)
+            False
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = Hom(P,P)
+            sage: f = H([-38/45*x^2 + (2*y - 7/45*z)*x + (-1/2*y^2 - 1/2*y*z + z^2),\
+                -67/90*x^2 + (2*y + z*157/90)*x - y*z, z^2])
+            sage: Q = P([1,3,1])
+            sage: Q.is_preperiodic(f, return_period = True)
+            (0, 9)
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: H = Hom(P,P)
+            sage: f = H([(-y - w)*x + (-13/30*y^2 + 13/30*w*y + w^2),-1/2*x^2 + (-y + 3/2*w)*x\
+                + (-1/3*y^2 + 4/3*w*y),-3/2*z^2 + 5/2*z*w + w^2,w^2])
+            sage: Q = P([3,0,4/3,1])
+            sage: Q.is_preperiodic(f, return_period = True)
+            (2, 24)
+
+        ::
+
+            sage: set_verbose(-1)
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: H = End(P)
+            sage: f = H([x^2,QQbar(sqrt(-1))*y^2,z^2])
+            sage: Q = P([1,1,1])
+            sage: Q.is_preperiodic(f)
+            True
+
+        ::
+
+            sage: set_verbose(-1)
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: H = End(P)
+            sage: f = H([x^2,y^2,z^2])
+            sage: Q = P([QQbar(sqrt(-1)),1,1])
+            sage: Q.is_preperiodic(f)
+            True
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if not is_ProjectiveSpace(self.codomain()):
+            raise NotImplementedError("Must be over projective space")
+        if not f.is_endomorphism():
+            raise TypeError("Map must be an endomorphism")
+        if not f.is_morphism():
+            raise TypeError("Must be a morphism")
+        if not self.codomain() is f.domain():
+            raise TypeError("Point must be in domain of map")
+
+        K = FractionField(self.codomain().base_ring())
+        if not K in _NumberFields and not K is QQbar:
+            raise NotImplementedError("Must be over a NumberField or a NumberField Order or QQbar")
+
+        h = self.canonical_height(f, error_bound = err)
+        # we know canonical height 0 if and only if preperiodic
+        # however precision issues can occur so we can only tell *not* preperiodic
+        # if the value is larger than the error
+        if h <= err:
+            # if the canonical height is less than than the
+            # error, then we suspect preperiodic so check
+            # either we can find the cycle or the height is
+            # larger than the difference between the canonical height
+            # and the height, so the cannonical height cannot be 0
+            B = f.height_difference_bound()
+            orbit = [self]
+            n = 1 # to compute period
+            P = f(self)
+            H= P.global_height()
+            while P not in orbit and H <= B:
+                orbit.append(P)
+                P = f(P)
+                H = P.global_height()
+                n += 1
+            if H <= B: #it must have been in the cycle
+                if return_period:
+                    m=orbit.index(P)
+                    return((m,n-m))
+                else:
+                    return True
+        if return_period:
+            return((0,0))
+        else:
+            return(False)
 
 class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring):
     """
@@ -1344,6 +1544,31 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             index -= 1
         self.scale_by(1/self[index])
 
+    def _number_field_from_algebraics(self):
+        r"""
+        Given a projective point defined over ``QQbar``, return the same point, but defined
+        over a number field. This is only implemented for points of proejctive space.
+
+        OUTPUT: scheme point
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: Q = P([-1/2*QQbar(sqrt(2))+QQbar(I),1])
+            sage: S = Q._number_field_from_algebraics(); S
+            (-1/2*a^3 - a^2 + 1/2*a : 1)
+            sage: S.codomain()
+            Projective Space of dimension 1 over Number Field in a with defining polynomial y^4 + 1
+        """
+        from sage.schemes.projective.projective_space import is_ProjectiveSpace
+        if not is_ProjectiveSpace(self.codomain()):
+            raise NotImplementedError("Not implemented for subschemes")
+
+        K,P,phi = number_field_elements_from_algebraics(list(self))
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        PS = ProjectiveSpace(K,self.codomain().dimension_relative(),'z')
+        return(PS(P))
 
     def clear_denominators(self):
         r"""

@@ -196,11 +196,13 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(QQ, 4).an_element()
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
         """
-        p = [0] * self.ambient_dim()
+        zero = self.base_ring().zero()
+        one  = self.base_ring().one()
+        p = [zero] * self.ambient_dim()
         points = [p]
         for i in range(0,self.ambient_dim()):
-            p = [0] * self.ambient_dim()
-            p[i] = 1
+            p = [zero] * self.ambient_dim()
+            p[i] = one
             points.append(p)
         return self.element_class(self, [points,[],[]], None)
 
@@ -226,8 +228,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 self.element_class(self, None, None),
                 self.element_class(self, None, [[],[]]) ]
         points = []
+        R = self.base_ring()
         for i in range(0,self.ambient_dim()+5):
-            points.append([i*j^2 for j in range(0,self.ambient_dim())])
+            points.append([R(i*j^2) for j in range(0,self.ambient_dim())])
         return [
             self.element_class(self, [points[0:self.ambient_dim()+1], [], []], None),
             self.element_class(self, [points[0:1], points[1:self.ambient_dim()+1], []], None),
@@ -279,7 +282,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P.universe().is_universe()
             True
         """
-        return self(None, [[[1]+[0]*self.ambient_dim()], []], convert=True)
+        R = self.base_ring()
+        return self(None, [[[R.one()]+[R.zero()]*self.ambient_dim()], []], convert=True)
 
     @cached_method
     def Vrepresentation_space(self):

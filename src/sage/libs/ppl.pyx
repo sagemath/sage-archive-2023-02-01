@@ -153,7 +153,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 
 from libcpp cimport bool as cppbool

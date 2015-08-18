@@ -104,6 +104,8 @@ cdef class Matroid(SageObject):
     # isomorphism
     cpdef is_isomorphic(self, other)
     cpdef _is_isomorphic(self, other)
+    cpdef isomorphism(self, other)
+    cpdef _isomorphism(self, other)
     cpdef equals(self, other)
     cpdef is_isomorphism(self, other, morphism)
     cpdef _is_isomorphism(self, other, morphism)

@@ -22,7 +22,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 
 

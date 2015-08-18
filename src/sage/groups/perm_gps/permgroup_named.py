@@ -538,9 +538,14 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.groups.perm_gps.symgp_conjugacy_class import SymmetricGroupConjugacyClass
         return SymmetricGroupConjugacyClass(self, g)
 
-    def algebra(self, base_ring):
+    def algebra(self, base_ring, category=None):
         """
         Return the symmetric group algebra associated to ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- a ring
+        - ``category`` -- a category (default: the category of ``self``)
 
         If ``self`` is the symmetric group on `1,\ldots,n`, then this
         is special cased to take advantage of the features in
@@ -554,12 +559,23 @@ class SymmetricGroup(PermutationGroup_symalt):
             Symmetric group algebra of order 4 over Rational Field
 
             sage: S3 = SymmetricGroup([1,2,3])
-            sage: S3.algebra(QQ)
+            sage: A = S3.algebra(QQ); A
             Symmetric group algebra of order 3 over Rational Field
             sage: a = S3.an_element(); a
             (1,2,3)
-            sage: S3.algebra(QQ)(a)
+            sage: A(a)
             (1,2,3)
+
+        We illustrate the choice of the category::
+
+            sage: A.category()
+            Join of Category of coxeter group algebras over Rational Field
+                and Category of finite group algebras over Rational Field
+            sage: A = S3.algebra(QQ, category=Semigroups())
+            sage: A.category()
+            Category of finite dimensional semigroup algebras over Rational Field
+
+        In the following case, a usual group algebra is returned:
 
             sage: S = SymmetricGroup([2,3,5])
             sage: S.algebra(QQ)
@@ -572,7 +588,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
         if list(domain) == range(1, len(domain)+1):
-            return SymmetricGroupAlgebra(base_ring, self)
+            return SymmetricGroupAlgebra(base_ring, self, category=category)
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
 
@@ -1250,15 +1266,18 @@ class GeneralDihedralGroup(PermutationGroup_generic):
 class DihedralGroup(PermutationGroup_unique):
     def __init__(self, n):
         """
-        The Dihedral group of order $2n$ for any integer $n\geq 1$.
+        The Dihedral group of order `2n` for any integer `n\geq 1`.
 
         INPUT:
-            n -- a positive integer
+
+        - ``n`` -- a positive integer
 
         OUTPUT:
-            -- the dihedral group of order 2*n, as a permutation group
 
-        .. note::
+        The dihedral group of order `2n`, as a permutation group
+
+        .. NOTE::
+
           This group is also available via ``groups.permutation.Dihedral()``.
 
         EXAMPLES::
@@ -1274,7 +1293,8 @@ class DihedralGroup(PermutationGroup_unique):
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
             sage: list(DihedralGroup(5))
-            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
+            [(), (1,5)(2,4), (1,2,3,4,5), (1,4)(2,3), (1,3,5,2,4), (2,5)(3,4),
+            (1,3)(4,5), (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()

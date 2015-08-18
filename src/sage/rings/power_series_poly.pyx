@@ -5,9 +5,6 @@ Power Series Methods
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
 
-
-include "sage/ext/stdsage.pxi"
-
 from power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from infinity import infinity, is_Infinite
@@ -23,7 +20,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         EXAMPLES::
 
-            sage: R, q = PowerSeriesRing(CC, 'q').objgen()
+            sage: R.<q> = PowerSeriesRing(CC)
             sage: R
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q
@@ -1188,6 +1185,41 @@ cdef class PowerSeries_poly(PowerSeries):
         lead_u = resu_u.leading_coefficient()
         resu_u = resu_u / lead_u
         return lead_u / lead_v * resu_u / resu_v
+
+    def _symbolic_(self, ring):
+        """
+        Conversion to symbolic series.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(QQ)
+            sage: s = R([1,2,3,4,5],prec=10); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + O(x^10)
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4 + Order(x^10)
+            sage: SR(s).is_terminating_series()
+            False
+            sage: SR(s).variables()
+            (x,)
+            sage: s = R([1,2,3,4,5]); s
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: SR(s)
+            1 + 2*x + 3*x^2 + 4*x^3 + 5*x^4
+            sage: _.is_terminating_series()
+            True
+        """
+        from sage.symbolic.ring import SR
+        from sage.rings.infinity import PlusInfinity
+        poly = self.polynomial()
+        pex = SR(poly)
+        var = pex.variables()[0]
+        if not isinstance(self.prec(), PlusInfinity):
+            # GiNaC does not allow manual addition of bigoh,
+            # so we use a trick.
+            pex += var**(self.prec()+1)
+            return pex.series(var, self.prec())
+        else:
+            return pex.series(var, max(poly.exponents())+1)
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

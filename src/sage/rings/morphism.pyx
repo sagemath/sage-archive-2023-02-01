@@ -40,7 +40,7 @@ Reduction to finite field::
 
 Map from single variable polynomial ring::
 
-    sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+    sage: R.<x> = ZZ[]
     sage: phi = R.hom([2], GF(5))
     sage: phi
     Ring morphism:
@@ -352,7 +352,6 @@ TESTS::
 #*****************************************************************************
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/stdsage.pxi"
 
 import ideal
 
@@ -417,7 +416,7 @@ cdef class RingMap_lift(RingMap):
 
     EXAMPLES::
 
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+        sage: R.<x,y> = QQ[]
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
@@ -1153,7 +1152,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -1459,7 +1458,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -2114,7 +2113,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

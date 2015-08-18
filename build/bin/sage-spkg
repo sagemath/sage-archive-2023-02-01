@@ -57,6 +57,25 @@
 # Avoid surprises with character ranges [a-z] in regular expressions
 export LC_ALL=C
 
+usage()
+{
+cat <<EOF
+Usage: sage -i <options> <package name>
+
+If <package name> is a URL, download and install it. If it is a file
+name, install it. Otherwise, search Sage's list of packages (see
+'sage --package list') for a matching package, and if a match is
+found, install it.
+
+Options:
+   -f: force installation even if the package is already installed
+   -s: do not delete the temporary build directory
+   -c: after installing, run the test suite for the package
+   -d: only download the package
+
+EOF
+}
+
 # error_msg(header, command)
 # This is for printing an error message if something went wrong.
 # The first argument is the header to print, the second argument should
@@ -152,8 +171,8 @@ fi
 # Handle special command-line options
 ##################################################################
 if [ $# -eq 0 ]; then
-    echo "Currently installed packages:"
-    exec ls -1 "$SAGE_SPKG_INST"
+   usage
+   exit 0
 fi
 
 # Options have to come in a specific order,

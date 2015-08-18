@@ -526,9 +526,6 @@ cdef class Element(SageObject):
                 pass
         return res
 
-    def __hash__(self):
-        return hash(str(self))
-
     def _im_gens_(self, codomain, im_gens):
         """
         Return the image of ``self`` in codomain under the map that sends
@@ -963,6 +960,9 @@ cdef class Element(SageObject):
             if (<Element>left)._richcmp_(<Element>right, Py_GT):
                 return 1
             raise
+
+    def _cache_key(self):
+        return(self.parent(),str(self))
 
     cdef _richcmp(self, other, int op):
         """

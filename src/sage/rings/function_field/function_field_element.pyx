@@ -361,6 +361,9 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         """
         return not not self._x
 
+    def __hash__(self):
+        return hash(self._x)
+
     cpdef int _cmp_(self, Element other) except -2:
         """
         EXAMPLES::
@@ -562,6 +565,9 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
             True
         """
         return not not self._x
+
+    def __hash__(self):
+        return hash(self._x)
 
     cpdef int _cmp_(self, Element other) except -2:
         """

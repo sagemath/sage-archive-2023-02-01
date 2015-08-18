@@ -48,6 +48,7 @@ This module's functions are the following :
     :delim: |
 
     :func:`~is_twograph`         | returns True if the incidence system is a two-graph
+    :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
 Methods
 ---------
@@ -149,8 +150,8 @@ class TwoGraph(IncidenceStructure):
 
 
 def is_twograph(T):
-    """
-    True if the incidence system is a two-graph
+    r"""
+    True if the incidence system `T` is a two-graph
 
     EXAMPLES::
 
@@ -167,3 +168,42 @@ def is_twograph(T):
     return T.is_t_design(k=3) and \
         all(map(lambda f: is_even(sum(map(lambda x: frozenset(x) in B,  combinations(f, 3)))),
                     combinations(T.ground_set(), 4)))
+
+def twograph_descendant(G, v):
+    r"""
+    returns the descendant graph w.r.t. vertex `v` of the two-graph of `G`
+
+    In the :mod:`switching class <sage.combinat.designs.twographs>` of `G`,
+    construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph
+    `\Delta \setminus v`. It is equivalent to, although much faster than, computing the
+    :meth:`TwoGraph.descendant` of :meth:`two-graph of G <sage.graphs.graph.Graph.twograph>`, as the
+    intermediate two-graph is not constructed.
+
+    EXAMPLES:
+
+    one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
+
+        sage: from sage.combinat.designs.twographs import twograph_descendant
+        sage: A=graphs.strongly_regular_graph(280,135,70)
+        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True)
+        (279, 150, 85, 75)
+
+    TESTS::
+
+        sage: T8 = graphs.CompleteGraph(8).line_graph()
+        sage: v = T8.vertices()[0]
+        sage: twograph_descendant(T8, v)==T8.twograph().descendant(v)
+        True
+        sage: twograph_descendant(T8, v).is_strongly_regular(parameters=True)
+        (27, 16, 10, 8)
+    """
+    from sage.graphs.graph import Graph
+    Nv0 = G.neighbors(v)
+    Nv = frozenset(Nv0)
+    NonNv0 = filter(lambda x: not x in Nv and x != v, G.vertices())
+    NonNv = frozenset(NonNv0)
+    return Graph([Nv0+NonNv0, lambda i, j:
+                    (i in NonNv and j in NonNv    and     G.has_edge(i,j)) or
+                    (i in Nv    and j in Nv       and     G.has_edge(i,j)) or
+                    (i in Nv    and j in NonNv    and not G.has_edge(i,j)) or
+                    (j in Nv    and i in NonNv    and not G.has_edge(i,j))])

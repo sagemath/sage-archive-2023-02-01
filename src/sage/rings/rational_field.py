@@ -964,7 +964,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         OUTPUT:
 
-        An iterator of 100 elements of `\QQ`.
+        An iterator over 100 elements of `\QQ`.
 
         EXAMPLES::
 

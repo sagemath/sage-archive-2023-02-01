@@ -1335,6 +1335,21 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
         """
         return self._parent, (self._poly,)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: L.<w,z> = LaurentPolynomialRing(QQ)
+            sage: f = L({(-1,-1):1})
+            sage: hash(f)
+            1
+            sage: f = L({(1,1):1})
+            sage: hash(f)
+            -2021162459040316190  # 64-bit
+            -1148451614           # 32-bit
+        """
+        return hash(self._poly)
+
     cdef _new_c(self):
         """
         Returns a new Laurent polynomial

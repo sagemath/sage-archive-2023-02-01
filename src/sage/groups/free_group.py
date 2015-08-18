@@ -227,6 +227,9 @@ class FreeGroupElement(ElementLibGAP):
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
 
+    def __hash__(self):
+        return hash(self.Tietze())
+
     def _latex_(self):
         """
         Return a LaTeX representation

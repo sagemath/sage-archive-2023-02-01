@@ -618,8 +618,9 @@ def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
             if k == kf and \
                 strongly_regular_graph(v0+1, k, l0 - 2*mu0 + k , k - mu0,  existence=True):
                 def la(vv):
+                    from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l0 - 2*mu0 + k)
-                    return g.twograph_descendant(g.vertex_iterator().next())
+                    return twograph_descendant(g, g.vertex_iterator().next())
                 return(la, v0+1)
     return
 

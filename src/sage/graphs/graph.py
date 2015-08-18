@@ -18,11 +18,8 @@ graphs.
     :meth:`~Graph.graph6_string` | Returns the graph6 representation of the graph as an ASCII string.
     :meth:`~Graph.bipartite_sets` | Returns `(X,Y)` where X and Y are the nodes in each bipartite set of graph.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
-    :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
-    :meth:`~Graph.join` | Returns the join of self and other.
-    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
-    :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
-    :meth:`~Graph.twograph`  | Returns :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` of self.
+    :meth:`~Graph.is_directed` | If ``self`` is undirected, returns False.
+    :meth:`~Graph.join` | Returns the join of ``self`` and ``other``.
 
 
 **Distances:**
@@ -61,10 +58,10 @@ graphs.
     :meth:`~Graph.is_forest` | Return True if the graph is a forest, i.e. a disjoint union of trees.
     :meth:`~Graph.is_overfull` | Tests whether the current graph is overfull.
     :meth:`~Graph.odd_girth` | Returns the odd girth of ``self``.
-    :meth:`~Graph.is_edge_transitive` | Returns true if self is edge-transitive.
-    :meth:`~Graph.is_arc_transitive` | Returns true if self is arc-transitive.
-    :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
-    :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
+    :meth:`~Graph.is_edge_transitive` | Returns true if ``self`` is edge-transitive.
+    :meth:`~Graph.is_arc_transitive` | Returns true if ``self`` is arc-transitive.
+    :meth:`~Graph.is_half_transitive` | Returns true if ``self`` is a half-transitive graph.
+    :meth:`~Graph.is_semi_symmetric` | Returns true if ``self`` is a semi-symmetric graph.
 
 **Connectivity, orientations, trees:**
 
@@ -73,7 +70,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.gomory_hu_tree` | Returns a Gomory-Hu tree of self.
+    :meth:`~Graph.gomory_hu_tree` | Returns a Gomory-Hu tree of ``self``.
     :meth:`~Graph.minimum_outdegree_orientation` | Returns an orientation of ``self`` with the smallest possible maximum outdegree
     :meth:`~Graph.bounded_outdegree_orientation` | Computes an orientation of ``self`` such that every vertex `v` has out-degree less than `b(v)`
     :meth:`~Graph.strong_orientation` | Returns a strongly connected orientation of the current graph.
@@ -89,7 +86,7 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.clique_complex` | Returns the clique complex of self
+    :meth:`~Graph.clique_complex` | Returns the clique complex of ``self``
     :meth:`~Graph.cliques_containing_vertex` | Returns the cliques containing each vertex
     :meth:`~Graph.cliques_vertex_clique_number` | Returns a dictionary of sizes of the largest maximal cliques containing each vertex
     :meth:`~Graph.cliques_get_clique_bipartite` | Returns a bipartite graph constructed such that maximal cliques are the right vertices and the left vertices are retained from the given graph
@@ -142,6 +139,9 @@ graphs.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
     :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
+    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
+    :meth:`~Graph.seidel_adjacency_matrix` | Returns the Seidel adjacency matrix of ``self``.
+    :meth:`~Graph.twograph`  | Returns :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` of ``self``.
 
 AUTHORS:
 
@@ -683,7 +683,7 @@ class Graph(GenericGraph):
           Given this format, weighted is ignored (assumed True).
 
        -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
-          with 0s on the  diagonal, and the other entries -1 or 1, 
+          with 0s on the  diagonal, and the other entries -1 or 1,
           `M[i,j]=-1` indicating that {i,j} is an edge, otherwise `M[i,j]=1`.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
@@ -4941,7 +4941,7 @@ class Graph(GenericGraph):
 
     def join(self, other, verbose_relabel=None, labels="pairs"):
         """
-        Returns the join of self and other.
+        Returns the join of ``self`` and ``other``.
 
         INPUT:
 
@@ -5009,8 +5009,8 @@ class Graph(GenericGraph):
 
 
     def seidel_adjacency_matrix(self, vertices=None):
-        """
-        Returns the Seidel adjacency matrix of self.
+        r"""
+        Returns the Seidel adjacency matrix of ``self``.
 
         Returns `J-I-2A`, for `A` the (ordinary)
         :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
@@ -5034,7 +5034,7 @@ class Graph(GenericGraph):
             sage: G.seidel_adjacency_matrix().minpoly()
             x^2 - 5
         """
-        
+
         return -self.adjacency_matrix(sparse=False, vertices=vertices)+ \
                   self.complement().adjacency_matrix(sparse=False, \
                                             vertices=vertices)
@@ -5046,7 +5046,7 @@ class Graph(GenericGraph):
         Returns the graph obtained by Seidel switching of ``self``
         with respect to the subset of vertices ``s``. This is the graph
         given by Seidel adjacency matrix DSD, for S the Seidel
-        adjacency matrix of self, and D the diagonal matrix with -1s
+        adjacency matrix of ``self``, and D the diagonal matrix with -1s
         at positions corresponding to ``s``, and 1s elsewhere.
 
         INPUT:
@@ -5075,11 +5075,11 @@ class Graph(GenericGraph):
 
     def twograph(self):
         r"""
-        Returns the two-graph of self
+        Returns the two-graph of ``self``
 
         Returns the :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` with the triples
         `T=\{t \in \binom {V}{3} : \left| \binom {t}{2} \cap E \right| odd \}`
-        where `V` and `E` are vertices and edges of self, respectively.
+        where `V` and `E` are vertices and edges of ``self``, respectively.
 
 
         EXAMPLES::
@@ -5094,6 +5094,14 @@ class Graph(GenericGraph):
             True
             sage: T8.is_isomorphic(C)
             False
+
+        .. SEEALSO::
+
+            - :meth:`~sage.combinat.designs.twographs.TwoGraph.descendant`
+              -- computes the descendant graph of the two-graph of self at a vertex
+
+            - :func:`~sage.combinat.designs.twographs.twograph_descendant`
+              -- ditto, but much faster.
         """
         from sage.combinat.designs.twographs import TwoGraph
         from itertools import combinations
@@ -5102,37 +5110,6 @@ class Graph(GenericGraph):
         return TwoGraph(filter(lambda t:
                                   is_odd(sum([i in self.neighbors(j) for i,j in combinations(t, 2)])),
                                combinations(self.vertices(), 3)))
-
-    def twograph_descendant(self, v):
-        """
-        Returns the descendant graph w.r.t. vertex v of two-graph of self
-
-        :meth:`sage.combinat.designs.twographs.TwoGraph.descendant(v)` of :meth:`twograph()`, without constructing the intermediate two-graph.
-
-        EXAMPLES:
- 
-        one of s.r.g.'s from the database::
-
-            sage: A=graphs.strongly_regular_graph(280,135,70)
-            sage: A.twograph_descendant(0).is_strongly_regular(parameters=True)
-            (279, 150, 85, 75)
-        
-        TESTS::
-
-            sage: T8 = graphs.CompleteGraph(8).line_graph()
-            sage: v = T8.vertices()[0]
-            sage: T8.twograph_descendant(v)==T8.twograph().descendant(v)
-            True
-            sage: T8.twograph_descendant(v).is_strongly_regular(parameters=True)
-            (27, 16, 10, 8)
-        """
-        Nv = self.neighbors(v)
-        NonNv = filter(lambda x: not x in Nv and x != v, self.vertices())
-        return Graph([Nv+NonNv, lambda i, j: 
-                        (i in NonNv and j in NonNv    and     self.has_edge(i,j)) or
-                        (i in Nv    and j in Nv       and     self.has_edge(i,j)) or
-                        (i in Nv    and j in NonNv    and not self.has_edge(i,j)) or
-                        (j in Nv    and i in NonNv    and not self.has_edge(i,j))])
 
     ### Visualization
 

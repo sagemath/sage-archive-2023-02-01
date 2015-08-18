@@ -3,15 +3,15 @@ Two-graphs
 
 A two-graph on `n` points is a family `T \subset \binom {[n]}{3}`
 of `3`-sets, such that any `4`-set `S\subset [n]` of size four
-contains an even number of elements of `T`. Any graph `([n],E)` 
-gives rise to a two-graph 
+contains an even number of elements of `T`. Any graph `([n],E)`
+gives rise to a two-graph
 `T(E)=\{t \in \binom {[n]}{3} : \left| \binom {t}{2} \cap E \right|\ odd \}`,
 and any two graphs with the same two-graph can be obtained one
 from the other by :meth:`Seidel switching <Graph.seidel_switching>`.
-This defines an equivalence relation on the graphs on `[n]`, 
+This defines an equivalence relation on the graphs on `[n]`,
 called Seidel switching equivalence.
 Conversely, given a two-graph `T`, one can construct a graph
-`\Gamma` in the corresponding Seidel switching class with an 
+`\Gamma` in the corresponding Seidel switching class with an
 isolated vertex `w`. The graph `\Gamma \setminus w` is called
 the descendant of `T` w.r.t. `v`.
 
@@ -20,7 +20,7 @@ in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
 triples, constrution of descendant graphs, regularity checking, and other
-things such as constructing the complement two-graph, cf. [BH12]_. 
+things such as constructing the complement two-graph, cf. [BH12]_.
 
 AUTHORS:
 
@@ -48,6 +48,7 @@ This module's functions are the following :
     :delim: |
 
     :func:`~is_twograph`         | returns True if the incidence system is a two-graph
+    :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
 Methods
 ---------
@@ -111,12 +112,12 @@ class TwoGraph(IncidenceStructure):
 
         INPUT:
 
-            - ``v`` -- an element of ``self.ground_set()`` 
+            - ``v`` -- an element of ``self.ground_set()``
 
         OUTPUT:
 
             - the descendant :class:`graph <sage.graphs.graph.Graph>` at ``v``
- 
+
         EXAMPLES::
 
             sage: p=graphs.PetersenGraph().twograph().descendant(0)
@@ -149,8 +150,8 @@ class TwoGraph(IncidenceStructure):
 
 
 def is_twograph(T):
-    """
-    True if the incidence system is a two-graph
+    r"""
+    True if the incidence system `T` is a two-graph
 
     EXAMPLES::
 
@@ -167,3 +168,42 @@ def is_twograph(T):
     return T.is_t_design(k=3) and \
         all(map(lambda f: is_even(sum(map(lambda x: frozenset(x) in B,  combinations(f, 3)))),
                     combinations(T.ground_set(), 4)))
+
+def twograph_descendant(G, v):
+    r"""
+    returns the descendant graph w.r.t. vertex `v` of the two-graph of `G`
+
+    In the :mod:`switching class <sage.combinat.designs.twographs>` of `G`,
+    construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph
+    `\Delta \setminus v`. It is equivalent to, although much faster than, computing the
+    :meth:`TwoGraph.descendant` of :meth:`two-graph of G <sage.graphs.graph.Graph.twograph>`, as the
+    intermediate two-graph is not constructed.
+
+    EXAMPLES:
+
+    one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
+
+        sage: from sage.combinat.designs.twographs import twograph_descendant
+        sage: A=graphs.strongly_regular_graph(280,135,70)
+        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True)
+        (279, 150, 85, 75)
+
+    TESTS::
+
+        sage: T8 = graphs.CompleteGraph(8).line_graph()
+        sage: v = T8.vertices()[0]
+        sage: twograph_descendant(T8, v)==T8.twograph().descendant(v)
+        True
+        sage: twograph_descendant(T8, v).is_strongly_regular(parameters=True)
+        (27, 16, 10, 8)
+    """
+    from sage.graphs.graph import Graph
+    Nv0 = G.neighbors(v)
+    Nv = frozenset(Nv0)
+    NonNv0 = filter(lambda x: not x in Nv and x != v, G.vertices())
+    NonNv = frozenset(NonNv0)
+    return Graph([Nv0+NonNv0, lambda i, j:
+                    (i in NonNv and j in NonNv    and     G.has_edge(i,j)) or
+                    (i in Nv    and j in Nv       and     G.has_edge(i,j)) or
+                    (i in Nv    and j in NonNv    and not G.has_edge(i,j)) or
+                    (j in Nv    and i in NonNv    and not G.has_edge(i,j))])

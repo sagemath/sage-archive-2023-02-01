@@ -684,7 +684,7 @@ class Graph(GenericGraph):
           Given this format, weighted is ignored (assumed True).
 
        -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
-          with 0s on the  diagonal, and the other entries -1 or 1, 
+          with 0s on the  diagonal, and the other entries -1 or 1,
           `M[i,j]=-1` indicating that {i,j} is an edge, otherwise `M[i,j]=1`.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
@@ -5010,7 +5010,7 @@ class Graph(GenericGraph):
 
 
     def seidel_adjacency_matrix(self, vertices=None):
-        """
+        r"""
         Returns the Seidel adjacency matrix of self.
 
         Returns `J-I-2A`, for `A` the (ordinary)
@@ -5035,7 +5035,7 @@ class Graph(GenericGraph):
             sage: G.seidel_adjacency_matrix().minpoly()
             x^2 - 5
         """
-        
+
         return -self.adjacency_matrix(sparse=False, vertices=vertices)+ \
                   self.complement().adjacency_matrix(sparse=False, \
                                             vertices=vertices)
@@ -5115,13 +5115,13 @@ class Graph(GenericGraph):
         intermediate two-graph is not constructed.
 
         EXAMPLES:
- 
+
         one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
 
             sage: A=graphs.strongly_regular_graph(280,135,70)
             sage: A.twograph_descendant(0).is_strongly_regular(parameters=True)
             (279, 150, 85, 75)
-        
+
         TESTS::
 
             sage: T8 = graphs.CompleteGraph(8).line_graph()
@@ -5135,7 +5135,7 @@ class Graph(GenericGraph):
         Nv = frozenset(Nv0)
         NonNv0 = filter(lambda x: not x in Nv and x != v, self.vertices())
         NonNv = frozenset(NonNv0)
-        return Graph([Nv0+NonNv0, lambda i, j: 
+        return Graph([Nv0+NonNv0, lambda i, j:
                         (i in NonNv and j in NonNv    and     self.has_edge(i,j)) or
                         (i in Nv    and j in Nv       and     self.has_edge(i,j)) or
                         (i in Nv    and j in NonNv    and not self.has_edge(i,j)) or

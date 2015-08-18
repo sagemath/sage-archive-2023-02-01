@@ -3,15 +3,15 @@ Two-graphs
 
 A two-graph on `n` points is a family `T \subset \binom {[n]}{3}`
 of `3`-sets, such that any `4`-set `S\subset [n]` of size four
-contains an even number of elements of `T`. Any graph `([n],E)` 
-gives rise to a two-graph 
+contains an even number of elements of `T`. Any graph `([n],E)`
+gives rise to a two-graph
 `T(E)=\{t \in \binom {[n]}{3} : \left| \binom {t}{2} \cap E \right|\ odd \}`,
 and any two graphs with the same two-graph can be obtained one
 from the other by :meth:`Seidel switching <Graph.seidel_switching>`.
-This defines an equivalence relation on the graphs on `[n]`, 
+This defines an equivalence relation on the graphs on `[n]`,
 called Seidel switching equivalence.
 Conversely, given a two-graph `T`, one can construct a graph
-`\Gamma` in the corresponding Seidel switching class with an 
+`\Gamma` in the corresponding Seidel switching class with an
 isolated vertex `w`. The graph `\Gamma \setminus w` is called
 the descendant of `T` w.r.t. `v`.
 
@@ -20,7 +20,7 @@ in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
 triples, constrution of descendant graphs, regularity checking, and other
-things such as constructing the complement two-graph, cf. [BH12]_. 
+things such as constructing the complement two-graph, cf. [BH12]_.
 
 AUTHORS:
 
@@ -111,12 +111,12 @@ class TwoGraph(IncidenceStructure):
 
         INPUT:
 
-            - ``v`` -- an element of ``self.ground_set()`` 
+            - ``v`` -- an element of ``self.ground_set()``
 
         OUTPUT:
 
             - the descendant :class:`graph <sage.graphs.graph.Graph>` at ``v``
- 
+
         EXAMPLES::
 
             sage: p=graphs.PetersenGraph().twograph().descendant(0)

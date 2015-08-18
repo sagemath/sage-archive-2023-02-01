@@ -478,12 +478,12 @@ def chang_graphs():
         sage: from itertools import combinations
         sage: for g1,g2 in combinations(four_srg,2):
         ....:     assert not g1.is_isomorphic(g2)
-    
+
     Construct the Chang graphs by Seidel switching::
 
         sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
         sage: c8=graphs.CycleGraph(8)
-        sage: s=[K8.subgraph_search(c8).edges(), 
+        sage: s=[K8.subgraph_search(c8).edges(),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
         ....:    K8.subgraph_search(c3c5).edges()]
         sage: map(lambda x,G: T8.seidel_switching(x).is_isomorphic(G),

@@ -3219,13 +3219,21 @@ class NumberField_generic(number_field_base.NumberField):
 
     def pari_polynomial(self, name='x'):
         """
-        PARI polynomial with integer coefficients corresponding to the
-        polynomial that defines this number field.
+        Return the PARI polynomial corresponding to this number field.
 
-        By default, this is a polynomial in the variable "x".  PARI
-        prefers integral polynomials, so we clear the denominator.
-        Therefore, this is NOT the same as simply converting the defining
-        polynomial to PARI.
+        INPUT:
+
+        - ``name`` -- variable name (default: ``'x'``)
+
+        OUTPUT:
+
+        A polynomial with integral coefficients (PARI ``t_POL``)
+        defining the PARI number field corresponding to ``self``.
+
+        .. WARNING::
+
+            This is *not* the same as simply converting the defining
+            polynomial to PARI.
 
         EXAMPLES::
 
@@ -3237,6 +3245,25 @@ class NumberField_generic(number_field_base.NumberField):
             x^2 - 3/2*x + 5/3
             sage: k.pari_polynomial('a')
             6*a^2 - 9*a + 10
+
+        Some examples with relative number fields::
+
+            sage: k.<a, c> = NumberField([x^2 + 3, x^2 + 1])
+            sage: k.pari_polynomial()
+            x^4 + 8*x^2 + 4
+            sage: k.pari_polynomial('a')
+            a^4 + 8*a^2 + 4
+            sage: k.absolute_polynomial()
+            x^4 + 8*x^2 + 4
+            sage: k.relative_polynomial()
+            x^2 + 3
+
+            sage: k.<a, c> = NumberField([x^2 + 1/3, x^2 + 1/4])
+            doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
+            sage: k.pari_polynomial()
+            144*x^4 + 168*x^2 + 1
+            sage: k.absolute_polynomial()
+            x^4 + 7/6*x^2 + 1/144
 
         This fails with arguments which are not a valid PARI variable name::
 
@@ -3255,7 +3282,7 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            polypari = self.polynomial()._pari_with_name(name)
+            polypari = self.absolute_polynomial()._pari_with_name(name)
             polypari /= polypari.content()   # make polypari integral
             self._pari_polynomial = polypari
             return self._pari_polynomial

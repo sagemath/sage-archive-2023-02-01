@@ -443,7 +443,7 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
 @cached_function
 def is_unitary_polar(int v,int k,int l,int mu):
     r"""
-    Test whether some Orthogonal Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some Unitary Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
 
@@ -458,63 +458,113 @@ def is_unitary_polar(int v,int k,int l,int mu):
 
     EXAMPLES::
 
-        sage: from sage.graphs.strongly_regular_db import is_orthogonal_polar
-        sage: t = is_orthogonal_polar(85, 20, 3, 5); t
-        (<function OrthogonalPolarGraph at ...>, 5, 4, '')
+        sage: from sage.graphs.strongly_regular_db import is_unitary_polar
+        sage: t = is_unitary_polar(45, 12, 3, 3); t
+        (<function UnitaryPolarGraph at ...>, 4, 2)
         sage: g = t[0](*t[1:]); g
-        Orthogonal Polar Graph O(5, 4): Graph on 85 vertices
+        Unitary Polar Graph U(4, 2); GQ(4, 2): Graph on 45 vertices
         sage: g.is_strongly_regular(parameters=True)
-        (85, 20, 3, 5)
+        (45, 12, 3, 3)
 
-        sage: t = is_orthogonal_polar(5,5,5,5); t
+        sage: t = is_unitary_polar(5,5,5,5); t
 
     TESTS:
 
-    All of ``O(2m+1,q)``, ``O^+(2m,q)`` and ``O^-(2m,q)`` appear::
+    All the ``U(n,q)`` appear::
 
-        sage: is_orthogonal_polar(85, 20, 3, 5)
-        (<function OrthogonalPolarGraph at ...>, 5, 4, '')
-        sage: is_orthogonal_polar(119,54,21,27)
-        (<function OrthogonalPolarGraph at ...>, 8, 2, '-')
-        sage: is_orthogonal_polar(130,48,20,16)
-        (<function OrthogonalPolarGraph at ...>, 6, 3, '+')
-
+        sage: t = is_unitary_polar(45, 12, 3, 3); t
+        (<function UnitaryPolarGraph at ...>, 4, 2)
+        sage: t = is_unitary_polar(165, 36, 3, 9); t
+        (<function UnitaryPolarGraph at ...>, 5, 2)
+        sage: t = is_unitary_polar(693, 180, 51, 45); t
+        (<function UnitaryPolarGraph at ...>, 6, 2)
+        sage: t = is_unitary_polar(1105, 80, 15, 5); t
+        (<function UnitaryPolarGraph at ...>, 4, 4)
     """
-    from sage.rings.arith import divisors
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
         return
-    q_pow_m_minus_one = -s-1 if abs(s) > r else r+1
+    q = k/mu
+    if q*mu != k or q < 2:
+        return
+    p,t = is_prime_power(q, get_data=True)
+    if p**t != q or t % 2 != 0:
+        return
+    # at this point we know that we should have U(n,q) for some n and q=p^t, t even
+    if r > 0:
+        q_pow_d_minus_one = r+1
+    else:
+        q_pow_d_minus_one = -s-1
+    ppp,ttt = is_prime_power(q_pow_d_minus_one, get_data=True)
+    d = ttt/t + 1
+    if ppp != p or (d-1)*t != ttt:
+        return
+    t /= 2
+    # U(2d+1,q); write q^(1/2) as p^t
+    if (v == (q**d - 1)*((q**d)*p**t + 1)/(q - 1)               and
+        k == q*(q**(d-1) - 1)*((q**d)/(p**t) + 1)/(q - 1)       and
+        l == q*q*(q**(d-2)-1)*((q**(d-1))/(p**t) + 1)/(q - 1) + q - 1):
+        from sage.graphs.generators.families import UnitaryPolarGraph
+        return (UnitaryPolarGraph, 2*d+1, p**t)
 
-    if is_prime_power(q_pow_m_minus_one):
-        prime,power = is_prime_power(q_pow_m_minus_one,get_data=True)
-        for d in divisors(power):
-            q = prime**d
-            m = (power//d)+1
+    # U(2d,q);
+    if (v == (q**d - 1)*((q**d)/(p**t) + 1)/(q - 1)             and
+        k == q*(q**(d-1) - 1)*((q**(d-1))/(p**t) + 1)/(q - 1)   and
+        l == q*q*(q**(d-2)-1)*((q**(d-2))/(p**t) + 1)/(q - 1) + q - 1):
+        from sage.graphs.generators.families import UnitaryPolarGraph
+        return (UnitaryPolarGraph, 2*d, p**t)
 
-            # O(2m+1,q)
-            if (v == (q**(2*m)-1)/(q-1)              and
-                k == q*(q**(2*m-2)-1)/(q-1)          and
-                l == q**2*(q**(2*m-4)-1)/(q-1) + q-1 and
-                mu== (q**(2*m-2)-1)/(q-1)):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
-                return (OrthogonalPolarGraph, 2*m+1, q, "")
+@cached_function
+def is_unitary_dual_polar(int v,int k,int l,int mu):
+    r"""
+    Test whether some Unitary Dual Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-            # O^+(2m,q)
-            if (v ==   (q**(2*m-1)-1)/(q-1) + q**(m-1)   and
-                k == q*(q**(2*m-3)-1)/(q-1) + q**(m-1) and
-                k == q**(2*m-3) + l + 1                  and
-                mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
-                return (OrthogonalPolarGraph, 2*m, q, "+")
+    This must be the U_5(q) on totally isotropic lines.
+    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
 
-            # O^+(2m+1,q)
-            if (v ==   (q**(2*m-1)-1)/(q-1) - q**(m-1)   and
-                k == q*(q**(2*m-3)-1)/(q-1) - q**(m-1) and
-                k == q**(2*m-3) + l + 1                  and
-                mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
-                return (OrthogonalPolarGraph, 2*m, q, "-")
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_unitary_dual_polar
+        sage: t = is_unitary_dual_polar(297, 40, 7, 5); t
+        (<function UnitaryDualPolarGraph at ...>, 5, 2)
+        sage: g = t[0](*t[1:]); g
+        Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (297, 40, 7, 5)
+        sage: t = is_unitary_dual_polar(5,5,5,5); t
+
+    TESTS::
+
+        sage: is_unitary_dual_polar(6832, 270, 26, 10)
+        (<function UnitaryDualPolarGraph at ...>, 5, 3)
+    """
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    q = mu - 1
+    if q < 2:
+        return
+    p,t = is_prime_power(q, get_data=True)
+    if p**t != q or t % 2 != 0:
+        return
+    if (r < 0 and q != -r - 1) or (s < 0 and q != -s - 1):
+       return
+    t /= 2
+    # we have correct mu, negative eigenvalue, and q=p^(2t)
+    if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
+        k == q*p**t*(q + 1)                and
+        l == k - 1 - q**2*p**t):
+        from sage.graphs.generators.families import UnitaryDualPolarGraph
+        return (UnitaryDualPolarGraph, 5, p**t)
 
 @cached_function
 def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
@@ -1545,6 +1595,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar,
+                      is_unitary_polar,
+                      is_unitary_dual_polar,
                       is_RSHCD,
                       is_two_graph_descendant_of_srg]
 

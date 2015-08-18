@@ -2278,13 +2278,13 @@ def RingedTree(k, vertex_labels = True):
 
 def SymplecticGraph(d,q,algorithm=None):
     r"""
-    Returns the Symplectic graph `Sp(d,q)`
+    Returns the Symplectic graph `Sp(d,q)`.
 
     The Symplectic Graph `Sp(d,q)` is built from a projective space of dimension
     `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
     made adjacent if `f(u,v)=0`.
 
-    See the `page on symplectic graphs on Andries Brouwer's website
+    See the page `on symplectic graphs on Andries Brouwer's website
     <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
 
     INPUT:
@@ -2293,7 +2293,7 @@ def SymplecticGraph(d,q,algorithm=None):
       the function.
 
     - ``algorithm`` -- if set to "gap" then the computation is carried via GAP
-      library interface, computing totally singilar subspace, which is faster for q>3.
+      library interface, computing totally singilar subspace, which is faster for `q>3`.
       Otherwise it is done directly.
 
     EXAMPLES:
@@ -2322,6 +2322,7 @@ def SymplecticGraph(d,q,algorithm=None):
 
         sage: graphs.SymplecticGraph(6,4,algorithm="gap").is_strongly_regular(parameters=True) # long time
         (1365, 340, 83, 85)
+
     """
     if algorithm != "gap":  # faster for small (q<4) fields
         from sage.rings.finite_rings.constructor import FiniteField
@@ -2373,7 +2374,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
 
-    - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
+    - ``sign`` -- must be equal to ``"+"``, ``"-"``, or ``None`` to compute
       (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
       ``sign="+"``.
 
@@ -2564,7 +2565,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     r"""
     Returns the Unitary Polar Graph `U(m,q)`.
 
-    For more information on Unitary Polar graphs, see see the `page of
+    For more information on Unitary Polar graphs, see the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
@@ -2608,7 +2609,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q))
 
     G.relabel()
-    G.name("Unitary Polar Graph O" + str((m, q)))
+    G.name("Unitary Polar Graph U" + str((m, q)))
     if m==4:
         G.name(G.name()+'; GQ'+str((q**2,q)))
     if m==5:
@@ -2620,7 +2621,7 @@ def UnitaryDualPolarGraph(m, q):
     r"""
     Returns the Dual Unitary Polar Graph `U(m,q)`.
 
-    For more information on Unitary Dual Polar graphs, see...
+    For more information on Unitary Dual Polar graphs, see [BCN89]_.
 
     INPUT:
 
@@ -2654,7 +2655,7 @@ def UnitaryDualPolarGraph(m, q):
     G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
             intersection_size=(q**(2*(m//2-1))-1)/(q**2-1))
     G.relabel()
-    G.name("Unitary Dual Polar Graph O" + str((m, q)))
+    G.name("Unitary Dual Polar Graph DU" + str((m, q)))
     if m==4:
         G.name(G.name()+'; GQ'+str((q,q**2)))
     if m==5:
@@ -2664,10 +2665,9 @@ def UnitaryDualPolarGraph(m, q):
 
 def SymplecticDualPolarGraph(m, q):
     r"""
-    Returns the Symplectic Polar Graph `Sp(m,q)`.
+    Returns the Symplectic Dual Polar Graph `DSp(m,q)`.
 
-    For more information on Symplectic Polar graphs, see see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    For more information on Symplectic Dual Polar graphs, see [BCN89]_.
 
     INPUT:
 
@@ -2692,7 +2692,7 @@ def SymplecticDualPolarGraph(m, q):
              intersection_size=(q**(m/2-1)-1)/(q-1))
 
     G.relabel()
-    G.name("Symplectic Polar Graph O" + str((m, q)))
+    G.name("Symplectic Dual Polar Graph DSp" + str((m, q)))
     if m==4:
         G.name(G.name()+'; GQ'+str((q,q)))
     return G

@@ -183,7 +183,7 @@ with C arguments).
 include "sage/data_structures/bitset.pxi"
 cimport cpython
 from libc.string cimport memset
-from libc.stdint cimport INT32_MAX
+from libc.limits cimport INT_MAX
 from sage.graphs.base.c_graph cimport CGraph
 from static_sparse_backend cimport StaticSparseCGraph
 from static_sparse_backend cimport StaticSparseBackend
@@ -200,8 +200,8 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1
     """
     g.edge_labels = NULL
 
-    if G.order() >= INT32_MAX:
-        raise ValueError("This structure can handle at most "+str(INT32_MAX)+" vertices !")
+    if G.order() >= INT_MAX:
+        raise ValueError("This structure can handle at most "+str(INT_MAX)+" vertices !")
     else:
         g.n = G.order()
 

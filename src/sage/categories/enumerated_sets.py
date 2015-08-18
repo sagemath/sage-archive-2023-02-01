@@ -257,7 +257,7 @@ class EnumeratedSets(Category_singleton):
 
         def list(self):
             """
-            Returns an error since the cardinality of self is not known.
+            Return an error since the cardinality of self is not known.
 
             EXAMPLES::
 
@@ -536,7 +536,7 @@ class EnumeratedSets(Category_singleton):
 
         def random_element(self):
             """
-            Returns a random element in ``self``.
+            Return a random element in ``self``.
 
             Unless otherwise stated, and for finite enumerated sets,
             the probability is uniform.
@@ -560,7 +560,7 @@ class EnumeratedSets(Category_singleton):
 
         def map(self, f, name=None):
             r"""
-            Returns the image `\{f(x) | x \in \text{self}\}` of this
+            Return the image `\{f(x) | x \in \text{self}\}` of this
             enumerated set by `f`, as an enumerated set.
 
             `f` is supposed to be injective.
@@ -695,7 +695,7 @@ class EnumeratedSets(Category_singleton):
 
         def rank(self):
             """
-            Returns the rank of ``self`` in its parent.
+            Return the rank of ``self`` in its parent.
 
             See also :meth:`EnumeratedSets.ElementMethods.rank`
 

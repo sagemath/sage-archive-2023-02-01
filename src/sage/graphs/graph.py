@@ -20,9 +20,6 @@ graphs.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
     :meth:`~Graph.join` | Returns the join of self and other.
-    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
-    :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
-    :meth:`~Graph.twograph`  | Returns :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` of self.
 
 
 **Distances:**
@@ -142,6 +139,10 @@ graphs.
     :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
     :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
+    :meth:`~Graph.seidel_switching` | Returns Seidel switching w.r.t. a subset of vertices.
+    :meth:`~Graph.seidel_adjacency_matrix` | Returns Seidel adjacency matrix of self.
+    :meth:`~Graph.twograph`  | Returns :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` of self.
+    :meth:`~Graph.twograph_descendant`  | Returns the descendant graph w.r.t. vertex v of two-graph of self
 
 AUTHORS:
 
@@ -5104,14 +5105,18 @@ class Graph(GenericGraph):
                                combinations(self.vertices(), 3)))
 
     def twograph_descendant(self, v):
-        """
+        r"""
         Returns the descendant graph w.r.t. vertex v of two-graph of self
 
-        :meth:`sage.combinat.designs.twographs.TwoGraph.descendant(v)` of :meth:`twograph()`, without constructing the intermediate two-graph.
+        In the :mod:`Seidel switching class <sage.combinat.designs.twographs>` of self,
+        construct a graph `\Delta` with `v` an isolated vertex, and return the subgraph
+        `\Delta \setminus v`. It is equivalent, although much faster, to
+        :meth:`sage.combinat.designs.twographs.TwoGraph.descendant` of :meth:`twograph`, as the
+        intermediate two-graph is not constructed.
 
         EXAMPLES:
  
-        one of s.r.g.'s from the database::
+        one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
 
             sage: A=graphs.strongly_regular_graph(280,135,70)
             sage: A.twograph_descendant(0).is_strongly_regular(parameters=True)

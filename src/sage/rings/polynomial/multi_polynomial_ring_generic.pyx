@@ -919,7 +919,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: R.monomial(*m.degrees()) == m
             True
         """
-        return self({exponents:self.basering().one()})
+        return self({exponents:self.base_ring().one()})
 
     def _macaulay_resultant_getS(self,mon_deg_tuple,dlist):
         r"""

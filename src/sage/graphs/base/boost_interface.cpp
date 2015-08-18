@@ -9,6 +9,9 @@
 #include <boost/graph/king_ordering.hpp>
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include <boost/graph/prim_minimum_spanning_tree.hpp>
+#include <boost/graph/bellman_ford_shortest_paths.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/johnson_all_pairs_shortest.hpp>
 
 #include <iostream>
 
@@ -26,12 +29,18 @@ typedef struct {
                        // {(1,2),(3,4)}, the output vector will be (1,2,3,4).
 } result_ec;
 
-
 // This struct is the output of the clustering coefficient Boost algorithm.
 typedef struct {
     double average_clustering_coefficient; // The average clustering coefficient
     vector<double> clust_of_v;             // The clustering coefficient of each node.
 } result_cc;
+
+// This struct is the output of the edge connectivity Boost algorithm.
+typedef struct {
+    vector<double> distances; // An array with all distances from the starting vertex
+    vector<v_index> predecessors; // For each vertex v, the first vertex in a shortest
+                                  // path from the starting vertex to v.
+} result_distances;
 
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
@@ -186,6 +195,64 @@ public:
         }
         return to_return;
     }
+
+    result_distances dijkstra_shortest_paths(v_index s) {
+         v_index N = num_verts();
+         result_distances to_return;
+         vector<double> distances(N, (std::numeric_limits < double >::max)());
+         vector<vertex_descriptor> predecessors(N);
+         try {
+             boost::dijkstra_shortest_paths(*graph, (*vertices)[s], distance_map(make_iterator_property_map(distances.begin(), index))
+                                            .predecessor_map(make_iterator_property_map(predecessors.begin(), index)));
+         } catch (boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::negative_edge> > e) {
+             return to_return;
+         }
+
+         to_return.distances = distances;
+
+         for (int i = 0; i < N; i++) {
+             to_return.predecessors.push_back(index[predecessors[i]]);
+         }
+
+         return to_return;
+     }
+
+     result_distances bellman_ford_shortest_paths(v_index s) {
+         v_index N = num_verts();
+
+         std::vector<double> distance(N, (std::numeric_limits < double >::max)());
+         std::vector<vertex_descriptor> predecessors(N);
+         result_distances to_return;
+         typename property_map<adjacency_list, edge_weight_t>::type weight = get(edge_weight, (*graph));
+
+         for (v_index i = 0; i < N; ++i)
+             predecessors[i] = (*vertices)[i];
+
+         distance[s] = 0;
+         bool r = boost::bellman_ford_shortest_paths
+                 (*graph, N, weight_map(weight).distance_map(make_iterator_property_map(distance.begin(), index)).predecessor_map(make_iterator_property_map(predecessors.begin(), index)));
+
+         if (!r) {
+             return to_return;
+         }
+
+         to_return.distances = distance;
+         for (int i = 0; i < N; i++) {
+             to_return.predecessors.push_back(index[predecessors[i]]);
+         }
+         return to_return;
+     }
+
+     vector< vector<double> > johnson_shortest_paths() {
+         v_index N = num_verts();
+
+         vector< vector<double> > D(N, vector<double>(N));
+         if (johnson_all_pairs_shortest_paths(*graph, D)) {
+             return D;
+         } else {
+             return vector< vector<double> >();
+         }
+     }
 };
 
 

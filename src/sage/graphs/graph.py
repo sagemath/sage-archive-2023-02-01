@@ -340,6 +340,13 @@ examples are covered here.
        sage: g
        Graph on 5 vertices
 
+-  an igraph Graph::
+
+       sage: import igraph                                # optional - python_igraph
+       sage: g = Graph(igraph.Graph([(1,3),(3,2),(0,2)])) # optional - python_igraph
+       sage: g                                            # optional - python_igraph
+       Graph on 4 vertices
+
 Generators
 ----------
 
@@ -625,11 +632,13 @@ class Graph(GenericGraph):
 
       #.  A Sage adjacency matrix or incidence matrix
 
-      #.  A Sage Seidel adjacency matrix
+      #.  A Sage :meth:`Seidel adjacency matrix <seidel_adjacency_matrix>`
 
       #.  A pygraphviz graph
 
       #.  A NetworkX graph
+
+      #.  An igraph graph (see http://igraph.org/python/)
 
     -  ``pos`` -  a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -675,7 +684,7 @@ class Graph(GenericGraph):
 
        -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
           with 0s on the  diagonal, and the other entries -1 or 1, 
-          M[i,j]=-1 indicating that (i,j) is an edge, otherwise M[i,j]=1.
+          `M[i,j]=-1` indicating that {i,j} is an edge, otherwise `M[i,j]=1`.
 
        -  ``'incidence_matrix'`` - a Sage matrix, with one
           column C for each edge, where if C represents {i, j}, C[i] is -1
@@ -696,6 +705,8 @@ class Graph(GenericGraph):
                behaviour can be overruled by setting the keyword
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
+
+       - ``igraph`` - data must be an `igraph <http://igraph.org/>`__ graph.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -936,8 +947,6 @@ class Graph(GenericGraph):
           sage: g
           Graph on 5 vertices
 
-          ::
-
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
@@ -958,6 +967,30 @@ class Graph(GenericGraph):
            sage: g = networkx.Graph({0:[1,2,3], 2:[4]})
            sage: DiGraph(g)
            Digraph on 5 vertices
+
+    #. An igraph Graph (see also
+       :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
+
+           sage: import igraph                   # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)]) # optional - python_igraph
+           sage: Graph(g)                        # optional - python_igraph
+           Graph on 3 vertices
+
+       If ``vertex_labels`` is ``True``, the names of the vertices are given by
+       the vertex attribute ``'name'``, if available::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           ['a', 'b', 'c']
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           [0, 1, 2]
+
+       If the igraph Graph has edge attributes, they are used as edge labels::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
+           sage: Graph(g).edges()                                                               # optional - python_igraph
+           [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
     By default, graphs are mutable and can thus not be used as a dictionary
     key::
@@ -985,6 +1018,12 @@ class Graph(GenericGraph):
         Traceback (most recent call last):
         ...
         ValueError: Unknown input format 'HeyHeyHey'
+
+        sage: Graph(igraph.Graph(directed=True)) # optional - python_igraph
+        Traceback (most recent call last):
+        ...
+        ValueError: An *undirected* igraph graph was expected. To build an directed graph, call the DiGraph constructor.
+
     """
     _directed = False
 
@@ -1164,9 +1203,20 @@ class Graph(GenericGraph):
             import networkx
             if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 data = data.to_undirected()
-                format = 'NX'
             elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
+
+        if (format is None          and
+            hasattr(data, 'vcount') and
+            hasattr(data, 'get_edgelist')):
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The data seems to be a igraph object, but "+
+                                  "igraph is not installed in Sage. To install "+
+                                  "it, run 'sage -i python_igraph'")
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -1411,6 +1461,19 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            if data.is_directed():
+                raise ValueError("An *undirected* igraph graph was expected. "+
+                                 "To build an directed graph, call the DiGraph "+
+                                 "constructor.")
+
+            self.add_vertices(range(data.vcount()))
+            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+
+            if vertex_labels and 'name' in data.vertex_attributes():
+                vs = data.vs()
+                self.relabel({v:vs[v]['name'] for v in self})
+
         elif format == 'rule':
             f = data[1]
             verts = data[0]
@@ -2439,6 +2502,7 @@ class Graph(GenericGraph):
             ...          print "That's not good!"
 
         Asking for an unknown algorithm::
+
             sage: g.is_triangle_free(algorithm='tip top')
             Traceback (most recent call last):
             ...
@@ -4948,15 +5012,13 @@ class Graph(GenericGraph):
         """
         Returns the Seidel adjacency matrix of self.
 
-        Returns the Seidel adjacency matrix of the graph. 
-        For `A` the (ordinary) adjacency matrix of ``self``, 
-        i.e. :meth:`GenericGraph.adjacency_matrix`, 
-        `I` the identity matrix, and `J` the all-1 matrix 
-        is given by `J-I-2A`. It is closely related to twographs, 
-        see :meth:`twograph`.
+        Returns `J-I-2A`, for `A` the (ordinary)
+        :meth:`adjacency matrix <GenericGraph.adjacency_matrix>` of ``self``,
+        `I` the identity matrix, and `J` the all-1 matrix.
+        It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either the change_ring function or the matrix
+        desired, use either :meth:`sage.matrix.change_ring` method or :func:`matrix`
         function.
 
         INPUT:
@@ -5006,18 +5068,17 @@ class Graph(GenericGraph):
             True
         """
         from itertools import product
-        from copy import deepcopy
-        H = deepcopy(self)
+        H = copy(self)
         H.add_edges(product(s, set(self).difference(s)))
         H.delete_edges(self.edge_boundary(s))
         return H
 
     def twograph(self):
-        """
+        r"""
         Returns the two-graph of self
 
-        Returns the two-graph with the triples
-        `T=\{t \in \binom {V}{3} : | \binom {t}{2} \cap E | odd \}`
+        Returns the :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` with the triples
+        `T=\{t \in \binom {V}{3} : \left| \binom {t}{2} \cap E \right| odd \}`
         where `V` and `E` are vertices and edges of self, respectively.
 
 
@@ -5046,7 +5107,7 @@ class Graph(GenericGraph):
         """
         Returns the descendant graph w.r.t. vertex v of two-graph of self
 
-        self.twograph().descendant(v) without constructing the intermediate two-graph.
+        :meth:`sage.combinat.designs.twographs.TwoGraph.descendant(v)` of :meth:`twograph()`, without constructing the intermediate two-graph.
 
         EXAMPLES:
  
@@ -5068,10 +5129,10 @@ class Graph(GenericGraph):
         Nv = self.neighbors(v)
         NonNv = filter(lambda x: not x in Nv and x != v, self.vertices())
         return Graph([Nv+NonNv, lambda i, j: 
-                        (i in NonNv and j in NonNv    and     i in self.neighbors(j)) or
-                        (i in Nv    and j in Nv       and     i in self.neighbors(j)) or
-                        (i in Nv    and j in NonNv    and not i in self.neighbors(j)) or
-                        (j in Nv    and i in NonNv    and not i in self.neighbors(j))])
+                        (i in NonNv and j in NonNv    and     self.has_edge(i,j)) or
+                        (i in Nv    and j in Nv       and     self.has_edge(i,j)) or
+                        (i in Nv    and j in NonNv    and not self.has_edge(i,j)) or
+                        (j in Nv    and i in NonNv    and not self.has_edge(i,j))])
 
     ### Visualization
 

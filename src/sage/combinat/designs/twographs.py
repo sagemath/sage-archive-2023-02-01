@@ -5,9 +5,9 @@ A two-graph on `n` points is a family `T \subset \binom {[n]}{3}`
 of `3`-sets, such that any `4`-set `S\subset [n]` of size four
 contains an even number of elements of `T`. Any graph `([n],E)` 
 gives rise to a two-graph 
-`T(E)=\{t \in \binom {[n]}{3} : | \binom {t}{2} \cap E | odd \}`, 
+`T(E)=\{t \in \binom {[n]}{3} : \left| \binom {t}{2} \cap E \right|\ odd \}`,
 and any two graphs with the same two-graph can be obtained one
-from the other by :meth:`Seidel switching <sage.graphs.Graph.seidel_switching>`.
+from the other by :meth:`Seidel switching <Graph.seidel_switching>`.
 This defines an equivalence relation on the graphs on `[n]`, 
 called Seidel switching equivalence.
 Conversely, given a two-graph `T`, one can construct a graph
@@ -20,14 +20,7 @@ in the same number alpha of triples of `T`.
 
 This module implements a direct construction of a two-graph from a list of
 triples, constrution of descendant graphs, regularity checking, and other
-things such as constructing the complement two-graph.
-
-REFERENCES:
-
-.. [BH12] A. E. Brouwer, W. H. Haemers, 
-  Spectra of Graphs,
-  Springer, 2012
-  http://dx.doi.org/10.1007/978-1-4614-1939-6
+things such as constructing the complement two-graph, cf. [BH12]_. 
 
 AUTHORS:
 
@@ -43,7 +36,7 @@ This module's methods are the following :
     :widths: 30, 70
     :delim: |
 
-    :meth:`~TwoGraph.is_regular` | returns True if the inc. system is regular twograph
+    :meth:`~TwoGraph.is_regular_twograph` | returns True if the inc. system is regular twograph
     :meth:`~TwoGraph.complement` | returns the complement of ``self``
     :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
@@ -64,28 +57,40 @@ from itertools import combinations
 from sage.misc.functional import is_odd, is_even
 
 class TwoGraph(IncidenceStructure):
-    """
-    two-graphs class
+    r"""
+    Two-graphs class.
+
+    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family
+    `T \subset \binom {[n]}{3}` of `3`-sets, such that any
+    `4`-set `S\subset [n]` of size four contains an even number of elements of `T`.
 
     """
-    def is_regular(self, alpha=False, check=False):
+    def is_regular_twograph(self, alpha=False, check=False):
         """
-        returns True if ``self`` is a regular twograph
+        returns True if ``self`` is a regular twograph, i.e. a 2-design:
+        each pair of elements of ``self.ground_set()`` is contained in
+        exactly ``alpha`` triples.
+
+        INPUT:
+
+            - ``alpha`` -- (optional, default is False) return the value of ``alpha``, if possible.
+            - ``check`` -- (optional, default is False), check that we actually have a two-graph.
 
         EXAMPLES::
 
             sage: p=graphs.PetersenGraph().twograph()
-            sage: p.is_regular(alpha=True)
+            sage: p.is_regular_twograph(alpha=True)
             (True, 4)
-            sage: p.is_regular()
+            sage: p.is_regular_twograph()
             True
             sage: p=graphs.PathGraph(5).twograph()
-            sage: p.is_regular(alpha=True)
+            sage: p.is_regular_twograph(alpha=True)
             (False, 0)
-            sage: p.is_regular()
+            sage: p.is_regular_twograph()
             False
         """
         if check:
+           from sage.combinat.designs.twographs import is_twograph
            if not is_twograph(self):
                if alpha:
                    return False, 0
@@ -99,9 +104,10 @@ class TwoGraph(IncidenceStructure):
         """
         the descendant graph at ``v``
 
-        The switching class of graphs corresponding to ``self`` contains a graph
-        ``D`` with ``v`` its own connected component; removing ``v`` from ``D``, one obtains
-        the descendant graph of ``self`` at ``v``.
+        The :mod:`switching class of graphs <sage.combinat.designs.twographs>`
+        corresponding to ``self`` contains a graph ``D`` with ``v`` its own connected
+        component; removing ``v`` from ``D``, one obtains the descendant graph of
+        ``self`` at ``v``, which is constructed by this method.
 
         INPUT:
 
@@ -118,34 +124,37 @@ class TwoGraph(IncidenceStructure):
             (9, 4, 1, 2)
         """
         from sage.graphs.graph import Graph
-        edges = map(lambda y: frozenset(filter(lambda z: z != v, y)),
-                         filter(lambda x: v in x, self.blocks()))
-        V = filter(lambda x: x != v, self.ground_set())
-        return Graph([V, lambda i, j: frozenset((i,j)) in edges])
+        return Graph(map(lambda y: filter(lambda z: z != v, y),
+                            filter(lambda x: v in x, self.blocks())))
 
     def complement(self):
         """
-        the complement
+        the complement of ``self``
+
+        The two-graph constisting exactly of triples not in ``self``.
 
         EXAMPLES::
 
             sage: p=graphs.CompleteGraph(8).line_graph().twograph()
-            sage: p.complement()
+            sage: pc = p.complement(); pc
             Incidence structure with 28 points and 1260 blocks
-        """
-        return TwoGraph(filter(lambda x: not list(x) in self.blocks(), 
-                                combinations(self.ground_set(), 3)))
 
-"""
-Functions
----------
-"""
+        TESTS::
+
+            sage: from sage.combinat.designs.twographs import is_twograph
+            sage: is_twograph(pc)
+            True
+        """
+        return super(TwoGraph, self).complement(uniform=True)
+
+
 def is_twograph(T):
     """
     True if the incidence system is a two-graph
 
     EXAMPLES::
 
+        sage: from sage.combinat.designs.twographs import is_twograph
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True

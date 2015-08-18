@@ -2292,7 +2292,7 @@ def SymplecticGraph(d,q,algorithm=None):
     - ``d,q`` (integers) -- note that only even values of `d` are accepted by
       the function.
 
-    - ``algorithm`` -- if set to "gap" then the computation is carried via GAP
+    - ``algorithm`` -- if set to 'gap' then the computation is carried via GAP
       library interface, computing totally singilar subspace, which is faster for `q>3`.
       Otherwise it is done directly.
 

@@ -5131,9 +5131,11 @@ class Graph(GenericGraph):
             sage: T8.twograph_descendant(v).is_strongly_regular(parameters=True)
             (27, 16, 10, 8)
         """
-        Nv = self.neighbors(v)
-        NonNv = filter(lambda x: not x in Nv and x != v, self.vertices())
-        return Graph([Nv+NonNv, lambda i, j: 
+        Nv0 = self.neighbors(v)
+        Nv = frozenset(Nv0)
+        NonNv0 = filter(lambda x: not x in Nv and x != v, self.vertices())
+        NonNv = frozenset(NonNv0)
+        return Graph([Nv0+NonNv0, lambda i, j: 
                         (i in NonNv and j in NonNv    and     self.has_edge(i,j)) or
                         (i in Nv    and j in Nv       and     self.has_edge(i,j)) or
                         (i in Nv    and j in NonNv    and not self.has_edge(i,j)) or

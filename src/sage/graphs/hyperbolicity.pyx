@@ -665,16 +665,23 @@ cdef tuple hyperbolicity_BCCM(int N,
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int hh # can get negative value
     cdef int a, b, c, d, h, h_UB, n_val, n_acc, i, j
+    cdef int hplusone
+    cdef int condacc
     cdef int x, y, S1, S2, S3
     cdef list certificate = []
     cdef uint32_t nb_p # The total number of pairs.
     cdef unsigned short *dist_a
     cdef unsigned short *dist_b
     cdef bint GOTO_RETURN = 0
+    
+    # Variable used to store "mates".
     cdef int **mate = <int**> mem.malloc(N * sizeof(int*))
     for i in range(N):
         mate[i] = <int*> mem.malloc(N * sizeof(int))
     cdef int *cont_mate = <int*> mem.calloc(N, sizeof(int))
+    
+    # The farness of all vertices (the farness of v is the sum of the distances
+    # between v and all other vertices).
     cdef uint64_t *farness = <uint64_t*> mem.calloc(N, sizeof(uint64_t))
     cdef short *ecc = <short*> mem.calloc(N, sizeof(short))
     cdef int central = 0
@@ -687,6 +694,8 @@ cdef tuple hyperbolicity_BCCM(int N,
     cdef int *nvalues_cum = <int*> mem.malloc((D + 1) * sizeof(int))
     cdef uint64_t nq = 0
 
+    # We compute the farness and the eccentricity of all vertices.
+    # We set central as the vertex with minimum farness
     for a in range(N):
         dist_a = distances[a]
         for b in range(N):
@@ -694,12 +703,12 @@ cdef tuple hyperbolicity_BCCM(int N,
             ecc[a] = max(ecc[a], dist_a[b])
             if dist_a[b] >= N:
                 raise ValueError("The input graph must be connected.")
-                
         if farness[a] < farness[central]:
-            central = a
-            
+            central = a            
     cdef unsigned short *dist_central = distances[central]
     
+    # We put in variable mates_decr_order_value[a] all vertices b, in
+    # decreasing order of ecc[b]-distances[a][b]
     for a in range(N):
         mates_decr_order_value[a] = <int*> mem.malloc(N * sizeof(int))
         dist_a = distances[a]
@@ -717,7 +726,7 @@ cdef tuple hyperbolicity_BCCM(int N,
             mates_decr_order_value[a][nvalues_cum[value[b]]] = b
             nvalues_cum[value[b]] += 1
 
-    # nb_pairs_of_length[d] is the number of pairs of vertices at distance d
+    # We sort pairs, in increasing order of distance
     cdef uint32_t * nb_pairs_of_length = <uint32_t *> mem.calloc(D+1, sizeof(uint32_t))
 
     cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs, 
@@ -737,10 +746,12 @@ cdef tuple hyperbolicity_BCCM(int N,
     approximation_factor = min(approximation_factor, D)
     additive_gap = min(additive_gap, D)
 
+    # We start iterating from pairs with maximum distance.
     for x from nb_p > x >= 0:
         a = sorted_pairs[x].s
         b = sorted_pairs[x].t
-        # In case, we swap a,b, so that a has maximum farness.
+                
+        # Without loss of generality, a has smaller farness than b.
         if farness[a] < farness[b]:
             c = a
             a = b
@@ -749,11 +760,6 @@ cdef tuple hyperbolicity_BCCM(int N,
         dist_a = distances[a]
         dist_b = distances[b]
         h_UB = distances[a][b]
-        
-        mate[a][cont_mate[a]] = b
-        cont_mate[a] += 1
-        mate[b][cont_mate[b]] = a
-        cont_mate[b] += 1
         
         # If we cannot improve further, we stop
         if h_UB <= h:
@@ -765,28 +771,40 @@ cdef tuple hyperbolicity_BCCM(int N,
         if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
             GOTO_RETURN = 1
             break
-            
+        
+        # We update variable mate, adding pair (a,b)
+        mate[a][cont_mate[a]] = b
+        cont_mate[a] += 1
+        mate[b][cont_mate[b]] = a
+        cont_mate[b] += 1
+        
+        # We compute acceptable and valuable vertices
         n_acc = 0
         n_val = 0
+        
+        hplusone = h+1
+        condacc = 3 * hplusone - 2 * h_UB
             
         for i in range(N):
             c = mates_decr_order_value[a][i]
-            if 2 * (ecc[c] - <int>dist_a[c]) >= 3 * (h+1) - 2 * h_UB:
-                if 2 * (ecc[c] - <int>dist_b[c]) >= 3 * (h+1) - 2 * h_UB:
-                    if cont_mate[c] > 0:
-                        if 2 * dist_a[c] >= h+1 and 2 * dist_b[c] >= h+1:
-                            if (2 * ecc[c] >= 2*(h+1) - h_UB + <int>dist_a[c] + <int>dist_b[c]):
+            if cont_mate[c] > 0:
+                if 2 * (ecc[c] - dist_a[c]) >= condacc:
+                    if 2 * (ecc[c] - dist_b[c]) >= condacc:
+                        if 2 * dist_a[c] >= hplusone and 2 * dist_b[c] >= hplusone:
+                            if (2 * ecc[c] >= 2*hplusone - h_UB + dist_a[c] + dist_b[c]):
                                 # Vertex c is acceptable
                                 acc_bool[c] = 1
                                 acc[n_acc] = c
                                 n_acc += 1
-                                if 2 * <int>dist_central[c] + h_UB - h > <int>dist_a[c] + <int>dist_b[c]:
+                                if 2 * dist_central[c] + h_UB - h > dist_a[c] + dist_b[c]:
                                     # Vertex c is valuable
                                     val[n_val] = c;
                                     n_val += 1
-            else:
-                break
+                else:
+                    break
         
+        # For each pair (c,d) where c is valuable and d is acceptable, we
+        # compute the hyperbolicity of (a,b,c,d), and we update h if necessary
         for i in range(n_val):
             c = val[i]
             for j in range(cont_mate[c]):
@@ -818,12 +836,16 @@ cdef tuple hyperbolicity_BCCM(int N,
         for v in range(n_acc):
             acc_bool[acc[v]] = 0
 
+    # Needed because sometimes h_UB is not updated, if there is no cut.
     if not GOTO_RETURN:
         h_UB = h
 
     # We now free the memory
     sage_free(pairs_of_length[0])
     sage_free(pairs_of_length)
+
+    if verbose:
+        print "Visited 4-tuples:", nq
 
     # Last, we return the computed value and the certificate
     if len(certificate) == 0:

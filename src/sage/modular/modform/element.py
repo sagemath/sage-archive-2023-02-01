@@ -1176,7 +1176,7 @@ class Newform(ModularForm_abstract):
     def _atkin_lehner_action_from_qexp(self, Q, embedding=None):
         """
         Return the result of the Atkin-Lehner operator `W_Q` on
-        ``self``, using a formula based on q-expansions.
+        ``self``, using a formula based on `q`-expansions.
 
         INPUT:
 
@@ -1232,20 +1232,20 @@ class Newform(ModularForm_abstract):
         if eps_Q.is_trivial():
             g = -1
         else:
-            # eps_Q is primitive of conductor d
+            # eps_Q is primitive of conductor Q
             g = eps_Q.gauss_sum()
         return Q**(self.weight() - 2) * g / a_Q, f_star
 
     def _atkin_lehner_action_from_modsym(self, d, embedding=None):
         r"""
-        Return the result of the Atkin-Lehner operator `W_Q` on
-        ``self``, using a formula based on q-expansions.
+        Return the result of the Atkin-Lehner operator `W_d` on
+        ``self``, using the action of `W_d` on modular symbols.
 
         INPUT:
 
         - ``self`` -- a newform `f`
 
-        - ``Q`` -- a prime power exactly dividing the level of ``self``
+        - ``d`` -- a positive integer exactly dividing the level of ``self``
 
         - ``embedding`` -- (optional) embedding of the coefficient
           field of `f` into a field containing the relevant Gauss sums
@@ -1253,14 +1253,14 @@ class Newform(ModularForm_abstract):
         OUTPUT:
 
         A pair `(w, f^*)` where `f^*` is a :class:`Newform` and `w` is a scalar
-        such that `W_Q f = w f^*`.  The parent of `w` is the codomain of
+        such that `W_d f = w f^*`.  The parent of `w` is the codomain of
         ``embedding`` if specified, otherwise it is (a suitable extension of)
         the coefficient field of `f`.
 
         .. NOTE::
 
             This algorithm only works if the character of `f` is trivial at
-            `Q`, so `f^* = f`. Nonetheless we return the pair `(w, f)` for
+            `d`, so `f^* = f`. Nonetheless we return the pair `(w, f)` for
             consistency.
 
         EXAMPLES::

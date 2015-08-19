@@ -4813,8 +4813,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         .. NOTE::
 
-           Use :meth:`mod` to obtain a matrix over the residue class ring modulo
-           `p`.
+           Use :meth:`mod` to obtain a matrix over the residue class ring
+           modulo `p`.
 
         EXAMPLES::
 
@@ -4825,7 +4825,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(M % 7)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
-        cdef Py_ssize_t i,j
+        cdef Py_ssize_t i, j
         cdef Matrix s = self
         cdef Matrix A = s.new_matrix()
         for i in range(A._nrows):

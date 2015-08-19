@@ -73,8 +73,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         elif parent_c(entries) is R:
             is_list = False
         elif type(entries) is list:
-            # here we do a strong type checing as we potentially do not want to
-            # copy entries and assign directly to self._entries
+            # here we do a strong type checking as we potentially want to
+            # assign entries to self._entries without copying it
             self._entries = entries
             is_list = True
         elif isinstance(entries, (list,tuple)):
@@ -96,11 +96,10 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 except TypeError:
                     raise TypeError("entries must be coercible to a list or the base ring")
 
-        # now affect self._entries
+        # now set self._entries
         if is_list:
             if len(self._entries) != self._nrows * self._ncols:
-                raise TypeError("entries has wrong length")
-
+                raise TypeError("entries has the wrong length")
             if coerce:
                 self._entries = [R(x) for x in self._entries]
             elif copy:
@@ -115,16 +114,15 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     cdef Matrix_generic_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
-        Return a new dense matrix with no entries set!
+        Return a new dense matrix with no entries set.
         """
         cdef Matrix_generic_dense res
         res = self.__class__.__new__(self.__class__, 0, 0, 0)
 
         if nrows == self._nrows and ncols == self._ncols:
-            P = self._parent
+            res._parent = self._parent
         else:
-            P = self.matrix_space(nrows, ncols)
-        res._parent = P
+            res._parent = self.matrix_space(nrows, ncols)
         res._ncols  = ncols
         res._nrows  = nrows
         res._base_ring = self._base_ring

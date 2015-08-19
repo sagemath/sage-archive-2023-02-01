@@ -24,7 +24,6 @@
 #define __GINAC_BASIC_H__
 
 #include <Python.h>
-
 #include <cstddef> // for size_t
 #include <vector>
 #include <set>

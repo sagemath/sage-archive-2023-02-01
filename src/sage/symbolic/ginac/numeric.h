@@ -50,6 +50,7 @@
 #include "ex.h"
 #include "py_funcs.h"
 
+#include <gmp.h>
 #include <stdexcept>
 #include <vector>
 #include <iostream>
@@ -61,19 +62,20 @@ void ginac_pyinit_I(PyObject*);
 namespace GiNaC {
 
 enum Type {
-	LONG,
+	MPZ,
+	MPQ,
 	DOUBLE,
 	PYOBJECT,
 //	MPFR,
-//	MPZ,
-//	MPQ,
 //	MPFC,
 //	MPQC
+//	LONG,
 };
 
 union Value {
 	double _double;
-	long int _long;
+	mpz_t _bigint;
+	mpq_t _bigrat;
 	PyObject* _pyobject;
 };
 
@@ -101,6 +103,8 @@ public:
 	numeric(unsigned long i);
 	numeric(long numer, long denom);
 	numeric(double d);
+	numeric(mpz_t bigint);
+	numeric(mpq_t bigrat);
 	numeric(PyObject*);
 
 	~numeric();

@@ -12,6 +12,7 @@
 #include "constant.h"
 #include "ex.h"
 
+#include <gmp.h>
 #include <stdexcept>
 #include <vector>
 #include <iostream>
@@ -42,6 +43,8 @@ namespace GiNaC {
 	PyObject* (*py_int)(PyObject* n);
 	PyObject* (*py_integer_from_long)(long int x);
 	PyObject* (*py_integer_from_python_obj)(PyObject* x);
+	PyObject* (*py_integer_from_mpz)(mpz_t);
+	PyObject* (*py_rational_from_mpq)(mpq_t);
 
 	PyObject* (*py_float)(PyObject* a, PyObject* parent);
 	PyObject* (*py_RDF_from_double)(double x);

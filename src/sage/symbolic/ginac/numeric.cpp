@@ -51,6 +51,7 @@
 
 #include "numeric.h"
 #include "operators.h"
+#include "power.h"
 #include "archive.h"
 #include "tostring.h"
 #include "utils.h"
@@ -264,10 +265,6 @@ PyObject* Integer(const long int& x) {
         return ans;
 }
 
-PyObject* Rational(const long int& n, const long int& d) {
-        return PyNumber_TrueDivide(Integer(n), Integer(d));
-}
-
 namespace GiNaC {
 
 numeric I;
@@ -283,9 +280,14 @@ PyObject* TWO = PyInt_FromLong(2); // todo: never freed
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
         PyObject* o;
+        char *p;
         switch (s.t) {
-                case LONG:
-                        return os << s.v._long;
+                case MPZ:
+                        p = mpz_get_str(nullptr, 10, s.v._bigint);
+                        os << p;
+                case MPQ:
+                        p = mpq_get_str(nullptr, 10, s.v._bigrat);
+                        os << p;
                 case DOUBLE:
                         return os << s.v._double;
                 case PYOBJECT:
@@ -311,12 +313,36 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
 }
 
 const numeric& numeric::operator=(const numeric& x) {
-        if (t == PYOBJECT)
-                Py_DECREF(v._pyobject);
+        switch (t) {
+                case MPZ:
+                        mpz_clear(v._bigint);
+                        break;
+                case MPQ:
+                        mpq_clear(v._bigrat);
+                        break;
+                case PYOBJECT:
+                        Py_DECREF(v._pyobject);
+                        break;
+                case DOUBLE:
+                        break;
+        }
         t = x.t;
-        v = x.v;
-        if (t == PYOBJECT)
-                Py_INCREF(v._pyobject);
+        switch (x.t) {
+                case MPZ:
+                        mpz_init(v._bigint);
+                        mpz_set(v._bigint, x.v._bigint);
+                        break;
+                case MPQ:
+                        mpq_init(v._bigrat);
+                        mpq_set(v._bigrat, x.v._bigrat);
+                        break;
+                case PYOBJECT:
+                        v = x.v;
+                        Py_INCREF(v._pyobject);
+                        break;
+                case DOUBLE:
+                        break;
+        }
         return *this;
 }
 
@@ -335,8 +361,10 @@ int numeric::compare_same_type(const numeric& right) const {
         switch (t) {
                 case DOUBLE:
                         return (v._double < right.v._double) ? -1 : (v._double > right.v._double);
-                case LONG:
-                        return (v._long < right.v._long) ? -1 : (v._long > right.v._long);
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint);
+                case MPQ:
+                        return mpq_cmp(v._bigrat, right.v._bigrat);
                 case PYOBJECT:
                         return Pynac_PyObj_Cmp(v._pyobject, right.v._pyobject, "compare_same_type");
                 default:
@@ -363,9 +391,9 @@ GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(numeric, basic,
 
 /** default constructor. Numerically it initializes to an integer zero. */
 numeric::numeric() : basic(&numeric::tinfo_static) {
-        t = PYOBJECT;
-        if (!(v._pyobject = Integer(0)))
-                py_error("Error creating 0");
+        t = MPZ;
+        mpz_init(v._bigint);
+        mpz_set_ui(v._bigint, 0);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -377,12 +405,21 @@ numeric::numeric() : basic(&numeric::tinfo_static) {
 
 numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         t = other.t;
-        v = other.v;
         switch (t) {
                 case PYOBJECT:
+                        v = other.v;
                         Py_INCREF(v._pyobject);
+                        return;
                 case DOUBLE:
-                case LONG:
+                        v = other.v;
+                        return;
+                case MPZ:
+                        mpz_init(v._bigint);
+                        mpz_set(v._bigint, other.v._bigint);
+                        return;
+                case MPQ:
+                        mpq_init(v._bigrat);
+                        mpq_set(v._bigrat, other.v._bigrat);
                         return;
         }
 }
@@ -395,30 +432,45 @@ numeric::numeric(PyObject* o) : basic(&numeric::tinfo_static) {
 }
 
 numeric::numeric(int i) : basic(&numeric::tinfo_static) {
-        t = PYOBJECT;
-        if (!(v._pyobject = PyInt_FromLong(i)))
-                py_error("Error creating int");
+        t = MPZ;
+        mpz_init(v._bigint);
+        mpz_set_si(v._bigint, i);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 numeric::numeric(unsigned int i) : basic(&numeric::tinfo_static) {
-        t = PYOBJECT;
-        if (!(v._pyobject = PyInt_FromLong(i)))
-                py_error("Error creating int");
+        t = MPZ;
+        mpz_init(v._bigint);
+        mpz_set_ui(v._bigint, i);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 numeric::numeric(long i) : basic(&numeric::tinfo_static) {
-        t = PYOBJECT;
-        if (!(v._pyobject = PyInt_FromLong(i)))
-                py_error("Error creating long");
+        t = MPZ;
+        mpz_init(v._bigint);
+        mpz_set_si(v._bigint, i);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
 numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static) {
-        t = PYOBJECT;
-        if (!(v._pyobject = Integer(i)))
-                py_error("Error creating long");
+        t = MPZ;
+        mpz_init(v._bigint);
+        mpz_set_ui(v._bigint, i);
+        setflag(status_flags::evaluated | status_flags::expanded);
+}
+
+numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static) {
+        t = MPZ;
+        mpz_init_set(v._bigint, bigint);
+        mpz_clear(bigint);
+        setflag(status_flags::evaluated | status_flags::expanded);
+}
+
+numeric::numeric(mpq_t bigrat) : basic(&numeric::tinfo_static) {
+        t = MPQ;
+        mpq_init(v._bigrat);
+        mpq_set(v._bigrat, bigrat);
+        mpq_clear(bigrat);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -428,11 +480,18 @@ numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static) {
 numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
         if (!den)
                 throw std::overflow_error("numeric::div(): division by zero");
-        const numeric &value = numeric(num) / numeric(den);
-        v = value.v;
-        t = value.t;
-        if (t == PYOBJECT)
-                Py_INCREF(v._pyobject);
+        if ((num%den) == 0) {
+                t = MPZ;
+                mpz_init(v._bigint);
+                mpz_set_si(v._bigint, num/den);                
+        }
+        else
+        {
+                t = MPQ;
+                mpq_init(v._bigrat);
+                mpq_set_si(v._bigrat, num, den);
+                mpq_canonicalize(v._bigrat);
+        }
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -447,8 +506,14 @@ numeric::~numeric() {
         switch (t) {
                 case PYOBJECT:
                         Py_DECREF(v._pyobject);
+                        return;
                 case DOUBLE:
-                case LONG:
+                        return;
+                case MPZ:
+                        mpz_clear(v._bigint);
+                        return;
+                case MPQ:
+                        mpq_clear(v._bigrat);
                         return;
         }       
 }
@@ -723,8 +788,15 @@ unsigned numeric::calchash() const {
         switch (t) {
                 case DOUBLE:
                         return (unsigned int) v._double;
-                case LONG:
-                        return (unsigned int) v._long;
+                case MPZ:
+                        return (unsigned int) mpz_get_ui(v._bigint);
+                case MPQ:
+                        mpz_t sum;
+                        mpz_init(sum);
+                        mpz_add(sum, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
+                        res = mpz_get_ui(sum);
+                        mpz_clear(sum);
+                        return (unsigned int) res;
                 case PYOBJECT:
                         res = PyObject_Hash(v._pyobject);
                         if (res == -1 && PyErr_Occurred()) {
@@ -764,8 +836,17 @@ const numeric numeric::add(const numeric &other) const {
         switch (t) {
                 case DOUBLE:
                         return v._double + other.v._double;
-                case LONG:
-                        return v._long + other.v._long;
+                case MPZ:
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_add(bigint, v._bigint, other.v._bigint);
+                        return bigint;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_add(bigrat, v._bigrat, other.v._bigrat);
+                        mpq_canonicalize(bigrat);
+                        return bigrat;
                 case PYOBJECT:
                         return PyNumber_Add(v._pyobject, other.v._pyobject);
                 default:
@@ -785,8 +866,17 @@ const numeric numeric::sub(const numeric &other) const {
         switch (t) {
                 case DOUBLE:
                         return v._double - other.v._double;
-                case LONG:
-                        return v._long - other.v._long;
+                case MPZ:
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_sub(bigint, v._bigint, other.v._bigint);
+                        return bigint;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_sub(bigrat, v._bigrat, other.v._bigrat);
+                        mpq_canonicalize(bigrat);
+                        return bigrat;
                 case PYOBJECT:
                         return PyNumber_Subtract(v._pyobject, other.v._pyobject);
                 default:
@@ -806,8 +896,17 @@ const numeric numeric::mul(const numeric &other) const {
         switch (t) {
                 case DOUBLE:
                         return v._double * other.v._double;
-                case LONG:
-                        return v._long * other.v._long;
+                case MPZ:
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_mul(bigint, v._bigint, other.v._bigint);
+                        return bigint;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_mul(bigrat, v._bigrat, other.v._bigrat);
+                        mpq_canonicalize(bigrat);
+                        return bigrat;
                 case PYOBJECT:
                         return PyNumber_Multiply(v._pyobject, other.v._pyobject);
                 default:
@@ -831,8 +930,31 @@ const numeric numeric::div(const numeric &other) const {
         switch (t) {
                 case DOUBLE:
                         return v._double / other.v._double;
-                case LONG:
-                        return v._long / other.v._long;
+                case MPZ:
+                        if (mpz_divisible_p(v._bigint, other.v._bigint)) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_divexact(bigint, v._bigint, other.v._bigint);
+                                return bigint;
+                        }
+                        else {
+                                mpq_t bigrat, obigrat;
+                                mpq_init(bigrat);
+                                mpq_init(obigrat);
+                                mpq_set_z(bigrat, v._bigint);
+                                mpq_set_z(obigrat, other.v._bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                                mpq_clear(obigrat);
+                                mpq_canonicalize(bigrat);
+                                return bigrat;
+                        }
+                case MPQ:
+                                mpq_t bigrat;
+                                mpq_init(bigrat);
+                                mpq_div(bigrat, v._bigrat, other.v._bigrat);
+                                mpq_canonicalize(bigrat);
+                                return bigrat;
+
                 case PYOBJECT:
 #if PY_MAJOR_VERSION < 3
                         if (PyObject_Compare(other.v._pyobject, ONE) == 0) {
@@ -841,8 +963,8 @@ const numeric numeric::div(const numeric &other) const {
                         if (PyInt_Check(v._pyobject)) {
                                 if (PyInt_Check(other.v._pyobject)) {
                                         // This branch happens at startup.
-                                        PyObject* o = Rational(PyInt_AS_LONG(v._pyobject),
-                                                PyInt_AS_LONG(other.v._pyobject));
+                                        PyObject* o = PyNumber_TrueDivide(Integer(PyInt_AS_LONG(v._pyobject)),
+                                                Integer(PyInt_AS_LONG(other.v._pyobject)));
                                         // I don't 100% understand why I have to incref this, 
                                         // but if I don't, Sage crashes on exit.
                                         Py_INCREF(o);
@@ -869,29 +991,67 @@ const numeric numeric::div(const numeric &other) const {
         }
 }
 
-/** Numerical exponentiation.  Raises *this to the power given as argument and
- *  returns result as a numeric object. */
+/** Numerical exponentiation.  Raises *this to the integer power given as argument and
+ *  returns result as numeric. */
 const numeric numeric::power(const numeric &exponent) const {
         verbose("pow");
-        if (t != exponent.t) {
-                numeric a, b;
-                coerce(a, b, *this, exponent);
-                return pow(a, b);
-        }
+        if (exponent.t != MPZ)
+                throw std::runtime_error("noninteger exponent in numeric::power()");
+        if (not mpz_fits_sint_p(exponent.v._bigint)) {
+                throw std::runtime_error("numeric::power(): exponent doesn't fit in signed long");
+//                return power::power(ex(*this), ex(exponent));
+                }
+
+        long exp_si = mpz_get_si(exponent.v._bigint);
+        PyObject *o, *r;
         switch (t) {
                 case DOUBLE:
-                        return ::pow(v._double, exponent.v._double);
-                case LONG:
-                        // TODO: change to use GMP!
-                        return ::pow((double) v._long, (double) exponent.v._long);
-                case PYOBJECT:
-                        if PyInt_Check(v._pyobject) {
-                                PyObject* o = Integer(PyInt_AsLong(v._pyobject));
-                                PyObject* r = PyNumber_Power(o, exponent.v._pyobject, Py_None);
-                                Py_DECREF(o);
-                                return r;
+                        return ::pow(v._double, double(exp_si));
+                case MPZ:
+                        if (exp_si >= 0) {
+                                mpz_t bigint;
+                                mpz_init(bigint);
+                                mpz_pow_ui(bigint, v._bigint, exp_si);
+                                return bigint;
                         }
-                        return PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None);
+                        else {
+                                mpz_t bigint;
+                                mpz_init_set(bigint, v._bigint);
+                                mpz_pow_ui(bigint, bigint, -exp_si);
+                                mpq_t bigrat;
+                                mpq_init(bigrat);
+                                mpq_set_z(bigrat, bigint);
+                                mpq_inv(bigrat, bigrat);
+                                return bigrat;
+                        }
+                case MPQ:
+                        mpz_t bigint;
+                        mpq_t bigrat, obigrat;
+                        mpz_init(bigint);
+                        mpq_init(bigrat);
+                        mpq_init(obigrat);
+                        if (exp_si >= 0) {
+                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
+                                mpq_set_z(bigrat, bigint);
+                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
+                                mpq_set_z(obigrat, bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                        }
+                        else {
+                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
+                                mpq_set_z(bigrat, bigint);
+                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
+                                mpq_set_z(obigrat, bigint);
+                                mpq_div(bigrat, bigrat, obigrat);
+                        }
+                        mpz_clear(bigint);
+                        mpq_clear(obigrat);
+                        return bigrat;
+                case PYOBJECT:
+                        o = Integer(exp_si);
+                        r = PyNumber_Power(o, exponent.v._pyobject, Py_None);
+                        Py_DECREF(o);
+                        return r;
                 default:
                         stub("invalid type: pow numeric");
         }
@@ -1000,8 +1160,17 @@ const numeric numeric::negative() const {
         switch (t) {
                 case DOUBLE:
                         return -v._double;
-                case LONG:
-                        return -v._long;
+                case MPZ:
+                        mpz_t bigint;
+                        mpz_init_set(bigint, v._bigint);
+                        mpz_neg(bigint, bigint);
+                        return bigint;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set(bigrat, v._bigrat);
+                        mpq_neg(bigrat, bigrat);
+                        return bigrat;
                 case PYOBJECT:
                         return PyNumber_Negative(v._pyobject);
                 default:
@@ -1038,12 +1207,10 @@ int numeric::csgn() const {
                         if (v._double == 0)
                                 return 0;
                         return 1;
-                case LONG:
-                        if (v._long < 0)
-                                return -1;
-                        if (v._long == 0)
-                                return 0;
-                        return 1;
+                case MPZ:
+                        return mpz_sgn(v._bigint);
+                case MPQ:
+                        return mpq_sgn(v._bigrat);
                 case PYOBJECT:
                         int result;
                         if (is_real()) {
@@ -1079,8 +1246,10 @@ bool numeric::is_zero() const {
         switch (t) {
                 case DOUBLE:
                         return v._double == 0;
-                case LONG:
-                        return v._long == 0;
+                case MPZ:
+                        return mpz_cmp_si(v._bigint, 0) == 0;
+                case MPQ:
+                        return mpq_cmp_si(v._bigrat, 0, 1) == 0;
                 case PYOBJECT:
                         a = PyObject_Not(v._pyobject);
                         if (a == -1)
@@ -1098,8 +1267,10 @@ bool numeric::is_positive() const {
         switch (t) {
                 case DOUBLE:
                         return v._double > 0;
-                case LONG:
-                        return v._long > 0;
+                case MPZ:
+                        return mpz_cmp_si(v._bigint, 0) > 0;
+                case MPQ:
+                        return mpq_cmp_si(v._bigrat, 0, 1) > 0;
                 case PYOBJECT:
                         return is_real() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_GT, "is_positive");
                 default:
@@ -1113,8 +1284,10 @@ bool numeric::is_negative() const {
         switch (t) {
                 case DOUBLE:
                         return v._double < 0;
-                case LONG:
-                        return v._long < 0;
+                case MPZ:
+                        return mpz_cmp_si(v._bigint, 0) < 0;
+                case MPQ:
+                        return mpq_cmp_si(v._bigrat, 0, 1) < 0;
                 case PYOBJECT:
                         return is_real() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_LT, "is_negative");
                 default:
@@ -1126,11 +1299,20 @@ bool numeric::is_negative() const {
 bool numeric::is_integer() const {
         verbose2("is_integer", *this);
 
+        bool ret;
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
+                case MPZ:
                         return true;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set(bigrat, v._bigrat);
+                        mpq_canonicalize(bigrat);
+                        ret = mpz_cmp_ui(mpq_denref(bigrat), 1) !=0;
+                        mpq_clear(bigrat);
+                        return ret;
                 case PYOBJECT:
                         return py_funcs.py_is_integer(v._pyobject) != 0;
                 default:
@@ -1144,8 +1326,10 @@ bool numeric::is_pos_integer() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
-                        return (v._long > 0);
+                case MPZ:
+                        return is_positive();
+                case MPQ:
+                        return (is_integer() && is_positive());
                 case PYOBJECT:
                         return (is_integer() && is_positive());
                 default:
@@ -1159,8 +1343,10 @@ bool numeric::is_nonneg_integer() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
-                        return (v._long >= 0);
+                case MPZ:
+                        return is_positive() or is_zero();
+                case MPQ:
+                        return (is_integer() and (is_positive() or is_zero()));
                 case PYOBJECT:
                         return is_integer() and Pynac_PyObj_RichCmp(v._pyobject, ZERO, Py_GE, "is_nonneg_integer");
                 default:
@@ -1178,8 +1364,11 @@ bool numeric::is_even() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
-                        return (v._long % 2 == 0);
+                case MPZ:
+                        return mpz_tstbit(v._bigint, 0) == 0;
+                case MPQ:
+                        return is_integer()
+                                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 0;
                 case PYOBJECT:
                         return py_funcs.py_is_even(v._pyobject) != 0;
                 default:
@@ -1192,8 +1381,11 @@ bool numeric::is_odd() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
-                        return (v._long % 2 == 1);
+                case MPZ:
+                        return mpz_tstbit(v._bigint, 0) == 1;
+                case MPQ:
+                        return is_integer()
+                                and mpz_tstbit(mpq_numref(v._bigrat), 0) == 1;
                 case PYOBJECT:
                         return !is_even();
                 default:
@@ -1209,13 +1401,11 @@ bool numeric::is_prime() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
-                {
-                        PyObject *a = to_pyobject();
-                        bool b = py_funcs.py_is_prime(a) != 0;
-                        Py_DECREF(a);
-                        return b;
-                }
+                case MPZ:
+                        return mpz_probab_prime_p(v._bigint, 25) > 0;
+                case MPQ:
+                        return is_integer() and
+                                mpz_probab_prime_p(mpq_numref(v._bigrat), 25) > 0;
                 case PYOBJECT:
                         return py_funcs.py_is_prime(v._pyobject) != 0;
                 default:
@@ -1230,7 +1420,9 @@ bool numeric::is_rational() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
+                case MPZ:
+                        return true;
+                case MPQ:
                         return true;
                 case PYOBJECT:
                         return py_funcs.py_is_rational(v._pyobject) != 0;
@@ -1244,7 +1436,9 @@ bool numeric::is_real() const {
         verbose("is_real");
         switch (t) {
                 case DOUBLE:
-                case LONG:
+                case MPZ:
+                        return true;
+                case MPQ:
                         return true;
                 case PYOBJECT:
                         return py_funcs.py_is_real(v._pyobject) != 0;
@@ -1264,7 +1458,9 @@ int numeric::get_parent_char() const {
         switch (t) {
                 case DOUBLE:
                         return 0;
-                case LONG:
+                case MPZ:
+                        return 0;
+                case MPQ:
                         return 0;
                 case PYOBJECT:
                 {
@@ -1284,7 +1480,9 @@ bool numeric::is_exact() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
+                case MPZ:
+                        return true;
+                case MPQ:
                         return true;
                 case PYOBJECT:
                         return py_funcs.py_is_exact(v._pyobject) != 0;
@@ -1303,8 +1501,10 @@ bool numeric::operator==(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double == right.v._double;
-                case LONG:
-                        return v._long == right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) ==0;
+                case MPQ:
+                        return mpq_equal(v._bigrat, right.v._bigrat) ==0;
                 case PYOBJECT:
                         return py_funcs.py_is_equal(v._pyobject, right.v._pyobject) != 0;
                 default:
@@ -1322,8 +1522,10 @@ bool numeric::operator!=(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double != right.v._double;
-                case LONG:
-                        return v._long != right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) !=0;
+                case MPQ:
+                        return mpq_equal(v._bigrat, right.v._bigrat) !=0;
                 case PYOBJECT:
                         return (!py_funcs.py_is_equal(v._pyobject, right.v._pyobject));
                 default:
@@ -1338,8 +1540,10 @@ bool numeric::is_cinteger() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
+                case MPZ:
                         return true;
+                case MPQ:
+                        return is_integer();
                 case PYOBJECT:
                         return py_funcs.py_is_cinteger(v._pyobject) != 0;
                 default:
@@ -1354,7 +1558,9 @@ bool numeric::is_crational() const {
         switch (t) {
                 case DOUBLE:
                         return false;
-                case LONG:
+                case MPZ:
+                        return true;
+                case MPQ:
                         return true;
                 case PYOBJECT:
                         return py_funcs.py_is_crational(v._pyobject) != 0;
@@ -1377,8 +1583,10 @@ bool numeric::operator<(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double < right.v._double;
-                case LONG:
-                        return v._long < right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) < 0;
+                case MPQ:
+                        return mpq_cmp(v._bigrat, right.v._bigrat) < 0;
                 case PYOBJECT:
                         return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_LT, "<");
                 default:
@@ -1399,8 +1607,10 @@ bool numeric::operator<=(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double <= right.v._double;
-                case LONG:
-                        return v._long <= right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) <= 0;
+                case MPQ:
+                        return mpq_cmp(v._bigrat, right.v._bigrat) <= 0;
                 case PYOBJECT:
                         return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_LE, "<=");
                 default:
@@ -1421,8 +1631,10 @@ bool numeric::operator>(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double > right.v._double;
-                case LONG:
-                        return v._long > right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) > 0;
+                case MPQ:
+                        return mpq_cmp(v._bigrat, right.v._bigrat) > 0;
                 case PYOBJECT:
                         return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_GT, ">");
                 default:
@@ -1443,8 +1655,10 @@ bool numeric::operator>=(const numeric &right) const {
         switch (t) {
                 case DOUBLE:
                         return v._double >= right.v._double;
-                case LONG:
-                        return v._long >= right.v._long;
+                case MPZ:
+                        return mpz_cmp(v._bigint, right.v._bigint) >= 0;
+                case MPQ:
+                        return mpq_cmp(v._bigrat, right.v._bigrat) >= 0;
                 case PYOBJECT:
                         return Pynac_PyObj_RichCmp(v._pyobject, right.v._pyobject, Py_GE, ">=");
                 default:
@@ -1462,8 +1676,15 @@ long numeric::to_long() const {
         switch (t) {
                 case DOUBLE:
                         return (long int) v._double;
-                case LONG:
-                        return v._long;
+                case MPZ:
+                        return mpz_get_si(v._bigint);
+                case MPQ:
+                        mpz_t bigint;
+                        mpz_init(bigint);
+                        mpz_fdiv_q(bigint, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
+                        n = mpz_get_si(bigint);
+                        mpz_clear(bigint);
+                        return n;
                 case PYOBJECT:
                         n = PyInt_AsLong(v._pyobject);
                         if (n == -1 && PyErr_Occurred()) {
@@ -1487,10 +1708,16 @@ PyObject* numeric::to_pyobject() const {
         // Returns a New Reference
         PyObject* o;
         switch (t) {
-                case LONG:
-                        if (!(o = PyInt_FromLong(v._long))) {
-                                py_error("Error coercing a long to an Integer");
-                        }
+                case MPZ:
+                        mpz_t bigint;
+                        mpz_init_set(bigint, v._bigint);
+                        o = py_funcs.py_integer_from_mpz(bigint);
+                        return o;
+                case MPQ:
+                        mpq_t bigrat;
+                        mpq_init(bigrat);
+                        mpq_set(bigrat, v._bigrat);
+                        o = py_funcs.py_rational_from_mpq(bigrat);
                         return o;
                 case DOUBLE:
                         if (!(o = PyFloat_FromDouble(v._double)))
@@ -1520,8 +1747,10 @@ double numeric::to_double() const {
         switch (t) {
                 case DOUBLE:
                         return v._double;
-                case LONG:
-                        return (double) v._long;
+                case MPZ:
+                        return mpz_get_d(v._bigint);
+                case MPQ:
+                        return mpq_get_d(v._bigrat);
                 case PYOBJECT:
                         d = PyFloat_AsDouble(v._pyobject);
                         if (d == -1 && PyErr_Occurred())
@@ -1536,11 +1765,22 @@ double numeric::to_double() const {
 /** Real part of a number. */
 const numeric numeric::real() const {
         verbose("real_part(a)");
-        PyObject *a = to_pyobject();
-        PyObject *ans = py_funcs.py_real(a);
-        if (!ans) py_error("real_part");
-        Py_DECREF(a);
-        return ans;
+        PyObject *ans;
+        switch (t) {
+                case DOUBLE:
+                        return *this;
+                case MPZ:
+                        return *this;
+                case MPQ:
+                        return *this;
+                case PYOBJECT:
+                        ans = py_funcs.py_real(v._pyobject);
+                        if (!ans) py_error("real_part");
+                        return ans;
+                default:
+                        std::cerr << "type = " << t << std::endl;
+                        stub("invalid type: operator double() type not handled");
+        }
 }
 
 /** Imaginary part of a number. */
@@ -1567,10 +1807,13 @@ const numeric numeric::numer() const {
         switch (t) {
 
                 case DOUBLE:
-                case LONG:
-                        ans = *this;
-                        break;
-
+                        return *this;
+                case MPZ:
+                        return *this;
+                case MPQ:
+                        mpz_t bigint;
+                        mpz_init_set(bigint, mpq_numref(v._bigrat));
+                        return bigint;
                 case PYOBJECT:
                         a = py_funcs.py_numer(v._pyobject);
                         if (!a) py_error("numer");
@@ -1594,10 +1837,12 @@ const numeric numeric::denom() const {
 
         switch (t) {
                 case DOUBLE:
-                case LONG:
-                        ans = 1;
-                        break;
-
+                case MPZ:
+                        return 1;
+                case MPQ:
+                        mpz_t bigint;
+                        mpz_init_set(bigint, mpq_denref(v._bigrat));
+                        return bigint;
                 case PYOBJECT:
                         a = py_funcs.py_denom(v._pyobject);
                         if (!a) py_error("denom");
@@ -1614,7 +1859,7 @@ const numeric numeric::denom() const {
 
 const numeric numeric::fibonacci() const {
     PY_RETURN(py_funcs.py_fibonacci);
-  }
+}
 
 const numeric numeric::sin() const {
         PY_RETURN(py_funcs.py_sin);
@@ -1735,10 +1980,30 @@ const numeric numeric::sqrt() const {
 }
 
 const numeric numeric::abs() const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_abs(bigint, v._bigint);
+                return bigint;
+        }
+        else if (t == MPQ) {
+                mpq_t bigrat;
+                mpq_init(bigrat);
+                mpq_abs(bigrat, v._bigrat);
+                return bigrat;
+        }
+        
         PY_RETURN(py_funcs.py_abs);
 }
 
 const numeric numeric::mod(const numeric &b) const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_mod(bigint, v._bigint, b.v._bigint);
+                return bigint;
+        }
+        
         PY_RETURN2(py_funcs.py_mod, b);
 }
 
@@ -1747,10 +2012,24 @@ const numeric numeric::_smod(const numeric &b) const {
 }
 
 const numeric numeric::irem(const numeric &b) const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_fdiv_r(bigint, v._bigint, b.v._bigint);
+                return bigint;
+        }
+        
         PY_RETURN2(py_funcs.py_irem, b);
 }
 
 const numeric numeric::iquo(const numeric &b) const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_fdiv_q(bigint, v._bigint, b.v._bigint);
+                return bigint;
+        }
+        
         PY_RETURN2(py_funcs.py_iquo, b);
 }
 
@@ -1759,10 +2038,24 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
 }
 
 const numeric numeric::gcd(const numeric &b) const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_gcd(bigint, v._bigint, b.v._bigint);
+                return bigint;
+        }
+        
         PY_RETURN2(py_funcs.py_gcd, b);
 }
 
 const numeric numeric::lcm(const numeric &b) const {
+        if (t == MPZ) {
+                mpz_t bigint;
+                mpz_init(bigint);
+                mpz_lcm(bigint, v._bigint, b.v._bigint);
+                return bigint;
+        }
+        
         PY_RETURN2(py_funcs.py_lcm, b);
 }
 
@@ -1793,31 +2086,60 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 new_right = right;
                 return;
         }
-        PyObject* o;
+        mpq_t bigrat;
         switch (left.t) {
-                case LONG:
+                case MPZ:
                         switch (right.t) {
                                 case DOUBLE:
                                         new_left = left.to_double();
                                         new_right = right;
                                         return;
+                                case MPQ:
+                                        mpq_t bigrat;
+                                        mpq_init(bigrat);
+                                        mpq_set_z(bigrat, left.v._bigint);
+                                        new_left = numeric(bigrat);
+                                        new_right = right;
+                                        return;
                                 case PYOBJECT:
-                                        verbose("About to coerce a C long to an Integer");
-                                        if (!(o = PyObject_CallFunction(pyfunc_Integer, const_cast<char*> ("l"), left.v._long))) {
-                                                py_error("Error coercing a long to an Integer");
-                                        }
-                                        new_left = o;
-                                        //Py_DECREF(o);
-                                        //new_left = PyInt_FromLong(left);
+                                        mpz_t bigint;
+                                        mpz_init_set(bigint, left.v._bigint);
+                                        new_left = py_funcs.py_integer_from_mpz(bigint);
                                         new_right = right;
                                         return;
                                 default:
                                         std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left LONG**");
+                                        stub("** invalid coercion -- left MPZ**");
+                        }
+                case MPQ:
+                        switch (right.t) {
+                                case DOUBLE:
+                                        new_left = left.to_double();
+                                        new_right = right;
+                                        return;
+                                case MPZ:
+                                        mpq_init(bigrat);
+                                        mpq_set_z(bigrat, right.v._bigint);
+                                        new_left = left;
+                                        new_right = numeric(bigrat);
+                                        return;
+                                case PYOBJECT:
+                                        mpq_init(bigrat);
+                                        mpq_set(bigrat, left.v._bigrat);
+                                        new_left = py_funcs.py_rational_from_mpq(bigrat);
+                                        new_right = right;
+                                        return;
+                                default:
+                                        std::cerr << "type = " << right.t << "\n";
+                                        stub("** invalid coercion -- left MPZ**");
                         }
                 case DOUBLE:
                         switch (right.t) {
-                                case LONG:
+                                case MPZ:
+                                        new_left = left;
+                                        new_right = right.to_double();
+                                        return;
+                                case MPQ:
                                         new_left = left;
                                         new_right = right.to_double();
                                         return;

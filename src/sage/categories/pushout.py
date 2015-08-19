@@ -3398,6 +3398,69 @@ def pushout(R, S):
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
 
+
+    ::
+
+        sage: from sage.categories.pushout import PolynomialFunctor
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: class CartesianProductPolys(CartesianProduct):
+        ....:     def __init__(self, polynomial_rings):
+        ....:         sort = sorted(polynomial_rings, key=lambda P: P.variable_name())
+        ....:         super(CartesianProductPolys, self).__init__(sort, Sets().CartesianProducts())
+        ....:     def vars(self):
+        ....:         return tuple(P.variable_name() for P in self.cartesian_factors())
+        ....:     def _pushout_(self, other):
+        ....:         if isinstance(other, CartesianProductPolys):
+        ....:             s_vars = self.vars()
+        ....:             o_vars = other.vars()
+        ....:             if s_vars == o_vars:
+        ....:                 return
+        ....:             return pushout(CartesianProductPolys(
+        ....:                     self.cartesian_factors() +
+        ....:                     tuple(f for f in other.cartesian_factors()
+        ....:                           if f.variable_name() not in s_vars)),
+        ....:                 CartesianProductPolys(
+        ....:                     other.cartesian_factors() +
+        ....:                     tuple(f for f in self.cartesian_factors()
+        ....:                           if f.variable_name() not in o_vars)))
+        ....:         C = other.construction()[0]
+        ....:         if isinstance(C, PolynomialFunctor):
+        ....:             return pushout(self, CartesianProductPolys((other,)))
+
+    ::
+
+        sage: pushout(CartesianProductPolys((ZZ['x'],)),
+        ....:         CartesianProductPolys((ZZ['y'],)))
+        The cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring)
+        sage: pushout(CartesianProductPolys((ZZ['x'], ZZ['y'])),
+        ....:         CartesianProductPolys((ZZ['x'], ZZ['z'])))
+        The cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring,
+          Univariate Polynomial Ring in z over Integer Ring)
+        sage: pushout(CartesianProductPolys((QQ['a,b']['x'], QQ['y'])),
+        ....:         CartesianProductPolys((ZZ['b,c']['x'], SR['z'])))
+        The cartesian product of
+         (Univariate Polynomial Ring in x over
+            Multivariate Polynomial Ring in a, b, c over Rational Field,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Symbolic Ring)
+
+    ::
+
+        sage: pushout(CartesianProductPolys((ZZ['x'],)), ZZ['y'])
+        The cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Integer Ring)
+        sage: pushout(QQ['b,c']['y'], CartesianProductPolys((ZZ['a,b']['x'],)))
+        The cartesian product of
+         (Univariate Polynomial Ring in x over
+            Multivariate Polynomial Ring in a, b over Integer Ring,
+          Univariate Polynomial Ring in y over
+            Multivariate Polynomial Ring in b, c over Rational Field)
+
     AUTHORS:
 
     -- Robert Bradshaw

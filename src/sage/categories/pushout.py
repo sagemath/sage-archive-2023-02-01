@@ -3405,6 +3405,16 @@ def pushout(R, S):
     if R is S or R == S:
         return R
 
+    if hasattr(R, '_pushout_'):
+        P = R._pushout_(S)
+        if P is not None:
+            return P
+
+    if hasattr(S, '_pushout_'):
+        P = S._pushout_(R)
+        if P is not None:
+            return P
+
     if isinstance(R, type):
         R = type_to_parent(R)
 

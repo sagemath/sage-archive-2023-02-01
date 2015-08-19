@@ -792,12 +792,9 @@ class ModularForm_abstract(ModuleElement):
         # key = (prec, max_imaginary_part, max_asymp_coeffs)
         l = self.weight()
         N = self.level()
-
         C = rings.ComplexField(prec)
         emb = self.base_ring().embeddings(C)[conjugate]
-
-        w = self.atkin_lehner_eigenvalue(N, embedding=emb) * rings.RR(N)**(1 - rings.QQ(l)/2)
-        e = C.gen()**l * w
+        e = C.gen()**l * C(N)**(1 - rings.QQ(l)/2) * self.atkin_lehner_eigenvalue(N, embedding=emb)
 
         if self.q_expansion()[0] == 0:
             poles = []  # cuspidal

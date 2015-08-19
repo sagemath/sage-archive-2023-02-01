@@ -3269,6 +3269,135 @@ def pushout(R, S):
         sage: pushout(EvenPolynomialRing(QQ, 'x')^2, RR['x']^2)
         Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
 
+    Some more tests related to univariate/multivariate
+    constructions. We construct a parent for a generalization to
+    polynomials, where we not only specify a coefficient ring `C` but
+    also an additive monoid `E` for its exponents. Its elements are
+    then
+
+    .. MATH::
+
+        \sum_{i=0}^I c_i X^{e_i}
+
+    with `c_i \in C` and `e_i \in E`. We define
+    ::
+
+        sage: class GPolynomialRing(Parent):
+        ....:     def __init__(self, coefficients, var, exponents):
+        ....:         self.coefficients = coefficients
+        ....:         self.var = var
+        ....:         self.exponents = exponents
+        ....:         super(GPolynomialRing, self).__init__(category=Rings())
+        ....:     def _repr_(self):
+        ....:         return 'Generalized Polynomial Ring in %s^(%s) over %s' % (
+        ....:                self.var, self.exponents, self.coefficients)
+        ....:     def construction(self):
+        ....:         return GPolynomialFunctor(self.var, self.exponents), self.coefficients
+        ....:     def _coerce_map_from_(self, R):
+        ....:         return self.coefficients.has_coerce_map_from(R)
+
+    and
+    ::
+
+        sage: class GPolynomialFunctor(ConstructionFunctor):
+        ....:     rank = 10
+        ....:     def __init__(self, var, exponents):
+        ....:         self.var = var
+        ....:         self.exponents = exponents
+        ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
+        ....:     def _repr_(self):
+        ....:         return 'GPoly[%s^(%s)]' % (self.var, self.exponents)
+        ....:     def _apply_functor(self, coefficients):
+        ....:         return GPolynomialRing(coefficients, self.var, self.exponents)
+        ....:     def merge(self, other):
+        ....:         if isinstance(other, GPolynomialFunctor) and self.var == other.var:
+        ....:             exponents = pushout(self.exponents, other.exponents)
+        ....:             return GPolynomialFunctor(self.var, exponents)
+
+    We can construct a parent now in two different ways::
+
+        sage: GPolynomialRing(QQ, 'X', ZZ)
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+        sage: GP_ZZ = GPolynomialFunctor('X', ZZ); GP_ZZ
+        GPoly[X^(Integer Ring)]
+        sage: GP_ZZ(QQ)
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+
+    Since the construction
+    ::
+
+        sage: GP_ZZ(QQ).construction()
+        (GPoly[X^(Integer Ring)], Rational Field)
+
+    uses the coefficient ring, we have the usual coercion with respect
+    to this parameter::
+
+        sage: pushout(GP_ZZ(ZZ), GP_ZZ(QQ))
+        Generalized Polynomial Ring in X^(Integer Ring) over Rational Field
+        sage: pushout(GP_ZZ(ZZ['t']), GP_ZZ(QQ))
+        Generalized Polynomial Ring in X^(Integer Ring) over Univariate Polynomial Ring in t over Rational Field
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(ZZ['b,c']))
+        Generalized Polynomial Ring in X^(Integer Ring)
+          over Multivariate Polynomial Ring in a, b, c over Integer Ring
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(QQ['b,c']))
+        Generalized Polynomial Ring in X^(Integer Ring)
+          over Multivariate Polynomial Ring in a, b, c over Rational Field
+        sage: pushout(GP_ZZ(ZZ['a,b']), GP_ZZ(ZZ['c,d']))
+        Traceback (most recent call last):
+        ...
+        CoercionException: ('Ambiguous Base Extension', ...)
+
+    ::
+
+        sage: GP_QQ = GPolynomialFunctor('X', QQ)
+        sage: pushout(GP_ZZ(ZZ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Integer Ring
+        sage: pushout(GP_QQ(ZZ), GP_ZZ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Integer Ring
+
+    ::
+
+        sage: GP_ZZt = GPolynomialFunctor('X', ZZ['t'])
+        sage: pushout(GP_ZZt(ZZ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Integer Ring
+
+    ::
+
+        sage: pushout(GP_ZZ(ZZ), GP_QQ(QQ))
+        Generalized Polynomial Ring in X^(Rational Field) over Rational Field
+        sage: pushout(GP_ZZ(QQ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(QQ), GP_QQ(ZZ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(ZZ), GP_QQ(QQ))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t
+          over Rational Field) over Rational Field
+        sage: pushout(GP_ZZt(ZZ['a,b']), GP_QQ(ZZ['c,d']))
+        Traceback (most recent call last):
+        ...
+        CoercionException: ('Ambiguous Base Extension', ...)
+        sage: pushout(GP_ZZt(ZZ['a,b']), GP_QQ(ZZ['b,c']))
+        Generalized Polynomial Ring in X^(Univariate Polynomial Ring in t over Rational Field)
+          over Multivariate Polynomial Ring in a, b, c over Integer Ring
+
+    Some tests with cartesian products::
+
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: A = CartesianProduct((ZZ['x'], QQ['y'], QQ['z']), Sets().CartesianProducts())
+        sage: B = CartesianProduct((ZZ['x'], ZZ['y'], ZZ['t']['z']), Sets().CartesianProducts())
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Rational Field))
+        sage: pushout(A, B)
+        The cartesian product of
+         (Univariate Polynomial Ring in x over Integer Ring,
+          Univariate Polynomial Ring in y over Rational Field,
+          Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
+
     AUTHORS:
 
     -- Robert Bradshaw

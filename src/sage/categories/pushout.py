@@ -296,7 +296,7 @@ class ConstructionFunctor(Functor):
     # See the pushout() function below for explanation.
     coercion_reversed = False
 
-    def common_base(self, other, R_bases, S_bases):
+    def common_base(self, other, self_bases, other_bases):
         """
         This function is called by :func:`pushout` when no common parent
         is found in the construction tower.
@@ -304,7 +304,11 @@ class ConstructionFunctor(Functor):
         The main use is for multivariate construction functors, which
         use this function to implement recursion for :func:`pushout`.
         """
-        raise CoercionException("No common base")
+        raise CoercionException(
+            'No common base ("join") found for %s(%s) and %s(%s).' %
+            (self, ', '.join(str(b) for b in self_bases),
+             other, ', '.join(str(b) for b in other_bases)))
+
 
 class CompositeConstructionFunctor(ConstructionFunctor):
     """
@@ -580,19 +584,29 @@ class IdentityConstructionFunctor(ConstructionFunctor):
         else:
             return self
 
+
 class MultivariateConstructionFunctor(ConstructionFunctor):
     """
     An abstract base class for functors that take multiple inputs (e.g. CartesianProduct)
     """
-    def common_base(self, other_functor, R_bases, S_bases):
+    def common_base(self, other_functor, self_bases, other_bases):
         """
         """
         if self != other_functor:
-            raise CoercionException("Incompatible multivariate construction functors")
-        if len(R_bases) != len(S_bases):
-            raise CoercionException("Multivariate construction functors need the same number of inputs")
-        Z_bases = tuple(pushout(R, S) for R, S in zip(R_bases, S_bases))
+            raise CoercionException(
+                'No common base ("join") found for %s(%s) and %s(%s): '
+                'Multivariate functors are inkompatibel.' %
+                (self, ', '.join(str(b) for b in self_bases),
+                 other, ', '.join(str(b) for b in other_bases)))
+        if len(self_bases) != len(other_bases):
+            raise CoercionException(
+                'No common base ("join") found for %s(%s) and %s(%s): '
+                'Functors need the same number of arguments.' %
+                (self, ', '.join(str(b) for b in self_bases),
+                 other, ', '.join(str(b) for b in other_bases)))
+        Z_bases = tuple(pushout(S, O) for S, O in zip(self_bases, other_bases))
         return self(Z_bases)
+
 
 class PolynomialFunctor(ConstructionFunctor):
     """

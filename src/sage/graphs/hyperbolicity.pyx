@@ -51,8 +51,8 @@ Hyperbolicity
     Several improvements over the naive algorithm have been proposed and are
     implemented in the current module.
 
-    - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL12]_. It
-      is used to design an algorithm with worse case time complexity in 
+    - Another upper bound on `hyp(a, b, c, d)` has been proved in [CCL15]_. It
+      is used to design an algorithm with worse case time complexity in
       `O(n^4)` but that behaves much better in practice.
 
       Assume that `S_1 = dist(a, b) + dist(c, d)` is the largest sum among
@@ -100,9 +100,9 @@ Hyperbolicity
       `(a,b)` and `(c,d)` satisfying `\delta(G) = hyp(a, b, c, d)/2`. For
       instance, the `n\times m`-grid has only two far-apart pairs, and so
       computing its hyperbolicity is immediate once the far-apart pairs are
-      found. The 'CCL+FA' or 'CCL+' algorithm improves the 'CCL' algorithm 
+      found. The 'CCL+FA' or 'CCL+' algorithm improves the 'CCL' algorithm
       since it uses far-apart pairs.
-      
+
     - This algorithm was further improved in [BCCM15]_: instead of iterating
       twice over all pairs of vertices, in the "inner" loop, we cut several
       pairs by exploiting properties of the underlying graph.
@@ -131,9 +131,10 @@ REFERENCES:
    On Computing the Hyperbolicity of Real-World Graphs.
    Proceedings of the 23rd European Symposium on Algorithms (ESA 2015)
 
-.. [CCL12] N. Cohen, D. Coudert, and A. Lancin. Exact and approximate 
-   algorithms for computing the hyperbolicity of large-scale graphs.  
-   Research Report RR-8074, Sep. 2012. [`<http://hal.inria.fr/hal-00735481>`_].
+.. [CCL15] N. Cohen, D. Coudert, and A. Lancin. On computing the Gromov
+   hyperbolicity. ACM Journal of Experimental Algorithmics, 20(1.6):1-18, 2015.
+   [`<http://dx.doi.org/10.1145/2780652>`_] or
+   [`<https://hal.inria.fr/hal-01182890>`_].
 
 .. [FIV12] H. Fournier, A. Ismail, and A. Vigneron. Computing the Gromov
    hyperbolicity of a discrete metric space. ArXiv, Tech. Rep. arXiv:1210.3323,
@@ -142,7 +143,7 @@ REFERENCES:
 .. [Gromov87] M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
    1987.
 
-.. [Soto11] M. A. Soto Gomez. 2011. Quelques proprietes topologiques des 
+.. [Soto11] M. A. Soto Gomez. 2011. Quelques proprietes topologiques des
    graphes et applications a internet et aux reseaux. Ph.D. Dissertation. Univ.
    Paris Diderot (Paris 7).
 
@@ -206,8 +207,8 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
     ignored as well as any other decoration of the graph (vertex position,
     etc.).
 
-    If ``relabel`` is ``True``, the vertices of the new graph are relabeled 
-    with integers in the range '0\cdots |vertices|-1'. The relabeling map is 
+    If ``relabel`` is ``True``, the vertices of the new graph are relabeled
+    with integers in the range '0\cdots |vertices|-1'. The relabeling map is
     returned if ``return_map`` is also ``True``.
 
     TESTS:
@@ -297,7 +298,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
 
     - ``N`` -- number of vertices of the graph.
 
-    - ``distances`` -- path distance matrix (see the distance_all_pairs 
+    - ``distances`` -- path distance matrix (see the distance_all_pairs
       module).
 
     - ``verbose`` -- (default: ``False``) is boolean. Set to True to display
@@ -307,8 +308,8 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
 
     This function returns a tuple ( h, certificate ), where:
 
-    - ``h`` -- the maximum computed value over all 4-tuples, and so is twice 
-      the hyperbolicity of the graph. If no such 4-tuple is found, -1 is 
+    - ``h`` -- the maximum computed value over all 4-tuples, and so is twice
+      the hyperbolicity of the graph. If no such 4-tuple is found, -1 is
       returned.
 
     - ``certificate`` -- 4-tuple of vertices maximizing the value `h`. If no
@@ -319,7 +320,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
     cdef list certificate
 
     h_LB = -1
-   
+
     for 0 <= a < N-3:
             for a < b < N-2:
 
@@ -389,7 +390,7 @@ cdef inline distances_and_far_apart_pairs(gg,
 
     This method assumes that:
 
-        - The input graph gg is connected. If not, the result will be 
+        - The input graph gg is connected. If not, the result will be
           incorrect.
 
         - The arrays distances and far_apart_pairs have already been allocated
@@ -500,11 +501,11 @@ cdef inline pair** sort_pairs(uint32_t N,
                               ):
     """
     Returns an array of unordered pairs {i,j} in increasing order of values.
-    
+
     Uses counting sort to list pairs {i,j} in increasing order of values(i,j).
-    If to_include[i][j] = 0, the pair is ignored. We assume N and D to be 
-    correct with respect to the arrays values and to_include, that values and 
-    to_include are symmetric (that is, values[i][j] = values[j][i] and 
+    If to_include[i][j] = 0, the pair is ignored. We assume N and D to be
+    correct with respect to the arrays values and to_include, that values and
+    to_include are symmetric (that is, values[i][j] = values[j][i] and
     to_include[i][j] = to_include[j][i], and that nb_p, nb_pairs_of_length are
     already allocated.
 
@@ -515,22 +516,22 @@ cdef inline pair** sort_pairs(uint32_t N,
 
     - ``D`` -- the maximum value of an element;
 
-    - ``values`` -- an array containing in position (i,j) the value of the 
+    - ``values`` -- an array containing in position (i,j) the value of the
       pair (i,j);
-    
-    - ``to_include`` -- an array such that to_include[i][j] contains "1" if 
-      pair (i,j) should be included, "0" otherwise. If NULL, all elements are 
+
+    - ``to_include`` -- an array such that to_include[i][j] contains "1" if
+      pair (i,j) should be included, "0" otherwise. If NULL, all elements are
       included;
 
     OUTPUT:
-    
+
      - ``nb_p`` -- the number of pairs to be included;
-     
-     - ``nb_pairs_of_length`` -- an array containing in position k the number 
+
+     - ``nb_pairs_of_length`` -- an array containing in position k the number
        of pairs (i,j) that are included and such that values[i][j] = k.
-           
-     - ``pairs_of_length`` -- this function returns this array, containing in 
-       position k a pointer to the first included pair (i,j) such that 
+
+     - ``pairs_of_length`` -- this function returns this array, containing in
+       position k a pointer to the first included pair (i,j) such that
        values[i][j] = k.
     """
         # pairs_of_length[d] is the list of pairs of vertices at distance d
@@ -538,10 +539,10 @@ cdef inline pair** sort_pairs(uint32_t N,
     cdef unsigned short *p_to_include
     cdef uint32_t i,j,k
     nb_p[0] = 0;
-    
+
     # fills nb_pairs_of_length and nb_p
     memset(nb_pairs_of_length, 0, (D+1) * sizeof(uint32_t))
-        
+
     if to_include == NULL:
         nb_p[0] = (N*(N-1))/2
         for i from 0 <= i < N:
@@ -632,9 +633,9 @@ cdef tuple hyperbolicity_BCCM(int N,
     - ``h_LB`` -- lower bound on the hyperbolicity
 
     - ``approximation_factor`` -- When the approximation factor is set to some
-      value larger than 1.0, the function stop computations as soon as the 
-      ratio between the upper bound and the best found solution is less than 
-      the approximation factor. When the approximation factor is 1.0, the 
+      value larger than 1.0, the function stop computations as soon as the
+      ratio between the upper bound and the best found solution is less than
+      the approximation factor. When the approximation factor is 1.0, the
       problem is solved optimaly.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
@@ -653,10 +654,10 @@ cdef tuple hyperbolicity_BCCM(int N,
      to `h_LB are found, h is the maximum computed value and so twice the
      hyperbolicity of the graph. If no such 4-tuple is found, it returns -1.
 
-    - ``certificate`` -- is a list of vertices. When 4-tuples with 
+    - ``certificate`` -- is a list of vertices. When 4-tuples with
       hyperbolicity larger that h_LB are found, certificate is the list of the
-      4 vertices for which the maximum value (and so the hyperbolicity of the 
-      graph) has been computed. If no such 4-tuple is found, it returns the 
+      4 vertices for which the maximum value (and so the hyperbolicity of the
+      graph) has been computed. If no such 4-tuple is found, it returns the
       empty list [].
 
     - ``h_UB`` -- is an integer equal to the proven upper bound for `h`. When
@@ -673,13 +674,13 @@ cdef tuple hyperbolicity_BCCM(int N,
     cdef unsigned short *dist_a
     cdef unsigned short *dist_b
     cdef bint GOTO_RETURN = 0
-    
+
     # Variable used to store "mates".
     cdef int **mate = <int**> mem.malloc(N * sizeof(int*))
     for i in range(N):
         mate[i] = <int*> mem.malloc(N * sizeof(int))
     cdef int *cont_mate = <int*> mem.calloc(N, sizeof(int))
-    
+
     # The farness of all vertices (the farness of v is the sum of the distances
     # between v and all other vertices).
     cdef uint64_t *farness = <uint64_t*> mem.calloc(N, sizeof(uint64_t))
@@ -704,24 +705,24 @@ cdef tuple hyperbolicity_BCCM(int N,
             if dist_a[b] >= N:
                 raise ValueError("The input graph must be connected.")
         if farness[a] < farness[central]:
-            central = a            
+            central = a
     cdef unsigned short *dist_central = distances[central]
-    
+
     # We put in variable mates_decr_order_value[a] all vertices b, in
     # decreasing order of ecc[b]-distances[a][b]
     for a in range(N):
         mates_decr_order_value[a] = <int*> mem.malloc(N * sizeof(int))
         dist_a = distances[a]
         memset(nvalues, 0, (D+1) * sizeof(int))
-        
+
         for b in range(N):
             value[b] = ecc[b] - dist_a[b]
             nvalues[value[b]] += 1
         nvalues_cum[D] = 0
-        
-        for b from D > b >= 0:
+
+        for b in range(D-1, -1, -1):
             nvalues_cum[b] = nvalues_cum[b+1] + nvalues[b+1]
-        
+
         for b in range(N):
             mates_decr_order_value[a][nvalues_cum[value[b]]] = b
             nvalues_cum[value[b]] += 1
@@ -729,9 +730,9 @@ cdef tuple hyperbolicity_BCCM(int N,
     # We sort pairs, in increasing order of distance
     cdef uint32_t * nb_pairs_of_length = <uint32_t *> mem.calloc(D+1, sizeof(uint32_t))
 
-    cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs, 
+    cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs,
                                               &nb_p, nb_pairs_of_length)
-    
+
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
         if far_apart_pairs == NULL:
@@ -747,20 +748,18 @@ cdef tuple hyperbolicity_BCCM(int N,
     additive_gap = min(additive_gap, D)
 
     # We start iterating from pairs with maximum distance.
-    for x from nb_p > x >= 0:
+    for x in range(nb_p-1, -1, -1):
         a = sorted_pairs[x].s
         b = sorted_pairs[x].t
-                
+
         # Without loss of generality, a has smaller farness than b.
         if farness[a] < farness[b]:
-            c = a
-            a = b
-            b = c
-        
+            a,b = b,a
+
         dist_a = distances[a]
         dist_b = distances[b]
         h_UB = distances[a][b]
-        
+
         # If we cannot improve further, we stop
         if h_UB <= h:
             h_UB = h
@@ -771,20 +770,20 @@ cdef tuple hyperbolicity_BCCM(int N,
         if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
             GOTO_RETURN = 1
             break
-        
+
         # We update variable mate, adding pair (a,b)
         mate[a][cont_mate[a]] = b
         cont_mate[a] += 1
         mate[b][cont_mate[b]] = a
         cont_mate[b] += 1
-        
+
         # We compute acceptable and valuable vertices
         n_acc = 0
         n_val = 0
-        
+
         hplusone = h+1
         condacc = 3 * hplusone - 2 * h_UB
-            
+
         for i in range(N):
             c = mates_decr_order_value[a][i]
             if cont_mate[c] > 0:
@@ -802,7 +801,7 @@ cdef tuple hyperbolicity_BCCM(int N,
                                     n_val += 1
                 else:
                     break
-        
+
         # For each pair (c,d) where c is valuable and d is acceptable, we
         # compute the hyperbolicity of (a,b,c,d), and we update h if necessary
         for i in range(n_val):
@@ -831,12 +830,12 @@ cdef tuple hyperbolicity_BCCM(int N,
 
                             if verbose:
                                 print "New lower bound:",ZZ(hh)/2
-                
+
         # We reset acc_bool
         for v in range(n_acc):
             acc_bool[acc[v]] = 0
 
-    # Needed because sometimes h_UB is not updated, if there is no cut.
+    # Needed because sometimes h_UB is not updated, if the analysis is no cut.
     if not GOTO_RETURN:
         h_UB = h
 
@@ -857,7 +856,7 @@ cdef tuple hyperbolicity_BCCM(int N,
 
 
 ######################################################################
-# Compute the hyperbolicity using the algorithm of [CCL12]_
+# Compute the hyperbolicity using the algorithm of [CCL15]_
 ######################################################################
 
 cdef tuple hyperbolicity_CCL(int N,
@@ -872,7 +871,7 @@ cdef tuple hyperbolicity_CCL(int N,
     Return the hyperbolicity of a graph.
 
     This method implements the exact and the approximate algorithms proposed in
-    [CCL12]_. See the module's documentation for more details.
+    [CCL15]_. See the module's documentation for more details.
 
     This method assumes that the graph under consideration is connected.
 
@@ -890,9 +889,9 @@ cdef tuple hyperbolicity_CCL(int N,
     - ``h_LB`` -- lower bound on the hyperbolicity
 
     - ``approximation_factor`` -- When the approximation factor is set to some
-      value larger than 1.0, the function stop computations as soon as the 
-      ratio between the upper bound and the best found solution is less than 
-      the approximation factor. When the approximation factor is 1.0, the 
+      value larger than 1.0, the function stop computations as soon as the
+      ratio between the upper bound and the best found solution is less than
+      the approximation factor. When the approximation factor is 1.0, the
       problem is solved optimaly.
 
      - ``additive_gap`` -- When sets to a positive number, the function stop
@@ -911,10 +910,10 @@ cdef tuple hyperbolicity_CCL(int N,
      to `h_LB are found, h is the maximum computed value and so twice the
      hyperbolicity of the graph. If no such 4-tuple is found, it returns -1.
 
-    - ``certificate`` -- is a list of vertices. When 4-tuples with 
+    - ``certificate`` -- is a list of vertices. When 4-tuples with
       hyperbolicity larger that h_LB are found, certificate is the list of the
-      4 vertices for which the maximum value (and so the hyperbolicity of the 
-      graph) has been computed. If no such 4-tuple is found, it returns the 
+      4 vertices for which the maximum value (and so the hyperbolicity of the
+      graph) has been computed. If no such 4-tuple is found, it returns the
       empty list [].
 
     - ``h_UB`` -- is an integer equal to the proven upper bound for `h`. When
@@ -939,9 +938,9 @@ cdef tuple hyperbolicity_CCL(int N,
     if (nb_pairs_of_length == NULL):
         raise MemoryError
 
-    cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs, 
+    cdef pair ** pairs_of_length = sort_pairs(N, D, distances, far_apart_pairs,
                                               &nb_p, nb_pairs_of_length)
-    
+
     if verbose:
         print "Current 2 connected component has %d vertices and diameter %d" %(N,D)
         if far_apart_pairs == NULL:
@@ -1073,10 +1072,10 @@ cdef tuple hyperbolicity_CCL(int N,
         return (h, certificate, h_UB if GOTO_RETURN else h)
 
 
-def hyperbolicity(G, 
-                  algorithm='BCCM', 
-                  approximation_factor=None, 
-                  additive_gap=None, 
+def hyperbolicity(G,
+                  algorithm='BCCM',
+                  approximation_factor=None,
+                  additive_gap=None,
                   verbose = False):
     r"""
     Returns the hyperbolicity of the graph or an approximation of this value.
@@ -1096,19 +1095,19 @@ def hyperbolicity(G,
 
     - ``G`` -- a connected Graph
 
-    - ``algorithm`` -- (default: ``'BCCM'``) specifies the algorithm to use 
+    - ``algorithm`` -- (default: ``'BCCM'``) specifies the algorithm to use
       among:
 
           - ``'basic'`` is an exhaustive algorithm considering all possible
             4-tuples and so have time complexity in `O(n^4)`.
-            
-          - ``'CCL'`` is an exact algorithm proposed in [CCL12_]. It considers
+
+          - ``'CCL'`` is an exact algorithm proposed in [CCL15_]. It considers
             the 4-tuples in an ordering allowing to cut the search space as soon
             as a new lower bound is found (see the module's documentation). This
             algorithm can be turned into a approximation algorithm.
 
-          - ``'CCL+FA'`` or ``'CCL+'`` uses the notion of far-apart pairs as 
-            proposed in [Soto11]_ to significantly reduce the overall 
+          - ``'CCL+FA'`` or ``'CCL+'`` uses the notion of far-apart pairs as
+            proposed in [Soto11]_ to significantly reduce the overall
             computation time of the ``'CCL'`` algorithm.
 
           - ``'BCCM'`` is an exact algorithm proposed in [BCCM15_]. It improves
@@ -1195,9 +1194,9 @@ def hyperbolicity(G,
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
         sage: hyperbolicity(G,algorithm='dom')
         (1, [(0, 1), (0, 9), (1, 0), (1, 8)], 5)
-        
+
     Asking for an approximation in a cycle graph::
-    
+
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: G = graphs.CycleGraph(10)
         sage: hyperbolicity(G,algorithm='CCL', approximation_factor=1.5)
@@ -1224,7 +1223,7 @@ def hyperbolicity(G,
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: import random
         sage: random.seed()
-        sage: for i in range(100): # long time
+        sage: for i in range(10): # long time
         ...       n = random.randint(2, 20)
         ...       m = random.randint(0, n*(n-1) / 2)
         ...       G = graphs.RandomGNM(n, m)
@@ -1292,12 +1291,12 @@ def hyperbolicity(G,
         Traceback (most recent call last):
         ...
         ValueError: Algorithm 'tip top' not yet implemented. Please contribute.
-    """            
-    
+    """
+
     # Abbreviations for algorithms are expanded.
     if algorithm == "CCL+":
         algorithm = "CCL+FA"
-        
+
     if not isinstance(G,Graph):
         raise ValueError("The input parameter must be a Graph.")
     if not algorithm in ['basic', 'CCL', 'CCL+FA', 'BCCM', 'dom']:
@@ -1321,7 +1320,7 @@ def hyperbolicity(G,
             raise ValueError("The additive gap must be a real positive number.")
     else:
         raise ValueError("The additive_gap is ignored when using the '%s' algorithm." %(algorithm))
-    
+
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():
         raise ValueError("The input Graph must be connected.")
@@ -1438,7 +1437,7 @@ def hyperbolicity(G,
         hyp, certif, hyp_UB = hyperbolicity_CCL(N, distances, far_apart_pairs, D, hyp,
                                                 approximation_factor, 2*additive_gap, verbose)
         sig_off()
-    
+
     elif algorithm == 'BCCM':
         sig_on()
         hyp, certif, hyp_UB = hyperbolicity_BCCM(N, distances, far_apart_pairs,

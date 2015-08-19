@@ -1093,17 +1093,18 @@ class Newform(ModularForm_abstract):
         M = self.modular_symbols(sign=0)
         if sign != 0:
             Ms = M.sign_submodule(sign)
+            r = 1
         else:
             Ms = M
+            r = 2
         # silly thing: can't do Ms.eigenvector(), even when Ms is simple,
         # because it can't be relied on to choose the coefficient fields
         # consistently
         A = M.ambient()
         X = Ms.free_module().base_extend(self.hecke_eigenvalue_field())
         p = rings.ZZ(2)
-        r = ((sign == 0 and 2) or 1)
         while X.rank() > r:
-            if p > M.sturm_bound(): raise ArithmeticError, "Can't get here!"
+            assert p <= M.sturm_bound()
             X = (A.hecke_matrix(p) - self[p]).kernel_on(X)
             p = p.next_prime()
 

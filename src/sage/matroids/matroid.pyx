@@ -107,6 +107,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`components() <sage.matroids.matroid.Matroid.components>`
     - :meth:`is_connected() <sage.matroids.matroid.Matroid.is_connected>`
     - :meth:`is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
+    - :meth:`is_4connected() <sage.matroids.matroid.Matroid.is_4connected>`
+    - :meth:`is_kconnected() <sage.matroids.matroid.Matroid.is_kconnected>`
     - :meth:`connectivity() <sage.matroids.matroid.Matroid.connectivity>`
 
 - Representation
@@ -296,6 +298,7 @@ REFERENCES
 ..  [PvZ] R. A. Pendavingh, S. H. M. van Zwam, Lifts of matroid 
     representations over partial fields, Journal of Combinatorial Theory, 
     Series B, Volume 100, Issue 1, January 2010, Pages 36-67
+..  [Rajan] A. Rajan, Algorithmic applications of connectivity and related topics in matroid theory. Ph.D. Thesis, Northwestern university, 1987.
 
 AUTHORS:
 
@@ -4799,7 +4802,9 @@ cdef class Matroid(SageObject):
 
         .. SEEALSO::
 
-            :meth:`is_connected`, `is_3connected`
+            :meth:`M.is_connected() <sage.matroids.matroid.Matroid.is_connected>`
+            :meth:`M.is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
+            :meth:`M.is_4connected() <sage.matroids.matroid.Matroid.is_4connected>`
 
         ALGORITHM:
 
@@ -4925,7 +4930,8 @@ cdef class Matroid(SageObject):
           - ``None`` -- The most appropriate algorithm is chosen automatically.
           - ``"bridges"`` -- Bixby and Cunningham's algorithm, based on bridges [BC79]_.
             Note that this cannot return a separator.
-          - ``"intersection"`` An algorithm based on matroid intersection.
+          - ``"intersection"`` -- An algorithm based on matroid intersection.
+          - ``"shifting"`` -- An algorithm based on the shifting algorithm [Rajan]_.
 
         OUTPUT:
 
@@ -4933,13 +4939,16 @@ cdef class Matroid(SageObject):
 
         .. SEEALSO::
 
-            :meth:`is_connected`
+            :meth:`M.is_connected() <sage.matroids.matroid.Matroid.is_connected>`
+            :meth:`M.is_4connected() <sage.matroids.matroid.Matroid.is_4connected>`
+            :meth:`M.is_kconnected() <sage.matroids.matroid.Matroid.is_kconnected>`
 
         ALGORITHM:
 
         - Bridges based: The 3-connectivity algorithm from [BC79]_ which runs in `O((r(E))^2|E|)` time.
         - Matroid intersection based: Evaluates the connectivity between `O(|E|^2)` pairs of disjoint
           sets `S`, `T` with `|S| = |T| = 2`.
+        - Shifting algorithm: The shifting algorithm from [Rajan]_ which runs in `O((r(E))^2|E|)` time.
 
         EXAMPLES::
 
@@ -4982,6 +4991,58 @@ cdef class Matroid(SageObject):
             return self._is_3connected_CE(separation)
         if algorithm == "shifting":
             return self._is_3connected_shifting(certificate)
+        raise ValueError("Not a valid algorithm.")
+
+    cpdef is_4connected(self, certificate=False, algorithm=None):
+        r"""
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 4-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<4`-separation
+        - ``algorithm`` -- (default: ``None``); specify which algorithm 
+          to compute 4-connectivity:
+
+          - ``None`` -- The most appropriate algorithm is chosen automatically.
+          - ``"intersection"`` -- an algorithm based on matroid intersection, equivalent
+            to calling ``is_kconnected(4,certificate)``.
+          - ``"shifting"`` -- an algorithm based on the shifting algorithm [Rajan]_.
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        .. SEEALSO::
+
+            :meth:`M.is_connected() <sage.matroids.matroid.Matroid.is_connected>`
+            :meth:`M.is_3connected() <sage.matroids.matroid.Matroid.is_3connected>`
+            :meth:`M.is_kconnected() <sage.matroids.matroid.Matroid.is_kconnected>`
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2, 6)
+            sage: B, X = M.is_4connected(True)
+            sage: (B, M.connectivity(X)<=3)
+            (False, True)
+            sage: matroids.Uniform(4, 8).is_4connected()
+            True
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M.is_4connected() == M.is_4connected(algorithm="shifting")
+            True
+            sage: M.is_4connected() == M.is_4connected(algorithm="intersection")
+            True
+        """
+        if algorithm == None or algorithm == "intersection":
+            return self.is_kconnected(4, certificate)
+        if algorithm == "shifting":
+            return self._is_4connected_shifting(certificate)
         raise ValueError("Not a valid algorithm.")
 
     cpdef _is_3connected_CE(self, certificate=False):
@@ -5114,7 +5175,7 @@ cdef class Matroid(SageObject):
 
     cpdef _is_3connected_shifting(self, certificate=False):
         r"""
-        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        Return ``True`` if the matroid is 3-connected, ``False`` otherwise. It can
         optionally return a separator as a witness.
 
         INPUT:

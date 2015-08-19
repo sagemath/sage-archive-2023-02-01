@@ -209,7 +209,7 @@ class ClusterAlgebraSeed(SageObject):
         if inplace:
             seed = self
         else:
-            seed = self.mutate(seq.next(), inplace=False, mutating_F=mutating_F)
+            seed = self.mutate(next(seq), inplace=False, mutating_F=mutating_F)
 
         for k in seq:
             seed.mutate(k, inplace=True, mutating_F=mutating_F)
@@ -340,7 +340,7 @@ class ClusterAlgebra(Parent):
         mutation_counter = 0
         while g_vector not in self.g_vectors_so_far():
             try:
-                seeds.next()
+                next(seeds)
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
             mutation_counter += 1

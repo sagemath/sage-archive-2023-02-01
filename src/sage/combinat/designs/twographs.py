@@ -36,7 +36,7 @@ This module's methods are the following :
     :widths: 30, 70
     :delim: |
 
-    :meth:`~TwoGraph.is_regular_twograph` | returns True if the inc. system is regular twograph
+    :meth:`~TwoGraph.is_regular_twograph` | returns True if ``self`` is a regular two-graph, i.e. a 2-design
     :meth:`~TwoGraph.complement` | returns the complement of ``self``
     :meth:`~TwoGraph.descendant` | returns the descendant graph at `w`
 
@@ -68,8 +68,9 @@ class TwoGraph(IncidenceStructure):
     """
     def is_regular_twograph(self, alpha=False, check=False):
         """
-        returns True if ``self`` is a regular twograph, i.e. a 2-design:
-        each pair of elements of ``self.ground_set()`` is contained in
+        returns True if ``self`` is a regular two-graph, i.e. a 2-design
+
+        Namely, each pair of elements of :meth:`ground_set` is contained in
         exactly ``alpha`` triples.
 
         INPUT:
@@ -105,14 +106,14 @@ class TwoGraph(IncidenceStructure):
         """
         the descendant graph at ``v``
 
-        The :mod:`switching class of graphs <sage.combinat.designs.twographs>`
+        the :mod:`switching class of graphs <sage.combinat.designs.twographs>`
         corresponding to ``self`` contains a graph ``D`` with ``v`` its own connected
         component; removing ``v`` from ``D``, one obtains the descendant graph of
         ``self`` at ``v``, which is constructed by this method.
 
         INPUT:
 
-            - ``v`` -- an element of ``self.ground_set()``
+            - ``v`` -- an element of :meth:`ground_set`
 
         OUTPUT:
 
@@ -132,7 +133,7 @@ class TwoGraph(IncidenceStructure):
         """
         the complement of ``self``
 
-        The two-graph constisting exactly of triples not in ``self``.
+        the two-graph constisting exactly of triples not in ``self``.
 
         EXAMPLES::
 
@@ -151,7 +152,11 @@ class TwoGraph(IncidenceStructure):
 
 def is_twograph(T):
     r"""
-    True if the incidence system `T` is a two-graph
+    returns True if the incidence system `T` is a two-graph
+
+    INPUT:
+
+       - ``T`` -- an :class:`incidence structure <sage.combinat.designs.IncidenceStructure>`
 
     EXAMPLES::
 

@@ -941,6 +941,14 @@ class Graph(GenericGraph):
             sage: Graph(M).edges()
             [(0, 1, None)]
 
+    #.  A Seidel adjacency matrix::
+
+          sage: from sage.combinat.matrices.hadamard_matrix import \
+          ....:  regular_symmetric_hadamard_matrix_with_constant_diagonal as rshcd
+          sage: m=rshcd(16,1)- matrix.identity(16)
+          sage: Graph(m,format="seidel_adjacency_matrix").is_strongly_regular(parameters=True)
+          (16, 6, 2, 2)
+
     #. a list of edges, or labelled edges::
 
           sage: g = Graph([(1,3),(3,8),(5,2)])
@@ -1023,6 +1031,21 @@ class Graph(GenericGraph):
         Traceback (most recent call last):
         ...
         ValueError: An *undirected* igraph graph was expected. To build an directed graph, call the DiGraph constructor.
+
+        sage: m = matrix([[0,-1],[-1,0]])
+        sage: Graph(m,format="seidel_adjacency_matrix")
+        Graph on 2 vertices
+        sage: m[0,1]=1
+        sage: Graph(m,format="seidel_adjacency_matrix")
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph's Seidel adjacency matrix must be symmetric
+
+        sage: m[0,1]=-1; m[1,1]=1
+        sage: Graph(m,format="seidel_adjacency_matrix")
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph's Seidel adjacency matrix must have 0s on the main diagonal
 
     """
     _directed = False
@@ -5018,8 +5041,7 @@ class Graph(GenericGraph):
         It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either :meth:`sage.matrix.change_ring` method or :func:`matrix`
-        function.
+        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring` method or :func:`matrix` function.
 
         INPUT:
 

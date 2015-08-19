@@ -441,22 +441,22 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
     raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
 
 @cached_function
-def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
+def is_two_graph_descendant_of_srg(int v, int k0, int l, int mu):
     r"""
-    Test whether some descendant graph of an s.r.g. is `(v_0,k_0,\lambda_0,\mu_0)`-s.r.g.
+    Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
 
-    We check whether there can exist (v,k,\lambda,\mu)-s.r.g. `G` so that ``self`` is a
+    We check whether there can exist (v+1,k,\lambda^*,\mu^*)-s.r.g. `G` so that ``self`` is a
     descendant graph of the regular two-graph specified by `G`.  Specifically, we must have
-    that `v=v_0+1=2(2k-\lambda-\mu)`, and `k_0=2(k-\mu)`, `lambda_0=k+\lambda-2\mu`, `\mu_0=k-\mu`,
-    which give 2 linear conditions, say `k-\mu=\mu_0` and `\lambda-\mu=\lambda_0-\mu_0`.
-    Further, there is a quadratic relation `2 k^2-(v_0+1+4 \mu_0) k+ 2 v_0 \mu_0=0`.
+    that `v+1=2(2k-\lambda^*-\mu^*)`, and `k_0=2(k-\mu^*)`, `lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`,
+    which give 2 independent linear conditions, say `k-\mu^*=\mu` and `\lambda^*-\mu^*=\lambda-\mu`.
+    Further, there is a quadratic relation `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
 
-    If we can contruct such `G` then we return a function to build a `(v_0,k_0,\lambda_0,\mu_0)`-s.r.g.
+    If we can contruct such `G` then we return a function to build a `(v,k_0,\lambda,\mu)`-s.r.g.
     For more information, see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 
     INPUT:
 
-    - ``v0,k0,l0,mu0`` (integers)
+    - ``v,k0,l,mu`` (integers)
 
     OUTPUT:
 
@@ -482,20 +482,20 @@ def is_two_graph_descendant_of_srg(int v0, int k0, int l0, int mu0):
         (279, 150, 85, 75)
     """
     cdef int b, k, s
-    if k0 != 2*mu0 or v0 % 2 == 0:
+    if k0 != 2*mu or v % 2 == 0:
         return
-    b = v0+1+4*mu0
-    D = sqrt(b**2-16*v0*mu0)
+    b = v+1+4*mu
+    D = sqrt(b**2-16*v*mu)
     if int(D)==D:
         for kf in [(-D+b)/4, (D+b)/4]:
             k = int(kf)
             if k == kf and \
-                strongly_regular_graph(v0+1, k, l0 - 2*mu0 + k , k - mu0,  existence=True):
+                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True):
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
-                    g = strongly_regular_graph(vv, k, l0 - 2*mu0 + k)
+                    g = strongly_regular_graph(vv, k, l - 2*mu + k)
                     return twograph_descendant(g, g.vertex_iterator().next())
-                return(la, v0+1)
+                return(la, v+1)
     return
 
 cdef eigenvalues(int v,int k,int l,int mu):

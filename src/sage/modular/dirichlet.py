@@ -72,7 +72,6 @@ import sage.structure.parent_gens           as parent_gens
 from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
 from sage.rings.complex_field import is_ComplexField
-from sage.rings.qqbar import is_AlgebraicField
 from sage.rings.ring import is_Ring
 
 from sage.misc.cachefunc                    import cached_method
@@ -919,7 +918,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if is_ComplexField(K) or is_AlgebraicField(K):
+        if is_ComplexField(K):
             return self.gauss_sum_numerical()
         if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
@@ -991,10 +990,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent()
         K = G.base_ring()
         if not (number_field.is_CyclotomicField(K) or is_RationalField(K)
-                or is_ComplexField(K) or is_AlgebraicField(K)):
+                or is_ComplexField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
 
-        if is_ComplexField(K) or is_AlgebraicField(K):
+        if is_ComplexField(K):
             phi = lambda t : t
             CC = K
         else:

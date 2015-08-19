@@ -4,6 +4,12 @@ Coercion via Construction Functors
 from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
 
+lazy_import('sage.categories.commutative_additive_groups', 'CommutativeAdditiveGroups')
+lazy_import('sage.categories.commutative_rings', 'CommutativeRings')
+lazy_import('sage.categories.groups', 'Groups')
+lazy_import('sage.categories.objects', 'Objects')
+lazy_import('sage.categories.rings', 'Rings')
+
 lazy_import('sage.structure.parent', 'CoercionException')
 
 # TODO, think through the rankings, and override pushout where necessary.

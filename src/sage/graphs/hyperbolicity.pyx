@@ -1210,32 +1210,32 @@ def hyperbolicity(G,
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: for i in xrange(10): # long time
-        ...       G = graphs.RandomBarabasiAlbert(100,2)
-        ...       d1,_,_ = hyperbolicity(G,algorithm='basic')
-        ...       d2,_,_ = hyperbolicity(G,algorithm='CCL')
-        ...       d3,_,_ = hyperbolicity(G,algorithm='CCL+')
-        ...       d4,_,_ = hyperbolicity(G,algorithm='CCL+FA')
-        ...       d5,_,_ = hyperbolicity(G,algorithm='BCCM')
-        ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
-        ...          print "That's not good!"
+        ....:     G = graphs.RandomBarabasiAlbert(100,2)
+        ....:     d1,_,_ = hyperbolicity(G,algorithm='basic')
+        ....:     d2,_,_ = hyperbolicity(G,algorithm='CCL')
+        ....:     d3,_,_ = hyperbolicity(G,algorithm='CCL+')
+        ....:     d4,_,_ = hyperbolicity(G,algorithm='CCL+FA')
+        ....:     d5,_,_ = hyperbolicity(G,algorithm='BCCM')
+        ....:     l3,_,u3 = hyperbolicity(G,approximation_factor=2)
+        ....:     if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
+        ....:        print "That's not good!"
 
         sage: from sage.graphs.hyperbolicity import hyperbolicity
         sage: import random
         sage: random.seed()
         sage: for i in range(10): # long time
-        ...       n = random.randint(2, 20)
-        ...       m = random.randint(0, n*(n-1) / 2)
-        ...       G = graphs.RandomGNM(n, m)
-        ...       for cc in G.connected_components_subgraphs():
-        ...           d1,_,_ = hyperbolicity(cc, algorithm='basic')
-        ...           d2,_,_ = hyperbolicity(cc, algorithm='CCL')
-        ...           d3,_,_ = hyperbolicity(cc, algorithm='CCL+')
-        ...           d4,_,_ = hyperbolicity(cc, algorithm='CCL+FA')
-        ...           d5,_,_ = hyperbolicity(cc, algorithm='BCCM')
-        ...           l3,_,u3 = hyperbolicity(cc, approximation_factor=2)
-        ...           if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
-        ...               print "Error in graph ", cc.edges()
+        ....:     n = random.randint(2, 20)
+        ....:     m = random.randint(0, n*(n-1) / 2)
+        ....:     G = graphs.RandomGNM(n, m)
+        ....:     for cc in G.connected_components_subgraphs():
+        ....:         d1,_,_ = hyperbolicity(cc, algorithm='basic')
+        ....:         d2,_,_ = hyperbolicity(cc, algorithm='CCL')
+        ....:         d3,_,_ = hyperbolicity(cc, algorithm='CCL+')
+        ....:         d4,_,_ = hyperbolicity(cc, algorithm='CCL+FA')
+        ....:         d5,_,_ = hyperbolicity(cc, algorithm='BCCM')
+        ....:         l3,_,u3 = hyperbolicity(cc, approximation_factor=2)
+        ....:         if (not d1==d2==d3==d4==d5) or l3>d1 or u3<d1:
+        ....:             print "Error in graph ", cc.edges()
 
     The hyperbolicity of a graph is the maximum value over all its biconnected
     components::

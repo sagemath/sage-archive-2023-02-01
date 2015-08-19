@@ -228,6 +228,14 @@ class FreeGroupElement(ElementLibGAP):
         ElementLibGAP.__init__(self, parent, x)
 
     def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: hash(a*b*b*~a)
+            -485698212495963022 # 64-bit
+            -1876767630         # 32-bit
+        """
         return hash(self.Tietze())
 
     def _latex_(self):

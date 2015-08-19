@@ -343,7 +343,27 @@ class FGP_Element(ModuleElement):
         try: return self.__vector
         except AttributeError:
             self.__vector = self.parent().coordinate_vector(self, reduce=True)
+            self.__vector.set_immutable()
             return self.__vector
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: hash(x)
+            3713081631933328131 # 64-bit
+            1298787075          # 32-bit
+
+            sage: A = AdditiveAbelianGroup([3])
+            sage: hash(A.an_element())
+            3430019387558 # 64-bit
+            -1659481946   # 32-bit
+        """
+        return hash(self.vector())
 
     def _vector_(self, base_ring=None):
         """

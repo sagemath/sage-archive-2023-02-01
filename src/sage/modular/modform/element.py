@@ -1071,13 +1071,13 @@ class Newform(ModularForm_abstract):
         Hecke eigenvalue field, which is an eigenspace for the Hecke operators
         with the same eigenvalues as this newform, *and* is an eigenspace for
         the star involution of the appropriate sign if the sign is not 0.
-        
+
         EXAMPLES::
-        
+
             sage: N = Newform("37a")
             sage: N.modular_symbols(0)
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
-            sage: M = N.modular_symbols(0)              
+            sage: M = N.modular_symbols(0)
             sage: V = N.modsym_eigenspace(1); V
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
@@ -1198,7 +1198,7 @@ class Newform(ModularForm_abstract):
         .. NOTE::
 
             This method assumes that the `Q`-th coefficient in the
-            `q`-expansion of ``self`` is non-zero. 
+            `q`-expansion of ``self`` is non-zero.
 
         TESTS::
 
@@ -1259,7 +1259,7 @@ class Newform(ModularForm_abstract):
         the coefficient field of `f`.
 
         .. NOTE::
-            
+
             This algorithm only works if the character of `f` is trivial at
             `Q`, so `f^* = f`. Nonetheless we return the pair `(w, f)` for
             consistency.
@@ -1381,7 +1381,7 @@ class Newform(ModularForm_abstract):
             if embedding is not None:
                 w = embedding(w)
             return w, self
-        
+
         q, e = d.factor()[0]
         Q = q**e
         M = d // Q
@@ -1389,7 +1389,7 @@ class Newform(ModularForm_abstract):
         eps = eps_Q(M)
         if embedding is not None:
             eps = embedding(eps)
-            
+
         eta0, g0 = self.atkin_lehner_action(M, embedding)
         if self[Q]:
             eta1, g1 = g0._atkin_lehner_action_from_qexp(Q, embedding)
@@ -2345,6 +2345,3 @@ class EisensteinSeries(ModularFormElement):
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
             return rings.factor(self.__t)[0][0]
         return self.L()*self.M()
-
-
-

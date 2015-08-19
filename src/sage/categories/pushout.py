@@ -3229,7 +3229,7 @@ def pushout(R, S):
         ....:     coercion_reversed = True
         ....:     def __init__(self):
         ....:         ConstructionFunctor.__init__(self, Rings(), Rings())
-        ....:     def __call__(self, R):
+        ....:     def _apply_functor(self, R):
         ....:         return EvenPolynomialRing(R.base(), R.variable_name())
         ....:
         sage: pushout(EvenPolynomialRing(QQ, 'x'), ZZ)

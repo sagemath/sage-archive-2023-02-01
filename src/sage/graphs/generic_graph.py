@@ -13971,7 +13971,7 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCES:
 
-        .. [Borgatti95] Stephen P Borgatti. (1995). Centrality and AIDS.
+        .. [Borgatti95] Stephen P. Borgatti. (1995). Centrality and AIDS.
           [Online] Available:
           http://www.analytictech.com/networks/centaids.htm
 
@@ -14018,7 +14018,6 @@ class GenericGraph(GenericGraph_pyx):
             {}
             sage: print g.centrality_closeness(0)
             None
-        
 
         Weighted graphs::
 
@@ -14035,7 +14034,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: import random
             sage: import itertools
-            sage: for i in range(100):                           # long time
+            sage: for i in range(10):                           # long time
             ....:     n = random.randint(2,20)
             ....:     m = random.randint(0, n*(n-1)/2)
             ....:     g = graphs.RandomGNM(n,m)
@@ -14054,7 +14053,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: import random
             sage: import itertools
-            sage: for i in range(100):                           # long time
+            sage: for i in range(10):                           # long time
             ....:     n = random.randint(2,20)
             ....:     m = random.randint(0, n*(n-1)/2)
             ....:     g = digraphs.RandomDirectedGNM(n,m)
@@ -14073,7 +14072,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: import random
             sage: import itertools
-            sage: for i in range(100):                           # long time
+            sage: for i in range(10):                           # long time
             ....:     n = random.randint(2,20)
             ....:     m = random.randint(0, n*(n-1)/2)
             ....:     g = graphs.RandomGNM(n,m)

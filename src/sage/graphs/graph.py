@@ -4731,7 +4731,7 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            - :meth:`centrality_closeness`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_closeness`
             - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         EXAMPLES::

@@ -195,6 +195,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.centrality_betweenness` | Return the betweenness centrality
+    :meth:`~GenericGraph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
     :meth:`~GenericGraph.distance` | Return the (directed) distance from u to v in the (di)graph
     :meth:`~GenericGraph.distance_all_pairs` | Return the distances between all pairs of vertices.
     :meth:`~GenericGraph.distances_distribution` | Return the distances distribution of the (di)graph in a dictionary.
@@ -13820,7 +13821,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`~sage.graphs.graph.Graph.centrality_degree`
-            - :meth:`~sage.graphs.graph.Graph.centrality_closeness`
+            - :meth:`~centrality_closeness`
 
         EXAMPLES::
 
@@ -13882,6 +13883,302 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("'algorithm' can be \"NetworkX\", \"Sage\" or None")
 
+
+    def centrality_closeness(self, vert=None, by_weight=False, algorithm=None,
+                             weight_function=None, check_weight=True):
+        r"""
+        Returns the closeness centrality of all vertices in variable ``vert``.
+
+        In a (strongly) connected graph, the closeness centrality of a vertex
+        `v` is equal
+        to the inverse of the average distance between `v` and other vertices.
+        If the graph is disconnected, the closeness centrality of `v` is
+        multiplied by the fraction of reachable vertices in the graph:
+        this way, central vertices should also reach several other vertices
+        in the graph [OLJ14]_. In formulas,
+
+        .. MATH::
+        
+            c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
+
+        where `R(v)` is the set of vertices reachable from `v`, and
+        `r(v)` is the cardinality of `R(v)`.
+
+        'Closeness
+        centrality may be defined as the total graph-theoretic distance of
+        a given vertex from all other vertices... Closeness is an inverse
+        measure of centrality in that a larger value indicates a less
+        central actor while a smaller value indicates a more central
+        actor,' [Borgatti95]_.
+
+        For more information, see the :wikipedia:`Centrality`.
+
+        INPUT:
+
+        - ``vert`` - the vertex or the list of vertices we want to analyze. If
+          ``None`` (default), all vertices are considered.
+
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
+
+        - ``algorithm`` (string) - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from each vertex that has to be analyzed.
+            Does not work with edge weights.
+
+          - ``'NetworkX'``: the NetworkX algorithm (works only with positive
+            weights).
+
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+            the Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
+            all centralities are needed.
+
+          - ``'Floyd-Warshall-Python'`` - the Python implementation of
+            the Floyd-Warshall algorithm. Works only if all centralities are
+            needed, but it can deal with weighted graphs, even
+            with negative weights (but no negative cycle is allowed).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'`` otherwise.
+
+        - ``weight_function`` (function) - a function that inputs an edge
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+          is automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``True``, we use the edge label ``l`` as a weight.
+
+        - ``check_weight`` (boolean) - if ``True``, we check that the
+          weight_function outputs a number for each edge.
+
+        OUTPUT:
+
+        If ``vert`` is a vertex, the closeness centrality of that vertex.
+        Otherwise, a dictionary associating to each vertex in ``vert`` its
+        closeness centrality. If a vertex has (out)degree 0, its closeness
+        centrality is not defined, and the vertex is not included in the output.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.graph.Graph.centrality_degree`
+            - :meth:`~centrality_betweenness`
+
+        REFERENCES:
+
+        .. [Borgatti95] Stephen P. Borgatti. (1995). Centrality and AIDS.
+          [Online] Available:
+          http://www.analytictech.com/networks/centaids.htm
+
+        .. [OLJ14] Paul W. Olsen, Alan G. Labouseur, Jeong-Hyon Hwang.
+          Efficient Top-k Closeness Centrality Search
+          Proceedings of the IEEE 30th International Conference on Data
+          Engineering (ICDE), 2014
+
+        EXAMPLES:
+
+        Standard examples::
+
+            sage: (graphs.ChvatalGraph()).centrality_closeness()
+            {0: 0.61111111111111..., 1: 0.61111111111111..., 2: 0.61111111111111..., 3: 0.61111111111111..., 4: 0.61111111111111..., 5: 0.61111111111111..., 6: 0.61111111111111..., 7: 0.61111111111111..., 8: 0.61111111111111..., 9: 0.61111111111111..., 10: 0.61111111111111..., 11: 0.61111111111111...}
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage: D.show(figsize=[2,2])
+            sage: D.centrality_closeness(vert=[0,1])
+            {0: 1.0, 1: 0.3333333333333333}
+            sage: D = D.to_undirected()
+            sage: D.show(figsize=[2,2])
+            sage: D.centrality_closeness()
+            {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
+        
+        In a (strongly) connected (di)graph, the closeness centrality of `v`
+        is inverse of the average distance between `v` and all other vertices::
+        
+            sage: g = graphs.PathGraph(5)
+            sage: g.centrality_closeness(0)
+            0.4
+            sage: dist = g.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            sage: d = g.to_directed()
+            sage: d.centrality_closeness(0)
+            0.4
+            sage: dist = d.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            
+        If a vertex has (out)degree 0, its closeness centrality is not defined::
+        
+            sage: g = Graph(5)
+            sage: g.centrality_closeness()
+            {}
+            sage: print g.centrality_closeness(0)
+            None
+
+        Weighted graphs::
+
+            sage: D = graphs.GridGraph([2,2])
+            sage: weight_function = lambda e:10
+            sage: D.centrality_closeness([(0,0),(0,1)])                          # tol abs 1e-12
+            {(0, 0): 0.75, (0, 1): 0.75}
+            sage: D.centrality_closeness((0,0), weight_function=weight_function) # tol abs 1e-12
+            0.075
+
+        TESTS:
+
+        The result does not depend on the algorithm::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = graphs.RandomGNM(n,m)
+            ....:     c1 = g.centrality_closeness(algorithm='BFS')
+            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
+            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+
+        Directed graphs::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = digraphs.RandomDirectedGNM(n,m)
+            ....:     c1 = g.centrality_closeness(algorithm='BFS')
+            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
+            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.out_degree(v) != 0]) < 1e-12)
+
+        Weighted graphs::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = graphs.RandomGNM(n,m)
+            ....:     for v,w in g.edges(labels=False):
+            ....:         g.set_edge_label(v,w,float(random.uniform(1,100)))
+            ....:     c1 = g.centrality_closeness(by_weight=True, algorithm='NetworkX')
+            ....:     c2 = g.centrality_closeness(by_weight=True, algorithm='Dijkstra_Boost')
+            ....:     c3 = g.centrality_closeness(by_weight=True, algorithm='Floyd-Warshall-Python')
+            ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
+            ....:     c = [c1,c2,c3,c4]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+        """
+        if weight_function is not None:
+            by_weight=True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+
+        onlyone = False
+        if vert in self.vertices():
+            v_iter = iter([vert])
+            onlyone = True
+        elif vert is None:
+            v_iter = self.vertex_iterator()
+        else:
+            v_iter = iter(vert)
+
+        if algorithm is None:
+            if not by_weight:
+                algorithm='BFS'
+            else:
+                for e in self.edge_iterator():
+                    try:
+                        if float(weight_function(e)) < 0:
+                            algorithm='Johnson_Boost'
+                            break
+                    except (ValueError, TypeError):
+                        raise ValueError("The weight function cannot find the" +
+                                         " weight of " + str(e) + ".")
+            if algorithm is None:
+                algorithm='Dijkstra_Boost'
+
+        if algorithm == 'NetworkX':
+            if by_weight and check_weight:
+                self._check_weight_function(weight_function)
+            import networkx
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                else:
+                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                G = self.networkx_graph(copy=False)
+            G.add_nodes_from(self.vertices())
+
+            if vert is None:
+                closeness = networkx.closeness_centrality(G,vert,
+                                                          distance = 'weight'
+                                                          if by_weight
+                                                          else None)
+                return {v:c for v,c in closeness.iteritems() if c != 0}
+            closeness = {}
+            degree = self.out_degree if self.is_directed else self.degree
+            for x in v_iter:
+                if degree(x) != 0:
+                    closeness[x] = networkx.closeness_centrality(G, x,
+                                                             distance = 'weight'
+                                                             if by_weight
+                                                             else None)
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return closeness
+        elif algorithm=="Johnson_Boost":
+            from sage.graphs.base.boost_graph import johnson_closeness_centrality
+            self.weighted(by_weight)
+            closeness = johnson_closeness_centrality(self, weight_function)
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return {v: closeness[v] for v in v_iter if v in closeness}
+        else:
+            closeness = dict()
+            distances = None
+            if algorithm in ["Floyd-Warshall-Cython",
+                             "Floyd-Warshall-Python"]:
+                distances = self.shortest_path_all_pairs(by_weight,algorithm,
+                                                         weight_function,
+                                                         check_weight)[0]
+
+            for v in v_iter:
+                if distances is None:
+                    distv = self.shortest_path_lengths(v, by_weight, algorithm,
+                                                       weight_function,
+                                                       check_weight)
+                else:
+                    distv = distances[v]
+                try:
+                    closeness[v] = float(len(distv) - 1) * (len(distv) - 1) / (float(sum(distv.values())) * (self.num_verts() - 1))
+                except ZeroDivisionError:
+                    pass
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return closeness
 
     ### Paths
 
@@ -14180,8 +14477,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
             [0, 1, 2, 3]
-
-        If
 
         TESTS:
 
@@ -19847,9 +20142,9 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``edge_labels`` - default ``False``, otherwise allows
            only permutations respecting edge labels.
-           
+
         OUTPUT:
-        
+
         - either a boolean or, if ``certify`` is ``True``, a tuple consisting
           of a boolean and a map or ``None``
 
@@ -20037,9 +20332,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
-            
+
         as well as :trac:`18613`::
-        
+
             sage: g.is_isomorphic(h, certify=True)
             (True, None)
         """

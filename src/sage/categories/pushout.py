@@ -3210,6 +3210,19 @@ def pushout(R, S):
         [1 2 0]
         [0 0 1]
 
+    A bug::
+
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: A = CartesianProduct((QQ['z'],), Sets().CartesianProducts())
+        sage: B = CartesianProduct((ZZ['t']['z'],), Sets().CartesianProducts())
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in z over Rational Field,))
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+
     Some more tests with ``coercion_reversed = True``::
 
         sage: from sage.categories.pushout import ConstructionFunctor

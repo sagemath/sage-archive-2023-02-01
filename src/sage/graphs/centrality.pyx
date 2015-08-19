@@ -667,6 +667,13 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: for i in range(len(topk)):
         ....:     assert(abs(topk[i][0] - sorted_centr[i]) < 1e-12)
     """
+    
+    if k >= G.num_verts():
+        closeness_dict = G.centrality_closeness(by_weight=False,algorithm='BFS')
+        return sorted([(closz, z) for z,closz in closeness_dict.iteritems()], reverse=True)
+    if G.num_verts()==0 or G.num_verts()==1:
+        return []
+    
     sig_on()
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph sd
@@ -690,8 +697,6 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     cdef int nvis = 0
     cdef short *seen = <short *> mem.calloc(n, sizeof(short))
     cdef bint directed = G.is_directed()
-
-    k = min(k, n)
 
     cdef int *topk = <int*> mem.malloc(k * sizeof(int))
     memset(topk, -1, k * sizeof(int))

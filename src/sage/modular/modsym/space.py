@@ -2054,6 +2054,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         self.__integral_period_mapping = R
         return R
 
+    @cached_method
     def modular_symbols_of_sign(self, sign, bound=None):
         """
         Returns a space of modular symbols with the same defining

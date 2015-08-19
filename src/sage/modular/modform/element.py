@@ -1047,7 +1047,6 @@ class Newform(ModularForm_abstract):
         S = self.parent()
         return S(self.q_expansion(S.sturm_bound()))
 
-    @cached_method
     def modular_symbols(self, sign=0):
         """
         Return the subspace with the specified sign of the space of

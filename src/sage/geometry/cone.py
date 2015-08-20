@@ -1131,6 +1131,68 @@ class IntegralRayCollection(SageObject,
         return (self.lattice_dim() - self.dim())
 
 
+    def span(self, base_ring=None):
+        r"""
+        Return the span of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: from lattice) the base ring to use
+                           for the generated module.
+
+        OUTPUT:
+
+        A module spanned by the generators of ``self``.
+
+        EXAMPLES:
+
+        The span of a single ray is a one-dimensional sublattice::
+
+            sage: K1 = Cone([(1,)])
+            sage: K1.span()
+            Sublattice <N(1)>
+            sage: K2 = Cone([(1,0)])
+            sage: K2.span()
+            Sublattice <N(1, 0)>
+
+        The span of the nonnegative orthant is the entire ambient lattice::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: K.span() == K.lattice()
+            True
+
+        By specifying a ``base_ring``, we can obtain a vector space::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: K.span(base_ring=QQ)
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        TESTS:
+
+        We can take the span of the trivial cone::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.span()
+            Sublattice <>
+
+        The span of a solid cone is the entire ambient space::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, max_rays=8, solid=True)
+            sage: K.span().vector_space() == K.lattice().vector_space()
+            True
+        """
+        L = self.lattice()
+
+        if base_ring is None:
+            base_ring = L.base_ring()
+
+        return L.span(self, base_ring)
+
 
 def classify_cone_2d(ray0, ray1, check=True):
     """

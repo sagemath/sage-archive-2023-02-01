@@ -108,6 +108,15 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
     symbol = " (+) "
 
     def __init__(self):
+        r"""
+        Constructor. See :class:`CartesianProductFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.categories.cartesian_product import CartesianProductFunctor
+            sage: CartesianProductFunctor()
+            The cartesian_product functorial construction
+        """
         CovariantFunctorialConstruction.__init__(self)
         from sage.categories.sets_cat import Sets
         MultivariateConstructionFunctor.__init__(self, Sets(), Sets())

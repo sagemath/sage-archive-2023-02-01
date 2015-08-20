@@ -770,7 +770,7 @@ class GenericGrowthGroup(
         if raw_element is None:
             if type(data) == self.element_class and data.parent() == self:
                 return data
-            elif isinstance(data, GenericGrowthElement):
+            elif isinstance(data, self.element_class):
                 try:
                     if self._var_ != data.parent()._var_:
                         raise ValueError('Cannot convert %s.' % (data,))

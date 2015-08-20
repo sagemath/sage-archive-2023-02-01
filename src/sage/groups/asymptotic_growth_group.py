@@ -1054,26 +1054,23 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: x = P.gen()
             sage: a = x^7; a
             x^7
-            sage: b = a^(1/2); b
+            sage: a^(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth Group x^ZZ disallows taking x^7 to the power of 1/2.
+            sage: P = agg.GrowthGroup('x^QQ')
+            sage: b = P.gen()^(7/2); b
             x^(7/2)
-            sage: b.parent()
-            Growth Group x^QQ
             sage: b^12
             x^42
         """
         new_exponent = self.exponent * power
-        try:
-            return self.parent()(raw_element=new_exponent)
-        except (ValueError, TypeError):
-            pass
-
-        from sage.rings.real_mpfr import RR
-        if new_exponent not in RR:
-            raise NotImplementedError('Only real exponents are implemented.')
-
-        new_parent = MonomialGrowthGroup(new_exponent.parent(),
-                                         self.parent()._var_)
-        return new_parent(raw_element=new_exponent)
+        P = self.parent()
+        if new_exponent in P.base():
+            return P(raw_element=new_exponent)
+        else:
+            raise ValueError('%s disallows taking %s to the power '
+                             'of %s.' % (P, self, power))
 
 
     def _le_(self, other):

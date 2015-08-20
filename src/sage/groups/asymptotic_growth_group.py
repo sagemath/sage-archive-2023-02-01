@@ -402,7 +402,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
         t = ()
         for factor in self.cartesian_factors():
             t = t + factor.gens_monomial()
-        return t
+        return tuple(self(gen) for gen in t)
 
 
     class Element(CartesianProductPosets.Element):

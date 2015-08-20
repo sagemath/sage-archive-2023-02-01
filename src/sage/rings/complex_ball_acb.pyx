@@ -5,9 +5,36 @@ AUTHORS:
 
 - Clemens Heuberger (2014-10-25): Initial version.
 
-This is a rudimentary binding to the `Arb library
-<http://fredrikj.net/arb/>`_; it may be useful to refer to its
-documentation for more details.
+This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+may be useful to refer to its documentation for more details.
+
+Parts of the documentation for this module are copied or adapted from
+Arb's own documentation, licenced under the GNU General Public License
+version 2, or later.
+
+.. SEEALSO::
+
+    - :mod:`sage.rings.real_arb`
+    - :mod:`sage.rings.complex_interval_field`
+    - :mod:`sage.rings.complex_interval`
+
+Data Structure
+==============
+
+A :class:`ComplexBall` represents a complex number with error bounds. It wraps
+an Arb object of type ``acb_t``, which  consists of a pair of real number balls
+representing the real and imaginary part with separate error bounds.
+
+A :class:`ComplexBall` thus represents a rectangle `[m_1-r_1, m_1+r_1] +
+[m_2-r_2, m_2+r_2] i` in the complex plane. This is used in Arb instead of a
+disk or square representation (consisting of a complex floating-point midpoint
+with a single radius), since it allows implementing many operations more
+conveniently by splitting into ball operations on the real and imaginary parts.
+It also allows tracking when complex numbers have an exact (for example exactly
+zero) real part and an inexact imaginary part, or vice versa.
+
+Comparison
+==========
 
 .. WARNING::
 
@@ -16,9 +43,6 @@ documentation for more details.
     to improve performance. For example, setting ``z = x*x`` sets `z`
     to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
-
-Comparison
-==========
 
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
@@ -131,8 +155,8 @@ cdef int acb_to_ComplexIntervalFieldElement(
 
 class ComplexBallField(UniqueRepresentation, Parent):
     r"""
-    An approximation of the field of complex numbers using mid-rad
-    intervals, also known as balls.
+    An approximation of the field of complex numbers using pairs of mid-rad
+    intervals.
 
     INPUT:
 

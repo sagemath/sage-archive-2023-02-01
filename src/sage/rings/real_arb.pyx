@@ -366,8 +366,7 @@ class RealBallField(UniqueRepresentation, Parent):
         Convert ``mid`` to an element of this real ball field, perhaps
         non-canonically.
 
-        In addition to the inputs supported by
-        :meth:`ElementConstructor.__init__`,
+        In addition to the inputs supported by :meth:`RealBall.__init__`,
         anything that is convertible to a real interval can also be used to
         construct a real ball::
 

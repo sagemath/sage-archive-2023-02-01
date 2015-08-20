@@ -1,6 +1,5 @@
 include "sage/ext/interrupt.pxi"
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/cdefs.pxi'
 
 def mcqd(G):
     """
@@ -14,9 +13,9 @@ def mcqd(G):
 
         sage: from sage.graphs.mcqd import mcqd         # optional - mcqd
         sage: for i in range(10):                       # optional - mcqd
-        ...       g = graphs.RandomGNP(15,.5)           # optional - mcqd
-        ...       if g.clique_number() != len(mcqd(g)): # optional - mcqd
-        ...           print "This is dead wrong !"      # optional - mcqd
+        ....:     g = graphs.RandomGNP(15,.5)
+        ....:     if g.clique_number() != len(mcqd(g)):
+        ....:         print "This is dead wrong !"
     """
     cdef int n = G.order()
 

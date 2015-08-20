@@ -2209,13 +2209,9 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         Bugfix from #7673 ::
 
-            sage: G = Graph(implementation="networkx")
-            sage: G.add_edges([(0,1,9),(0,2,8),(1,2,7)])
-            sage: Gc = G.copy(implementation='c_graph')
-            sage: sp = G.shortest_path_length(0,1,by_weight=True)
-            sage: spc = Gc.shortest_path_length(0,1,by_weight=True)
-            sage: sp == spc
-            True
+            sage: G = Graph([(0,1,9),(0,2,8),(1,2,7)])
+            sage: G.shortest_path_length(0,1,by_weight=True)
+            9
         """
         if x == y:
             return 0
@@ -3034,7 +3030,7 @@ cdef class Search_iterator:
             sage: g = graphs.PetersenGraph()
             sage: g.breadth_first_search(0)
             <generator object breadth_first_search at ...
-            sage: g.breadth_first_search(0).next()
+            sage: next(g.breadth_first_search(0))
             0
         """
         cdef int v_int

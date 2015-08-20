@@ -144,7 +144,7 @@ class Polynomial_generic_sparse(Polynomial):
         if sparse:
           return [c[1] for c in sorted(self.__coeffs.iteritems())]
         else:
-          return [self.__coeffs[i] if self.__coeffs.has_key(i) else 0 for i in xrange(self.degree() + 1)]
+          return [self.__coeffs[i] if i in self.__coeffs else 0 for i in xrange(self.degree() + 1)]
 
     def exponents(self):
         """
@@ -246,9 +246,9 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
             sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
-            sage: f._repr()
+            sage: f._repr()   # abs tol 1e-15
             '1.0*w^5 - 3.141592653589793*w + 3.718281828459045 + 2.0*I'
-            sage: f._repr(name='z')
+            sage: f._repr(name='z')   # abs tol 1e-15
             '1.0*z^5 - 3.141592653589793*z + 3.718281828459045 + 2.0*I'
 
         TESTS::
@@ -309,9 +309,9 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: R.<w> = PolynomialRing(RDF, sparse=True)
             sage: e = RDF(e)
-            sage: f = sum(e^n*w^n for n in range(4)); f
+            sage: f = sum(e^n*w^n for n in range(4)); f   # abs tol 1.1e-14
             20.085536923187664*w^3 + 7.3890560989306495*w^2 + 2.718281828459045*w + 1.0
-            sage: f[1]
+            sage: f[1]  # abs tol 5e-16
             2.718281828459045
             sage: f[5]
             0.0
@@ -725,112 +725,6 @@ class Polynomial_generic_field(Polynomial_singular_repr,
             # the coefficient is exactly zero triggers exact computation.
             R = R[:R.degree()] - (aaa*B[:B.degree()]).shift(diff_deg)
         return (Q, R)
-
-    @coerce_binop
-    def gcd(self, other):
-        """
-        Return the greatest common divisor of this polynomial and ``other``, as
-        a monic polynomial.
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        EXAMPLES::
-
-            sage: R.<x> = QQbar[]
-            sage: (2*x).gcd(2*x^2)
-            x
-
-            sage: zero = R.zero()
-            sage: zero.gcd(2*x)
-            x
-            sage: (2*x).gcd(zero)
-            x
-            sage: zero.gcd(zero)
-            0
-        """
-        from sage.categories.euclidean_domains import EuclideanDomains
-        g = EuclideanDomains().ElementMethods().gcd(self, other)
-        c = g.leading_coefficient()
-        if c.is_unit():
-            return (1/c)*g
-        return g
-
-    @coerce_binop
-    def xgcd(self, other):
-        r"""
-        Extended gcd of ``self`` and polynomial ``other``.
-
-        INPUT:
-
-        - ``other`` -- a polynomial defined over the same ring as ``self``
-
-        OUTPUT:
-
-        Polynomials ``g``, ``u``, and ``v`` such that ``g = u * self + v * other``.
-
-        EXAMPLES::
-
-            sage: P.<x> = QQ[]
-            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
-            sage: g, u, v = F.xgcd(G)
-            sage: g, u, v
-            (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
-            sage: u*F + v*G
-            x^2 + 2
-
-        ::
-
-            sage: g, u, v = x.xgcd(P(0)); g, u, v
-            (x, 1, 0)
-            sage: g == u*x + v*P(0)
-            True
-            sage: g, u, v = P(0).xgcd(x); g, u, v
-            (x, 0, 1)
-            sage: g == u*P(0) + v*x
-            True
-
-        TESTS:
-
-        We check that the behavior of xgcd with zero elements is compatible with
-        gcd (:trac:`17671`)::
-
-            sage: R.<x> = QQbar[]
-            sage: zero = R.zero()
-            sage: zero.xgcd(2*x)
-            (x, 0, 1/2)
-            sage: (2*x).xgcd(zero)
-            (x, 1/2, 0)
-            sage: zero.xgcd(zero)
-            (0, 0, 0)
-        """
-        R = self.parent()
-        zero = R.zero()
-        one = R.one()
-        if other.is_zero():
-            if self.is_zero():
-                return (zero, zero, zero)
-            else:
-                c = self.leading_coefficient()
-                return (self/c, one/c, zero)
-        elif self.is_zero():
-            c = other.leading_coefficient()
-            return (other/c, zero, one/c)
-
-        # Algorithm 3.2.2 of Cohen, GTM 138
-        A = self
-        B = other
-        U = one
-        G = A
-        V1 = zero
-        V3 = B
-        while not V3.is_zero():
-            Q, R = G.quo_rem(V3)
-            G, U, V1, V3 = V3, V1, U-V1*Q, R
-        V = (G-A*U)//B
-        lc = G.leading_coefficient()
-        return G/lc, U/lc, V/lc
 
 
 class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_generic_field):

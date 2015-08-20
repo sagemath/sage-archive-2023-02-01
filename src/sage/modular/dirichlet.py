@@ -915,14 +915,25 @@ class DirichletCharacter(MultiplicativeGroupElement):
             -zeta156^46 + zeta156^45 + zeta156^42 + zeta156^41 + 2*zeta156^40 + zeta156^37 - zeta156^36 - zeta156^34 - zeta156^33 - zeta156^31 + 2*zeta156^30 + zeta156^28 - zeta156^24 - zeta156^22 + zeta156^21 + zeta156^20 - zeta156^19 + zeta156^18 - zeta156^16 - zeta156^15 - 2*zeta156^14 - zeta156^10 + zeta156^8 + zeta156^7 + zeta156^6 + zeta156^5 - zeta156^4 - zeta156^2 - 1
             sage: factor(norm(e.gauss_sum()))
             13^24
+
+        TESTS:
+
+        Check that :trac:`19060` is fixed::
+
+            sage: K.<z> = CyclotomicField(8)
+            sage: G = DirichletGroup(13, K)
+            sage: chi = G([z^2])
+            sage: chi.gauss_sum()
+            zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
         """
-        G = self.parent()
-        K = G.base_ring()
+        K = self.base_ring()
         if is_ComplexField(K):
             return self.gauss_sum_numerical()
         if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
         g = 0
+        chi = self.minimize_base_ring()
+        G = chi.parent()
         m = G.modulus()
         L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
         zeta = L.gen(0)
@@ -931,7 +942,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if a != 1:
             zeta = zeta**a
         z = 1
-        for c in self.values()[1:]:
+        for c in chi.values()[1:]:
             z *= zeta
             g += L(c)*z
         return g

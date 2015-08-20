@@ -296,18 +296,86 @@ class ConstructionFunctor(Functor):
     # See the pushout() function below for explanation.
     coercion_reversed = False
 
-    def common_base(self, other, self_bases, other_bases):
-        """
+    def common_base(self, other_functor, self_bases, other_bases):
+        r"""
         This function is called by :func:`pushout` when no common parent
         is found in the construction tower.
 
-        The main use is for multivariate construction functors, which
-        use this function to implement recursion for :func:`pushout`.
+        .. NOTE::
+
+            The main use is for multivariate construction functors,
+            which use this function to implement recursion for
+            :func:`pushout`.
+
+        INPUT:
+
+        - ``other_functor`` -- a construction functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        OUTPUT:
+
+        Raise a :class:`CoercionException`.
+
+        .. NOTE::
+
+            Overload this function in derived class, see
+            e.e. :class:`MultivariateConstructionFunctor`.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(QQ, cartesian_product([ZZ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            FractionField(Integer Ring) and CartesianProductFunctor(Integer Ring).
         """
+        self._raise_common_base_exception_(
+            other_functor, self_bases, other_bases)
+
+    def _raise_common_base_exception_(self, other_functor,
+                                      self_bases, other_bases,
+                                      reason=None):
+        r"""
+        Raise a coercion exception.
+
+        INPUT:
+
+        - ``other_functor`` -- a functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        - ``reason`` -- a string or ``None`` (default).
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(QQ, cartesian_product([QQ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            FractionField(Integer Ring) and CartesianProductFunctor(Rational Field).
+        """
+        if not isinstance(self_bases, (tuple, list)):
+            self_bases = (self_bases,)
+        if not isinstance(other_bases, (tuple, list)):
+            other_bases = (other_bases,)
+        if reason is None:
+            reason = '.'
+        else:
+            reason = ': ' + reason + '.'
         raise CoercionException(
-            'No common base ("join") found for %s(%s) and %s(%s).' %
+            'No common base ("join") found for %s(%s) and %s(%s)%s' %
             (self, ', '.join(str(b) for b in self_bases),
-             other, ', '.join(str(b) for b in other_bases)))
+             other_functor, ', '.join(str(b) for b in other_bases),
+             reason))
 
 
 class CompositeConstructionFunctor(ConstructionFunctor):
@@ -587,23 +655,60 @@ class IdentityConstructionFunctor(ConstructionFunctor):
 
 class MultivariateConstructionFunctor(ConstructionFunctor):
     """
-    An abstract base class for functors that take multiple inputs (e.g. CartesianProduct)
+    An abstract base class for functors that take
+    multiple inputs (e.g. cartesian products).
     """
     def common_base(self, other_functor, self_bases, other_bases):
-        """
+        r"""
+        This function is called by :func:`pushout` when no common parent
+        is found in the construction tower.
+
+        INPUT:
+
+        - ``other_functor`` -- a construction functor.
+
+        - ``self_bases`` -- the arguments passed to this functor.
+
+        - ``other_bases`` -- the arguments passed to the functor
+          ``other_functor``.
+
+        OUTPUT:
+
+        A parent.
+
+        If no common base is found a :class:`CoercionException` is
+        raised.
+
+        .. NOTE::
+
+            Overload this function in derived class, see
+            e.e. :class:`MultivariateConstructionFunctor`.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import pushout
+            sage: pushout(cartesian_product([ZZ]), QQ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            CartesianProductFunctor(Integer Ring) and FractionField(Integer Ring):
+            (Multivariate) functors are inkompatibel.
+            sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            CoercionException: No common base ("join") found for
+            CartesianProductFunctor(Integer Ring) and
+            CartesianProductFunctor(Integer Ring, Rational Field):
+            Functors need the same number of arguments.
         """
         if self != other_functor:
-            raise CoercionException(
-                'No common base ("join") found for %s(%s) and %s(%s): '
-                'Multivariate functors are inkompatibel.' %
-                (self, ', '.join(str(b) for b in self_bases),
-                 other, ', '.join(str(b) for b in other_bases)))
+            self._raise_common_base_exception_(
+                other_functor, self_bases, other_bases,
+                '(Multivariate) functors are inkompatibel')
         if len(self_bases) != len(other_bases):
-            raise CoercionException(
-                'No common base ("join") found for %s(%s) and %s(%s): '
-                'Functors need the same number of arguments.' %
-                (self, ', '.join(str(b) for b in self_bases),
-                 other, ', '.join(str(b) for b in other_bases)))
+            self._raise_common_base_exception_(
+                other_functor, self_bases, other_bases,
+                'Functors need the same number of arguments')
         Z_bases = tuple(pushout(S, O) for S, O in zip(self_bases, other_bases))
         return self(Z_bases)
 

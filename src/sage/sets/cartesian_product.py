@@ -222,10 +222,37 @@ class CartesianProduct(UniqueRepresentation, Parent):
         return self.element_class(self, elements)
 
     def construction(self):
+        r"""
+        Return the construction functor and its arguments for this
+        cartesian product.
+
+        OUTPUT:
+
+        A pair whose first entry is a cartesian product functor and
+        its second a list of the cartesian factors.
+
+        EXAMPLES::
+
+            sage: cartesian_product([ZZ, QQ]).construction()
+            (The cartesian_product functorial construction,
+             (Integer Ring, Rational Field))
+        """
         from sage.categories.cartesian_product import cartesian_product
         return cartesian_product, self.cartesian_factors()
 
     def _coerce_map_from_(self, S):
+        r"""
+        Return ``True`` if ``S`` coerces into this cartesian product.
+
+        TESTS::
+
+            sage: Z = cartesian_product([ZZ])
+            sage: Q = cartesian_product([QQ])
+            sage: Z.has_coerce_map_from(Q)  # indirect doctest
+            False
+            sage: Q.has_coerce_map_from(Z)  # indirect doctest
+            True
+        """
         if isinstance(S, CartesianProduct):
             S_factors = S.cartesian_factors()
             R_factors = self.cartesian_factors()

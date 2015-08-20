@@ -1281,10 +1281,7 @@ class Newform(ModularForm_abstract):
         X = self.modsym_eigenspace(sign=0)
         A = self.modular_symbols(sign=0).ambient()
         W = A.atkin_lehner_operator(d).matrix().base_extend(self.hecke_eigenvalue_field()).restrict(X)
-
-        if not W.is_scalar():
-            raise ArithmeticError("Something wrong: Atkin--Lehner matrix not scalar")
-
+        assert W.is_scalar()
         w = W[0,0]
         if embedding is not None:
             w = embedding(w)

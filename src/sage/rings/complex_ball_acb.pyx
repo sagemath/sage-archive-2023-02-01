@@ -5,9 +5,36 @@ AUTHORS:
 
 - Clemens Heuberger (2014-10-25): Initial version.
 
-This is a rudimentary binding to the `Arb library
-<http://fredrikj.net/arb/>`_; it may be useful to refer to its
-documentation for more details.
+This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+may be useful to refer to its documentation for more details.
+
+Parts of the documentation for this module are copied or adapted from
+Arb's own documentation, licenced under the GNU General Public License
+version 2, or later.
+
+.. SEEALSO::
+
+    - :mod:`sage.rings.real_arb`
+    - :mod:`sage.rings.complex_interval_field`
+    - :mod:`sage.rings.complex_interval`
+
+Data Structure
+==============
+
+A :class:`ComplexBall` represents a complex number with error bounds. It wraps
+an Arb object of type ``acb_t``, which  consists of a pair of real number balls
+representing the real and imaginary part with separate error bounds.
+
+A :class:`ComplexBall` thus represents a rectangle `[m_1-r_1, m_1+r_1] +
+[m_2-r_2, m_2+r_2] i` in the complex plane. This is used in Arb instead of a
+disk or square representation (consisting of a complex floating-point midpoint
+with a single radius), since it allows implementing many operations more
+conveniently by splitting into ball operations on the real and imaginary parts.
+It also allows tracking when complex numbers have an exact (for example exactly
+zero) real part and an inexact imaginary part, or vice versa.
+
+Comparison
+==========
 
 .. WARNING::
 
@@ -16,9 +43,6 @@ documentation for more details.
     to improve performance. For example, setting ``z = x*x`` sets `z`
     to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
-
-Comparison
-==========
 
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
@@ -131,8 +155,8 @@ cdef int acb_to_ComplexIntervalFieldElement(
 
 class ComplexBallField(UniqueRepresentation, Parent):
     r"""
-    An approximation of the field of complex numbers using mid-rad
-    intervals, also known as balls.
+    An approximation of the field of complex numbers using pairs of mid-rad
+    intervals.
 
     INPUT:
 
@@ -627,70 +651,70 @@ cdef class ComplexBall(Element):
 
         TESTS:
 
-            Balls whose intersection consists of one point::
+        Balls whose intersection consists of one point::
 
-                sage: a = CBF(RIF(1, 2), RIF(1, 2))
-                sage: b = CBF(RIF(2, 4), RIF(2, 4))
-                sage: a < b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a > b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a <= b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a >= b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 2), RIF(1, 2))
+            sage: b = CBF(RIF(2, 4), RIF(2, 4))
+            sage: a < b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a > b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a <= b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a >= b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Balls with non-trivial intersection::
+        Balls with non-trivial intersection::
 
-                sage: a = CBF(RIF(1, 4), RIF(1, 4))
-                sage: a = CBF(RIF(2, 5), RIF(2, 5))
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 4), RIF(1, 4))
+            sage: a = CBF(RIF(2, 5), RIF(2, 5))
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            One ball contained in another::
+        One ball contained in another::
 
-                sage: a = CBF(RIF(1, 4), RIF(1, 4))
-                sage: b = CBF(RIF(2, 3), RIF(2, 3))
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 4), RIF(1, 4))
+            sage: b = CBF(RIF(2, 3), RIF(2, 3))
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Disjoint balls::
+        Disjoint balls::
 
-                sage: a = CBF(1/3, 1/3)
-                sage: b = CBF(1/5, 1/5)
-                sage: a == b
-                False
-                sage: a != b
-                True
+            sage: a = CBF(1/3, 1/3)
+            sage: b = CBF(1/5, 1/5)
+            sage: a == b
+            False
+            sage: a != b
+            True
 
-            Exact elements::
+        Exact elements::
 
-                sage: a = CBF(2, 2)
-                sage: b = CBF(2, 2)
-                sage: a.is_exact()
-                True
-                sage: b.is_exact()
-                True
-                sage: a == b
-                True
-                sage: a != b
-                False
+            sage: a = CBF(2, 2)
+            sage: b = CBF(2, 2)
+            sage: a.is_exact()
+            True
+            sage: b.is_exact()
+            True
+            sage: a == b
+            True
+            sage: a != b
+            False
         """
         cdef ComplexBall lt, rt
         cdef acb_t difference

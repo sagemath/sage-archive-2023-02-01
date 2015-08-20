@@ -3591,7 +3591,11 @@ def pushout(R, S):
 
     AUTHORS:
 
-    -- Robert Bradshaw
+    - Robert Bradshaw
+    - Peter Bruin(Peter Bruin -..- --
+    - Simon King
+    - Daniel Krenn
+    - David Roe
     """
     if R is S or R == S:
         return R

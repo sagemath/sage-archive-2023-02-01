@@ -3,7 +3,7 @@ r"""
 
 This module adds support for (asymptotic) growth groups. Such groups
 are equipped with a partial order: the elements can be seen as
-functions and their behavior as the argument(s) get large (tend to
+functions, and their behavior as the argument(s) get large (tend to
 `\infty`) is compared.
 
 Besides an abstract base class :class:`GenericGrowthGroup`, this module
@@ -62,7 +62,7 @@ import sage
 
 def parent_to_repr_short(P):
     r"""
-    Helper method, which generates a short(er) representation string
+    Helper method which generates a short(er) representation string
     out of a parent.
 
     INPUT:
@@ -102,7 +102,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
     An abstract implementation of a generic growth element.
 
-    Growth elements form a group by multiplication and (some of) the
+    Growth elements form a group by multiplication, and (some of) the
     elements can be compared to each other, i.e., all elements form a
     poset.
 
@@ -249,8 +249,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         .. NOTE::
 
             This method is called by the coercion framework, thus, it can be
-            assumed that this element, as well as ``other`` are of the same
-            type. The output will have this type.
+            assumed that this element is of the same type as ``other``.
+            The output will be of the same type as well.
 
         EXAMPLES::
 
@@ -267,17 +267,17 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __pow__(self, power):
         r"""
-        Takes this growth element to the given ``power``.
+        Raises this growth element to the given ``power``.
 
         INPUT:
 
-        - ``power`` -- a number. This can anything that is valid to be
-          on the right hand side of ``*`` with an elements of the
+        - ``power`` -- a number. This can be anything that is a
+          valid right hand side of ``*`` with elements of the
           parent's base.
 
         OUTPUT:
 
-        The result of this exponentiation a :class:`MonomialGrowthElement`.
+        The result of this exponentiation.
 
         EXAMPLES::
 
@@ -701,7 +701,7 @@ class GenericGrowthGroup(
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
-        Converts given object to this growth group.
+        Converts a given object to this growth group.
 
         INPUT:
 
@@ -793,7 +793,7 @@ class GenericGrowthGroup(
 
     def _convert_(self, data):
         r"""
-        Converts given ``data`` to something the constructor of the
+        Converts ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -808,7 +808,7 @@ class GenericGrowthGroup(
         .. NOTE::
 
             This method always returns ``None`` in this abstract base
-            class and should be overridden in inherited class.
+            class, and should be overridden in inherited class.
 
         TESTS::
 
@@ -1035,17 +1035,17 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def __pow__(self, power):
         r"""
-        Takes this growth element to the given ``power``.
+        Raises this growth element to the given ``power``.
 
         INPUT:
 
-        - ``power`` -- a number. This can anything that is valid to be
-          on the right hand side of ``*`` with an elements of the
+        - ``power`` -- a number. This can be anything that is a
+          valid right hand side of ``*`` with elements of the
           parent's base.
 
         OUTPUT:
 
-        The result of this exponentiation a :class:`MonomialGrowthElement`.
+        The result of this exponentiation, a :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -1271,7 +1271,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _convert_(self, data):
         r"""
-        Converts given ``data`` to something the constructor of the
+        Converts ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:

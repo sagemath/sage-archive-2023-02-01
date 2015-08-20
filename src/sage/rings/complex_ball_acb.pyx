@@ -48,10 +48,10 @@ Two elements are equal if and only if they are the same object
 or if both are exact and equal::
 
     sage: from sage.rings.complex_ball_acb import ComplexBallField
-    sage: CBF = ComplexBallField()
     doctest:...: FutureWarning: This class/method/function is marked as experimental.
     It, its functionality or its interface might change without a formal deprecation.
     See http://trac.sagemath.org/17218 for details.
+    sage: CBF = ComplexBallField()
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
@@ -98,12 +98,20 @@ include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
 import sage.categories.fields
+
+cimport sage.rings.integer
+cimport sage.rings.rational
+
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.misc.superseded import experimental
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
+from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -183,7 +191,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
     Element = ComplexBall
 
     @staticmethod
-    def __classcall__(cls, long precision=53):
+    def __classcall__(cls, long precision=53, category=None):
         r"""
         Normalize the arguments for caching.
 
@@ -193,10 +201,10 @@ class ComplexBallField(UniqueRepresentation, Parent):
             sage: ComplexBallField(53) is ComplexBallField()
             True
         """
-        return super(ComplexBallField, cls).__classcall__(cls, precision)
+        return super(ComplexBallField, cls).__classcall__(cls, precision, category)
 
     @experimental(17218)
-    def __init__(self, precision):
+    def __init__(self, precision, category):
         r"""
         Initialize the complex ball field.
 
@@ -213,7 +221,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
-        super(ComplexBallField, self).__init__(category=[sage.categories.fields.Fields()])
+        super(ComplexBallField, self).__init__(category=category or [sage.categories.fields.Fields()])
         self._prec = precision
         self.RealBallField = RealBallField(precision)
 
@@ -245,18 +253,88 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return False
 
-    def _element_constructor_(self, *args, **kwds):
+    def _element_constructor_(self, x=None, y=None):
         r"""
-        Construct a :class:`ComplexBall`.
+        Convert (x, y) to an element of this complex ball field, perhaps
+        non-canonically.
+
+        INPUT:
+
+        - ``x``, ``y`` (optional) -- either a complex number, interval or ball,
+          or two real ones (see examples below for more information on accepted
+          number types).
+
+        .. SEEALSO:: :meth:`sage.rings.real_arb.RealBallField._element_constructor_`
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: CBF = ComplexBallField()
+            sage: from sage.rings.real_arb import RBF
+            sage: from sage.rings.complex_ball_acb import CBF, ComplexBallField
+            sage: CBF()
+            0
             sage: CBF(1) # indirect doctest
             1.000000000000000
+            sage: CBF(1, 1)
+            1.000000000000000 + 1.000000000000000*I
+            sage: CBF(pi, sqrt(2))
+            [3.141592653589793 +/- 5.61e-16] + [1.414213562373095 +/- 4.10e-16]*I
+            sage: CBF(I)
+            1.000000000000000*I
+            sage: CBF(pi+I/3)
+            [3.141592653589793 +/- 5.61e-16] + [0.3333333333333333 +/- 7.04e-17]*I
+            sage: CBF(CIF(0, 1))
+            1.000000000000000*I
+            sage: CBF(RBF(1/3))
+            [0.3333333333333333 +/- 7.04e-17]
+            sage: CBF(RBF(1/3), RBF(1/6))
+            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
+            sage: CBF(1/3)
+            [0.3333333333333333 +/- 7.04e-17]
+            sage: CBF(1/3, 1/6)
+            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
+            sage: ComplexBallField(106)(1/3, 1/6)
+            [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
+            sage: CBF(infinity, NaN)
+            [+/- inf] + nan*I
+            sage: CBF(x)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x to a ComplexBall
+
+        TESTS::
+
+            sage: CBF(1+I, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert I + 1 to a RealBall
         """
-        return self.element_class(self, *args, **kwds)
+        try:
+            return self.element_class(self, x, y)
+        except TypeError:
+            pass
+
+        if y is None:
+            try:
+                x = self.RealBallField(x)
+                return self.element_class(self, x)
+            except (TypeError, ValueError):
+                pass
+            try:
+                y = self._real_field()(x.imag())
+                x = self._real_field()(x.real())
+                return self.element_class(self, x, y)
+            except (AttributeError, TypeError):
+                pass
+            try:
+                x = ComplexIntervalField(prec(self))(x)
+                return self.element_class(self, x)
+            except TypeError:
+                pass
+            raise TypeError("unable to convert {} to a ComplexBall".format(x))
+        else:
+            x = self.RealBallField(x)
+            y = self.RealBallField(y)
+            return self.element_class(self, x, y)
 
     def _an_element_(self):
         r"""
@@ -336,7 +414,7 @@ cdef inline long prec(ComplexBall ball):
 cdef inline Parent real_ball_field(ComplexBall ball):
     return ball._parent.RealBallField
 
-cdef class ComplexBall(Element):
+cdef class ComplexBall(RingElement):
     """
     Hold one ``acb_t`` of the `Arb library
     <http://fredrikj.net/arb/>`_
@@ -376,84 +454,79 @@ cdef class ComplexBall(Element):
 
     def __init__(self, parent, x=None, y=None):
         """
-        Initialize the :class:`ComplexBall` using `x` and `y`.
+        Initialize the :class:`ComplexBall`.
 
         INPUT:
 
         - ``parent`` -- a :class:`ComplexBallField`.
 
-        - ``x`` -- (default: ``None``) ``None`` or a
-          :class:`~sage.rings.complex_interval.ComplexIntervalFieldElement` or
-          a :class:`sage.rings.real_arb.RealBall`.
+        - ``x``, ``y`` (optional) -- either a complex number, interval or ball,
+          or two real ones.
 
-        - ``y`` -- (default: ``None``) ``None`` or a
-          :class:`sage.rings.real_arb.RealBall`.
+        .. SEEALSO:: :meth:`ComplexBallField._element_constructor_`
 
-        OUTPUT:
+        TESTS::
 
-        None.
-
-        EXAMPLES::
-
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: from sage.rings.real_arb import RealBallField
-            sage: CBF = ComplexBallField()
-            sage: CBF(CIF(0, 1))
-            1.000000000000000*I
-            sage: CBF(1)
-            1.000000000000000
-            sage: CBF(1, 1)
-            1.000000000000000 + 1.000000000000000*I
-            sage: CBF(x)
+            sage: from sage.rings.complex_ball_acb import ComplexBallField, ComplexBall
+            sage: from sage.rings.real_arb import RBF
+            sage: CBF53, CBF100 = ComplexBallField(53), ComplexBallField(100)
+            sage: ComplexBall(CBF100)
+            0
+            sage: ComplexBall(CBF100, ComplexBall(CBF53, ComplexBall(CBF100, 1/3)))
+            [0.333333333333333333333333333333 +/- 4.65e-31]
+            sage: ComplexBall(CBF100, RBF(pi))
+            [3.141592653589793 +/- 5.61e-16]
+            sage: ComplexBall(CBF100, -3r)
+            -3.000000000000000000000000000000
+            sage: ComplexBall(CBF100, 10^100)
+            1.000000000000000000000000000000e+100
+            sage: ComplexBall(CBF100, CIF(1, 2))
+            1.000000000000000000000000000000 + 2.000000000000000000000000000000*I
+            sage: ComplexBall(CBF100, RBF(1/3), RBF(1))
+            [0.3333333333333333 +/- 7.04e-17] + 1.000000000000000000000000000000*I
+            sage: ComplexBall(CBF100, 1, 2)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert to a ComplexIntervalFieldElement
-            sage: RBF = RealBallField()
-            sage: CBF(RBF(1/3))
-            [0.3333333333333333 +/- 7.04e-17]
-            sage: CBF(RBF(1/3), RBF(1/6))
-            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
-            sage: CBF(1/3)
-            [0.333333333333333 +/- 3.99e-16]
-            sage: CBF(1/3, 1/6)
-            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
-            sage: ComplexBallField(106)(1/3, 1/6)
-            [0.33333333333333333333333333333333 +/- 6.94e-33] + [0.16666666666666666666666666666666 +/- 7.70e-33]*I
+            TypeError: unsupported initializer
         """
+        cdef fmpz_t tmpz
+        cdef fmpq_t tmpq
+
         Element.__init__(self, parent)
 
         if x is None:
             return
-
-        if y is None:
-            # we assume x to be a complex number
-            if isinstance(x, RealBall):
-                arb_set(&self.value.real, (<RealBall> x).value)
-                arb_set_ui(&self.value.imag, 0)
-            else:
-                if not isinstance(x, ComplexIntervalFieldElement):
-                    try:
-                        x = ComplexIntervalField(prec(self))(x)
-                    except TypeError:
-                        raise TypeError("unable to convert to a "
-                                        "ComplexIntervalFieldElement")
+        elif y is None:
+            if isinstance(x, ComplexBall):
+                acb_set(self.value, (<ComplexBall> x).value)
+            elif isinstance(x, RealBall):
+                acb_set_arb(self.value, (<RealBall> x).value)
+            elif isinstance(x, int):
+                acb_set_si(self.value, PyInt_AS_LONG(x))
+            elif isinstance(x, sage.rings.integer.Integer):
+                if _do_sig(prec(self)): sig_on()
+                fmpz_init(tmpz)
+                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+                acb_set_fmpz(self.value, tmpz)
+                fmpz_clear(tmpz)
+                if _do_sig(prec(self)): sig_off()
+            elif isinstance(x, sage.rings.rational.Rational):
+                if _do_sig(prec(self)): sig_on()
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+                acb_set_fmpq(self.value, tmpq, prec(self))
+                fmpq_clear(tmpq)
+                if _do_sig(prec(self)): sig_off()
+            elif isinstance(x, ComplexIntervalFieldElement):
                 ComplexIntervalFieldElement_to_acb(self.value,
                                                    <ComplexIntervalFieldElement> x)
+            else:
+                raise TypeError("unsupported initializer")
+        elif isinstance(x, RealBall) and isinstance(y, RealBall):
+            arb_set(acb_realref(self.value), (<RealBall> x).value)
+            arb_set(acb_imagref(self.value), (<RealBall> y).value)
         else:
-            if not isinstance(x, RealBall):
-                try:
-                    x = real_ball_field(self)(x)
-                except TypeError:
-                    raise TypeError("unable to convert to a "
-                                    "RealBall")
-            if not isinstance(y, RealBall):
-                try:
-                    y = real_ball_field(self)(y)
-                except TypeError:
-                    raise TypeError("unable to convert to a "
-                                    "RealBall")
-            arb_set(&self.value.real, (<RealBall> x).value)
-            arb_set(&self.value.imag, (<RealBall> y).value)
+            raise TypeError("unsupported initializer")
 
     cdef ComplexBall _new(self):
         """
@@ -519,7 +592,7 @@ cdef class ComplexBall(Element):
            sage: from sage.rings.complex_ball_acb import ComplexBallField
            sage: CBF = ComplexBallField()
            sage: CBF(1/3)
-           [0.333333333333333 +/- 3.99e-16]
+           [0.3333333333333333 +/- 7.04e-17]
            sage: CBF(0, 1/3)
            [0.3333333333333333 +/- 7.04e-17]*I
            sage: ComplexBallField()(1/3, 1/6)
@@ -732,3 +805,5 @@ cdef class ComplexBall(Element):
 
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
+
+CBF = ComplexBallField()

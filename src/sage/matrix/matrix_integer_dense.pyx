@@ -694,7 +694,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # LEVEL 1 helpers:
     #   These function support the implementation of the level 1 functionality.
     ########################################################################
-    cdef Matrix_integer_dense _new_uninitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
+    cdef Matrix_integer_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return a new matrix over the integers from given parent
         All memory is allocated for this matrix, but its
@@ -748,7 +748,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             True
         """
         cdef Matrix_integer_dense A
-        A = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        A = self._new(self._nrows,self._ncols)
 
         sig_on()
         fmpz_mat_set(A._matrix,self._matrix)
@@ -827,7 +827,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             parent = self.matrix_space(left._nrows, right._ncols)
 
-        ans = self._new_uninitialized_matrix(parent.nrows(),parent.ncols())
+        ans = self._new(parent.nrows(),parent.ncols())
 
         left._init_linbox()
         right._init_mpz()
@@ -875,7 +875,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_integer_dense M, _right
         _right = right
 
-        M = self._new_uninitialized_matrix(parent.nrows(),parent.ncols())
+        M = self._new(parent.nrows(),parent.ncols())
 
         cdef fmpz_t s
         fmpz_init(s)
@@ -896,7 +896,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._ncols != right._nrows:
             raise IndexError("Number of columns of self must equal number of rows of right.")
 
-        M = self._new_uninitialized_matrix(self._nrows, right._ncols)
+        M = self._new(self._nrows, right._ncols)
 
         sig_on()
         fmpz_mat_mul(M._matrix, self._matrix, (<Matrix_integer_dense>right)._matrix)
@@ -915,7 +915,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef Integer x = Integer(right)
         cdef fmpz_t z
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        cdef Matrix_integer_dense M = self._new(self._nrows, self._ncols)
 
         sig_on()
         fmpz_init_set_readonly(z, x.value)
@@ -942,7 +942,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 9 11 13]
             [ 9 11 13]
         """
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense M = self._new(self._nrows,self._ncols)
 
         sig_on()
         fmpz_mat_add(M._matrix,self._matrix,(<Matrix_integer_dense> right)._matrix)
@@ -962,7 +962,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-2  0  2]
             [ 4  6  8]
         """
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense M = self._new(self._nrows,self._ncols)
 
         sig_on()
         fmpz_mat_sub(M._matrix,self._matrix,(<Matrix_integer_dense> right)._matrix)
@@ -1056,7 +1056,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if e == 1:
             return self
 
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        cdef Matrix_integer_dense M = self._new(self._nrows, self._ncols)
         sig_on()
         fmpz_mat_pow(M._matrix, self._matrix, e)
         sig_off()
@@ -1076,7 +1076,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0 -1]
             [-2 -3]
         """
-        cdef Matrix_integer_dense M = self._new_uninitialized_matrix(self._nrows, self._ncols)
+        cdef Matrix_integer_dense M = self._new(self._nrows, self._ncols)
         sig_on()
         fmpz_mat_neg(M._matrix, self._matrix)
         sig_off()
@@ -3629,7 +3629,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sig_off()
         # Now read the answer as a matrix.
         cdef Matrix_integer_dense M
-        M = self._new_uninitialized_matrix(self._ncols,dim)
+        M = self._new(self._ncols,dim)
         k = 0
         for i from 0 <= i < self._ncols:
             for j from 0 <= j < dim:
@@ -3663,7 +3663,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         sig_off()
         # Now read the answer as a matrix.
         cdef Matrix_integer_dense M
-        M = self._new_uninitialized_matrix(self._ncols,dim)
+        M = self._new(self._ncols,dim)
         for i from 0 <= i < M._nrows:
             for j from 0 <= j < M._ncols:
                 fmpz_set(fmpz_mat_entry(M._matrix,i,j),fmpz_mat_entry(M0,i,j))
@@ -3780,7 +3780,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Integer den = Integer(0)
         cdef fmpz_t fden
         fmpz_init(fden)
-        M = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        M = self._new(self._nrows,self._ncols)
         verbose('computing inverse of %s x %s matrix using FLINT'%(self._nrows, self._ncols))
         sig_on()
         res = fmpz_mat_inv(M._matrix,fden,self._matrix)
@@ -4154,7 +4154,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sig_on()
             nonsingSolvLlhsMM(solu_pos, n, m, self._entries, B._entries, mp_N, mp_D)
             sig_off()
-            M = self._new_uninitialized_matrix(P.nrows(),P.ncols())
+            M = self._new(P.nrows(),P.ncols())
             k = 0
             for i from 0 <= i < M._nrows:
                 for j from 0 <= j < M._ncols:
@@ -4277,7 +4277,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
-            M = self._new_uninitialized_matrix(self._ncols,B._ncols)
+            M = self._new(self._ncols,B._ncols)
             sig_on()
             fmpz_mat_solve(M._matrix,tmp,self._matrix,B._matrix)
             fmpz_get_mpz(den.value,tmp)
@@ -4715,7 +4715,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         -  ``matrix`` - the Hermite normal form of self.
         """
         t = verbose('hermite mod %s'%D, caller_name='matrix_integer_dense')
-        cdef Matrix_integer_dense res = self._new_uninitialized_matrix(self._nrows,self._ncols)
+        cdef Matrix_integer_dense res = self._new(self._nrows,self._ncols)
         self._hnf_modn(res, D)
         verbose('finished hnf mod', t, caller_name='matrix_integer_dense')
         return res
@@ -5037,7 +5037,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  6   7   8]
             [  1   5 -10]
         """
-        cdef Matrix_integer_dense res = self._new_uninitialized_matrix(self._nrows + 1, self._ncols)
+        cdef Matrix_integer_dense res = self._new(self._nrows + 1, self._ncols)
         cdef Py_ssize_t j
         cdef Integer z
         cdef fmpz_t zflint
@@ -5283,7 +5283,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [2 5]
         """
         cdef Matrix_integer_dense A
-        A = self._new_uninitialized_matrix(self._ncols,self._nrows)
+        A = self._new(self._ncols,self._nrows)
         sig_on()
         fmpz_mat_transpose(A._matrix,self._matrix)
         sig_off()
@@ -5322,7 +5322,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         nr , nc = (self._nrows, self._ncols)
 
         cdef Matrix_integer_dense A
-        A = self._new_uninitialized_matrix(nc,nr)
+        A = self._new(nc,nr)
         cdef Py_ssize_t i,j
         cdef Py_ssize_t ri,rj # reversed i and j
         sig_on()

@@ -44,5 +44,7 @@ General Rings, Ideals, and Morphisms
    sage/rings/principal_ideal_domain_element
    sage/rings/ring_element
 
+   sage/rings/asymptotic/growth_group
+
 
 .. include:: ../footer.txt

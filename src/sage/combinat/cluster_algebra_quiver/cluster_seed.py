@@ -120,7 +120,7 @@ class ClusterSeed(SageObject):
         False
 
     """
-    def __init__(self, data, frozen=None, is_principal=False, use_fpolys=True, use_g_vec=True, use_c_vec=True, use_d_vec=False, track_mut=False, user_labels=None, user_labels_prefix='x', bot_is_c=False):
+    def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x')    
         r"""
 
         Initializes the ClusterSeed ``self`` with the following range of possible attributes:
@@ -167,6 +167,7 @@ class ClusterSeed(SageObject):
         from sage.matrix.matrix import Matrix
 
         #initialize a null state ClusterSeed object so all tests run and fail as appropriate.
+        # IS THIS STILL NEEDED - GM 8/20/15
         self._n = 0
         self._m = 0
         self._M = None
@@ -280,19 +281,57 @@ class ClusterSeed(SageObject):
 
             # We are now updating boolean flags from user's most recent choice. These may be overridden for efficiency and sanitization
             self._is_principal = is_principal
-            self._track_mut = track_mut
-            self._mut_path = [ ] if self._track_mut else None
+            #self._track_mut = track_mut
+            #self._mut_path = [ ] if self._track_mut else None
 
-            # Initialise everything
-            self.use_d_vectors(use_d_vec, force=True)
-            self.use_c_vectors(use_c_vec, bot_is_c, force=True)
-            self.use_g_vectors(use_g_vec, force=True)
-            self.use_fpolys(use_fpolys, user_labels = user_labels, user_labels_prefix = user_labels_prefix)
+            # Initialize everything
+            #self.use_d_vectors(use_d_vec, force=True)
+            #self.use_c_vectors(use_c_vec, bot_is_c, force=True)
+            #self.use_g_vectors(use_g_vec, force=True)
+            #self.use_fpolys(use_fpolys, user_labels = user_labels, user_labels_prefix = user_labels_prefix)
+
+            # initialize the rest
+            
+            self._C = matrix.identity(self._n)
+            self._use_c_vec = True
+
+            self._G = matrix.identity(self._n)
+            self._use_g_vec = True
+
+            self._C = matrix.identity(self._n)
+            self._BC = copy(self._M).stack(self.c_matrix())
+            self._use_c_vec = True
+            self._bot_is_c=False
+
+            self._D = -matrix.identity(self._n)
+            self._use_d_vec = True
+
+            self._mut_path = [ ] 
+            self._track_mut = True
+            
+            if user_labels:
+                self._sanitize_init_vars(user_labels, user_labels_prefix)
+            else:
+                xs = {i:'x%s'%i for i in xrange(self._n)}
+                ys = {(i+self._n):'y%s'%i for i in xrange(self._n+self._m)}
+                self._init_vars = copy(xs)
+                self._init_vars.update(ys)
+
+            self._init_exch = dict(self._init_vars.items()[:self._n])
+            self._U = PolynomialRing(QQ,['y%s'%i for i in xrange(self._n)])
+            self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
+            self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
+            self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n,self._n+self._m)])) for j in xrange(self._n)])
+            self._yhat = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in xrange(self._n+self._m)])) for j in xrange(self._n)])
+            self._cluster = self._init_vars
+            use_fpolys = True
+
+
 
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
             quiver = ClusterQuiver( data, frozen=frozen )
-            self.__init__( quiver, is_principal=is_principal, use_fpolys=use_fpolys, use_g_vec=use_g_vec, use_d_vec=use_d_vec, use_c_vec=use_c_vec, track_mut=track_mut, user_labels=user_labels, user_labels_prefix=user_labels_prefix, bot_is_c=bot_is_c )
+            self.__init__( quiver, is_principal=is_principal)
 
     def use_c_vectors(self, use=True, bot_is_c=False, force=False):
         r"""
@@ -554,8 +593,10 @@ class ClusterSeed(SageObject):
             ValueError: Clusters not being tracked
 
         """
-        self._user_labels = user_labels
-        self._user_labels_prefix = user_labels_prefix
+        if user_labels:
+            self._user_labels = user_labels
+        if user_labels_prefix:
+            self._user_labels_prefix = user_labels_prefix
         if self._use_fpolys != use:
             self._use_fpolys = use
 
@@ -583,7 +624,11 @@ class ClusterSeed(SageObject):
                 elif self._track_mut == True: #If we can navigate from the root to where we are
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
-                    catchup = ClusterSeed(self._b_initial, user_labels=user_labels, user_labels_prefix=user_labels_prefix, bot_is_c=self._bot_is_c)
+                    catchup = ClusterSeed(self._b_initial, user_labels=user_labels, user_labels_prefix=user_labels_prefix)
+                    catchup.use_c_vectors(use=self._use_c_vec,bot_is_c=self._bot_is_c)
+                    
+                    ## DBCK
+                    
                     catchup.mutate(self.mutations())
 
                     self._init_exch = catchup._init_exch
@@ -1173,7 +1218,11 @@ class ClusterSeed(SageObject):
             else:
                 raise ValueError('No cluster variable with index or label ' + str(k) + '.')
         elif self._track_mut: # if we can recreate the clusters
-            catchup = ClusterSeed(self._b_initial, use_fpolys=True, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, bot_is_c=self._bot_is_c)
+            catchup = ClusterSeed(self._b_initial, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix), 
+            catchup.use_c_vectors(use=self._use_c_vec, bot_is_c=self._bot_is_c)
+            
+            ## DBCK
+            
             catchup.mutate(self.mutations())
             return catchup.cluster_variable(k)
         else:
@@ -1205,7 +1254,11 @@ class ClusterSeed(SageObject):
 
         if not self._use_fpolys:
             if self._track_mut: # if we can recreate the clusters
-                catchup = ClusterSeed(self._b_initial, use_fpolys=True, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, bot_is_c=self._bot_is_c)
+                catchup = ClusterSeed(self._b_initial, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix), 
+                catchup.use_c_vectors(use=self._use_c_vec, bot_is_c=self._bot_is_c)
+            
+                ## DBCK
+               
                 catchup.mutate(self.mutations())
                 return catchup.cluster()
             else:
@@ -1291,7 +1344,11 @@ class ClusterSeed(SageObject):
 
             return self._F[IE[k]]
         elif self._track_mut:
-            catchup = ClusterSeed(self._b_initial, use_fpolys=True, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, bot_is_c=self._bot_is_c)
+            catchup = ClusterSeed(self._b_initial, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix), 
+            catchup.use_c_vectors(use=self._use_c_vec, bot_is_c=self._bot_is_c)
+            
+            ## DBCK
+                        
             catchup.mutate(self.mutations())
 
             return catchup.f_polynomial(k)
@@ -1411,7 +1468,8 @@ class ClusterSeed(SageObject):
             else:
                 raise ValueError("Unable to calculate g-vectors. Need to use g vectors.")
         elif self._track_mut:
-            catchup = ClusterSeed(self._b_initial, use_g_vec=True, use_fpolys=False)
+            catchup = ClusterSeed(self._b_initial)
+            catchup.use_fpolys(False)
             catchup.mutate(self.mutations())
             return catchup.g_matrix()
         elif show_warnings:
@@ -1568,7 +1626,15 @@ class ClusterSeed(SageObject):
                 return -vector(f.numerator().monomials()[0].exponents()[0][:self._n])
             return vector(f.denominator().monomials()[0].exponents()[0][:self._n])
         elif self._track_mut:
-            catchup = ClusterSeed(self._b_initial, use_d_vec=True, use_fpolys=False, use_g_vec=False, use_c_vec=False)
+            #catchup = ClusterSeed(self._b_initial, use_d_vec=True, use_fpolys=False, use_g_vec=False, use_c_vec=False)
+            
+            #DBCK
+            
+            catchup = ClusterSeed(self._b_initial)
+            catchup.use_fpolys(False)
+            catchup.use_g_vectors(False)
+            catchup.use_c_vectors(False)
+                        
             catchup.mutate(self.mutations())
             return copy(catchup._D).column(k)
         else:
@@ -1600,7 +1666,16 @@ class ClusterSeed(SageObject):
         elif self._use_fpolys:
             return matrix( [ self.d_vector(k) for k in range(self._n) ] ).transpose()
         elif self._track_mut:
-            catchup = ClusterSeed(self._b_initial, use_g_vec=False, use_fpolys=False, use_d_vec=True, use_c_vec=False, track_mut=False)
+            #catchup = ClusterSeed(self._b_initial, use_d_vec=True, use_fpolys=False, use_g_vec=False, use_c_vec=False, track_mut=False)
+            
+            DBCK
+            
+            catchup = ClusterSeed(self._b_initial)
+            catchup.use_fpolys(False)
+            catchup.use_g_vectors(False)
+            catchup.use_c_vectors(False)
+            catchup.track_mutations(False)
+                        
             catchup.mutate(self.mutations())
             return catchup.d_matrix()
         elif show_warnings:
@@ -2652,7 +2727,17 @@ class ClusterSeed(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part
         eval_dict = dict( [ ( self.y(i), 1 ) for i in xrange(self._m) ] )
-        seed = ClusterSeed( _principal_part( self._M ), is_principal = True, use_c_vec=self._use_c_vec, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
+
+        ##seed = ClusterSeed( _principal_part( self._M ), is_principal = True, use_c_vec=self._use_c_vec, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None) 
+        
+        ## DBCK
+
+        seed = ClusterSeed( _principal_part( self._M ), is_principal = True, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None)         
+        seed.use_c_vectors(self._use_c_vec)
+        seed.use_fpolys(self._use_fpolys)
+        seed.use_g_vectors(self._use_g_vec)
+        seed.use_d_vectors(self._use_d_vec)
+        seed.use_track_mutations(self._track_mut)
 
         seed._cluster = [ self._cluster[k].subs(eval_dict) for k in xrange(self._n) ]
         seed._mutation_type = self._mutation_type
@@ -2738,7 +2823,17 @@ class ClusterSeed(SageObject):
                     for alpha in almost_positive_coroots])
 
         M = self._M.stack(C)
-        seed = ClusterSeed(M, is_principal=False, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix)
+        ##seed = ClusterSeed(M, is_principal=False, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix)
+
+        ## DBCK
+        
+        seed = ClusterSeed(M, is_principal = False, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None)         
+        seed.use_c_vectors(self._use_c_vec)
+        seed.use_fpolys(self._use_fpolys)
+        seed.use_g_vectors(self._use_g_vec)
+        seed.use_d_vectors(self._use_d_vec)
+        seed.use_track_mutations(self._track_mut)
+
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -2790,7 +2885,17 @@ class ClusterSeed(SageObject):
                 self._user_labels = self._user_labels + ['y%s'%i for i in xrange(self._n)]
             elif isinstance(self._user_labels,dict):
                 self._user_labels.update( {(i+self._n):'y%s'%i for i in xrange(self._n)}  )
-        seed = ClusterSeed( M, is_principal=is_principal, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix)
+        ##seed = ClusterSeed(M, is_principal=is_principal, use_fpolys=self._use_fpolys, use_g_vec=self._use_g_vec, use_c_vec=self._use_c_vec, use_d_vec=self._use_d_vec, track_mut=self._track_mut,user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix)
+
+        ## DBCK
+
+        seed = ClusterSeed(M, is_principal = is_principal, user_labels=self._user_labels, user_labels_prefix=self._user_labels_prefix, frozen=None)         
+        seed.use_c_vectors(self._use_c_vec)
+        seed.use_fpolys(self._use_fpolys)
+        seed.use_g_vectors(self._use_g_vec)
+        seed.use_d_vectors(self._use_d_vec)
+        seed.use_track_mutations(self._track_mut)
+
         #### This should fix principal_extension resetting boolean flags.  Might need to update user labels to include new principals with y's.    -G
         seed._mutation_type = self._mutation_type
         return seed

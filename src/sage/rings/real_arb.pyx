@@ -378,7 +378,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RBF(x)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x to a RealIntervalFieldElement
+            TypeError: unable to convert x to a RealBall
 
         Various symbolic constants can be converted without going through real
         intervals. (This is faster and yields tighter error bounds.) ::
@@ -392,17 +392,16 @@ class RealBallField(UniqueRepresentation, Parent):
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
-
         try:
             return self.element_class(self, mid.pyobject(), rad)
         except (AttributeError, TypeError):
             pass
-
         try:
             mid = RealIntervalField(self._prec)(mid)
+            return self.element_class(self, mid, rad)
         except TypeError:
-            raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(mid))
-        return self.element_class(self, mid, rad)
+            pass
+        raise TypeError("unable to convert {} to a RealBall".format(mid))
 
     def gens(self):
         r"""
@@ -873,6 +872,8 @@ cdef class RealBall(RingElement):
           radius. If the midpoint is not exactly representable in
           floating-point, the radius is adjusted to account for the roundoff
           error.
+
+        .. SEEALSO:: :meth:`RealBallField._element_constructor_`
 
         EXAMPLES::
 

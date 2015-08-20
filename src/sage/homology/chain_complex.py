@@ -114,7 +114,7 @@ def ChainComplex(data=None, **kwds):
       indexed.
 
     - ``degree_of_differential`` -- element of grading_group
-       (optional, default ``1``). The degree of the differential.
+      (optional, default ``1``). The degree of the differential.
 
     - ``degree`` -- alias for ``degree_of_differential``.
 

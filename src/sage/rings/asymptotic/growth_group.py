@@ -52,7 +52,7 @@ AUTHORS:
     By using the following short notation for growth groups, their
     creation is very simple: *Monomial growth groups* (i.e. the
     group for powers of a fixed symbol;
-    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthGroup`)
+    :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup`)
     are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
     the group of integer powers of `x`, and the group of rational
     powers of `y`, respectively.
@@ -65,7 +65,7 @@ AUTHORS:
 
 EXAMPLES::
 
-    sage: import sage.groups.asymptotic_growth_group as agg
+    sage: import sage.rings.asymptotic.growth_group as agg
     sage: G_x = agg.GrowthGroup('x^ZZ'); repr(G_x)
     'Growth Group x^ZZ'
     sage: G_xy = agg.GrowthGroup('x^ZZ * y^ZZ'); G_xy
@@ -189,7 +189,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: P = agg.MonomialGrowthGroup(QQ, 'x')
         sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
         sage: C = cartesian_product([P, L], order='lex'); C
@@ -221,7 +221,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         EXAMPLES::
 
-            sage: from sage.groups.asymptotic_growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ * y^ZZ')
             sage: G_log = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
 
@@ -307,7 +307,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.MonomialGrowthGroup(QQ, 'x')
             sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
             sage: cartesian_product([P, L], order='lex')._repr_()
@@ -331,7 +331,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.MonomialGrowthGroup(QQ, 'x')
             sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
             sage: cartesian_product([P, L], order='lex')._repr_short_()
@@ -356,7 +356,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         EXAMPLES::
 
-            sage: from sage.groups.asymptotic_growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ * log(x)^QQ * y^QQ')
             sage: e1 = G._convert_to_factor_(x^2)
             sage: (e1, e1.parent())
@@ -394,7 +394,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
@@ -420,7 +420,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
             EXAMPLES::
 
-                sage: import sage.groups.asymptotic_growth_group as agg
+                sage: import sage.rings.asymptotic.growth_group as agg
                 sage: P = agg.MonomialGrowthGroup(QQ, 'x')
                 sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()

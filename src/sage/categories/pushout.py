@@ -692,7 +692,7 @@ class PolynomialFunctor(ConstructionFunctor):
         TEST::
 
             sage: P = ZZ['x'].construction()[0]
-            sage: P(ZZ.hom(GF(3)))
+            sage: P(ZZ.hom(GF(3)))  # indirect doctest
             Ring morphism:
               From: Univariate Polynomial Ring in x over Integer Ring
               To:   Univariate Polynomial Ring in x over Finite Field of size 3

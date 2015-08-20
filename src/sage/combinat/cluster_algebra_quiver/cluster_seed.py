@@ -120,7 +120,7 @@ class ClusterSeed(SageObject):
         False
 
     """
-    def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x')    
+    def __init__(self, data, frozen=None, is_principal=False, user_labels=None, user_labels_prefix='x'):
         r"""
 
         Initializes the ClusterSeed ``self`` with the following range of possible attributes:

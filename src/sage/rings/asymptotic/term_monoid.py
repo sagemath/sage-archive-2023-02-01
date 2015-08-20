@@ -8,7 +8,7 @@ asymptotic ring (to be implemented).
 The monoids build upon the (asymptotic) growth groups. While growth
 elements only model the growth of a function as it tends towards
 infinity (or tends towards another fixed point; see
-:mod:`~sage.groups.asymptotic_growth_group` for more details), an
+:mod:`~sage.rings.asymptotic.growth_group` for more details), an
 asymptotic term additionally specifies its "type" and performs the
 actual arithmetic operations (multiplication and partial
 addition/absorption of terms).
@@ -25,7 +25,7 @@ implements the following types of terms:
 
 A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
-:meth:`~sage.monoids.asymptotic_term_monoid.GenericTerm.absorb`). For
+:meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
 `O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
@@ -52,8 +52,8 @@ AUTHORS:
 
     TESTS::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
         sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
@@ -97,8 +97,8 @@ def absorption(left, right):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
         sage: G = agg.GrowthGroup('x^ZZ')
         sage: T = atm.TermMonoid('O', G)
         sage: atm.absorption(T(x^2), T(x^3))
@@ -134,8 +134,8 @@ def can_absorb(left, right):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
         sage: G = agg.GrowthGroup('x^ZZ')
         sage: T = atm.TermMonoid('O', G)
         sage: atm.can_absorb(T(x^2), T(x^3))
@@ -159,8 +159,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
         sage: T = atm.GenericTermMonoid(G)
         sage: t1 = T(x); t2 = T(x^2); (t1, t2)
@@ -183,14 +183,14 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         TESTS::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(G)
             sage: T(x^2)
             Generic Term with growth x^2
         """
-        from sage.groups.asymptotic_growth_group import GenericGrowthElement
+        from sage.rings.asymptotic.growth_group import GenericGrowthElement
 
         if parent is None:
             raise ValueError('The parent must be provided')
@@ -226,8 +226,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(G)
             sage: t1 = T(x); t2 = T(x^2)
@@ -263,8 +263,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         by which other terms. We start by defining the necessary
         term monoids and some terms::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = atm.OTermMonoid(growth_group=G)
             sage: ET = atm.ExactTermMonoid(growth_group=G, base_ring=QQ)
@@ -319,8 +319,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: T = atm.GenericTermMonoid(G)
             sage: g1 = G(raw_element=21); g2 = G(raw_element=42)
@@ -355,7 +355,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
             For a more detailed explanation of the *absorption* of
             asymptotic terms see the introduction of :mod:`this module
-            <sage.monoids.asymptotic_term_monoid>`, or the examples
+            <sage.rings.asymptotic.term_monoid>`, or the examples
             below.
 
         EXAMPLES:
@@ -365,8 +365,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         of this operation. We start by defining some parents and
         elements::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_QQ = agg.GrowthGroup('x^QQ'); x = G_QQ.gen()
             sage: OT = atm.OTermMonoid(G_QQ)
             sage: ET = atm.ExactTermMonoid(growth_group=G_QQ, base_ring=QQ)
@@ -470,8 +470,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         First, we define some asymptotic terms::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(G)
             sage: t1 = T(x); t2 = T(x^2)
@@ -507,8 +507,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         First, we define some asymptotic terms (and their parents)::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: GT = atm.GenericTermMonoid(G)
             sage: OT = atm.OTermMonoid(G)
@@ -586,8 +586,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(G)
             sage: t1 = T(x^-2); t2 = T(x^5); t1, t2
@@ -614,8 +614,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(growth_group=G)
             sage: T(x)._repr_()
@@ -634,7 +634,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     INPUT:
 
     - ``growth_group`` -- a partially ordered group (e.g. an instance of
-      :class:`~sage.groups.asymptotic_growth_group.GenericGrowthGroup`).
+      :class:`~sage.rings.asymptotic.growth_group.GenericGrowthGroup`).
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. It has to be a subcategory
@@ -647,14 +647,14 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     :class:`GenericTerm` or :class:`OTerm`). Basically, asymptotic
     terms consist of a ``growth`` (which is an asymptotic growth
     group element, for example
-    :class:`~sage.groups.asymptotic_growth_group.MonomialGrowthElement`);
+    :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthElement`);
     additional structure and properties are added by the classes inherited
     from :class:`GenericTermMonoid`.
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G_x = agg.GrowthGroup('x^ZZ'); x = G_x.gen()
         sage: G_y = agg.GrowthGroup('y^QQ'); y = G_y.gen()
         sage: T_x_ZZ = atm.GenericTermMonoid(G_x); T_y_QQ = atm.GenericTermMonoid(G_y)
@@ -674,8 +674,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_x = agg.GrowthGroup('x^ZZ')
             sage: T_x = atm.GenericTermMonoid(G_x); T_x
             Generic Term Monoid x^ZZ
@@ -696,7 +696,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         """
         from sage.categories.monoids import Monoids
         from sage.categories.posets import Posets
-        from sage.groups.asymptotic_growth_group import GenericGrowthGroup
+        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
 
         if category is None:
             category = Monoids() & Posets()
@@ -723,8 +723,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.ExactTermMonoid(G, ZZ).growth_group
             Growth Group x^ZZ
@@ -746,8 +746,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: atm.GenericTermMonoid(G)._repr_()
             'Generic Term Monoid Generic(ZZ)'
@@ -778,8 +778,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: T_ZZ = atm.GenericTermMonoid(growth_group=G_ZZ); T_ZZ
@@ -817,8 +817,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: G_QQ = agg.GrowthGroup('x^QQ')
             sage: T_ZZ = atm.GenericTermMonoid(growth_group=G_ZZ)
@@ -877,8 +877,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.OTermMonoid(G).an_element()  # indirect doctest
             O(x)
@@ -905,8 +905,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.GenericTermMonoid(growth_group=G)
             sage: t1 = T(x); t2 = T(x^2)
@@ -932,8 +932,8 @@ class OTerm(GenericTerm):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
         sage: OT = atm.OTermMonoid(G)
         sage: t1 = OT(x^-7); t2 = OT(x^5); t3 = OT(x^42)
@@ -973,8 +973,8 @@ class OTerm(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = atm.OTermMonoid(G)
             sage: t1 = OT(x); t2 = OT(x^2); t3 = OT(x^3)
@@ -1005,8 +1005,8 @@ class OTerm(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: OT = atm.TermMonoid('O', agg.GrowthGroup('x^ZZ'))
             sage: t1 = OT(x^21); t2 = OT(x^42)
             sage: t1.can_absorb(t2)  # indirect doctest
@@ -1041,8 +1041,8 @@ class OTerm(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = atm.OTermMonoid(growth_group=G)
             sage: ot1 = OT(x); ot2 = OT(x^2)
@@ -1073,8 +1073,8 @@ class OTermMonoid(GenericTermMonoid):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G_x_ZZ = agg.GrowthGroup('x^ZZ')
         sage: G_y_QQ = agg.GrowthGroup('y^QQ')
         sage: OT_x_ZZ = atm.OTermMonoid(G_x_ZZ); OT_x_ZZ
@@ -1120,8 +1120,8 @@ class OTermMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
             sage: G_QQ = agg.GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
             sage: OT_ZZ = atm.OTermMonoid(G_ZZ)
@@ -1162,8 +1162,8 @@ class OTermMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: atm.OTermMonoid(G)._repr_()
             'Asymptotic O-Term Monoid x^ZZ'
@@ -1187,8 +1187,8 @@ class TermWithCoefficient(GenericTerm):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
         sage: CT_ZZ = atm.TermWithCoefficientMonoid(G, ZZ)
         sage: CT_QQ = atm.TermWithCoefficientMonoid(G, QQ)
@@ -1206,8 +1206,8 @@ class TermWithCoefficient(GenericTerm):
 
         First, we define some monoids::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: CT_ZZ = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: CT_QQ = atm.TermWithCoefficientMonoid(G, QQ)
@@ -1260,8 +1260,8 @@ class TermWithCoefficient(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: T(x^2, 5)._repr_()
@@ -1292,8 +1292,8 @@ class TermWithCoefficient(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: CT = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: ET = atm.ExactTermMonoid(G, ZZ)
@@ -1338,8 +1338,8 @@ class TermWithCoefficient(GenericTerm):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = atm.ExactTermMonoid(G, QQ)
             sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
@@ -1387,8 +1387,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G_ZZ = agg.GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = agg.GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: TC_ZZ = atm.TermWithCoefficientMonoid(G_ZZ, QQ); TC_ZZ
@@ -1413,8 +1413,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T_ZZ = atm.TermWithCoefficientMonoid(G, ZZ); T_ZZ
             Term Monoid x^ZZ with coefficients from Integer Ring
@@ -1437,8 +1437,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.ExactTermMonoid(G, ZZ).base_ring  # indirect doctest
             Integer Ring
@@ -1467,8 +1467,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: G_QQ = agg.GrowthGroup('x^QQ')
             sage: TC_ZZ = atm.TermWithCoefficientMonoid(G_ZZ, ZZ); TC_ZZ
@@ -1511,8 +1511,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: t1 = T(x^2, 5); t1  # indirect doctest
@@ -1609,8 +1609,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermWithCoefficientMonoid(G, ZZ)._repr_()
             'Term Monoid x^ZZ with coefficients from Integer Ring'
@@ -1633,8 +1633,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermWithCoefficientMonoid(G, ZZ).an_element()  # indirect doctest
             Asymptotic Term with coefficient 1 and growth x
@@ -1662,8 +1662,8 @@ class ExactTerm(TermWithCoefficient):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
         sage: ET = atm.ExactTermMonoid(G, QQ)
 
@@ -1732,8 +1732,8 @@ class ExactTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = atm.ExactTermMonoid(G, ZZ)
             sage: et1 = ET(x^2, 2); et1
@@ -1779,8 +1779,8 @@ class ExactTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: ET = atm.TermMonoid('exact', agg.GrowthGroup('x^ZZ'), ZZ)
             sage: t1 = ET(x^21, 1); t2 = ET(x^21, 2); t3 = ET(x^42, 1)
             sage: t1.can_absorb(t2)  # indirect doctest
@@ -1813,8 +1813,8 @@ class ExactTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: ET = atm.ExactTermMonoid(G, QQ)
 
@@ -1860,8 +1860,8 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     EXAMPLES::
 
-        sage: import sage.monoids.asymptotic_term_monoid as atm
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: G_ZZ = agg.GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = agg.GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: ET_ZZ = atm.ExactTermMonoid(G_ZZ, ZZ); ET_ZZ
@@ -1897,8 +1897,8 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
         EXAMPLES::
 
-            sage: import sage.monoids.asymptotic_term_monoid as atm
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: atm.ExactTermMonoid(G, QQ)._repr_()
             'Exact Term Monoid x^ZZ with coefficients from Rational Field'
@@ -1931,8 +1931,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
-        sage: import sage.monoids.asymptotic_term_monoid as atm
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.term_monoid as atm
         sage: G = agg.GrowthGroup('x^ZZ')
         sage: OT = atm.TermMonoid('O', G); OT
         Asymptotic O-Term Monoid x^ZZ
@@ -1947,8 +1947,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermMonoid.create_key_and_extra_args('O', G)
             (('O', Growth Group x^ZZ, None), {})
@@ -1962,7 +1962,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         if term not in ['O', 'exact']:
             raise ValueError("%s has to be either 'exact' or 'O'" % term)
 
-        from sage.groups.asymptotic_growth_group import GenericGrowthGroup
+        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
             raise ValueError("%s has to be an asymptotic growth group"
                              % growth_group)
@@ -1981,8 +1981,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermMonoid('O', G)  # indirect doctest
             Asymptotic O-Term Monoid x^ZZ

@@ -1216,12 +1216,15 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(Gamma1(15), 3, names='a')[2]; f
             q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6)
             sage: f._atkin_lehner_action_from_qexp(5)
-            (-a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
+            (a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
 
         """
+        from sage.misc.all import prod
         a_Q = self[Q]
         epsilon = self.character()
-        eps_Q = [eps for eps in epsilon.decomposition() if eps.modulus() == Q][0]
+        dec = epsilon.decomposition()
+        eps_Q = [eps for eps in dec if eps.modulus() == Q][0]
+        eta = prod([eps(Q) for eps in dec if eps.modulus() != Q])
 
         if not a_Q:
             raise ValueError("a_Q must be nonzero")
@@ -1230,12 +1233,13 @@ class Newform(ModularForm_abstract):
         if embedding is not None:
             a_Q = embedding(a_Q)
             eps_Q = eps_Q.change_ring(embedding)
+            eta = embedding(eta)
         if eps_Q.is_trivial():
             g = -1
         else:
             # eps_Q is primitive of conductor Q
             g = eps_Q.gauss_sum()
-        return Q**(self.weight() - 2) * g / a_Q, f_star
+        return Q**(self.weight() - 2) * eta * g / a_Q, f_star
 
     def _atkin_lehner_action_from_modsym(self, d, embedding=None):
         r"""
@@ -1268,7 +1272,7 @@ class Newform(ModularForm_abstract):
 
             sage: F = Newforms(Gamma1(15), 3, names='a')[2]
             sage: F._atkin_lehner_action_from_modsym(5)
-            (-a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
+            (a2, q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6))
             sage: _ == F._atkin_lehner_action_from_qexp(5)
             True
         """
@@ -1281,7 +1285,7 @@ class Newform(ModularForm_abstract):
         if not W.is_scalar():
             raise ArithmeticError("Something wrong: Atkin--Lehner matrix not scalar")
 
-        w = W[0,0] / (self.character().primitive_character()(d))
+        w = W[0,0]
         if embedding is not None:
             w = embedding(w)
         return w, self
@@ -1321,8 +1325,8 @@ class Newform(ModularForm_abstract):
             sage: for d in divisors(30):
             ....:     print(f.atkin_lehner_action(d, embedding=emb))
             (1.00000000000000, q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6))
-            (-1.00000000000000*I, q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6))
             (1.00000000000000*I, q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6))
+            (-1.00000000000000*I, q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6))
             (-0.894427190999916 + 0.447213595499958*I, q - a1*q^2 + a1*q^3 - q^4 + (-a1 - 2)*q^5 + O(q^6))
             (1.00000000000000, q + a1*q^2 - a1*q^3 - q^4 + (a1 - 2)*q^5 + O(q^6))
             (-0.447213595499958 - 0.894427190999916*I, q - a1*q^2 + a1*q^3 - q^4 + (-a1 - 2)*q^5 + O(q^6))
@@ -1336,8 +1340,8 @@ class Newform(ModularForm_abstract):
             sage: for d in divisors(30):                        # long time
             ....:     print(g.atkin_lehner_action(d))           # long time
             (1, q - z^5*q^2 + z^5*q^3 - q^4 + (-z^5 - 2)*q^5 + O(q^6))
-            (-z^5, q - z^5*q^2 + z^5*q^3 - q^4 + (-z^5 - 2)*q^5 + O(q^6))
             (z^5, q - z^5*q^2 + z^5*q^3 - q^4 + (-z^5 - 2)*q^5 + O(q^6))
+            (-z^5, q - z^5*q^2 + z^5*q^3 - q^4 + (-z^5 - 2)*q^5 + O(q^6))
             (2/5*z^7 + 4/5*z^6 - 1/5*z^5 - 4/5*z^4 + 2/5*z^3 - 2/5, q + z^5*q^2 - z^5*q^3 - q^4 + (z^5 - 2)*q^5 + O(q^6))
             (1, q - z^5*q^2 + z^5*q^3 - q^4 + (-z^5 - 2)*q^5 + O(q^6))
             (-4/5*z^7 + 2/5*z^6 + 2/5*z^5 - 2/5*z^4 - 4/5*z^3 - 1/5, q + z^5*q^2 - z^5*q^3 - q^4 + (z^5 - 2)*q^5 + O(q^6))
@@ -1390,14 +1394,13 @@ class Newform(ModularForm_abstract):
         if embedding is not None:
             eps = embedding(eps)
 
-        eta0, g0 = self.atkin_lehner_action(M, embedding)
         if self[Q]:
-            eta1, g1 = g0._atkin_lehner_action_from_qexp(Q, embedding)
+            eta0, g0 = self._atkin_lehner_action_from_qexp(Q, embedding)
         elif eps_Q.is_trivial():
-            eta1, g1 = g0._atkin_lehner_action_from_modsym(Q, embedding)
+            eta0, g0 = self._atkin_lehner_action_from_modsym(Q, embedding)
         else:
             raise NotImplementedError("Unable to determine local constant at prime %s" % q)
-
+        eta1, g1 = g0.atkin_lehner_action(M, embedding)
         return eps * eta0 * eta1, g1
 
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):
@@ -1438,7 +1441,7 @@ class Newform(ModularForm_abstract):
             sage: f = Newforms(Gamma1(15), 3, names='a')[2]; f
             q + a2*q^2 + (-a2 - 2)*q^3 - q^4 - a2*q^5 + O(q^6)
             sage: f.atkin_lehner_eigenvalue(5)
-            -a2
+            a2
 
             sage: CuspForms(DirichletGroup(5).0, 5).newforms()[0].atkin_lehner_eigenvalue()
             Traceback (most recent call last):

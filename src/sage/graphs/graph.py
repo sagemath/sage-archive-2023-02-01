@@ -5041,7 +5041,8 @@ class Graph(GenericGraph):
         It is closely related to :meth:`twograph`.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring` method or :func:`matrix` function.
+        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring`
+        method or :func:`matrix` function.
 
         INPUT:
 
@@ -5100,9 +5101,8 @@ class Graph(GenericGraph):
         Returns the two-graph of ``self``
 
         Returns the :class:`two-graph <sage.combinat.designs.twographs.TwoGraph>` with the triples
-        `T=\{t \in \binom {V}{3} : \left| \binom {t}{2} \cap E \right| odd \}`
+        `T=\{t \in \binom {V}{3} : \left| \binom {t}{2} \cap E \right| \text{odd} \}`
         where `V` and `E` are vertices and edges of ``self``, respectively.
-
 
         EXAMPLES::
 

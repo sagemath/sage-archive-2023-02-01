@@ -13,7 +13,7 @@ called Seidel switching equivalence.
 Conversely, given a two-graph `T`, one can construct a graph
 `\Gamma` in the corresponding Seidel switching class with an
 isolated vertex `w`. The graph `\Gamma \setminus w` is called
-the descendant of `T` w.r.t. `v`.
+the :meth:`descendant <TwoGraph.descendant>` descendant of `T` w.r.t. `v`.
 
 `T` is called regular if each two-subset of `[n]` is contained
 in the same number alpha of triples of `T`.
@@ -61,22 +61,27 @@ class TwoGraph(IncidenceStructure):
     r"""
     Two-graphs class.
 
-    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family
-    `T \subset \binom {[n]}{3}` of `3`-sets, such that any
-    `4`-set `S\subset [n]` of size four contains an even number of elements of `T`.
+    A two-graph on `n` points is a 3-uniform hypergraph, i.e.  a family `T
+    \subset \binom {[n]}{3}` of `3`-sets, such that any `4`-set `S\subset [n]`
+    of size four contains an even number of elements of `T`. For more
+    information, see the documentation of the
+    :mod:`~sage.combinat.designs.twographs` module.
 
     """
     def is_regular_twograph(self, alpha=False, check=False):
-        """
-        returns True if ``self`` is a regular two-graph, i.e. a 2-design
+        r"""
+        Tests if the :class:`TwoGraph` is regular, i.e. is a 2-design.
 
         Namely, each pair of elements of :meth:`ground_set` is contained in
         exactly ``alpha`` triples.
 
         INPUT:
 
-            - ``alpha`` -- (optional, default is False) return the value of ``alpha``, if possible.
-            - ``check`` -- (optional, default is False), check that we actually have a two-graph.
+        - ``alpha`` -- (optional, default is ``False``) return the value of
+          ``alpha``, if possible.
+
+        - ``check`` -- (optional, default is ``False``), check that we actually have
+          a two-graph.
 
         EXAMPLES::
 
@@ -202,13 +207,6 @@ def twograph_descendant(G, v):
         sage: twograph_descendant(T8, v).is_strongly_regular(parameters=True)
         (27, 16, 10, 8)
     """
-    from sage.graphs.graph import Graph
-    Nv0 = G.neighbors(v)
-    Nv = frozenset(Nv0)
-    NonNv0 = filter(lambda x: not x in Nv and x != v, G.vertices())
-    NonNv = frozenset(NonNv0)
-    return Graph([Nv0+NonNv0, lambda i, j:
-                    (i in NonNv and j in NonNv    and     G.has_edge(i,j)) or
-                    (i in Nv    and j in Nv       and     G.has_edge(i,j)) or
-                    (i in Nv    and j in NonNv    and not G.has_edge(i,j)) or
-                    (j in Nv    and i in NonNv    and not G.has_edge(i,j))])
+    G = G.seidel_switching(G.neighbors(v))
+    G.delete_vertex(v)
+    return G

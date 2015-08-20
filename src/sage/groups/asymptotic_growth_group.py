@@ -406,6 +406,32 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
 
     class Element(CartesianProductPosets.Element):
+        def __pow__(self, power):
+            r"""
+            Takes this growth element to the given ``power``.
+
+            INPUT:
+
+            - ``power`` -- a number. This can anything that is valid to be
+            on the right hand side of ``*`` with an elements of the
+            parent's base.
+
+            OUTPUT:
+
+            An element of the cartesian product of some growth groups.
+
+            EXAMPLES::
+
+                sage: from sage.groups.asymptotic_growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * y^QQ')
+                sage: x, y = G.gens_monomial()
+                sage: (x^2 * y)^(1/2)
+                x * y^(1/2)
+            """
+            P = self.parent()
+            return P.prod(P(f**power) for f in self.value)
+
+
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.

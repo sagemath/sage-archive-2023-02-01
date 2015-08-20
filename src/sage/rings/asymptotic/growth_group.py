@@ -75,7 +75,7 @@ def repr_short_to_parent(s):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: agg.repr_short_to_parent('ZZ')
         Integer Ring
         sage: agg.repr_short_to_parent('QQ')
@@ -1571,7 +1571,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: agg.GrowthGroup('x^ZZ')
         Growth Group x^ZZ
         sage: agg.GrowthGroup('log(x)^QQ')
@@ -1584,7 +1584,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
             (('x^ZZ',), {})
             sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
@@ -1607,7 +1607,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup('as^df')
             Traceback (most recent call last):
             ...

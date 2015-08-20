@@ -1288,7 +1288,7 @@ class Newform(ModularForm_abstract):
         return w, self
 
     def atkin_lehner_action(self, d, embedding=None):
-        """
+        r"""
         Return the result of the Atkin-Lehner operator `W_d` on
         ``self``.
 
@@ -1314,6 +1314,43 @@ class Newform(ModularForm_abstract):
 
         The action is computed using the results of [Atkin-Li]_,
         Sections 1 and 2.
+
+        .. NOTE::
+
+            The definition of the operator `W_d` differs from the one
+            used in [Atkin-Li]_.  On the space of modular forms of
+            weight `k`, the operator is defined in both cases by a
+            weight `k` action of a matrix of the form
+
+            .. math::
+
+                W_d = \begin{pmatrix} dx & y \\ Nz & dw \end{pmatrix}
+
+            with `\det W_d = d`.  The definitions differ in two
+            respects:
+
+            - Congruence conditions: in Sage, the matrix is chosen
+              to satisfy the conditions `z \equiv 1 \pmod d` and
+              `w \equiv 1 \pmod{N/d}`; in [Atkin-Li]_, the conditions
+              are `x \equiv 1 \pmod{N/d}` and `y \equiv 1 \pmod d`.
+
+            - Absolute value: due to different definitions of the
+              weight `k` action, the pseudo-eigenvalue returned by
+              this method has absolute value `d^{k/2 - 1}`, while the
+              pseudo-eigenvalue defined in [Atkin-Li]_ has absolute
+              value 1.
+
+            Consequently, given a newform `f` of weight `k` and
+            character `\epsilon`, the pseudo-eigenvalue `w` returned
+            by this method and the pseudo-eigenvalue `\lambda_d(f)`
+            defined in [Atkin-Li]_ are related by
+
+            .. math::
+
+                w = \epsilon_{N/d}(d) d^{k/2 - 1} \lambda_d(f),
+
+            where `\epsilon_{N/d}` is the prime-to-`d` part of
+            `\epsilon`.
 
         EXAMPLES::
 
@@ -1429,6 +1466,11 @@ class Newform(ModularForm_abstract):
             Even though this method always returns `\pm 1`,
             specifiying ``embedding`` may be necessary to compute
             certain intermediate Gauss sums and square roots.
+
+        .. SEEALSO:
+
+            :meth:`atkin_lehner_action` (especially for the
+            conventions used to define the operator `W_d`).
 
         EXAMPLES::
 

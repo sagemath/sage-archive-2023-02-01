@@ -30,6 +30,8 @@
 
 #include "farey.hpp"
 
+// The following functions are defined in farey_symbols.h, but direct inclusion
+// of this file breaks compilation on cygwin, see trac #13336.
 extern "C" long convert_to_long(PyObject *);
 extern "C" PyObject *convert_to_Integer(mpz_class);
 extern "C" PyObject *convert_to_rational(mpq_class);

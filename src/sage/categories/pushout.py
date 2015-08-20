@@ -340,7 +340,7 @@ class ConstructionFunctor(Functor):
 
         OUTPUT:
 
-        Raise a :class:`CoercionException`.
+        Raise a :class:`~sage.structure.coerce_exceptions.CoercionException`.
 
         .. NOTE::
 
@@ -698,8 +698,8 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
 
         A parent.
 
-        If no common base is found a :class:`CoercionException` is
-        raised.
+        If no common base is found a :class:`sage.structure.coerce_exceptions.CoercionException`
+        is raised.
 
         .. NOTE::
 

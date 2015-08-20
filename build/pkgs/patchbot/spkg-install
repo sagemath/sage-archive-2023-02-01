@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# Move any currently exising patchbot out of the way.
+if [ -e "$SAGE_LOCAL/bin/patchbot" ]; then
+    i=0
+    while [ -e "$SAGE_LOCAL/bin/patchbot-old-$i" ]; do
+        i=$(( $i + 1 ))
+    done
+    echo "Renaming existing patchbot directory to patchbot-old-$i"
+    mv "$SAGE_LOCAL/bin/patchbot" "$SAGE_LOCAL/bin/patchbot-old-$i"
+fi
+
+# Copy into final location.
+# The sage-sage script knows how to call this...
+cp -Rv src "$SAGE_LOCAL/bin/patchbot"

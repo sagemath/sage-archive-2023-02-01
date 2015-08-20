@@ -543,6 +543,7 @@ REFERENCES:
 AUTHOR:
 
 - James Campbell and Vince Knight (06-2014): Original version
+- Tobenna P. Igwe: Constant-sum game solvers
 
 """
 

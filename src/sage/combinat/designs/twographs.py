@@ -207,6 +207,6 @@ def twograph_descendant(G, v):
         sage: twograph_descendant(T8, v).is_strongly_regular(parameters=True)
         (27, 16, 10, 8)
     """
-    G = G.seidel_switching(G.neighbors(v))
+    G = G.seidel_switching(G.neighbors(v),inplace=False)
     G.delete_vertex(v)
     return G

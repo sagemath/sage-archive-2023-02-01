@@ -5062,8 +5062,8 @@ class Graph(GenericGraph):
                   self.complement().adjacency_matrix(sparse=False, \
                                             vertices=vertices)
 
-    def seidel_switching(self, s):
-        """
+    def seidel_switching(self, s, inplace=True):
+        r"""
         Returns the Seidel switching of ``self`` w.r.t. subset of vertices ``s``.
 
         Returns the graph obtained by Seidel switching of ``self``
@@ -5076,6 +5076,9 @@ class Graph(GenericGraph):
 
          - ``s`` -- a list of vertices of ``self``
 
+        - ``inplace`` (boolean) -- whether to do the modification inplace, or to
+          return a copy of the graph after switching.
+
         OUTPUT:
 
          - :class:`~Graph` which is the switching of ``self`` w.r.t. ``s``
@@ -5084,17 +5087,26 @@ class Graph(GenericGraph):
 
             sage: G = graphs.CycleGraph(5)
             sage: G = G.disjoint_union(graphs.CompleteGraph(1))
-            sage: H = G.seidel_switching([(0,1),(1,0),(0,0)])
-            sage: H.seidel_adjacency_matrix().minpoly()
+            sage: G.seidel_switching([(0,1),(1,0),(0,0)])
+            sage: G.seidel_adjacency_matrix().minpoly()
             x^2 - 5
-            sage: H.is_connected()
+            sage: G.is_connected()
+            True
+
+        TESTS::
+
+            sage: H = G.seidel_switching([1,4,5],inplace=False)
+            sage: G.seidel_switching([1,4,5])
+            sage: G == H
             True
         """
         from itertools import product
-        H = copy(self)
-        H.add_edges(product(s, set(self).difference(s)))
-        H.delete_edges(self.edge_boundary(s))
-        return H
+        G = self if inplace else self.copy()
+        boundary = self.edge_boundary(s)
+        G.add_edges(product(s, set(self).difference(s)))
+        G.delete_edges(boundary)
+        if not inplace:
+            return G
 
     def twograph(self):
         r"""
@@ -5111,7 +5123,7 @@ class Graph(GenericGraph):
             Incidence structure with 10 points and 60 blocks
             sage: p=graphs.chang_graphs()
             sage: T8 = graphs.CompleteGraph(8).line_graph()
-            sage: C = T8.seidel_switching([(0,1,None),(2,3,None),(4,5,None),(6,7,None)])
+            sage: C = T8.seidel_switching([(0,1,None),(2,3,None),(4,5,None),(6,7,None)],inplace=False)
             sage: T8.twograph()==C.twograph()
             True
             sage: T8.is_isomorphic(C)

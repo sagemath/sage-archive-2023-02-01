@@ -626,10 +626,7 @@ def SRG_196_91_42_42():
     W = map(frozenset,[[x+z for x in H] for z in G])
     G = IntersectionGraph(U+V+W)
 
-    # G = G.seidel_switching(U)
-    boundary = G.edge_boundary(U)
-    G.add_edges((x,y) for x in V+W for y in U)
-    G.delete_edges(boundary)
+    G.seidel_switching(U)
 
     G.add_edges((-1,x) for x in U)
     G.relabel()

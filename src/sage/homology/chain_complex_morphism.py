@@ -187,7 +187,7 @@ class ChainComplexMorphism(SageObject):
 
         INPUT:
 
-        - ``n`` - degree
+        - ``n`` -- degree
 
         EXAMPLES::
 
@@ -332,7 +332,7 @@ class ChainComplexMorphism(SageObject):
         TESTS:
 
         Make sure that the product is taken in the correct order
-        (``self * x``, not ``x * self``)::
+        (``self * x``, not ``x * self`` -- see :trac:`19065`)::
 
             sage: C = ChainComplex({0: zero_matrix(ZZ, 0, 2)})
             sage: D = ChainComplex({0: zero_matrix(ZZ, 0, 1)})
@@ -340,8 +340,23 @@ class ChainComplexMorphism(SageObject):
             sage: g = Hom(D,C)({0: matrix(2, 1, [1, 1])})
             sage: (f*g).in_degree(0)
             [2]
+
+        Before :trac:`19065`, the following multiplication produced a
+        ``KeyError`` because `f` was not explicitly defined in degree 2::
+
+            sage: C0 = ChainComplex({0: zero_matrix(ZZ, 0, 1)})
+            sage: C1 = ChainComplex({1: zero_matrix(ZZ, 0, 1)})
+            sage: C2 = ChainComplex({2: zero_matrix(ZZ, 0, 1)})
+            sage: f = ChainComplexMorphism({}, C0, C1)
+            sage: g = ChainComplexMorphism({}, C1, C2)
+            sage: g * f
+            Chain complex morphism from Chain complex with at most 1 nonzero terms over Integer Ring to Chain complex with at most 1 nonzero terms over Integer Ring
+            sage: f._matrix_dictionary
+            {0: [], 1: []}
+            sage: g._matrix_dictionary
+            {1: [], 2: []}
         """
-        if not isinstance(x,ChainComplexMorphism) or self._codomain != x._domain:
+        if not isinstance(x,ChainComplexMorphism) or self._domain != x._codomain:
             try:
                 y = self._domain.base_ring()(x)
             except TypeError:

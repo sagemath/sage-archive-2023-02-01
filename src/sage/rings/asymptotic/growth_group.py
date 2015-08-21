@@ -216,9 +216,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         sage: v = Variable('x '); repr(v), v.variable_names()
         ('x', ('x',))
         sage: v = Variable(''); repr(v), v.variable_names()
-        Traceback (most recent call last):
-        ...
-        ValueError: '' is not a valid name for a variable.
+        ('', ())
 
     ::
 
@@ -384,16 +382,21 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable.extract_variable_names('')
+            ()
             sage: Variable.extract_variable_names('x')
             ('x',)
             sage: Variable.extract_variable_names('exp(x)')
             ('x',)
             sage: Variable.extract_variable_names('sin(cos(ln(x)))')
             ('x',)
-            sage: Variable.extract_variable_names('log(77)')
+
+        ::
+
+            sage: Variable.extract_variable_names('log(77w)')
             Traceback (most recent call last):
             ....
-            ValueError: '77' is not a valid name for a variable.
+            ValueError: '77w' is not a valid name for a variable.
             sage: Variable.extract_variable_names('log(x')
             Traceback (most recent call last):
             ....
@@ -406,27 +409,70 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             Traceback (most recent call last):
             ....
             ValueError: Unbalanced parentheses in 'log)x('.
+
+        ::
+
+            sage: Variable.extract_variable_names('a + b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('a+b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('a +b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('+a')
+            ('a',)
+            sage: Variable.extract_variable_names('a+')
+            ('a',)
+            sage: Variable.extract_variable_names('b!')
+            ('b',)
+            sage: Variable.extract_variable_names('-a')
+            ('a',)
+            sage: Variable.extract_variable_names('a*b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('2^q')
+            ('q',)
+            sage: Variable.extract_variable_names('77')
+            ()
         """
         from sage.symbolic.ring import isidentifier
-        s = s.strip()
+        import re
+        numbers = re.compile(r"\d+$")
+        vars = []
 
-        def strip_fct(s):
+        def strip(s):
+            s = s.strip()
+            if not s:
+                return
+
+            # parentheses (...)
+            # functions f(...)
             op = s.find('(')
             cl = s.rfind(')')
-            if op == -1 and cl == -1:
-                return s
             if (op == -1) != (cl == -1) or op > cl:
                 raise ValueError("Unbalanced parentheses in '%s'." % (s,))
-            return s[op+1:cl]
+            if cl == len(s) - 1:
+                strip(s[op+1:cl])
+                return
 
-        s_old = ''
-        while s != s_old:
-            s_old = s
-            s = strip_fct(s)
+            # unary +a, a+, ...
+            # binary a+b, a*b, ...
+            for operator in ('**', '+', '-', '*', '/', '^', '!'):
+                a, o, b = s.partition(operator)
+                if o:
+                    strip(a)
+                    strip(b)
+                    return
 
-        if not isidentifier(s):
-            raise ValueError("'%s' is not a valid name for a variable." % (s,))
-        return (s,)
+            # a number
+            if numbers.match(s) is not None:
+                return
+
+            # else: a variable
+            if not isidentifier(s):
+                raise ValueError("'%s' is not a valid name for a variable." % (s,))
+            vars.append(s)
+
+        strip(s)
+        return tuple(vars)
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):

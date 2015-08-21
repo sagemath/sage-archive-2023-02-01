@@ -195,7 +195,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
       variable. It has to be a valid Python identifier. ``var`` can
       also be a tuple (or other iterable of such objects).
 
-    - ``repr`` (default: ``None``) -- if specified, then this string
+    - ``repr`` -- (default: ``None``) if specified, then this string
       will be displayed instead of ``var``. Use this to get
       e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
 
@@ -1941,7 +1941,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         Given the arguments and keyword, create a key that uniquely
         determines this object.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')

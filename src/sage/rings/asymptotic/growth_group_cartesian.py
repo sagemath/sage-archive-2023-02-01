@@ -44,13 +44,87 @@ import sage
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
-    def create_key_and_extra_args(self, growth_groups, **kwds):
-        return tuple(growth_groups), kwds
+    r"""
+    Creates various types of cartesian products depending on its input.
 
-    def create_object(self, version, growth_groups, **kwds):
-        order = kwds.pop('order')
+    INPUT:
+
+    - ``growth_groups`` -- a tuple (or other iterable) of growth groups.
+
+    - ``order`` -- (default: ``None``) if specified, then this order
+      is taken for comparing two cartesian product elements. If ``order`` is
+      ``None`` this is determined automatically.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: A = GrowthGroup('x^ZZ'); A
+        Growth Group x^ZZ
+        sage: B = GrowthGroup('log(x)^ZZ'); B
+        Growth Group log(x)^ZZ
+        sage: C = cartesian_product([A, B]); C
+        Growth Group x^ZZ * log(x)^ZZ
+        sage: C._le_ == C.le_lex
+        True
+        sage: D = GrowthGroup('y^ZZ'); D
+        Growth Group y^ZZ
+        sage: E = cartesian_product([A, D]); E
+        Growth Group x^ZZ * y^ZZ
+        sage: E._le_ == E.le_components
+        True
+        sage: F = cartesian_product([C, D]); F
+        Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+        sage: F._le_ == F.le_components
+        True
+        sage: cartesian_product([A, E]); G
+        Traceback (most recent call last):
+        ...
+        ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
+        do not have pairwise distinct variables.
+        sage: cartesian_product([A, B, D])
+        Traceback (most recent call last):
+        ...
+        ValueError: Growth groups
+        (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^ZZ)
+        do not have pairwise distinct variables.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
+        sage: CartesianProductFactory('factory')([A, B], category=Sets())
+        Growth Group x^ZZ * log(x)^ZZ
+    """
+    def create_key_and_extra_args(self, growth_groups, category, **kwds):
+        r"""
+        Given the arguments and keywords, create a key that uniquely
+        determines this object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: A = GrowthGroup('x^ZZ')
+            sage: CartesianProductFactory('factory').create_key_and_extra_args(
+            ....:     [A], category=Sets(), order='blub')
+            (((Growth Group x^ZZ,), Category of sets), {'order': 'blub'})
+        """
+        return (tuple(growth_groups), category), kwds
+
+
+    def create_object(self, version, args, **kwds):
+        r"""
+        Create an object from the given arguments.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: cartesian_product([GrowthGroup('x^ZZ')])  # indirect doctest
+            Growth Group x^ZZ
+        """
+        growth_groups, category = args
+        order = kwds.pop('order', None)
         if order is not None:
-            return GenericProduct(growth_groups, order=order, **kwds)
+            return GenericProduct(growth_groups, category, order=order, **kwds)
 
         # check if all groups have a variable
         if not all(g.variable_names() for g in growth_groups):
@@ -62,14 +136,14 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         first_var = growth_groups[0].variable_names()
         if len(first_var) == 1 and all(g.variable_names() == first_var
                                        for g in growth_groups):
-            return UnivariateProduct(growth_groups, **kwds)
+            return UnivariateProduct(growth_groups, category, **kwds)
 
         # check if multivariate and all have distinct single variables
         vg = tuple((g.variable_names(), g) for g in growth_groups)
         vars = sum(iter(v for v, _ in vg), tuple())
         if len(vars) != len(set(vars)):
-            raise ValueError('Growth groups %s do not have distinct variables.' %
-                             growth_groups)
+            raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
+                             (growth_groups,))
         if any(len(v) != 1 for v, _ in vg):
             raise NotImplementedError('Cannot build cartesian product since growth '
                                       'groups %s do not have single variables.' %
@@ -78,13 +152,13 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         vg = sorted(vg, key=lambda k: k[0])
         from itertools import groupby
         sorted_groups = list()
-        for v, gs in groupby(vg, key=lambda k: k[0]):
+        for _, gs in groupby(vg, key=lambda k: k[0]):
             gs = tuple(gs)
             if len(gs) > 1:
-                raise ValueError('Growth groups %s do not have distinct variables.' %
+                raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
                                  gs)
-            sorted_groups.append(gs[0])
-        return MultivariateProduct(sorted_groups, **kwds)
+            sorted_groups.append(gs[0][1])
+        return MultivariateProduct(tuple(sorted_groups), category, **kwds)
 
 
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
@@ -366,7 +440,7 @@ class GenericProduct(CartesianProductPosets):
 
 class UnivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
-        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+        super(UnivariateProduct, self).__init__(
             sets, category, order='lex', **kwargs)
 
 
@@ -375,7 +449,7 @@ class UnivariateProduct(GenericProduct):
 
 class MultivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
-        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+        super(MultivariateProduct, self).__init__(
             sets, category, order='components', **kwargs)
 
 

@@ -80,19 +80,19 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         Traceback (most recent call last):
         ...
         ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
-        do not have pairwise distinct variables.
+        do not have pairwise disjoint variables.
         sage: cartesian_product([A, B, D])
-        Traceback (most recent call last):
-        ...
-        ValueError: Growth groups
-        (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^ZZ)
-        do not have pairwise distinct variables.
+        Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
     TESTS::
 
         sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
         sage: CartesianProductFactory('factory')([A, B], category=Sets())
         Growth Group x^ZZ * log(x)^ZZ
+        sage: CartesianProductFactory('factory')([], category=Sets())
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot create cartesian product without factors.
     """
     def create_key_and_extra_args(self, growth_groups, category, **kwds):
         r"""
@@ -122,43 +122,45 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
             Growth Group x^ZZ
         """
         growth_groups, category = args
+        if not growth_groups:
+            raise TypeError('Cannot create cartesian product without factors.')
         order = kwds.pop('order', None)
         if order is not None:
             return GenericProduct(growth_groups, category, order=order, **kwds)
 
+        vg = tuple((g.variable_names(), g) for g in growth_groups)
+
         # check if all groups have a variable
-        if not all(g.variable_names() for g in growth_groups):
+        if not all(v for v, _ in vg):
             raise NotImplementedError('Growth groups %s have no variable.' %
                                       tuple(g for g in growth_groups
                                             if not g.variable_names()))
 
-        # check if all are univariate
-        first_var = growth_groups[0].variable_names()
-        if len(first_var) == 1 and all(g.variable_names() == first_var
-                                       for g in growth_groups):
-            return UnivariateProduct(growth_groups, category, **kwds)
+        # sort by variables
+        from itertools import groupby, product
+        vgs = tuple((v, tuple(gs)) for v, gs in
+                    groupby(sorted(vg, key=lambda k: k[0]), key=lambda k: k[0]))
 
-        # check if multivariate and all have distinct single variables
-        vg = tuple((g.variable_names(), g) for g in growth_groups)
-        vars = sum(iter(v for v, _ in vg), tuple())
-        if len(vars) != len(set(vars)):
-            raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
-                             (growth_groups,))
-        if any(len(v) != 1 for v, _ in vg):
-            raise NotImplementedError('Cannot build cartesian product since growth '
-                                      'groups %s do not have single variables.' %
-                                      tuple(g for v, g in vg if len(v) != 1))
+        # check if variables are pairwise disjoint
+        for u, w in product(iter(v for v, _ in vgs), repeat=2):
+            if u != w and set(u).intersection(set(w)):
+                raise ValueError('Growth groups %s do not have pairwise disjoint '
+                                 'variables.' % (growth_groups,))
 
-        vg = sorted(vg, key=lambda k: k[0])
-        from itertools import groupby
-        sorted_groups = list()
-        for _, gs in groupby(vg, key=lambda k: k[0]):
-            gs = tuple(gs)
+        # build cartesian products
+        u_groups = list()
+        for _, gs in vgs:
+            gs = tuple(g for _, g in gs)
             if len(gs) > 1:
-                raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
-                                 gs)
-            sorted_groups.append(gs[0][1])
-        return MultivariateProduct(tuple(sorted_groups), category, **kwds)
+                u_groups.append(UnivariateProduct(gs, category, **kwds))
+            else:
+                u_groups.append(gs[0])
+
+        if len(u_groups) > 1:
+            m_group = MultivariateProduct(tuple(u_groups), category, **kwds)
+        else:
+            m_group = u_groups[0]
+        return m_group
 
 
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')

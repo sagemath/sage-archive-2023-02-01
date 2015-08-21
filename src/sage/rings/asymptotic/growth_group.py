@@ -105,6 +105,7 @@ product matters::
 import sage
 from sage.rings.asymptotic.growth_group_cartesian import CartesianProductGrowthGroups
 
+
 def repr_short_to_parent(s):
     r"""
     Helper method for the growth group factory, which converts a short
@@ -183,7 +184,8 @@ def parent_to_repr_short(P):
         return rep
 
 
-class Variable(sage.structure.sage_object.SageObject):
+class Variable(sage.structure.unique_representation.CachedRepresentation,
+               sage.structure.sage_object.SageObject):
     r"""
     TESTS::
 
@@ -200,6 +202,10 @@ class Variable(sage.structure.sage_object.SageObject):
         ('x', ('x',))
         sage: v = Variable('x '); repr(v), v.variable_names()
         ('x', ('x',))
+        sage: v = Variable(''); repr(v), v.variable_names()
+        Traceback (most recent call last):
+        ...
+        ValueError: '' is not a valid name for a variable.
 
     ::
 
@@ -251,12 +257,24 @@ class Variable(sage.structure.sage_object.SageObject):
         self.var_repr = var_repr
 
 
+    def __hash__(self):
+        return hash((self.var_repr,) + self.var_bases)
+
+
+    def __eq__(self, other):
+        return self.var_repr == other.var_repr and self.var_bases == other.var_bases
+
+
     def _repr_(self):
         return self.var_repr
 
 
     def variable_names(self):
         return self.var_bases
+
+
+    def is_monomial(self):
+        return len(self.var_bases) == 1 and self.var_bases[0] == self.var_repr
 
 
     @staticmethod
@@ -1151,16 +1169,17 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         from sage.rings.integer_ring import ZZ
 
+        var = repr(self.parent()._var_)
         if self.exponent == 0:
             return '1'
         elif self.exponent == 1:
-            return self.parent()._var_
+            return var
         elif self.exponent == -1:
-            return '1/' + self.parent()._var_
+            return '1/' + var
         elif self.exponent in ZZ and self.exponent > 0:
-            return self.parent()._var_ + '^' + str(self.exponent)
+            return var + '^' + str(self.exponent)
         else:
-            return self.parent()._var_ + '^(' + str(self.exponent) + ')'
+            return var + '^(' + str(self.exponent) + ')'
 
 
     def _mul_(self, other):
@@ -1363,7 +1382,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: L1 is L2
             True
         """
-        var = str(var).strip()
+        if not isinstance(var, Variable):
+            var = Variable(var)
         return super(MonomialGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
@@ -1390,17 +1410,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
+            ValueError: 'Integer Ring' is not a valid name for a variable.
+            sage: agg.MonomialGrowthGroup('x', 'y')
+            Traceback (most recent call last):
+            ...
             TypeError: x is not a valid base
         """
-        if not var:
-            raise ValueError('Empty var is not allowed.')
-        if var[0] in '0123456789=+-*/^%':
-            # This restriction is mainly for optical reasons on the
-            # representation. Feel free to relax this if needed.
-            raise ValueError("The variable name '%s' is inappropriate." %
-                             (var,))
         self._var_ = var
-
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)
 
 
@@ -1543,19 +1559,20 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         """
         if data == 1:
             return self.base().zero()
-        if str(data) == self._var_:
+        var = repr(self._var_)
+        if str(data) == var:
             return self.base().one()
 
         try:
             P = data.parent()
         except AttributeError:
-            if self._var_ not in str(data):
+            if var not in str(data):
                 return  # this has to end here
 
-            elif str(data) == '1/' + self._var_:
+            elif str(data) == '1/' + var:
                 return self.base()(-1)
-            elif str(data).startswith(self._var_ + '^'):
-                return self.base()(str(data).replace(self._var_ + '^', '')
+            elif str(data).startswith(var + '^'):
+                return self.base()(str(data).replace(var + '^', '')
                                    .replace('(', '').replace(')', ''))
             else:
                 return  # end of parsing
@@ -1570,19 +1587,19 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if P is SR:
             if data.operator() == operator.pow:
                 base, exponent = data.operands()
-                if str(base) == self._var_:
+                if str(base) == var:
                     return exponent
         elif isinstance(P, (PolynomialRing_general, MPolynomialRing_generic)):
             if data.is_monomial() and len(data.variables()) == 1:
-                if self._var_ == str(data.variables()[0]):
+                if var == str(data.variables()[0]):
                     return data.degree()
         elif isinstance(P, PowerSeriesRing_generic):
             if hasattr(data, 'variables') and len(data.variables()) == 1:
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
-                    if self._var_ == str(data.variables()[0]):
+                    if var == str(data.variables()[0]):
                         return data.degree()
-            elif self._var_ == str(data.variable()[0]):
+            elif var == str(data.variable()[0]):
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()
@@ -1650,9 +1667,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial()
             ()
         """
-        from sage.symbolic.ring import isidentifier
-        if not isidentifier(self._var_):
-            return ()
+        if not self._var_.is_monomial():
+            return tuple()
         return (self(raw_element=self.base().one()),)
 
 
@@ -1842,7 +1858,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         equal_var_groups = []
         vars = []
         for group in groups:
-            var = group._var_
+            var = repr(group._var_)
             if not vars or '(' + vars[-1] + ')' not in var:
                 vars.append(var)
                 equal_var_groups.append([group])
@@ -1861,5 +1877,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             return equal_var_groups[0]
 
         return cartesian_product(equal_var_groups, order='components')
+
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")

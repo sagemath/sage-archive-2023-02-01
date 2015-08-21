@@ -619,7 +619,25 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         EXAMPLES::
 
-            sage: # todo
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid,
+            ....:      ExactTermMonoid, OTermMonoid)
+            sage: GT = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: g = GT.an_element(); e = ET.an_element(); o = OT.an_element()
+            sage: g, e, o
+            (Generic Term with growth x, x, O(x))
+            sage: g.is_same(g^2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
+            sage: e.is_same(e^2)
+            False
+            sage: e.is_same(ET(x,1))
+            True
+            sage: o.is_same(OT(x^2))
+            False
         """
         from sage.structure.element import have_same_parent
 

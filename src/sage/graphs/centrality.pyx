@@ -517,7 +517,7 @@ cdef void _sort_vertices_degree(short_digraph g, int *sorted_verts):
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef uint32_t *verts_of_degree = <uint32_t*> mem.calloc(g.n, sizeof(uint32_t))
     cdef uint32_t *next_vert_of_degree = <uint32_t*> mem.malloc(g.n * sizeof(uint32_t))
-    cdef int d
+    cdef int d, v
 
     # Otherwise, segmentation fault
     if g.n == 0:
@@ -573,9 +573,9 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     ``k`` most central vertices, and ``closv`` is its closeness centrality.
     If ``k`` is bigger than the number of vertices with positive (out)degree,
     the list might be smaller.
-    
+
     REFERENCES:
-    
+
     .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
        Fast and Simple Computation of Top-k Closeness Centralities.
        Preprint on arXiv.
@@ -667,13 +667,13 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
         sage: for i in range(len(topk)):
         ....:     assert(abs(topk[i][0] - sorted_centr[i]) < 1e-12)
     """
-    
+
     if k >= G.num_verts():
         closeness_dict = G.centrality_closeness(by_weight=False,algorithm='BFS')
         return sorted([(closz, z) for z,closz in closeness_dict.iteritems()], reverse=True)
     if G.num_verts()==0 or G.num_verts()==1:
         return []
-    
+
     sig_on()
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef short_digraph sd
@@ -699,8 +699,10 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     cdef bint directed = G.is_directed()
 
     cdef int *topk = <int*> mem.malloc(k * sizeof(int))
-    memset(topk, -1, k * sizeof(int))
-    memset(pred, -1, n * sizeof(int))
+    for i in range(k):
+        topk[i] = -1
+    for i in range(n):
+        pred[i] = -1
 
     cdef double kth = n
     cdef int *sorted_vert = <int *> mem.malloc(n * sizeof(int))

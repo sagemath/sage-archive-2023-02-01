@@ -372,6 +372,111 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         return bool(self._summands_)
 
 
+    def __eq__(self, other):
+        r"""
+        Return if this asymptotic expression is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: (1 + 2*x + 3*x^2) == (3*x^2 + 2*x + 1)  # indirect doctest
+            True
+            sage: O(x) == O(x)
+            False
+        """
+        return (self - other) == 0
+
+
+    def has_same_summands(self, other):
+        r"""
+        Return if this asymptotic expression and ``other`` have the
+        same summands.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic expression.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            While for example ``O(x) == O(x)`` yields ``False``,
+            these expressions *do* have the same summands.
+
+            Also, this method uses the coercion model in order to
+            find a common parent for this asymptotic expression and
+            ``other``. The method :meth:`_has_same_summands_` is
+            then used for the actual comparison.
+
+        EXAMPLES::
+
+            sage: R_ZZ.<x_ZZ> = AsymptoticRing('x^ZZ', ZZ)
+            sage: R_QQ.<x_QQ> = AsymptoticRing('x^ZZ', QQ)
+            sage: sum(x_ZZ^k for k in range(5)) == sum(x_QQ^k for k in range(5))  # indirect doctest
+            True
+            sage: O(x_ZZ) == O(x_QQ)
+            False
+        """
+        from sage.structure.element import have_same_parent
+
+        if have_same_parent(self, other):
+            return self._has_same_summands_(other)
+
+        from sage.structure.element import get_coercion_model
+
+        return get_coercion_model().bin_op(self, other,
+                                           lambda self, other:
+                                           self._has_same_summands_(other))
+
+
+    def _has_same_summands_(self, other):
+        r"""
+        Return, if this :class:`AsymptoticExpression` has the same
+        summands as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`AsymptoticExpression`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method compares two :class:`AsymptoticExpression`
+            with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: O(x).has_same_summands(O(x))
+            True
+            sage: (1 + x + 2*x^2).has_same_summands(2*x^2 + O(x))  # indirect doctest
+            False
+        """
+        if len(self.summands) != len(other.summands):
+            return False
+        pairs = zip(self.summands.elements_topological(),
+                    other.summands.elements_topological())
+        return all(p[0].is_same_term(p[1]) for p in pairs)
+
+
     def _simplify_(self):
         r"""
         Simplify this asymptotic expression.

@@ -600,6 +600,75 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth <= other.growth
 
 
+    def is_same_term(self, other):
+        r"""
+        Return if this :class:`ExactTerm` is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: # todo
+        """
+        from sage.structure.element import have_same_parent
+
+        if have_same_parent(self, other):
+            return self._is_same_term_(other)
+
+        from sage.structure.element import get_coercion_model
+
+        return get_coercion_model().bin_op(self, other,
+                                           lambda self, other:
+                                           self._is_same_term_(other))
+
+
+    def _is_same_term_(self, other):
+        r"""
+        Return if this asymptotic term is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
+
+            Only implemented in classes that are used within
+            :mod:`sage.rings.asymptotic.asymptotic_ring`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = T.an_element()
+            sage: t.is_same_term(t)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented for terms used in the asymptotic ring.
+        """
+        raise NotImplementedError('Only implemented for terms used in the '
+                                  'asymptotic ring.')
+
+
     def _repr_(self):
         r"""
         A representation string for this generic term.
@@ -1056,6 +1125,39 @@ class OTerm(GenericTerm):
             ArithmeticError: O(x) cannot absorb O(x^2)
         """
         return self
+
+
+    def _is_same_term_(self, other):
+        r"""
+        Return if this :class:`OTerm` is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`OTerm`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this :class:`OTerm` and ``other`` come
+            from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = OT.an_element(); t
+            O(x)
+            sage: t.is_same_term(OT(x))
+            True
+            sage: t.is_same_term(OT(x^2))
+            False
+        """
+        return self.growth == other.growth
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -1839,6 +1941,41 @@ class ExactTerm(TermWithCoefficient):
             return None
         else:
             return self.parent()(self.growth, coeff_new)
+
+
+    def _is_same_term_(self, other):
+        r"""
+        Return if this :class:`ExactTerm` is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`ExactTerm`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this :class:`ExactTerm` and ``other``
+            come from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid
+            sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: t = ET.an_element(); t
+            x
+            sage: t.is_same_term(ET(x))
+            True
+            sage: t.is_same_term(ET(2*x))
+            False
+            sage: t.is_same_term(ET(x^2))
+            False
+        """
+        return self.growth == other.growth and self.coefficient == other.coefficient
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

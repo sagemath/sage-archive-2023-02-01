@@ -150,9 +150,13 @@ and more advanced
     sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
     4*z^6 + O(z^5)
 
-.. TODO::
+The division of asymptotic expressions is implemented as well::
 
-   inversions
+    sage: A.<z> = AsymptoticRing('z^QQ', QQ, default_prec=10)
+    sage: 1/(z - 1)
+    1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-10) + O(z^(-11))
+    sage: (1 + 4*z)/(z + z^2 + z^3)
+    4*z^(-2) - 3*z^(-3) - z^(-4) + 4*z^(-5) - 3*z^(-6) - ... - z^(-16) + O(z^(-17))
 
 .. TODO::
 

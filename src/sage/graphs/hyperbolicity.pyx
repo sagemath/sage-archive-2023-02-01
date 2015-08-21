@@ -664,8 +664,8 @@ cdef tuple hyperbolicity_BCCM(int N,
       ``h == h_UB``, the returned solution is optimal.
     """
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int hh # can get negative value
-    cdef int a, b, c, d, h, h_UB, n_val, n_acc, i, j
+    cdef int h = 0, hh # can get negative value
+    cdef int a, b, c, d, h_UB, n_val, n_acc, i, j
     cdef int hplusone
     cdef int condacc
     cdef int x, y, S1, S2, S3

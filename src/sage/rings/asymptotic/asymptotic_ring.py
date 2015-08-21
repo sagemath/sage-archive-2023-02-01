@@ -567,6 +567,28 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                                  term_other in other.summands.elements()))
 
 
+    def _div_(self, other):
+        r"""
+        Divide this element through ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic expression.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: 1/x^42
+            x^(-42)
+            sage: x^2 / (1 + x)  # not tested
+            ...
+        """
+        return self * other._invert_()
+
     def __pow__(self, power):
         r"""
         Takes this element to the given ``power``.

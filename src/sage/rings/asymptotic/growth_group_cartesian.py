@@ -44,13 +44,15 @@ import sage
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
-    def create_key_and_extra_args(self, growth_groups, **kwds):
-        return tuple(growth_groups), kwds
+    def create_key_and_extra_args(self, growth_groups, category, **kwds):
+        return (tuple(growth_groups), category), kwds
 
-    def create_object(self, version, growth_groups, **kwds):
-        order = kwds.pop('order')
+
+    def create_object(self, version, args, **kwds):
+        growth_groups, category = args
+        order = kwds.pop('order', None)
         if order is not None:
-            return GenericProduct(growth_groups, order=order, **kwds)
+            return GenericProduct(growth_groups, category, order=order, **kwds)
 
         # check if all groups have a variable
         if not all(g.variable_names() for g in growth_groups):
@@ -62,14 +64,14 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         first_var = growth_groups[0].variable_names()
         if len(first_var) == 1 and all(g.variable_names() == first_var
                                        for g in growth_groups):
-            return UnivariateProduct(growth_groups, **kwds)
+            return UnivariateProduct(growth_groups, category, **kwds)
 
         # check if multivariate and all have distinct single variables
         vg = tuple((g.variable_names(), g) for g in growth_groups)
         vars = sum(iter(v for v, _ in vg), tuple())
         if len(vars) != len(set(vars)):
-            raise ValueError('Growth groups %s do not have distinct variables.' %
-                             growth_groups)
+            raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
+                             (growth_groups,))
         if any(len(v) != 1 for v, _ in vg):
             raise NotImplementedError('Cannot build cartesian product since growth '
                                       'groups %s do not have single variables.' %
@@ -78,13 +80,13 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         vg = sorted(vg, key=lambda k: k[0])
         from itertools import groupby
         sorted_groups = list()
-        for v, gs in groupby(vg, key=lambda k: k[0]):
+        for _, gs in groupby(vg, key=lambda k: k[0]):
             gs = tuple(gs)
             if len(gs) > 1:
-                raise ValueError('Growth groups %s do not have distinct variables.' %
+                raise ValueError('Growth groups %s do not have pairwise distinct variables.' %
                                  gs)
-            sorted_groups.append(gs[0])
-        return MultivariateProduct(sorted_groups, **kwds)
+            sorted_groups.append(gs[0][1])
+        return MultivariateProduct(tuple(sorted_groups), category, **kwds)
 
 
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
@@ -366,7 +368,7 @@ class GenericProduct(CartesianProductPosets):
 
 class UnivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
-        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+        super(UnivariateProduct, self).__init__(
             sets, category, order='lex', **kwargs)
 
 
@@ -375,7 +377,7 @@ class UnivariateProduct(GenericProduct):
 
 class MultivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
-        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+        super(MultivariateProduct, self).__init__(
             sets, category, order='components', **kwargs)
 
 

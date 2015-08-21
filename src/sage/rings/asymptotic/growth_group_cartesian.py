@@ -278,13 +278,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return self(str_lst)
 
 
-    def _repr_(self):
+    def _repr_(self, condense=False):
         r"""
-        A representation string for this cartesian product of growth groups.
+        A representation string of this cartesian product of growth groups.
 
         INPUT:
 
-        Nothing.
+        - ``condense`` -- (default: ``False``) if set, then a shorter
+          output is returned, e.g. the prefix-string ``Growth Group``
+          is not show in this case.
 
         OUTPUT:
 
@@ -298,7 +300,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: cartesian_product([P, L], order='lex')._repr_()
             'Growth Group x^QQ * log(x)^ZZ'
         """
-        return GenericGrowthGroup._repr_(self)
+        return GenericGrowthGroup._repr_(self, condense)
 
 
     def _repr_short_(self):
